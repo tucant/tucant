@@ -1,3 +1,8 @@
+use std::{
+    env,
+    io::{self, BufRead},
+};
+
 use scraper::{ElementRef, Html, Selector};
 
 async fn fetch_document(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
@@ -84,6 +89,41 @@ async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error:
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let username = env::args().nth(1).unwrap();
+
+    let password = rpassword::prompt_password("TUCAN password: ").unwrap();
+
+    let params: [(&str, &str); 10] = [
+        ("usrname", &username),
+        ("pass", &password),
+        ("APPNAME", "CampusNet"),
+        ("PRGNAME", "LOGINCHECK"),
+        (
+            "ARGUMENTS",
+            "clino,usrname,pass,menuno,menu_type,browser,platform",
+        ),
+        ("clino", "000000000000001"),
+        ("menuno", "000344"),
+        ("menu_type", "classic"),
+        ("browser", ""),
+        ("platform", ""),
+    ];
+    let client = reqwest::Client::new();
+    let res_headers = client
+        .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
+        .form(&params)
+        .send()
+        .await?;
+
+    println!("{:?}", res_headers);
+
+    let res = res_headers.text().await?;
+
+    let document = Html::parse_document(&res);
+    println!("{}", document.root_element().html());
+
+    return Ok(());
+
     let document = fetch_document("https://www.tucan.tu-darmstadt.de/").await?;
 
     let redirect_url = &element_by_selector(&document, r#"meta[http-equiv="refresh"]"#)

@@ -11,3 +11,4 @@ tokio = { version = "1", features = ["full"] }
 html5ever = "0.26"
 scraper = "0.13"
 async-recursion = "1"
+rpassword = "7"
