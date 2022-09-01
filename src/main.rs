@@ -24,7 +24,11 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
     document.select(&s(selector)).next()
 }
 
-async fn handle_veranstaltung(document: &Html) {}
+async fn handle_veranstaltung(document: &Html) {
+    let name = element_by_selector(&document, "h1").unwrap();
+
+    println!("Name: {}", name.inner_html().trim());
+}
 
 #[async_recursion::async_recursion(?Send)]
 async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error::Error>> {
