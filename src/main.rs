@@ -30,7 +30,12 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 
 impl TUCAN {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
-        let resp = self.client.get(url).send().await?.text().await?;
+        let a = self.client.get(url);
+        let b = a.build().unwrap();
+
+        println!("{:?}", b.headers());
+
+        let resp = self.client.execute(b).await?.text().await?;
 
         Ok(Html::parse_document(&resp))
     }
@@ -116,22 +121,14 @@ impl TUCAN {
             ("browser", ""),
             ("platform", ""),
         ];
-        let client = reqwest::Client::new();
-        let res_headers = client
+        let res_headers = self
+            .client
             .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
             .form(&params)
             .send()
             .await?;
 
-        println!("{:?}", res_headers);
-
-        let res = res_headers.text().await?;
-
-        let document = Html::parse_document(&res);
-        println!("{}", document.root_element().html());
-
-        return Ok(());
-
+        /*
         let document = self
             .fetch_document("https://www.tucan.tu-darmstadt.de/")
             .await?;
@@ -142,12 +139,25 @@ impl TUCAN {
             .attr("content")
             .unwrap()[7..];
 
+            */
+
+        let redirect_url =
+            &res_headers.headers().get("refresh").unwrap().to_str()?[7..].to_string();
+
+        let res = res_headers.text().await?;
+
+        let document = Html::parse_document(&res);
+
+        println!("{}", document.root_element().html());
+
         let document = self
             .fetch_document(&format!(
                 "https://www.tucan.tu-darmstadt.de/{}",
                 redirect_url
             ))
             .await?;
+
+        println!("{}", document.root_element().html());
 
         let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
             .unwrap()
