@@ -8,7 +8,7 @@ async fn fetch_document(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
 
 fn link_by_text<'a>(document: &'a Html, text: &str) -> &'a str {
     document
-        .select(&Selector::parse(r#"a"#).unwrap())
+        .select(&s(r#"a"#))
         .find(|e| e.inner_html() == text)
         .unwrap()
         .value()
@@ -16,36 +16,44 @@ fn link_by_text<'a>(document: &'a Html, text: &str) -> &'a str {
         .unwrap()
 }
 
-fn element_by_selector<'a>(document: &'a Html, selector: &str) -> ElementRef<'a> {
-    document
-        .select(&Selector::parse(selector).unwrap())
-        .next()
-        .unwrap()
+fn s(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap()
 }
 
-#[async_recursion::async_recursion]
+fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
+    document.select(&s(selector)).next()
+}
+
+#[async_recursion::async_recursion(?Send)]
 async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error::Error>> {
-    println!("{}", document.root_element().html());
+    //println!("{}", document.root_element().html());
 
     let list = element_by_selector(&document, "#auditRegistration_list");
 
-    for child in list.select(&Selector::parse("li").unwrap()) {
-        println!("{}", child.value().attr("title").unwrap());
+    match list {
+        Some(list) => {
+            for child in list.select(&s("li")) {
+                println!("{}", child.value().attr("title").unwrap());
 
-        let child_url = element_by_selector(&document, r#"a[href]"#)
-        .value()
-        .attr("href")
-        .unwrap();
+                let child_url = child
+                    .select(&s(r#"a[href]"#))
+                    .next()
+                    .unwrap()
+                    .value()
+                    .attr("href")
+                    .unwrap();
 
-        let document = fetch_document(&format!(
-            "https://www.tucan.tu-darmstadt.de/{}",
-            child_url
-        ))
-        .await?;
-    
-        traverse_module_list(&document).await?;
+                //println!("{}", child_url);
+
+                let document =
+                    fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+                        .await?;
+
+                traverse_module_list(&document).await?;
+            }
+        }
+        None => {}
     }
-
     Ok(())
 }
 
@@ -54,6 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let document = fetch_document("https://www.tucan.tu-darmstadt.de/").await?;
 
     let redirect_url = &element_by_selector(&document, r#"meta[http-equiv="refresh"]"#)
+        .unwrap()
         .value()
         .attr("content")
         .unwrap()[7..];
@@ -65,6 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
+        .unwrap()
         .value()
         .attr("href")
         .unwrap();
