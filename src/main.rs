@@ -1,4 +1,4 @@
-use scraper::{Html, Selector};
+use scraper::{ElementRef, Html, Selector};
 
 async fn fetch_document(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
     let resp = reqwest::get(url).await?.text().await?;
@@ -16,14 +16,44 @@ fn link_by_text<'a>(document: &'a Html, text: &str) -> &'a str {
         .unwrap()
 }
 
+fn element_by_selector<'a>(document: &'a Html, selector: &str) -> ElementRef<'a> {
+    document
+        .select(&Selector::parse(selector).unwrap())
+        .next()
+        .unwrap()
+}
+
+#[async_recursion::async_recursion]
+async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", document.root_element().html());
+
+    let list = element_by_selector(&document, "#auditRegistration_list");
+
+    for child in list.select(&Selector::parse("li").unwrap()) {
+        println!("{}", child.value().attr("title").unwrap());
+
+        let child_url = element_by_selector(&document, r#"a[href]"#)
+        .value()
+        .attr("href")
+        .unwrap();
+
+        let document = fetch_document(&format!(
+            "https://www.tucan.tu-darmstadt.de/{}",
+            child_url
+        ))
+        .await?;
+    
+        traverse_module_list(&document).await?;
+    }
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let document = fetch_document("https://www.tucan.tu-darmstadt.de/").await?;
 
-    let redirect_url = &document
-        .select(&Selector::parse(r#"meta[http-equiv="refresh"]"#).unwrap())
-        .next()
-        .unwrap()
+    let redirect_url = &element_by_selector(&document, r#"meta[http-equiv="refresh"]"#)
         .value()
         .attr("content")
         .unwrap()[7..];
@@ -34,10 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ))
     .await?;
 
-    let redirect_url = &document
-        .select(&Selector::parse(r#"h2 a[href]"#).unwrap())
-        .next()
-        .unwrap()
+    let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
         .value()
         .attr("href")
         .unwrap();
@@ -73,7 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ))
     .await?;
 
-    println!("{}", document.root_element().html());
+    traverse_module_list(&document).await?;
 
     Ok(())
 }
