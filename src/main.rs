@@ -1,13 +1,18 @@
 use std::{
     env,
     io::{self, BufRead},
+    sync::Arc,
 };
 
-use reqwest::Client;
+use reqwest::{
+    cookie::{self, CookieStore, Jar},
+    Client,
+};
 use scraper::{ElementRef, Html, Selector};
 
 struct TUCAN {
     client: Client,
+    cookie_store: Arc<Jar>,
 }
 
 fn s(selector: &str) -> Selector {
@@ -32,8 +37,6 @@ impl TUCAN {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
         let a = self.client.get(url);
         let b = a.build().unwrap();
-
-        println!("{:?}", b.headers());
 
         let resp = self.client.execute(b).await?.text().await?;
 
@@ -128,6 +131,8 @@ impl TUCAN {
             .send()
             .await?;
 
+        println!("{:#?}", self.cookie_store);
+
         /*
         let document = self
             .fetch_document("https://www.tucan.tu-darmstadt.de/")
@@ -142,13 +147,15 @@ impl TUCAN {
             */
 
         let redirect_url =
-            &res_headers.headers().get("refresh").unwrap().to_str()?[7..].to_string();
+            &res_headers.headers().get("refresh").unwrap().to_str()?[8..].to_string();
 
         let res = res_headers.text().await?;
 
         let document = Html::parse_document(&res);
 
         println!("{}", document.root_element().html());
+
+        println!("https://www.tucan.tu-darmstadt.de/{}", redirect_url);
 
         let document = self
             .fetch_document(&format!(
@@ -158,6 +165,8 @@ impl TUCAN {
             .await?;
 
         println!("{}", document.root_element().html());
+
+        return Ok(());
 
         let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
             .unwrap()
@@ -208,8 +217,12 @@ impl TUCAN {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cookie_store = Arc::new(Jar::default());
     let tucan = TUCAN {
-        client: reqwest::Client::builder().cookie_store(true).build()?,
+        cookie_store: cookie_store.clone(),
+        client: reqwest::Client::builder()
+            .cookie_provider(cookie_store)
+            .build()?,
     };
 
     tucan.start().await
