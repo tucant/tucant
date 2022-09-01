@@ -24,6 +24,8 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
     document.select(&s(selector)).next()
 }
 
+async fn handle_veranstaltung(document: &Html) {}
+
 #[async_recursion::async_recursion(?Send)]
 async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error::Error>> {
     //println!("{}", document.root_element().html());
@@ -52,7 +54,26 @@ async fn traverse_module_list(document: &Html) -> Result<(), Box<dyn std::error:
                 traverse_module_list(&document).await?;
             }
         }
-        None => {}
+        None => {
+            for child in document
+                .select(&s(r#"table[class="nb eventTable"]"#))
+                .next()
+                .unwrap()
+                .select(&s(r#"a[name="eventLink"]"#))
+            {
+                println!("{}", child.inner_html());
+
+                let child_url = child.value().attr("href").unwrap();
+
+                //println!("{}", child_url);
+
+                let document =
+                    fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+                        .await?;
+
+                handle_veranstaltung(&document).await;
+            }
+        }
     }
     Ok(())
 }
