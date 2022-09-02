@@ -41,6 +41,8 @@ impl TUCAN {
         let a = self.client.get(url);
         let b = a.build().unwrap();
 
+        println!("{:?}", b);
+
         let permit = self.semaphore.acquire().await?;
         let resp = self.client.execute(b).await?.text().await?;
         drop(permit);
@@ -82,8 +84,6 @@ impl TUCAN {
         &self,
         document: &Html,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        //println!("{}", document.root_element().html());
-
         let list = element_by_selector(&document, "#auditRegistration_list");
 
         match list {
@@ -97,6 +97,8 @@ impl TUCAN {
                 }
             }
             None => {
+                println!("a {}", document.root_element().html());
+
                 for child in document
                     .select(&s(r#"table[class="nb eventTable"]"#))
                     .next()
@@ -148,8 +150,6 @@ impl TUCAN {
             .send()
             .await?;
 
-        println!("{:#?}", self.cookie_store);
-
         /*
         let document = self
             .fetch_document("https://www.tucan.tu-darmstadt.de/")
@@ -164,26 +164,18 @@ impl TUCAN {
             */
 
         let redirect_url =
-            &res_headers.headers().get("refresh").unwrap().to_str()?[8..].to_string();
+            &res_headers.headers().get("refresh").unwrap().to_str()?[7..].to_string();
 
-        let res = res_headers.text().await?;
-
-        let document = Html::parse_document(&res);
-
-        println!("{}", document.root_element().html());
-
-        println!("https://www.tucan.tu-darmstadt.de/{}", redirect_url);
+        res_headers.text().await?;
 
         let document = self
             .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de/{}",
+                "https://www.tucan.tu-darmstadt.de{}",
                 redirect_url
             ))
             .await?;
 
-        println!("{}", document.root_element().html());
-
-        let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
+        let redirect_url = &element_by_selector(&document, r#".redirect h2 a[href]"#)
             .unwrap()
             .value()
             .attr("href")
@@ -191,35 +183,37 @@ impl TUCAN {
 
         let document = self
             .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de/{}",
+                "https://www.tucan.tu-darmstadt.de{}",
                 redirect_url
             ))
             .await?;
 
-        let vorlesungsverzeichnis_link = link_by_text(&document, "Vorlesungsverzeichnis (VV)");
+        println!("initial useful page {}", document.root_element().html());
+
+        let vorlesungsverzeichnis_link = link_by_text(&document, "Veranstaltungen");
 
         let document = self
             .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de/{}",
+                "https://www.tucan.tu-darmstadt.de{}",
                 vorlesungsverzeichnis_link
             ))
             .await?;
 
         let aktuelles_vorlesungsverzeichnis_link =
-            link_by_text(&document, "Aktuell - Wintersemester 2022/23");
+            link_by_text(&document, "Anmeldung");
 
         let document = self
             .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de/{}",
+                "https://www.tucan.tu-darmstadt.de{}",
                 aktuelles_vorlesungsverzeichnis_link
             ))
             .await?;
 
-        let informatik_link = link_by_text(&document, " FB20 - Informatik ");
+        let informatik_link = link_by_text(&document, "Pflichtbereich");
 
         let document = self
             .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de/{}",
+                "https://www.tucan.tu-darmstadt.de{}",
                 informatik_link
             ))
             .await?;
@@ -238,7 +232,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         client: reqwest::Client::builder()
             .cookie_provider(cookie_store)
             .build()?,
-        semaphore: Semaphore::new(5),
+        semaphore: Semaphore::new(1),
     };
 
     tucan.start().await
