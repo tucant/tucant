@@ -199,8 +199,7 @@ impl TUCAN {
             ))
             .await?;
 
-        let aktuelles_vorlesungsverzeichnis_link =
-            link_by_text(&document, "Anmeldung");
+        let aktuelles_vorlesungsverzeichnis_link = link_by_text(&document, "Anmeldung");
 
         let document = self
             .fetch_document(&format!(
@@ -209,7 +208,7 @@ impl TUCAN {
             ))
             .await?;
 
-        let informatik_link = link_by_text(&document, "Pflichtbereich");
+        let informatik_link = link_by_text(&document, " Pflichtbereich");
 
         let document = self
             .fetch_document(&format!(
