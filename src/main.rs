@@ -4,15 +4,18 @@ use std::{
     sync::Arc,
 };
 
+use futures::{stream::FuturesUnordered, StreamExt};
 use reqwest::{
     cookie::{self, CookieStore, Jar},
     Client,
 };
 use scraper::{ElementRef, Html, Selector};
+use tokio::sync::{Semaphore, TryAcquireError};
 
 struct TUCAN {
     client: Client,
     cookie_store: Arc<Jar>,
+    semaphore: Semaphore,
 }
 
 fn s(selector: &str) -> Selector {
@@ -38,7 +41,9 @@ impl TUCAN {
         let a = self.client.get(url);
         let b = a.build().unwrap();
 
+        let permit = self.semaphore.acquire().await?;
         let resp = self.client.execute(b).await?.text().await?;
+        drop(permit);
 
         Ok(Html::parse_document(&resp))
     }
@@ -47,6 +52,29 @@ impl TUCAN {
         let name = element_by_selector(&document, "h1").unwrap();
 
         println!("Name: {}", name.inner_html().trim());
+    }
+
+    async fn handle_module<'a>(
+        &self,
+        child: ElementRef<'a>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        println!("{}", child.value().attr("title").unwrap());
+
+        let child_url = child
+            .select(&s(r#"a[href]"#))
+            .next()
+            .unwrap()
+            .value()
+            .attr("href")
+            .unwrap();
+
+        //println!("{}", child_url);
+
+        let document = self
+            .fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+            .await?;
+
+        self.traverse_module_list(&document).await
     }
 
     #[async_recursion::async_recursion(?Send)]
@@ -60,24 +88,12 @@ impl TUCAN {
 
         match list {
             Some(list) => {
-                for child in list.select(&s("li")) {
-                    println!("{}", child.value().attr("title").unwrap());
-
-                    let child_url = child
-                        .select(&s(r#"a[href]"#))
-                        .next()
-                        .unwrap()
-                        .value()
-                        .attr("href")
-                        .unwrap();
-
-                    //println!("{}", child_url);
-
-                    let document = self
-                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
-                        .await?;
-
-                    self.traverse_module_list(&document).await?;
+                let mut futures: FuturesUnordered<_> = list
+                    .select(&s("li"))
+                    .map(|b| self.handle_module(b))
+                    .collect();
+                while let Some(result) = futures.next().await {
+                    result?;
                 }
             }
             None => {
@@ -107,7 +123,8 @@ impl TUCAN {
     async fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
         let username = env::args().nth(1).unwrap();
 
-        let password = rpassword::prompt_password("TUCAN password: ").unwrap();
+        let password = env::args().nth(2).unwrap();
+        //let password = rpassword::prompt_password("TUCAN password: ").unwrap();
 
         let params: [(&str, &str); 10] = [
             ("usrname", &username),
@@ -166,8 +183,6 @@ impl TUCAN {
 
         println!("{}", document.root_element().html());
 
-        return Ok(());
-
         let redirect_url = element_by_selector(&document, r#"h2 a[href]"#)
             .unwrap()
             .value()
@@ -223,6 +238,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         client: reqwest::Client::builder()
             .cookie_provider(cookie_store)
             .build()?,
+        semaphore: Semaphore::new(5),
     };
 
     tucan.start().await
