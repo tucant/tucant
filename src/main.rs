@@ -5,7 +5,10 @@ use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use reqwest::Client;
 use scraper::{ElementRef, Html, Selector};
-use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::{
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    Pool, Sqlite,
+};
 use tokio::sync::Semaphore;
 
 // TODO store raw html for later analysis
@@ -13,6 +16,7 @@ use tokio::sync::Semaphore;
 struct Tucan {
     client: Client,
     semaphore: Semaphore,
+    pool: Pool<Sqlite>,
 }
 
 fn s(selector: &str) -> Selector {
@@ -35,6 +39,23 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 
 impl Tucan {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
+        let document = sqlx::query!("SELECT content FROM http_cache WHERE url = ?", url)
+            .fetch_optional(&self.pool)
+            .await?;
+
+        // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
+        // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
+        // the data at the end is random every login
+
+        // SELECT substr(url, 0, instr(url, "PRGNAME")) FROM http_cache;
+
+        // SELECT substr(url, instr(url, "PRGNAME"), instr(url, "&ARGUMENTS=")-instr(url, "PRGNAME")) AS a, COUNT(*) FROM http_cache GROUP BY a;
+
+        if let Some(doc) = document {
+            println!("hit cache");
+            return Ok(Html::parse_document(&doc.content));
+        }
+
         let a = self.client.get(url);
         let b = a.build().unwrap();
 
@@ -43,6 +64,16 @@ impl Tucan {
         let permit = self.semaphore.acquire().await?;
         let resp = self.client.execute(b).await?.text().await?;
         drop(permit);
+
+        // warning: not transactional with check above
+        let cnt = sqlx::query!(
+            "INSERT INTO http_cache (url, content) VALUES (?, ?)",
+            url,
+            resp
+        )
+        .execute(&self.pool)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
 
         Ok(Html::parse_document(&resp))
     }
@@ -227,23 +258,17 @@ impl Tucan {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let database_url = dotenvy::var("DATABASE_URL")?;
     let pool = SqlitePoolOptions::new()
         .max_connections(1)
         .test_before_acquire(false)
-        .connect_with(SqliteConnectOptions::new().create_if_missing(true))
+        .connect_with(SqliteConnectOptions::from_str(&database_url)?.create_if_missing(true))
         .await?;
 
     sqlx::migrate!().run(&pool).await?;
 
-    // Make a simple query to return the given parameter (use a question mark `?` instead of `$1` for MySQL)
-    let row: (i64,) = sqlx::query_as("SELECT $1")
-        .bind(150_i64)
-        .fetch_one(&pool)
-        .await?;
-
-    println!("{}", row.0);
-
     let tucan = Tucan {
+        pool,
         client: reqwest::Client::builder().cookie_store(true).build()?,
         semaphore: Semaphore::new(10), // risky
     };

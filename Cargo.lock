@@ -1967,6 +1967,7 @@ name = "tucan-scraper"
 version = "0.1.0"
 dependencies = [
  "async-recursion",
+ "dotenvy",
  "futures",
  "html5ever",
  "reqwest",
