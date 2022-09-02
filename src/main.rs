@@ -41,7 +41,7 @@ impl TUCAN {
         let a = self.client.get(url);
         let b = a.build().unwrap();
 
-        println!("{:?}", b);
+        //println!("{:?}", b);
 
         let permit = self.semaphore.acquire().await?;
         let resp = self.client.execute(b).await?.text().await?;
@@ -201,29 +201,31 @@ impl TUCAN {
                 aktuelles_vorlesungsverzeichnis_link
             ))
             .await?;
+        {
+            let informatik_link = link_by_text(&document, " Wahlbereich");
 
-        let informatik_link = link_by_text(&document, " Wahlbereich");
+            let document = self
+                .fetch_document(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    informatik_link
+                ))
+                .await?;
 
-        let document = self
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                informatik_link
-            ))
-            .await?;
+            self.traverse_module_list(&document).await?;
+        }
 
-        self.traverse_module_list(&document).await?;
+        {
+            let informatik_link = link_by_text(&document, " Pflichtbereich");
 
-        let informatik_link = link_by_text(&document, " Pflichtbereich");
+            let document = self
+                .fetch_document(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    informatik_link
+                ))
+                .await?;
 
-        let document = self
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                informatik_link
-            ))
-            .await?;
-
-        self.traverse_module_list(&document).await?;
-
+            self.traverse_module_list(&document).await?;
+        }
         Ok(())
     }
 }
