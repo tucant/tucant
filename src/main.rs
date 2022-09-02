@@ -53,38 +53,62 @@ impl TUCAN {
     async fn handle_veranstaltung(&self, document: &Html) {
         let name = element_by_selector(&document, "h1").unwrap();
 
-        println!("Name: {}", name.inner_html().trim());
+        let text = name.inner_html();
+        let mut fs = text.split("&nbsp;");
+        println!("ID: {}", fs.next().unwrap().trim());
+        println!("Name: {}", fs.next().unwrap().trim());
+        let credits = document
+            .select(&s(r#"#contentlayoutleft b"#))
+            .find(|e| e.inner_html() == "Credits: ")
+            .unwrap()
+            .next_sibling()
+            .unwrap()
+            .value()
+            .as_text()
+            .unwrap();
+
+        println!("Credits: {}", credits.trim());
+        println!("-----------------------");
     }
 
     async fn handle_sublink<'a>(
         &self,
         child: ElementRef<'a>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!("{}", child.inner_html());
+        println!("> {}", child.inner_html());
 
         let child_url = child.value().attr("href").unwrap();
 
         //println!("{}", child_url);
 
-        let document = self
-            .fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
-            .await?;
-
-        self.traverse_module_list(&document).await
+        self.traverse_module_list(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+            .await
     }
 
     #[async_recursion::async_recursion(?Send)]
-    async fn traverse_module_list(
-        &self,
-        document: &Html,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        // submenu list
+    async fn traverse_module_list(&self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let document = self.fetch_document(url).await?;
+
+        // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE");
 
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
         match (submenu_list, modules_list) {
+            (_, Some(list)) => {
+                for child in list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#)) {
+                    //println!("{}", child.inner_html());
+
+                    let child_url = child.value().attr("href").unwrap();
+
+                    let document = self
+                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
+                        .await?;
+
+                    self.handle_veranstaltung(&document).await;
+                }
+            }
             (Some(list), None) => {
                 let mut futures: FuturesUnordered<_> = list
                     .select(&s("a[href]"))
@@ -94,24 +118,9 @@ impl TUCAN {
                     result?;
                 }
             }
-            (None, Some(list)) => {
-                println!("a {}", document.root_element().html());
-
-                for child in list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#)) {
-                    println!("{}", child.inner_html());
-
-                    let child_url = child.value().attr("href").unwrap();
-
-                    println!("{}", child_url);
-
-                    let document = self
-                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
-                        .await?;
-
-                    self.handle_veranstaltung(&document).await;
-                }
+            _ => {
+                panic!("{} {}", url, document.root_element().html())
             }
-            _ => panic!(),
         }
         Ok(())
     }
@@ -182,7 +191,7 @@ impl TUCAN {
             ))
             .await?;
 
-        println!("initial useful page {}", document.root_element().html());
+        //println!("initial useful page {}", document.root_element().html());
 
         let vorlesungsverzeichnis_link = link_by_text(&document, "Veranstaltungen");
 
@@ -204,27 +213,21 @@ impl TUCAN {
         {
             let informatik_link = link_by_text(&document, " Wahlbereich");
 
-            let document = self
-                .fetch_document(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    informatik_link
-                ))
-                .await?;
-
-            self.traverse_module_list(&document).await?;
+            self.traverse_module_list(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                informatik_link
+            ))
+            .await?;
         }
 
         {
             let informatik_link = link_by_text(&document, " Pflichtbereich");
 
-            let document = self
-                .fetch_document(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    informatik_link
-                ))
-                .await?;
-
-            self.traverse_module_list(&document).await?;
+            self.traverse_module_list(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                informatik_link
+            ))
+            .await?;
         }
         Ok(())
     }
