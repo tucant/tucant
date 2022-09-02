@@ -56,19 +56,13 @@ impl TUCAN {
         println!("Name: {}", name.inner_html().trim());
     }
 
-    async fn handle_module<'a>(
+    async fn handle_sublink<'a>(
         &self,
         child: ElementRef<'a>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!("{}", child.value().attr("title").unwrap());
+        println!("{}", child.inner_html());
 
-        let child_url = child
-            .select(&s(r#"a[href]"#))
-            .next()
-            .unwrap()
-            .value()
-            .attr("href")
-            .unwrap();
+        let child_url = child.value().attr("href").unwrap();
 
         //println!("{}", child_url);
 
@@ -84,40 +78,40 @@ impl TUCAN {
         &self,
         document: &Html,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let list = element_by_selector(&document, "#auditRegistration_list");
+        // submenu list
+        let submenu_list = element_by_selector(&document, "#contentSpacer_IE");
 
-        match list {
-            Some(list) => {
+        // list of modules
+        let modules_list = element_by_selector(&document, "table.tbcoursestatus");
+
+        match (submenu_list, modules_list) {
+            (Some(list), None) => {
                 let mut futures: FuturesUnordered<_> = list
-                    .select(&s("li"))
-                    .map(|b| self.handle_module(b))
+                    .select(&s("a[href]"))
+                    .map(|b| self.handle_sublink(b))
                     .collect();
                 while let Some(result) = futures.next().await {
                     result?;
                 }
             }
-            None => {
+            (None, Some(list)) => {
                 println!("a {}", document.root_element().html());
 
-                for child in document
-                    .select(&s(r#"table[class="nb eventTable"]"#))
-                    .next()
-                    .unwrap()
-                    .select(&s(r#"a[name="eventLink"]"#))
-                {
+                for child in list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#)) {
                     println!("{}", child.inner_html());
 
                     let child_url = child.value().attr("href").unwrap();
 
-                    //println!("{}", child_url);
+                    println!("{}", child_url);
 
                     let document = self
-                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
                         .await?;
 
                     self.handle_veranstaltung(&document).await;
                 }
             }
+            _ => panic!(),
         }
         Ok(())
     }
@@ -207,6 +201,17 @@ impl TUCAN {
                 aktuelles_vorlesungsverzeichnis_link
             ))
             .await?;
+
+        let informatik_link = link_by_text(&document, " Wahlbereich");
+
+        let document = self
+            .fetch_document(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                informatik_link
+            ))
+            .await?;
+
+        self.traverse_module_list(&document).await?;
 
         let informatik_link = link_by_text(&document, " Pflichtbereich");
 
