@@ -1,7 +1,6 @@
 #![feature(async_closure)]
-use std::{env, result};
+use std::env;
 
-use futures::{stream::FuturesUnordered, StreamExt};
 use reqwest::Client;
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
@@ -80,10 +79,10 @@ impl Tucan {
     async fn traverse_module_list(&self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
         let document = self.fetch_document(url).await?;
 
-        println!("traverse_module_list {}", document.root_element().html());
+        //println!("traverse_module_list {}", document.root_element().html());
 
         // list of subcategories
-        let submenu_list = element_by_selector(&document, "#contentSpacer_IE");
+        let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
 
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
@@ -205,7 +204,7 @@ impl Tucan {
             ))
             .await?;
         }
-        /*
+
         {
             let informatik_link = link_by_text(&document, " Pflichtbereich");
 
@@ -214,7 +213,7 @@ impl Tucan {
                 informatik_link
             ))
             .await?;
-        }*/
+        }
         Ok(())
     }
 }
