@@ -1,6 +1,8 @@
 #![feature(async_closure)]
 use std::env;
 
+use futures::stream::FuturesUnordered;
+use futures::StreamExt;
 use reqwest::Client;
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
@@ -103,18 +105,20 @@ impl Tucan {
             }
             (Some(list), None) => {
                 let selector = s("a[href]");
-                let mut iterat = list
+                let iterat = list
                     .select(&selector)
                     .map(async move |b| self.handle_sublink(b).await);
 
-                /*let mut futures: FuturesUnordered<_> = iterat
-                    .collect();
+                let mut futures: FuturesUnordered<_> = iterat.collect();
                 while let Some(result) = futures.next().await {
                     result?;
-                }*/
+                }
+
+                /*
                 while let Some(result) = iterat.next() {
                     result.await?;
                 }
+                */
             }
             _ => {
                 panic!("{} {}", url, document.root_element().html())
@@ -222,7 +226,7 @@ impl Tucan {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tucan = Tucan {
         client: reqwest::Client::builder().cookie_store(true).build()?,
-        semaphore: Semaphore::new(1),
+        semaphore: Semaphore::new(10), // risky
     };
 
     tucan.start().await
