@@ -1,4 +1,5 @@
-use std::env;
+#![feature(async_closure)]
+use std::{env, result};
 
 use futures::{stream::FuturesUnordered, StreamExt};
 use reqwest::Client;
@@ -71,15 +72,15 @@ impl Tucan {
 
         let child_url = child.value().attr("href").unwrap();
 
-        //println!("{}", child_url);
-
-        self.traverse_module_list(&format!("https://www.tucan.tu-darmstadt.de/{}", child_url))
+        self.traverse_module_list(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
             .await
     }
 
     #[async_recursion::async_recursion(?Send)]
     async fn traverse_module_list(&self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
         let document = self.fetch_document(url).await?;
+
+        println!("traverse_module_list {}", document.root_element().html());
 
         // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE");
@@ -102,12 +103,18 @@ impl Tucan {
                 }
             }
             (Some(list), None) => {
-                let mut futures: FuturesUnordered<_> = list
-                    .select(&s("a[href]"))
-                    .map(|b| self.handle_sublink(b))
+                let selector = s("a[href]");
+                let mut iterat = list
+                    .select(&selector)
+                    .map(async move |b| self.handle_sublink(b).await);
+
+                /*let mut futures: FuturesUnordered<_> = iterat
                     .collect();
                 while let Some(result) = futures.next().await {
                     result?;
+                }*/
+                while let Some(result) = iterat.next() {
+                    result.await?;
                 }
             }
             _ => {
@@ -144,19 +151,6 @@ impl Tucan {
             .form(&params)
             .send()
             .await?;
-
-        /*
-        let document = self
-            .fetch_document("https://www.tucan.tu-darmstadt.de/")
-            .await?;
-
-        let redirect_url = &element_by_selector(&document, r#"meta[http-equiv="refresh"]"#)
-            .unwrap()
-            .value()
-            .attr("content")
-            .unwrap()[7..];
-
-            */
 
         let redirect_url =
             &res_headers.headers().get("refresh").unwrap().to_str()?[7..].to_string();
@@ -211,7 +205,7 @@ impl Tucan {
             ))
             .await?;
         }
-
+        /*
         {
             let informatik_link = link_by_text(&document, " Pflichtbereich");
 
@@ -220,7 +214,7 @@ impl Tucan {
                 informatik_link
             ))
             .await?;
-        }
+        }*/
         Ok(())
     }
 }
