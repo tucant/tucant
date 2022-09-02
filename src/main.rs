@@ -1,11 +1,14 @@
 #![feature(async_closure)]
-use std::env;
+use std::{env, str::FromStr};
 
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use reqwest::Client;
 use scraper::{ElementRef, Html, Selector};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use tokio::sync::Semaphore;
+
+// TODO store raw html for later analysis
 
 struct Tucan {
     client: Client,
@@ -224,6 +227,22 @@ impl Tucan {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .test_before_acquire(false)
+        .connect_with(SqliteConnectOptions::new().create_if_missing(true))
+        .await?;
+
+    sqlx::migrate!().run(&pool).await?;
+
+    // Make a simple query to return the given parameter (use a question mark `?` instead of `$1` for MySQL)
+    let row: (i64,) = sqlx::query_as("SELECT $1")
+        .bind(150_i64)
+        .fetch_one(&pool)
+        .await?;
+
+    println!("{}", row.0);
+
     let tucan = Tucan {
         client: reqwest::Client::builder().cookie_store(true).build()?,
         semaphore: Semaphore::new(10), // risky
