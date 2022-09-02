@@ -1,20 +1,12 @@
-use std::{
-    env,
-    io::{self, BufRead},
-    sync::Arc,
-};
+use std::env;
 
 use futures::{stream::FuturesUnordered, StreamExt};
-use reqwest::{
-    cookie::{self, CookieStore, Jar},
-    Client,
-};
+use reqwest::Client;
 use scraper::{ElementRef, Html, Selector};
-use tokio::sync::{Semaphore, TryAcquireError};
+use tokio::sync::Semaphore;
 
-struct TUCAN {
+struct Tucan {
     client: Client,
-    cookie_store: Arc<Jar>,
     semaphore: Semaphore,
 }
 
@@ -36,7 +28,7 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
     document.select(&s(selector)).next()
 }
 
-impl TUCAN {
+impl Tucan {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
         let a = self.client.get(url);
         let b = a.build().unwrap();
@@ -51,7 +43,7 @@ impl TUCAN {
     }
 
     async fn handle_veranstaltung(&self, document: &Html) {
-        let name = element_by_selector(&document, "h1").unwrap();
+        let name = element_by_selector(document, "h1").unwrap();
 
         let text = name.inner_html();
         let mut fs = text.split("&nbsp;");
@@ -235,12 +227,8 @@ impl TUCAN {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cookie_store = Arc::new(Jar::default());
-    let tucan = TUCAN {
-        cookie_store: cookie_store.clone(),
-        client: reqwest::Client::builder()
-            .cookie_provider(cookie_store)
-            .build()?,
+    let tucan = Tucan {
+        client: reqwest::Client::builder().cookie_store(true).build()?,
         semaphore: Semaphore::new(1),
     };
 
