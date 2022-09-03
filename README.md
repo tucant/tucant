@@ -1,6 +1,5 @@
 
 
-.env
-```
-DATABASE_URL=sqlite://data.db
+```bash
+sqlx database setup
 ```

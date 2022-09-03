@@ -39,9 +39,26 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 
 impl Tucan {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
-        let document = sqlx::query!("SELECT content FROM http_cache WHERE url = ?", url)
-            .fetch_optional(&self.pool)
-            .await?;
+        let mut normalized_url = url.to_string();
+        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
+            normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
+            //println!("normalized: {}", normalized_url);
+            //println!("url       : {}", url);
+        }
+        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=") {
+            let start = normalized_url.find("ARGUMENTS=").unwrap() + "ARGUMENTS=".len();
+            let end = normalized_url.find(",").unwrap() + 1;
+            normalized_url = normalized_url[0..start].to_string() + &normalized_url[end..];
+            //println!("normalized: {}", normalized_url);
+            //println!("url       : {}", url);
+        }
+
+        let document = sqlx::query!(
+            "SELECT content FROM http_cache WHERE normalized_url = ?",
+            normalized_url
+        )
+        .fetch_optional(&self.pool)
+        .await?;
 
         // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
         // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
@@ -51,9 +68,12 @@ impl Tucan {
 
         // SELECT substr(url, instr(url, "PRGNAME"), instr(url, "&ARGUMENTS=")-instr(url, "PRGNAME")) AS a, COUNT(*) FROM http_cache GROUP BY a;
 
+        // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
+
         if let Some(doc) = document {
-            println!("hit cache");
             return Ok(Html::parse_document(&doc.content));
+        } else {
+            println!("didnt hit cache")
         }
 
         let a = self.client.get(url);
@@ -67,7 +87,8 @@ impl Tucan {
 
         // warning: not transactional with check above
         let cnt = sqlx::query!(
-            "INSERT INTO http_cache (url, content) VALUES (?, ?)",
+            "INSERT INTO http_cache (normalized_url, url, content) VALUES (?, ?, ?)",
+            normalized_url,
             url,
             resp
         )
