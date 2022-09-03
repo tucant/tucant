@@ -87,7 +87,7 @@ impl Tucan {
 
         // warning: not transactional with check above
         let cnt = sqlx::query!(
-            "INSERT INTO http_cache (normalized_url, url, content) VALUES (?, ?, ?)",
+            "INSERT OR REPLACE INTO http_cache (normalized_url, url, content) VALUES (?, ?, ?)",
             normalized_url,
             url,
             resp
