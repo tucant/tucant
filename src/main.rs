@@ -39,19 +39,25 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 
 impl Tucan {
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
+        // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
+        // maybe try the same with the navigation menus
+
         let mut normalized_url = url.to_string();
         if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
             normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
             //println!("normalized: {}", normalized_url);
             //println!("url       : {}", url);
         }
+
+        // can't cache these as the links inside there are invalid for new sessions
+        /*
         if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=") {
             let start = normalized_url.find("ARGUMENTS=").unwrap() + "ARGUMENTS=".len();
             let end = normalized_url.find(",").unwrap() + 1;
             normalized_url = normalized_url[0..start].to_string() + &normalized_url[end..];
             //println!("normalized: {}", normalized_url);
             //println!("url       : {}", url);
-        }
+        }*/
 
         let document = sqlx::query!(
             "SELECT content FROM http_cache WHERE normalized_url = ?",
