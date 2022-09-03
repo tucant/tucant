@@ -11,8 +11,6 @@ use sqlx::{
 };
 use tokio::sync::Semaphore;
 
-// TODO store raw html for later analysis
-
 struct Tucan {
     client: Client,
     semaphore: Semaphore,
@@ -216,17 +214,22 @@ impl Tucan {
             .send()
             .await?;
 
-        let redirect_url =
-            &res_headers.headers().get("refresh").unwrap().to_str()?[7..].to_string();
+        let redirect_url = &format!(
+            "https://www.tucan.tu-darmstadt.de{}",
+            &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
+        );
 
         res_headers.text().await?;
 
-        let document = self
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                redirect_url
-            ))
-            .await?;
+        let document = self.fetch_document(redirect_url).await?;
+
+        let cnt = sqlx::query!(
+            "INSERT INTO entrypoints (entrypoint_url) VALUES (?)",
+            redirect_url
+        )
+        .execute(&self.pool)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
 
         let redirect_url = &element_by_selector(&document, r#".redirect h2 a[href]"#)
             .unwrap()
