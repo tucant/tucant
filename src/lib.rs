@@ -4,23 +4,18 @@ use std::{
     env,
     io::{Error, ErrorKind},
     str::FromStr,
+    sync::Arc,
 };
 
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
-use reqwest::Client;
+use reqwest::{cookie::Jar, Client};
 use scraper::{ElementRef, Html, Selector};
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     Pool, Sqlite,
 };
 use tokio::sync::Semaphore;
-
-pub struct Tucan {
-    pub client: Client,
-    pub semaphore: Semaphore,
-    pub pool: Pool<Sqlite>,
-}
 
 pub struct TucanUser {
     pub username: String,
@@ -45,8 +40,15 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
     document.select(&s(selector)).next()
 }
 
+pub struct Tucan {
+    pub client: Client,
+    pub cookie_jar: Arc<Jar>,
+    pub semaphore: Semaphore,
+    pub pool: Pool<Sqlite>,
+}
+
 impl Tucan {
-    pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new() -> anyhow::Result<Self> {
         let database_url = dotenvy::var("DATABASE_URL")?;
         let pool = SqlitePoolOptions::new()
             .max_connections(1)
@@ -56,25 +58,22 @@ impl Tucan {
 
         sqlx::migrate!().run(&pool).await?;
 
+        let cookie_jar = Arc::new(Jar::default());
         Ok(Self {
+            cookie_jar: cookie_jar.clone(),
             pool,
-            client: reqwest::Client::builder().cookie_store(true).build()?,
+            client: reqwest::Client::builder()
+                .cookie_provider(cookie_jar)
+                .build()?,
             semaphore: Semaphore::new(10), // risky
         })
     }
 
-    pub async fn continue_session(
-        &self,
-        username: &str,
-    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
-        Err(Box::new(Error::new(ErrorKind::Other, "oh no!")))
+    pub async fn continue_session(&self, username: &str) -> anyhow::Result<TucanUser> {
+        Err(Box::new(Error::new(ErrorKind::Other, "oh no!")))?
     }
 
-    pub async fn login(
-        &self,
-        username: &str,
-        password: &str,
-    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
+    pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", &username),
             ("pass", &password),
@@ -97,6 +96,31 @@ impl Tucan {
             .send()
             .await?;
 
+        let session_cookie = res_headers.cookies().next().unwrap();
+        let session_id = session_cookie.value();
+
+        let mut tx = self.pool.begin().await?;
+
+        let cnt = sqlx::query!(
+            "INSERT OR REPLACE INTO users (username, active_session) VALUES (?, ?)",
+            username,
+            session_id
+        )
+        .execute(&mut tx)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
+
+        let cnt = sqlx::query!(
+            "INSERT INTO sessions (session_id, user) VALUES (?, ?)",
+            session_id,
+            username
+        )
+        .execute(&mut tx)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
+
+        tx.commit().await?;
+
         let redirect_url = &format!(
             "https://www.tucan.tu-darmstadt.de{}",
             &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
@@ -112,7 +136,7 @@ impl Tucan {
         })
     }
 
-    async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
+    async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
 
@@ -199,10 +223,7 @@ impl Tucan {
         println!("-----------------------");
     }
 
-    async fn handle_sublink<'a>(
-        &self,
-        child: ElementRef<'a>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_sublink<'a>(&self, child: ElementRef<'a>) -> anyhow::Result<()> {
         println!("> {}", child.inner_html());
 
         let child_url = child.value().attr("href").unwrap();
@@ -212,7 +233,7 @@ impl Tucan {
     }
 
     #[async_recursion::async_recursion(?Send)]
-    async fn traverse_module_list(&self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    async fn traverse_module_list(&self, url: &str) -> anyhow::Result<()> {
         let document = self.fetch_document(url).await?;
 
         //println!("traverse_module_list {}", document.root_element().html());
@@ -261,7 +282,7 @@ impl Tucan {
         Ok(())
     }
 
-    pub async fn start(&self, redirect_url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start(&self, redirect_url: &str) -> anyhow::Result<()> {
         let document = self.fetch_document(redirect_url).await?;
 
         let redirect_url = &element_by_selector(&document, r#".redirect h2 a[href]"#)

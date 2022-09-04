@@ -30,7 +30,7 @@ enum LoggedInCommands {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let tucan = Tucan::new().await?;
 

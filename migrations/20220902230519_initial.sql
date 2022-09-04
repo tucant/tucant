@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE users (
     username TEXT NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT, -- TODO not null
     active_session TEXT REFERENCES sessions (session_id)
 );
 
