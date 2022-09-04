@@ -24,8 +24,8 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum LoggedInCommands {
-    // Show top level of registration
-    Registration {},
+    // Show registration
+    Registration { url: Option<String> },
 }
 
 #[tokio::main]
@@ -42,8 +42,8 @@ async fn main() -> anyhow::Result<()> {
         Commands::LoggedInCommands(logged_in_commands) => {
             let tucan = tucan.continue_session(&cli.username).await?;
             match logged_in_commands {
-                LoggedInCommands::Registration {} => {
-                    let registration = tucan.registration().await?;
+                LoggedInCommands::Registration { url } => {
+                    let registration = tucan.registration(url).await?;
 
                     println!("{:#?}", registration);
                 }

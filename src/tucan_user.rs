@@ -13,8 +13,8 @@ pub struct TucanUser {
 
 #[derive(Debug)]
 pub enum RegistrationEnum {
-    Submenu(Vec<String>),
-    Modules(Vec<String>), // TODO types
+    Submenu(Vec<(String, String)>),
+    Modules(Vec<(String, String)>), // TODO types
 }
 
 impl TucanUser {
@@ -120,9 +120,17 @@ impl TucanUser {
             (_, Some(list)) => Ok(RegistrationEnum::Modules(
                 list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                     .map(|e| {
-                        format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            e.value().attr("href").unwrap()
+                        (
+                            e.text()
+                                .map(str::to_string)
+                                .reduce(|a, b| a + &b)
+                                .unwrap_or("".to_string())
+                                .trim()
+                                .to_string(),
+                            format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.value().attr("href").unwrap()
+                            ),
                         )
                     })
                     .collect(),
@@ -131,9 +139,17 @@ impl TucanUser {
                 Ok(RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
                         .map(|e| {
-                            format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                e.value().attr("href").unwrap()
+                            (
+                                e.text()
+                                    .map(str::to_string)
+                                    .reduce(|a, b| a + &b)
+                                    .unwrap_or("".to_string())
+                                    .trim()
+                                    .to_string(),
+                                format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    e.value().attr("href").unwrap()
+                                ),
                             )
                         })
                         .collect(),
@@ -157,8 +173,8 @@ impl TucanUser {
         }
     }
 
-    pub async fn registration(&self) -> anyhow::Result<RegistrationEnum> {
-        let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session_nr);
+    pub async fn registration(&self, url: Option<String>) -> anyhow::Result<RegistrationEnum> {
+        let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session_nr));
 
         self.traverse_module_list(&url).await
     }
