@@ -1,6 +1,5 @@
 // https://docs.rs/clap/latest/clap/_derive/index.html
 
-
 use clap::{Parser, Subcommand};
 use tucan_scraper::Tucan;
 
@@ -17,8 +16,17 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Login
-    Login {
-    },
+    Login {},
+
+    /// Logged in commands
+    #[clap(flatten)]
+    LoggedInCommands(LoggedInCommands),
+}
+
+#[derive(Subcommand)]
+enum LoggedInCommands {
+    // Scrape all modules
+    ScrapeModules {},
 }
 
 #[tokio::main]
@@ -27,10 +35,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tucan = Tucan::new().await?;
 
     match cli.command {
-        Commands::Login { } => {
+        Commands::Login {} => {
             let password = rpassword::prompt_password("TUCAN password: ").unwrap();
 
-            
+            tucan.login(&cli.username, &password).await?;
+        }
+        Commands::LoggedInCommands(logged_in_commands) => {
+            let tucan = tucan.continue_session(&cli.username);
+            match logged_in_commands {
+                LoggedInCommands::ScrapeModules {} => {
+                    /*
+                    let redirect_url = &format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
+                    );
+
+                    res_headers.text().await?;
+
+                    let cnt = sqlx::query!(
+                        "INSERT INTO entrypoints (entrypoint_url) VALUES (?)",
+                        redirect_url
+                    )
+                    .execute(&tucan.pool)
+                    .await?;
+                    assert_eq!(cnt.rows_affected(), 1);
+
+                    tucan.start(redirect_url).await*/
+                }
+            }
         }
     }
 

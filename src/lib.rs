@@ -1,6 +1,10 @@
 #![feature(async_closure)]
 
-use std::{env, str::FromStr};
+use std::{
+    env,
+    io::{Error, ErrorKind},
+    str::FromStr,
+};
 
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
@@ -49,9 +53,9 @@ impl Tucan {
             .test_before_acquire(false)
             .connect_with(SqliteConnectOptions::from_str(&database_url)?.create_if_missing(true))
             .await?;
-    
+
         sqlx::migrate!().run(&pool).await?;
-    
+
         Ok(Self {
             pool,
             client: reqwest::Client::builder().cookie_store(true).build()?,
@@ -59,7 +63,18 @@ impl Tucan {
         })
     }
 
-    pub async fn login(&self, username: &str, password: &str) -> Result<TucanUser, Box<dyn std::error::Error>> {
+    pub async fn continue_session(
+        &self,
+        username: &str,
+    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
+        Err(Box::new(Error::new(ErrorKind::Other, "oh no!")))
+    }
+
+    pub async fn login(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
         let params: [(&str, &str); 10] = [
             ("usrname", &username),
             ("pass", &password),
@@ -93,10 +108,10 @@ impl Tucan {
 
         Ok(TucanUser {
             username: username.to_string(),
-            session_id: "1".to_string()
+            session_id: "1".to_string(),
         })
     }
-    
+
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
