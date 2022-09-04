@@ -1,12 +1,18 @@
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE http_cache (
-    normalized_url TEXT NOT NULL PRIMARY KEY,
-    url TEXT NOT NULL UNIQUE,
-    content TEXT NOT NULL
+CREATE TABLE users (
+    username TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    active_session TEXT REFERENCES sessions (session_id)
 );
 
-CREATE TABLE entrypoints (
-    entrypoint_url TEXT NOT NULL PRIMARY KEY,
-    FOREIGN KEY(entrypoint_url) REFERENCES http_cache(url)
+CREATE TABLE sessions (
+    session_id TEXT NOT NULL PRIMARY KEY,
+    user TEXT NOT NULL REFERENCES users (username)
+);
+
+CREATE TABLE http_cache (
+    session TEXT NOT NULL REFERENCES sessions (session_id),
+    url TEXT NOT NULL PRIMARY KEY,
+    content TEXT NOT NULL
 );

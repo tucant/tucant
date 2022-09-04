@@ -1,5 +1,10 @@
 #![feature(async_closure)]
-use std::{env, str::FromStr};
+
+use std::{
+    env,
+    io::{Error, ErrorKind},
+    str::FromStr,
+};
 
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
@@ -15,6 +20,11 @@ pub struct Tucan {
     pub client: Client,
     pub semaphore: Semaphore,
     pub pool: Pool<Sqlite>,
+}
+
+pub struct TucanUser {
+    pub username: String,
+    pub session_id: String,
 }
 
 fn s(selector: &str) -> Selector {
@@ -36,6 +46,72 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 }
 
 impl Tucan {
+    pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
+        let database_url = dotenvy::var("DATABASE_URL")?;
+        let pool = SqlitePoolOptions::new()
+            .max_connections(1)
+            .test_before_acquire(false)
+            .connect_with(SqliteConnectOptions::from_str(&database_url)?.create_if_missing(true))
+            .await?;
+
+        sqlx::migrate!().run(&pool).await?;
+
+        Ok(Self {
+            pool,
+            client: reqwest::Client::builder().cookie_store(true).build()?,
+            semaphore: Semaphore::new(10), // risky
+        })
+    }
+
+    pub async fn continue_session(
+        &self,
+        username: &str,
+    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
+        Err(Box::new(Error::new(ErrorKind::Other, "oh no!")))
+    }
+
+    pub async fn login(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<TucanUser, Box<dyn std::error::Error>> {
+        let params: [(&str, &str); 10] = [
+            ("usrname", &username),
+            ("pass", &password),
+            ("APPNAME", "CampusNet"),
+            ("PRGNAME", "LOGINCHECK"),
+            (
+                "ARGUMENTS",
+                "clino,usrname,pass,menuno,menu_type,browser,platform",
+            ),
+            ("clino", "000000000000001"),
+            ("menuno", "000344"),
+            ("menu_type", "classic"),
+            ("browser", ""),
+            ("platform", ""),
+        ];
+        let res_headers = self
+            .client
+            .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
+            .form(&params)
+            .send()
+            .await?;
+
+        let redirect_url = &format!(
+            "https://www.tucan.tu-darmstadt.de{}",
+            &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
+        );
+
+        println!("{}", redirect_url);
+
+        res_headers.text().await?;
+
+        Ok(TucanUser {
+            username: username.to_string(),
+            session_id: "1".to_string(),
+        })
+    }
+
     async fn fetch_document(&self, url: &str) -> Result<Html, Box<dyn std::error::Error>> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
@@ -58,7 +134,7 @@ impl Tucan {
         }*/
 
         let document = sqlx::query!(
-            "SELECT content FROM http_cache WHERE normalized_url = ?",
+            "SELECT content FROM http_cache WHERE url = ?",
             normalized_url
         )
         .fetch_optional(&self.pool)
@@ -91,8 +167,7 @@ impl Tucan {
 
         // warning: not transactional with check above
         let cnt = sqlx::query!(
-            "INSERT OR REPLACE INTO http_cache (normalized_url, url, content) VALUES (?, ?, ?)",
-            normalized_url,
+            "INSERT OR REPLACE INTO http_cache (url, content) VALUES (?, ?)",
             url,
             resp
         )
