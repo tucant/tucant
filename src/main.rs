@@ -1,7 +1,6 @@
 // https://docs.rs/clap/latest/clap/_derive/index.html
-
 use clap::{Parser, Subcommand};
-use tucan_scraper::Tucan;
+use tucan_scraper::tucan::Tucan;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
