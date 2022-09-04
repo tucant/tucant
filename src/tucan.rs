@@ -42,7 +42,7 @@ impl Tucan {
 
     pub async fn continue_session(self, username: &str) -> anyhow::Result<TucanUser> {
         let active_session = sqlx::query!(
-            "SELECT active_session FROM users WHERE username = ? AND active_session IS NOT NULL",
+            "SELECT session_id, session_nr FROM users JOIN sessions ON users.active_session = sessions.session_id WHERE username = ? AND active_session IS NOT NULL",
             username
         )
         .fetch_optional(&self.pool)
@@ -50,7 +50,7 @@ impl Tucan {
 
         match active_session {
             Some(active_session) => {
-                let cookie = format!("cnsc={}", active_session.active_session.as_ref().unwrap());
+                let cookie = format!("cnsc={}", active_session.session_id);
                 let url = "https://www.tucan.tu-darmstadt.de/scripts"
                     .parse::<Url>()
                     .unwrap();
@@ -61,7 +61,8 @@ impl Tucan {
                 Ok(TucanUser {
                     tucan: self,
                     username: username.to_string(),
-                    session_id: active_session.active_session.unwrap(),
+                    session_id: active_session.session_id,
+                    session_nr: active_session.session_nr,
                 })
             }
             None => Err(Box::new(std::io::Error::new(
@@ -94,38 +95,6 @@ impl Tucan {
             .send()
             .await?;
 
-        let session_cookie = res_headers.cookies().next().unwrap();
-        let session_id = session_cookie.value().to_string();
-
-        let mut tx = self.pool.begin().await?;
-
-        sqlx::query!(
-            "INSERT OR IGNORE INTO users (username) VALUES (?)",
-            username
-        )
-        .execute(&mut tx)
-        .await?;
-
-        let cnt = sqlx::query!(
-            "INSERT INTO sessions (session_id, user) VALUES (?, ?)",
-            session_id,
-            username
-        )
-        .execute(&mut tx)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
-
-        let cnt = sqlx::query!(
-            "UPDATE users SET active_session = ? WHERE username = ?",
-            session_id,
-            username
-        )
-        .execute(&mut tx)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
-
-        tx.commit().await?;
-
         let redirect_url = &format!(
             "https://www.tucan.tu-darmstadt.de{}",
             &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
@@ -149,9 +118,44 @@ impl Tucan {
         let session_nr = regex
             .captures(&arguments)
             .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
+            .unwrap()
+            .parse::<i64>()
             .unwrap();
 
         println!("session_nr {}", session_nr);
+
+        let session_cookie = res_headers.cookies().next().unwrap();
+        let session_id = session_cookie.value().to_string();
+
+        let mut tx = self.pool.begin().await?;
+
+        sqlx::query!(
+            "INSERT OR IGNORE INTO users (username) VALUES (?)",
+            username
+        )
+        .execute(&mut tx)
+        .await?;
+
+        let cnt = sqlx::query!(
+            "INSERT INTO sessions (session_id, session_nr, user) VALUES (?, ?, ?)",
+            session_id,
+            session_nr,
+            username
+        )
+        .execute(&mut tx)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
+
+        let cnt = sqlx::query!(
+            "UPDATE users SET active_session = ? WHERE username = ?",
+            session_id,
+            username
+        )
+        .execute(&mut tx)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
+
+        tx.commit().await?;
 
         res_headers.text().await?;
 
@@ -161,72 +165,7 @@ impl Tucan {
             tucan: self,
             username: username.to_string(),
             session_id,
+            session_nr,
         })
-    }
-
-    pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
-        // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
-        // maybe try the same with the navigation menus
-
-        let mut normalized_url = url.to_string();
-        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
-            normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
-            //println!("normalized: {}", normalized_url);
-            //println!("url       : {}", url);
-        }
-
-        // can't cache these as the links inside there are invalid for new sessions
-        /*
-        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=") {
-            let start = normalized_url.find("ARGUMENTS=").unwrap() + "ARGUMENTS=".len();
-            let end = normalized_url.find(",").unwrap() + 1;
-            normalized_url = normalized_url[0..start].to_string() + &normalized_url[end..];
-            //println!("normalized: {}", normalized_url);
-            //println!("url       : {}", url);
-        }*/
-
-        let document = sqlx::query!(
-            "SELECT content FROM http_cache WHERE url = ?",
-            normalized_url
-        )
-        .fetch_optional(&self.pool)
-        .await?;
-
-        // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
-        // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
-        // the data at the end is random every login
-
-        // SELECT substr(url, 0, instr(url, "PRGNAME")) FROM http_cache;
-
-        // SELECT substr(url, instr(url, "PRGNAME"), instr(url, "&ARGUMENTS=")-instr(url, "PRGNAME")) AS a, COUNT(*) FROM http_cache GROUP BY a;
-
-        // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
-
-        if let Some(doc) = document {
-            return Ok(Html::parse_document(&doc.content));
-        } else {
-            println!("didnt hit cache")
-        }
-
-        let a = self.client.get(url);
-        let b = a.build().unwrap();
-
-        //println!("{:?}", b);
-
-        let permit = self.semaphore.acquire().await?;
-        let resp = self.client.execute(b).await?.text().await?;
-        drop(permit);
-
-        // warning: not transactional with check above
-        let cnt = sqlx::query!(
-            "INSERT OR REPLACE INTO http_cache (url, content) VALUES (?, ?)",
-            url,
-            resp
-        )
-        .execute(&self.pool)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
-
-        Ok(Html::parse_document(&resp))
     }
 }

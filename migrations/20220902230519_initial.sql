@@ -8,6 +8,7 @@ CREATE TABLE users (
 
 CREATE TABLE sessions (
     session_id TEXT NOT NULL PRIMARY KEY,
+    session_nr INTEGER NOT NULL,
     user TEXT NOT NULL REFERENCES users (username)
 );
 
