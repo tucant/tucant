@@ -17,6 +17,13 @@ pub enum RegistrationEnum {
     Modules(Vec<(String, String)>), // TODO types
 }
 
+#[derive(Debug)]
+pub struct Module {
+    id: String,
+    name: String,
+    credits: u16,
+}
+
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
@@ -86,13 +93,15 @@ impl TucanUser {
         Ok(Html::parse_document(&resp))
     }
 
-    async fn handle_veranstaltung(&self, document: &Html) {
-        let name = element_by_selector(document, "h1").unwrap();
+    pub async fn module(&self, url: &str) -> anyhow::Result<Module> {
+        let document = self.fetch_document(url).await?;
+
+        let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
         let mut fs = text.split("&nbsp;");
-        println!("ID: {}", fs.next().unwrap().trim());
-        println!("Name: {}", fs.next().unwrap().trim());
+        let module_id = fs.next().unwrap().trim();
+        let module_name = fs.next().unwrap().trim();
         let credits = document
             .select(&s(r#"#contentlayoutleft b"#))
             .find(|e| e.inner_html() == "Credits: ")
@@ -103,8 +112,13 @@ impl TucanUser {
             .as_text()
             .unwrap();
 
-        println!("Credits: {}", credits.trim());
-        println!("-----------------------");
+        let credits: u16 = credits.trim().strip_suffix(",0").unwrap().parse().unwrap();
+
+        Ok(Module {
+            id: module_id.to_string(),
+            name: module_name.to_string(),
+            credits,
+        })
     }
 
     async fn traverse_module_list(&self, url: &str) -> anyhow::Result<RegistrationEnum> {

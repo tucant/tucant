@@ -24,8 +24,10 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum LoggedInCommands {
-    // Show registration
+    /// Show registration
     Registration { url: Option<String> },
+    /// Show module
+    Module { url: String },
 }
 
 #[tokio::main]
@@ -46,6 +48,11 @@ async fn main() -> anyhow::Result<()> {
                     let registration = tucan.registration(url).await?;
 
                     println!("{:#?}", registration);
+                }
+                LoggedInCommands::Module { url } => {
+                    let module = tucan.module(&url).await?;
+
+                    println!("{:#?}", module);
                 }
             }
         }
