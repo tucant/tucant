@@ -2,6 +2,8 @@
 name = "tucan-scraper"
 version = "0.1.0"
 edition = "2021"
+authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
+description = "Test"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,3 +17,5 @@ rpassword = "7"
 futures = "0.3"
 sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "sqlite", "macros", "migrate" ] }
 dotenvy = "0.15"
+clap = { version = "3", features = ["derive"] }
+shlex = { version = "1" }
