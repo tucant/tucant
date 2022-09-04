@@ -134,7 +134,7 @@ impl Tucan {
         }*/
 
         let document = sqlx::query!(
-            "SELECT content FROM http_cache WHERE normalized_url = ?",
+            "SELECT content FROM http_cache WHERE url = ?",
             normalized_url
         )
         .fetch_optional(&self.pool)
@@ -167,8 +167,7 @@ impl Tucan {
 
         // warning: not transactional with check above
         let cnt = sqlx::query!(
-            "INSERT OR REPLACE INTO http_cache (normalized_url, url, content) VALUES (?, ?, ?)",
-            normalized_url,
+            "INSERT OR REPLACE INTO http_cache (url, content) VALUES (?, ?)",
             url,
             resp
         )

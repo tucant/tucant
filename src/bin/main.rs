@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tucan.login(&cli.username, &password).await?;
         }
         Commands::LoggedInCommands(logged_in_commands) => {
-            let tucan = tucan.continue_session(&cli.username);
+            let tucan = tucan.continue_session(&cli.username).await?;
             match logged_in_commands {
                 LoggedInCommands::ScrapeModules {} => {
                     /*
