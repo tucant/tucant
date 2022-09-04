@@ -1,5 +1,6 @@
 use std::{io::ErrorKind, str::FromStr, sync::Arc};
 
+use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
 use scraper::Html;
 use sqlx::{
@@ -131,6 +132,26 @@ impl Tucan {
         );
 
         println!("{}", redirect_url);
+
+        let url = Url::parse(redirect_url)?;
+
+        let arguments = url.query_pairs().find(|e| e.0 == "ARGUMENTS").unwrap().1;
+
+        println!("{}", arguments);
+
+        let regex: Regex = Regex::new(
+            r"(?x)
+                ^-N(?P<nr>[[:digit:]]+),-N[[:digit:]]+,-N[[:digit:]]+$
+                ",
+        )
+        .unwrap();
+
+        let session_nr = regex
+            .captures(&arguments)
+            .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
+            .unwrap();
+
+        println!("session_nr {}", session_nr);
 
         res_headers.text().await?;
 

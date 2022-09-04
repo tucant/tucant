@@ -24,8 +24,8 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum LoggedInCommands {
-    // Scrape all modules
-    ScrapeModules {},
+    // Show top level of registration
+    Registration {},
 }
 
 #[tokio::main]
@@ -42,24 +42,10 @@ async fn main() -> anyhow::Result<()> {
         Commands::LoggedInCommands(logged_in_commands) => {
             let tucan = tucan.continue_session(&cli.username).await?;
             match logged_in_commands {
-                LoggedInCommands::ScrapeModules {} => {
-                    /*
-                    let redirect_url = &format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
-                    );
+                LoggedInCommands::Registration {} => {
+                    let registration = tucan.registration().await?;
 
-                    res_headers.text().await?;
-
-                    let cnt = sqlx::query!(
-                        "INSERT INTO entrypoints (entrypoint_url) VALUES (?)",
-                        redirect_url
-                    )
-                    .execute(&tucan.pool)
-                    .await?;
-                    assert_eq!(cnt.rows_affected(), 1);
-
-                    tucan.start(redirect_url).await*/
+                    println!("{:#?}", registration);
                 }
             }
         }

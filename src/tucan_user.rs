@@ -10,6 +10,12 @@ pub struct TucanUser {
     pub(crate) session_id: String,
 }
 
+#[derive(Debug)]
+pub enum RegistrationEnum {
+    Submenu(Vec<String>),
+    Modules(Vec<String>), // TODO types
+}
+
 impl TucanUser {
     async fn handle_veranstaltung(&self, document: &Html) {
         let name = element_by_selector(document, "h1").unwrap();
@@ -32,20 +38,8 @@ impl TucanUser {
         println!("-----------------------");
     }
 
-    async fn handle_sublink<'a>(&self, child: ElementRef<'a>) -> anyhow::Result<()> {
-        println!("> {}", child.inner_html());
-
-        let child_url = child.value().attr("href").unwrap();
-
-        self.traverse_module_list(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
-            .await
-    }
-
-    #[async_recursion::async_recursion(?Send)]
-    async fn traverse_module_list(&self, url: &str) -> anyhow::Result<()> {
+    async fn traverse_module_list(&self, url: &str) -> anyhow::Result<RegistrationEnum> {
         let document = self.tucan.fetch_document(url).await?;
-
-        //println!("traverse_module_list {}", document.root_element().html());
 
         // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
@@ -54,21 +48,29 @@ impl TucanUser {
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
         match (submenu_list, modules_list) {
-            (_, Some(list)) => {
-                for child in list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#)) {
-                    //println!("{}", child.inner_html());
-
-                    let child_url = child.value().attr("href").unwrap();
-
-                    let document = self
-                        .tucan
-                        .fetch_document(&format!("https://www.tucan.tu-darmstadt.de{}", child_url))
-                        .await?;
-
-                    self.handle_veranstaltung(&document).await;
-                }
-            }
+            (_, Some(list)) => Ok(RegistrationEnum::Modules(
+                list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
+                    .map(|e| {
+                        format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            e.value().attr("href").unwrap()
+                        )
+                    })
+                    .collect(),
+            )),
             (Some(list), None) => {
+                Ok(RegistrationEnum::Submenu(
+                    list.select(&s("a[href]"))
+                        .map(|e| {
+                            format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.value().attr("href").unwrap()
+                            )
+                        })
+                        .collect(),
+                ))
+
+                /*
                 let selector = s("a[href]");
                 let iterat = list
                     .select(&selector)
@@ -78,77 +80,18 @@ impl TucanUser {
                 while let Some(result) = futures.next().await {
                     result?;
                 }
-
-                /*
-                while let Some(result) = iterat.next() {
-                    result.await?;
-                }
                 */
             }
             _ => {
                 panic!("{} {}", url, document.root_element().html())
             }
         }
-        Ok(())
     }
 
-    pub async fn start(&self, redirect_url: &str) -> anyhow::Result<()> {
-        let document = self.tucan.fetch_document(redirect_url).await?;
+    pub async fn registration(&self) -> anyhow::Result<RegistrationEnum> {
+        // TODO FIXME 1337
+        let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", 1337);
 
-        let redirect_url = &element_by_selector(&document, r#".redirect h2 a[href]"#)
-            .unwrap()
-            .value()
-            .attr("href")
-            .unwrap();
-
-        let document = self
-            .tucan
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                redirect_url
-            ))
-            .await?;
-
-        //println!("initial useful page {}", document.root_element().html());
-
-        let vorlesungsverzeichnis_link = link_by_text(&document, "Veranstaltungen");
-
-        let document = self
-            .tucan
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                vorlesungsverzeichnis_link
-            ))
-            .await?;
-
-        let aktuelles_vorlesungsverzeichnis_link = link_by_text(&document, "Anmeldung");
-
-        let document = self
-            .tucan
-            .fetch_document(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                aktuelles_vorlesungsverzeichnis_link
-            ))
-            .await?;
-        {
-            let informatik_link = link_by_text(&document, " Wahlbereich");
-
-            self.traverse_module_list(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                informatik_link
-            ))
-            .await?;
-        }
-
-        {
-            let informatik_link = link_by_text(&document, " Pflichtbereich");
-
-            self.traverse_module_list(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                informatik_link
-            ))
-            .await?;
-        }
-        Ok(())
+        self.traverse_module_list(&url).await
     }
 }
