@@ -102,9 +102,8 @@ impl Tucan {
         let mut tx = self.pool.begin().await?;
 
         let cnt = sqlx::query!(
-            "INSERT OR REPLACE INTO users (username, active_session) VALUES (?, ?)",
-            username,
-            session_id
+            "INSERT OR IGNORE INTO users (username) VALUES (?)",
+            username
         )
         .execute(&mut tx)
         .await?;
@@ -112,6 +111,15 @@ impl Tucan {
 
         let cnt = sqlx::query!(
             "INSERT INTO sessions (session_id, user) VALUES (?, ?)",
+            session_id,
+            username
+        )
+        .execute(&mut tx)
+        .await?;
+        assert_eq!(cnt.rows_affected(), 1);
+
+        let cnt = sqlx::query!(
+            "UPDATE users SET active_session = ? WHERE username = ?",
             session_id,
             username
         )
