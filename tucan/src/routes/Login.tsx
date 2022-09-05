@@ -9,6 +9,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useState } from 'react';
 
 function Copyright(props: any) {
   return (
@@ -26,14 +27,27 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function SignIn() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const [form, setForm] = useState({
+    username: "",
+    password: ""
+  });
+  
+  let handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    setForm({
+      ...form,
+      [name]: value
+    } as any);
+  }
+
+  let handleSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('username'),
-      password: data.get('password'),
-    });
-  };
+
+    alert(JSON.stringify(form))
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -55,6 +69,8 @@ export default function SignIn() {
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
+              onChange={handleInputChange}
+              value={form.username}
               margin="normal"
               required
               fullWidth
@@ -65,6 +81,8 @@ export default function SignIn() {
               autoFocus
             />
             <TextField
+              onChange={handleInputChange}
+              value={form.password}
               margin="normal"
               required
               fullWidth
