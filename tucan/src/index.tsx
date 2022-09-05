@@ -5,6 +5,7 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
+import Welcome from "./routes/Welcome";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -26,11 +27,7 @@ root.render(
           />
           <Route
         index
-        element={
-          <main style={{ padding: "1rem" }}>
-            <p>Willkommen!</p>
-          </main>
-        }
+        element={<Welcome />}
       />
         </Route>
       </Routes>

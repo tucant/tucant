@@ -63,6 +63,7 @@ export default function SignIn() {
 
     try {
       let response = await fetch("http://localhost:8080/login", {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",

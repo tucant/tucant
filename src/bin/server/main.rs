@@ -45,7 +45,7 @@ struct LoginResult {
 }
 
 #[post("/login")]
-async fn echo(request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
+async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
     let tucan = Tucan::new().await?;
     tucan.login(&login.username, &login.password).await?;
     Identity::login(&request.extensions(), login.username.to_string().into()).unwrap();
@@ -63,9 +63,9 @@ async fn logout(user: Identity) -> impl Responder {
 #[get("/")]
 async fn index(user: Option<Identity>) -> impl Responder {
     if let Some(user) = user {
-        format!("Welcome! {}", user.id().unwrap())
+        web::Json(format!("Welcome! {}", user.id().unwrap()))
     } else {
-        "Welcome Anonymous!".to_owned()
+        web::Json("Welcome Anonymous!".to_owned())
     }
 }
 
@@ -74,7 +74,7 @@ async fn main() -> std::io::Result<()> {
     let secret_key = Key::generate();
 
     HttpServer::new(move || {
-        let cors = Cors::default().allow_any_method().allow_any_header().allowed_origin("http://localhost:3000");
+        let cors = Cors::default().supports_credentials().allow_any_method().allow_any_header().allowed_origin("http://localhost:3000");
 
         App::new()
             .wrap(IdentityMiddleware::builder().visit_deadline(Some(Duration::from_secs(24*3600))).build())
@@ -84,7 +84,9 @@ async fn main() -> std::io::Result<()> {
             ))
             .wrap(CsrfMiddleware {})
             .wrap(cors)
-            .service(echo)
+            .service(index)
+            .service(login)
+            .service(logout)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
