@@ -18,6 +18,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import HomeIcon from '@mui/icons-material/Home';
 import LoginIcon from '@mui/icons-material/Login';
 import { NavLinkProps, Outlet } from 'react-router-dom';
@@ -100,9 +101,9 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 type RouterLinkProps = React.PropsWithChildren<{
   to: string,
   text: string,
-  icon: ReactNode
+  icon?: ReactNode
 }>
-const RouterLink = (props: RouterLinkProps) => {
+export const RouterLink = (props: RouterLinkProps) => {
   type MyNavLinkProps = Omit<NavLinkProps, 'to'>;
   const MyNavLink = React.useMemo(() => React.forwardRef<HTMLAnchorElement, MyNavLinkProps>((navLinkProps, ref) => {
     const { className: previousClasses, ...rest } = navLinkProps;
@@ -119,9 +120,9 @@ const RouterLink = (props: RouterLinkProps) => {
     <ListItemButton
       component={MyNavLink}
     > 
-      <ListItemIcon sx={{ '.Mui-selected > &': { color: (theme) => theme.palette.primary.main } }}>
+      {props.icon && <ListItemIcon sx={{ '.Mui-selected > &': { color: (theme) => theme.palette.primary.main } }}>
          {props.icon}
-      </ListItemIcon>
+      </ListItemIcon>}
       <ListItemText primary={props.text} />
     </ListItemButton>
   )
@@ -171,6 +172,7 @@ export default function MiniDrawer() {
         <List>
           <RouterLink to="/" text="Startseite" icon={<HomeIcon />}></RouterLink>
           <RouterLink to="/inbox" text="Posteingang" icon={<InboxIcon />}></RouterLink>
+          <RouterLink to="/registration" text="Module" icon={<ViewModuleIcon />}></RouterLink>
           <RouterLink to="/login" text="Login" icon={<LoginIcon />}></RouterLink>
         </List>
       </Drawer>

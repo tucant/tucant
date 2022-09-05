@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
 import Welcome from "./routes/Welcome";
+import Registration from "./routes/Registration";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -17,7 +18,12 @@ root.render(
       <Routes>
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
+          <Route path="registration" element={<Registration />} />
           <Route
+        index
+        element={<Welcome />}
+      />
+       <Route
             path="*"
             element={
               <main style={{ padding: "1rem" }}>
@@ -25,10 +31,6 @@ root.render(
               </main>
             }
           />
-          <Route
-        index
-        element={<Welcome />}
-      />
         </Route>
       </Routes>
     </BrowserRouter>

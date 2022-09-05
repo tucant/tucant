@@ -1,9 +1,12 @@
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
+import List from "@mui/material/List";
+import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
+import { RouterLink } from "../MiniDrawer";
 
-export default function Welcome() {
-  const [data, setData] = useState(null);
+export default function Registration() {
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string|null>(null);
 
@@ -11,7 +14,7 @@ export default function Welcome() {
     const getData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080`,
+          `http://localhost:8080/registration`,
           {
             credentials: "include"
           }
@@ -35,13 +38,18 @@ export default function Welcome() {
   }, [])
 
   return (
-    <div className="App">
-      <h1>Welcome</h1>
+    <>
+      <Typography variant="h2">
+        Module
+      </Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
-      <ul>
-        {JSON.stringify(data)}
-      </ul>
-    </div>
+      <List>
+        { data != null && "Submenu" in data ? data.Submenu.map((e: [string, string]) => <RouterLink to={`/registration/${e[0]}`} text={e[0]}></RouterLink>) : ""
+
+
+        }
+      </List>
+    </>
   );
 }
