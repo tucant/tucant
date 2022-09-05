@@ -10,6 +10,8 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
+import Alert from "@mui/material/Alert";
+import { useNavigate } from "react-router-dom";
 
 function Copyright(props: any) {
   return (
@@ -32,7 +34,10 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function SignIn() {
+  let navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string|null>(null);
 
   const [form, setForm] = useState({
     username: "",
@@ -53,6 +58,7 @@ export default function SignIn() {
   let handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    setError(null);
     setLoading(true);
 
     try {
@@ -65,6 +71,14 @@ export default function SignIn() {
         body: JSON.stringify(form),
       });
       let result = await response.json();
+
+      if (result.success) {
+        navigate("/");
+      } else {
+        setError(String("Falscher Nutzername oder falsches Passwort!"));
+      }
+    } catch (error) {
+      setError(String(error));
     } finally {
       setLoading(false);
     }
@@ -94,6 +108,8 @@ export default function SignIn() {
             noValidate
             sx={{ mt: 1 }}
           >
+            {error && <Alert severity="error">{error}</Alert>}
+
             <TextField
               onChange={handleInputChange}
               value={form.username}
