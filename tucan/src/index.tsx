@@ -1,10 +1,10 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from './routes/login';
+import Login from './routes/Login';
+import MiniDrawer from './MiniDrawer';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,9 +14,10 @@ root.render(
     <CssBaseline enableColorScheme />
     <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="login" element={<Login />} />
-    </Routes>
+    <Route path="/" element={<MiniDrawer />}>
+        <Route path="login" element={<Login />} />
+      </Route>
+      </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );
