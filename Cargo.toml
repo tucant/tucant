@@ -24,3 +24,5 @@ actix-web = "4"
 futures-util = "0.3"
 actix-cors = "0.6"
 serde = { version = "1.0", features = ["derive"] }
+actix-session = { version = "0.7", features = ["cookie-session"] }
+actix-identity = "0.5"
