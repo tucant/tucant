@@ -2487,6 +2487,7 @@ dependencies = [
  "reqwest",
  "rpassword",
  "scraper",
+ "serde",
  "sqlx",
  "tokio",
 ]
