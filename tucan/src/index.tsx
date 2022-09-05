@@ -1,22 +1,38 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import reportWebVitals from './reportWebVitals';
+import CssBaseline from "@mui/material/CssBaseline";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from './routes/Login';
-import MiniDrawer from './MiniDrawer';
+import Login from "./routes/Login";
+import MiniDrawer from "./MiniDrawer";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 root.render(
   <React.StrictMode>
     <CssBaseline enableColorScheme />
     <BrowserRouter>
-    <Routes>
-    <Route path="/" element={<MiniDrawer />}>
-        <Route path="login" element={<Login />} />
-      </Route>
+      <Routes>
+        <Route path="/" element={<MiniDrawer />}>
+          <Route path="login" element={<Login />} />
+          <Route
+            path="*"
+            element={
+              <main style={{ padding: "1rem" }}>
+                <p>Seite nicht gefunden!</p>
+              </main>
+            }
+          />
+          <Route
+        index
+        element={
+          <main style={{ padding: "1rem" }}>
+            <p>Willkommen!</p>
+          </main>
+        }
+      />
+        </Route>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

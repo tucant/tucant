@@ -18,7 +18,11 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
-import { Outlet } from 'react-router-dom';
+import { NavLinkProps, Outlet } from 'react-router-dom';
+import {
+  NavLink,
+} from 'react-router-dom';
+import { ReactNode } from 'react';
 
 const drawerWidth = 240;
 
@@ -91,6 +95,36 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
+type RouterLinkProps = React.PropsWithChildren<{
+  to: string,
+  text: string,
+  icon: ReactNode
+}>
+const RouterLink = (props: RouterLinkProps) => {
+  type MyNavLinkProps = Omit<NavLinkProps, 'to'>;
+  const MyNavLink = React.useMemo(() => React.forwardRef<HTMLAnchorElement, MyNavLinkProps>((navLinkProps, ref) => {
+    const { className: previousClasses, ...rest } = navLinkProps;
+    const elementClasses = previousClasses?.toString() ?? "";
+    return (<NavLink
+      {...rest}
+      ref={ref}
+      to={props.to}
+      end
+      className={({ isActive }) => (isActive ? elementClasses + " Mui-selected" : elementClasses)}
+      />)
+  }), [props.to]);
+  return (
+    <ListItemButton
+      component={MyNavLink}
+    > 
+      <ListItemIcon sx={{ '.Mui-selected > &': { color: (theme) => theme.palette.primary.main } }}>
+         {props.icon}
+      </ListItemIcon>
+      <ListItemText primary={props.text} />
+    </ListItemButton>
+  )
+}
+
 export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
@@ -133,53 +167,9 @@ export default function MiniDrawer() {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-              <ListItemButton
-                sx={{
-                  minHeight: 48,
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          <RouterLink to="/inbox" text="Posteingang" icon={<InboxIcon />}></RouterLink>
+          <RouterLink  to="/login" text="Login" icon={<InboxIcon />}></RouterLink>
+          
         </List>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
