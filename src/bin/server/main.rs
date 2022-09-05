@@ -7,7 +7,7 @@ use std::{fmt::Display, time::Duration};
 use actix_cors::Cors;
 use actix_identity::{IdentityMiddleware, Identity, config::IdentityMiddlewareBuilder};
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
-use actix_web::{post, web, App, HttpServer, Responder, cookie::Key, get, HttpRequest, HttpResponse};
+use actix_web::{post, web, App, HttpServer, Responder, cookie::Key, get, HttpRequest, HttpResponse, error::ErrorUnauthorized};
 use csrf_middleware::CsrfMiddleware;
 use serde::{Deserialize, Serialize};
 use tucan_scraper::tucan::Tucan;
@@ -55,19 +55,33 @@ async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Res
 }
 
 #[post("/logout")]
-async fn logout(user: Identity) -> impl Responder {
+async fn logout(user: Identity) -> Result<impl Responder, MyError> {
     user.logout();
-    HttpResponse::Ok()
+    Ok(HttpResponse::Ok())
 }
 
 #[get("/")]
-async fn index(user: Option<Identity>) -> impl Responder {
+async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
-        web::Json(format!("Welcome! {}", user.id().unwrap()))
+        Ok(web::Json(format!("Welcome! {}", user.id().unwrap())))
     } else {
-        web::Json("Welcome Anonymous!".to_owned())
+        Ok(web::Json("Welcome Anonymous!".to_owned()))
     }
 }
+
+#[get("/registration")]
+async fn registration(user: Option<Identity>) -> Result<impl Responder, MyError> {
+    if let Some(user) = user {
+        let tucan = Tucan::new().await?;
+        let user_id = user.id()?;
+        let tucan = tucan.continue_session(&user_id).await?;
+
+        Ok(web::Json(tucan.registration(None).await?))
+    } else {
+        Err(anyhow::Error::msg("Not logged in!"))?
+    }
+}
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -87,6 +101,7 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .service(login)
             .service(logout)
+            .service(registration)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

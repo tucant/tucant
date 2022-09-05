@@ -1,6 +1,7 @@
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use scraper::{ElementRef, Html};
+use serde::Serialize;
 
 use crate::{element_by_selector, link_by_text, s, tucan::Tucan};
 
@@ -11,7 +12,7 @@ pub struct TucanUser {
     pub(crate) session_nr: i64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum RegistrationEnum {
     Submenu(Vec<(String, String)>),
     Modules(Vec<(String, String)>), // TODO types
