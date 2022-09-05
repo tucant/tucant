@@ -4,6 +4,17 @@ use scraper::{ElementRef, Html};
 use serde::Serialize;
 
 /**
+okay this url is such a terrible mess, just store the whole last part and make parent child relationships based on that
+
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N0,-N0
+                                                                                                        session id      left menu id
+                                                                                                                                     bscinf     always? 0
+                                                                                                                                                         second+third layer?
+                                                                                                                                                                fourth+fifth layer
+
+B.Sc. Informatik (2015)  >  Zusätzliche Leistungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Deutsch als Fremdsprache  >  UNIcert II  >  allgemeinsprachlich
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N455311578128190,-N000311,-N376333755785484,-N0,-N356174057085574,-N351244265273917
+
 Anmeldung
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-A
 
@@ -63,9 +74,6 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 
 Wahlbereich > Fachübergreifende Lehrveranstaltungen > Gesamtkatalog aller Module des Sprachenzentrums
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N345145543638428
-
-Wahlbereich > Fachübergreifende Lehrveranstaltungen > Gesamtkatalog aller Module des Sprachenzentrums > 
-
 
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N350874384986426
