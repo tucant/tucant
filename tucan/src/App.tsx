@@ -1,18 +1,12 @@
 import Button from '@mui/material/Button';
 import { Link } from "react-router-dom";
+import MiniDrawer from './MiniDrawer';
 
 function App() {
   return (
     <>
-    <Button variant="contained">Hello World</Button>
-    <nav
-        style={{
-          borderBottom: "solid 1px",
-          paddingBottom: "1rem",
-        }}
-      >
+    <MiniDrawer></MiniDrawer>
         <Link to="/login">Login</Link> |{" "}
-      </nav>
       </>
   );
 }
