@@ -3,6 +3,77 @@ use futures::StreamExt;
 use scraper::{ElementRef, Html};
 use serde::Serialize;
 
+/**
+Anmeldung
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-A
+
+B.Sc. Informatik (2015)
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N0,-N0
+
+Validierung
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N363764281516065,-N000000000000000
+
+Bachelor Thesis
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173440692528,-N000000000000000
+
+Pflichtbereich
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173456785530,-N000000000000000
+
+Wahlbereich
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173502252532,-N000000000000000
+
+Wahlbereich > Fachprüfungen
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173534016533,-N000000000000000
+
+Wahlbereich > Fachprüfungen > IT-Sicherheit
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173674091535,-N356173585074794
+
+Wahlbereich > Fachprüfungen > Netze und verteilte Systeme
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173678785536,-N356173586880795
+
+Wahlbereich > Fachprüfungen > Robotik, Computational und Computer Engineering
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173680675537,-N356173588165796
+
+Wahlbereich > Fachprüfungen > Software Systeme und formale Grundlagen
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173682283538,-N356173589439797
+
+Wahlbereich > Fachprüfungen > Visual & Interactive Computing
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173683996539,-N356173590893798
+
+Wahlbereich > Fachprüfungen > Web, Wissens- und Informationsverarbeitung
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173685419540,-N356173601055801
+
+Wahlbereich > Studienleistungen
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173862125542,-N000000000000000
+
+Wahlbereich > Studienleistungen > Seminare
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173871470543,-N356173605606802
+
+Wahlbereich > Studienleistungen > Praktikum in der Lehre
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173877874544,-N356173607261803
+
+Wahlbereich > Studienleistungen > Praktika, Projektpraktika, ähnliche LV
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173881330545,-N356173609083804
+
+Wahlbereich > Fachübergreifende Lehrveranstaltungen
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173908703547,-N000000000000000
+
+Wahlbereich > Fachübergreifende Lehrveranstaltungen > Module der Betriebswirtschaftslehre
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N360752852023675,-N360746547086804
+
+Wahlbereich > Fachübergreifende Lehrveranstaltungen > Gesamtkatalog aller Module des Sprachenzentrums
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N345145543638428
+
+Wahlbereich > Fachübergreifende Lehrveranstaltungen > Gesamtkatalog aller Module des Sprachenzentrums > 
+
+
+B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N350874384986426
+
+B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
+https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
+*/
+
 use crate::{element_by_selector, link_by_text, s, tucan::Tucan};
 
 pub struct TucanUser {
