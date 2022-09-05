@@ -2647,6 +2647,7 @@ dependencies = [
  "rpassword",
  "scraper",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]
