@@ -20,7 +20,4 @@ dotenvy = "0.15"
 clap = { version = "3", features = ["derive"] }
 anyhow = { version = "1", features = ["backtrace"] }
 regex = "1"
-axum = "0.5"
-serde = { version = "1", features = ["derive"] }
-tracing-subscriber = "0.3"
-tracing = "0.1"
+actix-web = "4"

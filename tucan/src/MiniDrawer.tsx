@@ -18,6 +18,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
+import LoginIcon from '@mui/icons-material/Login';
 import { NavLinkProps, Outlet } from 'react-router-dom';
 import {
   NavLink,
@@ -168,8 +169,7 @@ export default function MiniDrawer() {
         <Divider />
         <List>
           <RouterLink to="/inbox" text="Posteingang" icon={<InboxIcon />}></RouterLink>
-          <RouterLink  to="/login" text="Login" icon={<InboxIcon />}></RouterLink>
-          
+          <RouterLink  to="/login" text="Login" icon={<LoginIcon />}></RouterLink>
         </List>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
