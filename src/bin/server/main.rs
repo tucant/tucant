@@ -2,17 +2,23 @@
 
 mod csrf_middleware;
 
+use std::io::Error;
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
 use actix_identity::{config::IdentityMiddlewareBuilder, Identity, IdentityMiddleware};
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::HttpMessage;
+use actix_web::web::Bytes;
 use actix_web::{
     cookie::Key, error::ErrorUnauthorized, get, post, web, App, HttpRequest, HttpResponse,
     HttpServer, Responder,
 };
 use csrf_middleware::CsrfMiddleware;
+use futures::SinkExt;
+use futures::channel::mpsc::unbounded;
+use futures::future::ok;
+use futures::stream::once;
 use serde::{Deserialize, Serialize};
 use tokio::{
     fs::{self, OpenOptions},
@@ -62,6 +68,27 @@ async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Res
 async fn logout(user: Identity) -> Result<impl Responder, MyError> {
     user.logout();
     Ok(HttpResponse::Ok())
+}
+
+#[post("/setup")]
+async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
+    if let Some(user) = user {
+        let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
+
+        sender.send(Ok(Bytes::from("dsfsd"))).await.unwrap();
+
+        let tucan = Tucan::new().await?;
+        let user_id = user.id()?;
+        let tucan = tucan.continue_session(&user_id).await?;
+
+        let res = tucan.registration(None).await?;
+        
+        Ok(HttpResponse::Ok()
+            .content_type("text/plain")
+            .streaming(receiver))
+    } else {
+        Err(anyhow::Error::msg("Not logged in!"))?
+    }
 }
 
 #[get("/")]
@@ -127,6 +154,7 @@ async fn main() -> std::io::Result<()> {
             .service(login)
             .service(logout)
             .service(registration)
+            .service(setup)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
