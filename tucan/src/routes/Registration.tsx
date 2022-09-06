@@ -1,9 +1,11 @@
+import { Button } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { RouterLink } from "../MiniDrawer";
+import InitialFetch from "./InitialFetch";
 
 export default function Registration() {
   const [data, setData] = useState<any>(null);
@@ -21,7 +23,7 @@ export default function Registration() {
         );
         if (!response.ok) {
           throw new Error(
-            `This is an HTTP error: The status is ${response.status}`
+            `This is an HTTP error: The status is ${response.status}. ${await response.text()}`
           );
         }
         let actualData = await response.json();
@@ -39,6 +41,8 @@ export default function Registration() {
 
   return (
     <>
+      <InitialFetch></InitialFetch>
+
       <Typography variant="h2">
         Module
       </Typography>

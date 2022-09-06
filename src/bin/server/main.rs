@@ -20,6 +20,7 @@ use futures::channel::mpsc::unbounded;
 use futures::future::ok;
 use futures::stream::once;
 use serde::{Deserialize, Serialize};
+use tokio::time::sleep;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -75,13 +76,21 @@ async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
         let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
 
-        sender.send(Ok(Bytes::from("dsfsd"))).await.unwrap();
-
-        let tucan = Tucan::new().await?;
         let user_id = user.id()?;
-        let tucan = tucan.continue_session(&user_id).await?;
+        tokio::spawn(async move {
+            sender.send(Ok(Bytes::from("bbbbbbbbbbbbbbbb"))).await.unwrap();
 
-        let res = tucan.registration(None).await?;
+            sleep(Duration::from_secs(2)).await;
+
+            sender.send(Ok(Bytes::from("aaaaaaaaaaaaaaaaa"))).await.unwrap();
+
+            let tucan = Tucan::new().await?;
+            let tucan = tucan.continue_session(&user_id).await?;
+
+            let res = tucan.registration(None).await?;
+
+            Ok::<(), MyError>(())
+        });
         
         Ok(HttpResponse::Ok()
             .content_type("text/plain")
