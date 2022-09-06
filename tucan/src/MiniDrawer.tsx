@@ -172,7 +172,7 @@ export default function MiniDrawer() {
         <List>
           <RouterLink to="/" text="Startseite" icon={<HomeIcon />}></RouterLink>
           <RouterLink to="/inbox" text="Posteingang" icon={<InboxIcon />}></RouterLink>
-          <RouterLink to="/registration" text="Module" icon={<ViewModuleIcon />}></RouterLink>
+          <RouterLink to="/modules" text="Module" icon={<ViewModuleIcon />}></RouterLink>
           <RouterLink to="/login" text="Login" icon={<LoginIcon />}></RouterLink>
         </List>
       </Drawer>

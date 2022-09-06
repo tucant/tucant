@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
 import Welcome from "./routes/Welcome";
-import Registration from "./routes/Registration";
+import Modules from "./routes/Modules";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -18,7 +18,7 @@ root.render(
       <Routes>
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
-          <Route path="registration" element={<Registration />} />
+          <Route path="modules" element={<Modules />} />
           <Route
         index
         element={<Welcome />}

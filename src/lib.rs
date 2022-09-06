@@ -2,13 +2,7 @@
 pub mod tucan;
 pub mod tucan_user;
 
-
-
-
-
 use scraper::{ElementRef, Html, Selector};
-
-
 
 fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()

@@ -16,7 +16,7 @@ export default function Registration() {
     const getData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/registration`,
+          `http://localhost:8080/modules`,
           {
             credentials: "include"
           }

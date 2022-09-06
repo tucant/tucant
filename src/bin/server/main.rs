@@ -2,22 +2,19 @@
 
 mod csrf_middleware;
 
-
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
-use actix_web::web::Bytes;
+use actix_web::web::{Bytes, Path};
 use actix_web::HttpMessage;
 use actix_web::{
-    cookie::Key, get, post, web, App, HttpRequest, HttpResponse,
-    HttpServer, Responder,
+    cookie::Key, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use async_recursion::async_recursion;
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
-
 
 use futures::SinkExt;
 use serde::{Deserialize, Serialize};
@@ -84,10 +81,22 @@ async fn fetch_everything(
     match value {
         RegistrationEnum::Submenu(value) => {
             for (title, url) in value {
+                let normalized_name = title.to_lowercase().replace(' ', "-");
+
+                // TODO FIXME we need to add username to primary key for this and modules
                 let cnt = sqlx::query!(
-                    "INSERT INTO module_menu (username, name, parent) VALUES (?, ?, ?)",
+                    "INSERT INTO module_menu
+                    (username, name, normalized_name, parent)
+                    VALUES
+                    (?1, ?2, ?3, ?4)
+                    ON CONFLICT (parent, name) DO UPDATE SET
+                    name = ?2,
+                    normalized_name = ?3,
+                    parent = ?4
+                    ",
                     username,
                     title,
+                    normalized_name,
                     parent
                 )
                 .execute(&tucan.tucan.pool)
@@ -113,7 +122,17 @@ async fn fetch_everything(
                 let module = tucan.module(&url).await?;
 
                 let cnt = sqlx::query!(
-                    "INSERT INTO modules (username, title, module_id, shortcode, credits, responsible_person, content) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO modules
+                    (username, title, module_id, shortcode, credits, responsible_person, content)
+                    VALUES
+                    (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                    ON CONFLICT (module_id) DO UPDATE SET
+                    title = ?2,
+                    shortcode = ?4,
+                    credits = ?5,
+                    responsible_person = ?6,
+                    content = ?7
+                    ",
                     username,
                     module.name,
                     module.id,
@@ -172,14 +191,13 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
     }
 }
 
-#[get("/registration")]
-async fn registration(user: Option<Identity>) -> Result<impl Responder, MyError> {
+#[get("/modules/{tail:.*}")]
+async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
-        let tucan = Tucan::new().await?;
-        let user_id = user.id()?;
-        let tucan = tucan.continue_session(&user_id).await?;
-
-        Ok(web::Json(tucan.registration(None).await?))
+        Ok(web::Json(vec![format!(
+            "Welcome! {:?}",
+            path.split("/").collect::<Vec<_>>()
+        )]))
     } else {
         Err(anyhow::Error::msg("Not logged in!"))?
     }
@@ -225,7 +243,7 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .service(login)
             .service(logout)
-            .service(registration)
+            .service(modules)
             .service(setup)
     })
     .bind(("127.0.0.1", 8080))?

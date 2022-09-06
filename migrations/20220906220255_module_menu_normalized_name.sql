@@ -1,0 +1,1 @@
+ALTER TABLE module_menu ADD normalized_name TEXT NOT NULL DEFAULT "";
