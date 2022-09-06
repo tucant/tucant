@@ -119,8 +119,8 @@ async fn fetch_everything(
                     module.id,
                     title,
                     module.credits,
-                    title,
-                    title
+                    module.responsible_person,
+                    module.content
                 )
                 .execute(&tucan.tucan.pool)
                 .await

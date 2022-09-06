@@ -101,6 +101,8 @@ pub struct Module {
     pub id: String,
     pub name: String,
     pub credits: Option<u16>,
+    pub responsible_person: String,
+    pub content: String,
 }
 
 impl TucanUser {
@@ -191,15 +193,29 @@ impl TucanUser {
             .as_text()
             .unwrap();
 
+        // Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.
         let credits = credits
             .trim()
             .strip_suffix(",0")
             .and_then(|v| v.parse::<u16>().ok());
 
+        let responsible_person = document
+            .select(&s("#dozenten"))
+            .next()
+            .unwrap()
+            .inner_html();
+        let content = document
+            .select(&s("#contentlayoutleft tr.tbdata"))
+            .next()
+            .unwrap()
+            .inner_html();
+
         Ok(Module {
             id: module_id.to_string(),
             name: module_name.to_string(),
             credits,
+            responsible_person,
+            content,
         })
     }
 
