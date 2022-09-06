@@ -18,7 +18,7 @@ root.render(
       <Routes>
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
-          <Route path="modules" element={<Modules />} />
+          <Route path="modules/*" element={<Modules />} />
           <Route
         index
         element={<Welcome />}

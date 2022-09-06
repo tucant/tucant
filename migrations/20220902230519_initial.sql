@@ -20,7 +20,7 @@ CREATE TABLE http_cache (
 
 CREATE TABLE module_menu (
     username TEXT NOT NULL REFERENCES users (username),
-    id INTEGER PRIMARY KEY NOT NULL AUTOINCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
     parent INTEGER REFERENCES module_menu (id),
@@ -41,5 +41,5 @@ CREATE TABLE modules (
 -- TODO FIXME add username
 CREATE TABLE module_menu_module (
     module_menu_id INTEGER NOT NULL REFERENCES module_menu (id),
-    module_id TEXT NOT NULL REFERENCES modules (module_id),
+    module_id TEXT NOT NULL REFERENCES modules (module_id)
 );

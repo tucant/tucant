@@ -81,7 +81,11 @@ async fn fetch_everything(
     match value {
         RegistrationEnum::Submenu(value) => {
             for (title, url) in value {
-                let normalized_name = title.to_lowercase().replace(' ', "-");
+                let normalized_name = title
+                    .to_lowercase()
+                    .replace(' ', "-")
+                    .replace(",", "")
+                    .replace("-", "");
 
                 // TODO FIXME we need to add username to primary key for this and modules
                 let cnt = sqlx::query!(
@@ -89,7 +93,7 @@ async fn fetch_everything(
                     (username, name, normalized_name, parent)
                     VALUES
                     (?1, ?2, ?3, ?4)
-                    ON CONFLICT (parent, name) DO UPDATE SET
+                    ON CONFLICT (username, parent, name) DO UPDATE SET
                     name = ?2,
                     normalized_name = ?3,
                     parent = ?4
@@ -193,29 +197,30 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
 
 #[derive(Debug)]
 struct MenuItem {
-    id: std::option::Option<i64>,
+    id: i64,
     normalized_name: String,
 }
 
 // trailing slash is menu
-#[get("/modules/{tail:.*}/")]
+#[get("/modules/{tail:.*}")]
 async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
         // TODO FIXME put this in app data so we don't open countless db pools
         let tucan = Tucan::new().await?;
 
+        println!("{:?}", path.split_terminator("/").collect::<Vec<_>>());
+
         let user_id = user.id()?;
         let mut node = None;
-        for path_segment in path.split("/") {
-            let parent = node.and_then(|v: MenuItem| v.id);
-            node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent = ?2 AND normalized_name = ?3", user_id, parent, path_segment)
+        for path_segment in path.split_terminator("/") {
+            let parent = node.map(|v: MenuItem| v.id);
+            node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
         }
 
-        let parent = node.and_then(|v: MenuItem| v.id);
-        let result = sqlx::query_as!(
-            MenuItem,
-            "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent = ?2",
+        let parent = node.map(|v: MenuItem| v.id);
+        let result = sqlx::query!(
+            "SELECT id, name, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2",
             user_id,
             parent
         )
@@ -226,7 +231,7 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         Ok(web::Json(
             result
                 .iter()
-                .map(|r| r.normalized_name.clone())
+                .map(|r| vec![r.name.clone(), r.normalized_name.clone()])
                 .collect::<Vec<_>>(),
         ))
     } else {

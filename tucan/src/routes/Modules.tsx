@@ -16,7 +16,7 @@ export default function Registration() {
     const getData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/modules`,
+          `http://localhost:8080${window.location.pathname}`,
           {
             credentials: "include"
           }
@@ -49,7 +49,7 @@ export default function Registration() {
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       <List>
-        { data != null && "Submenu" in data ? data.Submenu.map((e: [string, string]) => <RouterLink to={`/registration/${e[0]}`} text={e[0]}></RouterLink>) : ""
+        { data != null && data.map((e: [string, string]) => <RouterLink to={`/modules/${e[1]}/`} text={e[0]}></RouterLink>)
 
 
         }
