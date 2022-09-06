@@ -84,7 +84,7 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 use crate::{element_by_selector, link_by_text, s, tucan::Tucan};
 
 pub struct TucanUser {
-    pub(crate) tucan: Tucan,
+    pub tucan: Tucan,
     pub(crate) username: String,
     pub(crate) session_id: String,
     pub(crate) session_nr: i64,
@@ -98,9 +98,9 @@ pub enum RegistrationEnum {
 
 #[derive(Debug)]
 pub struct Module {
-    id: String,
-    name: String,
-    credits: Option<u16>,
+    pub id: String,
+    pub name: String,
+    pub credits: Option<u16>,
 }
 
 impl TucanUser {

@@ -15,7 +15,7 @@ pub struct Tucan {
     pub(crate) client: Client,
     pub(crate) cookie_jar: Arc<Jar>,
     pub(crate) semaphore: Semaphore,
-    pub(crate) pool: Pool<Sqlite>,
+    pub pool: Pool<Sqlite>,
 }
 
 impl Tucan {

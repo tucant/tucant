@@ -75,22 +75,57 @@ async fn logout(user: Identity) -> Result<impl Responder, MyError> {
 
 #[async_recursion]
 async fn fetch_everything(
+    username: &str,
     tucan: &TucanUser,
     mut sender: UnboundedSender<Result<actix_web::web::Bytes, std::io::Error>>,
+    parent: Option<i64>,
     value: RegistrationEnum,
 ) -> Result<(), MyError> {
     match value {
         RegistrationEnum::Submenu(value) => {
             for (title, url) in value {
+                let cnt = sqlx::query!(
+                    "INSERT INTO module_menu (username, name, parent) VALUES (?, ?, ?)",
+                    username,
+                    title,
+                    parent
+                )
+                .execute(&tucan.tucan.pool)
+                .await
+                .unwrap();
+                assert_eq!(cnt.rows_affected(), 1);
+
                 sender.send(Ok(Bytes::from(title))).await.unwrap();
                 let value = tucan.registration(Some(url)).await?;
-                fetch_everything(tucan, sender.clone(), value).await?;
+                fetch_everything(
+                    username,
+                    tucan,
+                    sender.clone(),
+                    Some(cnt.last_insert_rowid()),
+                    value,
+                )
+                .await?;
             }
         }
         RegistrationEnum::Modules(value) => {
             for (title, url) in value {
-                sender.send(Ok(Bytes::from(title))).await.unwrap();
-                let value = tucan.module(&url).await?;
+                sender.send(Ok(Bytes::from(title.clone()))).await.unwrap();
+                let module = tucan.module(&url).await?;
+
+                let cnt = sqlx::query!(
+                    "INSERT INTO modules (username, title, module_id, shortcode, credits, responsible_person, content) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    username,
+                    module.name,
+                    module.id,
+                    title,
+                    module.credits,
+                    title,
+                    title
+                )
+                .execute(&tucan.tucan.pool)
+                .await
+                .unwrap();
+                assert_eq!(cnt.rows_affected(), 1);
             }
         }
     }
@@ -113,7 +148,7 @@ async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
             let tucan = tucan.continue_session(&user_id).await?;
 
             let res = tucan.registration(None).await?;
-            fetch_everything(&tucan, sender.clone(), res).await?;
+            fetch_everything(&user_id, &tucan, sender.clone(), None, res).await?;
 
             Ok::<(), MyError>(())
         });
