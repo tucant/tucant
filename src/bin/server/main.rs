@@ -196,7 +196,7 @@ async fn main() -> std::io::Result<()> {
         .open("sessions.key")
         .await;
     if let Ok(mut file) = file {
-        file.write(random_secret_key.master()).await?;
+        file.write_all(random_secret_key.master()).await?;
         drop(file)
     }
 

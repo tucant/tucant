@@ -1,6 +1,5 @@
 
-use futures::StreamExt;
-use scraper::{Html};
+use scraper::Html;
 use serde::Serialize;
 
 /**
@@ -236,7 +235,7 @@ impl TucanUser {
                             e.text()
                                 .map(str::to_string)
                                 .reduce(|a, b| a + &b)
-                                .unwrap_or("".to_string())
+                                .unwrap_or_default()
                                 .trim()
                                 .to_string(),
                             format!(
@@ -255,7 +254,7 @@ impl TucanUser {
                                 e.text()
                                     .map(str::to_string)
                                     .reduce(|a, b| a + &b)
-                                    .unwrap_or("".to_string())
+                                    .unwrap_or_default()
                                     .trim()
                                     .to_string(),
                                 format!(
