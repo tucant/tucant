@@ -2,26 +2,26 @@
 
 mod csrf_middleware;
 
-use std::io::Error;
+
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
-use actix_identity::{config::IdentityMiddlewareBuilder, Identity, IdentityMiddleware};
+use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::web::Bytes;
 use actix_web::HttpMessage;
 use actix_web::{
-    cookie::Key, error::ErrorUnauthorized, get, post, web, App, HttpRequest, HttpResponse,
+    cookie::Key, get, post, web, App, HttpRequest, HttpResponse,
     HttpServer, Responder,
 };
 use async_recursion::async_recursion;
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
-use futures::future::ok;
-use futures::stream::once;
+
+
 use futures::SinkExt;
 use serde::{Deserialize, Serialize};
-use tokio::time::sleep;
+
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -63,7 +63,7 @@ struct LoginResult {
 async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
     let tucan = Tucan::new().await?;
     tucan.login(&login.username, &login.password).await?;
-    Identity::login(&request.extensions(), login.username.to_string().into()).unwrap();
+    Identity::login(&request.extensions(), login.username.to_string()).unwrap();
     Ok(web::Json(LoginResult { success: true }))
 }
 

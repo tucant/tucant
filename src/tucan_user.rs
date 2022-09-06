@@ -1,6 +1,6 @@
-use futures::stream::FuturesUnordered;
+
 use futures::StreamExt;
-use scraper::{ElementRef, Html};
+use scraper::{Html};
 use serde::Serialize;
 
 /**
@@ -81,7 +81,7 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
 */
-use crate::{element_by_selector, link_by_text, s, tucan::Tucan};
+use crate::{element_by_selector, s, tucan::Tucan};
 
 pub struct TucanUser {
     pub tucan: Tucan,
@@ -110,7 +110,7 @@ impl TucanUser {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
 
-        let mut normalized_url = url.to_string();
+        let normalized_url = url.to_string();
         /* if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
             normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
             //println!("normalized: {}", normalized_url);

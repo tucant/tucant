@@ -2,20 +2,13 @@
 pub mod tucan;
 pub mod tucan_user;
 
-use std::{
-    io::{Error, ErrorKind},
-    str::FromStr,
-    sync::Arc,
-};
 
-use futures::stream::FuturesUnordered;
-use reqwest::{cookie::Jar, Client, Url};
+
+
+
 use scraper::{ElementRef, Html, Selector};
-use sqlx::{
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    Pool, Sqlite,
-};
-use tokio::sync::Semaphore;
+
+
 
 fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()

@@ -2,7 +2,7 @@ use std::{io::ErrorKind, str::FromStr, sync::Arc};
 
 use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
-use scraper::Html;
+
 use sqlx::{
     sqlite::{SqliteConnectOptions, SqlitePoolOptions},
     Pool, Sqlite,
@@ -74,8 +74,8 @@ impl Tucan {
 
     pub async fn login(self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
-            ("usrname", &username),
-            ("pass", &password),
+            ("usrname", username),
+            ("pass", password),
             ("APPNAME", "CampusNet"),
             ("PRGNAME", "LOGINCHECK"),
             (
