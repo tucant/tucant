@@ -11,7 +11,7 @@ import InitialFetch from "./InitialFetch";
 export default function Registration() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string|null>(null);
+  const [error, setError] = useState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -20,41 +20,44 @@ export default function Registration() {
         const response = await fetch(
           `http://localhost:8080${location.pathname}`,
           {
-            credentials: "include"
+            credentials: "include",
           }
         );
         if (!response.ok) {
           throw new Error(
-            `This is an HTTP error: The status is ${response.status}. ${await response.text()}`
+            `This is an HTTP error: The status is ${
+              response.status
+            }. ${await response.text()}`
           );
         }
         let actualData = await response.json();
         setData(actualData);
         setError(null);
-      } catch(err) {
+      } catch (err) {
         setError(String(err));
         setData(null);
       } finally {
         setLoading(false);
-      }  
-    }
-    getData()
-  }, [location])
+      }
+    };
+    getData();
+  }, [location]);
 
   return (
     <>
       <InitialFetch></InitialFetch>
 
-      <Typography variant="h2">
-        Module
-      </Typography>
+      <Typography variant="h2">Module</Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       <List>
-        { data != null && data.map((e: [string, string]) => <RouterLink to={`${location.pathname}${e[1]}/`} text={e[0]}></RouterLink>)
-
-
-        }
+        {data != null &&
+          data.map((e: [string, string]) => (
+            <RouterLink
+              to={`${location.pathname}${e[1]}/`}
+              text={e[0]}
+            ></RouterLink>
+          ))}
       </List>
     </>
   );

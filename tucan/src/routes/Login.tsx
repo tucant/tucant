@@ -37,7 +37,7 @@ export default function SignIn() {
   let navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string|null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     username: "",
