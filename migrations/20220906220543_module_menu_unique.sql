@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX module_menu_idx ON module_menu (parent, name);

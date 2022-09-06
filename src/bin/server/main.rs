@@ -191,13 +191,44 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
     }
 }
 
-#[get("/modules/{tail:.*}")]
+#[derive(Debug)]
+struct MenuItem {
+    id: std::option::Option<i64>,
+    normalized_name: String,
+}
+
+// trailing slash is menu
+#[get("/modules/{tail:.*}/")]
 async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
-        Ok(web::Json(vec![format!(
-            "Welcome! {:?}",
-            path.split("/").collect::<Vec<_>>()
-        )]))
+        // TODO FIXME put this in app data so we don't open countless db pools
+        let tucan = Tucan::new().await?;
+
+        let user_id = user.id()?;
+        let mut node = None;
+        for path_segment in path.split("/") {
+            let parent = node.and_then(|v: MenuItem| v.id);
+            node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent = ?2 AND normalized_name = ?3", user_id, parent, path_segment)
+            .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
+        }
+
+        let parent = node.and_then(|v: MenuItem| v.id);
+        let result = sqlx::query_as!(
+            MenuItem,
+            "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent = ?2",
+            user_id,
+            parent
+        )
+        .fetch_all(&tucan.pool)
+        .await
+        .unwrap(); // TODO FIXME these unwraps
+
+        Ok(web::Json(
+            result
+                .iter()
+                .map(|r| r.normalized_name.clone())
+                .collect::<Vec<_>>(),
+        ))
     } else {
         Err(anyhow::Error::msg("Not logged in!"))?
     }
