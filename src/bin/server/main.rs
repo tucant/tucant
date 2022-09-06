@@ -93,7 +93,7 @@ async fn fetch_everything(
                     (username, name, normalized_name, parent)
                     VALUES
                     (?1, ?2, ?3, ?4)
-                    ON CONFLICT (username, parent, name) DO UPDATE SET
+                    ON CONFLICT DO UPDATE SET
                     name = ?2,
                     normalized_name = ?3,
                     parent = ?4
@@ -125,6 +125,8 @@ async fn fetch_everything(
                 sender.send(Ok(Bytes::from(title.clone()))).await.unwrap();
                 let module = tucan.module(&url).await?;
 
+                let mut tx = tucan.tucan.pool.begin().await.unwrap();
+
                 let cnt = sqlx::query!(
                     "INSERT INTO modules
                     (username, title, module_id, shortcode, credits, responsible_person, content)
@@ -145,10 +147,23 @@ async fn fetch_everything(
                     module.responsible_person,
                     module.content
                 )
-                .execute(&tucan.tucan.pool)
+                .execute(&mut tx)
                 .await
                 .unwrap();
                 assert_eq!(cnt.rows_affected(), 1);
+
+                let parent = parent.unwrap();
+                sqlx::query!(
+                    "INSERT INTO module_menu_module (module_menu_id, module_id) VALUES (?1, ?2) ON CONFLICT DO NOTHING",
+                    parent,
+                    module.id
+                )
+                .execute(&mut tx)
+                .await
+                .unwrap();
+                assert_eq!(cnt.rows_affected(), 1);
+
+                tx.commit().await.unwrap();
             }
         }
     }
@@ -219,7 +234,7 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         }
 
         let parent = node.map(|v: MenuItem| v.id);
-        let result = sqlx::query!(
+        let menu_result = sqlx::query!(
             "SELECT id, name, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2",
             user_id,
             parent
@@ -228,10 +243,23 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         .await
         .unwrap(); // TODO FIXME these unwraps
 
+        let module_result = sqlx::query!(
+            "SELECT title, module_id FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1",
+            parent
+        )
+        .fetch_all(&tucan.pool)
+        .await
+        .unwrap(); // TODO FIXME these unwraps
+
         Ok(web::Json(
-            result
+            menu_result
                 .iter()
                 .map(|r| vec![r.name.clone(), r.normalized_name.clone()])
+                .chain(
+                    &mut module_result
+                        .iter()
+                        .map(|r| vec![r.title.clone(), r.module_id.clone()]),
+                )
                 .collect::<Vec<_>>(),
         ))
     } else {

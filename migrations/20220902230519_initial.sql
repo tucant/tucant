@@ -23,9 +23,10 @@ CREATE TABLE module_menu (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
-    parent INTEGER REFERENCES module_menu (id),
-    UNIQUE (username, parent, name)
+    parent INTEGER REFERENCES module_menu (id)
 );
+
+CREATE UNIQUE INDEX module_menu_idx ON module_menu (username, IFNULL(parent, 0), name);
 
 -- TODO FIXME username in key
 CREATE TABLE modules (
@@ -41,5 +42,6 @@ CREATE TABLE modules (
 -- TODO FIXME add username
 CREATE TABLE module_menu_module (
     module_menu_id INTEGER NOT NULL REFERENCES module_menu (id),
-    module_id TEXT NOT NULL REFERENCES modules (module_id)
+    module_id TEXT NOT NULL REFERENCES modules (module_id),
+    PRIMARY KEY (module_menu_id, module_id)
 );
