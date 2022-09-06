@@ -8,17 +8,18 @@ use std::{fmt::Display, time::Duration};
 use actix_cors::Cors;
 use actix_identity::{config::IdentityMiddlewareBuilder, Identity, IdentityMiddleware};
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
-use actix_web::HttpMessage;
 use actix_web::web::Bytes;
+use actix_web::HttpMessage;
 use actix_web::{
     cookie::Key, error::ErrorUnauthorized, get, post, web, App, HttpRequest, HttpResponse,
     HttpServer, Responder,
 };
+use async_recursion::async_recursion;
 use csrf_middleware::CsrfMiddleware;
-use futures::SinkExt;
-use futures::channel::mpsc::unbounded;
+use futures::channel::mpsc::{unbounded, UnboundedSender};
 use futures::future::ok;
 use futures::stream::once;
+use futures::SinkExt;
 use serde::{Deserialize, Serialize};
 use tokio::time::sleep;
 use tokio::{
@@ -26,6 +27,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::tucan::Tucan;
+use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
 #[derive(Debug)]
 struct MyError {
@@ -71,6 +73,30 @@ async fn logout(user: Identity) -> Result<impl Responder, MyError> {
     Ok(HttpResponse::Ok())
 }
 
+#[async_recursion]
+async fn fetch_everything(
+    tucan: &TucanUser,
+    mut sender: UnboundedSender<Result<actix_web::web::Bytes, std::io::Error>>,
+    value: RegistrationEnum,
+) -> Result<(), MyError> {
+    match value {
+        RegistrationEnum::Submenu(value) => {
+            for (title, url) in value {
+                sender.send(Ok(Bytes::from(title))).await.unwrap();
+                let value = tucan.registration(Some(url)).await?;
+                fetch_everything(tucan, sender.clone(), value).await?;
+            }
+        }
+        RegistrationEnum::Modules(value) => {
+            for (title, url) in value {
+                sender.send(Ok(Bytes::from(title))).await.unwrap();
+                let value = tucan.module(&url).await?;
+            }
+        }
+    }
+    Ok::<(), MyError>(())
+}
+
 #[post("/setup")]
 async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
@@ -78,20 +104,22 @@ async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
 
         let user_id = user.id()?;
         tokio::spawn(async move {
-            sender.send(Ok(Bytes::from("bbbbbbbbbbbbbbbb"))).await.unwrap();
-
-            sleep(Duration::from_secs(2)).await;
-
-            sender.send(Ok(Bytes::from("aaaaaaaaaaaaaaaaa"))).await.unwrap();
+            sender
+                .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
+                .await
+                .unwrap();
 
             let tucan = Tucan::new().await?;
             let tucan = tucan.continue_session(&user_id).await?;
 
             let res = tucan.registration(None).await?;
+            fetch_everything(&tucan, sender.clone(), res).await?;
 
             Ok::<(), MyError>(())
         });
-        
+
+        // TODO FIXME search for <h1>Timeout!</h1>
+
         Ok(HttpResponse::Ok()
             .content_type("text/plain")
             .streaming(receiver))

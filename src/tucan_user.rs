@@ -81,7 +81,6 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
 */
-
 use crate::{element_by_selector, link_by_text, s, tucan::Tucan};
 
 pub struct TucanUser {
@@ -101,7 +100,7 @@ pub enum RegistrationEnum {
 pub struct Module {
     id: String,
     name: String,
-    credits: u16,
+    credits: Option<u16>,
 }
 
 impl TucanUser {
@@ -110,11 +109,11 @@ impl TucanUser {
         // maybe try the same with the navigation menus
 
         let mut normalized_url = url.to_string();
-        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
+        /* if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
             normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
             //println!("normalized: {}", normalized_url);
             //println!("url       : {}", url);
-        }
+        }*/
 
         // can't cache these as the links inside there are invalid for new sessions
         /*
@@ -192,7 +191,10 @@ impl TucanUser {
             .as_text()
             .unwrap();
 
-        let credits: u16 = credits.trim().strip_suffix(",0").unwrap().parse().unwrap();
+        let credits = credits
+            .trim()
+            .strip_suffix(",0")
+            .and_then(|v| v.parse::<u16>().ok());
 
         Ok(Module {
             id: module_id.to_string(),

@@ -28,7 +28,7 @@ export default function InitialFetch() {
           let reader = response.body?.getReader()
           let value: ReadableStreamReadResult<Uint8Array> | undefined;
           while (!(value = await reader?.read())?.done) {
-            setData((data: string) => data + new TextDecoder().decode(value?.value));
+            setData((data: string) => new TextDecoder().decode(value?.value));
           }
 
         } catch (error) {
