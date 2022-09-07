@@ -7,6 +7,8 @@ import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
 import Welcome from "./routes/Welcome";
 import Modules from "./routes/Modules";
+import Module from "./routes/Module";
+import ModuleOrModules from "./routes/ModuleOrModules";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -18,7 +20,7 @@ root.render(
       <Routes>
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
-          <Route path="modules/*" element={<Modules />} />
+          <Route path="modules/*" element={<ModuleOrModules />} />
           <Route
         index
         element={<Welcome />}

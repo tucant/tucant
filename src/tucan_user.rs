@@ -195,7 +195,7 @@ impl TucanUser {
         let credits = credits
             .trim()
             .strip_suffix(",0")
-            .and_then(|v| v.parse::<u16>().ok());
+            .and_then(|v| v.parse::<i64>().ok());
 
         let responsible_person = document
             .select(&s("#dozenten"))

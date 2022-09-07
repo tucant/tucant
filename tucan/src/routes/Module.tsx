@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Chip } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -7,14 +7,13 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
-import Module from "./Module";
+import { sanitize } from "dompurify";
 
-export default function Modules() {
-  const location = useLocation();
-
+export default function Module() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const getData = async () => {
@@ -49,25 +48,15 @@ export default function Modules() {
     <>
       <InitialFetch></InitialFetch>
 
-      <Typography variant="h2">Module</Typography>
+      <Typography variant="h2">Modul</Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
-      <List>
-        {data != null && "Submenu" in data &&
-          data.Submenu.map((e: [string, string]) => (
-            <RouterLink
-              to={`${location.pathname}${e[1]}/`}
-              text={e[0]}
-            ></RouterLink>
-          ))}
-          {data != null && "Modules" in data &&
-          data.Modules.map((e: [string, string]) => (
-            <RouterLink
-              to={`${location.pathname}${e[1]}`}
-              text={e[0]}
-            ></RouterLink>
-          ))}
-      </List>
+
+{data && <>
+      <Typography variant="h3">{data.id} {data.name}</Typography>
+      <Chip label={`${data.credits} Credits`} />
+      <div dangerouslySetInnerHTML={{__html: sanitize(data.content)}}></div>
+      </>}
     </>
   );
 }
