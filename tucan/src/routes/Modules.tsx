@@ -51,10 +51,17 @@ export default function Registration() {
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       <List>
-        {data != null &&
-          data.map((e: [string, string]) => (
+        {data != null && "Submenu" in data &&
+          data.Submenu.map((e: [string, string]) => (
             <RouterLink
               to={`${location.pathname}${e[1]}/`}
+              text={e[0]}
+            ></RouterLink>
+          ))}
+          {data != null && "Modules" in data &&
+          data.Modules.map((e: [string, string]) => (
+            <RouterLink
+              to={`${location.pathname}${e[1]}`}
               text={e[0]}
             ></RouterLink>
           ))}

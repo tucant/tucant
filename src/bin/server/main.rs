@@ -83,12 +83,13 @@ async fn fetch_everything(
             for (title, url) in value {
                 let normalized_name = title
                     .to_lowercase()
+                    .replace("-", "")
                     .replace(' ', "-")
                     .replace(",", "")
+                    .replace("/", "-")
                     .replace("ä", "ae")
                     .replace("ö", "oe")
-                    .replace("ü", "ue")
-                    .replace("-", "");
+                    .replace("ü", "ue");
 
                 // TODO FIXME we need to add username to primary key for this and modules
                 let cnt = sqlx::query!(
@@ -220,17 +221,28 @@ struct MenuItem {
 }
 
 // trailing slash is menu
-#[get("/modules/{tail:.*}")]
+#[get("/modules{tail:.*}")]
 async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
         // TODO FIXME put this in app data so we don't open countless db pools
         let tucan = Tucan::new().await?;
 
-        println!("{:?}", path.split_terminator("/").collect::<Vec<_>>());
+        println!("{:?}", path);
+
+        let menu_path_vec = path.split_terminator("/").skip(1).collect::<Vec<_>>();
+        println!("{:?}", menu_path_vec);
+
+        let menu_path: &[&str];
+        if path.ends_with("/") {
+            menu_path = &menu_path_vec;
+        } else {
+            menu_path = menu_path_vec.split_last().unwrap().1;
+        }
+        println!("{:?}", menu_path);
 
         let user_id = user.id()?;
         let mut node = None;
-        for path_segment in path.split_terminator("/") {
+        for path_segment in menu_path {
             let parent = node.map(|v: MenuItem| v.id);
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
@@ -254,17 +266,21 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         .await
         .unwrap(); // TODO FIXME these unwraps
 
-        Ok(web::Json(
-            menu_result
-                .iter()
-                .map(|r| vec![r.name.clone(), r.normalized_name.clone()])
-                .chain(
-                    &mut module_result
-                        .iter()
-                        .map(|r| vec![r.title.clone(), r.module_id.clone()]),
-                )
-                .collect::<Vec<_>>(),
-        ))
+        if !menu_result.is_empty() {
+            Ok(web::Json(RegistrationEnum::Submenu(
+                menu_result
+                    .iter()
+                    .map(|r| (r.name.clone(), r.normalized_name.clone()))
+                    .collect::<Vec<_>>(),
+            )))
+        } else {
+            Ok(web::Json(RegistrationEnum::Modules(
+                module_result
+                    .iter()
+                    .map(|r| (r.title.clone(), r.module_id.clone()))
+                    .collect::<Vec<_>>(),
+            )))
+        }
     } else {
         Err(anyhow::Error::msg("Not logged in!"))?
     }
