@@ -8,10 +8,10 @@ use actix_cors::Cors;
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::web::{Bytes, Path};
-use actix_web::HttpMessage;
 use actix_web::{
     cookie::Key, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
+use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
@@ -24,7 +24,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
+use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
 
 #[derive(Debug)]
 struct MyError {
@@ -233,10 +233,14 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         println!("{:?}", menu_path_vec);
 
         let menu_path: &[&str];
+        let module: Option<&str>;
         if path.ends_with("/") {
             menu_path = &menu_path_vec;
+            module = None;
         } else {
-            menu_path = menu_path_vec.split_last().unwrap().1;
+            let tmp = menu_path_vec.split_last().unwrap();
+            menu_path = tmp.1;
+            module = Some(tmp.0);
         }
         println!("{:?}", menu_path);
 
@@ -247,9 +251,21 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
         }
-
         let parent = node.map(|v: MenuItem| v.id);
-        let menu_result = sqlx::query!(
+
+        if let Some(module) = module {
+            let module_result = sqlx::query_as!(Module,
+                "SELECT module_id AS id, title AS name, credits, responsible_person, content FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1 AND module_id = ?2",
+                parent,
+                module
+            )
+            .fetch_one(&tucan.pool)
+            .await
+            .unwrap();
+
+            Ok(Either::Left(web::Json(module_result)))
+        } else {
+            let menu_result = sqlx::query!(
             "SELECT id, name, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2",
             user_id,
             parent
@@ -258,7 +274,7 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         .await
         .unwrap(); // TODO FIXME these unwraps
 
-        let module_result = sqlx::query!(
+            let module_result = sqlx::query!(
             "SELECT title, module_id FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1",
             parent
         )
@@ -266,20 +282,21 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
         .await
         .unwrap(); // TODO FIXME these unwraps
 
-        if !menu_result.is_empty() {
-            Ok(web::Json(RegistrationEnum::Submenu(
-                menu_result
-                    .iter()
-                    .map(|r| (r.name.clone(), r.normalized_name.clone()))
-                    .collect::<Vec<_>>(),
-            )))
-        } else {
-            Ok(web::Json(RegistrationEnum::Modules(
-                module_result
-                    .iter()
-                    .map(|r| (r.title.clone(), r.module_id.clone()))
-                    .collect::<Vec<_>>(),
-            )))
+            if !menu_result.is_empty() {
+                Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
+                    menu_result
+                        .iter()
+                        .map(|r| (r.name.clone(), r.normalized_name.clone()))
+                        .collect::<Vec<_>>(),
+                ))))
+            } else {
+                Ok(Either::Right(web::Json(RegistrationEnum::Modules(
+                    module_result
+                        .iter()
+                        .map(|r| (r.title.clone(), r.module_id.clone()))
+                        .collect::<Vec<_>>(),
+                ))))
+            }
         }
     } else {
         Err(anyhow::Error::msg("Not logged in!"))?

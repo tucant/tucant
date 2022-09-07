@@ -94,11 +94,11 @@ pub enum RegistrationEnum {
     Modules(Vec<(String, String)>), // TODO types
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Module {
     pub id: String,
     pub name: String,
-    pub credits: Option<u16>,
+    pub credits: Option<i64>,
     pub responsible_person: String,
     pub content: String,
 }
