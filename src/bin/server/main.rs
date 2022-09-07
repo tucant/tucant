@@ -85,6 +85,9 @@ async fn fetch_everything(
                     .to_lowercase()
                     .replace(' ', "-")
                     .replace(",", "")
+                    .replace("ä", "ae")
+                    .replace("ö", "oe")
+                    .replace("ü", "ue")
                     .replace("-", "");
 
                 // TODO FIXME we need to add username to primary key for this and modules
