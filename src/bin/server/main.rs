@@ -101,27 +101,20 @@ async fn fetch_everything(
                     name = ?2,
                     normalized_name = ?3,
                     parent = ?4
+                    RETURNING id
                     ",
                     username,
                     title,
                     normalized_name,
                     parent
                 )
-                .execute(&tucan.tucan.pool)
+                .fetch_one(&tucan.tucan.pool)
                 .await
                 .unwrap();
-                assert_eq!(cnt.rows_affected(), 1);
 
                 sender.send(Ok(Bytes::from(title))).await.unwrap();
                 let value = tucan.registration(Some(url)).await?;
-                fetch_everything(
-                    username,
-                    tucan,
-                    sender.clone(),
-                    Some(cnt.last_insert_rowid()),
-                    value,
-                )
-                .await?;
+                fetch_everything(username, tucan, sender.clone(), Some(cnt.id), value).await?;
             }
         }
         RegistrationEnum::Modules(value) => {

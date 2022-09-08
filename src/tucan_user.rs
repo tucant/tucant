@@ -1,3 +1,5 @@
+use std::io::{Error, ErrorKind};
+
 use scraper::Html;
 use serde::Serialize;
 
@@ -144,32 +146,52 @@ impl TucanUser {
         // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
 
         if let Some(doc) = document {
-            return Ok(Html::parse_document(&doc.content));
+            let html_doc = Html::parse_document(&doc.content);
+
+            if html_doc
+                .select(&s("h1"))
+                .any(|s| s.inner_html() == "Timeout!")
+            {
+                return Err(
+                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
+                );
+            }
+            return Ok(html_doc);
         } else {
-            println!("didnt hit cache")
+            println!("didnt hit cache");
+
+            let a = self.tucan.client.get(url);
+            let b = a.build().unwrap();
+
+            //println!("{:?}", b);
+
+            let permit = self.tucan.semaphore.acquire().await?;
+            let resp = self.tucan.client.execute(b).await?.text().await?;
+            drop(permit);
+
+            // warning: not transactional with check above
+            let cnt = sqlx::query!(
+                "INSERT OR REPLACE INTO http_cache (url, session, content) VALUES (?, ?, ?)",
+                url,
+                self.session_id,
+                resp
+            )
+            .execute(&self.tucan.pool)
+            .await?;
+            assert_eq!(cnt.rows_affected(), 1);
+
+            let html_doc = Html::parse_document(&resp);
+
+            if html_doc
+                .select(&s("h1"))
+                .any(|s| s.inner_html() == "Timeout!")
+            {
+                return Err(
+                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
+                );
+            }
+            return Ok(html_doc);
         }
-
-        let a = self.tucan.client.get(url);
-        let b = a.build().unwrap();
-
-        //println!("{:?}", b);
-
-        let permit = self.tucan.semaphore.acquire().await?;
-        let resp = self.tucan.client.execute(b).await?.text().await?;
-        drop(permit);
-
-        // warning: not transactional with check above
-        let cnt = sqlx::query!(
-            "INSERT OR REPLACE INTO http_cache (url, session, content) VALUES (?, ?, ?)",
-            url,
-            self.session_id,
-            resp
-        )
-        .execute(&self.tucan.pool)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
-
-        Ok(Html::parse_document(&resp))
     }
 
     pub async fn module(&self, url: &str) -> anyhow::Result<Module> {
@@ -180,7 +202,9 @@ impl TucanUser {
         let text = name.inner_html();
         let mut fs = text.split("&nbsp;");
         let module_id = fs.next().unwrap().trim();
-        let module_name = fs.next().unwrap().trim();
+
+        let module_name = fs.next().map(str::trim);
+
         let credits = document
             .select(&s(r#"#contentlayoutleft b"#))
             .find(|e| e.inner_html() == "Credits: ")
@@ -210,7 +234,7 @@ impl TucanUser {
 
         Ok(Module {
             id: module_id.to_string(),
-            name: module_name.to_string(),
+            name: module_name.unwrap().to_string(),
             credits,
             responsible_person,
             content,
