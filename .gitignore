@@ -1,6 +1,6 @@
 /target
-data.db
-data.db-shm
-data.db-wal
+*.db
+*.db-shm
+*.db-wal
 sessions.key
 TUCaN_base.apk*

@@ -124,6 +124,10 @@ async fn fetch_everything(
 
                 let mut tx = tucan.tucan.pool.begin().await.unwrap();
 
+                // TODO FIXME warn if module already existed as that suggests recursive dependency
+                // TODO normalize url in a way that this can use cached data?
+                // modules can probably be cached because we don't follow outgoing links
+                // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
                 let cnt = sqlx::query!(
                     "INSERT INTO modules
                     (username, title, module_id, shortcode, credits, responsible_person, content)
