@@ -156,7 +156,7 @@ impl TucanUser {
                     Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
                 );
             }
-            return Ok(html_doc);
+            Ok(html_doc)
         } else {
             println!("didnt hit cache");
 
@@ -190,7 +190,7 @@ impl TucanUser {
                     Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
                 );
             }
-            return Ok(html_doc);
+            Ok(html_doc)
         }
     }
 

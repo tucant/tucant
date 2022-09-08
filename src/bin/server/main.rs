@@ -83,13 +83,13 @@ async fn fetch_everything(
             for (title, url) in value {
                 let normalized_name = title
                     .to_lowercase()
-                    .replace("-", "")
+                    .replace('-', "")
                     .replace(' ', "-")
-                    .replace(",", "")
-                    .replace("/", "-")
-                    .replace("ä", "ae")
-                    .replace("ö", "oe")
-                    .replace("ü", "ue");
+                    .replace(',', "")
+                    .replace('/', "-")
+                    .replace('ä', "ae")
+                    .replace('ö', "oe")
+                    .replace('ü', "ue");
 
                 // TODO FIXME we need to add username to primary key for this and modules
                 let cnt = sqlx::query!(
@@ -222,12 +222,12 @@ async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Resp
 
         println!("{:?}", path);
 
-        let menu_path_vec = path.split_terminator("/").skip(1).collect::<Vec<_>>();
+        let menu_path_vec = path.split_terminator('/').skip(1).collect::<Vec<_>>();
         println!("{:?}", menu_path_vec);
 
         let menu_path: &[&str];
         let module: Option<&str>;
-        if path.ends_with("/") {
+        if path.ends_with('/') {
             menu_path = &menu_path_vec;
             module = None;
         } else {
