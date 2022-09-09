@@ -1,4 +1,8 @@
-use std::{io::ErrorKind, str::FromStr, sync::Arc};
+use std::{
+    io::{Error, ErrorKind},
+    str::FromStr,
+    sync::Arc,
+};
 
 use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
@@ -95,77 +99,85 @@ impl Tucan {
             .send()
             .await?;
 
-        let redirect_url = &format!(
-            "https://www.tucan.tu-darmstadt.de{}",
-            &res_headers.headers().get("refresh").unwrap().to_str()?[7..]
-        );
+        let refresh_header = res_headers.headers().get("refresh");
 
-        println!("{}", redirect_url);
+        if refresh_header.is_some() {
+            let redirect_url = &format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                &refresh_header.unwrap().to_str()?[7..]
+            );
 
-        let url = Url::parse(redirect_url)?;
+            println!("{}", redirect_url);
 
-        let arguments = url.query_pairs().find(|e| e.0 == "ARGUMENTS").unwrap().1;
+            let url = Url::parse(redirect_url)?;
 
-        println!("{}", arguments);
+            let arguments = url.query_pairs().find(|e| e.0 == "ARGUMENTS").unwrap().1;
 
-        let regex: Regex = Regex::new(
-            r"(?x)
+            println!("{}", arguments);
+
+            let regex: Regex = Regex::new(
+                r"(?x)
                 ^-N(?P<nr>[[:digit:]]+),-N[[:digit:]]+,-N[[:digit:]]+$
                 ",
-        )
-        .unwrap();
-
-        let session_nr = regex
-            .captures(&arguments)
-            .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
-            .unwrap()
-            .parse::<i64>()
+            )
             .unwrap();
 
-        println!("session_nr {}", session_nr);
+            let session_nr = regex
+                .captures(&arguments)
+                .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
+                .unwrap()
+                .parse::<i64>()
+                .unwrap();
 
-        let session_cookie = res_headers.cookies().next().unwrap();
-        let session_id = session_cookie.value().to_string();
+            println!("session_nr {}", session_nr);
 
-        let mut tx = self.pool.begin().await?;
+            let session_cookie = res_headers.cookies().next().unwrap();
+            let session_id = session_cookie.value().to_string();
 
-        sqlx::query!(
-            "INSERT OR IGNORE INTO users (username) VALUES (?)",
-            username
-        )
-        .execute(&mut tx)
-        .await?;
+            let mut tx = self.pool.begin().await?;
 
-        let cnt = sqlx::query!(
-            "INSERT INTO sessions (session_id, session_nr, user) VALUES (?, ?, ?)",
-            session_id,
-            session_nr,
-            username
-        )
-        .execute(&mut tx)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
+            sqlx::query!(
+                "INSERT OR IGNORE INTO users (username) VALUES (?)",
+                username
+            )
+            .execute(&mut tx)
+            .await?;
 
-        let cnt = sqlx::query!(
-            "UPDATE users SET active_session = ? WHERE username = ?",
-            session_id,
-            username
-        )
-        .execute(&mut tx)
-        .await?;
-        assert_eq!(cnt.rows_affected(), 1);
+            let cnt = sqlx::query!(
+                "INSERT INTO sessions (session_id, session_nr, user) VALUES (?, ?, ?)",
+                session_id,
+                session_nr,
+                username
+            )
+            .execute(&mut tx)
+            .await?;
+            assert_eq!(cnt.rows_affected(), 1);
 
-        tx.commit().await?;
+            let cnt = sqlx::query!(
+                "UPDATE users SET active_session = ? WHERE username = ?",
+                session_id,
+                username
+            )
+            .execute(&mut tx)
+            .await?;
+            assert_eq!(cnt.rows_affected(), 1);
+
+            tx.commit().await?;
+
+            res_headers.text().await?;
+
+            return Ok(TucanUser {
+                tucan: self,
+                username: username.to_string(),
+                session_id,
+                session_nr,
+            });
+        }
 
         res_headers.text().await?;
 
-        //println!("{:#?}", self.cookie_jar);
+        Err(Error::new(ErrorKind::Other, "Invalid username or password").into())
 
-        Ok(TucanUser {
-            tucan: self,
-            username: username.to_string(),
-            session_id,
-            session_nr,
-        })
+        //println!("{:#?}", self.cookie_jar);
     }
 }
