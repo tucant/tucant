@@ -63,4 +63,15 @@ SELECT modules.module_id, modules.title, modules.credits FROM module_menu
 
 https://www.sqlite.org/lang_with.html
 
+
+
+CREATE VIRTUAL TABLE modules_fts5 USING fts5(module_id UNINDEXED, title, content);
+
+INSERT INTO modules_fts5 (module_id, title, content) SELECT module_id, title, content FROM modules;
+
+SELECT snippet(modules_fts5, 2, '<b>', '</b>', '...', 10) FROM modules_fts5 WHERE content MATCH 'Objektorientierte' ORDER BY rank;
+
+
+https://www.sqlite.org/fts5.html
+
 ```
