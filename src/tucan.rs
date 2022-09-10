@@ -90,7 +90,7 @@ impl Tucan {
                 .captures(&arguments)
                 .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
                 .unwrap()
-                .parse::<i64>()
+                .parse::<u64>()
                 .unwrap();
 
             println!("session_nr {}", session_nr);
@@ -98,41 +98,10 @@ impl Tucan {
             let session_cookie = res_headers.cookies().next().unwrap();
             let session_id = session_cookie.value().to_string();
 
-            let mut tx = self.pool.begin().await?;
-
-            sqlx::query!(
-                "INSERT OR IGNORE INTO users (username) VALUES (?)",
-                username
-            )
-            .execute(&mut tx)
-            .await?;
-
-            let cnt = sqlx::query!(
-                "INSERT INTO sessions (session_id, session_nr, user) VALUES (?, ?, ?)",
-                session_id,
-                session_nr,
-                username
-            )
-            .execute(&mut tx)
-            .await?;
-            assert_eq!(cnt.rows_affected(), 1);
-
-            let cnt = sqlx::query!(
-                "UPDATE users SET active_session = ? WHERE username = ?",
-                session_id,
-                username
-            )
-            .execute(&mut tx)
-            .await?;
-            assert_eq!(cnt.rows_affected(), 1);
-
-            tx.commit().await?;
-
             res_headers.text().await?;
 
             return Ok(TucanUser {
                 tucan: self,
-                username: username.to_string(),
                 session_id,
                 session_nr,
             });

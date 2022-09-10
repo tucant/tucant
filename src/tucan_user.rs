@@ -160,16 +160,11 @@ impl TucanUser {
         } else {
             println!("didnt hit cache");
 
-
             let cookie = format!("cnsc={}", self.session_id);
-            // TODO FIXME
-            //self.cookie_jar.add_cookie_str(&cookie, &url);
 
             let a = self.tucan.client.get(url);
             let b = a.build().unwrap();
             b.headers_mut().insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
-
-            //println!("{:?}", b);
 
             let permit = self.tucan.semaphore.acquire().await?;
             let resp = self.tucan.client.execute(b).await?.text().await?;
