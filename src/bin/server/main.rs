@@ -57,15 +57,14 @@ struct LoginResult {
 }
 
 #[post("/login")]
-async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
-    let tucan = Tucan::new().await?;
+async fn login(tucan: web::Data<Tucan>, request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
     tucan.login(&login.username, &login.password).await?;
     Identity::login(&request.extensions(), login.username.to_string()).unwrap();
     Ok(web::Json(LoginResult { success: true }))
 }
 
 #[post("/logout")]
-async fn logout(user: Identity) -> Result<impl Responder, MyError> {
+async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responder, MyError> {
     user.logout();
     Ok(HttpResponse::Ok())
 }
@@ -172,19 +171,18 @@ async fn fetch_everything(
 }
 
 #[post("/setup")]
-async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
+async fn setup(tucan: web::Data<Tucan>, user: Option<Identity>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
         let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
 
         let user_id = user.id()?;
+        let tucan = tucan.continue_session(&user_id).await?;
+
         tokio::spawn(async move {
             sender
                 .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
                 .await
                 .unwrap();
-
-            let tucan = Tucan::new().await?;
-            let tucan = tucan.continue_session(&user_id).await?;
 
             let res = tucan.registration(None).await?;
             fetch_everything(&user_id, &tucan, sender.clone(), None, res).await?;
@@ -219,11 +217,8 @@ struct MenuItem {
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
-async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
+async fn modules(tucan: web::Data<Tucan>, user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
-        // TODO FIXME put this in app data so we don't open countless db pools
-        let tucan = Tucan::new().await?;
-
         println!("{:?}", path);
 
         let menu_path_vec = path.split_terminator('/').skip(1).collect::<Vec<_>>();
@@ -318,6 +313,8 @@ async fn main() -> std::io::Result<()> {
     let secret_key_raw = fs::read("sessions.key").await?;
     let secret_key = Key::derive_from(&secret_key_raw);
 
+    let tucan = web::Data::new(Tucan::new().await?);
+
     HttpServer::new(move || {
         let cors = Cors::default()
             .supports_credentials()
@@ -326,6 +323,7 @@ async fn main() -> std::io::Result<()> {
             .allowed_origin("http://localhost:3000");
 
         App::new()
+            .app_data(tucan.clone())
             .wrap(
                 IdentityMiddleware::builder()
                     .visit_deadline(Some(Duration::from_secs(24 * 3600)))

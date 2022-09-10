@@ -1,46 +1,30 @@
 use std::{
-    io::{Error, ErrorKind},
-    str::FromStr,
-    sync::Arc,
+    io::{Error, ErrorKind}
 };
 
+use diesel::{PgConnection, Connection, r2d2::{Pool, ConnectionManager}};
+use dotenvy::dotenv;
 use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
 
-use sqlx::{
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    Pool, Sqlite,
-};
 use tokio::sync::Semaphore;
 
-use crate::tucan_user::TucanUser;
+use crate::{tucan_user::TucanUser, create_pool};
 
 pub struct Tucan {
     pub(crate) client: Client,
-    pub(crate) cookie_jar: Arc<Jar>,
     pub(crate) semaphore: Semaphore,
-    pub pool: Pool<Sqlite>,
+    pub pool: Pool<ConnectionManager<PgConnection>> ,
 }
 
 impl Tucan {
     pub async fn new() -> anyhow::Result<Self> {
-        let database_url = dotenvy::var("DATABASE_URL")?;
-        let pool = SqlitePoolOptions::new()
-            .max_connections(1)
-            .test_before_acquire(false)
-            .connect_with(SqliteConnectOptions::from_str(&database_url)?.create_if_missing(true))
-            .await?;
+        let pool = create_pool();
 
-        sqlx::migrate!().run(&pool).await?;
-
-        let cookie_jar = Arc::new(Jar::default());
         Ok(Self {
-            cookie_jar: cookie_jar.clone(),
             pool,
-            client: reqwest::Client::builder()
-                .cookie_provider(cookie_jar)
-                .build()?,
-            semaphore: Semaphore::new(10), // risky
+            client: reqwest::Client::builder().build()?,
+            semaphore: Semaphore::new(10),
         })
     }
 
@@ -59,7 +43,9 @@ impl Tucan {
                     .parse::<Url>()
                     .unwrap();
 
-                self.cookie_jar.add_cookie_str(&cookie, &url);
+                // TODO FIXME
+                
+                //self.cookie_jar.add_cookie_str(&cookie, &url);
                 //println!("{:#?}", self.cookie_jar);
 
                 Ok(TucanUser {
