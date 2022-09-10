@@ -1,5 +1,6 @@
 use std::io::{Error, ErrorKind};
 
+use chrono::NaiveDateTime;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
@@ -82,7 +83,7 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
 */
-use crate::{element_by_selector, s, tucan::Tucan};
+use crate::{element_by_selector, s, tucan::Tucan, models::Module};
 
 pub struct TucanUser<'a> {
     pub tucan: &'a Tucan,
@@ -96,14 +97,6 @@ pub enum RegistrationEnum {
     Modules(Vec<(String, String)>), // TODO types
 }
 
-#[derive(Debug, Serialize)]
-pub struct Module {
-    pub id: String,
-    pub name: String,
-    pub credits: Option<i64>,
-    pub responsible_person: String,
-    pub content: String,
-}
 
 impl<'a> TucanUser<'a> {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
@@ -184,13 +177,13 @@ impl<'a> TucanUser<'a> {
         let credits = credits
             .trim()
             .strip_suffix(",0")
-            .and_then(|v| v.parse::<i64>().ok());
+            .and_then(|v| v.parse::<i32>().ok()).unwrap_or(0);
 
-        let responsible_person = document
+       /* let responsible_person = document
             .select(&s("#dozenten"))
             .next()
             .unwrap()
-            .inner_html();
+            .inner_html();*/
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
@@ -198,10 +191,11 @@ impl<'a> TucanUser<'a> {
             .inner_html();
 
         Ok(Module {
-            id: module_id.to_string(),
-            name: module_name.unwrap().to_string(),
+            tucan_id: module_id.to_string(),
+            tucan_last_checked: NaiveDateTime::new(),
+            title: module_name.unwrap().to_string(),
             credits,
-            responsible_person,
+            module_id: module_id.to_string(),
             content,
         })
     }

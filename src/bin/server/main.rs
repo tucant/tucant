@@ -16,6 +16,7 @@ use actix_web::{
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
 use async_stream::{stream, try_stream, AsyncStream};
+use chrono::NaiveDateTime;
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
@@ -26,6 +27,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+use tucan_scraper::schema::{modules, self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
 
@@ -99,7 +101,6 @@ async fn fetch_everything<'a>(
                         .replace('ö', "oe")
                         .replace('ü', "ue");
 
-                    // TODO FIXME we need to add username to primary key for this and modules
                     let cnt = sqlx::query!(
                         "INSERT INTO module_menu
                     (username, name, normalized_name, parent)
@@ -131,7 +132,7 @@ async fn fetch_everything<'a>(
                     yield Bytes::from(title.clone());
                     let module = tucan.module(&url).await.unwrap();
 
-                    let mut tx = tucan.tucan.pool.get().unwrap();
+
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
@@ -184,6 +185,22 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
+
+
+    tucan.pool.get().unwrap()
+    .build_transaction()
+.read_only()
+.run(|connection| {
+    diesel::insert_into(tucan_scraper::schema::modules::table).values(&Module {
+        tucan_id: "1".to_string(),
+        tucan_last_checked: NaiveDateTime::new(),
+        title: "hi".to_string(),
+        module_id: "hi".to_string(),
+        credits: Some(5),
+        content: "hi".to_string()
+    }).get_result(connection)
+}).unwrap();
+
     let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
         yield Bytes::from("Alle Module werden heruntergeladen...");
 
@@ -227,7 +244,7 @@ struct MenuItem {
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
-async fn modules(
+async fn get_modules(
     tucan: web::Data<Tucan>,
     user: Option<Identity>,
     path: Path<String>,
@@ -352,7 +369,7 @@ async fn main() -> anyhow::Result<()> {
             .service(index)
             .service(login)
             .service(logout)
-            .service(modules)
+            .service(get_modules)
             .service(setup)
     })
     .bind(("127.0.0.1", 8080))?
