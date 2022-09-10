@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind};
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
@@ -83,7 +83,7 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
 */
-use crate::{element_by_selector, s, tucan::Tucan, models::Module};
+use crate::{element_by_selector, models::Module, s, tucan::Tucan};
 
 pub struct TucanUser<'a> {
     pub tucan: &'a Tucan,
@@ -96,7 +96,6 @@ pub enum RegistrationEnum {
     Submenu(Vec<(String, String)>),
     Modules(Vec<(String, String)>), // TODO types
 }
-
 
 impl<'a> TucanUser<'a> {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
@@ -177,13 +176,14 @@ impl<'a> TucanUser<'a> {
         let credits = credits
             .trim()
             .strip_suffix(",0")
-            .and_then(|v| v.parse::<i32>().ok()).unwrap_or(0);
+            .and_then(|v| v.parse::<i32>().ok())
+            .unwrap_or(0);
 
-       /* let responsible_person = document
-            .select(&s("#dozenten"))
-            .next()
-            .unwrap()
-            .inner_html();*/
+        /* let responsible_person = document
+        .select(&s("#dozenten"))
+        .next()
+        .unwrap()
+        .inner_html();*/
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
@@ -192,7 +192,7 @@ impl<'a> TucanUser<'a> {
 
         Ok(Module {
             tucan_id: module_id.to_string(),
-            tucan_last_checked: NaiveDateTime::new(),
+            tucan_last_checked: Utc::now().naive_utc(),
             title: module_name.unwrap().to_string(),
             credits,
             module_id: module_id.to_string(),
