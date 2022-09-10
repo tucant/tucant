@@ -310,7 +310,7 @@ async fn modules(
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let random_secret_key = Key::generate();
 
     let file = OpenOptions::new()
@@ -357,5 +357,7 @@ async fn main() -> std::io::Result<()> {
     })
     .bind(("127.0.0.1", 8080))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
