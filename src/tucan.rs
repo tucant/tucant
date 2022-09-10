@@ -107,7 +107,7 @@ impl Tucan {
             res_headers.text().await?;
 
             return Ok(TucanUser {
-                tucan: self,
+                tucan: self.clone(),
                 session_id,
                 session_nr,
             });
