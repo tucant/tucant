@@ -1,8 +1,12 @@
 # tucan-scraper
 
 ```bash
-cargo install sqlx-cli
-sqlx database setup
+cargo install diesel_cli --no-default-features --features postgres
+
+sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres:15beta3-alpine
+
+echo DATABASE_URL=postgres://postgres:password@localhost/postgres > .env
+
 RUST_BACKTRACE=1 cargo +nightly run --release -- --help
 RUST_BACKTRACE=1 cargo +nightly run --release tuid login
 ```

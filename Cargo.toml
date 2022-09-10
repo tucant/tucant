@@ -14,7 +14,7 @@ html5ever = "0.26"
 scraper = "0.13"
 async-recursion = "1"
 futures = "0.3"
-diesel = "2.0.0"
+diesel = { version = "2.0.0", features = ["postgres"] }
 dotenvy = "0.15"
 clap = { version = "3", features = ["derive"] }
 anyhow = { version = "1", features = ["backtrace"] }
