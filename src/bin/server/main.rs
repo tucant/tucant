@@ -84,8 +84,8 @@ async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responde
     Ok(HttpResponse::Ok())
 }
 
-async fn fetch_everything<'a>(
-    tucan: &'a TucanUser<'a>,
+async fn fetch_everything(
+    tucan: TucanUser,
     parent: Option<String>,
     value: RegistrationEnum,
 ) -> impl Stream<Item = Result<Bytes, std::io::Error>> {

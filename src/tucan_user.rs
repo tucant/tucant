@@ -85,8 +85,9 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 */
 use crate::{element_by_selector, models::Module, s, tucan::Tucan};
 
-pub struct TucanUser<'a> {
-    pub tucan: &'a Tucan,
+#[derive(Clone)]
+pub struct TucanUser {
+    pub tucan: Tucan,
     pub session_id: String,
     pub session_nr: u64,
 }
@@ -97,7 +98,7 @@ pub enum RegistrationEnum {
     Modules(Vec<(String, String)>), // TODO types
 }
 
-impl<'a> TucanUser<'a> {
+impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
@@ -136,9 +137,9 @@ impl<'a> TucanUser<'a> {
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
-        let permit = self.tucan.semaphore.acquire().await?;
+        //let permit = self.tucan.semaphore.acquire().await?;
         let resp = self.tucan.client.execute(b).await?.text().await?;
-        drop(permit);
+        //drop(permit);
 
         let html_doc = Html::parse_document(&resp);
 

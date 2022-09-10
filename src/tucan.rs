@@ -12,9 +12,10 @@ use tokio::sync::Semaphore;
 
 use crate::{create_pool, tucan_user::TucanUser};
 
+#[derive(Clone)]
 pub struct Tucan {
     pub(crate) client: Client,
-    pub(crate) semaphore: Semaphore,
+    //pub(crate) semaphore: Semaphore,
     pub pool: Pool<ConnectionManager<PgConnection>>,
 }
 
@@ -25,7 +26,7 @@ impl Tucan {
         Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
-            semaphore: Semaphore::new(10),
+            //semaphore: Semaphore::new(10),
         })
     }
 
