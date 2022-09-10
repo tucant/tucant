@@ -15,10 +15,11 @@ use actix_web::{
 };
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
+use async_stream::try_stream;
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
-use futures::SinkExt;
+use futures::{SinkExt, Stream};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -79,29 +80,28 @@ async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responde
     Ok(HttpResponse::Ok())
 }
 
-#[async_recursion]
-async fn fetch_everything(
-    tucan: &TucanUser,
-    mut sender: UnboundedSender<Result<actix_web::web::Bytes, std::io::Error>>,
+async fn fetch_everything<'a>(
+    tucan: &'a TucanUser<'a>,
     parent: Option<i64>,
     value: RegistrationEnum,
-) -> Result<(), MyError> {
-    match value {
-        RegistrationEnum::Submenu(value) => {
-            for (title, url) in value {
-                let normalized_name = title
-                    .to_lowercase()
-                    .replace('-', "")
-                    .replace(' ', "-")
-                    .replace(',', "")
-                    .replace('/', "-")
-                    .replace('ä', "ae")
-                    .replace('ö', "oe")
-                    .replace('ü', "ue");
+) -> impl Stream<Item = Result<Bytes, MyError>> {
+    try_stream! {
+        match value {
+            RegistrationEnum::Submenu(value) => {
+                for (title, url) in value {
+                    let normalized_name = title
+                        .to_lowercase()
+                        .replace('-', "")
+                        .replace(' ', "-")
+                        .replace(',', "")
+                        .replace('/', "-")
+                        .replace('ä', "ae")
+                        .replace('ö', "oe")
+                        .replace('ü', "ue");
 
-                // TODO FIXME we need to add username to primary key for this and modules
-                let cnt = sqlx::query!(
-                    "INSERT INTO module_menu
+                    // TODO FIXME we need to add username to primary key for this and modules
+                    let cnt = sqlx::query!(
+                        "INSERT INTO module_menu
                     (username, name, normalized_name, parent)
                     VALUES
                     (?1, ?2, ?3, ?4)
@@ -111,33 +111,34 @@ async fn fetch_everything(
                     parent = ?4
                     RETURNING id
                     ",
-                    username,
-                    title,
-                    normalized_name,
-                    parent
-                )
-                .fetch_one(&tucan.tucan.pool)
-                .await
-                .unwrap();
+                        username,
+                        title,
+                        normalized_name,
+                        parent
+                    )
+                    .fetch_one(&tucan.tucan.pool)
+                    .await
+                    .unwrap();
 
-                sender.send(Ok(Bytes::from(title))).await.unwrap();
-                let value = tucan.registration(Some(url)).await?;
-                fetch_everything(tucan, sender.clone(), Some(cnt.id), value).await?;
+                    yield Bytes::from(title);
+
+                    let value = tucan.registration(Some(url)).await?;
+                    //fetch_everything(tucan, Some(cnt.id), value).await?;
+                }
             }
-        }
-        RegistrationEnum::Modules(value) => {
-            for (title, url) in value {
-                sender.send(Ok(Bytes::from(title.clone()))).await.unwrap();
-                let module = tucan.module(&url).await?;
+            RegistrationEnum::Modules(value) => {
+                for (title, url) in value {
+                    yield Bytes::from(title.clone());
+                    let module = tucan.module(&url).await?;
 
-                let mut tx = tucan.tucan.pool.begin().await.unwrap();
+                    let mut tx = tucan.tucan.pool.begin().await.unwrap();
 
-                // TODO FIXME warn if module already existed as that suggests recursive dependency
-                // TODO normalize url in a way that this can use cached data?
-                // modules can probably be cached because we don't follow outgoing links
-                // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-                let cnt = sqlx::query!(
-                    "INSERT INTO modules
+                    // TODO FIXME warn if module already existed as that suggests recursive dependency
+                    // TODO normalize url in a way that this can use cached data?
+                    // modules can probably be cached because we don't follow outgoing links
+                    // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
+                    let cnt = sqlx::query!(
+                        "INSERT INTO modules
                     (username, title, module_id, shortcode, credits, responsible_person, content)
                     VALUES
                     (?1, ?2, ?3, ?4, ?5, ?6, ?7)
@@ -148,35 +149,35 @@ async fn fetch_everything(
                     responsible_person = ?6,
                     content = ?7
                     ",
-                    username,
-                    module.name,
-                    module.id,
-                    title,
-                    module.credits,
-                    module.responsible_person,
-                    module.content
-                )
-                .execute(&mut tx)
-                .await
-                .unwrap();
-                assert_eq!(cnt.rows_affected(), 1);
+                        username,
+                        module.name,
+                        module.id,
+                        title,
+                        module.credits,
+                        module.responsible_person,
+                        module.content
+                    )
+                    .execute(&mut tx)
+                    .await
+                    .unwrap();
+                    assert_eq!(cnt.rows_affected(), 1);
 
-                let parent = parent.unwrap();
-                sqlx::query!(
-                    "INSERT INTO module_menu_module (module_menu_id, module_id) VALUES (?1, ?2) ON CONFLICT DO NOTHING",
-                    parent,
-                    module.id
-                )
-                .execute(&mut tx)
-                .await
-                .unwrap();
-                assert_eq!(cnt.rows_affected(), 1);
+                    let parent = parent.unwrap();
+                    sqlx::query!(
+                        "INSERT INTO module_menu_module (module_menu_id, module_id) VALUES (?1, ?2) ON CONFLICT DO NOTHING",
+                        parent,
+                        module.id
+                    )
+                    .execute(&mut tx)
+                    .await
+                    .unwrap();
+                    assert_eq!(cnt.rows_affected(), 1);
 
-                tx.commit().await.unwrap();
+                    tx.commit().await.unwrap();
+                }
             }
         }
     }
-    Ok::<(), MyError>(())
 }
 
 #[post("/setup")]
@@ -192,25 +193,23 @@ async fn setup(
         )
         .await?;
 
-    let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
-
-    tokio::spawn(async move {
-        sender
-            .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
-            .await
-            .unwrap();
+    let stream = try_stream! {
+        yield Ok(Bytes::from("Alle Module werden heruntergeladen..."));
 
         let res = tucan.registration(None).await?;
-        fetch_everything(&tucan, sender.clone(), None, res).await?;
+
+        for await value in fetch_everything(&tucan, None, res) {
+            yield value;
+        }
 
         Ok::<(), MyError>(())
-    });
+    };
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
     Ok(HttpResponse::Ok()
         .content_type("text/plain")
-        .streaming(receiver))
+        .streaming(stream))
 }
 
 #[get("/")]
