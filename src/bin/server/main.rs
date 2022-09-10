@@ -15,7 +15,7 @@ use actix_web::{
 };
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
-use async_stream::{try_stream, stream};
+use async_stream::{try_stream, stream, AsyncStream};
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
@@ -84,8 +84,8 @@ async fn fetch_everything<'a>(
     tucan: &'a TucanUser<'a>,
     parent: Option<i64>,
     value: RegistrationEnum,
-) -> impl Stream<Item = Bytes> {
-    stream! {
+) -> impl Stream<Item = Result<Bytes, std::io::Error>> {
+    try_stream! {
         match value {
             RegistrationEnum::Submenu(value) => {
                 for (title, url) in value {
@@ -184,15 +184,15 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    let tucan = tucan
+   let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
+        yield Bytes::from("Alle Module werden heruntergeladen...");
+
+        let tucan = tucan
         .continue_session(
             session.get("tucan_id").unwrap().unwrap(),
             session.get("tucan_id").unwrap().unwrap(),
         )
-        .await?;
-
-    let stream = stream! {
-        yield Bytes::from("Alle Module werden heruntergeladen...");
+        .await.unwrap();
 
         let res = tucan.registration(None).await.unwrap();
 
@@ -202,7 +202,6 @@ async fn setup(
 
         }
     };
-    pin_mut!(stream);
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
