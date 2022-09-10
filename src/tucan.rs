@@ -1,20 +1,21 @@
-use std::{
-    io::{Error, ErrorKind}
-};
+use std::io::{Error, ErrorKind};
 
-use diesel::{PgConnection, Connection, r2d2::{Pool, ConnectionManager}};
+use diesel::{
+    r2d2::{ConnectionManager, Pool},
+    Connection, PgConnection,
+};
 use dotenvy::dotenv;
 use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
 
 use tokio::sync::Semaphore;
 
-use crate::{tucan_user::TucanUser, create_pool};
+use crate::{create_pool, tucan_user::TucanUser};
 
 pub struct Tucan {
     pub(crate) client: Client,
     pub(crate) semaphore: Semaphore,
-    pub pool: Pool<ConnectionManager<PgConnection>> ,
+    pub pool: Pool<ConnectionManager<PgConnection>>,
 }
 
 impl Tucan {
@@ -28,7 +29,11 @@ impl Tucan {
         })
     }
 
-    pub async fn continue_session(self, session_nr: u64, session_id: String) -> anyhow::Result<TucanUser> {
+    pub async fn continue_session(
+        self,
+        session_nr: u64,
+        session_id: String,
+    ) -> anyhow::Result<TucanUser> {
         let url = "https://www.tucan.tu-darmstadt.de/scripts"
             .parse::<Url>()
             .unwrap();

@@ -4,7 +4,10 @@ pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
 
-use diesel::{PgConnection, Connection, r2d2::{Builder, ConnectionManager, Pool}};
+use diesel::{
+    r2d2::{Builder, ConnectionManager, Pool},
+    Connection, PgConnection,
+};
 use dotenvy::dotenv;
 use scraper::{ElementRef, Html, Selector};
 
@@ -21,8 +24,5 @@ pub fn create_pool() -> Pool<ConnectionManager<PgConnection>> {
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    Pool::builder()
-        .max_size(15)
-        .build(manager)
-        .unwrap()
+    Pool::builder().max_size(15).build(manager).unwrap()
 }

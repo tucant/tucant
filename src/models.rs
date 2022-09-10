@@ -12,4 +12,3 @@ pub struct Module {
     pub credits: i32,
     pub content: String,
 }
-

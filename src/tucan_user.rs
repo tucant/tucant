@@ -127,14 +127,6 @@ impl TucanUser {
             //println!("url       : {}", url);
         }*/
 
-        let document = sqlx::query!(
-            "SELECT content FROM http_cache WHERE url = ? AND session = ?",
-            normalized_url,
-            self.session_id
-        )
-        .fetch_optional(&self.tucan.pool)
-        .await?;
-
         // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
         // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
         // the data at the end is random every login
@@ -145,54 +137,26 @@ impl TucanUser {
 
         // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
 
-        if let Some(doc) = document {
-            let html_doc = Html::parse_document(&doc.content);
+        let cookie = format!("cnsc={}", self.session_id);
 
-            if html_doc
-                .select(&s("h1"))
-                .any(|s| s.inner_html() == "Timeout!")
-            {
-                return Err(
-                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
-                );
-            }
-            Ok(html_doc)
-        } else {
-            println!("didnt hit cache");
+        let a = self.tucan.client.get(url);
+        let b = a.build().unwrap();
+        b.headers_mut()
+            .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
-            let cookie = format!("cnsc={}", self.session_id);
+        let permit = self.tucan.semaphore.acquire().await?;
+        let resp = self.tucan.client.execute(b).await?.text().await?;
+        drop(permit);
 
-            let a = self.tucan.client.get(url);
-            let b = a.build().unwrap();
-            b.headers_mut().insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
+        let html_doc = Html::parse_document(&resp);
 
-            let permit = self.tucan.semaphore.acquire().await?;
-            let resp = self.tucan.client.execute(b).await?.text().await?;
-            drop(permit);
-
-            // warning: not transactional with check above
-            let cnt = sqlx::query!(
-                "INSERT OR REPLACE INTO http_cache (url, session, content) VALUES (?, ?, ?)",
-                url,
-                self.session_id,
-                resp
-            )
-            .execute(&self.tucan.pool)
-            .await?;
-            assert_eq!(cnt.rows_affected(), 1);
-
-            let html_doc = Html::parse_document(&resp);
-
-            if html_doc
-                .select(&s("h1"))
-                .any(|s| s.inner_html() == "Timeout!")
-            {
-                return Err(
-                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
-                );
-            }
-            Ok(html_doc)
+        if html_doc
+            .select(&s("h1"))
+            .any(|s| s.inner_html() == "Timeout!")
+        {
+            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
         }
+        Ok(html_doc)
     }
 
     pub async fn module(&self, url: &str) -> anyhow::Result<Module> {

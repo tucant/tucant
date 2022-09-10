@@ -57,7 +57,11 @@ struct LoginResult {
 }
 
 #[post("/login")]
-async fn login(tucan: web::Data<Tucan>, request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
+async fn login(
+    tucan: web::Data<Tucan>,
+    request: HttpRequest,
+    login: web::Json<Login>,
+) -> Result<impl Responder, MyError> {
     tucan.login(&login.username, &login.password).await?;
     Identity::login(&request.extensions(), login.username.to_string()).unwrap();
     Ok(web::Json(LoginResult { success: true }))
@@ -217,7 +221,11 @@ struct MenuItem {
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
-async fn modules(tucan: web::Data<Tucan>, user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
+async fn modules(
+    tucan: web::Data<Tucan>,
+    user: Option<Identity>,
+    path: Path<String>,
+) -> Result<impl Responder, MyError> {
     if let Some(user) = user {
         println!("{:?}", path);
 
