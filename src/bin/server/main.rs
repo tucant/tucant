@@ -15,11 +15,11 @@ use actix_web::{
 };
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
-use async_stream::try_stream;
+use async_stream::{try_stream, stream};
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
-use futures::{SinkExt, Stream};
+use futures::{SinkExt, Stream, pin_mut};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -84,8 +84,8 @@ async fn fetch_everything<'a>(
     tucan: &'a TucanUser<'a>,
     parent: Option<i64>,
     value: RegistrationEnum,
-) -> impl Stream<Item = Result<Bytes, MyError>> {
-    try_stream! {
+) -> impl Stream<Item = Bytes> {
+    stream! {
         match value {
             RegistrationEnum::Submenu(value) => {
                 for (title, url) in value {
@@ -122,17 +122,17 @@ async fn fetch_everything<'a>(
 
                     yield Bytes::from(title);
 
-                    let value = tucan.registration(Some(url)).await?;
+                    let value = tucan.registration(Some(url)).await.unwrap();
                     //fetch_everything(tucan, Some(cnt.id), value).await?;
                 }
             }
             RegistrationEnum::Modules(value) => {
                 for (title, url) in value {
                     yield Bytes::from(title.clone());
-                    let module = tucan.module(&url).await?;
+                    let module = tucan.module(&url).await.unwrap();
 
-                    let mut tx = tucan.tucan.pool.begin().await.unwrap();
-
+                    let mut tx = tucan.tucan.pool.get().unwrap();
+                    
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
                     // modules can probably be cached because we don't follow outgoing links
@@ -172,8 +172,6 @@ async fn fetch_everything<'a>(
                     .await
                     .unwrap();
                     assert_eq!(cnt.rows_affected(), 1);
-
-                    tx.commit().await.unwrap();
                 }
             }
         }
@@ -193,17 +191,18 @@ async fn setup(
         )
         .await?;
 
-    let stream = try_stream! {
-        yield Ok(Bytes::from("Alle Module werden heruntergeladen..."));
+    let stream = stream! {
+        yield Bytes::from("Alle Module werden heruntergeladen...");
 
-        let res = tucan.registration(None).await?;
+        let res = tucan.registration(None).await.unwrap();
 
-        for await value in fetch_everything(&tucan, None, res) {
-            yield value;
+        let input = fetch_everything(&tucan, None, res).await;
+        
+        for await value in input {
+
         }
-
-        Ok::<(), MyError>(())
     };
+    pin_mut!(stream);
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
