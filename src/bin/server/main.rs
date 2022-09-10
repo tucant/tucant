@@ -28,7 +28,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::ModuleMenuEntryModule;
+use tucan_scraper::models::{ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self, modules};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
@@ -86,7 +86,7 @@ async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responde
 
 async fn fetch_everything<'a>(
     tucan: &'a TucanUser<'a>,
-    parent: Option<i64>,
+    parent: Option<String>,
     value: RegistrationEnum,
 ) -> impl Stream<Item = Result<Bytes, std::io::Error>> {
     try_stream! {
@@ -103,25 +103,27 @@ async fn fetch_everything<'a>(
                         .replace('ö', "oe")
                         .replace('ü', "ue");
 
-                    let cnt = sqlx::query!(
-                        "INSERT INTO module_menu
-                    (username, name, normalized_name, parent)
-                    VALUES
-                    (?1, ?2, ?3, ?4)
-                    ON CONFLICT DO UPDATE SET
-                    name = ?2,
-                    normalized_name = ?3,
-                    parent = ?4
-                    RETURNING id
-                    ",
-                        username,
-                        title,
-                        normalized_name,
-                        parent
-                    )
-                    .fetch_one(&tucan.tucan.pool)
-                    .await
-                    .unwrap();
+                        web::block(move || {
+                            tucan
+                                .tucan.pool
+                                .get()
+                                .unwrap()
+                                .build_transaction()
+                                .read_only()
+                                .run(|connection| {
+                                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                        .values(&ModuleMenu {
+                                            name: title,
+                                            normalized_name,
+                                            parent,
+                                            tucan_id: "1".to_string(),
+                                            tucan_last_checked: Utc::now().naive_utc()
+                                        })
+                                        .get_result(connection).unwrap();
+                                    Ok(())
+                                })
+                                .unwrap();
+                        }).await.unwrap();
 
                     yield Bytes::from(title);
 
@@ -160,14 +162,14 @@ async fn fetch_everything<'a>(
                                     diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
                                     .values(&ModuleMenuEntryModule {
                                         module_id: module.tucan_id,
-                                        module_menu_id: parent.unwrap().to_string()
+                                        module_menu_id: parent.unwrap()
                                     })
                                     .get_result(connection).unwrap();
 
                                 Ok(())
                             })
                             .unwrap();
-                    });
+                    }).await.unwrap();
                 }
             }
         }
@@ -180,7 +182,7 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-        let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
+    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
         yield Bytes::from("Alle Module werden heruntergeladen...");
 
         let tucan = tucan

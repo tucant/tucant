@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::schema::{modules, module_menu, module_menu_module};
+use crate::schema::{module_menu, module_menu_module, modules};
 
 // order needs to be equal to the table definition
 #[derive(Identifiable, Queryable, Insertable)]
