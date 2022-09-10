@@ -28,10 +28,10 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::{self, modules};
+use tucan_scraper::models::{ModuleMenu, ModuleMenuEntryModule, Module};
+use tucan_scraper::schema::{self, modules, module_menu};
 use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
+use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
 #[derive(Debug)]
 struct MyError {
@@ -110,7 +110,7 @@ async fn fetch_everything<'a>(
                                 .unwrap()
                                 .build_transaction()
                                 .read_only()
-                                .run(|connection| {
+                                .run::<_, diesel::result::Error, _>(|connection| {
                                     diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                         .values(&ModuleMenu {
                                             name: title,
@@ -119,7 +119,7 @@ async fn fetch_everything<'a>(
                                             tucan_id: "1".to_string(),
                                             tucan_last_checked: Utc::now().naive_utc()
                                         })
-                                        .get_result(connection).unwrap();
+                                        .execute(connection).unwrap();
                                     Ok(())
                                 })
                                 .unwrap();
@@ -147,24 +147,17 @@ async fn fetch_everything<'a>(
                             .unwrap()
                             .build_transaction()
                             .read_only()
-                            .run(|connection| {
+                            .run::<_, diesel::result::Error, _>(|connection| {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
-                                    .values(&Module {
-                                        tucan_id: "1".to_string(),
-                                        tucan_last_checked: Utc::now().naive_utc(),
-                                        title: "hi".to_string(),
-                                        module_id: "hi".to_string(),
-                                        credits: Some(5),
-                                        content: "hi".to_string(),
-                                    })
-                                    .get_result(connection).unwrap();
+                                    .values(&module)
+                                    .execute(connection).unwrap();
 
                                     diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
                                     .values(&ModuleMenuEntryModule {
                                         module_id: module.tucan_id,
                                         module_menu_id: parent.unwrap()
                                     })
-                                    .get_result(connection).unwrap();
+                                    .execute(connection).unwrap();
 
                                 Ok(())
                             })
@@ -252,6 +245,9 @@ async fn get_modules(
         let mut node = None;
         for path_segment in menu_path {
             let parent = node.map(|v: MenuItem| v.id);
+
+            module_menu.filter()
+
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
         }
