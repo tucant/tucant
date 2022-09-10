@@ -186,25 +186,27 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    tucan
-        .pool
-        .get()
-        .unwrap()
-        .build_transaction()
-        .read_only()
-        .run(|connection| {
-            diesel::insert_into(tucan_scraper::schema::modules::table)
-                .values(&Module {
-                    tucan_id: "1".to_string(),
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    title: "hi".to_string(),
-                    module_id: "hi".to_string(),
-                    credits: Some(5),
-                    content: "hi".to_string(),
-                })
-                .get_result(connection)
-        })
-        .unwrap();
+    web::block(move || {
+        tucan
+            .pool
+            .get()
+            .unwrap()
+            .build_transaction()
+            .read_only()
+            .run(|connection| {
+                diesel::insert_into(tucan_scraper::schema::modules::table)
+                    .values(&Module {
+                        tucan_id: "1".to_string(),
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        title: "hi".to_string(),
+                        module_id: "hi".to_string(),
+                        credits: Some(5),
+                        content: "hi".to_string(),
+                    })
+                    .get_result(connection)
+            })
+            .unwrap();
+    });
 
     let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
         yield Bytes::from("Alle Module werden heruntergeladen...");
