@@ -69,7 +69,7 @@ async fn login(
     Identity::login(&request.extensions(), login.username.to_string()).unwrap();
     session.insert("tucan_nr", tucan_user.session_nr);
     session.insert("tucan_id", tucan_user.session_id);
-    
+
     Ok(web::Json(LoginResult { success: true }))
 }
 
@@ -180,31 +180,37 @@ async fn fetch_everything(
 }
 
 #[post("/setup")]
-async fn setup(tucan: web::Data<Tucan>, user: Identity, session: Session) -> Result<impl Responder, MyError> {
-    let tucan = tucan.continue_session(session.get("tucan_id").unwrap().unwrap(), session.get("tucan_id").unwrap().unwrap()).await?;
+async fn setup(
+    tucan: web::Data<Tucan>,
+    user: Identity,
+    session: Session,
+) -> Result<impl Responder, MyError> {
+    let tucan = tucan
+        .continue_session(
+            session.get("tucan_id").unwrap().unwrap(),
+            session.get("tucan_id").unwrap().unwrap(),
+        )
+        .await?;
 
+    let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
 
-        let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
+    tokio::spawn(async move {
+        sender
+            .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
+            .await
+            .unwrap();
 
+        let res = tucan.registration(None).await?;
+        fetch_everything(&tucan, sender.clone(), None, res).await?;
 
-        tokio::spawn(async move {
-            sender
-                .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
-                .await
-                .unwrap();
+        Ok::<(), MyError>(())
+    });
 
-            let res = tucan.registration(None).await?;
-            fetch_everything(&tucan, sender.clone(), None, res).await?;
+    // TODO FIXME search for <h1>Timeout!</h1>
 
-            Ok::<(), MyError>(())
-        });
-
-        // TODO FIXME search for <h1>Timeout!</h1>
-
-        Ok(HttpResponse::Ok()
-            .content_type("text/plain")
-            .streaming(receiver))
-    
+    Ok(HttpResponse::Ok()
+        .content_type("text/plain")
+        .streaming(receiver))
 }
 
 #[get("/")]

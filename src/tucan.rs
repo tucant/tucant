@@ -39,7 +39,7 @@ impl Tucan {
             .unwrap();
 
         Ok(TucanUser {
-            tucan: self,
+            tucan: self.clone(),
             session_id: session_id,
             session_nr: session_nr,
         })
@@ -106,7 +106,7 @@ impl Tucan {
             res_headers.text().await?;
 
             return Ok(TucanUser {
-                tucan: self,
+                tucan: self.clone(),
                 session_id,
                 session_nr,
             });

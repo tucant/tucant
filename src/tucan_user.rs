@@ -84,8 +84,8 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 */
 use crate::{element_by_selector, s, tucan::Tucan};
 
-pub struct TucanUser<'a> {
-    pub tucan: &'a Tucan,
+pub struct TucanUser {
+    pub tucan: Tucan,
     pub session_id: String,
     pub session_nr: u64,
 }
