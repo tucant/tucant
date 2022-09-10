@@ -93,6 +93,9 @@ async fn fetch_everything(
         match value {
             RegistrationEnum::Submenu(value) => {
                 for (title, url) in value {
+                    let tucan_clone = tucan.clone();
+                    let parent_clone = parent.clone();
+                    let title_clone = title.clone();
                     let normalized_name = title
                         .to_lowercase()
                         .replace('-', "")
@@ -104,7 +107,7 @@ async fn fetch_everything(
                         .replace('ü', "ue");
 
                         web::block(move || {
-                            tucan
+                            tucan_clone
                                 .tucan.pool
                                 .get()
                                 .unwrap()
@@ -113,9 +116,9 @@ async fn fetch_everything(
                                 .run::<_, diesel::result::Error, _>(|connection| {
                                     diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                         .values(&ModuleMenu {
-                                            name: title,
+                                            name: title_clone,
                                             normalized_name,
-                                            parent,
+                                            parent: parent_clone,
                                             tucan_id: "1".to_string(),
                                             tucan_last_checked: Utc::now().naive_utc()
                                         })
@@ -133,15 +136,17 @@ async fn fetch_everything(
             }
             RegistrationEnum::Modules(value) => {
                 for (title, url) in value {
+                    let tucan_clone = tucan.clone();
+                    let parent_clone = parent.clone();
                     stream.yield_item(Bytes::from(title.clone()));
-                    let module = tucan.module(&url).await.unwrap();
+                    let module = tucan.clone().module(&url).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
                     // modules can probably be cached because we don't follow outgoing links
                     // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
                     web::block(move || {
-                        tucan
+                        tucan_clone
                             .tucan.pool
                             .get()
                             .unwrap()
@@ -155,7 +160,7 @@ async fn fetch_everything(
                                     diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
                                     .values(&ModuleMenuEntryModule {
                                         module_id: module.tucan_id,
-                                        module_menu_id: parent.unwrap()
+                                        module_menu_id: parent_clone.unwrap()
                                     })
                                     .execute(connection).unwrap();
 
