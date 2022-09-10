@@ -81,7 +81,6 @@ async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responde
 
 #[async_recursion]
 async fn fetch_everything(
-    username: &str,
     tucan: &TucanUser,
     mut sender: UnboundedSender<Result<actix_web::web::Bytes, std::io::Error>>,
     parent: Option<i64>,
@@ -123,7 +122,7 @@ async fn fetch_everything(
 
                 sender.send(Ok(Bytes::from(title))).await.unwrap();
                 let value = tucan.registration(Some(url)).await?;
-                fetch_everything(username, tucan, sender.clone(), Some(cnt.id), value).await?;
+                fetch_everything(tucan, sender.clone(), Some(cnt.id), value).await?;
             }
         }
         RegistrationEnum::Modules(value) => {
@@ -181,12 +180,12 @@ async fn fetch_everything(
 }
 
 #[post("/setup")]
-async fn setup(tucan: web::Data<Tucan>, user: Option<Identity>) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
+async fn setup(tucan: web::Data<Tucan>, user: Identity, session: Session) -> Result<impl Responder, MyError> {
+    let tucan = tucan.continue_session(session.get("tucan_id").unwrap().unwrap(), session.get("tucan_id").unwrap().unwrap()).await?;
+
+
         let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
 
-        let user_id = user.id()?;
-        let tucan = tucan.continue_session(&user_id).await?;
 
         tokio::spawn(async move {
             sender
@@ -195,7 +194,7 @@ async fn setup(tucan: web::Data<Tucan>, user: Option<Identity>) -> Result<impl R
                 .unwrap();
 
             let res = tucan.registration(None).await?;
-            fetch_everything(&user_id, &tucan, sender.clone(), None, res).await?;
+            fetch_everything(&tucan, sender.clone(), None, res).await?;
 
             Ok::<(), MyError>(())
         });
@@ -205,9 +204,7 @@ async fn setup(tucan: web::Data<Tucan>, user: Option<Identity>) -> Result<impl R
         Ok(HttpResponse::Ok()
             .content_type("text/plain")
             .streaming(receiver))
-    } else {
-        Err(anyhow::Error::msg("Not logged in!"))?
-    }
+    
 }
 
 #[get("/")]
