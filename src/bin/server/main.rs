@@ -15,11 +15,11 @@ use actix_web::{
 };
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
-use async_stream::{try_stream, stream, AsyncStream};
+use async_stream::{stream, try_stream, AsyncStream};
 use csrf_middleware::CsrfMiddleware;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
-use futures::{SinkExt, Stream, pin_mut};
+use futures::{pin_mut, SinkExt, Stream};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -132,7 +132,7 @@ async fn fetch_everything<'a>(
                     let module = tucan.module(&url).await.unwrap();
 
                     let mut tx = tucan.tucan.pool.get().unwrap();
-                    
+
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
                     // modules can probably be cached because we don't follow outgoing links
@@ -184,7 +184,7 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-   let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
+    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
         yield Bytes::from("Alle Module werden heruntergeladen...");
 
         let tucan = tucan
@@ -197,7 +197,7 @@ async fn setup(
         let res = tucan.registration(None).await.unwrap();
 
         let input = fetch_everything(&tucan, None, res).await;
-        
+
         for await value in input {
 
         }
