@@ -28,6 +28,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+use tucan_scraper::models::ModuleMenuEntryModule;
 use tucan_scraper::schema::{self, modules};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
@@ -133,47 +134,40 @@ async fn fetch_everything<'a>(
                     yield Bytes::from(title.clone());
                     let module = tucan.module(&url).await.unwrap();
 
-
-
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
                     // modules can probably be cached because we don't follow outgoing links
                     // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-                    let cnt = sqlx::query!(
-                        "INSERT INTO modules
-                    (username, title, module_id, shortcode, credits, responsible_person, content)
-                    VALUES
-                    (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-                    ON CONFLICT (module_id) DO UPDATE SET
-                    title = ?2,
-                    shortcode = ?4,
-                    credits = ?5,
-                    responsible_person = ?6,
-                    content = ?7
-                    ",
-                        username,
-                        module.name,
-                        module.id,
-                        title,
-                        module.credits,
-                        module.responsible_person,
-                        module.content
-                    )
-                    .execute(&mut tx)
-                    .await
-                    .unwrap();
-                    assert_eq!(cnt.rows_affected(), 1);
+                    web::block(move || {
+                        tucan
+                            .tucan.pool
+                            .get()
+                            .unwrap()
+                            .build_transaction()
+                            .read_only()
+                            .run(|connection| {
+                                diesel::insert_into(tucan_scraper::schema::modules::table)
+                                    .values(&Module {
+                                        tucan_id: "1".to_string(),
+                                        tucan_last_checked: Utc::now().naive_utc(),
+                                        title: "hi".to_string(),
+                                        module_id: "hi".to_string(),
+                                        credits: Some(5),
+                                        content: "hi".to_string(),
+                                    })
+                                    .get_result(connection).unwrap();
 
-                    let parent = parent.unwrap();
-                    sqlx::query!(
-                        "INSERT INTO module_menu_module (module_menu_id, module_id) VALUES (?1, ?2) ON CONFLICT DO NOTHING",
-                        parent,
-                        module.id
-                    )
-                    .execute(&mut tx)
-                    .await
-                    .unwrap();
-                    assert_eq!(cnt.rows_affected(), 1);
+                                    diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
+                                    .values(&ModuleMenuEntryModule {
+                                        module_id: module.tucan_id,
+                                        module_menu_id: parent.unwrap().to_string()
+                                    })
+                                    .get_result(connection).unwrap();
+
+                                Ok(())
+                            })
+                            .unwrap();
+                    });
                 }
             }
         }
@@ -186,29 +180,7 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    web::block(move || {
-        tucan
-            .pool
-            .get()
-            .unwrap()
-            .build_transaction()
-            .read_only()
-            .run(|connection| {
-                diesel::insert_into(tucan_scraper::schema::modules::table)
-                    .values(&Module {
-                        tucan_id: "1".to_string(),
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        title: "hi".to_string(),
-                        module_id: "hi".to_string(),
-                        credits: Some(5),
-                        content: "hi".to_string(),
-                    })
-                    .get_result(connection)
-            })
-            .unwrap();
-    });
-
-    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
+        let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
         yield Bytes::from("Alle Module werden heruntergeladen...");
 
         let tucan = tucan
