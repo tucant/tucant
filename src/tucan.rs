@@ -28,38 +28,16 @@ impl Tucan {
         })
     }
 
-    pub async fn continue_session(self, username: &str) -> anyhow::Result<TucanUser> {
-        let active_session = sqlx::query!(
-            "SELECT session_id, session_nr FROM users JOIN sessions ON users.active_session = sessions.session_id WHERE username = ? AND active_session IS NOT NULL",
-            username
-        )
-        .fetch_optional(&self.pool)
-        .await?;
+    pub async fn continue_session(self, session_nr: u64, session_id: String) -> anyhow::Result<TucanUser> {
+        let url = "https://www.tucan.tu-darmstadt.de/scripts"
+            .parse::<Url>()
+            .unwrap();
 
-        match active_session {
-            Some(active_session) => {
-                let cookie = format!("cnsc={}", active_session.session_id);
-                let url = "https://www.tucan.tu-darmstadt.de/scripts"
-                    .parse::<Url>()
-                    .unwrap();
-
-                // TODO FIXME
-                
-                //self.cookie_jar.add_cookie_str(&cookie, &url);
-                //println!("{:#?}", self.cookie_jar);
-
-                Ok(TucanUser {
-                    tucan: self,
-                    username: username.to_string(),
-                    session_id: active_session.session_id,
-                    session_nr: active_session.session_nr,
-                })
-            }
-            None => Err(Box::new(std::io::Error::new(
-                ErrorKind::Other,
-                "No active session for this user!",
-            )))?,
-        }
+        Ok(TucanUser {
+            tucan: self,
+            session_id: session_id,
+            session_nr: session_nr,
+        })
     }
 
     pub async fn login(self, username: &str, password: &str) -> anyhow::Result<TucanUser> {

@@ -1,5 +1,6 @@
 use std::io::{Error, ErrorKind};
 
+use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
 
@@ -85,9 +86,8 @@ use crate::{element_by_selector, s, tucan::Tucan};
 
 pub struct TucanUser {
     pub tucan: Tucan,
-    pub(crate) username: String,
     pub(crate) session_id: String,
-    pub(crate) session_nr: i64,
+    pub(crate) session_nr: u64,
 }
 
 #[derive(Debug, Serialize)]
@@ -160,8 +160,14 @@ impl TucanUser {
         } else {
             println!("didnt hit cache");
 
+
+            let cookie = format!("cnsc={}", self.session_id);
+            // TODO FIXME
+            //self.cookie_jar.add_cookie_str(&cookie, &url);
+
             let a = self.tucan.client.get(url);
             let b = a.build().unwrap();
+            b.headers_mut().insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
             //println!("{:?}", b);
 
