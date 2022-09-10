@@ -89,7 +89,7 @@ async fn fetch_everything<'a>(
     parent: Option<String>,
     value: RegistrationEnum,
 ) -> impl Stream<Item = Result<Bytes, std::io::Error>> {
-    try_stream! {
+    try_stream(move |mut stream| async move {
         match value {
             RegistrationEnum::Submenu(value) => {
                 for (title, url) in value {
@@ -125,7 +125,7 @@ async fn fetch_everything<'a>(
                                 .unwrap();
                         }).await.unwrap();
 
-                    yield Bytes::from(title);
+                    stream.yield_item(Bytes::from(title));
 
                     let value = tucan.registration(Some(url)).await.unwrap();
                     //fetch_everything(tucan, Some(cnt.id), value).await?;
@@ -133,7 +133,7 @@ async fn fetch_everything<'a>(
             }
             RegistrationEnum::Modules(value) => {
                 for (title, url) in value {
-                    yield Bytes::from(title.clone());
+                    stream.yield_item(Bytes::from(title.clone()));
                     let module = tucan.module(&url).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
@@ -166,7 +166,8 @@ async fn fetch_everything<'a>(
                 }
             }
         }
-    }
+        Ok(())
+    })
 }
 
 #[post("/setup")]
@@ -175,8 +176,9 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream! {
-        yield Bytes::from("Alle Module werden heruntergeladen...");
+    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream(move |mut stream| async move {
+
+        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
 
         let tucan = tucan
         .continue_session(
@@ -189,10 +191,10 @@ async fn setup(
 
         let input = fetch_everything(&tucan, None, res).await;
 
-        for await value in input {
+        /*for await value in input {
 
-        }
-    };
+        }*/
+    });
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
