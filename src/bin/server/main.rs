@@ -5,7 +5,9 @@ mod csrf_middleware;
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
+use actix_identity::config::LogoutBehaviour;
 use actix_identity::{Identity, IdentityMiddleware};
+use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::web::{Bytes, Path};
 use actix_web::{
@@ -58,12 +60,16 @@ struct LoginResult {
 
 #[post("/login")]
 async fn login(
+    session: Session,
     tucan: web::Data<Tucan>,
     request: HttpRequest,
     login: web::Json<Login>,
 ) -> Result<impl Responder, MyError> {
-    tucan.login(&login.username, &login.password).await?;
+    let tucan_user = tucan.login(&login.username, &login.password).await?;
     Identity::login(&request.extensions(), login.username.to_string()).unwrap();
+    session.insert("tucan_nr", tucan_user.session_nr);
+    session.insert("tucan_id", tucan_user.session_id);
+    
     Ok(web::Json(LoginResult { success: true }))
 }
 
@@ -334,7 +340,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(tucan.clone())
             .wrap(
                 IdentityMiddleware::builder()
-                    .visit_deadline(Some(Duration::from_secs(24 * 3600)))
+                    .logout_behaviour(LogoutBehaviour::PurgeSession)
                     .build(),
             )
             .wrap(SessionMiddleware::new(

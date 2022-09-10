@@ -30,7 +30,7 @@ impl Tucan {
     }
 
     pub async fn continue_session(
-        self,
+        &self,
         session_nr: u64,
         session_id: String,
     ) -> anyhow::Result<TucanUser> {
@@ -45,7 +45,7 @@ impl Tucan {
         })
     }
 
-    pub async fn login(self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
+    pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", username),
             ("pass", password),

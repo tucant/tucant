@@ -84,10 +84,10 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 */
 use crate::{element_by_selector, s, tucan::Tucan};
 
-pub struct TucanUser {
-    pub tucan: Tucan,
-    pub(crate) session_id: String,
-    pub(crate) session_nr: u64,
+pub struct TucanUser<'a> {
+    pub tucan: &'a Tucan,
+    pub session_id: String,
+    pub session_nr: u64,
 }
 
 #[derive(Debug, Serialize)]
@@ -105,7 +105,7 @@ pub struct Module {
     pub content: String,
 }
 
-impl TucanUser {
+impl<'a> TucanUser<'a> {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
@@ -140,7 +140,7 @@ impl TucanUser {
         let cookie = format!("cnsc={}", self.session_id);
 
         let a = self.tucan.client.get(url);
-        let b = a.build().unwrap();
+        let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
