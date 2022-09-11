@@ -119,17 +119,19 @@ async fn fetch_everything(
                         .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
-                                Ok(diesel::insert_into(tucan_scraper::schema::module_menu::table)
-                                    .values(&ModuleMenu {
-                                        name: title_clone,
-                                        normalized_name,
-                                        parent: parent_clone,
-                                        tucan_id: "1".to_string(),
-                                        tucan_last_checked: Utc::now().naive_utc(),
-                                    })
-                                    .get_result::<ModuleMenu>(connection)
-                                    .await
-                                    .unwrap())
+                                Ok(
+                                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                        .values(&ModuleMenu {
+                                            name: title_clone,
+                                            normalized_name,
+                                            parent: parent_clone,
+                                            tucan_id: "1".to_string(),
+                                            tucan_last_checked: Utc::now().naive_utc(),
+                                        })
+                                        .get_result::<ModuleMenu>(connection)
+                                        .await
+                                        .unwrap(),
+                                )
                             }
                             .boxed()
                         })
@@ -139,7 +141,8 @@ async fn fetch_everything(
                     stream.yield_item(Bytes::from(title)).await;
 
                     let value = tucan.registration(Some(url)).await.unwrap();
-                    let mut inner_stream = fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
+                    let mut inner_stream =
+                        fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
                     while let Some(Ok(value)) = inner_stream.next().await {
                         stream.yield_item(value).await;
@@ -193,7 +196,8 @@ async fn fetch_everything(
             }
         }
         Ok(())
-    }).boxed_local()
+    })
+    .boxed_local()
 }
 
 #[post("/setup")]
