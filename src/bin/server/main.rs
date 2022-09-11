@@ -176,8 +176,8 @@ async fn fetch_everything(
                                     module_menu_id: parent_clone.unwrap(),
                                 })
                                 .execute(connection)
-                                    .await
-                                    .unwrap();
+                                .await
+                                .unwrap();
                                 Ok(())
                             })
                         })
@@ -196,29 +196,28 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    let stream =
-        try_stream(move |mut stream| async move {
-            stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
+    let stream = try_stream(move |mut stream| async move {
+        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
 
-            let tucan = tucan
-                .continue_session(
-                    session.get("tucan_id").unwrap().unwrap(),
-                    session.get("tucan_id").unwrap().unwrap(),
-                )
-                .await
-                .unwrap();
+        let tucan = tucan
+            .continue_session(
+                session.get("tucan_id").unwrap().unwrap(),
+                session.get("tucan_id").unwrap().unwrap(),
+            )
+            .await
+            .unwrap();
 
-            let res = tucan.registration(None).await.unwrap();
+        let res = tucan.registration(None).await.unwrap();
 
-            let input = fetch_everything(tucan, None, res).await;
+        let input = fetch_everything(tucan, None, res).await;
 
-            /*for await value in input {
+        /*for await value in input {
 
-            }*/
-            let return_value: Result<(), Error> = Ok(());
+        }*/
+        let return_value: Result<(), Error> = Ok(());
 
-            return_value
-        });
+        return_value
+    });
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
@@ -266,38 +265,49 @@ async fn get_modules(
         for path_segment in menu_path {
             let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
+            node = Some(
+                tucan
+                    .pool
+                    .get()
+                    .await
+                    .unwrap()
+                    .build_transaction()
+                    .read_only()
+                    .run::<_, diesel::result::Error, _>(move |connection| {
+                        Box::pin(async move {
+                            use self::schema::module_menu::dsl::*;
 
-            node = Some(tucan
-                        .pool
-                        .get()
-                        .await
-                        .unwrap()
-                        .build_transaction()
-                        .read_only()
-                        .run::<_, diesel::result::Error, _>(move |connection| {
-                            Box::pin(async move {
-                                use self::schema::module_menu::dsl::*;
-
-                                Ok(module_menu.filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
-                                    .load::<ModuleMenu>(connection)
-                                    .await
-                                    .unwrap().into_iter().next().unwrap())
-                            })
+                            Ok(module_menu
+                                .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
+                                .load::<ModuleMenu>(connection)
+                                .await
+                                .unwrap()
+                                .into_iter()
+                                .next()
+                                .unwrap())
                         })
-                        .await
-                        .unwrap());
+                    })
+                    .await
+                    .unwrap(),
+            );
         }
         let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
         if let Some(module) = module {
-            let module_result = sqlx::query_as!(Module,
-                "SELECT module_id AS id, title AS name, credits, responsible_person, content FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1 AND module_id = ?2",
-                parent,
-                module
-            )
-            .fetch_one(&tucan.pool)
-            .await
-            .unwrap();
+            let module_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
+                Box::pin(async move {
+                    use self::schema::module_menu_module::dsl::*;
+                    use self::schema::modules::dsl::*;
+
+                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
+                    .load::<(ModuleMenuEntryModule, Module)>(connection)
+                    .await
+                    .unwrap()
+                    .into_iter()
+                    .next()
+                    .unwrap())
+                })
+            });
 
             Ok(Either::Left(web::Json(module_result)))
         } else {
