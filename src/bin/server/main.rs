@@ -31,7 +31,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::{self, module_menu, modules, module_menu_module};
+use tucan_scraper::schema::{self, module_menu, module_menu_module, modules};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
@@ -294,48 +294,77 @@ async fn get_modules(
         let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
         if let Some(module) = module {
-            let module_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
-                Box::pin(async move {
-                    use self::schema::module_menu_module::dsl::*;
-                    use self::schema::modules::dsl::*;
+            let module_result = tucan
+                .pool
+                .get()
+                .await
+                .unwrap()
+                .build_transaction()
+                .read_only()
+                .run(move |connection| {
+                    Box::pin(async move {
+                        use self::schema::module_menu_module::dsl::*;
+                        use self::schema::modules::dsl::*;
 
-                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
-                    .load::<(ModuleMenuEntryModule, Module)>(connection)
-                    .await
-                    .unwrap()
-                    .into_iter()
-                    .next()
-                    .unwrap())
+                        Ok(module_menu_module
+                            .inner_join(modules)
+                            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
+                            .load::<(ModuleMenuEntryModule, Module)>(connection)
+                            .await
+                            .unwrap()
+                            .into_iter()
+                            .next()
+                            .unwrap())
+                    })
                 })
-            }).await
-            .unwrap();
+                .await
+                .unwrap();
 
             Ok(Either::Left(web::Json(module_result)))
         } else {
-            let menu_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
-                Box::pin(async move {
-                    use self::schema::module_menu::dsl::*;
+            let menu_result = tucan
+                .pool
+                .get()
+                .await
+                .unwrap()
+                .build_transaction()
+                .read_only()
+                .run(move |connection| {
+                    Box::pin(async move {
+                        use self::schema::module_menu::dsl::*;
 
-                    Ok(module_menu.filter(parent.eq(parent))
-                    .load::<ModuleMenu>(connection)
-                    .await
-                    .unwrap())
+                        Ok(module_menu
+                            .filter(parent.eq(parent))
+                            .load::<ModuleMenu>(connection)
+                            .await
+                            .unwrap())
+                    })
                 })
-            }).await
-            .unwrap();
+                .await
+                .unwrap();
 
-            let module_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
-                Box::pin(async move {
-                    use self::schema::modules::dsl::*;
-                    use self::schema::module_menu_module::dsl::*;
+            let module_result = tucan
+                .pool
+                .get()
+                .await
+                .unwrap()
+                .build_transaction()
+                .read_only()
+                .run(move |connection| {
+                    Box::pin(async move {
+                        use self::schema::module_menu_module::dsl::*;
+                        use self::schema::modules::dsl::*;
 
-                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()))
-                    .load::<(ModuleMenuEntryModule, Module)>(connection)
-                    .await
-                    .unwrap())
+                        Ok(module_menu_module
+                            .inner_join(modules)
+                            .filter(module_menu_id.eq(parent.unwrap()))
+                            .load::<(ModuleMenuEntryModule, Module)>(connection)
+                            .await
+                            .unwrap())
+                    })
                 })
-            }).await
-            .unwrap();
+                .await
+                .unwrap();
 
             if !menu_result.is_empty() {
                 Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
