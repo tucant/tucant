@@ -312,22 +312,30 @@ async fn get_modules(
 
             Ok(Either::Left(web::Json(module_result)))
         } else {
-            let menu_result = sqlx::query!(
-            "SELECT id, name, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2",
-            user_id,
-            parent
-        )
-        .fetch_all(&tucan.pool)
-        .await
-        .unwrap(); // TODO FIXME these unwraps
+            let menu_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
+                Box::pin(async move {
+                    use self::schema::module_menu::dsl::*;
 
-            let module_result = sqlx::query!(
-            "SELECT title, module_id FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1",
-            parent
-        )
-        .fetch_all(&tucan.pool)
-        .await
-        .unwrap(); // TODO FIXME these unwraps
+                    Ok(module_menu.filter(parent.eq(parent))
+                    .load::<ModuleMenu>(connection)
+                    .await
+                    .unwrap())
+                })
+            }).await
+            .unwrap();
+
+            let module_result = tucan.pool.get().await.unwrap().build_transaction().read_only().run(move |connection| {
+                Box::pin(async move {
+                    use self::schema::modules::dsl::*;
+                    use self::schema::module_menu_module::dsl::*;
+
+                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()))
+                    .load(connection)
+                    .await
+                    .unwrap())
+                })
+            }).await
+            .unwrap();
 
             if !menu_result.is_empty() {
                 Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
