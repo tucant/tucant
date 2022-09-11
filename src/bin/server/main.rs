@@ -15,10 +15,10 @@ use actix_web::{
 };
 use actix_web::{Either, HttpMessage};
 use async_recursion::async_recursion;
-use async_stream::{stream, try_stream, AsyncStream};
+use async_stream::{stream, try_stream};
 use chrono::{NaiveDateTime, Utc};
 use csrf_middleware::CsrfMiddleware;
-use diesel::RunQueryDsl;
+use diesel_async::RunQueryDsl;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
 use futures::{pin_mut, SinkExt, Stream};
@@ -106,27 +106,25 @@ async fn fetch_everything(
                         .replace('ö', "oe")
                         .replace('ü', "ue");
 
-                        web::block(move || {
-                            tucan_clone
-                                .tucan.pool
-                                .get()
-                                .unwrap()
-                                .build_transaction()
-                                .read_only()
-                                .run::<_, diesel::result::Error, _>(|connection| {
-                                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
-                                        .values(&ModuleMenu {
-                                            name: title_clone,
-                                            normalized_name,
-                                            parent: parent_clone,
-                                            tucan_id: "1".to_string(),
-                                            tucan_last_checked: Utc::now().naive_utc()
-                                        })
-                                        .execute(connection).unwrap();
-                                    Ok(())
-                                })
-                                .unwrap();
-                        }).await.unwrap();
+                        tucan_clone
+                            .tucan.pool
+                            .get()
+                            .await.unwrap()
+                            .build_transaction()
+                            .read_only()
+                            .run::<_, diesel::result::Error, _>(async |connection| {
+                                diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                    .values(&ModuleMenu {
+                                        name: title_clone,
+                                        normalized_name,
+                                        parent: parent_clone,
+                                        tucan_id: "1".to_string(),
+                                        tucan_last_checked: Utc::now().naive_utc()
+                                    })
+                                    .execute(connection).await.unwrap();
+                                Ok(())
+                            })
+                            .await.unwrap();
 
                     stream.yield_item(Bytes::from(title));
 
@@ -253,7 +251,6 @@ async fn get_modules(
         for path_segment in menu_path {
             let parent = node.map(|v: MenuItem| v.id);
 
-            module_menu.filter()
 
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
