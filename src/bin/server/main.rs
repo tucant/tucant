@@ -23,7 +23,7 @@ use csrf_middleware::CsrfMiddleware;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 
-use futures::{FutureExt, Stream};
+use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -108,7 +108,7 @@ async fn fetch_everything(
                         .replace('ö', "oe")
                         .replace('ü', "ue");
 
-                    tucan_clone
+                    let cnt = tucan_clone
                         .tucan
                         .pool
                         .get()
@@ -118,7 +118,7 @@ async fn fetch_everything(
                         .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
-                                diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                Ok(diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                     .values(&ModuleMenu {
                                         name: title_clone,
                                         normalized_name,
@@ -126,10 +126,9 @@ async fn fetch_everything(
                                         tucan_id: "1".to_string(),
                                         tucan_last_checked: Utc::now().naive_utc(),
                                     })
-                                    .execute(connection)
+                                    .get_result::<ModuleMenu>(connection)
                                     .await
-                                    .unwrap();
-                                Ok(())
+                                    .unwrap())
                             }
                             .boxed()
                         })
@@ -138,8 +137,12 @@ async fn fetch_everything(
 
                     stream.yield_item(Bytes::from(title)).await;
 
-                    let _value = tucan.registration(Some(url)).await.unwrap();
-                    //fetch_everything(tucan, Some(cnt.id), value).await?;
+                    let value = tucan.registration(Some(url)).await.unwrap();
+                    let inner_stream = fetch_everything(tucan, Some(cnt.tucan_id), value).await;
+
+                    while let Some(value) = inner_stream.next().await {
+                        stream.yield_item(value).await;
+                    }
                 }
             }
             RegistrationEnum::Modules(value) => {

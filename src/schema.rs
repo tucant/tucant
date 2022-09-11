@@ -31,4 +31,8 @@ diesel::table! {
 diesel::joinable!(module_menu_module -> module_menu (module_menu_id));
 diesel::joinable!(module_menu_module -> modules (module_id));
 
-diesel::allow_tables_to_appear_in_same_query!(module_menu, module_menu_module, modules,);
+diesel::allow_tables_to_appear_in_same_query!(
+    module_menu,
+    module_menu_module,
+    modules,
+);
