@@ -19,6 +19,7 @@ use async_recursion::async_recursion;
 use async_stream::{stream, try_stream};
 use chrono::{NaiveDateTime, Utc};
 use csrf_middleware::CsrfMiddleware;
+use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
@@ -235,12 +236,6 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
     }
 }
 
-#[derive(Debug)]
-struct MenuItem {
-    id: i64,
-    normalized_name: String,
-}
-
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
 async fn get_modules(
@@ -269,7 +264,29 @@ async fn get_modules(
         let user_id = user.id()?;
         let mut node = None;
         for path_segment in menu_path {
-            let parent = node.map(|v: MenuItem| v.id);
+            let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
+
+
+            tucan
+                        .pool
+                        .get()
+                        .await
+                        .unwrap()
+                        .build_transaction()
+                        .read_only()
+                        .run::<_, diesel::result::Error, _>(move |connection| {
+                            Box::pin(async move {
+                                use self::schema::module_menu::dsl::*;
+
+                                module_menu.filter(parent.eq(the_parent))
+                                    .load::<ModuleMenu>(connection)
+                                    .await
+                                    .unwrap();
+                                Ok(())
+                            })
+                        })
+                        .await
+                        .unwrap();
 
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
