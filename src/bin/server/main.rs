@@ -267,16 +267,18 @@ async fn get_modules(
         for path_segment in menu_path {
             let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
+            let mut the_tucan = tucan
+            .pool
+            .get()
+            .await
+            .unwrap();
+            let mut trans = the_tucan.build_transaction()
+            .read_only();
+            let mut borrowed_trans = &mut trans;
+
             node = Some(
-                tucan
-                    .pool
-                    .get()
-                    .await
-                    .unwrap()
-                    .build_transaction()
-                    .read_only()
-                    .run::<_, diesel::result::Error, _>(|connection| {
-                        async move {
+                borrowed_trans.run::<_, diesel::result::Error, _>(|connection| {
+                        async {
                             use self::schema::module_menu::dsl::*;
 
                             Ok(module_menu
