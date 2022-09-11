@@ -1,10 +1,8 @@
 use std::io::{Error, ErrorKind};
 
 use deadpool::managed::Pool;
-use diesel::{
-    Connection, PgConnection,
-};
-use diesel_async::{pooled_connection::{AsyncDieselConnectionManager}, AsyncPgConnection};
+use diesel::{Connection, PgConnection};
+use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use dotenvy::dotenv;
 use regex::Regex;
 use reqwest::{cookie::Jar, Client, Url};
@@ -17,7 +15,7 @@ use crate::{create_pool, tucan_user::TucanUser};
 pub struct Tucan {
     pub(crate) client: Client,
     //pub(crate) semaphore: Semaphore,
-    pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>> ,
+    pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
 }
 
 impl Tucan {

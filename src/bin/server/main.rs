@@ -28,8 +28,8 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{ModuleMenu, ModuleMenuEntryModule, Module};
-use tucan_scraper::schema::{self, modules, module_menu};
+use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
+use tucan_scraper::schema::{self, module_menu, modules};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
@@ -106,25 +106,32 @@ async fn fetch_everything(
                         .replace('ö', "oe")
                         .replace('ü', "ue");
 
-                        tucan_clone
-                            .tucan.pool
-                            .get()
-                            .await.unwrap()
-                            .build_transaction()
-                            .read_only()
-                            .run::<_, diesel::result::Error, _>(move |connection| Box::pin(async move  {
+                    tucan_clone
+                        .tucan
+                        .pool
+                        .get()
+                        .await
+                        .unwrap()
+                        .build_transaction()
+                        .read_only()
+                        .run::<_, diesel::result::Error, _>(move |connection| {
+                            Box::pin(async move {
                                 diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                     .values(&ModuleMenu {
                                         name: title_clone,
                                         normalized_name,
                                         parent: parent_clone,
                                         tucan_id: "1".to_string(),
-                                        tucan_last_checked: Utc::now().naive_utc()
+                                        tucan_last_checked: Utc::now().naive_utc(),
                                     })
-                                    .execute(connection).await.unwrap();
+                                    .execute(connection)
+                                    .await
+                                    .unwrap();
                                 Ok(())
-                            }))
-                            .await.unwrap();
+                            })
+                        })
+                        .await
+                        .unwrap();
 
                     stream.yield_item(Bytes::from(title));
 
@@ -143,29 +150,37 @@ async fn fetch_everything(
                     // TODO normalize url in a way that this can use cached data?
                     // modules can probably be cached because we don't follow outgoing links
                     // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-                    web::block(move || {
-                        tucan_clone
-                            .tucan.pool
-                            .get()
-                            .unwrap()
-                            .build_transaction()
-                            .read_only()
-                            .run::<_, diesel::result::Error, _>(|connection| {
+                    tucan_clone
+                        .tucan
+                        .pool
+                        .get()
+                        .await
+                        .unwrap()
+                        .build_transaction()
+                        .read_only()
+                        .run::<_, diesel::result::Error, _>(move |connection| {
+                            Box::pin(async move {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
                                     .values(&module)
-                                    .execute(connection).unwrap();
+                                    .execute(connection)
+                                    .await
+                                    .unwrap();
 
-                                    diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
-                                    .values(&ModuleMenuEntryModule {
-                                        module_id: module.tucan_id,
-                                        module_menu_id: parent_clone.unwrap()
-                                    })
-                                    .execute(connection).unwrap();
-
+                                diesel::insert_into(
+                                    tucan_scraper::schema::module_menu_module::table,
+                                )
+                                .values(&ModuleMenuEntryModule {
+                                    module_id: module.tucan_id,
+                                    module_menu_id: parent_clone.unwrap(),
+                                })
+                                .execute(connection)
+                                    .await
+                                    .unwrap();
                                 Ok(())
                             })
-                            .unwrap();
-                    }).await.unwrap();
+                        })
+                        .await
+                        .unwrap();
                 }
             }
         }
@@ -179,25 +194,26 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> = try_stream(move |mut stream| async move {
+    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> =
+        try_stream(move |mut stream| async move {
+            stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
 
-        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
+            let tucan = tucan
+                .continue_session(
+                    session.get("tucan_id").unwrap().unwrap(),
+                    session.get("tucan_id").unwrap().unwrap(),
+                )
+                .await
+                .unwrap();
 
-        let tucan = tucan
-        .continue_session(
-            session.get("tucan_id").unwrap().unwrap(),
-            session.get("tucan_id").unwrap().unwrap(),
-        )
-        .await.unwrap();
+            let res = tucan.registration(None).await.unwrap();
 
-        let res = tucan.registration(None).await.unwrap();
+            let input = fetch_everything(&tucan, None, res).await;
 
-        let input = fetch_everything(&tucan, None, res).await;
+            /*for await value in input {
 
-        /*for await value in input {
-
-        }*/
-    });
+            }*/
+        });
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
@@ -250,7 +266,6 @@ async fn get_modules(
         let mut node = None;
         for path_segment in menu_path {
             let parent = node.map(|v: MenuItem| v.id);
-
 
             node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
             .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps

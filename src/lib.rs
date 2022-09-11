@@ -4,10 +4,11 @@ pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
 
-use diesel::{
-    Connection, PgConnection,
+use diesel::{Connection, PgConnection};
+use diesel_async::{
+    pooled_connection::{deadpool::Pool, AsyncDieselConnectionManager},
+    AsyncPgConnection,
 };
-use diesel_async::{pooled_connection::{AsyncDieselConnectionManager, deadpool::Pool}, AsyncPgConnection};
 use dotenvy::dotenv;
 use scraper::{ElementRef, Html, Selector};
 
