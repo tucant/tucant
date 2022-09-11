@@ -112,7 +112,7 @@ async fn fetch_everything(
                             .await.unwrap()
                             .build_transaction()
                             .read_only()
-                            .run::<_, diesel::result::Error, _>(async |connection| {
+                            .run::<_, diesel::result::Error, _>(move |connection| Box::pin(async move  {
                                 diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                     .values(&ModuleMenu {
                                         name: title_clone,
@@ -123,7 +123,7 @@ async fn fetch_everything(
                                     })
                                     .execute(connection).await.unwrap();
                                 Ok(())
-                            })
+                            }))
                             .await.unwrap();
 
                     stream.yield_item(Bytes::from(title));
