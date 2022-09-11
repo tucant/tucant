@@ -329,8 +329,8 @@ async fn get_modules(
                     use self::schema::modules::dsl::*;
                     use self::schema::module_menu_module::dsl::*;
 
-                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()))
-                    .load(connection)
+                    Ok(module_menu_module/*.inner_join(modules)*/.filter(module_menu_id.eq(parent.unwrap()))
+                    .load::<ModuleMenuEntryModule>(connection)
                     .await
                     .unwrap())
                 })
