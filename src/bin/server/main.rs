@@ -5,6 +5,7 @@ mod csrf_middleware;
 use std::io::Error;
 
 use std::fmt::Display;
+use std::pin::Pin;
 
 use actix_cors::Cors;
 use actix_identity::config::LogoutBehaviour;
@@ -90,7 +91,7 @@ async fn fetch_everything(
     tucan: TucanUser,
     parent: Option<String>,
     value: RegistrationEnum,
-) -> impl Stream<Item = Result<Bytes, std::io::Error>> {
+) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>>>> {
     try_stream(move |mut stream| async move {
         match value {
             RegistrationEnum::Submenu(value) => {
@@ -140,7 +141,7 @@ async fn fetch_everything(
                     let value = tucan.registration(Some(url)).await.unwrap();
                     let inner_stream = fetch_everything(tucan, Some(cnt.tucan_id), value).await;
 
-                    while let Some(value) = inner_stream.next().await {
+                    while let Some(Ok(value)) = inner_stream.next().await {
                         stream.yield_item(value).await;
                     }
                 }
@@ -192,7 +193,7 @@ async fn fetch_everything(
             }
         }
         Ok(())
-    })
+    }).boxed()
 }
 
 #[post("/setup")]
