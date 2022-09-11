@@ -75,8 +75,8 @@ async fn login(
 ) -> Result<impl Responder, MyError> {
     let tucan_user = tucan.login(&login.username, &login.password).await?;
     Identity::login(&request.extensions(), login.username.to_string()).unwrap();
-    session.insert("tucan_nr", tucan_user.session_nr);
-    session.insert("tucan_id", tucan_user.session_id);
+    session.insert("tucan_nr", tucan_user.session_nr).unwrap();
+    session.insert("tucan_id", tucan_user.session_id).unwrap();
 
     Ok(web::Json(LoginResult { success: true }))
 }
@@ -137,7 +137,7 @@ async fn fetch_everything(
                         .await
                         .unwrap();
 
-                    stream.yield_item(Bytes::from(title));
+                    stream.yield_item(Bytes::from(title)).await;
 
                     let value = tucan.registration(Some(url)).await.unwrap();
                     //fetch_everything(tucan, Some(cnt.id), value).await?;
@@ -147,7 +147,7 @@ async fn fetch_everything(
                 for (title, url) in value {
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
-                    stream.yield_item(Bytes::from(title.clone()));
+                    stream.yield_item(Bytes::from(title.clone())).await;
                     let module = tucan.clone().module(&url).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
@@ -200,7 +200,7 @@ async fn setup(
     session: Session,
 ) -> Result<impl Responder, MyError> {
     let stream = try_stream(move |mut stream| async move {
-        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
+        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen...")).await;
 
         let tucan = tucan
             .continue_session(
@@ -248,11 +248,11 @@ async fn get_modules<'a>(
     let mut connection = tucan.pool.get().await.unwrap();
         println!("{:?}", path);
 
-        let split_path: SplitTerminator<'a, _> = path.split_terminator('/');
+        let split_path = path.split_terminator('/').map(String::from);
         let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
         println!("{:?}", menu_path_vec);
 
-        let menu_path: Vec<&str>;
+        let menu_path: Vec<String>;
         let module: Option<&str>;
         if path.ends_with('/') {
             menu_path = menu_path_vec;
