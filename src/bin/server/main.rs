@@ -300,14 +300,15 @@ async fn get_modules(
                     use self::schema::modules::dsl::*;
 
                     Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
-                    .load::<(ModuleMenuEntryModule, Module)>(connection)
+                    .load(connection)
                     .await
                     .unwrap()
                     .into_iter()
                     .next()
                     .unwrap())
                 })
-            });
+            }).await
+            .unwrap();
 
             Ok(Either::Left(web::Json(module_result)))
         } else {
