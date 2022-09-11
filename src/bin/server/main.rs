@@ -23,7 +23,7 @@ use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
-use futures::{pin_mut, SinkExt, Stream};
+use futures::{pin_mut, FutureExt, SinkExt, Stream};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -117,7 +117,7 @@ async fn fetch_everything(
                         .build_transaction()
                         .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
-                            Box::pin(async move {
+                            async move {
                                 diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                     .values(&ModuleMenu {
                                         name: title_clone,
@@ -130,7 +130,8 @@ async fn fetch_everything(
                                     .await
                                     .unwrap();
                                 Ok(())
-                            })
+                            }
+                            .boxed()
                         })
                         .await
                         .unwrap();
@@ -161,7 +162,7 @@ async fn fetch_everything(
                         .build_transaction()
                         .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
-                            Box::pin(async move {
+                            async move {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
                                     .values(&module)
                                     .execute(connection)
@@ -179,7 +180,8 @@ async fn fetch_everything(
                                 .await
                                 .unwrap();
                                 Ok(())
-                            })
+                            }
+                            .boxed()
                         })
                         .await
                         .unwrap();
@@ -248,14 +250,14 @@ async fn get_modules(
         let menu_path_vec = path.split_terminator('/').skip(1).collect::<Vec<_>>();
         println!("{:?}", menu_path_vec);
 
-        let menu_path: &[&str];
+        let menu_path: Vec<&str>;
         let module: Option<&str>;
         if path.ends_with('/') {
-            menu_path = &menu_path_vec;
+            menu_path = menu_path_vec;
             module = None;
         } else {
             let tmp = menu_path_vec.split_last().unwrap();
-            menu_path = tmp.1;
+            menu_path = tmp.1.to_vec();
             module = Some(tmp.0);
         }
         println!("{:?}", menu_path);
@@ -273,8 +275,8 @@ async fn get_modules(
                     .unwrap()
                     .build_transaction()
                     .read_only()
-                    .run::<_, diesel::result::Error, _>(move |connection| {
-                        Box::pin(async move {
+                    .run::<_, diesel::result::Error, _>(|connection| {
+                        async move {
                             use self::schema::module_menu::dsl::*;
 
                             Ok(module_menu
@@ -285,7 +287,8 @@ async fn get_modules(
                                 .into_iter()
                                 .next()
                                 .unwrap())
-                        })
+                        }
+                        .boxed()
                     })
                     .await
                     .unwrap(),
@@ -301,12 +304,15 @@ async fn get_modules(
                 .unwrap()
                 .build_transaction()
                 .read_only()
-                .run(move |connection| {
-                    Box::pin(async move {
+                .run::<_, diesel::result::Error, _>(move |connection| {
+                    async move {
                         use self::schema::module_menu_module::dsl::*;
                         use self::schema::modules::dsl::*;
 
-                        Ok(module_menu_module
+                        let return_value: Result<
+                            (ModuleMenuEntryModule, Module),
+                            diesel::result::Error,
+                        > = Ok(module_menu_module
                             .inner_join(modules)
                             .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
                             .load::<(ModuleMenuEntryModule, Module)>(connection)
@@ -314,8 +320,11 @@ async fn get_modules(
                             .unwrap()
                             .into_iter()
                             .next()
-                            .unwrap())
-                    })
+                            .unwrap());
+
+                        return_value
+                    }
+                    .boxed()
                 })
                 .await
                 .unwrap();
@@ -329,16 +338,19 @@ async fn get_modules(
                 .unwrap()
                 .build_transaction()
                 .read_only()
-                .run(move |connection| {
-                    Box::pin(async move {
+                .run::<_, diesel::result::Error, _>(move |connection| {
+                    async move {
                         use self::schema::module_menu::dsl::*;
 
-                        Ok(module_menu
-                            .filter(parent.eq(parent))
-                            .load::<ModuleMenu>(connection)
-                            .await
-                            .unwrap())
-                    })
+                        let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
+                            Ok(module_menu
+                                .filter(parent.eq(parent))
+                                .load::<ModuleMenu>(connection)
+                                .await
+                                .unwrap());
+                        return_value
+                    }
+                    .boxed()
                 })
                 .await
                 .unwrap();
@@ -350,8 +362,8 @@ async fn get_modules(
                 .unwrap()
                 .build_transaction()
                 .read_only()
-                .run(move |connection| {
-                    Box::pin(async move {
+                .run::<_, diesel::result::Error, _>(move |connection| {
+                    async move {
                         use self::schema::module_menu_module::dsl::*;
                         use self::schema::modules::dsl::*;
 
@@ -361,7 +373,8 @@ async fn get_modules(
                             .load::<(ModuleMenuEntryModule, Module)>(connection)
                             .await
                             .unwrap())
-                    })
+                    }
+                    .boxed()
                 })
                 .await
                 .unwrap();
