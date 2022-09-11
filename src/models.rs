@@ -13,7 +13,7 @@ pub struct Module {
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
     pub module_id: String,
-    pub credits: i32,
+    pub credits: Option<i32>,
     pub content: String,
 }
 

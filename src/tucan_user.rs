@@ -195,7 +195,7 @@ impl TucanUser {
             tucan_id: module_id.to_string(),
             tucan_last_checked: Utc::now().naive_utc(),
             title: module_name.unwrap().to_string(),
-            credits,
+            credits: Some(credits),
             module_id: module_id.to_string(),
             content,
         })

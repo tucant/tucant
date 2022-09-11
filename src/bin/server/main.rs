@@ -31,7 +31,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::{self, module_menu, modules};
+use tucan_scraper::schema::{self, module_menu, modules, module_menu_module};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
@@ -300,7 +300,7 @@ async fn get_modules(
                     use self::schema::modules::dsl::*;
 
                     Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
-                    .load(connection)
+                    .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await
                     .unwrap()
                     .into_iter()
@@ -329,8 +329,8 @@ async fn get_modules(
                     use self::schema::modules::dsl::*;
                     use self::schema::module_menu_module::dsl::*;
 
-                    Ok(module_menu_module/*.inner_join(modules)*/.filter(module_menu_id.eq(parent.unwrap()))
-                    .load::<ModuleMenuEntryModule>(connection)
+                    Ok(module_menu_module.inner_join(modules).filter(module_menu_id.eq(parent.unwrap()))
+                    .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await
                     .unwrap())
                 })
@@ -348,7 +348,7 @@ async fn get_modules(
                 Ok(Either::Right(web::Json(RegistrationEnum::Modules(
                     module_result
                         .iter()
-                        .map(|r| (r.title.clone(), r.module_id.clone()))
+                        .map(|r| (r.1.title.clone(), r.1.module_id.clone()))
                         .collect::<Vec<_>>(),
                 ))))
             }
