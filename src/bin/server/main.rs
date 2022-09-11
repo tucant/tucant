@@ -3,6 +3,7 @@
 mod csrf_middleware;
 
 use std::io::Error;
+use std::str::SplitTerminator;
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
@@ -20,7 +21,7 @@ use async_stream::{stream, try_stream};
 use chrono::{NaiveDateTime, Utc};
 use csrf_middleware::CsrfMiddleware;
 use diesel::prelude::*;
-use diesel_async::RunQueryDsl;
+use diesel_async::{RunQueryDsl, AsyncPgConnection};
 use futures::channel::mpsc::{unbounded, UnboundedSender};
 
 use futures::{pin_mut, FutureExt, SinkExt, Stream};
@@ -239,7 +240,7 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
-async fn get_modules(
+async fn get_modules<'a>(
     tucan: web::Data<Tucan>,
     user: Option<Identity>,
     path: Path<String>,
@@ -247,7 +248,8 @@ async fn get_modules(
     if let Some(user) = user {
         println!("{:?}", path);
 
-        let menu_path_vec = path.split_terminator('/').skip(1).collect::<Vec<_>>();
+        let split_path: SplitTerminator<'a, _> = path.split_terminator('/');
+        let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
         println!("{:?}", menu_path_vec);
 
         let menu_path: Vec<&str>;
@@ -267,34 +269,18 @@ async fn get_modules(
         for path_segment in menu_path {
             let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-            let mut the_tucan = tucan
-            .pool
-            .get()
-            .await
-            .unwrap();
-            let mut trans = the_tucan.build_transaction()
-            .read_only();
-            let mut borrowed_trans = &mut trans;
+            let mut connection = tucan.pool.get().await.unwrap();
 
-            node = Some(
-                borrowed_trans.run::<_, diesel::result::Error, _>(|connection| {
-                        async {
-                            use self::schema::module_menu::dsl::*;
+            use self::schema::module_menu::dsl::*;
 
-                            Ok(module_menu
-                                .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
-                                .load::<ModuleMenu>(connection)
-                                .await
-                                .unwrap()
-                                .into_iter()
-                                .next()
-                                .unwrap())
-                        }
-                        .boxed()
-                    })
-                    .await
-                    .unwrap(),
-            );
+            node = Some(module_menu
+                .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
+                .load::<ModuleMenu>(&mut connection)
+                .await
+                .unwrap()
+                .into_iter()
+                .next()
+                .unwrap())
         }
         let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
