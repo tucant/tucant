@@ -139,7 +139,7 @@ async fn fetch_everything(
                     stream.yield_item(Bytes::from(title)).await;
 
                     let value = tucan.registration(Some(url)).await.unwrap();
-                    let inner_stream = fetch_everything(tucan, Some(cnt.tucan_id), value).await;
+                    let mut inner_stream = fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
                     while let Some(Ok(value)) = inner_stream.next().await {
                         stream.yield_item(value).await;
@@ -193,7 +193,7 @@ async fn fetch_everything(
             }
         }
         Ok(())
-    }).boxed()
+    }).boxed_local()
 }
 
 #[post("/setup")]
