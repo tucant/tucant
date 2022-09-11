@@ -2,6 +2,7 @@
 
 mod csrf_middleware;
 
+use std::io::Error;
 use std::{fmt::Display, time::Duration};
 
 use actix_cors::Cors;
@@ -194,7 +195,7 @@ async fn setup(
     user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
-    let stream: AsyncStream<Result<Bytes, std::io::Error>, _> =
+    let stream =
         try_stream(move |mut stream| async move {
             stream.yield_item(Bytes::from("Alle Module werden heruntergeladen..."));
 
@@ -208,11 +209,14 @@ async fn setup(
 
             let res = tucan.registration(None).await.unwrap();
 
-            let input = fetch_everything(&tucan, None, res).await;
+            let input = fetch_everything(tucan, None, res).await;
 
             /*for await value in input {
 
             }*/
+            let return_value: Result<(), Error> = Ok(());
+
+            return_value
         });
 
     // TODO FIXME search for <h1>Timeout!</h1>
