@@ -1,13 +1,11 @@
 use std::io::{Error, ErrorKind};
 
 use deadpool::managed::Pool;
-use diesel::{Connection, PgConnection};
-use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
-use dotenvy::dotenv;
-use regex::Regex;
-use reqwest::{cookie::Jar, Client, Url};
 
-use tokio::sync::Semaphore;
+use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
+
+use regex::Regex;
+use reqwest::{Client, Url};
 
 use crate::{create_pool, tucan_user::TucanUser};
 
@@ -34,14 +32,14 @@ impl Tucan {
         session_nr: u64,
         session_id: String,
     ) -> anyhow::Result<TucanUser> {
-        let url = "https://www.tucan.tu-darmstadt.de/scripts"
+        let _url = "https://www.tucan.tu-darmstadt.de/scripts"
             .parse::<Url>()
             .unwrap();
 
         Ok(TucanUser {
             tucan: self.clone(),
-            session_id: session_id,
-            session_nr: session_nr,
+            session_id,
+            session_nr,
         })
     }
 

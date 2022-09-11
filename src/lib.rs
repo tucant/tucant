@@ -4,7 +4,6 @@ pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
 
-use diesel::{Connection, PgConnection};
 use diesel_async::{
     pooled_connection::{deadpool::Pool, AsyncDieselConnectionManager},
     AsyncPgConnection,
@@ -24,8 +23,7 @@ fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection>
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    let config = AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url);
-    config
+    AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url)
 }
 
 fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {

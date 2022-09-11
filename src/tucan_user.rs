@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind};
 
-use chrono::{NaiveDateTime, Utc};
+use chrono::Utc;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
@@ -103,7 +103,7 @@ impl TucanUser {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
 
-        let normalized_url = url.to_string();
+        let _normalized_url = url.to_string();
         /* if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
             normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
             //println!("normalized: {}", normalized_url);

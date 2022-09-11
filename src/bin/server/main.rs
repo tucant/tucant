@@ -3,8 +3,8 @@
 mod csrf_middleware;
 
 use std::io::Error;
-use std::str::SplitTerminator;
-use std::{fmt::Display, time::Duration};
+
+use std::fmt::Display;
 
 use actix_cors::Cors;
 use actix_identity::config::LogoutBehaviour;
@@ -16,15 +16,14 @@ use actix_web::{
     cookie::Key, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use actix_web::{Either, HttpMessage};
-use async_recursion::async_recursion;
-use async_stream::{stream, try_stream};
-use chrono::{NaiveDateTime, Utc};
+
+use async_stream::try_stream;
+use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::prelude::*;
-use diesel_async::{RunQueryDsl, AsyncPgConnection};
-use futures::channel::mpsc::{unbounded, UnboundedSender};
+use diesel_async::RunQueryDsl;
 
-use futures::{pin_mut, FutureExt, SinkExt, Stream};
+use futures::{FutureExt, Stream};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
@@ -32,7 +31,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::{self, module_menu, module_menu_module, modules};
+use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
@@ -82,7 +81,7 @@ async fn login(
 }
 
 #[post("/logout")]
-async fn logout(tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responder, MyError> {
+async fn logout(_tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responder, MyError> {
     user.logout();
     Ok(HttpResponse::Ok())
 }
@@ -139,7 +138,7 @@ async fn fetch_everything(
 
                     stream.yield_item(Bytes::from(title)).await;
 
-                    let value = tucan.registration(Some(url)).await.unwrap();
+                    let _value = tucan.registration(Some(url)).await.unwrap();
                     //fetch_everything(tucan, Some(cnt.id), value).await?;
                 }
             }
@@ -196,11 +195,13 @@ async fn fetch_everything(
 #[post("/setup")]
 async fn setup(
     tucan: web::Data<Tucan>,
-    user: Identity,
+    _user: Identity,
     session: Session,
 ) -> Result<impl Responder, MyError> {
     let stream = try_stream(move |mut stream| async move {
-        stream.yield_item(Bytes::from("Alle Module werden heruntergeladen...")).await;
+        stream
+            .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
+            .await;
 
         let tucan = tucan
             .continue_session(
@@ -212,7 +213,7 @@ async fn setup(
 
         let res = tucan.registration(None).await.unwrap();
 
-        let input = fetch_everything(tucan, None, res).await;
+        let _input = fetch_everything(tucan, None, res).await;
 
         /*for await value in input {
 
@@ -246,122 +247,124 @@ async fn get_modules<'a>(
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await.unwrap();
-        println!("{:?}", path);
+    println!("{:?}", path);
 
-        let split_path = path.split_terminator('/').map(String::from);
-        let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
-        println!("{:?}", menu_path_vec);
+    let split_path = path.split_terminator('/').map(String::from);
+    let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
+    println!("{:?}", menu_path_vec);
 
-        let menu_path: Vec<String>;
-        let module: Option<&str>;
-        if path.ends_with('/') {
-            menu_path = menu_path_vec;
-            module = None;
-        } else {
-            let tmp = menu_path_vec.split_last().unwrap();
-            menu_path = tmp.1.to_vec();
-            module = Some(tmp.0);
-        }
-        println!("{:?}", menu_path);
+    let menu_path: Vec<String>;
+    let module: Option<&str>;
+    if path.ends_with('/') {
+        menu_path = menu_path_vec;
+        module = None;
+    } else {
+        let tmp = menu_path_vec.split_last().unwrap();
+        menu_path = tmp.1.to_vec();
+        module = Some(tmp.0);
+    }
+    println!("{:?}", menu_path);
 
-        let user_id = user.id()?;
-        let mut node = None;
-        for path_segment in menu_path {
-            let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
+    let _user_id = user.id()?;
+    let mut node = None;
+    for path_segment in menu_path {
+        let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-            use self::schema::module_menu::dsl::*;
+        use self::schema::module_menu::dsl::*;
 
-            node = Some(module_menu
+        node = Some(
+            module_menu
                 .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
                 .load::<ModuleMenu>(&mut connection)
                 .await
                 .unwrap()
                 .into_iter()
                 .next()
-                .unwrap())
-        }
-        let parent = node.map(|v: ModuleMenu| v.tucan_id);
+                .unwrap(),
+        )
+    }
+    let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-        if let Some(module) = module {
-            use self::schema::module_menu_module::dsl::*;
-            use self::schema::modules::dsl::*;
+    if let Some(module) = module {
+        use self::schema::module_menu_module::dsl::*;
+        use self::schema::modules::dsl::*;
 
-            let module_result = module_menu_module
-                            .inner_join(modules)
-                            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
-                            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
+        let module_result = module_menu_module
+            .inner_join(modules)
+            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
+            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
+            .await
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap();
+
+        Ok(Either::Left(web::Json(module_result)))
+    } else {
+        let menu_result = tucan
+            .pool
+            .get()
+            .await
+            .unwrap()
+            .build_transaction()
+            .read_only()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    use self::schema::module_menu::dsl::*;
+
+                    let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
+                        Ok(module_menu
+                            .filter(parent.eq(parent))
+                            .load::<ModuleMenu>(connection)
                             .await
-                            .unwrap()
-                            .into_iter()
-                            .next()
-                            .unwrap();
+                            .unwrap());
+                    return_value
+                }
+                .boxed()
+            })
+            .await
+            .unwrap();
 
-            Ok(Either::Left(web::Json(module_result)))
+        let module_result = tucan
+            .pool
+            .get()
+            .await
+            .unwrap()
+            .build_transaction()
+            .read_only()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    use self::schema::module_menu_module::dsl::*;
+                    use self::schema::modules::dsl::*;
+
+                    Ok(module_menu_module
+                        .inner_join(modules)
+                        .filter(module_menu_id.eq(parent.unwrap()))
+                        .load::<(ModuleMenuEntryModule, Module)>(connection)
+                        .await
+                        .unwrap())
+                }
+                .boxed()
+            })
+            .await
+            .unwrap();
+
+        if !menu_result.is_empty() {
+            Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
+                menu_result
+                    .iter()
+                    .map(|r| (r.name.clone(), r.normalized_name.clone()))
+                    .collect::<Vec<_>>(),
+            ))))
         } else {
-            let menu_result = tucan
-                .pool
-                .get()
-                .await
-                .unwrap()
-                .build_transaction()
-                .read_only()
-                .run::<_, diesel::result::Error, _>(move |connection| {
-                    async move {
-                        use self::schema::module_menu::dsl::*;
-
-                        let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
-                            Ok(module_menu
-                                .filter(parent.eq(parent))
-                                .load::<ModuleMenu>(connection)
-                                .await
-                                .unwrap());
-                        return_value
-                    }
-                    .boxed()
-                })
-                .await
-                .unwrap();
-
-            let module_result = tucan
-                .pool
-                .get()
-                .await
-                .unwrap()
-                .build_transaction()
-                .read_only()
-                .run::<_, diesel::result::Error, _>(move |connection| {
-                    async move {
-                        use self::schema::module_menu_module::dsl::*;
-                        use self::schema::modules::dsl::*;
-
-                        Ok(module_menu_module
-                            .inner_join(modules)
-                            .filter(module_menu_id.eq(parent.unwrap()))
-                            .load::<(ModuleMenuEntryModule, Module)>(connection)
-                            .await
-                            .unwrap())
-                    }
-                    .boxed()
-                })
-                .await
-                .unwrap();
-
-            if !menu_result.is_empty() {
-                Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
-                    menu_result
-                        .iter()
-                        .map(|r| (r.name.clone(), r.normalized_name.clone()))
-                        .collect::<Vec<_>>(),
-                ))))
-            } else {
-                Ok(Either::Right(web::Json(RegistrationEnum::Modules(
-                    module_result
-                        .iter()
-                        .map(|r| (r.1.title.clone(), r.1.module_id.clone()))
-                        .collect::<Vec<_>>(),
-                ))))
-            }
+            Ok(Either::Right(web::Json(RegistrationEnum::Modules(
+                module_result
+                    .iter()
+                    .map(|r| (r.1.title.clone(), r.1.module_id.clone()))
+                    .collect::<Vec<_>>(),
+            ))))
         }
+    }
 }
 
 #[actix_web::main]
