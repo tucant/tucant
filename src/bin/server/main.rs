@@ -267,7 +267,7 @@ async fn get_modules(
             let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
 
-            tucan
+            node = Some(tucan
                         .pool
                         .get()
                         .await
@@ -278,20 +278,16 @@ async fn get_modules(
                             Box::pin(async move {
                                 use self::schema::module_menu::dsl::*;
 
-                                module_menu.filter(parent.eq(the_parent))
+                                Ok(module_menu.filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
                                     .load::<ModuleMenu>(connection)
                                     .await
-                                    .unwrap();
-                                Ok(())
+                                    .unwrap().into_iter().next().unwrap())
                             })
                         })
                         .await
-                        .unwrap();
-
-            node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
-            .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
+                        .unwrap());
         }
-        let parent = node.map(|v: MenuItem| v.id);
+        let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
         if let Some(module) = module {
             let module_result = sqlx::query_as!(Module,
