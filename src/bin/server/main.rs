@@ -242,10 +242,10 @@ async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
 #[get("/modules{tail:.*}")]
 async fn get_modules<'a>(
     tucan: web::Data<Tucan>,
-    user: Option<Identity>,
+    user: Identity,
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
+    let mut connection = tucan.pool.get().await.unwrap();
         println!("{:?}", path);
 
         let split_path: SplitTerminator<'a, _> = path.split_terminator('/');
@@ -269,8 +269,6 @@ async fn get_modules<'a>(
         for path_segment in menu_path {
             let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-            let mut connection = tucan.pool.get().await.unwrap();
-
             use self::schema::module_menu::dsl::*;
 
             node = Some(module_menu
@@ -285,37 +283,18 @@ async fn get_modules<'a>(
         let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
         if let Some(module) = module {
-            let module_result = tucan
-                .pool
-                .get()
-                .await
-                .unwrap()
-                .build_transaction()
-                .read_only()
-                .run::<_, diesel::result::Error, _>(move |connection| {
-                    async move {
-                        use self::schema::module_menu_module::dsl::*;
-                        use self::schema::modules::dsl::*;
+            use self::schema::module_menu_module::dsl::*;
+            use self::schema::modules::dsl::*;
 
-                        let return_value: Result<
-                            (ModuleMenuEntryModule, Module),
-                            diesel::result::Error,
-                        > = Ok(module_menu_module
+            let module_result = module_menu_module
                             .inner_join(modules)
                             .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
-                            .load::<(ModuleMenuEntryModule, Module)>(connection)
+                            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
                             .await
                             .unwrap()
                             .into_iter()
                             .next()
-                            .unwrap());
-
-                        return_value
-                    }
-                    .boxed()
-                })
-                .await
-                .unwrap();
+                            .unwrap();
 
             Ok(Either::Left(web::Json(module_result)))
         } else {
@@ -383,9 +362,6 @@ async fn get_modules<'a>(
                 ))))
             }
         }
-    } else {
-        Err(anyhow::Error::msg("Not logged in!"))?
-    }
 }
 
 #[actix_web::main]
