@@ -121,7 +121,6 @@ async fn fetch_everything(
                         .await
                         .unwrap()
                         .build_transaction()
-                        .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
                                 Ok(
@@ -172,7 +171,6 @@ async fn fetch_everything(
                         .await
                         .unwrap()
                         .build_transaction()
-                        .read_only()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
@@ -207,8 +205,8 @@ async fn fetch_everything(
 
 #[post("/setup")]
 async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
-    println!("{:?}", session.status());
-    println!("{:?}", session.entries());
+    let tucan_nr = session.get::<u64>("tucan_nr").unwrap().unwrap();
+    let tucan_id = session.get::<String>("tucan_id").unwrap().unwrap();
 
     let stream = try_stream(move |mut stream| async move {
         stream
@@ -220,19 +218,20 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
         let tucan = tucan
             .continue_session(
-                session.get::<u64>("tucan_nr").unwrap().unwrap(),
-                session.get::<String>("tucan_id").unwrap().unwrap(),
+                tucan_nr,
+                tucan_id
             )
             .await
             .unwrap();
 
         let res = tucan.registration(None).await.unwrap();
 
-        let _input = fetch_everything(tucan, None, res).await;
+        let mut input = fetch_everything(tucan, None, res).await;
 
-        /*for await value in input {
+        while let Some(Ok(value)) = input.next().await {
+            stream.yield_item(value).await;
+        }
 
-        }*/
         let return_value: Result<(), Error> = Ok(());
 
         return_value
@@ -324,7 +323,6 @@ async fn get_modules<'a>(
             .await
             .unwrap()
             .build_transaction()
-            .read_only()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
                     use self::schema::module_menu::dsl::*;
@@ -348,7 +346,6 @@ async fn get_modules<'a>(
             .await
             .unwrap()
             .build_transaction()
-            .read_only()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
                     use self::schema::module_menu_module::dsl::*;
