@@ -99,6 +99,7 @@ async fn fetch_everything(
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
                     let title_clone = title.clone();
+                    let url_ref = url.clone();
                     let normalized_name = title
                         .to_lowercase()
                         .replace('-', "")
@@ -125,7 +126,7 @@ async fn fetch_everything(
                                             name: title_clone,
                                             normalized_name,
                                             parent: parent_clone,
-                                            tucan_id: "1".to_string(),
+                                            tucan_id: url_ref.clone(),
                                             tucan_last_checked: Utc::now().naive_utc(),
                                         })
                                         .get_result::<ModuleMenu>(connection)
@@ -140,7 +141,7 @@ async fn fetch_everything(
 
                     stream.yield_item(Bytes::from(title)).await;
 
-                    let value = tucan.registration(Some(url)).await.unwrap();
+                    let value = tucan.registration(Some(url.clone())).await.unwrap();
                     let mut inner_stream =
                         fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
@@ -213,7 +214,7 @@ async fn setup(
 
         let tucan = tucan
             .continue_session(
-                session.get("tucan_id").unwrap().unwrap(),
+                session.get("tucan_nr").unwrap().unwrap(),
                 session.get("tucan_id").unwrap().unwrap(),
             )
             .await
@@ -347,7 +348,7 @@ async fn get_modules<'a>(
 
                     Ok(module_menu_module
                         .inner_join(modules)
-                        .filter(module_menu_id.eq(parent.unwrap()))
+                        .filter(module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
                         .await
                         .unwrap())
