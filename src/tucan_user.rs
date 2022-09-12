@@ -1,5 +1,7 @@
 use std::io::{Error, ErrorKind};
 
+use chrono::Utc;
+use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
 
@@ -81,13 +83,13 @@ https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME
 B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
 https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
 */
-use crate::{element_by_selector, s, tucan::Tucan};
+use crate::{element_by_selector, models::Module, s, tucan::Tucan};
 
+#[derive(Clone)]
 pub struct TucanUser {
     pub tucan: Tucan,
-    pub(crate) username: String,
-    pub(crate) session_id: String,
-    pub(crate) session_nr: i64,
+    pub session_id: String,
+    pub session_nr: u64,
 }
 
 #[derive(Debug, Serialize)]
@@ -96,21 +98,12 @@ pub enum RegistrationEnum {
     Modules(Vec<(String, String)>), // TODO types
 }
 
-#[derive(Debug, Serialize)]
-pub struct Module {
-    pub id: String,
-    pub name: String,
-    pub credits: Option<i64>,
-    pub responsible_person: String,
-    pub content: String,
-}
-
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
         // maybe try the same with the navigation menus
 
-        let normalized_url = url.to_string();
+        let _normalized_url = url.to_string();
         /* if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
             normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
             //println!("normalized: {}", normalized_url);
@@ -127,14 +120,6 @@ impl TucanUser {
             //println!("url       : {}", url);
         }*/
 
-        let document = sqlx::query!(
-            "SELECT content FROM http_cache WHERE url = ? AND session = ?",
-            normalized_url,
-            self.session_id
-        )
-        .fetch_optional(&self.tucan.pool)
-        .await?;
-
         // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
         // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
         // the data at the end is random every login
@@ -145,53 +130,26 @@ impl TucanUser {
 
         // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
 
-        if let Some(doc) = document {
-            let html_doc = Html::parse_document(&doc.content);
+        let cookie = format!("cnsc={}", self.session_id);
 
-            if html_doc
-                .select(&s("h1"))
-                .any(|s| s.inner_html() == "Timeout!")
-            {
-                return Err(
-                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
-                );
-            }
-            Ok(html_doc)
-        } else {
-            println!("didnt hit cache");
+        let a = self.tucan.client.get(url);
+        let mut b = a.build().unwrap();
+        b.headers_mut()
+            .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
-            let a = self.tucan.client.get(url);
-            let b = a.build().unwrap();
+        //let permit = self.tucan.semaphore.acquire().await?;
+        let resp = self.tucan.client.execute(b).await?.text().await?;
+        //drop(permit);
 
-            //println!("{:?}", b);
+        let html_doc = Html::parse_document(&resp);
 
-            let permit = self.tucan.semaphore.acquire().await?;
-            let resp = self.tucan.client.execute(b).await?.text().await?;
-            drop(permit);
-
-            // warning: not transactional with check above
-            let cnt = sqlx::query!(
-                "INSERT OR REPLACE INTO http_cache (url, session, content) VALUES (?, ?, ?)",
-                url,
-                self.session_id,
-                resp
-            )
-            .execute(&self.tucan.pool)
-            .await?;
-            assert_eq!(cnt.rows_affected(), 1);
-
-            let html_doc = Html::parse_document(&resp);
-
-            if html_doc
-                .select(&s("h1"))
-                .any(|s| s.inner_html() == "Timeout!")
-            {
-                return Err(
-                    Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into(),
-                );
-            }
-            Ok(html_doc)
+        if html_doc
+            .select(&s("h1"))
+            .any(|s| s.inner_html() == "Timeout!")
+        {
+            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
         }
+        Ok(html_doc)
     }
 
     pub async fn module(&self, url: &str) -> anyhow::Result<Module> {
@@ -219,13 +177,14 @@ impl TucanUser {
         let credits = credits
             .trim()
             .strip_suffix(",0")
-            .and_then(|v| v.parse::<i64>().ok());
+            .and_then(|v| v.parse::<i32>().ok())
+            .unwrap_or(0);
 
-        let responsible_person = document
-            .select(&s("#dozenten"))
-            .next()
-            .unwrap()
-            .inner_html();
+        /* let responsible_person = document
+        .select(&s("#dozenten"))
+        .next()
+        .unwrap()
+        .inner_html();*/
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
@@ -233,10 +192,11 @@ impl TucanUser {
             .inner_html();
 
         Ok(Module {
-            id: module_id.to_string(),
-            name: module_name.unwrap().to_string(),
-            credits,
-            responsible_person,
+            tucan_id: module_id.to_string(),
+            tucan_last_checked: Utc::now().naive_utc(),
+            title: module_name.unwrap().to_string(),
+            credits: Some(credits),
+            module_id: module_id.to_string(),
             content,
         })
     }

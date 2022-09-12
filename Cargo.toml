@@ -13,9 +13,9 @@ tokio = { version = "1", features = ["full"] }
 html5ever = "0.26"
 scraper = "0.13"
 async-recursion = "1"
-rpassword = "7"
 futures = "0.3"
-sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "sqlite", "macros", "migrate" ] }
+diesel = { version = "2.0.0", features = ["postgres", "chrono", "nightly-error-messages"] }
+diesel-async = { git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"] }
 dotenvy = "0.15"
 clap = { version = "3", features = ["derive"] }
 anyhow = { version = "1", features = ["backtrace"] }
@@ -27,5 +27,6 @@ serde = { version = "1.0", features = ["derive"] }
 actix-session = { version = "0.7", features = ["cookie-session"] }
 actix-identity = "0.5"
 serde_json = "1"
-base64 = "0.13"
-hex = "0.4.3"
+async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro" }
+chrono = { version = "0.4", features = ["serde"] }
+deadpool = "0.9"

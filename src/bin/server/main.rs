@@ -2,29 +2,37 @@
 
 mod csrf_middleware;
 
-use std::{fmt::Display, time::Duration};
+use std::io::Error;
+
+use std::fmt::Display;
+use std::pin::Pin;
 
 use actix_cors::Cors;
-use actix_identity::{Identity, IdentityMiddleware};
-use actix_session::{storage::CookieSessionStore, SessionMiddleware};
-use actix_web::web::{Bytes, Path};
-use actix_web::{
-    cookie::Key, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
-};
-use actix_web::{Either, HttpMessage};
-use async_recursion::async_recursion;
-use csrf_middleware::CsrfMiddleware;
-use futures::channel::mpsc::{unbounded, UnboundedSender};
 
-use futures::SinkExt;
+use actix_session::Session;
+use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_web::cookie::SameSite;
+use actix_web::web::{Bytes, Path};
+use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::Either;
+
+use async_stream::try_stream;
+use chrono::Utc;
+use csrf_middleware::CsrfMiddleware;
+use diesel::prelude::*;
+use diesel_async::RunQueryDsl;
+
+use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
+use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{Module, RegistrationEnum, TucanUser};
+use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
 
 #[derive(Debug)]
 struct MyError {
@@ -57,251 +65,314 @@ struct LoginResult {
 }
 
 #[post("/login")]
-async fn login(request: HttpRequest, login: web::Json<Login>) -> Result<impl Responder, MyError> {
-    let tucan = Tucan::new().await?;
-    tucan.login(&login.username, &login.password).await?;
-    Identity::login(&request.extensions(), login.username.to_string()).unwrap();
+async fn login(
+    session: Session,
+    tucan: web::Data<Tucan>,
+    login: web::Json<Login>,
+) -> Result<impl Responder, MyError> {
+    let tucan_user = tucan.login(&login.username, &login.password).await?;
+    //Identity::login(&request.extensions(), login.username.to_string()).unwrap();
+    println!("{:?}", session.status());
+    session.insert("tucan_nr", tucan_user.session_nr).unwrap();
+    session.insert("tucan_id", tucan_user.session_id).unwrap();
+    println!("{:?}", session.status());
+    session.get::<u64>("tucan_nr").unwrap().unwrap();
+    session.get::<String>("tucan_id").unwrap().unwrap();
+
     Ok(web::Json(LoginResult { success: true }))
 }
 
 #[post("/logout")]
-async fn logout(user: Identity) -> Result<impl Responder, MyError> {
-    user.logout();
+async fn logout(_tucan: web::Data<Tucan>) -> Result<impl Responder, MyError> {
+    //user.logout();
     Ok(HttpResponse::Ok())
 }
 
-#[async_recursion]
 async fn fetch_everything(
-    username: &str,
-    tucan: &TucanUser,
-    mut sender: UnboundedSender<Result<actix_web::web::Bytes, std::io::Error>>,
-    parent: Option<i64>,
+    tucan: TucanUser,
+    parent: Option<String>,
     value: RegistrationEnum,
-) -> Result<(), MyError> {
-    match value {
-        RegistrationEnum::Submenu(value) => {
-            for (title, url) in value {
-                let normalized_name = title
-                    .to_lowercase()
-                    .replace('-', "")
-                    .replace(' ', "-")
-                    .replace(',', "")
-                    .replace('/', "-")
-                    .replace('ä', "ae")
-                    .replace('ö', "oe")
-                    .replace('ü', "ue");
+) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>>>> {
+    try_stream(move |mut stream| async move {
+        match value {
+            RegistrationEnum::Submenu(value) => {
+                for (title, url) in value {
+                    let tucan_clone = tucan.clone();
+                    let parent_clone = parent.clone();
+                    let title_clone = title.clone();
+                    let url_ref = url.clone();
+                    let normalized_name = title
+                        .to_lowercase()
+                        .replace('-', "")
+                        .replace(' ', "-")
+                        .replace(',', "")
+                        .replace('/', "-")
+                        .replace('ä', "ae")
+                        .replace('ö', "oe")
+                        .replace('ü', "ue");
 
-                // TODO FIXME we need to add username to primary key for this and modules
-                let cnt = sqlx::query!(
-                    "INSERT INTO module_menu
-                    (username, name, normalized_name, parent)
-                    VALUES
-                    (?1, ?2, ?3, ?4)
-                    ON CONFLICT DO UPDATE SET
-                    name = ?2,
-                    normalized_name = ?3,
-                    parent = ?4
-                    RETURNING id
-                    ",
-                    username,
-                    title,
-                    normalized_name,
-                    parent
-                )
-                .fetch_one(&tucan.tucan.pool)
-                .await
-                .unwrap();
+                    let cnt = tucan_clone
+                        .tucan
+                        .pool
+                        .get()
+                        .await
+                        .unwrap()
+                        .build_transaction()
+                        .run::<_, diesel::result::Error, _>(move |connection| {
+                            async move {
+                                Ok(
+                                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                        .values(&ModuleMenu {
+                                            name: title_clone,
+                                            normalized_name,
+                                            parent: parent_clone,
+                                            tucan_id: url_ref.clone(),
+                                            tucan_last_checked: Utc::now().naive_utc(),
+                                        })
+                                        .get_result::<ModuleMenu>(connection)
+                                        .await
+                                        .unwrap(),
+                                )
+                            }
+                            .boxed()
+                        })
+                        .await
+                        .unwrap();
 
-                sender.send(Ok(Bytes::from(title))).await.unwrap();
-                let value = tucan.registration(Some(url)).await?;
-                fetch_everything(username, tucan, sender.clone(), Some(cnt.id), value).await?;
+                    stream.yield_item(Bytes::from(title)).await;
+
+                    let value = tucan.registration(Some(url.clone())).await.unwrap();
+                    let mut inner_stream =
+                        fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
+
+                    while let Some(Ok(value)) = inner_stream.next().await {
+                        stream.yield_item(value).await;
+                    }
+                }
+            }
+            RegistrationEnum::Modules(value) => {
+                for (title, url) in value {
+                    let tucan_clone = tucan.clone();
+                    let parent_clone = parent.clone();
+                    stream.yield_item(Bytes::from(title.clone())).await;
+                    let module = tucan.clone().module(&url).await.unwrap();
+
+                    // TODO FIXME warn if module already existed as that suggests recursive dependency
+                    // TODO normalize url in a way that this can use cached data?
+                    // modules can probably be cached because we don't follow outgoing links
+                    // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
+                    tucan_clone
+                        .tucan
+                        .pool
+                        .get()
+                        .await
+                        .unwrap()
+                        .build_transaction()
+                        .run::<_, diesel::result::Error, _>(move |connection| {
+                            async move {
+                                diesel::insert_into(tucan_scraper::schema::modules::table)
+                                    .values(&module)
+                                    .execute(connection)
+                                    .await
+                                    .unwrap();
+
+                                diesel::insert_into(
+                                    tucan_scraper::schema::module_menu_module::table,
+                                )
+                                .values(&ModuleMenuEntryModule {
+                                    module_id: module.tucan_id,
+                                    module_menu_id: parent_clone.unwrap(),
+                                })
+                                .execute(connection)
+                                .await
+                                .unwrap();
+                                Ok(())
+                            }
+                            .boxed()
+                        })
+                        .await
+                        .unwrap();
+                }
             }
         }
-        RegistrationEnum::Modules(value) => {
-            for (title, url) in value {
-                sender.send(Ok(Bytes::from(title.clone()))).await.unwrap();
-                let module = tucan.module(&url).await?;
-
-                let mut tx = tucan.tucan.pool.begin().await.unwrap();
-
-                // TODO FIXME warn if module already existed as that suggests recursive dependency
-                // TODO normalize url in a way that this can use cached data?
-                // modules can probably be cached because we don't follow outgoing links
-                // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-                let cnt = sqlx::query!(
-                    "INSERT INTO modules
-                    (username, title, module_id, shortcode, credits, responsible_person, content)
-                    VALUES
-                    (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-                    ON CONFLICT (module_id) DO UPDATE SET
-                    title = ?2,
-                    shortcode = ?4,
-                    credits = ?5,
-                    responsible_person = ?6,
-                    content = ?7
-                    ",
-                    username,
-                    module.name,
-                    module.id,
-                    title,
-                    module.credits,
-                    module.responsible_person,
-                    module.content
-                )
-                .execute(&mut tx)
-                .await
-                .unwrap();
-                assert_eq!(cnt.rows_affected(), 1);
-
-                let parent = parent.unwrap();
-                sqlx::query!(
-                    "INSERT INTO module_menu_module (module_menu_id, module_id) VALUES (?1, ?2) ON CONFLICT DO NOTHING",
-                    parent,
-                    module.id
-                )
-                .execute(&mut tx)
-                .await
-                .unwrap();
-                assert_eq!(cnt.rows_affected(), 1);
-
-                tx.commit().await.unwrap();
-            }
-        }
-    }
-    Ok::<(), MyError>(())
+        Ok(())
+    })
+    .boxed_local()
 }
 
 #[post("/setup")]
-async fn setup(user: Option<Identity>) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
-        let (mut sender, receiver) = unbounded::<Result<actix_web::web::Bytes, std::io::Error>>();
+async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
+    let tucan_nr = session.get::<u64>("tucan_nr").unwrap().unwrap();
+    let tucan_id = session.get::<String>("tucan_id").unwrap().unwrap();
 
-        let user_id = user.id()?;
-        tokio::spawn(async move {
-            sender
-                .send(Ok(Bytes::from("Alle Module werden heruntergeladen...")))
-                .await
-                .unwrap();
+    let stream = try_stream(move |mut stream| async move {
+        stream
+            .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
+            .await;
 
-            let tucan = Tucan::new().await?;
-            let tucan = tucan.continue_session(&user_id).await?;
+        println!("{:?}", session.status());
+        println!("{:?}", session.entries());
 
-            let res = tucan.registration(None).await?;
-            fetch_everything(&user_id, &tucan, sender.clone(), None, res).await?;
+        let tucan = tucan.continue_session(tucan_nr, tucan_id).await.unwrap();
 
-            Ok::<(), MyError>(())
-        });
+        let res = tucan.registration(None).await.unwrap();
 
-        // TODO FIXME search for <h1>Timeout!</h1>
+        let mut input = fetch_everything(tucan, None, res).await;
 
-        Ok(HttpResponse::Ok()
-            .content_type("text/plain")
-            .streaming(receiver))
-    } else {
-        Err(anyhow::Error::msg("Not logged in!"))?
-    }
+        while let Some(Ok(value)) = input.next().await {
+            stream.yield_item(value).await;
+        }
+
+        let return_value: Result<(), Error> = Ok(());
+
+        return_value
+    });
+
+    // TODO FIXME search for <h1>Timeout!</h1>
+
+    Ok(HttpResponse::Ok()
+        .content_type("text/plain")
+        .streaming(stream))
 }
 
 #[get("/")]
-async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
-        Ok(web::Json(format!("Welcome! {}", user.id().unwrap())))
-    } else {
-        Ok(web::Json("Welcome Anonymous!".to_owned()))
-    }
-}
+async fn index(session: Session) -> Result<impl Responder, MyError> {
+    println!("{:?}", session.status());
+    println!("{:?}", session.entries());
 
-#[derive(Debug)]
-struct MenuItem {
-    id: i64,
-    normalized_name: String,
+    /*if let Some(user) = user {
+        Ok(web::Json(format!("Welcome! {}", user.id().unwrap())))
+    } else {*/
+    Ok(web::Json("Welcome Anonymous!".to_owned()))
+    // }
 }
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
-async fn modules(user: Option<Identity>, path: Path<String>) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
-        // TODO FIXME put this in app data so we don't open countless db pools
-        let tucan = Tucan::new().await?;
+async fn get_modules<'a>(
+    tucan: web::Data<Tucan>,
+    path: Path<String>,
+) -> Result<impl Responder, MyError> {
+    let mut connection = tucan.pool.get().await.unwrap();
+    println!("{:?}", path);
 
-        println!("{:?}", path);
+    let split_path = path.split_terminator('/').map(String::from);
+    let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
+    println!("{:?}", menu_path_vec);
 
-        let menu_path_vec = path.split_terminator('/').skip(1).collect::<Vec<_>>();
-        println!("{:?}", menu_path_vec);
+    let menu_path: Vec<String>;
+    let module: Option<&str>;
+    if path.ends_with('/') {
+        menu_path = menu_path_vec;
+        module = None;
+    } else {
+        let tmp = menu_path_vec.split_last().unwrap();
+        menu_path = tmp.1.to_vec();
+        module = Some(tmp.0);
+    }
+    println!("{:?}", menu_path);
 
-        let menu_path: &[&str];
-        let module: Option<&str>;
-        if path.ends_with('/') {
-            menu_path = &menu_path_vec;
-            module = None;
-        } else {
-            let tmp = menu_path_vec.split_last().unwrap();
-            menu_path = tmp.1;
-            module = Some(tmp.0);
-        }
-        println!("{:?}", menu_path);
+    let mut node = None;
+    for path_segment in menu_path {
+        let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-        let user_id = user.id()?;
-        let mut node = None;
-        for path_segment in menu_path {
-            let parent = node.map(|v: MenuItem| v.id);
-            node = Some(sqlx::query_as!(MenuItem, "SELECT id, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2 AND normalized_name = ?3", user_id, parent, path_segment)
-            .fetch_one(&tucan.pool).await.unwrap()); // TODO FIXME these unwraps
-        }
-        let parent = node.map(|v: MenuItem| v.id);
+        use self::schema::module_menu::dsl::*;
 
-        if let Some(module) = module {
-            let module_result = sqlx::query_as!(Module,
-                "SELECT module_id AS id, title AS name, credits, responsible_person, content FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1 AND module_id = ?2",
-                parent,
-                module
-            )
-            .fetch_one(&tucan.pool)
+        node = Some(
+            module_menu
+                .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
+                .load::<ModuleMenu>(&mut connection)
+                .await
+                .unwrap()
+                .into_iter()
+                .next()
+                .unwrap(),
+        )
+    }
+    let parent = node.map(|v: ModuleMenu| v.tucan_id);
+
+    if let Some(module) = module {
+        use self::schema::module_menu_module::dsl::*;
+        use self::schema::modules::dsl::*;
+
+        let module_result = module_menu_module
+            .inner_join(modules)
+            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
+            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
+            .await
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap();
+
+        Ok(Either::Left(web::Json(module_result)))
+    } else {
+        let menu_result = tucan
+            .pool
+            .get()
+            .await
+            .unwrap()
+            .build_transaction()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    use self::schema::module_menu::dsl::*;
+
+                    let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
+                        Ok(module_menu
+                            .filter(parent.eq(parent))
+                            .load::<ModuleMenu>(connection)
+                            .await
+                            .unwrap());
+                    return_value
+                }
+                .boxed()
+            })
             .await
             .unwrap();
 
-            Ok(Either::Left(web::Json(module_result)))
+        let module_result = tucan
+            .pool
+            .get()
+            .await
+            .unwrap()
+            .build_transaction()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    use self::schema::module_menu_module::dsl::*;
+                    use self::schema::modules::dsl::*;
+
+                    Ok(module_menu_module
+                        .inner_join(modules)
+                        .filter(module_menu_id.nullable().eq(parent))
+                        .load::<(ModuleMenuEntryModule, Module)>(connection)
+                        .await
+                        .unwrap())
+                }
+                .boxed()
+            })
+            .await
+            .unwrap();
+
+        if !menu_result.is_empty() {
+            Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
+                menu_result
+                    .iter()
+                    .map(|r| (r.name.clone(), r.normalized_name.clone()))
+                    .collect::<Vec<_>>(),
+            ))))
         } else {
-            let menu_result = sqlx::query!(
-            "SELECT id, name, normalized_name FROM module_menu WHERE username = ?1 AND parent IS ?2",
-            user_id,
-            parent
-        )
-        .fetch_all(&tucan.pool)
-        .await
-        .unwrap(); // TODO FIXME these unwraps
-
-            let module_result = sqlx::query!(
-            "SELECT title, module_id FROM module_menu_module NATURAL JOIN modules WHERE module_menu_id = ?1",
-            parent
-        )
-        .fetch_all(&tucan.pool)
-        .await
-        .unwrap(); // TODO FIXME these unwraps
-
-            if !menu_result.is_empty() {
-                Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
-                    menu_result
-                        .iter()
-                        .map(|r| (r.name.clone(), r.normalized_name.clone()))
-                        .collect::<Vec<_>>(),
-                ))))
-            } else {
-                Ok(Either::Right(web::Json(RegistrationEnum::Modules(
-                    module_result
-                        .iter()
-                        .map(|r| (r.title.clone(), r.module_id.clone()))
-                        .collect::<Vec<_>>(),
-                ))))
-            }
+            Ok(Either::Right(web::Json(RegistrationEnum::Modules(
+                module_result
+                    .iter()
+                    .map(|r| (r.1.title.clone(), r.1.module_id.clone()))
+                    .collect::<Vec<_>>(),
+            ))))
         }
-    } else {
-        Err(anyhow::Error::msg("Not logged in!"))?
     }
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let random_secret_key = Key::generate();
 
     let file = OpenOptions::new()
@@ -318,6 +389,8 @@ async fn main() -> std::io::Result<()> {
     let secret_key_raw = fs::read("sessions.key").await?;
     let secret_key = Key::derive_from(&secret_key_raw);
 
+    let tucan = web::Data::new(Tucan::new().await?);
+
     HttpServer::new(move || {
         let cors = Cors::default()
             .supports_credentials()
@@ -326,24 +399,30 @@ async fn main() -> std::io::Result<()> {
             .allowed_origin("http://localhost:3000");
 
         App::new()
-            .wrap(
+            .app_data(tucan.clone())
+            /*.wrap(
                 IdentityMiddleware::builder()
-                    .visit_deadline(Some(Duration::from_secs(24 * 3600)))
+                    .logout_behaviour(LogoutBehaviour::PurgeSession)
                     .build(),
+            )*/
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
+                    .cookie_same_site(SameSite::None)
+                    .cookie_secure(true)
+                    .cookie_http_only(false)
+                    .build(), // TODO FIXME
             )
-            .wrap(SessionMiddleware::new(
-                CookieSessionStore::default(),
-                secret_key.clone(),
-            ))
             .wrap(CsrfMiddleware {})
             .wrap(cors)
             .service(index)
             .service(login)
             .service(logout)
-            .service(modules)
+            .service(get_modules)
             .service(setup)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }
