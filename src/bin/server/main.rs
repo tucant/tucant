@@ -12,6 +12,7 @@ use actix_identity::config::LogoutBehaviour;
 use actix_identity::{Identity, IdentityMiddleware};
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_web::cookie::SameSite;
 use actix_web::web::{Bytes, Path};
 use actix_web::{
     cookie::Key, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
@@ -70,20 +71,23 @@ struct LoginResult {
 async fn login(
     session: Session,
     tucan: web::Data<Tucan>,
-    request: HttpRequest,
     login: web::Json<Login>,
 ) -> Result<impl Responder, MyError> {
     let tucan_user = tucan.login(&login.username, &login.password).await?;
-    Identity::login(&request.extensions(), login.username.to_string()).unwrap();
+    //Identity::login(&request.extensions(), login.username.to_string()).unwrap();
+    println!("{:?}", session.status());
     session.insert("tucan_nr", tucan_user.session_nr).unwrap();
     session.insert("tucan_id", tucan_user.session_id).unwrap();
+    println!("{:?}", session.status());
+    session.get::<u64>("tucan_nr").unwrap().unwrap();
+    session.get::<String>("tucan_id").unwrap().unwrap();
 
     Ok(web::Json(LoginResult { success: true }))
 }
 
 #[post("/logout")]
-async fn logout(_tucan: web::Data<Tucan>, user: Identity) -> Result<impl Responder, MyError> {
-    user.logout();
+async fn logout(_tucan: web::Data<Tucan>) -> Result<impl Responder, MyError> {
+    //user.logout();
     Ok(HttpResponse::Ok())
 }
 
@@ -202,20 +206,22 @@ async fn fetch_everything(
 }
 
 #[post("/setup")]
-async fn setup(
-    tucan: web::Data<Tucan>,
-    _user: Identity,
-    session: Session,
-) -> Result<impl Responder, MyError> {
+async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
+    println!("{:?}", session.status());
+    println!("{:?}", session.entries());
+
     let stream = try_stream(move |mut stream| async move {
         stream
             .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
             .await;
 
+        println!("{:?}", session.status());
+        println!("{:?}", session.entries());
+
         let tucan = tucan
             .continue_session(
-                session.get("tucan_nr").unwrap().unwrap(),
-                session.get("tucan_id").unwrap().unwrap(),
+                session.get::<u64>("tucan_nr").unwrap().unwrap(),
+                session.get::<String>("tucan_id").unwrap().unwrap(),
             )
             .await
             .unwrap();
@@ -240,19 +246,22 @@ async fn setup(
 }
 
 #[get("/")]
-async fn index(user: Option<Identity>) -> Result<impl Responder, MyError> {
-    if let Some(user) = user {
+async fn index(session: Session) -> Result<impl Responder, MyError> {
+
+    println!("{:?}", session.status());
+    println!("{:?}", session.entries());
+
+    /*if let Some(user) = user {
         Ok(web::Json(format!("Welcome! {}", user.id().unwrap())))
-    } else {
-        Ok(web::Json("Welcome Anonymous!".to_owned()))
-    }
+    } else {*/
+    Ok(web::Json("Welcome Anonymous!".to_owned()))
+    // }
 }
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
 async fn get_modules<'a>(
     tucan: web::Data<Tucan>,
-    user: Identity,
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await.unwrap();
@@ -274,7 +283,6 @@ async fn get_modules<'a>(
     }
     println!("{:?}", menu_path);
 
-    let _user_id = user.id()?;
     let mut node = None;
     for path_segment in menu_path {
         let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
@@ -405,15 +413,18 @@ async fn main() -> anyhow::Result<()> {
 
         App::new()
             .app_data(tucan.clone())
-            .wrap(
+            /*.wrap(
                 IdentityMiddleware::builder()
                     .logout_behaviour(LogoutBehaviour::PurgeSession)
                     .build(),
+            )*/
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
+                    .cookie_same_site(SameSite::None)
+                    .cookie_secure(true)
+                    .cookie_http_only(false)
+                    .build(), // TODO FIXME
             )
-            .wrap(SessionMiddleware::new(
-                CookieSessionStore::default(),
-                secret_key.clone(),
-            ))
             .wrap(CsrfMiddleware {})
             .wrap(cors)
             .service(index)
