@@ -216,13 +216,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
         println!("{:?}", session.status());
         println!("{:?}", session.entries());
 
-        let tucan = tucan
-            .continue_session(
-                tucan_nr,
-                tucan_id
-            )
-            .await
-            .unwrap();
+        let tucan = tucan.continue_session(tucan_nr, tucan_id).await.unwrap();
 
         let res = tucan.registration(None).await.unwrap();
 
@@ -246,7 +240,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
 #[get("/")]
 async fn index(session: Session) -> Result<impl Responder, MyError> {
-
     println!("{:?}", session.status());
     println!("{:?}", session.entries());
 
