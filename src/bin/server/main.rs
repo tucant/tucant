@@ -9,15 +9,12 @@ use std::pin::Pin;
 
 use actix_cors::Cors;
 
-
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::web::{Bytes, Path};
-use actix_web::{
-    cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder,
-};
-use actix_web::{Either, HttpMessage};
+use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::Either;
 
 use async_stream::try_stream;
 use chrono::Utc;
