@@ -7,7 +7,11 @@ use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConne
 use regex::Regex;
 use reqwest::{Client, Url};
 
-use crate::{create_pool, tucan_user::TucanUser};
+use crate::{
+    create_pool,
+    tucan_user::TucanUser,
+    url::{parse_tucan_url, TucanUrl},
+};
 
 #[derive(Clone)]
 pub struct Tucan {
@@ -76,44 +80,28 @@ impl Tucan {
 
             println!("{}", redirect_url);
 
-            let url = Url::parse(redirect_url)?;
+            let url = parse_tucan_url(&redirect_url)?;
 
-            let arguments = url.query_pairs().find(|e| e.0 == "ARGUMENTS").unwrap().1;
+            if let TucanUrl::MaybeAuthenticated { session_nr: Some(session_nr), .. } = url {
+                println!("session_nr {}", session_nr);
 
-            println!("{}", arguments);
+                let session_cookie = res_headers.cookies().next().unwrap();
+                let session_id = session_cookie.value().to_string();
 
-            let regex: Regex = Regex::new(
-                r"(?x)
-                ^-N(?P<nr>[[:digit:]]+),-N[[:digit:]]+,-N[[:digit:]]+$
-                ",
-            )
-            .unwrap();
+                res_headers.text().await?;
 
-            let session_nr = regex
-                .captures(&arguments)
-                .and_then(|cap| cap.name("nr").map(|nr| nr.as_str()))
-                .unwrap()
-                .parse::<u64>()
-                .unwrap();
-
-            println!("session_nr {}", session_nr);
-
-            let session_cookie = res_headers.cookies().next().unwrap();
-            let session_id = session_cookie.value().to_string();
-
-            res_headers.text().await?;
-
-            return Ok(TucanUser {
-                tucan: self.clone(),
-                session_id,
-                session_nr,
-            });
+                return Ok(TucanUser {
+                    tucan: self.clone(),
+                    session_id,
+                    session_nr,
+                });
+            } else {
+                return Err(Error::new(ErrorKind::Other, "Failed to extract session_nr").into());
+            }
         }
 
         res_headers.text().await?;
 
         Err(Error::new(ErrorKind::Other, "Invalid username or password").into())
-
-        //println!("{:#?}", self.cookie_jar);
     }
 }

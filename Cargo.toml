@@ -28,3 +28,5 @@ async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branc
 chrono = { version = "0.4", features = ["serde"] }
 deadpool = "0.9"
 url = "2.3.1"
+log = "0.4"
+env_logger = "0.9"

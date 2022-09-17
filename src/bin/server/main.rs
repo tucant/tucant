@@ -12,6 +12,7 @@ use actix_cors::Cors;
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
+use actix_web::middleware::Logger;
 use actix_web::web::{Bytes, Path};
 use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
@@ -361,6 +362,8 @@ async fn get_modules<'a>(
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     let random_secret_key = Key::generate();
 
     let file = OpenOptions::new()
@@ -380,6 +383,8 @@ async fn main() -> anyhow::Result<()> {
     let tucan = web::Data::new(Tucan::new().await?);
 
     HttpServer::new(move || {
+        let logger = Logger::default();
+
         let cors = Cors::default()
             .supports_credentials()
             .allow_any_method()
@@ -402,6 +407,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .wrap(CsrfMiddleware {})
             .wrap(cors)
+            .wrap(logger)
             .service(index)
             .service(login)
             .service(logout)

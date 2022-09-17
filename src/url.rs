@@ -23,12 +23,11 @@ pub enum TucanUrl {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum UnauthenticatedTucanUrl {
-    StartpageDispatch,
-}
+pub enum UnauthenticatedTucanUrl {}
 
 #[derive(PartialEq, Debug)]
 pub enum MaybeAuthenticatedTucanUrl {
+    StartpageDispatch,
     Externalpages { id: u64, name: String },
 }
 
@@ -173,9 +172,26 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
     };
 
     let result = match prgname {
-        "STARTPAGE_DISPATCH" => Ok(TucanUrl::Unauthenticated {
-            url: UnauthenticatedTucanUrl::StartpageDispatch,
-        }),
+        "STARTPAGE_DISPATCH" => {
+            if number(&mut arguments)? != 19 {
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("unknown STARTPAGE_DISPATCH number"),
+                )
+                .into());
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("unknown STARTPAGE_DISPATCH number"),
+                )
+                .into());
+            }
+            Ok(TucanUrl::MaybeAuthenticated {
+                session_nr: session_nr.ok(),
+                url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
+            })
+        }
         "EXTERNALPAGES" => Ok(TucanUrl::MaybeAuthenticated {
             session_nr: session_nr.ok(),
             url: MaybeAuthenticatedTucanUrl::Externalpages {
