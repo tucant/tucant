@@ -23,7 +23,7 @@ pub enum RegistrationEnum {
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         let _normalized_url = url.to_string();
-        
+
         let cookie = format!("cnsc={}", self.session_id);
 
         let a = self.tucan.client.get(url);

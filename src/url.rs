@@ -1,15 +1,15 @@
-use std::{io::ErrorKind, collections::HashMap, borrow::Borrow, convert::TryInto};
+use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::ErrorKind};
 
-use url::{Url, Origin, Host};
+use url::{Host, Origin, Url};
 
 #[derive(PartialEq, Debug)]
 pub enum TucanUrl {
     Unauthenticated {
-        url: UnauthenticatedTucanUrl
+        url: UnauthenticatedTucanUrl,
     },
-    Authenticated{
+    Authenticated {
         session_nr: u64,
-        url: AuthenticatedTucanUrl
+        url: AuthenticatedTucanUrl,
     },
     // MaybeAuthenticatedTucanUrl
 }
@@ -29,62 +29,112 @@ pub enum AuthenticatedTucanUrl {
     Registration,
     Courseresults,
     Examresults,
-    StudentResult
+    StudentResult,
 }
 
 #[derive(Debug)]
 pub enum TucanArgument<'a> {
     Number(u64),
-    String(&'a str)
+    String(&'a str),
 }
 
-pub fn parse_arguments(arguments: &str) -> impl Iterator<Item=anyhow::Result<TucanArgument>> + std::fmt::Debug {
-    arguments.split(",").map(|a| -> anyhow::Result<TucanArgument> {
-        Ok(match &a[0..2] {
-            "-N" => {
-                TucanArgument::Number(a[2..].parse::<u64>()?)
-            }
-            "-A" => {
-                TucanArgument::String(&a[2..])
-            }
+pub fn parse_arguments(
+    arguments: &str,
+) -> impl Iterator<Item = anyhow::Result<TucanArgument>> + std::fmt::Debug {
+    arguments
+        .split(",")
+        .map(|a| -> anyhow::Result<TucanArgument> {
+            Ok(match &a[0..2] {
+                "-N" => TucanArgument::Number(a[2..].parse::<u64>()?),
+                "-A" => TucanArgument::String(&a[2..]),
+                other => {
+                    return Err(std::io::Error::new(
+                        ErrorKind::Other,
+                        format!("invalid argument type: {:?}", other),
+                    )
+                    .into())
+                }
+            })
         })
-    })
 }
 
 pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
     let url = Url::parse(url)?;
-    if url.origin() != Origin::Tuple("https".into(), Host::Domain("www.tucan.tu-darmstadt.de".into()), 443) {
-        return Err(std::io::Error::new(ErrorKind::Other, format!("invalid origin: {:?}", url.origin())).into())
+    if url.origin()
+        != Origin::Tuple(
+            "https".into(),
+            Host::Domain("www.tucan.tu-darmstadt.de".into()),
+            443,
+        )
+    {
+        return Err(std::io::Error::new(
+            ErrorKind::Other,
+            format!("invalid origin: {:?}", url.origin()),
+        )
+        .into());
     }
     if url.path() != "/scripts/mgrqispi.dll" {
-        return Err(std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into())
+        return Err(
+            std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
+        );
     }
-    let query_pairs = url.query_pairs().collect::<HashMap::<_, _>>();
-    let app_name = query_pairs.get("APPNAME").ok_or(std::io::Error::new(ErrorKind::Other, format!("no APPNAME in url: {:?}", query_pairs)))?.as_ref();
-    let arguments = query_pairs.get("ARGUMENTS").ok_or(std::io::Error::new(ErrorKind::Other, format!("no ARGUMENTS in url: {:?}", query_pairs)))?.as_ref();
+    let query_pairs = url.query_pairs().collect::<HashMap<_, _>>();
+    let app_name = query_pairs
+        .get("APPNAME")
+        .ok_or(std::io::Error::new(
+            ErrorKind::Other,
+            format!("no APPNAME in url: {:?}", query_pairs),
+        ))?
+        .as_ref();
+    let arguments = query_pairs
+        .get("ARGUMENTS")
+        .ok_or(std::io::Error::new(
+            ErrorKind::Other,
+            format!("no ARGUMENTS in url: {:?}", query_pairs),
+        ))?
+        .as_ref();
     let mut arguments = parse_arguments(arguments);
     if app_name != "CampusNet" {
-        return Err(std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into())
+        return Err(
+            std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into(),
+        );
     }
 
-    let session_nr = arguments.next().ok_or(std::io::Error::new(ErrorKind::Other, format!("no session_nr in arguments {:?}", arguments)))??;
-    
-    match query_pairs.get("PRGNAME").ok_or(std::io::Error::new(ErrorKind::Other, format!("no APPNAME in url: {:?}", query_pairs)))?.as_ref() {
+    let session_nr = arguments.next().ok_or(std::io::Error::new(
+        ErrorKind::Other,
+        format!("no session_nr in arguments {:?}", arguments),
+    ))??;
+
+    match query_pairs
+        .get("PRGNAME")
+        .ok_or(std::io::Error::new(
+            ErrorKind::Other,
+            format!("no APPNAME in url: {:?}", query_pairs),
+        ))?
+        .as_ref()
+    {
         "STARTPAGE_DISPATCH" => {
             if arguments.next().is_some() {
-                return Err(std::io::Error::new(ErrorKind::Other, format!("too many arguments")).into())
+                return Err(
+                    std::io::Error::new(ErrorKind::Other, format!("too many arguments")).into(),
+                );
             }
-            return Ok(TucanUrl::Unauthenticated { url: UnauthenticatedTucanUrl::StartpageDispatch })
+            return Ok(TucanUrl::Unauthenticated {
+                url: UnauthenticatedTucanUrl::StartpageDispatch,
+            });
         }
-        "EXTERNALPAGES" => {
-
+        "EXTERNALPAGES" => {}
+        other => {
+            return Err(std::io::Error::new(
+                ErrorKind::Other,
+                format!("invalid appname: {}", other),
+            )
+            .into())
         }
-        other => return Err(std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into())
     }
 
     Err(std::io::Error::new(ErrorKind::Other, "oh no!").into())
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -93,14 +143,19 @@ mod tests {
     #[test]
     fn test_sample_urls() -> anyhow::Result<()> {
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")?;
-        assert_eq!(TucanUrl::StartpageDispatch, url);
+        assert_eq!(
+            TucanUrl::Unauthenticated {
+                url: UnauthenticatedTucanUrl::StartpageDispatch
+            },
+            url
+        );
 
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")?;
-        
+
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N707546050471776,-N000019,-N000000000000000")?;
-        
+
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N707546050471776,-N000019,")?;
-       
+
         // Veranstaltungen
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000273,-Astudveranst%2Ehtml")?;
 
