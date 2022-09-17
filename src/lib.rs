@@ -3,6 +3,7 @@ pub mod models;
 pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
+pub mod url;
 
 use diesel_async::{
     pooled_connection::{deadpool::Pool, AsyncDieselConnectionManager},

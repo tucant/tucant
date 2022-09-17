@@ -1,3 +1,6 @@
+use std::{io::ErrorKind, collections::HashMap, borrow::Borrow};
+
+use url::{Url, Origin, Host};
 
 pub enum TucanUrl {
     StartpageDispatch,
@@ -12,8 +15,24 @@ pub enum TucanUrl {
     StudentResult
 }
 
-pub fn parse_tucan_url(url: &str) {
+pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
+    let url = Url::parse(url)?;
+    if url.origin() != Origin::Tuple("https".into(), Host::Domain("www.tucan.tu-darmstadt.de".into()), 443) {
+        return Err(std::io::Error::new(ErrorKind::Other, format!("invalid origin: {:?}", url.origin())).into())
+    }
+    if url.path() != "/scripts/mgrqispi.dll" {
+        return Err(std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into())
+    }
+    let query_pairs = url.query_pairs().collect::<HashMap::<_, _>>();
 
+    match query_pairs.get("APPNAME").ok_or(std::io::Error::new(ErrorKind::Other, format!("no APPNAME in url: {:?}", query_pairs)))?.as_ref() {
+        "Hi" => {
+
+        }
+        other => return Err(std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into())
+    }
+
+    Err(std::io::Error::new(ErrorKind::Other, "oh no!").into())
 }
 
 
