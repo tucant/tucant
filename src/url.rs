@@ -3,13 +3,13 @@ use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::ErrorKind}
 use url::{Host, Origin, Url};
 
 #[derive(PartialEq, Debug)]
-pub enum TucanUrl {
+pub enum TucanUrl<'a> {
     Unauthenticated {
         url: UnauthenticatedTucanUrl,
     },
     Authenticated {
         session_nr: u64,
-        url: AuthenticatedTucanUrl,
+        url: AuthenticatedTucanUrl<'a>,
     },
     // MaybeAuthenticatedTucanUrl
 }
@@ -20,8 +20,8 @@ pub enum UnauthenticatedTucanUrl {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum AuthenticatedTucanUrl {
-    Externalpages,
+pub enum AuthenticatedTucanUrl<'a> {
+    Externalpages { id: u64, name: &'a str },
     Mlsstart,
     Mymodules,
     Profcourse,
@@ -36,6 +36,17 @@ pub enum AuthenticatedTucanUrl {
 pub enum TucanArgument<'a> {
     Number(u64),
     String(&'a str),
+}
+
+impl<'a> TucanArgument<'a> {
+    pub fn number(&self) -> anyhow::Result<u64> {
+        match self {
+            TucanArgument::Number(number) => Ok(*number),
+            _ => Err(
+                std::io::Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into(),
+            ),
+        }
+    }
 }
 
 pub fn parse_arguments(
@@ -58,7 +69,7 @@ pub fn parse_arguments(
         })
 }
 
-pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
+pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
     let url = Url::parse(url)?;
     if url.origin()
         != Origin::Tuple(
@@ -95,9 +106,11 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
         .as_ref();
     let mut arguments = parse_arguments(arguments);
     if app_name != "CampusNet" {
-        return Err(
-            std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into(),
-        );
+        return Err(std::io::Error::new(
+            ErrorKind::Other,
+            format!("invalid appname: {}", app_name),
+        )
+        .into());
     }
 
     let session_nr = arguments.next().ok_or(std::io::Error::new(
@@ -123,7 +136,21 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
                 url: UnauthenticatedTucanUrl::StartpageDispatch,
             });
         }
-        "EXTERNALPAGES" => {}
+        "EXTERNALPAGES" => {
+            return Ok(TucanUrl::Authenticated {
+                session_nr: session_nr.number()?,
+                url: AuthenticatedTucanUrl::Externalpages {
+                    id: arguments
+                        .next()
+                        .ok_or(std::io::Error::new(
+                            ErrorKind::Other,
+                            format!("not enough arguments"),
+                        ))??
+                        .number()?,
+                    name: arguments.next(),
+                },
+            })
+        }
         other => {
             return Err(std::io::Error::new(
                 ErrorKind::Other,
