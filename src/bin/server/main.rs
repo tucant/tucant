@@ -71,20 +71,14 @@ async fn login(
     login: web::Json<Login>,
 ) -> Result<impl Responder, MyError> {
     let tucan_user = tucan.login(&login.username, &login.password).await?;
-    //Identity::login(&request.extensions(), login.username.to_string()).unwrap();
-    println!("{:?}", session.status());
     session.insert("tucan_nr", tucan_user.session_nr).unwrap();
     session.insert("tucan_id", tucan_user.session_id).unwrap();
-    println!("{:?}", session.status());
-    session.get::<u64>("tucan_nr").unwrap().unwrap();
-    session.get::<String>("tucan_id").unwrap().unwrap();
-
     Ok(web::Json(LoginResult { success: true }))
 }
 
 #[post("/logout")]
-async fn logout(_tucan: web::Data<Tucan>) -> Result<impl Responder, MyError> {
-    //user.logout();
+async fn logout(session: Session) -> Result<impl Responder, MyError> {
+    session.purge();
     Ok(HttpResponse::Ok())
 }
 
@@ -210,9 +204,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
             .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
             .await;
 
-        println!("{:?}", session.status());
-        println!("{:?}", session.entries());
-
         let tucan = tucan.continue_session(tucan_nr, tucan_id).await.unwrap();
 
         let res = tucan.registration(None).await.unwrap();
@@ -237,14 +228,11 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
 #[get("/")]
 async fn index(session: Session) -> Result<impl Responder, MyError> {
-    println!("{:?}", session.status());
-    println!("{:?}", session.entries());
-
-    /*if let Some(user) = user {
-        Ok(web::Json(format!("Welcome! {}", user.id().unwrap())))
-    } else {*/
-    Ok(web::Json("Welcome Anonymous!".to_owned()))
-    // }
+    if let Some(user) = session.get::<u64>("tucan_nr").unwrap() {
+        Ok(web::Json(format!("Welcome! {}", user)))
+    } else {
+        Ok(web::Json("Welcome Anonymous!".to_owned()))
+    }
 }
 
 // trailing slash is menu

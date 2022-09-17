@@ -5,84 +5,6 @@ use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::Serialize;
 
-/**
-okay this url is such a terrible mess, just store the whole last part and make parent child relationships based on that
-
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N0,-N0
-                                                                                                        session id      left menu id
-                                                                                                                                     bscinf     always? 0
-                                                                                                                                                         second+third layer?
-                                                                                                                                                                fourth+fifth layer
-
-B.Sc. Informatik (2015)  >  Zusätzliche Leistungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Deutsch als Fremdsprache  >  UNIcert II  >  allgemeinsprachlich
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N455311578128190,-N000311,-N376333755785484,-N0,-N356174057085574,-N351244265273917
-
-Anmeldung
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-A
-
-B.Sc. Informatik (2015)
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N0,-N0
-
-Validierung
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N363764281516065,-N000000000000000
-
-Bachelor Thesis
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173440692528,-N000000000000000
-
-Pflichtbereich
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173456785530,-N000000000000000
-
-Wahlbereich
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173502252532,-N000000000000000
-
-Wahlbereich > Fachprüfungen
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173534016533,-N000000000000000
-
-Wahlbereich > Fachprüfungen > IT-Sicherheit
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173674091535,-N356173585074794
-
-Wahlbereich > Fachprüfungen > Netze und verteilte Systeme
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173678785536,-N356173586880795
-
-Wahlbereich > Fachprüfungen > Robotik, Computational und Computer Engineering
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173680675537,-N356173588165796
-
-Wahlbereich > Fachprüfungen > Software Systeme und formale Grundlagen
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173682283538,-N356173589439797
-
-Wahlbereich > Fachprüfungen > Visual & Interactive Computing
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173683996539,-N356173590893798
-
-Wahlbereich > Fachprüfungen > Web, Wissens- und Informationsverarbeitung
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173685419540,-N356173601055801
-
-Wahlbereich > Studienleistungen
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173862125542,-N000000000000000
-
-Wahlbereich > Studienleistungen > Seminare
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173871470543,-N356173605606802
-
-Wahlbereich > Studienleistungen > Praktikum in der Lehre
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173877874544,-N356173607261803
-
-Wahlbereich > Studienleistungen > Praktika, Projektpraktika, ähnliche LV
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173881330545,-N356173609083804
-
-Wahlbereich > Fachübergreifende Lehrveranstaltungen
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356173908703547,-N000000000000000
-
-Wahlbereich > Fachübergreifende Lehrveranstaltungen > Module der Betriebswirtschaftslehre
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N360752852023675,-N360746547086804
-
-Wahlbereich > Fachübergreifende Lehrveranstaltungen > Gesamtkatalog aller Module des Sprachenzentrums
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N345145543638428
-
-B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N350874384986426
-
-B.Sc. Informatik (2015)  >  Wahlbereich  >  Fachübergreifende Lehrveranstaltungen  >  Gesamtkatalog aller Module des Sprachenzentrums  >  Zentrum für Interkulturelle Kompetenz ZIKK  >  Module nur für internationale Masterstudierende
-https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N483115916181886,-N000311,-N376333755785484,-N0,-N356344278774629,-N360263908359080
-*/
 use crate::{element_by_selector, models::Module, s, tucan::Tucan};
 
 #[derive(Clone)]
@@ -100,36 +22,8 @@ pub enum RegistrationEnum {
 
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
-        // TODO FIXME don't do this like that but just cache based on module id that should also be in the title on the previous page
-        // maybe try the same with the navigation menus
-
         let _normalized_url = url.to_string();
-        /* if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=") {
-            normalized_url = normalized_url[0..normalized_url.rfind(",-A").unwrap()].to_string();
-            //println!("normalized: {}", normalized_url);
-            //println!("url       : {}", url);
-        }*/
-
-        // can't cache these as the links inside there are invalid for new sessions
-        /*
-        if normalized_url.contains("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=") {
-            let start = normalized_url.find("ARGUMENTS=").unwrap() + "ARGUMENTS=".len();
-            let end = normalized_url.find(",").unwrap() + 1;
-            normalized_url = normalized_url[0..start].to_string() + &normalized_url[end..];
-            //println!("normalized: {}", normalized_url);
-            //println!("url       : {}", url);
-        }*/
-
-        // SELECT url, instr(url, ",-A") FROM http_cache WHERE url LIKE "%MODULEDETAILS%" ORDER BY url;
-        // SELECT substr(url, 0, instr(url, ",-A")) AS b, COUNT(*) AS c FROM http_cache WHERE url LIKE "%MODULEDETAILS%" GROUP BY b ORDER BY c DESC;
-        // the data at the end is random every login
-
-        // SELECT substr(url, 0, instr(url, "PRGNAME")) FROM http_cache;
-
-        // SELECT substr(url, instr(url, "PRGNAME"), instr(url, "&ARGUMENTS=")-instr(url, "PRGNAME")) AS a, COUNT(*) FROM http_cache GROUP BY a;
-
-        // SELECT url FROM http_cache WHERE url LIKE "%REGISTRATION%" ORDER BY url;
-
+        
         let cookie = format!("cnsc={}", self.session_id);
 
         let a = self.tucan.client.get(url);

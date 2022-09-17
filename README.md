@@ -3,7 +3,7 @@
 ```bash
 cargo install diesel_cli --no-default-features --features postgres
 
-sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres:15beta3-alpine
+sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres:15beta4-alpine
 
 echo DATABASE_URL=postgres://postgres:password@localhost/postgres > .env
 

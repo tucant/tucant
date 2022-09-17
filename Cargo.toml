@@ -27,3 +27,4 @@ serde_json = "1"
 async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro" }
 chrono = { version = "0.4", features = ["serde"] }
 deadpool = "0.9"
+url = "2.3.1"
