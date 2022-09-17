@@ -82,7 +82,11 @@ impl Tucan {
 
             let url = parse_tucan_url(&redirect_url)?;
 
-            if let TucanUrl::MaybeAuthenticated { session_nr: Some(session_nr), .. } = url {
+            if let TucanUrl::MaybeAuthenticated {
+                session_nr: Some(session_nr),
+                ..
+            } = url
+            {
                 println!("session_nr {}", session_nr);
 
                 let session_cookie = res_headers.cookies().next().unwrap();

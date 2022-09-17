@@ -34,6 +34,7 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
+use tucan_scraper::url::parse_tucan_url;
 
 #[derive(Debug)]
 struct MyError {
@@ -87,7 +88,7 @@ async fn fetch_everything(
     tucan: TucanUser,
     parent: Option<String>,
     value: RegistrationEnum,
-) -> Pin<Box<dyn Stream<Item = Result<Bytes, std::io::Error>>>> {
+) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
         match value {
             RegistrationEnum::Submenu(value) => {
@@ -95,7 +96,12 @@ async fn fetch_everything(
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
                     let title_clone = title.clone();
-                    let url_ref = url.clone();
+                    let tucan_url = parse_tucan_url(&url)?;
+
+                    println!("{:?}", tucan_url);
+
+                    // TODO check if already in DB and cache good
+
                     let normalized_name = title
                         .to_lowercase()
                         .replace('-', "")
@@ -121,7 +127,7 @@ async fn fetch_everything(
                                             name: title_clone,
                                             normalized_name,
                                             parent: parent_clone,
-                                            tucan_id: url_ref.clone(),
+                                            tucan_id: "test".to_string(),
                                             tucan_last_checked: Utc::now().naive_utc(),
                                         })
                                         .get_result::<ModuleMenu>(connection)
@@ -150,6 +156,13 @@ async fn fetch_everything(
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
                     stream.yield_item(Bytes::from(title.clone())).await;
+
+                    let tucan_url = parse_tucan_url(&url)?;
+
+                    println!("{:?}", tucan_url);
+
+                    // TODO FIXME check if module already fetched and in cache
+
                     let module = tucan.clone().module(&url).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
@@ -214,6 +227,8 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
         while let Some(Ok(value)) = input.next().await {
             stream.yield_item(value).await;
         }
+
+        stream.yield_item(Bytes::from("Fertig!")).await;
 
         let return_value: Result<(), Error> = Ok(());
 

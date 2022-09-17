@@ -46,8 +46,6 @@ export default function Module() {
 
   return (
     <>
-      <InitialFetch></InitialFetch>
-
       <Typography variant="h2">Modul</Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}

@@ -5,7 +5,7 @@ import Modules from "./Modules";
 
 
 export default function ModuleOrModules() {
-const location = useLocation();
+  const location = useLocation();
 
   if (location.pathname.endsWith("/")) {
     return <Modules></Modules>

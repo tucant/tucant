@@ -1,9 +1,13 @@
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function InitialFetch() {
+  useEffect(() => {
+    console.log("CREATION?")
+  }, [])
+
   const [data, setData] = useState<any>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +34,7 @@ export default function InitialFetch() {
             let reader = response.body?.getReader();
             let value: ReadableStreamReadResult<Uint8Array> | undefined;
             while (!(value = await reader?.read())?.done) {
-              setData((data: string) => new TextDecoder().decode(value?.value));
+              setData(new TextDecoder().decode(value?.value));
             }
           } catch (error) {
             setError(String(error));
