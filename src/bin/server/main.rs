@@ -146,8 +146,18 @@ async fn fetch_everything(
                     let mut inner_stream =
                         fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
-                    while let Some(Ok(value)) = inner_stream.next().await {
-                        stream.yield_item(value).await;
+                    loop {
+                        match inner_stream.next().await {
+                            Some(Ok(value)) => {
+                                stream.yield_item(value).await;
+                            }
+                            Some(Err(err)) => {
+                                Err::<(), MyError>(err).unwrap(); // TODO FIXME
+                            }
+                            None => {
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -224,8 +234,18 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
         let mut input = fetch_everything(tucan, None, res).await;
 
-        while let Some(Ok(value)) = input.next().await {
-            stream.yield_item(value).await;
+        loop {
+            match input.next().await {
+                Some(Ok(value)) => {
+                    stream.yield_item(value).await;
+                }
+                Some(Err(err)) => {
+                    Err::<(), MyError>(err).unwrap(); // TODO FIXME
+                }
+                None => {
+                    break;
+                }
+            }
         }
 
         stream.yield_item(Bytes::from("Fertig!")).await;

@@ -4,10 +4,6 @@ import Button from "@mui/material/Button";
 import { useEffect, useRef, useState } from "react";
 
 export default function InitialFetch() {
-  useEffect(() => {
-    console.log("CREATION?")
-  }, [])
-
   const [data, setData] = useState<any>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
