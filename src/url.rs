@@ -39,6 +39,7 @@ pub enum AuthenticatedTucanUrl {
     Profcourses,
     Studentchoicecourses,
     Registration,
+    Myexams,
     Courseresults,
     Examresults,
     StudentResult,
@@ -142,32 +143,36 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             format!("no ARGUMENTS in url: {:?}", query_pairs),
         ))?
         .as_ref();
+    let prgname = query_pairs
+        .get("PRGNAME")
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            format!("no APPNAME in url: {:?}", query_pairs),
+        ))?
+        .as_ref();
     let mut arguments = parse_arguments(arguments);
     if app_name != "CampusNet" {
         return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into());
     }
 
-    let session_nr = arguments
-        .next()
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("no session_nr in arguments {:?}", arguments),
-        ))??
-        .number()?;
+    let session_nr = if prgname == "ACTION" {
+        1
+    } else {
+        arguments
+            .next()
+            .ok_or(Error::new(
+                ErrorKind::Other,
+                format!("no session_nr in arguments {:?}", arguments),
+            ))??
+            .number()?
+    };
     let session_nr = if session_nr == 1 {
         Err(Error::new(ErrorKind::Other, format!("not logged in")))
     } else {
         Ok(session_nr)
     };
 
-    let result = match query_pairs
-        .get("PRGNAME")
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("no APPNAME in url: {:?}", query_pairs),
-        ))?
-        .as_ref()
-    {
+    let result = match prgname {
         "STARTPAGE_DISPATCH" => Ok(TucanUrl::Unauthenticated {
             url: UnauthenticatedTucanUrl::StartpageDispatch,
         }),
@@ -209,6 +214,107 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Profcourses,
+            })
+        }
+        "STUDENTCHOICECOURSES" => {
+            if number(&mut arguments)? != 307 {
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("unknown STUDENTCHOICECOURSES number"),
+                )
+                .into());
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Studentchoicecourses,
+            })
+        }
+        "REGISTRATION" => {
+            if number(&mut arguments)? != 311 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown REGISTRATION number")).into(),
+                );
+            }
+            if string(&mut arguments)? != "" {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown REGISTRATION string")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Registration,
+            })
+        }
+        "MYEXAMS" => {
+            if number(&mut arguments)? != 318 {
+                return Err(Error::new(ErrorKind::Other, format!("unknown MYEXAMS number")).into());
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Myexams,
+            })
+        }
+        "COURSERESULTS" => {
+            if number(&mut arguments)? != 324 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown COURSERESULTS number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Courseresults,
+            })
+        }
+        "EXAMRESULTS" => {
+            if number(&mut arguments)? != 325 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown EXAMRESULTS number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Examresults,
+            })
+        }
+        "STUDENT_RESULT" => {
+            if number(&mut arguments)? != 316 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            if number(&mut arguments)? != 0 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::StudentResult,
             })
         }
         other => {
