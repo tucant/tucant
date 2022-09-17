@@ -39,7 +39,7 @@ pub enum TucanArgument<'a> {
 }
 
 impl<'a> TucanArgument<'a> {
-    pub fn number(&'a self) -> anyhow::Result<u64> {
+    pub fn number(&self) -> anyhow::Result<u64> {
         match self {
             TucanArgument::Number(number) => Ok(*number),
             _ => Err(
@@ -48,7 +48,7 @@ impl<'a> TucanArgument<'a> {
         }
     }
 
-    pub fn string(&'a self) -> anyhow::Result<&'a str> {
+    pub fn string(&self) -> anyhow::Result<&'a str> {
         match self {
             TucanArgument::String(string) => Ok(string),
             _ => Err(
@@ -76,6 +76,26 @@ pub fn parse_arguments<'a>(
                 }
             })
         })
+}
+
+fn number<'a>(arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug)) -> Result<u64, anyhow::Error> {
+    arguments
+        .next()
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            format!("not enough arguments"),
+        ))??
+        .number()
+}
+
+fn string<'a>(arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug)) -> Result<&'a str, anyhow::Error> {
+    let a: TucanArgument<'a> = arguments
+        .next()
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            format!("not enough arguments"),
+        ))??;
+    a.string()
 }
 
 pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
@@ -150,21 +170,8 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             return Ok(TucanUrl::Authenticated {
                 session_nr: session_nr.number()?,
                 url: AuthenticatedTucanUrl::Externalpages {
-                    id: arguments
-                        .next()
-                        .ok_or(Error::new(
-                            ErrorKind::Other,
-                            format!("not enough arguments"),
-                        ))??
-                        .number()?,
-                    name: arguments
-                        .next()
-                        .ok_or(Error::new(
-                            ErrorKind::Other,
-                            format!("not enough arguments"),
-                        ))??
-                        .string()?
-                        .to_string(),
+                    id: number(&mut arguments)?,
+                    name: string(&mut arguments)?.to_string(),
                 },
             })
         }
