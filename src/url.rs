@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::ErrorKind};
 
-use url::{Host, Origin, Url};
+use url::{Host, Origin, Url, form_urlencoded};
 
 #[derive(PartialEq, Debug)]
 pub enum TucanUrl<'a> {
@@ -39,7 +39,7 @@ pub enum TucanArgument<'a> {
 }
 
 impl<'a> TucanArgument<'a> {
-    pub fn number(&self) -> anyhow::Result<u64> {
+    pub fn number(&'a self) -> anyhow::Result<u64> {
         match self {
             TucanArgument::Number(number) => Ok(*number),
             _ => Err(
@@ -47,11 +47,20 @@ impl<'a> TucanArgument<'a> {
             ),
         }
     }
+
+    pub fn string(&'a self) -> anyhow::Result<&'a str> {
+        match self {
+            TucanArgument::String(string) => Ok(string),
+            _ => Err(
+                std::io::Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into(),
+            ),
+        }
+    }
 }
 
-pub fn parse_arguments(
-    arguments: &str,
-) -> impl Iterator<Item = anyhow::Result<TucanArgument>> + std::fmt::Debug {
+pub fn parse_arguments<'a>(
+    arguments: &'a str,
+) -> impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug {
     arguments
         .split(",")
         .map(|a| -> anyhow::Result<TucanArgument> {
@@ -89,7 +98,8 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
             std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
         );
     }
-    let query_pairs = url.query_pairs().collect::<HashMap<_, _>>();
+    let query_pairs: form_urlencoded::Parse<'a> = url.query_pairs();
+    let query_pairs: HashMap<&'a str, &'a str> = query_pairs.map(|v| (v.0.as_ref(), v.1.as_ref())).collect::<HashMap<_, _>>();
     let app_name = query_pairs
         .get("APPNAME")
         .ok_or(std::io::Error::new(
@@ -97,7 +107,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
             format!("no APPNAME in url: {:?}", query_pairs),
         ))?
         .as_ref();
-    let arguments = query_pairs
+    let arguments: &'a str = query_pairs
         .get("ARGUMENTS")
         .ok_or(std::io::Error::new(
             ErrorKind::Other,
@@ -147,7 +157,13 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
                             format!("not enough arguments"),
                         ))??
                         .number()?,
-                    name: arguments.next(),
+                    name: arguments
+                    .next()
+                    .ok_or(std::io::Error::new(
+                        ErrorKind::Other,
+                        format!("not enough arguments"),
+                    ))??
+                    .string()?,
                 },
             })
         }
