@@ -16,7 +16,10 @@ pub enum TucanUrl {
         session_nr: u64,
         url: AuthenticatedTucanUrl,
     },
-    // MaybeAuthenticatedTucanUrl
+    MaybeAuthenticated {
+        session_nr: Option<u64>,
+        url: MaybeAuthenticatedTucanUrl,
+    },
 }
 
 #[derive(PartialEq, Debug)]
@@ -25,11 +28,15 @@ pub enum UnauthenticatedTucanUrl {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum AuthenticatedTucanUrl {
+pub enum MaybeAuthenticatedTucanUrl {
     Externalpages { id: u64, name: String },
+}
+
+#[derive(PartialEq, Debug)]
+pub enum AuthenticatedTucanUrl {
     Mlsstart,
     Mymodules,
-    Profcourse,
+    Profcourses,
     Studentchoicecourses,
     Registration,
     Courseresults,
@@ -140,10 +147,18 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into());
     }
 
-    let session_nr = arguments.next().ok_or(Error::new(
-        ErrorKind::Other,
-        format!("no session_nr in arguments {:?}", arguments),
-    ))??;
+    let session_nr = arguments
+        .next()
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            format!("no session_nr in arguments {:?}", arguments),
+        ))??
+        .number()?;
+    let session_nr = if session_nr == 1 {
+        Err(Error::new(ErrorKind::Other, format!("not logged in")))
+    } else {
+        Ok(session_nr)
+    };
 
     let result = match query_pairs
         .get("PRGNAME")
@@ -156,9 +171,9 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         "STARTPAGE_DISPATCH" => Ok(TucanUrl::Unauthenticated {
             url: UnauthenticatedTucanUrl::StartpageDispatch,
         }),
-        "EXTERNALPAGES" => Ok(TucanUrl::Authenticated {
-            session_nr: session_nr.number()?,
-            url: AuthenticatedTucanUrl::Externalpages {
+        "EXTERNALPAGES" => Ok(TucanUrl::MaybeAuthenticated {
+            session_nr: session_nr.ok(),
+            url: MaybeAuthenticatedTucanUrl::Externalpages {
                 id: number(&mut arguments)?,
                 name: string(&mut arguments)?.to_string(),
             },
@@ -170,8 +185,30 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
                 );
             }
             Ok(TucanUrl::Authenticated {
-                session_nr: session_nr.number()?,
+                session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Mlsstart,
+            })
+        }
+        "MYMODULES" => {
+            if number(&mut arguments)? != 275 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown mymodules number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Mymodules,
+            })
+        }
+        "PROFCOURSES" => {
+            if number(&mut arguments)? != 274 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown profcourses number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Profcourses,
             })
         }
         other => {
@@ -187,6 +224,8 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         )
         .into());
     }
+
+    println!("{:?}", result);
 
     return result;
 }
