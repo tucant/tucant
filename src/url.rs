@@ -1,15 +1,15 @@
 use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::ErrorKind};
 
-use url::{Host, Origin, Url, form_urlencoded};
+use url::{form_urlencoded, Host, Origin, Url};
 
 #[derive(PartialEq, Debug)]
-pub enum TucanUrl<'a> {
+pub enum TucanUrl {
     Unauthenticated {
         url: UnauthenticatedTucanUrl,
     },
     Authenticated {
         session_nr: u64,
-        url: AuthenticatedTucanUrl<'a>,
+        url: AuthenticatedTucanUrl,
     },
     // MaybeAuthenticatedTucanUrl
 }
@@ -20,8 +20,8 @@ pub enum UnauthenticatedTucanUrl {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum AuthenticatedTucanUrl<'a> {
-    Externalpages { id: u64, name: &'a str },
+pub enum AuthenticatedTucanUrl {
+    Externalpages { id: u64, name: String },
     Mlsstart,
     Mymodules,
     Profcourse,
@@ -78,7 +78,7 @@ pub fn parse_arguments<'a>(
         })
 }
 
-pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
+pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
     let url = Url::parse(url)?;
     if url.origin()
         != Origin::Tuple(
@@ -98,8 +98,8 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
             std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
         );
     }
-    let query_pairs: form_urlencoded::Parse<'a> = url.query_pairs();
-    let query_pairs: HashMap<&'a str, &'a str> = query_pairs.map(|v| (v.0.as_ref(), v.1.as_ref())).collect::<HashMap<_, _>>();
+    let query_pairs = url.query_pairs();
+    let query_pairs = query_pairs.collect::<HashMap<_, _>>();
     let app_name = query_pairs
         .get("APPNAME")
         .ok_or(std::io::Error::new(
@@ -107,7 +107,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
             format!("no APPNAME in url: {:?}", query_pairs),
         ))?
         .as_ref();
-    let arguments: &'a str = query_pairs
+    let arguments = query_pairs
         .get("ARGUMENTS")
         .ok_or(std::io::Error::new(
             ErrorKind::Other,
@@ -158,12 +158,13 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl<'a>> {
                         ))??
                         .number()?,
                     name: arguments
-                    .next()
-                    .ok_or(std::io::Error::new(
-                        ErrorKind::Other,
-                        format!("not enough arguments"),
-                    ))??
-                    .string()?,
+                        .next()
+                        .ok_or(std::io::Error::new(
+                            ErrorKind::Other,
+                            format!("not enough arguments"),
+                        ))??
+                        .string()?
+                        .to_string(),
                 },
             })
         }
