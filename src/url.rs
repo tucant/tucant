@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::ErrorKind};
+use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::{ErrorKind, Error}};
 
 use url::{form_urlencoded, Host, Origin, Url};
 
@@ -43,7 +43,7 @@ impl<'a> TucanArgument<'a> {
         match self {
             TucanArgument::Number(number) => Ok(*number),
             _ => Err(
-                std::io::Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into(),
+                Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into(),
             ),
         }
     }
@@ -52,7 +52,7 @@ impl<'a> TucanArgument<'a> {
         match self {
             TucanArgument::String(string) => Ok(string),
             _ => Err(
-                std::io::Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into(),
+                Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into(),
             ),
         }
     }
@@ -68,7 +68,7 @@ pub fn parse_arguments<'a>(
                 "-N" => TucanArgument::Number(a[2..].parse::<u64>()?),
                 "-A" => TucanArgument::String(&a[2..]),
                 other => {
-                    return Err(std::io::Error::new(
+                    return Err(Error::new(
                         ErrorKind::Other,
                         format!("invalid argument type: {:?}", other),
                     )
@@ -87,7 +87,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             443,
         )
     {
-        return Err(std::io::Error::new(
+        return Err(Error::new(
             ErrorKind::Other,
             format!("invalid origin: {:?}", url.origin()),
         )
@@ -95,42 +95,42 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
     }
     if url.path() != "/scripts/mgrqispi.dll" {
         return Err(
-            std::io::Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
+            Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
         );
     }
     let query_pairs = url.query_pairs();
     let query_pairs = query_pairs.collect::<HashMap<_, _>>();
     let app_name = query_pairs
         .get("APPNAME")
-        .ok_or(std::io::Error::new(
+        .ok_or(Error::new(
             ErrorKind::Other,
             format!("no APPNAME in url: {:?}", query_pairs),
         ))?
         .as_ref();
     let arguments = query_pairs
         .get("ARGUMENTS")
-        .ok_or(std::io::Error::new(
+        .ok_or(Error::new(
             ErrorKind::Other,
             format!("no ARGUMENTS in url: {:?}", query_pairs),
         ))?
         .as_ref();
     let mut arguments = parse_arguments(arguments);
     if app_name != "CampusNet" {
-        return Err(std::io::Error::new(
+        return Err(Error::new(
             ErrorKind::Other,
             format!("invalid appname: {}", app_name),
         )
         .into());
     }
 
-    let session_nr = arguments.next().ok_or(std::io::Error::new(
+    let session_nr = arguments.next().ok_or(Error::new(
         ErrorKind::Other,
         format!("no session_nr in arguments {:?}", arguments),
     ))??;
 
     match query_pairs
         .get("PRGNAME")
-        .ok_or(std::io::Error::new(
+        .ok_or(Error::new(
             ErrorKind::Other,
             format!("no APPNAME in url: {:?}", query_pairs),
         ))?
@@ -139,7 +139,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         "STARTPAGE_DISPATCH" => {
             if arguments.next().is_some() {
                 return Err(
-                    std::io::Error::new(ErrorKind::Other, format!("too many arguments")).into(),
+                    Error::new(ErrorKind::Other, format!("too many arguments")).into(),
                 );
             }
             return Ok(TucanUrl::Unauthenticated {
@@ -152,14 +152,14 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
                 url: AuthenticatedTucanUrl::Externalpages {
                     id: arguments
                         .next()
-                        .ok_or(std::io::Error::new(
+                        .ok_or(Error::new(
                             ErrorKind::Other,
                             format!("not enough arguments"),
                         ))??
                         .number()?,
                     name: arguments
                         .next()
-                        .ok_or(std::io::Error::new(
+                        .ok_or(Error::new(
                             ErrorKind::Other,
                             format!("not enough arguments"),
                         ))??
@@ -169,7 +169,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         other => {
-            return Err(std::io::Error::new(
+            return Err(Error::new(
                 ErrorKind::Other,
                 format!("invalid appname: {}", other),
             )
@@ -177,7 +177,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         }
     }
 
-    Err(std::io::Error::new(ErrorKind::Other, "oh no!").into())
+    Err(Error::new(ErrorKind::Other, "oh no!").into())
 }
 
 #[cfg(test)]
@@ -195,8 +195,6 @@ mod tests {
         );
 
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")?;
-
-        let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N707546050471776,-N000019,-N000000000000000")?;
 
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N707546050471776,-N000019,")?;
 
