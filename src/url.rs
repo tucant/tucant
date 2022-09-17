@@ -65,9 +65,9 @@ pub fn parse_arguments<'a>(
     arguments
         .split(",")
         .map(|a| -> anyhow::Result<TucanArgument> {
-            Ok(match &a[0..2] {
-                "-N" => TucanArgument::Number(a[2..].parse::<u64>()?),
-                "-A" => TucanArgument::String(&a[2..]),
+            Ok(match a.get(0..2) {
+                Some("-N") => TucanArgument::Number(a[2..].parse::<u64>()?),
+                Some("-A") => TucanArgument::String(&a[2..]),
                 other => {
                     return Err(Error::new(
                         ErrorKind::Other,
@@ -163,16 +163,27 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
                 name: string(&mut arguments)?.to_string(),
             },
         }),
-        "MLSSTART" => Ok(TucanUrl::Authenticated {
-            session_nr: session_nr.number()?,
-            url: AuthenticatedTucanUrl::Mlsstart,
-        }),
+        "MLSSTART" => {
+            if number(&mut arguments)? != 19 {
+                return Err(
+                    Error::new(ErrorKind::Other, format!("unknown mlsstart number")).into(),
+                );
+            }
+            Ok(TucanUrl::Authenticated {
+                session_nr: session_nr.number()?,
+                url: AuthenticatedTucanUrl::Mlsstart,
+            })
+        }
         other => Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into()),
     };
 
     let mut peekable = arguments.peekable();
     if peekable.peek().is_some() {
-        return Err(Error::new(ErrorKind::Other, format!("too many arguments {:?}", peekable.collect::<Vec<_>>())).into());
+        return Err(Error::new(
+            ErrorKind::Other,
+            format!("too many arguments {:?}", peekable.collect::<Vec<_>>()),
+        )
+        .into());
     }
 
     return result;
