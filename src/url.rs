@@ -63,7 +63,7 @@ pub fn parse_arguments<'a>(
     arguments: &'a str,
 ) -> impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug {
     arguments
-        .split(",")
+        .split_terminator(",")
         .map(|a| -> anyhow::Result<TucanArgument> {
             Ok(match a.get(0..2) {
                 Some("-N") => TucanArgument::Number(a[2..].parse::<u64>()?),
@@ -174,7 +174,9 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
                 url: AuthenticatedTucanUrl::Mlsstart,
             })
         }
-        other => Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into()),
+        other => {
+            return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into())
+        }
     };
 
     let mut peekable = arguments.peekable();
