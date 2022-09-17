@@ -1,4 +1,9 @@
-use std::{borrow::Borrow, collections::HashMap, convert::TryInto, io::{ErrorKind, Error}};
+use std::{
+    borrow::Borrow,
+    collections::HashMap,
+    convert::TryInto,
+    io::{Error, ErrorKind},
+};
 
 use url::{form_urlencoded, Host, Origin, Url};
 
@@ -42,18 +47,14 @@ impl<'a> TucanArgument<'a> {
     pub fn number(&self) -> anyhow::Result<u64> {
         match self {
             TucanArgument::Number(number) => Ok(*number),
-            _ => Err(
-                Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into(),
-            ),
+            _ => Err(Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into()),
         }
     }
 
     pub fn string(&self) -> anyhow::Result<&'a str> {
         match self {
             TucanArgument::String(string) => Ok(string),
-            _ => Err(
-                Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into(),
-            ),
+            _ => Err(Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into()),
         }
     }
 }
@@ -78,7 +79,9 @@ pub fn parse_arguments<'a>(
         })
 }
 
-fn number<'a>(arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug)) -> Result<u64, anyhow::Error> {
+fn number<'a>(
+    arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug),
+) -> Result<u64, anyhow::Error> {
     arguments
         .next()
         .ok_or(Error::new(
@@ -88,13 +91,13 @@ fn number<'a>(arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument
         .number()
 }
 
-fn string<'a>(arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug)) -> Result<&'a str, anyhow::Error> {
-    let a: TucanArgument<'a> = arguments
-        .next()
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("not enough arguments"),
-        ))??;
+fn string<'a>(
+    arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug),
+) -> Result<&'a str, anyhow::Error> {
+    let a: TucanArgument<'a> = arguments.next().ok_or(Error::new(
+        ErrorKind::Other,
+        format!("not enough arguments"),
+    ))??;
     a.string()
 }
 
@@ -114,9 +117,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         .into());
     }
     if url.path() != "/scripts/mgrqispi.dll" {
-        return Err(
-            Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into(),
-        );
+        return Err(Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into());
     }
     let query_pairs = url.query_pairs();
     let query_pairs = query_pairs.collect::<HashMap<_, _>>();
@@ -136,11 +137,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         .as_ref();
     let mut arguments = parse_arguments(arguments);
     if app_name != "CampusNet" {
-        return Err(Error::new(
-            ErrorKind::Other,
-            format!("invalid appname: {}", app_name),
-        )
-        .into());
+        return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into());
     }
 
     let session_nr = arguments.next().ok_or(Error::new(
@@ -148,7 +145,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         format!("no session_nr in arguments {:?}", arguments),
     ))??;
 
-    match query_pairs
+    let result = match query_pairs
         .get("PRGNAME")
         .ok_or(Error::new(
             ErrorKind::Other,
@@ -156,35 +153,29 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         ))?
         .as_ref()
     {
-        "STARTPAGE_DISPATCH" => {
-            if arguments.next().is_some() {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("too many arguments")).into(),
-                );
-            }
-            return Ok(TucanUrl::Unauthenticated {
-                url: UnauthenticatedTucanUrl::StartpageDispatch,
-            });
-        }
-        "EXTERNALPAGES" => {
-            return Ok(TucanUrl::Authenticated {
-                session_nr: session_nr.number()?,
-                url: AuthenticatedTucanUrl::Externalpages {
-                    id: number(&mut arguments)?,
-                    name: string(&mut arguments)?.to_string(),
-                },
-            })
-        }
-        other => {
-            return Err(Error::new(
-                ErrorKind::Other,
-                format!("invalid appname: {}", other),
-            )
-            .into())
-        }
+        "STARTPAGE_DISPATCH" => Ok(TucanUrl::Unauthenticated {
+            url: UnauthenticatedTucanUrl::StartpageDispatch,
+        }),
+        "EXTERNALPAGES" => Ok(TucanUrl::Authenticated {
+            session_nr: session_nr.number()?,
+            url: AuthenticatedTucanUrl::Externalpages {
+                id: number(&mut arguments)?,
+                name: string(&mut arguments)?.to_string(),
+            },
+        }),
+        "MLSSTART" => Ok(TucanUrl::Authenticated {
+            session_nr: session_nr.number()?,
+            url: AuthenticatedTucanUrl::Mlsstart,
+        }),
+        other => Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into()),
+    };
+
+    let mut peekable = arguments.peekable();
+    if peekable.peek().is_some() {
+        return Err(Error::new(ErrorKind::Other, format!("too many arguments {:?}", peekable.collect::<Vec<_>>())).into());
     }
 
-    Err(Error::new(ErrorKind::Other, "oh no!").into())
+    return result;
 }
 
 #[cfg(test)]
@@ -201,8 +192,10 @@ mod tests {
             url
         );
 
+        // unauthenticated start page
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")?;
 
+        // authenticated start page
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N707546050471776,-N000019,")?;
 
         // Veranstaltungen
