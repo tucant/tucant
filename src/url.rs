@@ -4,7 +4,23 @@ use url::{Url, Origin, Host};
 
 #[derive(PartialEq, Debug)]
 pub enum TucanUrl {
+    Unauthenticated {
+        url: UnauthenticatedTucanUrl
+    },
+    Authenticated{
+        session_nr: u64,
+        url: AuthenticatedTucanUrl
+    },
+    // MaybeAuthenticatedTucanUrl
+}
+
+#[derive(PartialEq, Debug)]
+pub enum UnauthenticatedTucanUrl {
     StartpageDispatch,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum AuthenticatedTucanUrl {
     Externalpages,
     Mlsstart,
     Mymodules,
@@ -51,14 +67,14 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
         return Err(std::io::Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into())
     }
 
-    let session_nr = arguments.next().ok_or(std::io::Error::new(ErrorKind::Other, format!("no session_nr in arguments {:?}", arguments)))?;
+    let session_nr = arguments.next().ok_or(std::io::Error::new(ErrorKind::Other, format!("no session_nr in arguments {:?}", arguments)))??;
     
     match query_pairs.get("PRGNAME").ok_or(std::io::Error::new(ErrorKind::Other, format!("no APPNAME in url: {:?}", query_pairs)))?.as_ref() {
         "STARTPAGE_DISPATCH" => {
             if arguments.next().is_some() {
                 return Err(std::io::Error::new(ErrorKind::Other, format!("too many arguments")).into())
             }
-            return Ok(TucanUrl::StartpageDispatch)
+            return Ok(TucanUrl::Unauthenticated { url: UnauthenticatedTucanUrl::StartpageDispatch })
         }
         "EXTERNALPAGES" => {
 
