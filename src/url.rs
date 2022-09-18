@@ -4,7 +4,7 @@ use std::{
     iter::Peekable,
 };
 
-use derive_more::{Into, TryInto};
+use derive_more::TryInto;
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
@@ -67,7 +67,7 @@ pub struct Examresults;
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StudentResult;
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, TryInto)]
 pub enum TucanProgram {
     Mlsstart(Mlsstart),
     Mymodules(Mymodules),

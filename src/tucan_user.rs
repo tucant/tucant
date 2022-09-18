@@ -13,7 +13,7 @@ use crate::{
     models::Module,
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Authenticated, Moduledetails, Registration, ToTucanUrl, TucanUrl},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanUrl},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -35,7 +35,7 @@ pub enum RegistrationEnum {
 }
 
 impl TucanUser {
-    pub(crate) async fn fetch_document(&self, url: &impl ToTucanUrl) -> anyhow::Result<Html> {
+    pub(crate) async fn fetch_document(&self, url: &TucanUrl) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.id);
 
         let a = self.tucan.client.get(url.to_tucan_url());
@@ -120,14 +120,10 @@ impl TucanUser {
             (_, Some(list)) => Ok(RegistrationEnum::Modules(
                 list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                     .map(|e| {
-                        TryInto::<Authenticated>::try_into(parse_tucan_url(&format!(
+                        parse_tucan_url(&format!(
                             "https://www.tucan.tu-darmstadt.de{}",
                             e.value().attr("href").unwrap()
-                        )))
-                        .unwrap()
-                        .url
-                        .try_into()
-                        .unwrap()
+                        )).program.try_into().unwrap()
                     })
                     .collect(),
             )),
@@ -135,14 +131,10 @@ impl TucanUser {
                 Ok(RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
                         .map(|e| {
-                            TryInto::<Authenticated>::try_into(parse_tucan_url(&format!(
+                            parse_tucan_url(&format!(
                                 "https://www.tucan.tu-darmstadt.de{}",
                                 e.value().attr("href").unwrap()
-                            )))
-                            .unwrap()
-                            .url
-                            .try_into()
-                            .unwrap()
+                            )).program.try_into().unwrap()
                         })
                         .collect(),
                 ))
