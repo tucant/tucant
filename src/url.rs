@@ -54,14 +54,14 @@ impl<'a> TucanArgument<'a> {
     pub fn number(&self) -> u64 {
         match self {
             TucanArgument::Number(number) => *number,
-            _ => panic!("not a number: {:?}", self),
+            _ => panic!(),
         }
     }
 
     pub fn string(&self) -> &'a str {
         match self {
             TucanArgument::String(string) => string,
-            _ => panic!("not a string: {:?}", self),
+            _ => panic!(),
         }
     }
 }
@@ -69,79 +69,41 @@ impl<'a> TucanArgument<'a> {
 pub fn parse_arguments<'a>(
     arguments: &'a str,
 ) -> impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug {
-    arguments
-        .split_terminator(",")
-        .map(|a| {
-            match a.get(0..2) {
-                Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
-                Some("-A") => TucanArgument::String(&a[2..]),
-                other => {
-                    panic!("invalid argument type: {:?}", other)
-                }
-            }
-        })
+    arguments.split_terminator(",").map(|a| match a.get(0..2) {
+        Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
+        Some("-A") => TucanArgument::String(&a[2..]),
+        _ => panic!(),
+    })
 }
 
-fn number<'a>(
-    arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug),
-) -> u64 {
-    arguments
-        .next()
-        .expect(&format!("not enough arguments"))
-        .number()
+fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> u64 {
+    arguments.next().unwrap().number()
 }
 
 fn string<'a>(
     arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug),
 ) -> &'a str {
-    arguments.next().expect(&format!("not enough arguments")).string()
+    arguments.next().unwrap().string()
 }
 
 pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
     let url = Url::parse(url)?;
-    if url.origin()
-        != Origin::Tuple(
+    assert_eq!(
+        url.origin(),
+        Origin::Tuple(
             "https".into(),
             Host::Domain("www.tucan.tu-darmstadt.de".into()),
             443,
         )
-    {
-        return Err(Error::new(
-            ErrorKind::Other,
-            format!("invalid origin: {:?}", url.origin()),
-        )
-        .into());
-    }
-    if url.path() != "/scripts/mgrqispi.dll" {
-        return Err(Error::new(ErrorKind::Other, format!("invalid path: {}", url.path())).into());
-    }
+    );
+    assert_eq!(url.path(), "/scripts/mgrqispi.dll");
     let query_pairs = url.query_pairs();
     let query_pairs = query_pairs.collect::<HashMap<_, _>>();
-    let app_name = query_pairs
-        .get("APPNAME")
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("no APPNAME in url: {:?}", query_pairs),
-        ))?
-        .as_ref();
-    let arguments = query_pairs
-        .get("ARGUMENTS")
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("no ARGUMENTS in url: {:?}", query_pairs),
-        ))?
-        .as_ref();
-    let prgname = query_pairs
-        .get("PRGNAME")
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("no APPNAME in url: {:?}", query_pairs),
-        ))?
-        .as_ref();
+    let app_name = query_pairs.get("APPNAME").unwrap().as_ref();
+    let arguments = query_pairs.get("ARGUMENTS").unwrap().as_ref();
+    let prgname = query_pairs.get("PRGNAME").unwrap().as_ref();
     let mut arguments = parse_arguments(arguments);
-    if app_name != "CampusNet" {
-        return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", app_name)).into());
-    }
+    assert_eq!(app_name, "CampusNet");
 
     let session_nr = if prgname == "ACTION" {
         1
@@ -156,20 +118,8 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
 
     let result = match prgname {
         "STARTPAGE_DISPATCH" => {
-            if number(&mut arguments) != 19 {
-                return Err(Error::new(
-                    ErrorKind::Other,
-                    format!("unknown STARTPAGE_DISPATCH number"),
-                )
-                .into());
-            }
-            if number(&mut arguments) != 0 {
-                return Err(Error::new(
-                    ErrorKind::Other,
-                    format!("unknown STARTPAGE_DISPATCH number"),
-                )
-                .into());
-            }
+            assert_eq!(number(&mut arguments), 19);
+            assert_eq!(number(&mut arguments), 0);
             Ok(TucanUrl::MaybeAuthenticated {
                 session_nr: session_nr.ok(),
                 url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
@@ -183,134 +133,70 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             },
         }),
         "MLSSTART" => {
-            if number(&mut arguments) != 19 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown mlsstart number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 19);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Mlsstart,
             })
         }
         "MYMODULES" => {
-            if number(&mut arguments) != 275 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown mymodules number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 275);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Mymodules,
             })
         }
         "PROFCOURSES" => {
-            if number(&mut arguments) != 274 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown profcourses number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 274);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Profcourses,
             })
         }
         "STUDENTCHOICECOURSES" => {
-            if number(&mut arguments) != 307 {
-                return Err(Error::new(
-                    ErrorKind::Other,
-                    format!("unknown STUDENTCHOICECOURSES number"),
-                )
-                .into());
-            }
+            assert_eq!(number(&mut arguments), 307);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Studentchoicecourses,
             })
         }
         "REGISTRATION" => {
-            if number(&mut arguments) != 311 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown REGISTRATION number")).into(),
-                );
-            }
-            if string(&mut arguments) != "" {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown REGISTRATION string")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 311);
+            assert_eq!(string(&mut arguments), "");
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Registration,
             })
         }
         "MYEXAMS" => {
-            if number(&mut arguments) != 318 {
-                return Err(Error::new(ErrorKind::Other, format!("unknown MYEXAMS number")).into());
-            }
+            assert_eq!(number(&mut arguments), 318);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Myexams,
             })
         }
         "COURSERESULTS" => {
-            if number(&mut arguments) != 324 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown COURSERESULTS number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 324);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Courseresults,
             })
         }
         "EXAMRESULTS" => {
-            if number(&mut arguments) != 325 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown EXAMRESULTS number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 325);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::Examresults,
             })
         }
         "STUDENT_RESULT" => {
-            if number(&mut arguments) != 316 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
-            if number(&mut arguments) != 0 {
-                return Err(
-                    Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
-                );
-            }
+            assert_eq!(number(&mut arguments), 316);
+            assert_eq!(number(&mut arguments), 0);
+            assert_eq!(number(&mut arguments), 0);
+            assert_eq!(number(&mut arguments), 0);
+            assert_eq!(number(&mut arguments), 0);
+            assert_eq!(number(&mut arguments), 0);
+            assert_eq!(number(&mut arguments), 0);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
                 url: AuthenticatedTucanUrl::StudentResult,
@@ -341,13 +227,14 @@ mod tests {
 
     #[test]
     fn test_sample_urls() -> anyhow::Result<()> {
-        let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")?;
+        /*let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")?;
         assert_eq!(
-            TucanUrl::Unauthenticated {
-                url: UnauthenticatedTucanUrl::StartpageDispatch
+            TucanUrl::MaybeAuthenticated {
+                url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
+                session_nr: None
             },
             url
-        );
+        );*/
 
         // unauthenticated start page
         let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")?;
