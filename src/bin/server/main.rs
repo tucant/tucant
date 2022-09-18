@@ -21,6 +21,7 @@ use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Resp
 use async_stream::try_stream;
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
+use diesel::dsl::{exists, count};
 use diesel::prelude::*;
 use diesel::upsert::excluded;
 use diesel_async::RunQueryDsl;
@@ -34,7 +35,8 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::module_menu::name;
+use tucan_scraper::schema::module_menu::{name, self, tucan_id};
+use tucan_scraper::schema::modules::content;
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
@@ -110,8 +112,6 @@ async fn fetch_everything(
     value: RegistrationEnum,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
-        println!("fetch_everything {:?} {:?}", parent, value);
-
         match value {
             RegistrationEnum::Submenu(value) => {
                 for menu in value {
@@ -130,6 +130,19 @@ async fn fetch_everything(
                                             .replace('ö', "oe")
                                             .replace('ü', "ue");
                     */
+                    let conn = &mut tucan_clone.tucan.pool.get().await?;
+                    let dsfa = crate::module_menu::dsl::module_menu
+                    .filter(tucan_id.eq(Into::<Vec<i64>>::into(menu.path.unwrap())))
+                    .count()
+                    .get_result::<i64>(conn)
+                    .await?;
+                    
+                    if dsfa == 1 {
+
+                    } else {
+                        let value = tucan.registration(Some(menu)).await?;
+                    }
+
                     let cnt = tucan_clone
                         .tucan
                         .pool
@@ -158,7 +171,6 @@ async fn fetch_everything(
 
                     stream.yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap()))).await;
 
-                    let value = tucan.registration(Some(menu)).await?;
                     let mut inner_stream =
                         fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
@@ -201,6 +213,9 @@ async fn fetch_everything(
                             async move {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
                                     .values(&module)
+                                    .on_conflict(tucan_scraper::schema::modules::tucan_id)
+                                    .do_update()
+                                    .set(content.eq(excluded(content)))
                                     .execute(connection)
                                     .await?;
 
@@ -211,6 +226,7 @@ async fn fetch_everything(
                                     module_id: module.tucan_id,
                                     module_menu_id: parent_clone.unwrap(),
                                 })
+                                .on_conflict_do_nothing()
                                 .execute(connection)
                                 .await?;
                                 Ok(())
@@ -289,11 +305,9 @@ async fn get_modules<'a>(
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await?;
-    println!("{:?}", path);
 
     let split_path = path.split_terminator('/').map(String::from);
     let menu_path_vec = split_path.skip(1).collect::<Vec<_>>();
-    println!("{:?}", menu_path_vec);
 
     let menu_path: Vec<String>;
     let module: Option<&str>;
@@ -305,7 +319,6 @@ async fn get_modules<'a>(
         menu_path = tmp.1.to_vec();
         module = Some(tmp.0);
     }
-    println!("{:?}", menu_path);
 
     let mut node = None;
     for path_segment in menu_path {
