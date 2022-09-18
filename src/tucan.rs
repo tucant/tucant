@@ -4,7 +4,7 @@ use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
-use regex::Regex;
+
 use reqwest::{Client, Url};
 
 use crate::{
@@ -73,7 +73,7 @@ impl Tucan {
                 &refresh_header.unwrap().to_str()?[7..]
             );
 
-            let url = parse_tucan_url(&redirect_url)?;
+            let url = parse_tucan_url(redirect_url)?;
 
             if let TucanUrl::MaybeAuthenticated {
                 session_nr: Some(tucan_nr),

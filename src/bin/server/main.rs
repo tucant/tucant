@@ -2,11 +2,11 @@
 
 mod csrf_middleware;
 
-use std::convert::Infallible;
+
 use std::io::Error;
 
 use std::fmt::Display;
-use std::ops::FromResidual;
+
 use std::pin::Pin;
 
 use actix_cors::Cors;
@@ -134,8 +134,7 @@ async fn fetch_everything(
                         .build_transaction()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
-                                Ok(
-                                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                                diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                         .values(&ModuleMenu {
                                             name: title_clone,
                                             normalized_name,
@@ -144,8 +143,7 @@ async fn fetch_everything(
                                             tucan_last_checked: Utc::now().naive_utc(),
                                         })
                                         .get_result::<ModuleMenu>(connection)
-                                        .await?,
-                                )
+                                        .await
                             }
                             .boxed()
                         })
@@ -369,11 +367,11 @@ async fn get_modules<'a>(
                     use self::schema::module_menu_module::dsl::*;
                     use self::schema::modules::dsl::*;
 
-                    Ok(module_menu_module
+                    module_menu_module
                         .inner_join(modules)
                         .filter(module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
-                        .await?)
+                        .await
                 }
                 .boxed()
             })
