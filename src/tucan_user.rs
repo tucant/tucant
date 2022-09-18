@@ -165,9 +165,11 @@ impl TucanUser {
         }
     }
 
-    pub async fn registration(&self, url: Option<Registration>) -> anyhow::Result<RegistrationEnum> {
-        self.traverse_module_list(url.unwrap_or(Registration {
-            path: None
-        })).await
+    pub async fn registration(
+        &self,
+        url: Option<Registration>,
+    ) -> anyhow::Result<RegistrationEnum> {
+        self.traverse_module_list(url.unwrap_or(Registration { path: None }))
+            .await
     }
 }

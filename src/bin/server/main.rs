@@ -80,6 +80,12 @@ struct LoginResult {
     success: bool,
 }
 
+#[derive(Serialize)]
+pub enum ModulesOrModuleMenus {
+    Menus(Vec<ModuleMenu>),
+    Modules(Vec<(ModuleMenuEntryModule, Module)>),
+}
+
 #[post("/login")]
 async fn login(
     session: Session,
@@ -110,17 +116,17 @@ async fn fetch_everything(
                     let parent_clone = parent.clone();
 
                     // TODO check if already in DB and cache good
-/*
-                    let normalized_name = title
-                        .to_lowercase()
-                        .replace('-', "")
-                        .replace(' ', "-")
-                        .replace(',', "")
-                        .replace('/', "-")
-                        .replace('ä', "ae")
-                        .replace('ö', "oe")
-                        .replace('ü', "ue");
-*/
+                    /*
+                                        let normalized_name = title
+                                            .to_lowercase()
+                                            .replace('-', "")
+                                            .replace(' ', "-")
+                                            .replace(',', "")
+                                            .replace('/', "-")
+                                            .replace('ä', "ae")
+                                            .replace('ö', "oe")
+                                            .replace('ü', "ue");
+                    */
                     let cnt = tucan_clone
                         .tucan
                         .pool
@@ -369,16 +375,12 @@ async fn get_modules<'a>(
             .await?;
 
         if !menu_result.is_empty() {
-            Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
-                menu_result
-                    .iter()
-                    .collect::<Vec<_>>(),
+            Ok(Either::Right(web::Json(ModulesOrModuleMenus::Menus(
+                menu_result,
             ))))
         } else {
-            Ok(Either::Right(web::Json(RegistrationEnum::Modules(
-                module_result
-                    .iter()
-                    .collect::<Vec<_>>(),
+            Ok(Either::Right(web::Json(ModulesOrModuleMenus::Modules(
+                module_result,
             ))))
         }
     }

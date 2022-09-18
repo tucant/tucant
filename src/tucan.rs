@@ -9,7 +9,7 @@ use reqwest::{Client, Url};
 use crate::{
     create_pool,
     tucan_user::{TucanSession, TucanUser},
-    url::{parse_tucan_url, TucanUrl, MaybeAuthenticated},
+    url::{parse_tucan_url, MaybeAuthenticated, TucanUrl},
 };
 
 #[derive(Clone)]
