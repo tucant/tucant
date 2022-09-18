@@ -1,10 +1,10 @@
 use std::{
     collections::HashMap,
     io::{Error, ErrorKind},
-    iter::Peekable,
+    iter::{Peekable, self},
 };
 
-use derive_more::TryInto;
+use derive_more::{TryInto, From};
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
@@ -12,14 +12,6 @@ use url::{Host, Origin, Url};
 pub struct TucanUrl {
     pub session_nr: Option<u64>,
     pub program: TucanProgram,
-}
-
-impl TucanUrl {
-    fn to_tucan_url(&self) -> String {
-        //         let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.nr));
-
-        [TucanArgument::Number(311), TucanArgument::String("")].iter()
-    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -67,7 +59,7 @@ pub struct Examresults;
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StudentResult;
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, TryInto)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, TryInto, From)]
 pub enum TucanProgram {
     Mlsstart(Mlsstart),
     Mymodules(Mymodules),
@@ -82,6 +74,28 @@ pub enum TucanProgram {
     StartpageDispatch(StartpageDispatch),
     Externalpages(Externalpages),
 }
+
+impl TucanProgram {
+    pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
+        let args = match self {
+            TucanProgram::Mlsstart(_) => todo!(),
+            TucanProgram::Mymodules(_) => todo!(),
+            TucanProgram::Profcourses(_) => todo!(),
+            TucanProgram::Studentchoicecourses(_) => todo!(),
+            TucanProgram::Registration(Registration { path }) => [TucanArgument::Number(311), TucanArgument::String("")].iter().chain(path.map_or(iter::empty(), |v| v.map(|e| TucanArgument::Number(e)))),
+            TucanProgram::Myexams(_) => todo!(),
+            TucanProgram::Courseresults(_) => todo!(),
+            TucanProgram::Examresults(_) => todo!(),
+            TucanProgram::StudentResult(_) => todo!(),
+            TucanProgram::Moduledetails(_) => todo!(),
+            TucanProgram::StartpageDispatch(_) => todo!(),
+            TucanProgram::Externalpages(_) => todo!(),
+        };
+        
+        format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},", session_nr.unwrap_or(1))
+    }
+}
+
 
 #[derive(Debug)]
 pub enum TucanArgument<'a> {

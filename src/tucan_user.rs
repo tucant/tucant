@@ -13,7 +13,7 @@ use crate::{
     models::Module,
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, TucanUrl},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanUrl, TucanProgram},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -35,10 +35,10 @@ pub enum RegistrationEnum {
 }
 
 impl TucanUser {
-    pub(crate) async fn fetch_document(&self, url: &TucanUrl) -> anyhow::Result<Html> {
+    pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.id);
 
-        let a = self.tucan.client.get(url.to_tucan_url());
+        let a = self.tucan.client.get(url.to_tucan_url(Some(self.session.nr)));
         let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
@@ -59,7 +59,7 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
-        let document = self.fetch_document(&url).await?;
+        let document = self.fetch_document(&url.into()).await?;
 
         let name = element_by_selector(&document, "h1").unwrap();
 
@@ -108,7 +108,7 @@ impl TucanUser {
     }
 
     async fn traverse_module_list(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
-        let document = self.fetch_document(&url).await?;
+        let document = self.fetch_document(&url.into()).await?;
 
         // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
@@ -152,7 +152,7 @@ impl TucanUser {
                 */
             }
             _ => {
-                panic!("{:?} {}", url, document.root_element().html())
+                panic!("{}", document.root_element().html())
             }
         }
     }
