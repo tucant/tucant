@@ -18,7 +18,7 @@ use crate::{
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TucanSession {
-    pub nr: u64,
+    pub nr: i64,
     pub id: String,
 }
 
@@ -62,7 +62,7 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
-        let document = self.fetch_document(&url.into()).await?;
+        let document = self.fetch_document(&url.clone().into()).await?;
 
         let name = element_by_selector(&document, "h1").unwrap();
 

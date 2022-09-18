@@ -12,7 +12,7 @@ use url::{Host, Origin, Url};
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct TucanUrl {
-    pub session_nr: Option<u64>,
+    pub session_nr: Option<i64>,
     pub program: TucanProgram,
 }
 
@@ -21,18 +21,18 @@ pub struct StartpageDispatch;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Externalpages {
-    id: u64,
+    id: i64,
     name: String,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Moduledetails {
-    pub id: u64,
+    pub id: i64,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
-    pub path: Option<[u64; 4]>,
+    pub path: Option<[i64; 4]>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -76,7 +76,7 @@ pub enum TucanProgram {
 }
 
 impl TucanProgram {
-    pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
+    pub fn to_tucan_url(&self, session_nr: Option<i64>) -> String {
         let (progname, args) = match self {
             TucanProgram::Mlsstart(_) => todo!(),
             TucanProgram::Mymodules(_) => todo!(),
@@ -106,12 +106,12 @@ impl TucanProgram {
 
 #[derive(Debug)]
 pub enum TucanArgument<'a> {
-    Number(u64),
+    Number(i64),
     String(&'a str),
 }
 
 impl<'a> TucanArgument<'a> {
-    pub fn number(&self) -> u64 {
+    pub fn number(&self) -> i64 {
         match self {
             TucanArgument::Number(number) => *number,
             _ => panic!(),
@@ -141,14 +141,14 @@ pub fn parse_arguments(
     arguments
         .split_terminator(',')
         .map(|a| match a.get(0..2) {
-            Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
+            Some("-N") => TucanArgument::Number(a[2..].parse().unwrap()),
             Some("-A") => TucanArgument::String(&a[2..]),
             _ => panic!(),
         })
         .peekable()
 }
 
-fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> u64 {
+fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> i64 {
     arguments.next().unwrap().number()
 }
 

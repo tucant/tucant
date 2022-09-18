@@ -2,24 +2,24 @@
 
 diesel::table! {
     module_menu (tucan_id) {
-        tucan_id -> Array<Int4>,
+        tucan_id -> Array<Int8>,
         tucan_last_checked -> Timestamptz,
         name -> Text,
         normalized_name -> Text,
-        parent -> Nullable<Array<Int4>>,
+        parent -> Nullable<Array<Int8>>,
     }
 }
 
 diesel::table! {
     module_menu_module (module_menu_id, module_id) {
-        module_menu_id -> Array<Int4>,
-        module_id -> Int4,
+        module_menu_id -> Array<Int8>,
+        module_id -> Int8,
     }
 }
 
 diesel::table! {
     modules (tucan_id) {
-        tucan_id -> Int4,
+        tucan_id -> Int8,
         tucan_last_checked -> Timestamptz,
         title -> Text,
         module_id -> Text,
