@@ -111,7 +111,7 @@ impl TucanUser {
     }
 
     async fn traverse_module_list(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
-        let document = self.fetch_document(&url.into()).await?;
+        let document = self.fetch_document(&url.clone().into()).await?;
 
         // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
@@ -161,7 +161,7 @@ impl TucanUser {
                 */
             }
             _ => {
-                panic!("{}", document.root_element().html())
+                panic!("{:?} {} {}", url.clone(), Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)), document.root_element().html())
             }
         }
     }
