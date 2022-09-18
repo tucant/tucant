@@ -183,14 +183,28 @@ async fn fetch_registration(
         */
         let conn = &mut tucan_clone.tucan.pool.get().await?;
         let dsfa = crate::module_menu::dsl::module_menu
-            .filter(tucan_id.eq(Into::<Vec<i64>>::into(parent.path)))
+            .filter(tucan_id.nullable().eq(parent.path))
             .count()
             .get_result::<i64>(conn)
             .await?;
 
         if dsfa == 1 {
+            // TODO FIXME fetch cached registration enum stuff
         } else {
             let value = tucan.registration(parent).await?;
+
+            match value {
+                RegistrationEnum::Submenu(submenu) => {
+                    for menu in submenu {
+                        fetch_registration(tucan, menu);
+                    }
+                },
+                RegistrationEnum::Modules(modules) => {
+                    for module in modules {
+                        fetch_module(tucan, parent, module);
+                    }
+                },
+            }
         }
 
         let cnt = tucan_clone
