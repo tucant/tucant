@@ -5,12 +5,12 @@ use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
 
-use crate::{element_by_selector, models::Module, s, tucan::Tucan, url::{Moduledetails, ToTucanUrl}};
+use crate::{element_by_selector, models::Module, s, tucan::Tucan, url::{Moduledetails, ToTucanUrl, Registration, TucanUrl, parse_tucan_url}};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TucanSession {
-    pub tucan_nr: u64,
-    pub tucan_id: String,
+    pub nr: u64,
+    pub id: String,
 }
 
 #[derive(Clone)]
@@ -19,17 +19,17 @@ pub struct TucanUser {
     pub session: TucanSession,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum RegistrationEnum {
-    Submenu(Vec<(String, String)>),
-    Modules(Vec<(String, String)>), // TODO types
+    Submenu(Vec<Registration>),
+    Modules(Vec<Moduledetails>),
 }
 
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         let _normalized_url = url.to_string();
 
-        let cookie = format!("cnsc={}", self.session.tucan_id);
+        let cookie = format!("cnsc={}", self.session.id);
 
         let a = self.tucan.client.get(url);
         let mut b = a.build().unwrap();
@@ -113,18 +113,10 @@ impl TucanUser {
             (_, Some(list)) => Ok(RegistrationEnum::Modules(
                 list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                     .map(|e| {
-                        (
-                            e.text()
-                                .map(str::to_string)
-                                .reduce(|a, b| a + &b)
-                                .unwrap_or_default()
-                                .trim()
-                                .to_string(),
-                            format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                e.value().attr("href").unwrap()
-                            ),
-                        )
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            e.value().attr("href").unwrap()
+                        )).into()
                     })
                     .collect(),
             )),
@@ -132,18 +124,10 @@ impl TucanUser {
                 Ok(RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
                         .map(|e| {
-                            (
-                                e.text()
-                                    .map(str::to_string)
-                                    .reduce(|a, b| a + &b)
-                                    .unwrap_or_default()
-                                    .trim()
-                                    .to_string(),
-                                format!(
+                            parse_tucan_url(&format!(
                                     "https://www.tucan.tu-darmstadt.de{}",
                                     e.value().attr("href").unwrap()
-                                ),
-                            )
+                                )).into()
                         })
                         .collect(),
                 ))

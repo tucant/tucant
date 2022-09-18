@@ -5,9 +5,11 @@ use std::{
 };
 
 use enum_dispatch::enum_dispatch;
+use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
 #[derive(PartialEq, Eq, Debug)]
+#[enum_dispatch]
 pub enum TucanUrl {
     Unauthenticated {
         url: UnauthenticatedTucanUrl,
@@ -22,10 +24,10 @@ pub enum TucanUrl {
     },
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum UnauthenticatedTucanUrl {}
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum MaybeAuthenticatedTucanUrl {
     StartpageDispatch,
     Externalpages { id: u64, name: String },
@@ -36,7 +38,7 @@ pub trait ToTucanUrl {
     fn to_tucan_url(&self) -> String;
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Moduledetails {
     pub id: u64,
 }
@@ -47,7 +49,7 @@ impl ToTucanUrl for Moduledetails {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Registration {
     pub path: Option<[u64; 4]>,
 }
@@ -58,7 +60,7 @@ impl ToTucanUrl for Registration {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Mlsstart;
 
 impl ToTucanUrl for Mlsstart {
@@ -67,7 +69,7 @@ impl ToTucanUrl for Mlsstart {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Mymodules;
 
 impl ToTucanUrl for Mymodules {
@@ -76,7 +78,7 @@ impl ToTucanUrl for Mymodules {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Profcourses;
 
 impl ToTucanUrl for Profcourses {
@@ -85,7 +87,7 @@ impl ToTucanUrl for Profcourses {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Studentchoicecourses;
 
 impl ToTucanUrl for Studentchoicecourses {
@@ -94,7 +96,7 @@ impl ToTucanUrl for Studentchoicecourses {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Myexams;
 
 impl ToTucanUrl for Myexams {
@@ -103,7 +105,7 @@ impl ToTucanUrl for Myexams {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Courseresults;
 
 impl ToTucanUrl for Courseresults {
@@ -112,7 +114,7 @@ impl ToTucanUrl for Courseresults {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Examresults;
 
 impl ToTucanUrl for Examresults {
@@ -121,7 +123,7 @@ impl ToTucanUrl for Examresults {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StudentResult;
 
 impl ToTucanUrl for StudentResult {
@@ -130,7 +132,7 @@ impl ToTucanUrl for StudentResult {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[enum_dispatch]
 pub enum AuthenticatedTucanUrl {
     Mlsstart(Mlsstart),
@@ -190,8 +192,8 @@ fn string<'a>(
     arguments.next().unwrap().string()
 }
 
-pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
-    let url = Url::parse(url)?;
+pub fn parse_tucan_url(url: &str) -> TucanUrl {
+    let url = Url::parse(url).unwrap();
     assert_eq!(
         url.origin(),
         Origin::Tuple(
@@ -224,51 +226,51 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
         "STARTPAGE_DISPATCH" => {
             assert_eq!(number(&mut arguments), 19);
             assert_eq!(number(&mut arguments), 0);
-            Ok(TucanUrl::MaybeAuthenticated {
+            TucanUrl::MaybeAuthenticated {
                 session_nr: session_nr.ok(),
                 url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
-            })
+            }
         }
-        "EXTERNALPAGES" => Ok(TucanUrl::MaybeAuthenticated {
+        "EXTERNALPAGES" => TucanUrl::MaybeAuthenticated {
             session_nr: session_nr.ok(),
             url: MaybeAuthenticatedTucanUrl::Externalpages {
                 id: number(&mut arguments),
                 name: string(&mut arguments).to_string(),
             },
-        }),
+        },
         "MLSSTART" => {
             assert_eq!(number(&mut arguments), 19);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Mlsstart(Mlsstart),
-            })
+            }
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Mymodules(Mymodules),
-            })
+            }
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Profcourses(Profcourses),
-            })
+            }
         }
         "STUDENTCHOICECOURSES" => {
             assert_eq!(number(&mut arguments), 307);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Studentchoicecourses(Studentchoicecourses),
-            })
+            }
         }
         "REGISTRATION" => {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
-                TucanArgument::Number(_) => Ok(TucanUrl::Authenticated {
-                    session_nr: session_nr?,
+                TucanArgument::Number(_) => TucanUrl::Authenticated {
+                    session_nr: session_nr.unwrap(),
                     url: AuthenticatedTucanUrl::Registration(Registration {
                         path: Some([
                             number(&mut arguments),
@@ -277,36 +279,36 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
                             number(&mut arguments),
                         ]),
                     }),
-                }),
+                },
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
-                    Ok(TucanUrl::Authenticated {
-                        session_nr: session_nr?,
+                    TucanUrl::Authenticated {
+                        session_nr: session_nr.unwrap(),
                         url: AuthenticatedTucanUrl::Registration(Registration { path: None }),
-                    })
+                    }
                 }
             }
         }
         "MYEXAMS" => {
             assert_eq!(number(&mut arguments), 318);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Myexams(Myexams),
-            })
+            }
         }
         "COURSERESULTS" => {
             assert_eq!(number(&mut arguments), 324);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Courseresults(Courseresults),
-            })
+            }
         }
         "EXAMRESULTS" => {
             assert_eq!(number(&mut arguments), 325);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Examresults(Examresults),
-            })
+            }
         }
         "STUDENT_RESULT" => {
             assert_eq!(number(&mut arguments), 316);
@@ -316,37 +318,30 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::StudentResult(StudentResult),
-            })
+            }
         }
         "MODULEDETAILS" => {
             assert_eq!(number(&mut arguments), 311);
-            let result = Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
+            let result = TucanUrl::Authenticated {
+                session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Moduledetails(Moduledetails {
                     id: number(&mut arguments),
                 }),
-            });
+            };
             string(&mut arguments);
             result
         }
         other => {
-            return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into())
+            panic!("invalid appname: {}", other);
         }
     };
 
-    let mut peekable = arguments.peekable();
-    if peekable.peek().is_some() {
-        return Err(Error::new(
-            ErrorKind::Other,
-            format!("too many arguments {:?}", peekable.collect::<Vec<_>>()),
-        )
-        .into());
+    if arguments.peek().is_some() {
+        panic!("too many arguments {:?}", arguments.collect::<Vec<_>>())
     }
-
-    println!("{:?}", result);
 
     result
 }
@@ -367,46 +362,46 @@ mod tests {
         );*/
 
         // unauthenticated start page
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome");
 
         // authenticated start page
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N707546050471776,-N000019,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N707546050471776,-N000019,");
 
         // Veranstaltungen
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000273,-Astudveranst%2Ehtml")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000273,-Astudveranst%2Ehtml");
 
         // Veranstaltungen -> Meine Module
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N428926119975172,-N000275,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N428926119975172,-N000275,");
 
         // Veranstaltungen -> Meine Veranstaltungen
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N428926119975172,-N000274,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N428926119975172,-N000274,");
 
         // Veranstaltungen -> Meine Wahlbereiche
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N428926119975172,-N000307,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N428926119975172,-N000307,");
 
         // Veranstaltungen -> Anmeldung
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N428926119975172,-N000311,-A")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N428926119975172,-N000311,-A");
 
         // Veranstaltungen -> Anmeldung -> Pflichtbereich
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N988222970824392,-N000311,-N376333755785484,-N0,-N356173456785530,-N000000000000000");
 
         // Prüfungen
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000280,-Astudpruefungen%2Ehtml")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000280,-Astudpruefungen%2Ehtml");
 
         // Prüfungen -> Meine Prüfungen
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N428926119975172,-N000318,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N428926119975172,-N000318,");
 
         // Prüfungen -> Semesterergebnisse
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000323,-Astudergebnis%2Ehtml")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000323,-Astudergebnis%2Ehtml");
 
         // Prüfungen -> Semesterergebnisse -> Modulergebnisse
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N428926119975172,-N000324,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N428926119975172,-N000324,");
 
         // Prüfungen -> Semesterergebnisse -> Prüfungsergebnisse
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N428926119975172,-N000325,")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N428926119975172,-N000325,");
 
         // Prüfungen -> Leistungsspiegel
-        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N428926119975172,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000")?;
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N428926119975172,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000");
 
         // Moduldetails
 
