@@ -1,10 +1,13 @@
 use std::{
     collections::HashMap,
+    fmt::Display,
     io::{Error, ErrorKind},
-    iter::{Peekable, self},
+    iter::{self, Peekable},
 };
+use itertools::Itertools;
+use either::*;
 
-use derive_more::{TryInto, From};
+use derive_more::{From, TryInto};
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
@@ -51,10 +54,8 @@ pub struct Myexams;
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Courseresults;
 
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Examresults;
-
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StudentResult;
@@ -77,12 +78,17 @@ pub enum TucanProgram {
 
 impl TucanProgram {
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
-        let args = match self {
+        let (progname, args) = match self {
             TucanProgram::Mlsstart(_) => todo!(),
             TucanProgram::Mymodules(_) => todo!(),
             TucanProgram::Profcourses(_) => todo!(),
             TucanProgram::Studentchoicecourses(_) => todo!(),
-            TucanProgram::Registration(Registration { path }) => [TucanArgument::Number(311), TucanArgument::String("")].iter().chain(path.map_or(iter::empty(), |v| v.map(|e| TucanArgument::Number(e)))),
+            TucanProgram::Registration(Registration { path }) => (
+                "REGISTRATION",
+                [TucanArgument::Number(311), TucanArgument::String("")]
+                    .into_iter()
+                    .chain(path.map_or(Left(iter::empty()), |v| Right(v.into_iter().map(|e| TucanArgument::Number(e))))),
+            ),
             TucanProgram::Myexams(_) => todo!(),
             TucanProgram::Courseresults(_) => todo!(),
             TucanProgram::Examresults(_) => todo!(),
@@ -91,11 +97,11 @@ impl TucanProgram {
             TucanProgram::StartpageDispatch(_) => todo!(),
             TucanProgram::Externalpages(_) => todo!(),
         };
-        
-        format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},", session_nr.unwrap_or(1))
+        let args = args.format(", ");
+
+        format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME={}&ARGUMENTS=-N{},{}", session_nr.unwrap_or(1), progname, args)
     }
 }
-
 
 #[derive(Debug)]
 pub enum TucanArgument<'a> {
@@ -115,6 +121,15 @@ impl<'a> TucanArgument<'a> {
         match self {
             TucanArgument::String(string) => string,
             _ => panic!(),
+        }
+    }
+}
+
+impl Display for TucanArgument<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TucanArgument::Number(v) => write!(f, "-N{}", v),
+            TucanArgument::String(v) => write!(f, "-A{}", v),
         }
     }
 }
@@ -176,25 +191,24 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         "STARTPAGE_DISPATCH" => {
             assert_eq!(number(&mut arguments), 19);
             assert_eq!(number(&mut arguments), 0);
- 
+
             TucanProgram::StartpageDispatch(StartpageDispatch)
         }
         "EXTERNALPAGES" => TucanProgram::Externalpages(Externalpages {
-                id: number(&mut arguments),
-                name: string(&mut arguments).to_string(),
+            id: number(&mut arguments),
+            name: string(&mut arguments).to_string(),
         }),
         "MLSSTART" => {
             assert_eq!(number(&mut arguments), 19);
             TucanProgram::Mlsstart(Mlsstart)
-            
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
-             TucanProgram::Mymodules(Mymodules)
+            TucanProgram::Mymodules(Mymodules)
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
-             TucanProgram::Profcourses(Profcourses)
+            TucanProgram::Profcourses(Profcourses)
         }
         "STUDENTCHOICECOURSES" => {
             assert_eq!(number(&mut arguments), 307);
@@ -204,30 +218,30 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
                 TucanArgument::Number(_) => TucanProgram::Registration(Registration {
-                        path: Some([
-                            number(&mut arguments),
-                            number(&mut arguments),
-                            number(&mut arguments),
-                            number(&mut arguments),
-                        ])
+                    path: Some([
+                        number(&mut arguments),
+                        number(&mut arguments),
+                        number(&mut arguments),
+                        number(&mut arguments),
+                    ]),
                 }),
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
-                     TucanProgram::Registration(Registration { path: None })
+                    TucanProgram::Registration(Registration { path: None })
                 }
             }
         }
         "MYEXAMS" => {
             assert_eq!(number(&mut arguments), 318);
-             TucanProgram::Myexams(Myexams)
+            TucanProgram::Myexams(Myexams)
         }
         "COURSERESULTS" => {
             assert_eq!(number(&mut arguments), 324);
-             TucanProgram::Courseresults(Courseresults)
+            TucanProgram::Courseresults(Courseresults)
         }
         "EXAMRESULTS" => {
             assert_eq!(number(&mut arguments), 325);
-             TucanProgram::Examresults(Examresults)
+            TucanProgram::Examresults(Examresults)
         }
         "STUDENT_RESULT" => {
             assert_eq!(number(&mut arguments), 316);
@@ -237,13 +251,13 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-             TucanProgram::StudentResult(StudentResult)
+            TucanProgram::StudentResult(StudentResult)
         }
         "MODULEDETAILS" => {
             assert_eq!(number(&mut arguments), 311);
             let program = TucanProgram::Moduledetails(Moduledetails {
-                    id: number(&mut arguments),
-                });
+                id: number(&mut arguments),
+            });
             string(&mut arguments);
             program
         }

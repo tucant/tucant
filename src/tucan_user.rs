@@ -13,7 +13,7 @@ use crate::{
     models::Module,
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, TucanUrl, TucanProgram},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -38,7 +38,10 @@ impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.id);
 
-        let a = self.tucan.client.get(url.to_tucan_url(Some(self.session.nr)));
+        let a = self
+            .tucan
+            .client
+            .get(url.to_tucan_url(Some(self.session.nr)));
         let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
@@ -123,7 +126,10 @@ impl TucanUser {
                         parse_tucan_url(&format!(
                             "https://www.tucan.tu-darmstadt.de{}",
                             e.value().attr("href").unwrap()
-                        )).program.try_into().unwrap()
+                        ))
+                        .program
+                        .try_into()
+                        .unwrap()
                     })
                     .collect(),
             )),
@@ -134,7 +140,10 @@ impl TucanUser {
                             parse_tucan_url(&format!(
                                 "https://www.tucan.tu-darmstadt.de{}",
                                 e.value().attr("href").unwrap()
-                            )).program.try_into().unwrap()
+                            ))
+                            .program
+                            .try_into()
+                            .unwrap()
                         })
                         .collect(),
                 ))
