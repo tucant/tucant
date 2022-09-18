@@ -3042,6 +3042,7 @@ dependencies = [
  "async-stream",
  "chrono",
  "deadpool",
+ "derive_more",
  "diesel",
  "diesel-async",
  "dotenvy",

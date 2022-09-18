@@ -36,7 +36,7 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
-use tucan_scraper::url::{parse_tucan_url, AuthenticatedTucanUrl, TucanUrl, Registration};
+use tucan_scraper::url::{parse_tucan_url, AuthenticatedTucanUrl, Registration, TucanUrl};
 
 #[derive(Debug)]
 struct MyError {
@@ -105,24 +105,12 @@ async fn fetch_everything(
     try_stream(move |mut stream| async move {
         match value {
             RegistrationEnum::Submenu(value) => {
-                for (title, url) in value {
+                for menu in value {
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
-                    let title_clone = title.clone();
-                    let tucan_url = parse_tucan_url(&url)?;
-
-                    println!("{:?}", tucan_url);
-
-                    let tucan_url = match tucan_url {
-                        TucanUrl::Authenticated {
-                            url: AuthenticatedTucanUrl::Registration(Registration { path }),
-                            ..
-                        } => path,
-                        _ => unreachable!(),
-                    };
 
                     // TODO check if already in DB and cache good
-
+/*
                     let normalized_name = title
                         .to_lowercase()
                         .replace('-', "")
@@ -132,7 +120,7 @@ async fn fetch_everything(
                         .replace('ä', "ae")
                         .replace('ö', "oe")
                         .replace('ü', "ue");
-
+*/
                     let cnt = tucan_clone
                         .tucan
                         .pool
@@ -143,8 +131,8 @@ async fn fetch_everything(
                             async move {
                                 diesel::insert_into(tucan_scraper::schema::module_menu::table)
                                     .values(&ModuleMenu {
-                                        name: title_clone,
-                                        normalized_name,
+                                        name: "".to_string(),
+                                        normalized_name: "".to_string(),
                                         parent: parent_clone,
                                         tucan_id: "test".to_string(),
                                         tucan_last_checked: Utc::now().naive_utc(),
@@ -156,9 +144,9 @@ async fn fetch_everything(
                         })
                         .await?;
 
-                    stream.yield_item(Bytes::from(title)).await;
+                    stream.yield_item(Bytes::from("")).await;
 
-                    let value = tucan.registration(Some(url.clone())).await?;
+                    let value = tucan.registration(Some(menu)).await?;
                     let mut inner_stream =
                         fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
@@ -178,24 +166,14 @@ async fn fetch_everything(
                 }
             }
             RegistrationEnum::Modules(value) => {
-                for (title, url) in value {
+                for module in value {
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
-                    stream.yield_item(Bytes::from(title.clone())).await;
-
-                    let tucan_url = parse_tucan_url(&url)?;
-
-                    let tucan_url = match tucan_url {
-                        TucanUrl::Authenticated {
-                            url: AuthenticatedTucanUrl::Moduledetails(moduledetails),
-                            ..
-                        } => moduledetails,
-                        _ => unreachable!(),
-                    };
+                    stream.yield_item(Bytes::from("")).await;
 
                     // TODO FIXME check if module already fetched and in cache
 
-                    let module = tucan.clone().module(tucan_url).await.unwrap();
+                    let module = tucan.clone().module(module).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?
@@ -287,7 +265,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 #[get("/")]
 async fn index(session: Session) -> Result<impl Responder, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
-        Some(session) => Ok(web::Json(format!("Welcome! {}", session.tucan_nr))),
+        Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
         None => Ok(web::Json("Welcome Anonymous!".to_owned())),
     }
 }
@@ -394,14 +372,12 @@ async fn get_modules<'a>(
             Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
                 menu_result
                     .iter()
-                    .map(|r| (r.name.clone(), r.normalized_name.clone()))
                     .collect::<Vec<_>>(),
             ))))
         } else {
             Ok(Either::Right(web::Json(RegistrationEnum::Modules(
                 module_result
                     .iter()
-                    .map(|r| (r.1.title.clone(), r.1.module_id.clone()))
                     .collect::<Vec<_>>(),
             ))))
         }

@@ -4,36 +4,86 @@ use std::{
     iter::Peekable,
 };
 
+use derive_more::{Into, TryInto};
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
-#[derive(PartialEq, Eq, Debug)]
-#[enum_dispatch]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Unauthenticated {
+    pub url: UnauthenticatedTucanUrl,
+}
+
+impl ToTucanUrl for Unauthenticated {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Authenticated {
+    pub session_nr: u64,
+    pub url: AuthenticatedTucanUrl,
+}
+
+impl ToTucanUrl for Authenticated {
+    fn to_tucan_url(&self) -> String {
+        self.url.to_tucan_url()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct MaybeAuthenticated {
+    pub session_nr: Option<u64>,
+    pub url: MaybeAuthenticatedTucanUrl,
+}
+
+impl ToTucanUrl for MaybeAuthenticated {
+    fn to_tucan_url(&self) -> String {
+        self.url.to_tucan_url()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[enum_dispatch(ToTucanUrl)]
 pub enum TucanUrl {
-    Unauthenticated {
-        url: UnauthenticatedTucanUrl,
-    },
-    Authenticated {
-        session_nr: u64,
-        url: AuthenticatedTucanUrl,
-    },
-    MaybeAuthenticated {
-        session_nr: Option<u64>,
-        url: MaybeAuthenticatedTucanUrl,
-    },
+    Unauthenticated(Unauthenticated),
+    Authenticated(Authenticated),
+    MaybeAuthenticated(MaybeAuthenticated),
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum UnauthenticatedTucanUrl {}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[enum_dispatch(ToTucanUrl)]
 pub enum MaybeAuthenticatedTucanUrl {
-    StartpageDispatch,
-    Externalpages { id: u64, name: String },
+    StartpageDispatch(StartpageDispatch),
+    Externalpages(Externalpages),
 }
 
-#[enum_dispatch(AuthenticatedTucanUrl)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct StartpageDispatch;
+
+impl ToTucanUrl for StartpageDispatch {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Externalpages {
+    id: u64,
+    name: String,
+}
+
+impl ToTucanUrl for Externalpages {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[enum_dispatch]
 pub trait ToTucanUrl {
     fn to_tucan_url(&self) -> String;
 }
@@ -56,6 +106,8 @@ pub struct Registration {
 
 impl ToTucanUrl for Registration {
     fn to_tucan_url(&self) -> String {
+        //         let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.nr));
+
         "".to_string()
     }
 }
@@ -133,7 +185,7 @@ impl ToTucanUrl for StudentResult {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-#[enum_dispatch]
+#[enum_dispatch(ToTucanUrl)]
 pub enum AuthenticatedTucanUrl {
     Mlsstart(Mlsstart),
     Mymodules(Mymodules),
@@ -226,50 +278,50 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         "STARTPAGE_DISPATCH" => {
             assert_eq!(number(&mut arguments), 19);
             assert_eq!(number(&mut arguments), 0);
-            TucanUrl::MaybeAuthenticated {
+            TucanUrl::MaybeAuthenticated(MaybeAuthenticated {
                 session_nr: session_nr.ok(),
-                url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
-            }
+                url: MaybeAuthenticatedTucanUrl::StartpageDispatch(StartpageDispatch),
+            })
         }
-        "EXTERNALPAGES" => TucanUrl::MaybeAuthenticated {
+        "EXTERNALPAGES" => TucanUrl::MaybeAuthenticated(MaybeAuthenticated {
             session_nr: session_nr.ok(),
-            url: MaybeAuthenticatedTucanUrl::Externalpages {
+            url: MaybeAuthenticatedTucanUrl::Externalpages(Externalpages {
                 id: number(&mut arguments),
                 name: string(&mut arguments).to_string(),
-            },
-        },
+            }),
+        }),
         "MLSSTART" => {
             assert_eq!(number(&mut arguments), 19);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Mlsstart(Mlsstart),
-            }
+            })
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Mymodules(Mymodules),
-            }
+            })
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Profcourses(Profcourses),
-            }
+            })
         }
         "STUDENTCHOICECOURSES" => {
             assert_eq!(number(&mut arguments), 307);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Studentchoicecourses(Studentchoicecourses),
-            }
+            })
         }
         "REGISTRATION" => {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
-                TucanArgument::Number(_) => TucanUrl::Authenticated {
+                TucanArgument::Number(_) => TucanUrl::Authenticated(Authenticated {
                     session_nr: session_nr.unwrap(),
                     url: AuthenticatedTucanUrl::Registration(Registration {
                         path: Some([
@@ -279,36 +331,36 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                             number(&mut arguments),
                         ]),
                     }),
-                },
+                }),
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
-                    TucanUrl::Authenticated {
+                    TucanUrl::Authenticated(Authenticated {
                         session_nr: session_nr.unwrap(),
                         url: AuthenticatedTucanUrl::Registration(Registration { path: None }),
-                    }
+                    })
                 }
             }
         }
         "MYEXAMS" => {
             assert_eq!(number(&mut arguments), 318);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Myexams(Myexams),
-            }
+            })
         }
         "COURSERESULTS" => {
             assert_eq!(number(&mut arguments), 324);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Courseresults(Courseresults),
-            }
+            })
         }
         "EXAMRESULTS" => {
             assert_eq!(number(&mut arguments), 325);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Examresults(Examresults),
-            }
+            })
         }
         "STUDENT_RESULT" => {
             assert_eq!(number(&mut arguments), 316);
@@ -318,19 +370,19 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            TucanUrl::Authenticated {
+            TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::StudentResult(StudentResult),
-            }
+            })
         }
         "MODULEDETAILS" => {
             assert_eq!(number(&mut arguments), 311);
-            let result = TucanUrl::Authenticated {
+            let result = TucanUrl::Authenticated(Authenticated {
                 session_nr: session_nr.unwrap(),
                 url: AuthenticatedTucanUrl::Moduledetails(Moduledetails {
                     id: number(&mut arguments),
                 }),
-            };
+            });
             string(&mut arguments);
             result
         }

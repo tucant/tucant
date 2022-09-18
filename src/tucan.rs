@@ -9,7 +9,7 @@ use reqwest::{Client, Url};
 use crate::{
     create_pool,
     tucan_user::{TucanSession, TucanUser},
-    url::{parse_tucan_url, TucanUrl},
+    url::{parse_tucan_url, TucanUrl, MaybeAuthenticated},
 };
 
 #[derive(Clone)]
@@ -72,21 +72,21 @@ impl Tucan {
                 &refresh_header.unwrap().to_str()?[7..]
             );
 
-            let url = parse_tucan_url(redirect_url)?;
+            let url = parse_tucan_url(redirect_url);
 
-            if let TucanUrl::MaybeAuthenticated {
-                session_nr: Some(tucan_nr),
+            if let TucanUrl::MaybeAuthenticated(MaybeAuthenticated {
+                session_nr: Some(nr),
                 ..
-            } = url
+            }) = url
             {
                 let session_cookie = res_headers.cookies().next().unwrap();
-                let tucan_id = session_cookie.value().to_string();
+                let id = session_cookie.value().to_string();
 
                 res_headers.text().await?;
 
                 return Ok(TucanUser {
                     tucan: self.clone(),
-                    session: TucanSession { tucan_id, tucan_nr },
+                    session: TucanSession { id, nr },
                 });
             } else {
                 panic!("Failed to extract session_nr");

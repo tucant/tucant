@@ -1,11 +1,20 @@
-use std::io::{Error, ErrorKind};
+use std::{
+    convert::TryInto,
+    io::{Error, ErrorKind},
+};
 
 use chrono::Utc;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
 
-use crate::{element_by_selector, models::Module, s, tucan::Tucan, url::{Moduledetails, ToTucanUrl, Registration, TucanUrl, parse_tucan_url}};
+use crate::{
+    element_by_selector,
+    models::Module,
+    s,
+    tucan::Tucan,
+    url::{parse_tucan_url, Authenticated, Moduledetails, Registration, ToTucanUrl, TucanUrl},
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TucanSession {
@@ -26,12 +35,10 @@ pub enum RegistrationEnum {
 }
 
 impl TucanUser {
-    pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
-        let _normalized_url = url.to_string();
-
+    pub(crate) async fn fetch_document(&self, url: &impl ToTucanUrl) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.id);
 
-        let a = self.tucan.client.get(url);
+        let a = self.tucan.client.get(url.to_tucan_url());
         let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
@@ -52,7 +59,7 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
-        let document = self.fetch_document(&url.to_tucan_url()).await?;
+        let document = self.fetch_document(&url).await?;
 
         let name = element_by_selector(&document, "h1").unwrap();
 
@@ -100,8 +107,8 @@ impl TucanUser {
         })
     }
 
-    async fn traverse_module_list(&self, url: &str) -> anyhow::Result<RegistrationEnum> {
-        let document = self.fetch_document(url).await?;
+    async fn traverse_module_list(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
+        let document = self.fetch_document(&url).await?;
 
         // list of subcategories
         let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
@@ -113,10 +120,14 @@ impl TucanUser {
             (_, Some(list)) => Ok(RegistrationEnum::Modules(
                 list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                     .map(|e| {
-                        parse_tucan_url(&format!(
+                        TryInto::<Authenticated>::try_into(parse_tucan_url(&format!(
                             "https://www.tucan.tu-darmstadt.de{}",
                             e.value().attr("href").unwrap()
-                        )).into()
+                        )))
+                        .unwrap()
+                        .url
+                        .try_into()
+                        .unwrap()
                     })
                     .collect(),
             )),
@@ -124,10 +135,14 @@ impl TucanUser {
                 Ok(RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
                         .map(|e| {
-                            parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    e.value().attr("href").unwrap()
-                                )).into()
+                            TryInto::<Authenticated>::try_into(parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.value().attr("href").unwrap()
+                            )))
+                            .unwrap()
+                            .url
+                            .try_into()
+                            .unwrap()
                         })
                         .collect(),
                 ))
@@ -145,14 +160,14 @@ impl TucanUser {
                 */
             }
             _ => {
-                panic!("{} {}", url, document.root_element().html())
+                panic!("{:?} {}", url, document.root_element().html())
             }
         }
     }
 
-    pub async fn registration(&self, url: Option<String>) -> anyhow::Result<RegistrationEnum> {
-        let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.tucan_nr));
-
-        self.traverse_module_list(&url).await
+    pub async fn registration(&self, url: Option<Registration>) -> anyhow::Result<RegistrationEnum> {
+        self.traverse_module_list(url.unwrap_or(Registration {
+            path: None
+        })).await
     }
 }
