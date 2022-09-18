@@ -2,17 +2,17 @@
 
 diesel::table! {
     module_menu (tucan_id) {
-        tucan_id -> Array<Nullable<Int4>>,
+        tucan_id -> Array<Int4>,
         tucan_last_checked -> Timestamptz,
         name -> Text,
         normalized_name -> Text,
-        parent -> Nullable<Array<Nullable<Int4>>>,
+        parent -> Nullable<Array<Int4>>,
     }
 }
 
 diesel::table! {
     module_menu_module (module_menu_id, module_id) {
-        module_menu_id -> Array<Nullable<Int4>>,
+        module_menu_id -> Array<Int4>,
         module_id -> Int4,
     }
 }
