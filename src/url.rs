@@ -77,7 +77,7 @@ pub enum TucanProgram {
 
 impl TucanProgram {
     pub fn to_tucan_url(&self, session_nr: Option<i64>) -> String {
-        let (progname, args) = match self {
+        let (progname, args): (&str, Box<dyn Iterator<Item=TucanArgument>>) = match self {
             TucanProgram::Mlsstart(_) => todo!(),
             TucanProgram::Mymodules(_) => todo!(),
             TucanProgram::Profcourses(_) => todo!(),
@@ -85,12 +85,12 @@ impl TucanProgram {
             TucanProgram::Registration(Registration { path }) => (
                 "REGISTRATION",
                 match path {
-                    Some(path) => Left(
+                    Some(path) => Box::new(
                         iter::once(TucanArgument::Number(311))
                             .chain(path.into_iter().map(|v| TucanArgument::Number(*v))),
                     ),
                     None => {
-                        Right([TucanArgument::Number(311), TucanArgument::String("")].into_iter())
+                        Box::new([TucanArgument::Number(311), TucanArgument::String("")].into_iter())
                     }
                 },
             ),
@@ -98,7 +98,7 @@ impl TucanProgram {
             TucanProgram::Courseresults(_) => todo!(),
             TucanProgram::Examresults(_) => todo!(),
             TucanProgram::StudentResult(_) => todo!(),
-            TucanProgram::Moduledetails(_) => todo!(),
+            TucanProgram::Moduledetails(Moduledetails { id }) => ("MODULEDETAILS", Box::new([TucanArgument::Number(311), TucanArgument::Number(*id)].into_iter())),
             TucanProgram::StartpageDispatch(_) => todo!(),
             TucanProgram::Externalpages(_) => todo!(),
         };

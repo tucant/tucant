@@ -156,7 +156,7 @@ async fn fetch_everything(
                         })
                         .await?;
 
-                    stream.yield_item(Bytes::from("")).await;
+                    stream.yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap()))).await;
 
                     let value = tucan.registration(Some(menu)).await?;
                     let mut inner_stream =
@@ -181,7 +181,7 @@ async fn fetch_everything(
                 for module in value {
                     let tucan_clone = tucan.clone();
                     let parent_clone = parent.clone();
-                    stream.yield_item(Bytes::from("")).await;
+                    stream.yield_item(Bytes::from(format!("module {}", module.id))).await;
 
                     // TODO FIXME check if module already fetched and in cache
 
