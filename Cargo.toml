@@ -13,7 +13,7 @@ tokio = { version = "1", features = ["full"] }
 html5ever = "0.26"
 scraper = "0.13"
 futures = "0.3"
-diesel = { version = "2.0.0", features = ["postgres", "chrono", "nightly-error-messages"] }
+diesel = { version = "2", features = ["postgres", "chrono", "nightly-error-messages"] }
 diesel-async = { git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"] }
 dotenvy = "0.15"
 anyhow = { version = "1", features = ["backtrace"] }
@@ -27,6 +27,6 @@ serde_json = "1"
 async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro" }
 chrono = { version = "0.4", features = ["serde"] }
 deadpool = "0.9"
-url = "2.3.1"
+url = "2"
 log = "0.4"
 env_logger = "0.9"

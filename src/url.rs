@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{Error, ErrorKind},
+    iter::Peekable,
 };
 
 use url::{Host, Origin, Url};
@@ -35,7 +36,7 @@ pub enum AuthenticatedTucanUrl {
     Mymodules,
     Profcourses,
     Studentchoicecourses,
-    Registration,
+    Registration { path: Option<[u64; 4]> },
     Myexams,
     Courseresults,
     Examresults,
@@ -64,12 +65,17 @@ impl<'a> TucanArgument<'a> {
     }
 }
 
-pub fn parse_arguments(arguments: &str) -> impl Iterator<Item = TucanArgument> + std::fmt::Debug {
-    arguments.split_terminator(',').map(|a| match a.get(0..2) {
-        Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
-        Some("-A") => TucanArgument::String(&a[2..]),
-        _ => panic!(),
-    })
+pub fn parse_arguments(
+    arguments: &str,
+) -> Peekable<impl Iterator<Item = TucanArgument> + std::fmt::Debug> {
+    arguments
+        .split_terminator(',')
+        .map(|a| match a.get(0..2) {
+            Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
+            Some("-A") => TucanArgument::String(&a[2..]),
+            _ => panic!(),
+        })
+        .peekable()
 }
 
 fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> u64 {
@@ -158,11 +164,26 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
         }
         "REGISTRATION" => {
             assert_eq!(number(&mut arguments), 311);
-            assert_eq!(string(&mut arguments), "");
-            Ok(TucanUrl::Authenticated {
-                session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Registration,
-            })
+            match arguments.peek().unwrap() {
+                TucanArgument::Number(_) => Ok(TucanUrl::Authenticated {
+                    session_nr: session_nr?,
+                    url: AuthenticatedTucanUrl::Registration {
+                        path: Some([
+                            number(&mut arguments),
+                            number(&mut arguments),
+                            number(&mut arguments),
+                            number(&mut arguments),
+                        ]),
+                    },
+                }),
+                TucanArgument::String(_) => {
+                    assert_eq!(string(&mut arguments), "");
+                    Ok(TucanUrl::Authenticated {
+                        session_nr: session_nr?,
+                        url: AuthenticatedTucanUrl::Registration { path: None },
+                    })
+                }
+            }
         }
         "MYEXAMS" => {
             assert_eq!(number(&mut arguments), 318);
@@ -252,6 +273,9 @@ mod tests {
 
         // Veranstaltungen -> Anmeldung
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N428926119975172,-N000311,-A")?;
+
+        // Veranstaltungen -> Anmeldung -> Pflichtbereich
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N988222970824392,-N000311,-N376333755785484,-N0,-N356173456785530,-N000000000000000");
 
         // Prüfungen
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N428926119975172,-N000280,-Astudpruefungen%2Ehtml")?;

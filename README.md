@@ -17,6 +17,8 @@ echo DATABASE_URL=postgres://postgres:password@localhost/postgres > .env
 diesel setup
 
 RUST_BACKTRACE=1 RUST_LOG=actix_server=debug cargo run
+
+RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 ```
 
 ## Interesting queries
