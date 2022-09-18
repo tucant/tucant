@@ -36,7 +36,7 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
-use tucan_scraper::url::{parse_tucan_url, AuthenticatedTucanUrl, TucanUrl};
+use tucan_scraper::url::{parse_tucan_url, AuthenticatedTucanUrl, TucanUrl, Registration};
 
 #[derive(Debug)]
 struct MyError {
@@ -115,7 +115,7 @@ async fn fetch_everything(
 
                     let tucan_url = match tucan_url {
                         TucanUrl::Authenticated {
-                            url: AuthenticatedTucanUrl::Registration { path },
+                            url: AuthenticatedTucanUrl::Registration(Registration { path }),
                             ..
                         } => path,
                         _ => unreachable!(),

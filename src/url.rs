@@ -32,7 +32,7 @@ pub enum MaybeAuthenticatedTucanUrl {
 }
 
 #[enum_dispatch(AuthenticatedTucanUrl)]
-trait ToTucanUrl {
+pub trait ToTucanUrl {
     fn to_tucan_url(&self) -> String;
 }
 

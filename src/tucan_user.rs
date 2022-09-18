@@ -5,7 +5,7 @@ use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
 
-use crate::{element_by_selector, models::Module, s, tucan::Tucan, url::Moduledetails};
+use crate::{element_by_selector, models::Module, s, tucan::Tucan, url::{Moduledetails, ToTucanUrl}};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TucanSession {
@@ -52,7 +52,7 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
-        let document = self.fetch_document(url.to_tucan_url()).await?;
+        let document = self.fetch_document(&url.to_tucan_url()).await?;
 
         let name = element_by_selector(&document, "h1").unwrap();
 
