@@ -187,15 +187,15 @@ async fn fetch_everything(
 
                     let tucan_url = match tucan_url {
                         TucanUrl::Authenticated {
-                            url: AuthenticatedTucanUrl::Moduledetails { id },
+                            url: AuthenticatedTucanUrl::Moduledetails(moduledetails),
                             ..
-                        } => id,
+                        } => moduledetails,
                         _ => unreachable!(),
                     };
 
                     // TODO FIXME check if module already fetched and in cache
 
-                    let module = tucan.clone().module(&url).await.unwrap();
+                    let module = tucan.clone().module(tucan_url).await.unwrap();
 
                     // TODO FIXME warn if module already existed as that suggests recursive dependency
                     // TODO normalize url in a way that this can use cached data?

@@ -4,6 +4,7 @@ use std::{
     iter::Peekable,
 };
 
+use enum_dispatch::enum_dispatch;
 use url::{Host, Origin, Url};
 
 #[derive(PartialEq, Eq, Debug)]
@@ -31,17 +32,31 @@ pub enum MaybeAuthenticatedTucanUrl {
 }
 
 #[derive(PartialEq, Eq, Debug)]
+pub struct Moduledetails {
+    pub id: u64
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Registration { pub path: Option<[u64; 4]> }
+
+#[enum_dispatch(AuthenticatedTucanUrl)]
+trait MyBehavior {
+    fn to_tucan_url(&self) -> String;
+}
+
+#[derive(PartialEq, Eq, Debug)]
+#[enum_dispatch]
 pub enum AuthenticatedTucanUrl {
     Mlsstart,
     Mymodules,
     Profcourses,
     Studentchoicecourses,
-    Registration { path: Option<[u64; 4]> },
+    Registration(Registration),
     Myexams,
     Courseresults,
     Examresults,
     StudentResult,
-    Moduledetails { id: u64 },
+    Moduledetails(Moduledetails)
 }
 
 #[derive(Debug)]
