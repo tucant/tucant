@@ -39,7 +39,6 @@ use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 
-
 #[derive(Debug)]
 struct MyError {
     err: anyhow::Error,
@@ -330,7 +329,11 @@ async fn get_modules<'a>(
 
         let module_result = module_menu_module
             .inner_join(modules)
-            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_scraper::schema::modules::module_id.eq(module)))
+            .filter(
+                module_menu_id
+                    .eq(parent.unwrap())
+                    .and(tucan_scraper::schema::modules::module_id.eq(module)),
+            )
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
             .await?
             .into_iter()

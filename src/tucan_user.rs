@@ -161,7 +161,12 @@ impl TucanUser {
                 */
             }
             _ => {
-                panic!("{:?} {} {}", url.clone(), Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)), document.root_element().html())
+                panic!(
+                    "{:?} {} {}",
+                    url.clone(),
+                    Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)),
+                    document.root_element().html()
+                )
             }
         }
     }
