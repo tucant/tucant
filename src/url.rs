@@ -38,7 +38,7 @@ trait ToTucanUrl {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Moduledetails {
-    pub id: u64
+    pub id: u64,
 }
 
 impl ToTucanUrl for Moduledetails {
@@ -48,8 +48,9 @@ impl ToTucanUrl for Moduledetails {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Registration { pub path: Option<[u64; 4]> }
-
+pub struct Registration {
+    pub path: Option<[u64; 4]>,
+}
 
 impl ToTucanUrl for Registration {
     fn to_tucan_url(&self) -> String {
@@ -141,7 +142,7 @@ pub enum AuthenticatedTucanUrl {
     Courseresults(Courseresults),
     Examresults(Examresults),
     StudentResult(StudentResult),
-    Moduledetails(Moduledetails)
+    Moduledetails(Moduledetails),
 }
 
 #[derive(Debug)]
@@ -239,28 +240,28 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
             assert_eq!(number(&mut arguments), 19);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Mlsstart,
+                url: AuthenticatedTucanUrl::Mlsstart(Mlsstart),
             })
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Mymodules,
+                url: AuthenticatedTucanUrl::Mymodules(Mymodules),
             })
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Profcourses,
+                url: AuthenticatedTucanUrl::Profcourses(Profcourses),
             })
         }
         "STUDENTCHOICECOURSES" => {
             assert_eq!(number(&mut arguments), 307);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Studentchoicecourses,
+                url: AuthenticatedTucanUrl::Studentchoicecourses(Studentchoicecourses),
             })
         }
         "REGISTRATION" => {
@@ -268,20 +269,20 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
             match arguments.peek().unwrap() {
                 TucanArgument::Number(_) => Ok(TucanUrl::Authenticated {
                     session_nr: session_nr?,
-                    url: AuthenticatedTucanUrl::Registration {
+                    url: AuthenticatedTucanUrl::Registration(Registration {
                         path: Some([
                             number(&mut arguments),
                             number(&mut arguments),
                             number(&mut arguments),
                             number(&mut arguments),
                         ]),
-                    },
+                    }),
                 }),
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
                     Ok(TucanUrl::Authenticated {
                         session_nr: session_nr?,
-                        url: AuthenticatedTucanUrl::Registration { path: None },
+                        url: AuthenticatedTucanUrl::Registration(Registration { path: None }),
                     })
                 }
             }
@@ -290,21 +291,21 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
             assert_eq!(number(&mut arguments), 318);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Myexams,
+                url: AuthenticatedTucanUrl::Myexams(Myexams),
             })
         }
         "COURSERESULTS" => {
             assert_eq!(number(&mut arguments), 324);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Courseresults,
+                url: AuthenticatedTucanUrl::Courseresults(Courseresults),
             })
         }
         "EXAMRESULTS" => {
             assert_eq!(number(&mut arguments), 325);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Examresults,
+                url: AuthenticatedTucanUrl::Examresults(Examresults),
             })
         }
         "STUDENT_RESULT" => {
@@ -317,16 +318,16 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
             assert_eq!(number(&mut arguments), 0);
             Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::StudentResult,
+                url: AuthenticatedTucanUrl::StudentResult(StudentResult),
             })
         }
         "MODULEDETAILS" => {
             assert_eq!(number(&mut arguments), 311);
             let result = Ok(TucanUrl::Authenticated {
                 session_nr: session_nr?,
-                url: AuthenticatedTucanUrl::Moduledetails {
+                url: AuthenticatedTucanUrl::Moduledetails(Moduledetails {
                     id: number(&mut arguments),
-                },
+                }),
             });
             string(&mut arguments);
             result
