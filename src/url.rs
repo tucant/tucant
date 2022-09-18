@@ -1,11 +1,11 @@
+use either::*;
+use itertools::Itertools;
 use std::{
     collections::HashMap,
     fmt::Display,
     io::{Error, ErrorKind},
     iter::{self, Peekable},
 };
-use itertools::Itertools;
-use either::*;
 
 use derive_more::{From, TryInto};
 use serde::{Deserialize, Serialize};
@@ -87,7 +87,9 @@ impl TucanProgram {
                 "REGISTRATION",
                 [TucanArgument::Number(311), TucanArgument::String("")]
                     .into_iter()
-                    .chain(path.map_or(Left(iter::empty()), |v| Right(v.into_iter().map(|e| TucanArgument::Number(e))))),
+                    .chain(path.map_or(Left(iter::empty()), |v| {
+                        Right(v.into_iter().map(|e| TucanArgument::Number(e)))
+                    })),
             ),
             TucanProgram::Myexams(_) => todo!(),
             TucanProgram::Courseresults(_) => todo!(),
