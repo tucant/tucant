@@ -189,7 +189,7 @@ async fn fetch_registration(
             .await?;
 
         if dsfa == 1 {
-            // TODO FIXME fetch cached registration enum stuff
+            // TODO FIXME fetch cached registration enum stuff and still try subrequests (as we don't fetch recursively first)
         } else {
             let value = tucan.registration(parent).await?;
 
