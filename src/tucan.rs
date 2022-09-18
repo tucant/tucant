@@ -9,7 +9,7 @@ use reqwest::{Client, Url};
 
 use crate::{
     create_pool,
-    tucan_user::TucanUser,
+    tucan_user::{TucanSession, TucanUser},
     url::{parse_tucan_url, TucanUrl},
 };
 
@@ -31,19 +31,14 @@ impl Tucan {
         })
     }
 
-    pub async fn continue_session(
-        &self,
-        session_nr: u64,
-        session_id: String,
-    ) -> anyhow::Result<TucanUser> {
+    pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
         let _url = "https://www.tucan.tu-darmstadt.de/scripts"
             .parse::<Url>()
             .unwrap();
 
         Ok(TucanUser {
             tucan: self.clone(),
-            session_id,
-            session_nr,
+            session,
         })
     }
 
@@ -83,21 +78,20 @@ impl Tucan {
             let url = parse_tucan_url(&redirect_url)?;
 
             if let TucanUrl::MaybeAuthenticated {
-                session_nr: Some(session_nr),
+                session_nr: Some(tucan_nr),
                 ..
             } = url
             {
-                println!("session_nr {}", session_nr);
+                println!("session_nr {}", tucan_nr);
 
                 let session_cookie = res_headers.cookies().next().unwrap();
-                let session_id = session_cookie.value().to_string();
+                let tucan_id = session_cookie.value().to_string();
 
                 res_headers.text().await?;
 
                 return Ok(TucanUser {
                     tucan: self.clone(),
-                    session_id,
-                    session_nr,
+                    session: TucanSession { tucan_id, tucan_nr },
                 });
             } else {
                 return Err(Error::new(ErrorKind::Other, "Failed to extract session_nr").into());

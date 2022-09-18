@@ -3,15 +3,20 @@ use std::io::{Error, ErrorKind};
 use chrono::Utc;
 use reqwest::header::HeaderValue;
 use scraper::Html;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{element_by_selector, models::Module, s, tucan::Tucan};
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct TucanSession {
+    pub tucan_nr: u64,
+    pub tucan_id: String,
+}
 
 #[derive(Clone)]
 pub struct TucanUser {
     pub tucan: Tucan,
-    pub session_id: String,
-    pub session_nr: u64,
+    pub session: TucanSession,
 }
 
 #[derive(Debug, Serialize)]
@@ -24,7 +29,7 @@ impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &str) -> anyhow::Result<Html> {
         let _normalized_url = url.to_string();
 
-        let cookie = format!("cnsc={}", self.session_id);
+        let cookie = format!("cnsc={}", self.session.tucan_id);
 
         let a = self.tucan.client.get(url);
         let mut b = a.build().unwrap();
@@ -162,7 +167,7 @@ impl TucanUser {
     }
 
     pub async fn registration(&self, url: Option<String>) -> anyhow::Result<RegistrationEnum> {
-        let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session_nr));
+        let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.tucan_nr));
 
         self.traverse_module_list(&url).await
     }

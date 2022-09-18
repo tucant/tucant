@@ -36,7 +36,7 @@ use tokio::{
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{RegistrationEnum, TucanUser};
+use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::parse_tucan_url;
 
 #[derive(Debug)]
@@ -64,6 +64,12 @@ impl From<deadpool::managed::PoolError<PoolError>> for MyError {
     }
 }
 
+impl From<diesel::result::Error> for MyError {
+    fn from(err: diesel::result::Error) -> MyError {
+        MyError { err: err.into() }
+    }
+}
+
 #[derive(Deserialize)]
 struct Login {
     username: String,
@@ -82,8 +88,7 @@ async fn login(
     login: web::Json<Login>,
 ) -> Result<impl Responder, MyError> {
     let tucan_user = tucan.login(&login.username, &login.password).await?;
-    session.insert("tucan_nr", tucan_user.session_nr).unwrap();
-    session.insert("tucan_id", tucan_user.session_id).unwrap();
+    session.insert("session", tucan_user.session).unwrap();
     Ok(web::Json(LoginResult { success: true }))
 }
 
@@ -139,18 +144,16 @@ async fn fetch_everything(
                                             tucan_last_checked: Utc::now().naive_utc(),
                                         })
                                         .get_result::<ModuleMenu>(connection)
-                                        .await
-                                        .unwrap(),
+                                        .await?,
                                 )
                             }
                             .boxed()
                         })
-                        .await
-                        .unwrap();
+                        .await?;
 
                     stream.yield_item(Bytes::from(title)).await;
 
-                    let value = tucan.registration(Some(url.clone())).await.unwrap();
+                    let value = tucan.registration(Some(url.clone())).await?;
                     let mut inner_stream =
                         fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
 
@@ -159,8 +162,8 @@ async fn fetch_everything(
                             Some(Ok(value)) => {
                                 stream.yield_item(value).await;
                             }
-                            Some(Err(err)) => {
-                                Err::<(), MyError>(err).unwrap(); // TODO FIXME
+                            Some(err @ Err(_)) => {
+                                err?;
                             }
                             None => {
                                 break;
@@ -191,16 +194,14 @@ async fn fetch_everything(
                         .tucan
                         .pool
                         .get()
-                        .await
-                        .unwrap()
+                        .await?
                         .build_transaction()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
                                 diesel::insert_into(tucan_scraper::schema::modules::table)
                                     .values(&module)
                                     .execute(connection)
-                                    .await
-                                    .unwrap();
+                                    .await?;
 
                                 diesel::insert_into(
                                     tucan_scraper::schema::module_menu_module::table,
@@ -210,14 +211,12 @@ async fn fetch_everything(
                                     module_menu_id: parent_clone.unwrap(),
                                 })
                                 .execute(connection)
-                                .await
-                                .unwrap();
+                                .await?;
                                 Ok(())
                             }
                             .boxed()
                         })
-                        .await
-                        .unwrap();
+                        .await?;
                 }
             }
         }
@@ -228,46 +227,50 @@ async fn fetch_everything(
 
 #[post("/setup")]
 async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
-    let tucan_nr = session.get::<u64>("tucan_nr").unwrap().unwrap();
-    let tucan_id = session.get::<String>("tucan_id").unwrap().unwrap();
+    match session.get::<TucanSession>("session").unwrap() {
+        Some(session) => {
+            let stream = try_stream(move |mut stream| async move {
+                stream
+                    .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
+                    .await;
 
-    let stream = try_stream(move |mut stream| async move {
-        stream
-            .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
-            .await;
+                let tucan = tucan.continue_session(session).await.unwrap();
 
-        let tucan = tucan.continue_session(tucan_nr, tucan_id).await.unwrap();
+                let res = tucan.registration(None).await.unwrap();
 
-        let res = tucan.registration(None).await.unwrap();
+                let mut input = fetch_everything(tucan, None, res).await;
 
-        let mut input = fetch_everything(tucan, None, res).await;
-
-        loop {
-            match input.next().await {
-                Some(Ok(value)) => {
-                    stream.yield_item(value).await;
+                loop {
+                    match input.next().await {
+                        Some(Ok(value)) => {
+                            stream.yield_item(value).await;
+                        }
+                        Some(Err(err)) => {
+                            Err::<(), MyError>(err).unwrap(); // TODO FIXME
+                        }
+                        None => {
+                            break;
+                        }
+                    }
                 }
-                Some(Err(err)) => {
-                    Err::<(), MyError>(err).unwrap(); // TODO FIXME
-                }
-                None => {
-                    break;
-                }
-            }
+
+                stream.yield_item(Bytes::from("Fertig!")).await;
+
+                let return_value: Result<(), Error> = Ok(());
+
+                return_value
+            });
+
+            // TODO FIXME search for <h1>Timeout!</h1>
+
+            Ok(HttpResponse::Ok()
+                .content_type("text/plain")
+                .streaming(stream))
         }
-
-        stream.yield_item(Bytes::from("Fertig!")).await;
-
-        let return_value: Result<(), Error> = Ok(());
-
-        return_value
-    });
-
-    // TODO FIXME search for <h1>Timeout!</h1>
-
-    Ok(HttpResponse::Ok()
-        .content_type("text/plain")
-        .streaming(stream))
+        None => Ok(HttpResponse::Ok()
+            .content_type("text/plain")
+            .body("not logged in")),
+    }
 }
 
 #[get("/")]
