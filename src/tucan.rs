@@ -73,8 +73,6 @@ impl Tucan {
                 &refresh_header.unwrap().to_str()?[7..]
             );
 
-            println!("{}", redirect_url);
-
             let url = parse_tucan_url(&redirect_url)?;
 
             if let TucanUrl::MaybeAuthenticated {
@@ -82,8 +80,6 @@ impl Tucan {
                 ..
             } = url
             {
-                println!("session_nr {}", tucan_nr);
-
                 let session_cookie = res_headers.cookies().next().unwrap();
                 let tucan_id = session_cookie.value().to_string();
 
@@ -94,7 +90,7 @@ impl Tucan {
                     session: TucanSession { tucan_id, tucan_nr },
                 });
             } else {
-                return Err(Error::new(ErrorKind::Other, "Failed to extract session_nr").into());
+                panic!("Failed to extract session_nr");
             }
         }
 

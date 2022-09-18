@@ -51,61 +51,50 @@ pub enum TucanArgument<'a> {
 }
 
 impl<'a> TucanArgument<'a> {
-    pub fn number(&self) -> anyhow::Result<u64> {
+    pub fn number(&self) -> u64 {
         match self {
-            TucanArgument::Number(number) => Ok(*number),
-            _ => Err(Error::new(ErrorKind::Other, format!("not a number: {:?}", self)).into()),
+            TucanArgument::Number(number) => *number,
+            _ => panic!("not a number: {:?}", self),
         }
     }
 
-    pub fn string(&self) -> anyhow::Result<&'a str> {
+    pub fn string(&self) -> &'a str {
         match self {
-            TucanArgument::String(string) => Ok(string),
-            _ => Err(Error::new(ErrorKind::Other, format!("not a string: {:?}", self)).into()),
+            TucanArgument::String(string) => string,
+            _ => panic!("not a string: {:?}", self),
         }
     }
 }
 
 pub fn parse_arguments<'a>(
     arguments: &'a str,
-) -> impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug {
+) -> impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug {
     arguments
         .split_terminator(",")
-        .map(|a| -> anyhow::Result<TucanArgument> {
-            Ok(match a.get(0..2) {
-                Some("-N") => TucanArgument::Number(a[2..].parse::<u64>()?),
+        .map(|a| {
+            match a.get(0..2) {
+                Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
                 Some("-A") => TucanArgument::String(&a[2..]),
                 other => {
-                    return Err(Error::new(
-                        ErrorKind::Other,
-                        format!("invalid argument type: {:?}", other),
-                    )
-                    .into())
+                    panic!("invalid argument type: {:?}", other)
                 }
-            })
+            }
         })
 }
 
 fn number<'a>(
-    arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug),
-) -> Result<u64, anyhow::Error> {
+    arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug),
+) -> u64 {
     arguments
         .next()
-        .ok_or(Error::new(
-            ErrorKind::Other,
-            format!("not enough arguments"),
-        ))??
+        .expect(&format!("not enough arguments"))
         .number()
 }
 
 fn string<'a>(
-    arguments: &mut (impl Iterator<Item = anyhow::Result<TucanArgument<'a>>> + std::fmt::Debug),
-) -> Result<&'a str, anyhow::Error> {
-    let a: TucanArgument<'a> = arguments.next().ok_or(Error::new(
-        ErrorKind::Other,
-        format!("not enough arguments"),
-    ))??;
-    a.string()
+    arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug),
+) -> &'a str {
+    arguments.next().expect(&format!("not enough arguments")).string()
 }
 
 pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
@@ -157,13 +146,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
     let session_nr = if prgname == "ACTION" {
         1
     } else {
-        arguments
-            .next()
-            .ok_or(Error::new(
-                ErrorKind::Other,
-                format!("no session_nr in arguments {:?}", arguments),
-            ))??
-            .number()?
+        number(&mut arguments)
     };
     let session_nr = if session_nr == 1 {
         Err(Error::new(ErrorKind::Other, format!("not logged in")))
@@ -173,14 +156,14 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
 
     let result = match prgname {
         "STARTPAGE_DISPATCH" => {
-            if number(&mut arguments)? != 19 {
+            if number(&mut arguments) != 19 {
                 return Err(Error::new(
                     ErrorKind::Other,
                     format!("unknown STARTPAGE_DISPATCH number"),
                 )
                 .into());
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(Error::new(
                     ErrorKind::Other,
                     format!("unknown STARTPAGE_DISPATCH number"),
@@ -195,12 +178,12 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
         "EXTERNALPAGES" => Ok(TucanUrl::MaybeAuthenticated {
             session_nr: session_nr.ok(),
             url: MaybeAuthenticatedTucanUrl::Externalpages {
-                id: number(&mut arguments)?,
-                name: string(&mut arguments)?.to_string(),
+                id: number(&mut arguments),
+                name: string(&mut arguments).to_string(),
             },
         }),
         "MLSSTART" => {
-            if number(&mut arguments)? != 19 {
+            if number(&mut arguments) != 19 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown mlsstart number")).into(),
                 );
@@ -211,7 +194,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "MYMODULES" => {
-            if number(&mut arguments)? != 275 {
+            if number(&mut arguments) != 275 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown mymodules number")).into(),
                 );
@@ -222,7 +205,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "PROFCOURSES" => {
-            if number(&mut arguments)? != 274 {
+            if number(&mut arguments) != 274 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown profcourses number")).into(),
                 );
@@ -233,7 +216,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "STUDENTCHOICECOURSES" => {
-            if number(&mut arguments)? != 307 {
+            if number(&mut arguments) != 307 {
                 return Err(Error::new(
                     ErrorKind::Other,
                     format!("unknown STUDENTCHOICECOURSES number"),
@@ -246,12 +229,12 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "REGISTRATION" => {
-            if number(&mut arguments)? != 311 {
+            if number(&mut arguments) != 311 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown REGISTRATION number")).into(),
                 );
             }
-            if string(&mut arguments)? != "" {
+            if string(&mut arguments) != "" {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown REGISTRATION string")).into(),
                 );
@@ -262,7 +245,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "MYEXAMS" => {
-            if number(&mut arguments)? != 318 {
+            if number(&mut arguments) != 318 {
                 return Err(Error::new(ErrorKind::Other, format!("unknown MYEXAMS number")).into());
             }
             Ok(TucanUrl::Authenticated {
@@ -271,7 +254,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "COURSERESULTS" => {
-            if number(&mut arguments)? != 324 {
+            if number(&mut arguments) != 324 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown COURSERESULTS number")).into(),
                 );
@@ -282,7 +265,7 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "EXAMRESULTS" => {
-            if number(&mut arguments)? != 325 {
+            if number(&mut arguments) != 325 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown EXAMRESULTS number")).into(),
                 );
@@ -293,37 +276,37 @@ pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
             })
         }
         "STUDENT_RESULT" => {
-            if number(&mut arguments)? != 316 {
+            if number(&mut arguments) != 316 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );
             }
-            if number(&mut arguments)? != 0 {
+            if number(&mut arguments) != 0 {
                 return Err(
                     Error::new(ErrorKind::Other, format!("unknown STUDENTRESULT number")).into(),
                 );

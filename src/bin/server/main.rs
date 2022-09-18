@@ -275,10 +275,9 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
 #[get("/")]
 async fn index(session: Session) -> Result<impl Responder, MyError> {
-    if let Some(user) = session.get::<u64>("tucan_nr").unwrap() {
-        Ok(web::Json(format!("Welcome! {}", user)))
-    } else {
-        Ok(web::Json("Welcome Anonymous!".to_owned()))
+    match session.get::<TucanSession>("session").unwrap() {
+        Some(session) => Ok(web::Json(format!("Welcome! {}", session.tucan_nr))),
+        None => Ok(web::Json("Welcome Anonymous!".to_owned())),
     }
 }
 
@@ -288,7 +287,7 @@ async fn get_modules<'a>(
     tucan: web::Data<Tucan>,
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
-    let mut connection = tucan.pool.get().await.unwrap();
+    let mut connection = tucan.pool.get().await?;
     println!("{:?}", path);
 
     let split_path = path.split_terminator('/').map(String::from);
@@ -317,8 +316,7 @@ async fn get_modules<'a>(
             module_menu
                 .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
                 .load::<ModuleMenu>(&mut connection)
-                .await
-                .unwrap()
+                .await?
                 .into_iter()
                 .next()
                 .unwrap(),
@@ -334,8 +332,7 @@ async fn get_modules<'a>(
             .inner_join(modules)
             .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
-            .await
-            .unwrap()
+            .await?
             .into_iter()
             .next()
             .unwrap();
@@ -345,8 +342,7 @@ async fn get_modules<'a>(
         let menu_result = tucan
             .pool
             .get()
-            .await
-            .unwrap()
+            .await?
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
@@ -356,20 +352,17 @@ async fn get_modules<'a>(
                         Ok(module_menu
                             .filter(parent.eq(parent))
                             .load::<ModuleMenu>(connection)
-                            .await
-                            .unwrap());
+                            .await?);
                     return_value
                 }
                 .boxed()
             })
-            .await
-            .unwrap();
+            .await?;
 
         let module_result = tucan
             .pool
             .get()
-            .await
-            .unwrap()
+            .await?
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
@@ -380,13 +373,11 @@ async fn get_modules<'a>(
                         .inner_join(modules)
                         .filter(module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
-                        .await
-                        .unwrap())
+                        .await?)
                 }
                 .boxed()
             })
-            .await
-            .unwrap();
+            .await?;
 
         if !menu_result.is_empty() {
             Ok(Either::Right(web::Json(RegistrationEnum::Submenu(
@@ -439,11 +430,6 @@ async fn main() -> anyhow::Result<()> {
 
         App::new()
             .app_data(tucan.clone())
-            /*.wrap(
-                IdentityMiddleware::builder()
-                    .logout_behaviour(LogoutBehaviour::PurgeSession)
-                    .build(),
-            )*/
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_same_site(SameSite::None)
