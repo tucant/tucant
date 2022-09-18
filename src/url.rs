@@ -84,11 +84,15 @@ impl TucanProgram {
             TucanProgram::Studentchoicecourses(_) => todo!(),
             TucanProgram::Registration(Registration { path }) => (
                 "REGISTRATION",
-                [TucanArgument::Number(311), TucanArgument::String("")]
-                    .into_iter()
-                    .chain(path.map_or(Left(iter::empty()), |v| {
-                        Right(v.into_iter().map(TucanArgument::Number))
-                    })),
+                match path {
+                    Some(path) => Left(
+                        iter::once(TucanArgument::Number(311))
+                            .chain(path.into_iter().map(|v| TucanArgument::Number(*v))),
+                    ),
+                    None => {
+                        Right([TucanArgument::Number(311), TucanArgument::String("")].into_iter())
+                    }
+                },
             ),
             TucanProgram::Myexams(_) => todo!(),
             TucanProgram::Courseresults(_) => todo!(),

@@ -110,6 +110,8 @@ async fn fetch_everything(
     value: RegistrationEnum,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
+        println!("fetch_everything {:?} {:?}", parent, value);
+
         match value {
             RegistrationEnum::Submenu(value) => {
                 for menu in value {
