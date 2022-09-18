@@ -21,7 +21,7 @@ use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Resp
 use async_stream::try_stream;
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
-use diesel::dsl::{exists, count};
+use diesel::dsl::{count, exists};
 use diesel::prelude::*;
 use diesel::upsert::excluded;
 use diesel_async::RunQueryDsl;
@@ -35,11 +35,12 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::module_menu::{name, self, tucan_id};
+use tucan_scraper::schema::module_menu::{self, name, tucan_id};
 use tucan_scraper::schema::modules::content;
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
+use tucan_scraper::url::Moduledetails;
 
 #[derive(Debug)]
 struct MyError {
@@ -106,134 +107,133 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
     Ok(HttpResponse::Ok())
 }
 
-async fn fetch_everything(
+async fn fetch_module(
     tucan: TucanUser,
-    parent: Option<Vec<i64>>,
-    value: RegistrationEnum,
+    module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
-        match value {
-            RegistrationEnum::Submenu(value) => {
-                for menu in value {
-                    let tucan_clone = tucan.clone();
-                    let parent_clone = parent.clone();
+        let tucan_clone = tucan.clone();
+        let parent_clone = parent.clone();
+        stream
+            .yield_item(Bytes::from(format!("module {}", module.id)))
+            .await;
 
-                    // TODO check if already in DB and cache good
-                    /*
-                                        let normalized_name = title
-                                            .to_lowercase()
-                                            .replace('-', "")
-                                            .replace(' ', "-")
-                                            .replace(',', "")
-                                            .replace('/', "-")
-                                            .replace('ä', "ae")
-                                            .replace('ö', "oe")
-                                            .replace('ü', "ue");
-                    */
-                    let conn = &mut tucan_clone.tucan.pool.get().await?;
-                    let dsfa = crate::module_menu::dsl::module_menu
-                    .filter(tucan_id.eq(Into::<Vec<i64>>::into(menu.path.unwrap())))
-                    .count()
-                    .get_result::<i64>(conn)
-                    .await?;
-                    
-                    if dsfa == 1 {
+        // TODO FIXME check if module already fetched and in cache
 
-                    } else {
-                        let value = tucan.registration(Some(menu)).await?;
-                    }
+        let module = tucan.clone().module(module).await.unwrap();
 
-                    let cnt = tucan_clone
-                        .tucan
-                        .pool
-                        .get()
-                        .await?
-                        .build_transaction()
-                        .run::<_, diesel::result::Error, _>(move |connection| {
-                            async move {
-                                diesel::insert_into(tucan_scraper::schema::module_menu::table)
-                                    .values(&ModuleMenu {
-                                        name: "".to_string(),
-                                        normalized_name: "".to_string(),
-                                        parent: parent_clone,
-                                        tucan_id: menu.path.unwrap().into(),
-                                        tucan_last_checked: Utc::now().naive_utc(),
-                                    })
-                                    .on_conflict(tucan_scraper::schema::module_menu::tucan_id)
-                                    .do_update()
-                                    .set(name.eq(excluded(name)))
-                                    .get_result::<ModuleMenu>(connection)
-                                    .await
-                            }
-                            .boxed()
-                        })
+        // TODO FIXME warn if module already existed as that suggests recursive dependency
+        // TODO normalize url in a way that this can use cached data?
+        // modules can probably be cached because we don't follow outgoing links
+        // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
+        tucan_clone
+            .tucan
+            .pool
+            .get()
+            .await?
+            .build_transaction()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    diesel::insert_into(tucan_scraper::schema::modules::table)
+                        .values(&module)
+                        .on_conflict(tucan_scraper::schema::modules::tucan_id)
+                        .do_update()
+                        .set(content.eq(excluded(content)))
+                        .execute(connection)
                         .await?;
 
-                    stream.yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap()))).await;
-
-                    let mut inner_stream =
-                        fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
-
-                    loop {
-                        match inner_stream.next().await {
-                            Some(Ok(value)) => {
-                                stream.yield_item(value).await;
-                            }
-                            Some(err @ Err(_)) => {
-                                err?;
-                            }
-                            None => {
-                                break;
-                            }
-                        }
-                    }
+                    diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
+                        .values(&ModuleMenuEntryModule {
+                            module_id: module.tucan_id,
+                            module_menu_id: parent_clone.unwrap(),
+                        })
+                        .on_conflict_do_nothing()
+                        .execute(connection)
+                        .await?;
+                    Ok(())
                 }
-            }
-            RegistrationEnum::Modules(value) => {
-                for module in value {
-                    let tucan_clone = tucan.clone();
-                    let parent_clone = parent.clone();
-                    stream.yield_item(Bytes::from(format!("module {}", module.id))).await;
+                .boxed()
+            })
+            .await?;
+        Ok(())
+    })
+    .boxed_local()
+}
 
-                    // TODO FIXME check if module already fetched and in cache
+async fn fetch_registration(
+    tucan: TucanUser,
+    parent: Vec<i64>,
+) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
+    try_stream(move |mut stream| async move {
+        let tucan_clone = tucan.clone();
+        let parent_clone = parent.clone();
 
-                    let module = tucan.clone().module(module).await.unwrap();
+        // TODO check if already in DB and cache good
+        /*
+                            let normalized_name = title
+                                .to_lowercase()
+                                .replace('-', "")
+                                .replace(' ', "-")
+                                .replace(',', "")
+                                .replace('/', "-")
+                                .replace('ä', "ae")
+                                .replace('ö', "oe")
+                                .replace('ü', "ue");
+        */
+        let conn = &mut tucan_clone.tucan.pool.get().await?;
+        let dsfa = crate::module_menu::dsl::module_menu
+            .filter(tucan_id.eq(Into::<Vec<i64>>::into(menu.path.unwrap())))
+            .count()
+            .get_result::<i64>(conn)
+            .await?;
 
-                    // TODO FIXME warn if module already existed as that suggests recursive dependency
-                    // TODO normalize url in a way that this can use cached data?
-                    // modules can probably be cached because we don't follow outgoing links
-                    // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-                    tucan_clone
-                        .tucan
-                        .pool
-                        .get()
-                        .await?
-                        .build_transaction()
-                        .run::<_, diesel::result::Error, _>(move |connection| {
-                            async move {
-                                diesel::insert_into(tucan_scraper::schema::modules::table)
-                                    .values(&module)
-                                    .on_conflict(tucan_scraper::schema::modules::tucan_id)
-                                    .do_update()
-                                    .set(content.eq(excluded(content)))
-                                    .execute(connection)
-                                    .await?;
+        if dsfa == 1 {
+        } else {
+            let value = tucan.registration(Some(menu)).await?;
+        }
 
-                                diesel::insert_into(
-                                    tucan_scraper::schema::module_menu_module::table,
-                                )
-                                .values(&ModuleMenuEntryModule {
-                                    module_id: module.tucan_id,
-                                    module_menu_id: parent_clone.unwrap(),
-                                })
-                                .on_conflict_do_nothing()
-                                .execute(connection)
-                                .await?;
-                                Ok(())
-                            }
-                            .boxed()
+        let cnt = tucan_clone
+            .tucan
+            .pool
+            .get()
+            .await?
+            .build_transaction()
+            .run::<_, diesel::result::Error, _>(move |connection| {
+                async move {
+                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                        .values(&ModuleMenu {
+                            name: "".to_string(),
+                            normalized_name: "".to_string(),
+                            parent: parent_clone,
+                            tucan_id: menu.path.unwrap().into(),
+                            tucan_last_checked: Utc::now().naive_utc(),
                         })
-                        .await?;
+                        .on_conflict(tucan_scraper::schema::module_menu::tucan_id)
+                        .do_update()
+                        .set(name.eq(excluded(name)))
+                        .get_result::<ModuleMenu>(connection)
+                        .await
+                }
+                .boxed()
+            })
+            .await?;
+
+        stream
+            .yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap())))
+            .await;
+
+        let mut inner_stream = fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
+
+        loop {
+            match inner_stream.next().await {
+                Some(Ok(value)) => {
+                    stream.yield_item(value).await;
+                }
+                Some(err @ Err(_)) => {
+                    err?;
+                }
+                None => {
+                    break;
                 }
             }
         }
