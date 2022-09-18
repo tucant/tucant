@@ -98,7 +98,7 @@ impl TucanProgram {
             TucanProgram::StartpageDispatch(_) => todo!(),
             TucanProgram::Externalpages(_) => todo!(),
         };
-        let args = args.format(", ");
+        let args = args.format(",");
 
         format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME={progname}&ARGUMENTS=-N{},{args}", session_nr.unwrap_or(1))
     }

@@ -105,7 +105,7 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
 
 async fn fetch_everything(
     tucan: TucanUser,
-    parent: Option<String>,
+    parent: Option<Vec<i64>>,
     value: RegistrationEnum,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
@@ -140,7 +140,7 @@ async fn fetch_everything(
                                         name: "".to_string(),
                                         normalized_name: "".to_string(),
                                         parent: parent_clone,
-                                        tucan_id: "test".to_string(),
+                                        tucan_id: menu.path.unwrap().into(),
                                         tucan_last_checked: Utc::now().naive_utc(),
                                     })
                                     .get_result::<ModuleMenu>(connection)
@@ -325,7 +325,7 @@ async fn get_modules<'a>(
 
         let module_result = module_menu_module
             .inner_join(modules)
-            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_id.eq(module)))
+            .filter(module_menu_id.eq(parent.unwrap()).and(tucan_scraper::schema::modules::module_id.eq(module)))
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
             .await?
             .into_iter()

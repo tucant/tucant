@@ -19,6 +19,8 @@ diesel setup
 RUST_BACKTRACE=1 RUST_LOG=actix_server=debug cargo run
 
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
+
+flatpak install flathub io.dbeaver.DBeaverCommunity
 ```
 
 ## Interesting queries
