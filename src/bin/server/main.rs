@@ -40,7 +40,7 @@ use tucan_scraper::schema::modules::content;
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
-use tucan_scraper::url::Moduledetails;
+use tucan_scraper::url::{Moduledetails, Registration};
 
 #[derive(Debug)]
 struct MyError {
@@ -109,6 +109,7 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
 
 async fn fetch_module(
     tucan: TucanUser,
+    parent: Registration,
     module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
@@ -145,7 +146,7 @@ async fn fetch_module(
                     diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
                         .values(&ModuleMenuEntryModule {
                             module_id: module.tucan_id,
-                            module_menu_id: parent_clone.unwrap(),
+                            module_menu_id: parent_clone.path.unwrap().to_vec(),
                         })
                         .on_conflict_do_nothing()
                         .execute(connection)
@@ -162,7 +163,7 @@ async fn fetch_module(
 
 async fn fetch_registration(
     tucan: TucanUser,
-    parent: Vec<i64>,
+    parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
         let tucan_clone = tucan.clone();
@@ -182,14 +183,14 @@ async fn fetch_registration(
         */
         let conn = &mut tucan_clone.tucan.pool.get().await?;
         let dsfa = crate::module_menu::dsl::module_menu
-            .filter(tucan_id.eq(Into::<Vec<i64>>::into(menu.path.unwrap())))
+            .filter(tucan_id.eq(Into::<Vec<i64>>::into(parent.path)))
             .count()
             .get_result::<i64>(conn)
             .await?;
 
         if dsfa == 1 {
         } else {
-            let value = tucan.registration(Some(menu)).await?;
+            let value = tucan.registration(parent).await?;
         }
 
         let cnt = tucan_clone
@@ -252,8 +253,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                     .await;
 
                 let tucan = tucan.continue_session(session).await.unwrap();
-
-                let res = tucan.registration(None).await.unwrap();
 
                 let mut input = fetch_everything(tucan, None, res).await;
 

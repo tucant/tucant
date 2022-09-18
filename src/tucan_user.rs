@@ -110,7 +110,7 @@ impl TucanUser {
         })
     }
 
-    async fn traverse_module_list(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
+    pub async fn registration(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         // list of subcategories
@@ -169,13 +169,5 @@ impl TucanUser {
                 )
             }
         }
-    }
-
-    pub async fn registration(
-        &self,
-        url: Option<Registration>,
-    ) -> anyhow::Result<RegistrationEnum> {
-        self.traverse_module_list(url.unwrap_or(Registration { path: None }))
-            .await
     }
 }

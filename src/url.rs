@@ -32,7 +32,7 @@ pub struct Moduledetails {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
-    pub path: Option<[i64; 4]>,
+    pub path: Option<Vec<i64>>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -226,7 +226,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
                 TucanArgument::Number(_) => TucanProgram::Registration(Registration {
-                    path: Some([
+                    path: Some(vec![
                         number(&mut arguments),
                         number(&mut arguments),
                         number(&mut arguments),
