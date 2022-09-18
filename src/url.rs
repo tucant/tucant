@@ -3,7 +3,6 @@ use itertools::Itertools;
 use std::{
     collections::HashMap,
     fmt::Display,
-    io::{Error, ErrorKind},
     iter::{self, Peekable},
 };
 
@@ -88,7 +87,7 @@ impl TucanProgram {
                 [TucanArgument::Number(311), TucanArgument::String("")]
                     .into_iter()
                     .chain(path.map_or(Left(iter::empty()), |v| {
-                        Right(v.into_iter().map(|e| TucanArgument::Number(e)))
+                        Right(v.into_iter().map(TucanArgument::Number))
                     })),
             ),
             TucanProgram::Myexams(_) => todo!(),

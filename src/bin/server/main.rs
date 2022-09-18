@@ -36,7 +36,7 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
-use tucan_scraper::url::{parse_tucan_url, Registration, TucanUrl};
+
 
 #[derive(Debug)]
 struct MyError {

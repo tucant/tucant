@@ -13,7 +13,7 @@ use crate::{
     models::Module,
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
