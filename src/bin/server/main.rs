@@ -22,6 +22,7 @@ use async_stream::try_stream;
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::prelude::*;
+use diesel::upsert::excluded;
 use diesel_async::RunQueryDsl;
 
 use diesel_async::pooled_connection::PoolError;
@@ -33,6 +34,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
+use tucan_scraper::schema::module_menu::name;
 use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
@@ -143,6 +145,9 @@ async fn fetch_everything(
                                         tucan_id: menu.path.unwrap().into(),
                                         tucan_last_checked: Utc::now().naive_utc(),
                                     })
+                                    .on_conflict(tucan_scraper::schema::module_menu::tucan_id)
+                                    .do_update()
+                                    .set(name.eq(excluded(name)))
                                     .get_result::<ModuleMenu>(connection)
                                     .await
                             }
