@@ -31,31 +31,116 @@ pub enum MaybeAuthenticatedTucanUrl {
     Externalpages { id: u64, name: String },
 }
 
+#[enum_dispatch(AuthenticatedTucanUrl)]
+trait ToTucanUrl {
+    fn to_tucan_url(&self) -> String;
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct Moduledetails {
     pub id: u64
 }
 
+impl ToTucanUrl for Moduledetails {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct Registration { pub path: Option<[u64; 4]> }
 
-#[enum_dispatch(AuthenticatedTucanUrl)]
-trait MyBehavior {
-    fn to_tucan_url(&self) -> String;
+
+impl ToTucanUrl for Registration {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Mlsstart;
+
+impl ToTucanUrl for Mlsstart {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Mymodules;
+
+impl ToTucanUrl for Mymodules {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Profcourses;
+
+impl ToTucanUrl for Profcourses {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Studentchoicecourses;
+
+impl ToTucanUrl for Studentchoicecourses {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Myexams;
+
+impl ToTucanUrl for Myexams {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Courseresults;
+
+impl ToTucanUrl for Courseresults {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct Examresults;
+
+impl ToTucanUrl for Examresults {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct StudentResult;
+
+impl ToTucanUrl for StudentResult {
+    fn to_tucan_url(&self) -> String {
+        "".to_string()
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]
 #[enum_dispatch]
 pub enum AuthenticatedTucanUrl {
-    Mlsstart,
-    Mymodules,
-    Profcourses,
-    Studentchoicecourses,
+    Mlsstart(Mlsstart),
+    Mymodules(Mymodules),
+    Profcourses(Profcourses),
+    Studentchoicecourses(Studentchoicecourses),
     Registration(Registration),
-    Myexams,
-    Courseresults,
-    Examresults,
-    StudentResult,
+    Myexams(Myexams),
+    Courseresults(Courseresults),
+    Examresults(Examresults),
+    StudentResult(StudentResult),
     Moduledetails(Moduledetails)
 }
 
