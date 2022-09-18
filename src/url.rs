@@ -153,98 +153,67 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         number(&mut arguments)
     };
     let session_nr = if session_nr == 1 {
-        Err(Error::new(ErrorKind::Other, "not logged in".to_string()))
+        None
     } else {
-        Ok(session_nr)
+        Some(session_nr)
     };
 
-    let result = match prgname {
+    let program = match prgname {
         "STARTPAGE_DISPATCH" => {
             assert_eq!(number(&mut arguments), 19);
             assert_eq!(number(&mut arguments), 0);
-            TucanUrl {
-                session_nr: session_nr.ok(),
-                program: TucanProgram::StartpageDispatch(StartpageDispatch),
-            }
+ 
+            TucanProgram::StartpageDispatch(StartpageDispatch)
         }
-        "EXTERNALPAGES" => TucanUrl {
-            session_nr: session_nr.ok(),
-            program: TucanProgram::Externalpages(Externalpages {
+        "EXTERNALPAGES" => TucanProgram::Externalpages(Externalpages {
                 id: number(&mut arguments),
                 name: string(&mut arguments).to_string(),
-            }),
-        },
+        }),
         "MLSSTART" => {
             assert_eq!(number(&mut arguments), 19);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Mlsstart(Mlsstart),
-            }
+            TucanProgram::Mlsstart(Mlsstart)
+            
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Mymodules(Mymodules),
-            }
+             TucanProgram::Mymodules(Mymodules)
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Profcourses(Profcourses),
-            }
+             TucanProgram::Profcourses(Profcourses)
         }
         "STUDENTCHOICECOURSES" => {
             assert_eq!(number(&mut arguments), 307);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Studentchoicecourses(Studentchoicecourses),
-            }
+            TucanProgram::Studentchoicecourses(Studentchoicecourses)
         }
         "REGISTRATION" => {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
-                TucanArgument::Number(_) => TucanUrl {
-                    session_nr,
-                    program: TucanProgram::Registration(Registration {
+                TucanArgument::Number(_) => TucanProgram::Registration(Registration {
                         path: Some([
                             number(&mut arguments),
                             number(&mut arguments),
                             number(&mut arguments),
                             number(&mut arguments),
-                        ]),
-                    }),
-                },
+                        ])
+                }),
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
-                    TucanUrl {
-                        session_nr,
-                        program: TucanProgram::Registration(Registration { path: None }),
-                    }
+                     TucanProgram::Registration(Registration { path: None })
                 }
             }
         }
         "MYEXAMS" => {
             assert_eq!(number(&mut arguments), 318);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Myexams(Myexams),
-            }
+             TucanProgram::Myexams(Myexams)
         }
         "COURSERESULTS" => {
             assert_eq!(number(&mut arguments), 324);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Courseresults(Courseresults),
-            }
+             TucanProgram::Courseresults(Courseresults)
         }
         "EXAMRESULTS" => {
             assert_eq!(number(&mut arguments), 325);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::Examresults(Examresults),
-            }
+             TucanProgram::Examresults(Examresults)
         }
         "STUDENT_RESULT" => {
             assert_eq!(number(&mut arguments), 316);
@@ -254,21 +223,15 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            TucanUrl {
-                session_nr,
-                program: TucanProgram::StudentResult(StudentResult),
-            }
+             TucanProgram::StudentResult(StudentResult)
         }
         "MODULEDETAILS" => {
             assert_eq!(number(&mut arguments), 311);
-            let result = TucanUrl {
-                session_nr,
-                program: TucanProgram::Moduledetails(Moduledetails {
+            let program = TucanProgram::Moduledetails(Moduledetails {
                     id: number(&mut arguments),
-                }),
-            };
+                });
             string(&mut arguments);
-            result
+            program
         }
         other => {
             panic!("invalid appname: {}", other);
@@ -279,7 +242,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         panic!("too many arguments {:?}", arguments.collect::<Vec<_>>())
     }
 
-    result
+    TucanUrl {
+        session_nr,
+        program,
+    }
 }
 
 #[cfg(test)]
