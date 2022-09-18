@@ -101,7 +101,7 @@ impl TucanUser {
             .inner_html();
 
         Ok(Module {
-            tucan_id: module_id.to_string(),
+            tucan_id: url.id,
             tucan_last_checked: Utc::now().naive_utc(),
             title: module_name.unwrap().to_string(),
             credits: Some(credits),

@@ -9,7 +9,7 @@ use crate::schema::{module_menu, module_menu_module, modules};
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules)]
 pub struct Module {
-    pub tucan_id: [u64; 4],
+    pub tucan_id: Vec<u64>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
     pub module_id: String,
@@ -22,11 +22,11 @@ pub struct Module {
 #[diesel(table_name = module_menu)]
 #[belongs_to(ModuleMenu, foreign_key = "parent")]
 pub struct ModuleMenu {
-    pub tucan_id: [u64; 4],
+    pub tucan_id: Vec<u64>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
     pub normalized_name: String,
-    pub parent: Option<[u64; 4]>,
+    pub parent: Option<Vec<u64>>,
 }
 
 #[derive(Associations, Identifiable, Queryable, Insertable, Serialize)]
@@ -35,6 +35,6 @@ pub struct ModuleMenu {
 #[belongs_to(ModuleMenu)]
 #[belongs_to(Module)]
 pub struct ModuleMenuEntryModule {
-    pub module_menu_id: [u64; 4],
-    pub module_id: [u64; 4],
+    pub module_menu_id: Vec<u64>,
+    pub module_id: Vec<u64>,
 }

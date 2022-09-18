@@ -1,6 +1,6 @@
 
 CREATE TABLE modules (
-    tucan_id INTEGER[] NOT NULL PRIMARY KEY,
+    tucan_id INTEGER NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
     title TEXT NOT NULL,
     module_id TEXT NOT NULL,
@@ -22,6 +22,6 @@ CREATE TABLE module_menu (
 -- Looking at the comment above maybe this is not necessary
 CREATE TABLE module_menu_module (
     module_menu_id INTEGER[] NOT NULL REFERENCES module_menu (tucan_id),
-    module_id INTEGER[] NOT NULL REFERENCES modules (tucan_id),
+    module_id INTEGER NOT NULL REFERENCES modules (tucan_id),
     PRIMARY KEY (module_menu_id, module_id)
 );
