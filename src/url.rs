@@ -64,9 +64,7 @@ impl<'a> TucanArgument<'a> {
     }
 }
 
-pub fn parse_arguments<'a>(
-    arguments: &'a str,
-) -> impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug {
+pub fn parse_arguments(arguments: &str) -> impl Iterator<Item = TucanArgument> + std::fmt::Debug {
     arguments.split_terminator(',').map(|a| match a.get(0..2) {
         Some("-N") => TucanArgument::Number(a[2..].parse::<u64>().unwrap()),
         Some("-A") => TucanArgument::String(&a[2..]),
@@ -84,7 +82,7 @@ fn string<'a>(
     arguments.next().unwrap().string()
 }
 
-pub fn parse_tucan_url<'a>(url: &'a str) -> anyhow::Result<TucanUrl> {
+pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
     let url = Url::parse(url)?;
     assert_eq!(
         url.origin(),

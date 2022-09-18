@@ -2,7 +2,6 @@
 
 mod csrf_middleware;
 
-
 use std::io::Error;
 
 use std::fmt::Display;
@@ -135,15 +134,15 @@ async fn fetch_everything(
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
                                 diesel::insert_into(tucan_scraper::schema::module_menu::table)
-                                        .values(&ModuleMenu {
-                                            name: title_clone,
-                                            normalized_name,
-                                            parent: parent_clone,
-                                            tucan_id: "test".to_string(),
-                                            tucan_last_checked: Utc::now().naive_utc(),
-                                        })
-                                        .get_result::<ModuleMenu>(connection)
-                                        .await
+                                    .values(&ModuleMenu {
+                                        name: title_clone,
+                                        normalized_name,
+                                        parent: parent_clone,
+                                        tucan_id: "test".to_string(),
+                                        tucan_last_checked: Utc::now().naive_utc(),
+                                    })
+                                    .get_result::<ModuleMenu>(connection)
+                                    .await
                             }
                             .boxed()
                         })

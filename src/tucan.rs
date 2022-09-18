@@ -4,7 +4,6 @@ use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
-
 use reqwest::{Client, Url};
 
 use crate::{
