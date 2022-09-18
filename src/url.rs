@@ -14,22 +14,10 @@ pub struct Unauthenticated {
     pub url: UnauthenticatedTucanUrl,
 }
 
-impl ToTucanUrl for Unauthenticated {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Authenticated {
     pub session_nr: u64,
     pub url: AuthenticatedTucanUrl,
-}
-
-impl ToTucanUrl for Authenticated {
-    fn to_tucan_url(&self) -> String {
-        self.url.to_tucan_url()
-    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -38,18 +26,20 @@ pub struct MaybeAuthenticated {
     pub url: MaybeAuthenticatedTucanUrl,
 }
 
-impl ToTucanUrl for MaybeAuthenticated {
-    fn to_tucan_url(&self) -> String {
-        self.url.to_tucan_url()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[enum_dispatch(ToTucanUrl)]
 pub enum TucanUrl {
     Unauthenticated(Unauthenticated),
     Authenticated(Authenticated),
     MaybeAuthenticated(MaybeAuthenticated),
+}
+
+impl TucanUrl {
+    fn to_tucan_url(&self) -> String {
+        //         let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.nr));
+
+        [TucanArgument::Number(311), TucanArgument::String("")].iter()
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -65,27 +55,10 @@ pub enum MaybeAuthenticatedTucanUrl {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StartpageDispatch;
 
-impl ToTucanUrl for StartpageDispatch {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Externalpages {
     id: u64,
     name: String,
-}
-
-impl ToTucanUrl for Externalpages {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
-#[enum_dispatch]
-pub trait ToTucanUrl {
-    fn to_tucan_url(&self) -> String;
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -93,96 +66,36 @@ pub struct Moduledetails {
     pub id: u64,
 }
 
-impl ToTucanUrl for Moduledetails {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Registration {
     pub path: Option<[u64; 4]>,
 }
 
-impl ToTucanUrl for Registration {
-    fn to_tucan_url(&self) -> String {
-        //         let url = url.unwrap_or(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{},-N000311,-A", self.session.nr));
-
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Mlsstart;
-
-impl ToTucanUrl for Mlsstart {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Mymodules;
 
-impl ToTucanUrl for Mymodules {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Profcourses;
-
-impl ToTucanUrl for Profcourses {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Studentchoicecourses;
 
-impl ToTucanUrl for Studentchoicecourses {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Myexams;
-
-impl ToTucanUrl for Myexams {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Courseresults;
 
-impl ToTucanUrl for Courseresults {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Examresults;
 
-impl ToTucanUrl for Examresults {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct StudentResult;
-
-impl ToTucanUrl for StudentResult {
-    fn to_tucan_url(&self) -> String {
-        "".to_string()
-    }
-}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[enum_dispatch(ToTucanUrl)]
