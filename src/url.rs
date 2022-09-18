@@ -41,6 +41,7 @@ pub enum AuthenticatedTucanUrl {
     Courseresults,
     Examresults,
     StudentResult,
+    Moduledetails { id: u64 },
 }
 
 #[derive(Debug)]
@@ -219,6 +220,17 @@ pub fn parse_tucan_url(url: &str) -> anyhow::Result<TucanUrl> {
                 url: AuthenticatedTucanUrl::StudentResult,
             })
         }
+        "MODULEDETAILS" => {
+            assert_eq!(number(&mut arguments), 311);
+            let result = Ok(TucanUrl::Authenticated {
+                session_nr: session_nr?,
+                url: AuthenticatedTucanUrl::Moduledetails {
+                    id: number(&mut arguments),
+                },
+            });
+            string(&mut arguments);
+            result
+        }
         other => {
             return Err(Error::new(ErrorKind::Other, format!("invalid appname: {}", other)).into())
         }
@@ -294,6 +306,10 @@ mod tests {
 
         // Prüfungen -> Leistungsspiegel
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N428926119975172,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000")?;
+
+        // Moduldetails
+
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N988222970824392,-N000311,-N376373060881867,-A3f5EHWl9PqwMeD2AvWmMWDl-QUpCmjaN7ZKJmNFt7-UpvMAx4omKmd6gmUR9mfft3oRQP-PaxNZtPqGdRUpsOZmeQNHv7URzmQVdOBBF3SftxMo8PU5S7dwZfbZYmdPfQd5ycYntWopZmoUBYDotPMPNmkZdPILZ7gmT4SPXHjV-cBUxxNPWR-m9QkZLvUovfgPXvqR5YBG-eZo8WqmAHjHfeMpqRkZ97DKZQIo5PfP9HSRBeqAHvDZjrUUeHWV6xZR7YIL3OuULPQHHVNK8f-5wvZ5kYUUvYWlNQoljQIU5eUBjHDPmmZLb4YGhPIUTmuWXYfnAvfWAYWW54D6hQ-58HWPpmQBNWqeFYM5HvDUgcupLmMfAxM5D4MoAcuopQuPjfYHvfqLqeqwZeMWXVDZjPMHVcocZcNmt7ZDjQZedWfmyfDWUWSAeHDajVdmUOjBtmNWpvqP9OqG3VNHlPQPKvocZWqZYVWoxfSLlcDPQQWKZegeNQY5afu5COzH-fDoKWU79CQoErUPHYDHVQtin");
 
         // urls we still need to reverse
 
