@@ -2,9 +2,11 @@
 
 mod csrf_middleware;
 
+use std::convert::Infallible;
 use std::io::Error;
 
 use std::fmt::Display;
+use std::ops::FromResidual;
 use std::pin::Pin;
 
 use actix_cors::Cors;
@@ -23,6 +25,7 @@ use csrf_middleware::CsrfMiddleware;
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 
+use diesel_async::pooled_connection::PoolError;
 use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 
@@ -52,6 +55,12 @@ impl actix_web::error::ResponseError for MyError {}
 impl From<anyhow::Error> for MyError {
     fn from(err: anyhow::Error) -> MyError {
         MyError { err }
+    }
+}
+
+impl From<deadpool::managed::PoolError<PoolError>> for MyError {
+    fn from(err: deadpool::managed::PoolError<PoolError>) -> MyError {
+        MyError { err: err.into() }
     }
 }
 
@@ -116,8 +125,7 @@ async fn fetch_everything(
                         .tucan
                         .pool
                         .get()
-                        .await
-                        .unwrap()
+                        .await?
                         .build_transaction()
                         .run::<_, diesel::result::Error, _>(move |connection| {
                             async move {
