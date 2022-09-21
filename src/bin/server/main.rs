@@ -18,17 +18,17 @@ use actix_web::web::{Bytes, Path};
 use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
-use async_stream::{try_stream, stream};
+use async_stream::{stream, try_stream};
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::dsl::not;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use tucan_scraper::schema::*;
-use diesel_async::RunQueryDsl;
 use diesel_async::pooled_connection::PoolError;
+use diesel_async::RunQueryDsl;
 use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
+use tucan_scraper::schema::*;
 
 use tokio::{
     fs::{self, OpenOptions},
@@ -182,41 +182,46 @@ async fn fetch_registration(
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.path))
-            .filter(module_menu_unfinished::done)
-            .count()
-            .get_result::<i64>(connection)
-            .await?;
+            .filter(not(module_menu_unfinished::child_type.eq(0)))
+            .get_result::<ModuleMenu>(connection)
+            .await
+            .optional()?;
 
-        if existing_registration_already_fetched == 1 {
-            // TODO FIXME probably store the type in the parent so we don't need to do this garbage
-            let submenus = module_menu_unfinished::table
-                            .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
-                            .load::<ModuleMenu>(connection)
-                            .await?;
+        match existing_registration_already_fetched {
+            Some(ModuleMenu { child_type: 1 }) => {
+                // TODO FIXME probably store the type in the parent so we don't need to do this garbage
+                let submenus = module_menu_unfinished::table
+                    .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
+                    .load::<ModuleMenu>(connection)
+                    .await?;
+            }
+            Some(ModuleMenu { child_type: 2 }) => {
+                let submodules = module_menu_module::table
+                    .inner_join(modules_unfinished::table)
+                    .filter(
+                        module_menu_module::module_menu_id
+                            .nullable()
+                            .eq(parent.path.unwrap()),
+                    )
+                    .load::<(ModuleMenuEntryModule, Module)>(connection)
+                    .await?;
+            }
+            None => {
+                let value = tucan.registration(parent).await?;
 
-            let submodules = module_menu_module::table
-                            .inner_join(modules_unfinished::table)
-                            .filter(module_menu_module::module_menu_id.nullable().eq(parent.path.unwrap()))
-                            .load::<(ModuleMenuEntryModule, Module)>(connection)
-                            .await?;
+                // TODO FIXME store all stuff as unfinished
+                // TODO FIXME mark current element as finished
 
-            // TODO FIXME try subrequests?
-        } else {
-            let value = tucan.registration(parent).await?;
-
-            // TODO FIXME store all stuff as unfinished
-            // TODO FIXME mark current element as finished
-
-            match value {
-                RegistrationEnum::Submenu(submenu) => {
-                    for menu in submenu {
-
-                        fetch_registration(tucan, menu);
+                match value {
+                    RegistrationEnum::Submenu(submenu) => {
+                        for menu in submenu {
+                            fetch_registration(tucan, menu);
+                        }
                     }
-                }
-                RegistrationEnum::Modules(modules) => {
-                    for module in modules {
-                        fetch_module(tucan, parent, module);
+                    RegistrationEnum::Modules(modules) => {
+                        for module in modules {
+                            fetch_module(tucan, parent, module);
+                        }
                     }
                 }
             }
@@ -241,7 +246,9 @@ async fn fetch_registration(
                         })
                         .on_conflict(module_menu_unfinished::tucan_id)
                         .do_update()
-                        .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
+                        .set(
+                            module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)),
+                        )
                         .get_result::<ModuleMenu>(connection)
                         .await
                 }
@@ -355,7 +362,11 @@ async fn get_modules<'a>(
 
         node = Some(
             module_menu_unfinished::table
-                .filter(module_menu_unfinished::parent.eq(the_parent).and(module_menu_unfinished::normalized_name.eq(path_segment)))
+                .filter(
+                    module_menu_unfinished::parent
+                        .eq(the_parent)
+                        .and(module_menu_unfinished::normalized_name.eq(path_segment)),
+                )
                 .load::<ModuleMenu>(&mut connection)
                 .await?
                 .into_iter()

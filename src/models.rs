@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::Serialize;
 
-use crate::schema::{module_menu_module, modules_unfinished, module_menu_unfinished};
+use crate::schema::{module_menu_module, module_menu_unfinished, modules_unfinished};
 
 // order needs to be equal to the table definition
 #[derive(Identifiable, Queryable, Insertable, Serialize)]
