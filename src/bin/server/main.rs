@@ -339,10 +339,10 @@ async fn get_modules<'a>(
     for path_segment in menu_path {
         let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-        use self::schema::module_menu::dsl::*;
+        use tucan_scraper::schema::module_menu_unfinished::dsl::*;
 
         node = Some(
-            module_menu
+            module_menu_unfinished
                 .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
                 .load::<ModuleMenu>(&mut connection)
                 .await?
@@ -354,8 +354,8 @@ async fn get_modules<'a>(
     let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
     if let Some(module) = module {
-        use self::schema::module_menu_module::dsl::*;
-        use self::schema::modules::dsl::*;
+        use tucan_scraper::schema::module_menu_module::dsl::*;
+        use tucan_scraper::schema::modules::dsl::*;
 
         let module_result = module_menu_module
             .inner_join(modules)
@@ -379,10 +379,10 @@ async fn get_modules<'a>(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use self::schema::module_menu::dsl::*;
+                    use tucan_scraper::schema::module_menu_unfinished::dsl::*;
 
                     let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
-                        Ok(module_menu
+                        Ok(module_menu_unfinished
                             .filter(parent.eq(parent))
                             .load::<ModuleMenu>(connection)
                             .await?);
@@ -399,8 +399,8 @@ async fn get_modules<'a>(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use self::schema::module_menu_module::dsl::*;
-                    use self::schema::modules::dsl::*;
+                    use tucan_scraper::schema::module_menu_module::dsl::*;
+                    use tucan_scraper::schema::modules::dsl::*;
 
                     module_menu_module
                         .inner_join(modules)
