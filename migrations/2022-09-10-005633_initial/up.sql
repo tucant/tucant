@@ -20,7 +20,7 @@ CREATE TABLE module_menu_unfinished (
     recursively_fetched BOOLEAN not null DEFAULT FALSE
 );
 
-CREATE OR REPLACE VIEW module_menu WITH (security_barrier, security_invoker) AS SELECT * FROM module_menu_unfinished WHERE recursively_fetched;
+-- CREATE OR REPLACE VIEW module_menu WITH (security_barrier, security_invoker) AS SELECT * FROM module_menu_unfinished WHERE recursively_fetched;
 
 -- Looking at the comment above maybe this is not necessary
 CREATE TABLE module_menu_module (

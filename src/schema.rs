@@ -2,29 +2,19 @@
 
 diesel::table! {
     module_menu_module (module_menu_id, module_id) {
-        module_menu_id -> Array<Int8>,
+        module_menu_id -> Array<Nullable<Int8>>,
         module_id -> Int8,
     }
 }
 
 diesel::table! {
     module_menu_unfinished (tucan_id) {
-        tucan_id -> Array<Int8>,
+        tucan_id -> Array<Nullable<Int8>>,
         tucan_last_checked -> Timestamptz,
         name -> Text,
         normalized_name -> Text,
-        parent -> Nullable<Array<Int8>>,
+        parent -> Nullable<Array<Nullable<Int8>>>,
         recursively_fetched -> Bool,
-    }
-}
-
-diesel::table! {
-    module_menu (tucan_id) {
-        tucan_id -> Array<Int8>,
-        tucan_last_checked -> Timestamptz,
-        name -> Text,
-        normalized_name -> Text,
-        parent -> Nullable<Array<Int8>>,
     }
 }
 
