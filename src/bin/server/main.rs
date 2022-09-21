@@ -21,8 +21,10 @@ use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Resp
 use async_stream::{try_stream, stream};
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
+use diesel::dsl::not;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
+use tucan_scraper::schema::*;
 use diesel_async::RunQueryDsl;
 use diesel_async::pooled_connection::PoolError;
 use futures::{FutureExt, Stream, StreamExt};
@@ -130,18 +132,15 @@ async fn fetch_module(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use tucan_scraper::schema::modules::dsl::*;
-                    use tucan_scraper::schema::module_menu_module::dsl::*;
-
-                    diesel::insert_into(modules)
+                    diesel::insert_into(modules::table)
                         .values(&module)
-                        .on_conflict(tucan_id)
+                        .on_conflict(modules::tucan_id)
                         .do_update()
-                        .set(content.eq(excluded(content)))
+                        .set(modules::content.eq(excluded(modules::content)))
                         .execute(connection)
                         .await?;
 
-                    diesel::insert_into(module_menu_module)
+                    diesel::insert_into(module_menu_module::table)
                         .values(&ModuleMenuEntryModule {
                             module_id: module.tucan_id,
                             module_menu_id: parent_clone.path.unwrap().to_vec(),
@@ -181,8 +180,8 @@ async fn fetch_registration(
         */
         let conn = &mut tucan_clone.tucan.pool.get().await?;
 
-        let existing_registration = crate::module_menu::dsl::module_menu
-            .filter(tucan_id.nullable().eq(parent.path))
+        let existing_registration = module_menu_unfinished::table
+            .filter(diesel::BoolExpressionMethods::and(module_menu_unfinished::tucan_id.nullable().eq(parent.path), not(module_menu_unfinished::recursively_fetched)))
             .count()
             .get_result::<i64>(conn)
             .await?;
@@ -215,9 +214,7 @@ async fn fetch_registration(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use tucan_scraper::schema::module_menu_unfinished::dsl::*;
-
-                    diesel::insert_into(module_menu_unfinished)
+                    diesel::insert_into(module_menu_unfinished::table)
                         .values(&ModuleMenu {
                             name: "".to_string(),
                             normalized_name: "".to_string(),
@@ -225,9 +222,9 @@ async fn fetch_registration(
                             tucan_id: menu.path.unwrap().into(),
                             tucan_last_checked: Utc::now().naive_utc(),
                         })
-                        .on_conflict(tucan_id)
+                        .on_conflict(module_menu_unfinished::tucan_id)
                         .do_update()
-                        .set(name.eq(excluded(name)))
+                        .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
                         .get_result::<ModuleMenu>(connection)
                         .await
                 }
@@ -339,11 +336,9 @@ async fn get_modules<'a>(
     for path_segment in menu_path {
         let the_parent = node.map(|v: ModuleMenu| v.tucan_id);
 
-        use tucan_scraper::schema::module_menu_unfinished::dsl::*;
-
         node = Some(
-            module_menu_unfinished
-                .filter(parent.eq(the_parent).and(normalized_name.eq(path_segment)))
+            module_menu_unfinished::table
+                .filter(module_menu_unfinished::parent.eq(the_parent).and(module_menu_unfinished::normalized_name.eq(path_segment)))
                 .load::<ModuleMenu>(&mut connection)
                 .await?
                 .into_iter()
@@ -354,15 +349,12 @@ async fn get_modules<'a>(
     let parent = node.map(|v: ModuleMenu| v.tucan_id);
 
     if let Some(module) = module {
-        use tucan_scraper::schema::module_menu_module::dsl::*;
-        use tucan_scraper::schema::modules::dsl::*;
-
-        let module_result = module_menu_module
-            .inner_join(modules)
+        let module_result = module_menu_module::table
+            .inner_join(modules::table)
             .filter(
-                module_menu_id
+                module_menu_module::module_menu_id
                     .eq(parent.unwrap())
-                    .and(tucan_scraper::schema::modules::module_id.eq(module)),
+                    .and(modules::module_id.eq(module)),
             )
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
             .await?
@@ -379,11 +371,9 @@ async fn get_modules<'a>(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use tucan_scraper::schema::module_menu_unfinished::dsl::*;
-
                     let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
-                        Ok(module_menu_unfinished
-                            .filter(parent.eq(parent))
+                        Ok(module_menu_unfinished::table
+                            .filter(module_menu_unfinished::parent.eq(parent))
                             .load::<ModuleMenu>(connection)
                             .await?);
                     return_value
@@ -399,12 +389,9 @@ async fn get_modules<'a>(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    use tucan_scraper::schema::module_menu_module::dsl::*;
-                    use tucan_scraper::schema::modules::dsl::*;
-
-                    module_menu_module
-                        .inner_join(modules)
-                        .filter(module_menu_id.nullable().eq(parent))
+                    module_menu_module::table
+                        .inner_join(modules::table)
+                        .filter(module_menu_module::module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
                         .await
                 }
