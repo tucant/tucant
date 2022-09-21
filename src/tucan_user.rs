@@ -13,7 +13,7 @@ use crate::{
     models::Module,
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -109,6 +109,20 @@ impl TucanUser {
             content,
             done: true,
         })
+    }
+
+    pub async fn root_registration(&self) -> anyhow::Result<Registration> {
+        let document = self.fetch_document(&Registration {
+            path: None
+        }.into()).await?;
+
+        let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
+
+        let url = parse_tucan_url(url_element.value().attr("href").unwrap());
+
+        let url = match url { r @ TucanUrl { program: TucanProgram::Registration(r), .. } => r, _ => panic!() };
+
+        Ok(url)
     }
 
     pub async fn registration(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {

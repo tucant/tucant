@@ -17,6 +17,7 @@ echo DATABASE_URL=postgres://postgres:password@localhost/tucant > .env
 diesel setup
 
 RUST_BACKTRACE=1 RUST_LOG=actix_server=debug cargo run
+RUST_BACKTRACE=1 RUST_LOG=server=trace cargo run
 
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 
