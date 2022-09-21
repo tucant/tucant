@@ -5,7 +5,7 @@ use serde::Serialize;
 use crate::schema::{module_menu_module, module_menu_unfinished, modules_unfinished};
 
 // order needs to be equal to the table definition
-#[derive(Identifiable, Queryable, Insertable, Serialize)]
+#[derive(Identifiable, Queryable, Insertable, Serialize, Debug)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
 pub struct Module {
@@ -18,7 +18,7 @@ pub struct Module {
     pub done: bool,
 }
 
-#[derive(Associations, Identifiable, Queryable, Insertable, Serialize)]
+#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
 #[belongs_to(ModuleMenu, foreign_key = "parent")]
@@ -31,7 +31,7 @@ pub struct ModuleMenu {
     pub child_type: i16,
 }
 
-#[derive(Associations, Identifiable, Queryable, Insertable, Serialize)]
+#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
 #[diesel(primary_key(module_menu_id, module_id))]
 #[diesel(table_name = module_menu_module)]
 #[belongs_to(ModuleMenu)]

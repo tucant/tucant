@@ -38,6 +38,7 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
+use log::{info, trace, warn};
 
 #[derive(Debug)]
 struct MyError {
@@ -110,13 +111,13 @@ async fn fetch_module(
     module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
+        trace!("Fetching new module {:?}", parent);
+
         let tucan_clone = tucan.clone();
         let parent_clone = parent.clone();
         stream
             .yield_item(Bytes::from(format!("module {}", module.id)))
             .await;
-
-        // TODO FIXME check if module already fetched and in cache
 
         let module = tucan.clone().module(module).await.unwrap();
 
@@ -164,7 +165,8 @@ async fn fetch_registration(
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
         let tucan_clone = tucan.clone();
-        let _parent_clone = parent.clone();
+
+        trace!("Handling registration {:?}", parent);
 
         // TODO check if already in DB and cache good
         /*
@@ -193,12 +195,16 @@ async fn fetch_registration(
 
         match existing_registration_already_fetched {
             Some(ModuleMenu { child_type: 1, .. }) => {
+                trace!("Existing submenus for registration {:?}", parent);
+
                 // existing submenus
                 let submenus = module_menu_unfinished::table
                     .filter(module_menu_unfinished::parent.eq(parent.clone().path.unwrap()))
                     .load::<ModuleMenu>(connection)
                     .await?;
                 for submenu in submenus {
+                    trace!("Handling existing submenu {:?} for registration {:?}", submenu, parent);
+
                     let mut fetch_registration_stream = fetch_registration(
                         tucan.clone(),
                         Registration {
@@ -223,6 +229,8 @@ async fn fetch_registration(
                 }
             }
             Some(ModuleMenu { child_type: 2, .. }) => {
+                trace!("Existing submodules for registration {:?}", parent);
+
                 // existing submodules
                 let submodules = module_menu_module::table
                     .inner_join(modules_unfinished::table)
@@ -236,6 +244,8 @@ async fn fetch_registration(
 
                 // TODO FIXME maybe store everything up until here in a registration enum and then unify the logic?
                 for module in submodules {
+                    trace!("Handling existing submodule {:?} for registration {:?}", module, parent);
+
                     let mut fetch_module_stream = fetch_module(
                         tucan.clone(),
                         parent.clone(),
@@ -262,6 +272,8 @@ async fn fetch_registration(
             }
             Some(_) => panic!(),
             None => {
+                trace!("Handling new registration {:?}", parent);
+
                 // don't know children yet, fetch them
                 let value = tucan.registration(parent.clone()).await?;
 
@@ -303,6 +315,8 @@ async fn fetch_registration(
 
                 match value {
                     RegistrationEnum::Submenu(ref submenu) => {
+                        trace!("New submenus for registration {:?}", parent);
+
                         diesel::insert_into(module_menu_unfinished::table)
                             .values(
                                 submenu
@@ -330,6 +344,8 @@ async fn fetch_registration(
                             .await?;
 
                         for menu in submenu {
+                            trace!("Handling new submenu {:?} for registration {:?}", menu, parent);
+
                             let mut fetch_registration_stream =
                                 fetch_registration(tucan.clone(), menu.clone()).await;
 
@@ -349,6 +365,8 @@ async fn fetch_registration(
                         }
                     }
                     RegistrationEnum::Modules(modules) => {
+                        trace!("New submodules for registration {:?}", parent);
+
                         diesel::insert_into(modules_unfinished::table)
                             .values(
                                 modules
@@ -383,6 +401,8 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
+                            trace!("Handling new submodule {:?} for registration {:?}", module, parent);
+
                             let mut fetch_module_stream =
                                 fetch_module(tucan.clone(), parent.clone(), module).await;
 
@@ -421,7 +441,9 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
                 let tucan = tucan.continue_session(session).await.unwrap();
 
+                trace!("Starting fetching module tree");
                 let mut input = fetch_registration(tucan, Registration { path: None }).await;
+                trace!("Done fetching module tree");
 
                 loop {
                     match input.next().await {
