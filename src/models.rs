@@ -2,12 +2,12 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::Serialize;
 
-use crate::schema::{module_menu_module, modules, module_menu_unfinished};
+use crate::schema::{module_menu_module, modules_unfinished, module_menu_unfinished};
 
 // order needs to be equal to the table definition
 #[derive(Identifiable, Queryable, Insertable, Serialize)]
 #[diesel(primary_key(tucan_id))]
-#[diesel(table_name = modules)]
+#[diesel(table_name = modules_unfinished)]
 pub struct Module {
     pub tucan_id: i64,
     pub tucan_last_checked: NaiveDateTime,

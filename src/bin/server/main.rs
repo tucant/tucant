@@ -132,11 +132,11 @@ async fn fetch_module(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    diesel::insert_into(modules::table)
+                    diesel::insert_into(modules_unfinished::table)
                         .values(&module)
-                        .on_conflict(modules::tucan_id)
+                        .on_conflict(modules_unfinished::tucan_id)
                         .do_update()
-                        .set(modules::content.eq(excluded(modules::content)))
+                        .set(modules_unfinished::content.eq(excluded(modules_unfinished::content)))
                         .execute(connection)
                         .await?;
 
@@ -195,7 +195,7 @@ async fn fetch_registration(
                             .await?;
 
             let submodules = module_menu_module::table
-                            .inner_join(modules::table)
+                            .inner_join(modules_unfinished::table)
                             .filter(module_menu_module::module_menu_id.nullable().eq(parent.path.unwrap()))
                             .load::<(ModuleMenuEntryModule, Module)>(connection)
                             .await?;
@@ -237,7 +237,7 @@ async fn fetch_registration(
                             parent: parent_clone,
                             tucan_id: menu.path.unwrap().into(),
                             tucan_last_checked: Utc::now().naive_utc(),
-                            done: false,
+                            child_type: 0,
                         })
                         .on_conflict(module_menu_unfinished::tucan_id)
                         .do_update()
@@ -367,11 +367,11 @@ async fn get_modules<'a>(
 
     if let Some(module) = module {
         let module_result = module_menu_module::table
-            .inner_join(modules::table)
+            .inner_join(modules_unfinished::table)
             .filter(
                 module_menu_module::module_menu_id
                     .eq(parent.unwrap())
-                    .and(modules::module_id.eq(module)),
+                    .and(modules_unfinished::module_id.eq(module)),
             )
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
             .await?
@@ -407,7 +407,7 @@ async fn get_modules<'a>(
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
                     module_menu_module::table
-                        .inner_join(modules::table)
+                        .inner_join(modules_unfinished::table)
                         .filter(module_menu_module::module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
                         .await
