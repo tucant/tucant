@@ -467,11 +467,11 @@ async fn get_modules<'a>(
             .get()
             .await?
             .build_transaction()
-            .run::<_, diesel::result::Error, _>(move |connection| {
+            .run::<_, diesel::result::Error, _>(|connection| {
                 async move {
                     let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
                         Ok(module_menu_unfinished::table
-                            .filter(module_menu_unfinished::parent.eq(parent))
+                            .filter(module_menu_unfinished::parent.eq(parent.clone()))
                             .load::<ModuleMenu>(connection)
                             .await?);
                     return_value
@@ -485,11 +485,11 @@ async fn get_modules<'a>(
             .get()
             .await?
             .build_transaction()
-            .run::<_, diesel::result::Error, _>(move |connection| {
+            .run::<_, diesel::result::Error, _>(|connection| {
                 async move {
                     module_menu_module::table
                         .inner_join(modules_unfinished::table)
-                        .filter(module_menu_module::module_menu_id.nullable().eq(parent))
+                        .filter(module_menu_module::module_menu_id.nullable().eq(parent.clone()))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
                         .await
                 }
