@@ -442,7 +442,9 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 let tucan = tucan.continue_session(session).await.unwrap();
 
                 trace!("Starting fetching module tree");
-                let mut input = fetch_registration(tucan, Registration { path: None }).await;
+                let root = tucan.root_registration().await.unwrap();
+
+                let mut input = fetch_registration(tucan, root).await;
                 trace!("Done fetching module tree");
 
                 loop {
