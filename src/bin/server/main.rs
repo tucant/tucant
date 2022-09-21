@@ -199,10 +199,14 @@ async fn fetch_registration(
                             .inner_join(modules::table)
                             .filter(module_menu_module::module_menu_id.nullable().eq(parent.path.unwrap()))
                             .load::<(ModuleMenuEntryModule, Module)>(connection)
-                            .await;
+                            .await?;
 
+            // TODO FIXME try subrequests?
         } else {
             let value = tucan.registration(parent).await?;
+
+            // TODO FIXME store all stuff as unfinished
+            // TODO FIXME mark current element as finished
 
             match value {
                 RegistrationEnum::Submenu(submenu) => {

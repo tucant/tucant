@@ -22,7 +22,7 @@ index a1d75c9..36f431b 100644
          normalized_name -> Text,
 -        parent -> Nullable<Array<Nullable<Int8>>>,
 +        parent -> Nullable<Array<Int8>>,
-         recursively_fetched -> Bool,
+         done -> Bool,
      }
  }
  

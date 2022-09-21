@@ -5,7 +5,8 @@ CREATE TABLE modules (
     title TEXT NOT NULL,
     module_id TEXT NOT NULL,
     credits INTEGER,
-    content TEXT NOT NULL
+    content TEXT NOT NULL,
+    done BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- TODO FIXME maybe this shows that the parent is not actually unique because
@@ -17,7 +18,7 @@ CREATE TABLE module_menu_unfinished (
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
     parent BIGINT[] REFERENCES module_menu_unfinished (tucan_id),
-    recursively_fetched BOOLEAN NOT NULL DEFAULT FALSE
+    done BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- CREATE OR REPLACE VIEW module_menu WITH (security_barrier, security_invoker) AS SELECT * FROM module_menu_unfinished WHERE recursively_fetched;

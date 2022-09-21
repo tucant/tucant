@@ -15,6 +15,7 @@ pub struct Module {
     pub module_id: String,
     pub credits: Option<i32>,
     pub content: String,
+    pub done: bool,
 }
 
 #[derive(Associations, Identifiable, Queryable, Insertable, Serialize)]
@@ -27,7 +28,7 @@ pub struct ModuleMenu {
     pub name: String,
     pub normalized_name: String,
     pub parent: Option<Vec<i64>>,
-    pub recursively_fetched: bool,
+    pub done: bool,
 }
 
 #[derive(Associations, Identifiable, Queryable, Insertable, Serialize)]

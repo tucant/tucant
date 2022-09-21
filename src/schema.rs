@@ -14,7 +14,7 @@ diesel::table! {
         name -> Text,
         normalized_name -> Text,
         parent -> Nullable<Array<Int8>>,
-        recursively_fetched -> Bool,
+        done -> Bool,
     }
 }
 
@@ -26,6 +26,7 @@ diesel::table! {
         module_id -> Text,
         credits -> Nullable<Int4>,
         content -> Text,
+        done -> Bool,
     }
 }
 
