@@ -181,7 +181,11 @@ async fn fetch_registration(
         let connection = &mut tucan_clone.tucan.pool.get().await?;
 
         let existing_registration_already_fetched = module_menu_unfinished::table
-            .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.clone().path))
+            .filter(
+                module_menu_unfinished::tucan_id
+                    .nullable()
+                    .eq(parent.clone().path),
+            )
             .filter(not(module_menu_unfinished::child_type.eq(0)))
             .get_result::<ModuleMenu>(connection)
             .await
@@ -194,6 +198,29 @@ async fn fetch_registration(
                     .filter(module_menu_unfinished::parent.eq(parent.clone().path.unwrap()))
                     .load::<ModuleMenu>(connection)
                     .await?;
+                for submenu in submenus {
+                    let mut fetch_registration_stream = fetch_registration(
+                        tucan.clone(),
+                        Registration {
+                            path: Some(submenu.tucan_id),
+                        },
+                    )
+                    .await;
+
+                    loop {
+                        match fetch_registration_stream.next().await {
+                            Some(Ok(value)) => {
+                                stream.yield_item(value).await;
+                            }
+                            Some(err @ Err(_)) => {
+                                err?;
+                            }
+                            None => {
+                                break;
+                            }
+                        }
+                    }
+                }
             }
             Some(ModuleMenu { child_type: 2, .. }) => {
                 // existing submodules
@@ -206,6 +233,32 @@ async fn fetch_registration(
                     )
                     .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await?;
+
+                // TODO FIXME maybe store everything up until here in a registration enum and then unify the logic?
+                for module in submodules {
+                    let mut fetch_module_stream = fetch_module(
+                        tucan.clone(),
+                        parent.clone(),
+                        Moduledetails {
+                            id: module.1.tucan_id,
+                        },
+                    )
+                    .await;
+
+                    loop {
+                        match fetch_module_stream.next().await {
+                            Some(Ok(value)) => {
+                                stream.yield_item(value).await;
+                            }
+                            Some(err @ Err(_)) => {
+                                err?;
+                            }
+                            None => {
+                                break;
+                            }
+                        }
+                    }
+                }
             }
             Some(_) => panic!(),
             None => {
@@ -251,19 +304,22 @@ async fn fetch_registration(
                 match value {
                     RegistrationEnum::Submenu(ref submenu) => {
                         diesel::insert_into(module_menu_unfinished::table)
-                            .values(submenu.iter().map(|s| {
-                                ModuleMenu {
-                                    name: "".to_string(),
-                                    normalized_name: "".to_string(),
-                                    parent: parent.clone().path,
-                                    tucan_id: s.clone().path.unwrap(),
-                                    tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type: match &value {
-                                        RegistrationEnum::Submenu(_) => 1,
-                                        RegistrationEnum::Modules(_) => 2,
-                                    },
-                                }
-                            }).collect::<Vec<_>>())
+                            .values(
+                                submenu
+                                    .iter()
+                                    .map(|s| ModuleMenu {
+                                        name: "".to_string(),
+                                        normalized_name: "".to_string(),
+                                        parent: parent.clone().path,
+                                        tucan_id: s.clone().path.unwrap(),
+                                        tucan_last_checked: Utc::now().naive_utc(),
+                                        child_type: match &value {
+                                            RegistrationEnum::Submenu(_) => 1,
+                                            RegistrationEnum::Modules(_) => 2,
+                                        },
+                                    })
+                                    .collect::<Vec<_>>(),
+                            )
                             .on_conflict(module_menu_unfinished::tucan_id)
                             .do_update()
                             .set(
@@ -271,10 +327,11 @@ async fn fetch_registration(
                                     .eq(excluded(module_menu_unfinished::name)),
                             )
                             .get_result::<ModuleMenu>(connection)
-                            .await;
+                            .await?;
 
                         for menu in submenu {
-                            let mut fetch_registration_stream = fetch_registration(tucan.clone(), menu.clone()).await;
+                            let mut fetch_registration_stream =
+                                fetch_registration(tucan.clone(), menu.clone()).await;
 
                             loop {
                                 match fetch_registration_stream.next().await {
@@ -326,22 +383,22 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
-                            let mut fetch_module_stream = fetch_module(tucan.clone(), parent.clone(), module).await;
+                            let mut fetch_module_stream =
+                                fetch_module(tucan.clone(), parent.clone(), module).await;
 
-
-                                loop {
-                                    match fetch_module_stream.next().await {
-                                        Some(Ok(value)) => {
-                                            stream.yield_item(value).await;
-                                        }
-                                        Some(err @ Err(_)) => {
-                                            err?;
-                                        }
-                                        None => {
-                                            break;
-                                        }
+                            loop {
+                                match fetch_module_stream.next().await {
+                                    Some(Ok(value)) => {
+                                        stream.yield_item(value).await;
+                                    }
+                                    Some(err @ Err(_)) => {
+                                        err?;
+                                    }
+                                    None => {
+                                        break;
                                     }
                                 }
+                            }
                         }
                     }
                 }
