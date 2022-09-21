@@ -260,7 +260,7 @@ async fn fetch_registration(
                                         RegistrationEnum::Modules(_) => 2,
                                     },
                                 }
-                            }).collect())
+                            }).collect::<Vec<_>>())
                             .on_conflict(module_menu_unfinished::tucan_id)
                             .do_update()
                             .set(
@@ -302,7 +302,7 @@ async fn fetch_registration(
                                         credits: None,
                                         content: "".to_string(),
                                     })
-                                    .collect(),
+                                    .collect::<Vec<_>>(),
                             )
                             .execute(connection)
                             .await?;
@@ -316,7 +316,7 @@ async fn fetch_registration(
                                         module_id: m.id,
                                         module_menu_id: parent_clone.path.unwrap(),
                                     })
-                                    .collect(),
+                                    .collect::<Vec<_>>(),
                             )
                             .on_conflict_do_nothing()
                             .execute(connection)
