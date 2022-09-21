@@ -112,15 +112,24 @@ impl TucanUser {
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<Registration> {
-        let document = self.fetch_document(&Registration {
-            path: None
-        }.into()).await?;
+        let document = self
+            .fetch_document(&Registration { path: None }.into())
+            .await?;
 
         let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
 
-        let url = parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{}", url_element.value().attr("href").unwrap()));
+        let url = parse_tucan_url(&format!(
+            "https://www.tucan.tu-darmstadt.de{}",
+            url_element.value().attr("href").unwrap()
+        ));
 
-        let url = match url { TucanUrl { program: TucanProgram::Registration(r), .. } => r, _ => panic!() };
+        let url = match url {
+            TucanUrl {
+                program: TucanProgram::Registration(r),
+                ..
+            } => r,
+            _ => panic!(),
+        };
 
         Ok(url)
     }

@@ -18,7 +18,7 @@ use actix_web::web::{Bytes, Path};
 use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
-use async_stream::{try_stream};
+use async_stream::try_stream;
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::dsl::not;
@@ -30,6 +30,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
+use log::{info, trace, warn};
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -38,7 +39,6 @@ use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
-use log::{info, trace, warn};
 
 #[derive(Debug)]
 struct MyError {
@@ -182,7 +182,7 @@ async fn fetch_registration(
         */
         let connection = &mut tucan_clone.tucan.pool.get().await?;
 
-        trace!("jo {:?}", parent);
+        //trace!("jo {:?}", parent);
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(
@@ -195,7 +195,7 @@ async fn fetch_registration(
             .await
             .optional()?;
 
-        trace!("jo2 {:?}", existing_registration_already_fetched);
+        //trace!("jo2 {:?}", existing_registration_already_fetched);
 
         match existing_registration_already_fetched {
             Some(ModuleMenu { child_type: 1, .. }) => {
@@ -207,7 +207,11 @@ async fn fetch_registration(
                     .load::<ModuleMenu>(connection)
                     .await?;
                 for submenu in submenus {
-                    trace!("Handling existing submenu {:?} for registration {:?}", submenu, parent);
+                    trace!(
+                        "Handling existing submenu {:?} for registration {:?}",
+                        submenu,
+                        parent
+                    );
 
                     let mut fetch_registration_stream = fetch_registration(
                         tucan.clone(),
@@ -248,7 +252,11 @@ async fn fetch_registration(
 
                 // TODO FIXME maybe store everything up until here in a registration enum and then unify the logic?
                 for module in submodules {
-                    trace!("Handling existing submodule {:?} for registration {:?}", module, parent);
+                    trace!(
+                        "Handling existing submodule {:?} for registration {:?}",
+                        module,
+                        parent
+                    );
 
                     let mut fetch_module_stream = fetch_module(
                         tucan.clone(),
@@ -299,7 +307,7 @@ async fn fetch_registration(
                                 .values(&ModuleMenu {
                                     name: "".to_string(),
                                     normalized_name: "".to_string(),
-                                    parent: Some(parent.clone()), // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                    parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
                                     tucan_id: parent,
                                     tucan_last_checked: Utc::now().naive_utc(),
                                     child_type,
@@ -348,7 +356,11 @@ async fn fetch_registration(
                             .await?;
 
                         for menu in submenu {
-                            trace!("Handling new submenu {:?} for registration {:?}", menu, parent);
+                            trace!(
+                                "Handling new submenu {:?} for registration {:?}",
+                                menu,
+                                parent
+                            );
 
                             let mut fetch_registration_stream =
                                 fetch_registration(tucan.clone(), menu.clone()).await;
@@ -405,7 +417,11 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
-                            trace!("Handling new submodule {:?} for registration {:?}", module, parent);
+                            trace!(
+                                "Handling new submodule {:?} for registration {:?}",
+                                module,
+                                parent
+                            );
 
                             let mut fetch_module_stream =
                                 fetch_module(tucan.clone(), parent.clone(), module).await;
