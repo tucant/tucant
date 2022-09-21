@@ -17,7 +17,7 @@ CREATE TABLE module_menu_unfinished (
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
     parent BIGINT[] REFERENCES module_menu_unfinished (tucan_id),
-    recursively_fetched BOOLEAN not null DEFAULT FALSE
+    recursively_fetched BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- CREATE OR REPLACE VIEW module_menu WITH (security_barrier, security_invoker) AS SELECT * FROM module_menu_unfinished WHERE recursively_fetched;

@@ -21,11 +21,9 @@ use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Resp
 use async_stream::{try_stream, stream};
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
-use diesel::dsl::{count, exists};
 use diesel::prelude::*;
 use diesel::upsert::excluded;
 use diesel_async::RunQueryDsl;
-
 use diesel_async::pooled_connection::PoolError;
 use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -35,9 +33,6 @@ use tokio::{
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
-use tucan_scraper::schema::module_menu::{self, name, tucan_id};
-use tucan_scraper::schema::modules::content;
-use tucan_scraper::schema::{self};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
@@ -135,15 +130,18 @@ async fn fetch_module(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    diesel::insert_into(tucan_scraper::schema::modules::table)
+                    use tucan_scraper::schema::modules::dsl::*;
+                    use tucan_scraper::schema::module_menu_module::dsl::*;
+
+                    diesel::insert_into(modules)
                         .values(&module)
-                        .on_conflict(tucan_scraper::schema::modules::tucan_id)
+                        .on_conflict(tucan_id)
                         .do_update()
                         .set(content.eq(excluded(content)))
                         .execute(connection)
                         .await?;
 
-                    diesel::insert_into(tucan_scraper::schema::module_menu_module::table)
+                    diesel::insert_into(module_menu_module)
                         .values(&ModuleMenuEntryModule {
                             module_id: module.tucan_id,
                             module_menu_id: parent_clone.path.unwrap().to_vec(),
@@ -217,7 +215,9 @@ async fn fetch_registration(
             .build_transaction()
             .run::<_, diesel::result::Error, _>(move |connection| {
                 async move {
-                    diesel::insert_into(tucan_scraper::schema::module_menu::table)
+                    use tucan_scraper::schema::module_menu_unfinished::dsl::*;
+
+                    diesel::insert_into(module_menu_unfinished)
                         .values(&ModuleMenu {
                             name: "".to_string(),
                             normalized_name: "".to_string(),
@@ -225,7 +225,7 @@ async fn fetch_registration(
                             tucan_id: menu.path.unwrap().into(),
                             tucan_last_checked: Utc::now().naive_utc(),
                         })
-                        .on_conflict(tucan_scraper::schema::module_menu::tucan_id)
+                        .on_conflict(tucan_id)
                         .do_update()
                         .set(name.eq(excluded(name)))
                         .get_result::<ModuleMenu>(connection)
