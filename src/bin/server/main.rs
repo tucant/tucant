@@ -211,11 +211,65 @@ async fn fetch_registration(
                 // don't know children yet, fetch them
                 let value = tucan.registration(parent).await?;
 
-                // TODO FIXME store all stuff as unfinished
-                // TODO FIXME mark current element as finished
+                // mark current element as finished
+                tucan_clone
+                    .tucan
+                    .pool
+                    .get()
+                    .await?
+                    .build_transaction()
+                    .run::<_, diesel::result::Error, _>(move |connection| {
+                        async move {
+                            diesel::insert_into(module_menu_unfinished::table)
+                                .values(&ModuleMenu {
+                                    name: "".to_string(),
+                                    normalized_name: "".to_string(),
+                                    parent: parent_clone.path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                    tucan_id: parent.path.unwrap(),
+                                    tucan_last_checked: Utc::now().naive_utc(),
+                                    child_type: match value {
+                                        RegistrationEnum::Submenu(_) => 1,
+                                        RegistrationEnum::Modules(_) => 2,
+                                    },
+                                })
+                                .on_conflict(module_menu_unfinished::tucan_id)
+                                .do_update()
+                                .set(
+                                    module_menu_unfinished::name
+                                        .eq(excluded(module_menu_unfinished::name)),
+                                )
+                                .get_result::<ModuleMenu>(connection)
+                                .await
+                        }
+                        .boxed()
+                    })
+                    .await?;
 
                 match value {
                     RegistrationEnum::Submenu(submenu) => {
+                        diesel::insert_into(module_menu_unfinished::table)
+                            .values(submenu.iter().map(|s| {
+                                ModuleMenu {
+                                    name: "".to_string(),
+                                    normalized_name: "".to_string(),
+                                    parent: parent_clone.path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                    tucan_id: parent.path.unwrap(),
+                                    tucan_last_checked: Utc::now().naive_utc(),
+                                    child_type: match value {
+                                        RegistrationEnum::Submenu(_) => 1,
+                                        RegistrationEnum::Modules(_) => 2,
+                                    },
+                                }
+                            }))
+                            .on_conflict(module_menu_unfinished::tucan_id)
+                            .do_update()
+                            .set(
+                                module_menu_unfinished::name
+                                    .eq(excluded(module_menu_unfinished::name)),
+                            )
+                            .get_result::<ModuleMenu>(connection)
+                            .await;
+
                         for menu in submenu {
                             fetch_registration(tucan, menu);
                         }
@@ -239,13 +293,14 @@ async fn fetch_registration(
                             .execute(connection)
                             .await?;
 
+                        // TODO FIXME transaction
                         diesel::insert_into(module_menu_module::table)
                             .values(
                                 modules
                                     .iter()
                                     .map(|m| ModuleMenuEntryModule {
                                         module_id: m.id,
-                                        module_menu_id: parent_clone.path.unwrap().to_vec(),
+                                        module_menu_id: parent_clone.path.unwrap(),
                                     })
                                     .collect(),
                             )
@@ -260,35 +315,6 @@ async fn fetch_registration(
                 }
             }
         }
-
-        let cnt = tucan_clone
-            .tucan
-            .pool
-            .get()
-            .await?
-            .build_transaction()
-            .run::<_, diesel::result::Error, _>(move |connection| {
-                async move {
-                    diesel::insert_into(module_menu_unfinished::table)
-                        .values(&ModuleMenu {
-                            name: "".to_string(),
-                            normalized_name: "".to_string(),
-                            parent: parent_clone,
-                            tucan_id: menu.path.unwrap().into(),
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            child_type: 0,
-                        })
-                        .on_conflict(module_menu_unfinished::tucan_id)
-                        .do_update()
-                        .set(
-                            module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)),
-                        )
-                        .get_result::<ModuleMenu>(connection)
-                        .await
-                }
-                .boxed()
-            })
-            .await?;
 
         stream
             .yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap())))
