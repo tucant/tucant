@@ -202,14 +202,14 @@ async fn fetch_registration(
                     .filter(
                         module_menu_module::module_menu_id
                             .nullable()
-                            .eq(parent.path.unwrap()),
+                            .eq(parent.clone().path.unwrap()),
                     )
                     .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await?;
             }
             None => {
                 // don't know children yet, fetch them
-                let value = tucan.registration(parent).await?;
+                let value = tucan.registration(parent.clone()).await?;
 
                 // mark current element as finished
                 tucan_clone
@@ -218,16 +218,16 @@ async fn fetch_registration(
                     .get()
                     .await?
                     .build_transaction()
-                    .run::<_, diesel::result::Error, _>(move |connection| {
+                    .run::<_, diesel::result::Error, _>(|connection| {
                         async move {
                             diesel::insert_into(module_menu_unfinished::table)
                                 .values(&ModuleMenu {
                                     name: "".to_string(),
                                     normalized_name: "".to_string(),
-                                    parent: parent_clone.path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                                    tucan_id: parent.path.unwrap(),
+                                    parent: parent.clone().path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                    tucan_id: parent.path.clone().unwrap(),
                                     tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type: match value {
+                                    child_type: match value.clone() {
                                         RegistrationEnum::Submenu(_) => 1,
                                         RegistrationEnum::Modules(_) => 2,
                                     },
@@ -252,8 +252,8 @@ async fn fetch_registration(
                                 ModuleMenu {
                                     name: "".to_string(),
                                     normalized_name: "".to_string(),
-                                    parent: parent_clone.path,
-                                    tucan_id: s.path.unwrap(),
+                                    parent: parent.clone().path,
+                                    tucan_id: s.clone().path.unwrap(),
                                     tucan_last_checked: Utc::now().naive_utc(),
                                     child_type: match value {
                                         RegistrationEnum::Submenu(_) => 1,
@@ -314,7 +314,7 @@ async fn fetch_registration(
                                     .iter()
                                     .map(|m| ModuleMenuEntryModule {
                                         module_id: m.id,
-                                        module_menu_id: parent_clone.path.unwrap(),
+                                        module_menu_id: parent.clone().path.unwrap(),
                                     })
                                     .collect::<Vec<_>>(),
                             )
