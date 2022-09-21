@@ -260,7 +260,7 @@ async fn fetch_registration(
                                         RegistrationEnum::Modules(_) => 2,
                                     },
                                 }
-                            }))
+                            }).collect())
                             .on_conflict(module_menu_unfinished::tucan_id)
                             .do_update()
                             .set(
