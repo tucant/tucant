@@ -188,14 +188,14 @@ async fn fetch_registration(
             .optional()?;
 
         match existing_registration_already_fetched {
-            Some(ModuleMenu { child_type: 1 }) => {
+            Some(ModuleMenu { child_type: 1, .. }) => {
                 // TODO FIXME probably store the type in the parent so we don't need to do this garbage
                 let submenus = module_menu_unfinished::table
                     .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
                     .load::<ModuleMenu>(connection)
                     .await?;
             }
-            Some(ModuleMenu { child_type: 2 }) => {
+            Some(ModuleMenu { child_type: 2, .. }) => {
                 let submodules = module_menu_module::table
                     .inner_join(modules_unfinished::table)
                     .filter(
@@ -214,11 +214,28 @@ async fn fetch_registration(
 
                 match value {
                     RegistrationEnum::Submenu(submenu) => {
+
+
                         for menu in submenu {
                             fetch_registration(tucan, menu);
                         }
                     }
                     RegistrationEnum::Modules(modules) => {
+                        diesel::insert_into(modules_unfinished::table)
+                        .values(modules.iter().map(|m| {
+                            Module {
+                                done: false,
+                                tucan_id: m.id,
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                title: "".to_string(),
+                                module_id: "".to_string(),
+                                credits: None,
+                                content: "".to_string(),
+                            }
+                        }).collect())
+                        .execute(connection)
+                        .await?;
+
                         for module in modules {
                             fetch_module(tucan, parent, module);
                         }
