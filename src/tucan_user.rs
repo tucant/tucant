@@ -107,6 +107,7 @@ impl TucanUser {
             credits: Some(credits),
             module_id: module_id.to_string(),
             content,
+            done: true,
         })
     }
 

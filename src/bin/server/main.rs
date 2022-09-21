@@ -182,14 +182,13 @@ async fn fetch_registration(
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.path))
-            .filter(module_menu_unfinished::recursively_fetched)
+            .filter(module_menu_unfinished::done)
             .count()
             .get_result::<i64>(connection)
             .await?;
 
         if existing_registration_already_fetched == 1 {
-            // TODO FIXME fetch cached registration enum stuff and still try subrequests (as we don't fetch recursively first)
-           
+            // TODO FIXME probably store the type in the parent so we don't need to do this garbage
             let submenus = module_menu_unfinished::table
                             .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
                             .load::<ModuleMenu>(connection)
@@ -238,7 +237,7 @@ async fn fetch_registration(
                             parent: parent_clone,
                             tucan_id: menu.path.unwrap().into(),
                             tucan_last_checked: Utc::now().naive_utc(),
-                            recursively_fetched: false,
+                            done: false,
                         })
                         .on_conflict(module_menu_unfinished::tucan_id)
                         .do_update()

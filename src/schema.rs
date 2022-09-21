@@ -14,12 +14,12 @@ diesel::table! {
         name -> Text,
         normalized_name -> Text,
         parent -> Nullable<Array<Int8>>,
-        done -> Bool,
+        child_type -> Int2,
     }
 }
 
 diesel::table! {
-    modules (tucan_id) {
+    modules_unfinished (tucan_id) {
         tucan_id -> Int8,
         tucan_last_checked -> Timestamptz,
         title -> Text,
@@ -31,10 +31,10 @@ diesel::table! {
 }
 
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
-diesel::joinable!(module_menu_module -> modules (module_id));
+diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     module_menu_module,
     module_menu_unfinished,
-    modules,
+    modules_unfinished,
 );

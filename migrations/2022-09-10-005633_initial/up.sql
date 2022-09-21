@@ -1,5 +1,5 @@
 
-CREATE TABLE modules (
+CREATE TABLE modules_unfinished (
     tucan_id BIGINT NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
     title TEXT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE module_menu_unfinished (
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
     parent BIGINT[] REFERENCES module_menu_unfinished (tucan_id),
-    done BOOLEAN NOT NULL DEFAULT FALSE
+    child_type SMALLINT NOT NULL -- 0 means not done, 1 means menu, 2 means module
 );
 
 -- CREATE OR REPLACE VIEW module_menu WITH (security_barrier, security_invoker) AS SELECT * FROM module_menu_unfinished WHERE recursively_fetched;
@@ -26,6 +26,6 @@ CREATE TABLE module_menu_unfinished (
 -- Looking at the comment above maybe this is not necessary
 CREATE TABLE module_menu_module (
     module_menu_id BIGINT[] NOT NULL REFERENCES module_menu_unfinished (tucan_id),
-    module_id BIGINT NOT NULL REFERENCES modules (tucan_id),
+    module_id BIGINT NOT NULL REFERENCES modules_unfinished (tucan_id),
     PRIMARY KEY (module_menu_id, module_id)
 );
