@@ -18,7 +18,7 @@ use actix_web::web::{Bytes, Path};
 use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
-use async_stream::{stream, try_stream};
+use async_stream::{try_stream};
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::dsl::not;
@@ -164,7 +164,7 @@ async fn fetch_registration(
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
         let tucan_clone = tucan.clone();
-        let parent_clone = parent.clone();
+        let _parent_clone = parent.clone();
 
         // TODO check if already in DB and cache good
         /*

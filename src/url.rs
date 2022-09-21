@@ -1,4 +1,4 @@
-use either::*;
+
 use itertools::Itertools;
 use std::{
     collections::HashMap,
@@ -87,7 +87,7 @@ impl TucanProgram {
                 match path {
                     Some(path) => Box::new(
                         iter::once(TucanArgument::Number(311))
-                            .chain(path.into_iter().map(|v| TucanArgument::Number(*v))),
+                            .chain(path.iter().map(|v| TucanArgument::Number(*v))),
                     ),
                     None => Box::new(
                         [TucanArgument::Number(311), TucanArgument::String("")].into_iter(),
