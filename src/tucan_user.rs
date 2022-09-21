@@ -16,7 +16,7 @@ use crate::{
     url::{parse_tucan_url, Moduledetails, Registration, TucanProgram},
 };
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
     pub nr: i64,
     pub id: String,

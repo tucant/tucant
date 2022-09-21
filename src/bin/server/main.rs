@@ -18,7 +18,7 @@ use actix_web::web::{Bytes, Path};
 use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
-use async_stream::try_stream;
+use async_stream::{try_stream, stream};
 use chrono::Utc;
 use csrf_middleware::CsrfMiddleware;
 use diesel::dsl::{count, exists};
@@ -182,13 +182,14 @@ async fn fetch_registration(
                                 .replace('ü', "ue");
         */
         let conn = &mut tucan_clone.tucan.pool.get().await?;
-        let dsfa = crate::module_menu::dsl::module_menu
+
+        let existing_registration = crate::module_menu::dsl::module_menu
             .filter(tucan_id.nullable().eq(parent.path))
             .count()
             .get_result::<i64>(conn)
             .await?;
 
-        if dsfa == 1 {
+        if existing_registration == 1 {
             // TODO FIXME fetch cached registration enum stuff and still try subrequests (as we don't fetch recursively first)
         } else {
             let value = tucan.registration(parent).await?;
@@ -196,14 +197,15 @@ async fn fetch_registration(
             match value {
                 RegistrationEnum::Submenu(submenu) => {
                     for menu in submenu {
+
                         fetch_registration(tucan, menu);
                     }
-                },
+                }
                 RegistrationEnum::Modules(modules) => {
                     for module in modules {
                         fetch_module(tucan, parent, module);
                     }
-                },
+                }
             }
         }
 
@@ -268,7 +270,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
                 let tucan = tucan.continue_session(session).await.unwrap();
 
-                let mut input = fetch_everything(tucan, None, res).await;
+                let mut input = fetch_registration(tucan, Registration { path: None }).await;
 
                 loop {
                     match input.next().await {
