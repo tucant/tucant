@@ -178,16 +178,29 @@ async fn fetch_registration(
                                 .replace('ö', "oe")
                                 .replace('ü', "ue");
         */
-        let conn = &mut tucan_clone.tucan.pool.get().await?;
+        let connection = &mut tucan_clone.tucan.pool.get().await?;
 
-        let existing_registration = module_menu_unfinished::table
-            .filter(diesel::BoolExpressionMethods::and(module_menu_unfinished::tucan_id.nullable().eq(parent.path), not(module_menu_unfinished::recursively_fetched)))
+        let existing_registration_already_fetched = module_menu_unfinished::table
+            .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.path))
+            .filter(module_menu_unfinished::recursively_fetched)
             .count()
-            .get_result::<i64>(conn)
+            .get_result::<i64>(connection)
             .await?;
 
-        if existing_registration == 1 {
+        if existing_registration_already_fetched == 1 {
             // TODO FIXME fetch cached registration enum stuff and still try subrequests (as we don't fetch recursively first)
+           
+            let submenus = module_menu_unfinished::table
+                            .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
+                            .load::<ModuleMenu>(connection)
+                            .await?;
+
+            let submodules = module_menu_module::table
+                            .inner_join(modules::table)
+                            .filter(module_menu_module::module_menu_id.nullable().eq(parent.path.unwrap()))
+                            .load::<(ModuleMenuEntryModule, Module)>(connection)
+                            .await;
+
         } else {
             let value = tucan.registration(parent).await?;
 
@@ -221,6 +234,7 @@ async fn fetch_registration(
                             parent: parent_clone,
                             tucan_id: menu.path.unwrap().into(),
                             tucan_last_checked: Utc::now().naive_utc(),
+                            recursively_fetched: false,
                         })
                         .on_conflict(module_menu_unfinished::tucan_id)
                         .do_update()
