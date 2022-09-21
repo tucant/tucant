@@ -130,7 +130,7 @@ async fn fetch_module(
             .get()
             .await?
             .build_transaction()
-            .run::<_, diesel::result::Error, _>(move |connection| {
+            .run::<_, diesel::result::Error, _>(|connection| {
                 async move {
                     diesel::insert_into(modules_unfinished::table)
                         .values(&module)
@@ -227,7 +227,7 @@ async fn fetch_registration(
                                     parent: parent.clone().path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
                                     tucan_id: parent.path.clone().unwrap(),
                                     tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type: match value.clone() {
+                                    child_type: match value {
                                         RegistrationEnum::Submenu(_) => 1,
                                         RegistrationEnum::Modules(_) => 2,
                                     },
@@ -271,7 +271,7 @@ async fn fetch_registration(
                             .await;
 
                         for menu in submenu {
-                            let fetch_registration_stream = fetch_registration(tucan, menu).await;
+                            let mut fetch_registration_stream = fetch_registration(tucan.clone(), menu).await;
 
                             loop {
                                 match fetch_registration_stream.next().await {
@@ -323,7 +323,7 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
-                            let fetch_module_stream = fetch_module(tucan, parent, module).await;
+                            let mut fetch_module_stream = fetch_module(tucan.clone(), parent, module).await;
 
 
                                 loop {
