@@ -252,8 +252,8 @@ async fn fetch_registration(
                                 ModuleMenu {
                                     name: "".to_string(),
                                     normalized_name: "".to_string(),
-                                    parent: parent_clone.path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                                    tucan_id: parent.path.unwrap(),
+                                    parent: parent_clone.path,
+                                    tucan_id: s.path.unwrap(),
                                     tucan_last_checked: Utc::now().naive_utc(),
                                     child_type: match value {
                                         RegistrationEnum::Submenu(_) => 1,
