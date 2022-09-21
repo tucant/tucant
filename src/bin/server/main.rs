@@ -181,7 +181,7 @@ async fn fetch_registration(
         let connection = &mut tucan_clone.tucan.pool.get().await?;
 
         let existing_registration_already_fetched = module_menu_unfinished::table
-            .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.path))
+            .filter(module_menu_unfinished::tucan_id.nullable().eq(parent.clone().path))
             .filter(not(module_menu_unfinished::child_type.eq(0)))
             .get_result::<ModuleMenu>(connection)
             .await
@@ -191,7 +191,7 @@ async fn fetch_registration(
             Some(ModuleMenu { child_type: 1, .. }) => {
                 // existing submenus
                 let submenus = module_menu_unfinished::table
-                    .filter(module_menu_unfinished::parent.eq(parent.path.unwrap()))
+                    .filter(module_menu_unfinished::parent.eq(parent.clone().path.unwrap()))
                     .load::<ModuleMenu>(connection)
                     .await?;
             }
@@ -207,6 +207,7 @@ async fn fetch_registration(
                     .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await?;
             }
+            Some(_) => panic!(),
             None => {
                 // don't know children yet, fetch them
                 let value = tucan.registration(parent.clone()).await?;
@@ -219,18 +220,20 @@ async fn fetch_registration(
                     .await?
                     .build_transaction()
                     .run::<_, diesel::result::Error, _>(|connection| {
+                        let child_type = match value {
+                            RegistrationEnum::Submenu(_) => 1,
+                            RegistrationEnum::Modules(_) => 2,
+                        };
+                        let parent = parent.path.clone().unwrap();
                         async move {
                             diesel::insert_into(module_menu_unfinished::table)
                                 .values(&ModuleMenu {
                                     name: "".to_string(),
                                     normalized_name: "".to_string(),
-                                    parent: parent.clone().path, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                                    tucan_id: parent.path.clone().unwrap(),
+                                    parent: Some(parent.clone()), // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                    tucan_id: parent,
                                     tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type: match value {
-                                        RegistrationEnum::Submenu(_) => 1,
-                                        RegistrationEnum::Modules(_) => 2,
-                                    },
+                                    child_type,
                                 })
                                 .on_conflict(module_menu_unfinished::tucan_id)
                                 .do_update()
@@ -246,7 +249,7 @@ async fn fetch_registration(
                     .await?;
 
                 match value {
-                    RegistrationEnum::Submenu(submenu) => {
+                    RegistrationEnum::Submenu(ref submenu) => {
                         diesel::insert_into(module_menu_unfinished::table)
                             .values(submenu.iter().map(|s| {
                                 ModuleMenu {
@@ -255,7 +258,7 @@ async fn fetch_registration(
                                     parent: parent.clone().path,
                                     tucan_id: s.clone().path.unwrap(),
                                     tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type: match value {
+                                    child_type: match &value {
                                         RegistrationEnum::Submenu(_) => 1,
                                         RegistrationEnum::Modules(_) => 2,
                                     },
@@ -271,7 +274,7 @@ async fn fetch_registration(
                             .await;
 
                         for menu in submenu {
-                            let mut fetch_registration_stream = fetch_registration(tucan.clone(), menu).await;
+                            let mut fetch_registration_stream = fetch_registration(tucan.clone(), menu.clone()).await;
 
                             loop {
                                 match fetch_registration_stream.next().await {
@@ -323,7 +326,7 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
-                            let mut fetch_module_stream = fetch_module(tucan.clone(), parent, module).await;
+                            let mut fetch_module_stream = fetch_module(tucan.clone(), parent.clone(), module).await;
 
 
                                 loop {
@@ -468,10 +471,11 @@ async fn get_modules<'a>(
             .await?
             .build_transaction()
             .run::<_, diesel::result::Error, _>(|connection| {
+                let parent = parent.clone();
                 async move {
                     let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
                         Ok(module_menu_unfinished::table
-                            .filter(module_menu_unfinished::parent.eq(parent.clone()))
+                            .filter(module_menu_unfinished::parent.eq(parent))
                             .load::<ModuleMenu>(connection)
                             .await?);
                     return_value
@@ -486,10 +490,11 @@ async fn get_modules<'a>(
             .await?
             .build_transaction()
             .run::<_, diesel::result::Error, _>(|connection| {
+                let parent = parent.clone();
                 async move {
                     module_menu_module::table
                         .inner_join(modules_unfinished::table)
-                        .filter(module_menu_module::module_menu_id.nullable().eq(parent.clone()))
+                        .filter(module_menu_module::module_menu_id.nullable().eq(parent))
                         .load::<(ModuleMenuEntryModule, Module)>(connection)
                         .await
                 }
