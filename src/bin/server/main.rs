@@ -271,7 +271,21 @@ async fn fetch_registration(
                             .await;
 
                         for menu in submenu {
-                            fetch_registration(tucan, menu);
+                            let fetch_registration_stream = fetch_registration(tucan, menu).await;
+
+                            loop {
+                                match fetch_registration_stream.next().await {
+                                    Some(Ok(value)) => {
+                                        stream.yield_item(value).await;
+                                    }
+                                    Some(err @ Err(_)) => {
+                                        err?;
+                                    }
+                                    None => {
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                     RegistrationEnum::Modules(modules) => {
@@ -309,32 +323,28 @@ async fn fetch_registration(
                             .await?;
 
                         for module in modules {
-                            fetch_module(tucan, parent, module);
+                            let fetch_module_stream = fetch_module(tucan, parent, module).await;
+
+
+                                loop {
+                                    match fetch_module_stream.next().await {
+                                        Some(Ok(value)) => {
+                                            stream.yield_item(value).await;
+                                        }
+                                        Some(err @ Err(_)) => {
+                                            err?;
+                                        }
+                                        None => {
+                                            break;
+                                        }
+                                    }
+                                }
                         }
                     }
                 }
             }
         }
 
-        stream
-            .yield_item(Bytes::from(format!("menu {:?}", menu.path.unwrap())))
-            .await;
-
-        let mut inner_stream = fetch_everything(tucan.clone(), Some(cnt.tucan_id), value).await;
-
-        loop {
-            match inner_stream.next().await {
-                Some(Ok(value)) => {
-                    stream.yield_item(value).await;
-                }
-                Some(err @ Err(_)) => {
-                    err?;
-                }
-                None => {
-                    break;
-                }
-            }
-        }
         Ok(())
     })
     .boxed_local()
