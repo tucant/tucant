@@ -182,6 +182,8 @@ async fn fetch_registration(
         */
         let connection = &mut tucan_clone.tucan.pool.get().await?;
 
+        trace!("jo {:?}", parent);
+
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(
                 module_menu_unfinished::tucan_id
@@ -192,6 +194,8 @@ async fn fetch_registration(
             .get_result::<ModuleMenu>(connection)
             .await
             .optional()?;
+
+        trace!("jo2 {:?}", existing_registration_already_fetched);
 
         match existing_registration_already_fetched {
             Some(ModuleMenu { child_type: 1, .. }) => {
