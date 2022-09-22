@@ -111,6 +111,7 @@ async fn fetch_module(
     module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
+        let connection = &mut tucan.tucan.pool.get().await?;
         trace!("Fetching new module {:?}", parent);
 
         let tucan_clone = tucan.clone();
@@ -131,7 +132,7 @@ async fn fetch_module(
             .on_conflict(modules_unfinished::tucan_id)
             .do_update()
             .set(&module)
-            .execute(connection)
+            .execute(&mut connection)
             .await?;
 
         diesel::insert_into(module_menu_module::table)
@@ -140,9 +141,10 @@ async fn fetch_module(
                 module_menu_id: parent_clone.path.unwrap().to_vec(),
             })
             .on_conflict_do_nothing()
-            .execute(connection)
+            .execute(&mut connection)
             .await?;
-    })
+        Ok(())
+    }).boxed_local()
 }
 
 async fn fetch_registration(
@@ -150,6 +152,7 @@ async fn fetch_registration(
     parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
+        let connection = &mut tucan_clone.tucan.pool.get().await?;
         let tucan_clone = tucan.clone();
 
         trace!("Handling registration {:?}", parent);
@@ -166,7 +169,6 @@ async fn fetch_registration(
                                 .replace('ö', "oe")
                                 .replace('ü', "ue");
         */
-        let connection = &mut tucan_clone.tucan.pool.get().await?;
         //trace!("jo {:?}", parent);
 
         let existing_registration_already_fetched = module_menu_unfinished::table
