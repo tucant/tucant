@@ -31,7 +31,7 @@ pub struct Moduledetails {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
-    pub path: Option<Vec<i64>>,
+    pub path: Vec<i64>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]

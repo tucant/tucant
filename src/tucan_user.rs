@@ -156,12 +156,12 @@ impl TucanUser {
         match (submenu_list, modules_list) {
             (_, Some(list)) => Ok((
                 ModuleMenu {
-                    tucan_id: todo!(),
+                    tucan_id: url.path,
                     tucan_last_checked: Utc::now().naive_utc(),
-                    name: todo!(),
-                    normalized_name: todo!(),
-                    parent: todo!(),
-                    child_type: todo!(),
+                    name: "TODO".to_string(),
+                    normalized_name: "TODO".to_string(),
+                    parent: None,
+                    child_type: 1,
                 },
                 RegistrationEnum::Modules(
                     list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
@@ -176,23 +176,23 @@ impl TucanUser {
                             .unwrap()
                             .id,
                             tucan_last_checked: Utc::now().naive_utc(),
-                            title: todo!(),
-                            module_id: todo!(),
-                            credits: todo!(),
-                            content: todo!(),
-                            done: todo!(),
+                            title: "TODO".to_string(),
+                            module_id: "TODO".to_string(),
+                            credits: None,
+                            content: "TODO".to_string(),
+                            done: false,
                         })
                         .collect(),
                 ),
             )),
             (Some(list), None) => Ok((
                 ModuleMenu {
-                    tucan_id: todo!(),
-                    tucan_last_checked: todo!(),
-                    name: todo!(),
-                    normalized_name: todo!(),
-                    parent: todo!(),
-                    child_type: todo!(),
+                    tucan_id: url.path,
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    name: "TODO".to_string(),
+                    normalized_name: "TODO".to_string(),
+                    parent: None,
+                    child_type: 2,
                 },
                 RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
@@ -205,13 +205,12 @@ impl TucanUser {
                                 .program,
                             )
                             .unwrap()
-                            .path
-                            .unwrap(),
+                            .path,
                             tucan_last_checked: todo!(),
-                            name: todo!(),
-                            normalized_name: todo!(),
-                            parent: todo!(),
-                            child_type: todo!(),
+                            name: "TODO".to_string(),
+                            normalized_name: "TODO".to_string(),
+                            parent: Some(url.path),
+                            child_type: 0,
                         })
                         .collect(),
                 ),
