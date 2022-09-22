@@ -131,7 +131,14 @@ impl TucanUser {
             _ => panic!(),
         };
 
-        Ok(url)
+        Ok(ModuleMenu {
+            tucan_id: url.path.unwrap(),
+            tucan_last_checked: Utc::now().naive_utc(),
+            name: "TODO".to_string(),
+            normalized_name: "TODO".to_string(),
+            parent: None,
+            child_type: 0,
+        })
     }
 
     pub async fn registration(
@@ -150,7 +157,7 @@ impl TucanUser {
             (_, Some(list)) => Ok((
                 ModuleMenu {
                     tucan_id: todo!(),
-                    tucan_last_checked: todo!(),
+                    tucan_last_checked: Utc::now().naive_utc(),
                     name: todo!(),
                     normalized_name: todo!(),
                     parent: todo!(),
@@ -168,7 +175,7 @@ impl TucanUser {
                             )
                             .unwrap()
                             .id,
-                            tucan_last_checked: todo!(),
+                            tucan_last_checked: Utc::now().naive_utc(),
                             title: todo!(),
                             module_id: todo!(),
                             credits: todo!(),
