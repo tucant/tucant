@@ -204,7 +204,12 @@ async fn fetch_registration(
                         parent
                     );
 
-                    tucan.module(Moduledetails { id: module.1.tucan_id }).await.unwrap();
+                    tucan
+                        .module(Moduledetails {
+                            id: module.1.tucan_id,
+                        })
+                        .await
+                        .unwrap();
                 }
             }
             _ => {
@@ -277,10 +282,13 @@ async fn fetch_registration(
                                 parent
                             );
 
-                            let fetch_registration_stream =
-                                fetch_registration(tucan.clone(), Registration {
-                                    path: menu.tucan_id.clone()
-                                }).await;
+                            let fetch_registration_stream = fetch_registration(
+                                tucan.clone(),
+                                Registration {
+                                    path: menu.tucan_id.clone(),
+                                },
+                            )
+                            .await;
 
                             yield_stream(&mut stream, fetch_registration_stream).await?;
                         }
@@ -327,7 +335,12 @@ async fn fetch_registration(
                                 parent
                             );
 
-                            tucan.module(Moduledetails { id: module.tucan_id }).await.unwrap();
+                            tucan
+                                .module(Moduledetails {
+                                    id: module.tucan_id,
+                                })
+                                .await
+                                .unwrap();
                         }
                     }
                 }
@@ -353,9 +366,13 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 trace!("Starting fetching module tree");
                 let root = tucan.root_registration().await.unwrap();
 
-                let input = fetch_registration(tucan, Registration {
-                    path: root.tucan_id
-                }).await;
+                let input = fetch_registration(
+                    tucan,
+                    Registration {
+                        path: root.tucan_id,
+                    },
+                )
+                .await;
 
                 yield_stream(&mut stream, input).await.unwrap();
 
