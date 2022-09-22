@@ -206,10 +206,10 @@ impl TucanUser {
                             )
                             .unwrap()
                             .path,
-                            tucan_last_checked: todo!(),
+                            tucan_last_checked: Utc::now().naive_utc(),
                             name: "TODO".to_string(),
                             normalized_name: "TODO".to_string(),
-                            parent: Some(url.path),
+                            parent: Some(url.path.clone()),
                             child_type: 0,
                         })
                         .collect(),

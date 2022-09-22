@@ -35,6 +35,9 @@ pub struct Registration {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+pub struct RootRegistration {}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Mlsstart;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -65,6 +68,7 @@ pub enum TucanProgram {
     Profcourses(Profcourses),
     Studentchoicecourses(Studentchoicecourses),
     Registration(Registration),
+    RootRegistration(RootRegistration),
     Myexams(Myexams),
     Courseresults(Courseresults),
     Examresults(Examresults),
@@ -83,15 +87,14 @@ impl TucanProgram {
             TucanProgram::Studentchoicecourses(_) => todo!(),
             TucanProgram::Registration(Registration { path }) => (
                 "REGISTRATION",
-                match path {
-                    Some(path) => Box::new(
-                        iter::once(TucanArgument::Number(311))
-                            .chain(path.iter().map(|v| TucanArgument::Number(*v))),
-                    ),
-                    None => Box::new(
-                        [TucanArgument::Number(311), TucanArgument::String("")].into_iter(),
-                    ),
-                },
+                Box::new(
+                    iter::once(TucanArgument::Number(311))
+                        .chain(path.iter().map(|v| TucanArgument::Number(*v))),
+                ),
+            ),
+            TucanProgram::RootRegistration(_) => (
+                "REGISTRATION",
+                Box::new([TucanArgument::Number(311), TucanArgument::String("")].into_iter()),
             ),
             TucanProgram::Myexams(_) => todo!(),
             TucanProgram::Courseresults(_) => todo!(),
@@ -225,16 +228,16 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert_eq!(number(&mut arguments), 311);
             match arguments.peek().unwrap() {
                 TucanArgument::Number(_) => TucanProgram::Registration(Registration {
-                    path: Some(vec![
+                    path: vec![
                         number(&mut arguments),
                         number(&mut arguments),
                         number(&mut arguments),
                         number(&mut arguments),
-                    ]),
+                    ],
                 }),
                 TucanArgument::String(_) => {
                     assert_eq!(string(&mut arguments), "");
-                    TucanProgram::Registration(Registration { path: None })
+                    TucanProgram::RootRegistration(RootRegistration {})
                 }
             }
         }
