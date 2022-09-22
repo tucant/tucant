@@ -6,7 +6,16 @@ use crate::schema::{module_menu_module, module_menu_unfinished, modules_unfinish
 
 // order needs to be equal to the table definition
 #[derive(
-    Identifiable, Queryable, Insertable, AsChangeset, Serialize, Debug, Deserialize, PartialEq, Eq,
+    Identifiable,
+    Queryable,
+    Insertable,
+    AsChangeset,
+    Serialize,
+    Debug,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Clone,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
@@ -32,6 +41,7 @@ pub struct Module {
     Eq,
     PartialEq,
     Deserialize,
+    Clone,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]

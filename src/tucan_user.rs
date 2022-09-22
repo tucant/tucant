@@ -222,8 +222,9 @@ impl TucanUser {
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
+        // ModuleMenuRef?
         let module_menu = ModuleMenu {
-            tucan_id: url.path,
+            tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
             name: "TODO".to_string(),
             normalized_name: "TODO".to_string(),
@@ -265,7 +266,7 @@ impl TucanUser {
                     .collect();
 
                 diesel::insert_into(modules_unfinished::table)
-                    .values(modules)
+                    .values(&modules[..])
                     .execute(connection)
                     .await?;
 
@@ -307,7 +308,7 @@ impl TucanUser {
                     .collect();
 
                 diesel::insert_into(module_menu_unfinished::table)
-                    .values(submenus.clone())
+                    .values(&submenus[..])
                     .on_conflict(module_menu_unfinished::tucan_id)
                     .do_update()
                     .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
