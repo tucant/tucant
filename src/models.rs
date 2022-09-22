@@ -46,7 +46,8 @@ pub struct Module {
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
 #[belongs_to(ModuleMenu, foreign_key = "parent")]
-#[changeset_options(treat_none_as_null = "true")]
+// don't want to override parent
+//#[changeset_options(treat_none_as_null = "true")]
 pub struct ModuleMenu {
     pub tucan_id: Vec<i64>,
     pub tucan_last_checked: NaiveDateTime,

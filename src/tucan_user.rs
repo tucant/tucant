@@ -4,6 +4,7 @@ use std::{
 };
 
 use chrono::Utc;
+use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
@@ -40,6 +41,8 @@ pub enum RegistrationEnum {
     Submenu(Vec<ModuleMenu>),
     Modules(Vec<Module>),
 }
+
+static NORMALIZED_NAME_REGEX: Regex = Regex::new(r"[ )(.]+").unwrap();
 
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
@@ -164,11 +167,13 @@ impl TucanUser {
             _ => panic!(),
         };
 
+        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&url_element.inner_html(), "-");
+
         Ok(ModuleMenu {
             tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
-            name: "TODO".to_string(),
-            normalized_name: "TODO".to_string(),
+            name: url_element.inner_html(),
+            normalized_name: normalized_name.into_owned(),
             parent: None,
             child_type: 0,
         })
@@ -311,12 +316,16 @@ impl TucanUser {
             }
         };
 
+        let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
+
+        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&url_element.inner_html(), "-");
+
         // ModuleMenuRef?
         let module_menu = ModuleMenu {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
-            name: "TODO".to_string(),
-            normalized_name: "TODO".to_string(),
+            name: url_element.inner_html(),
+            normalized_name: normalized_name.into_owned(),
             parent: None,
             child_type,
         };
