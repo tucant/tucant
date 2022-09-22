@@ -57,3 +57,13 @@ pub struct ModuleMenuEntryModule {
     pub module_menu_id: Vec<i64>,
     pub module_id: i64,
 }
+
+#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
+#[diesel(primary_key(module_menu_id, module_id))]
+#[diesel(table_name = module_menu_module)]
+#[belongs_to(ModuleMenu)]
+#[belongs_to(Module)]
+pub struct ModuleMenuEntryModuleRef<'a> {
+    pub module_menu_id: &'a Vec<i64>,
+    pub module_id: i64,
+}

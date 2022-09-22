@@ -35,7 +35,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuRef};
+use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuRef, ModuleMenuEntryModuleRef};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
@@ -277,12 +277,13 @@ async fn fetch_registration(
                     RegistrationEnum::Submenu(_) => 1,
                     RegistrationEnum::Modules(_) => 2,
                 };
-                let module_menu = ModuleMenu {
-                    name: "".to_string(),
-                    normalized_name: "".to_string(),
+                let utc = Utc::now().naive_utc();
+                let module_menu = ModuleMenuRef {
+                    name: "",
+                    normalized_name: "",
                     parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                    tucan_id: parent.path.unwrap(),
-                    tucan_last_checked: Utc::now().naive_utc(),
+                    tucan_id: parent.path.as_ref().unwrap(),
+                    tucan_last_checked: &utc,
                     child_type,
                 };
                 diesel::insert_into(module_menu_unfinished::table)
@@ -373,9 +374,9 @@ async fn fetch_registration(
                             .values(
                                 modules
                                     .iter()
-                                    .map(|m| ModuleMenuEntryModule {
+                                    .map(|m| ModuleMenuEntryModuleRef {
                                         module_id: m.id,
-                                        module_menu_id: parent.path.unwrap(),
+                                        module_menu_id: parent.path.as_ref().unwrap(),
                                     })
                                     .collect::<Vec<_>>(),
                             )
