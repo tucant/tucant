@@ -109,6 +109,7 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
 
 async fn fetch_module(
     tucan: TucanUser,
+    // TODO FIXME just use the original stuff as args
     parent: Registration,
     module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
@@ -120,12 +121,9 @@ async fn fetch_module(
             .yield_item(Bytes::from(format!("module {}", module.id)))
             .await;
 
-        let module = tucan.module(module).await.unwrap();
+        // TODO FIXME maybe put this into the tucan implementation directly?
 
-        // TODO FIXME warn if module already existed as that suggests recursive dependency
-        // TODO normalize url in a way that this can use cached data?
-        // modules can probably be cached because we don't follow outgoing links
-        // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
+        let module = tucan.module(module).await.unwrap();
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
