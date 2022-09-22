@@ -292,7 +292,7 @@ async fn fetch_registration(
                     .do_update()
                     .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
                     .get_result::<ModuleMenu>(connection)
-                    .await;
+                    .await?;
 
                 match value {
                     RegistrationEnum::Submenu(ref submenu) => {
@@ -536,13 +536,13 @@ async fn get_modules<'a>(
         Ok(Either::Left(web::Json(module_result)))
     } else {
         let menu_result = module_menu_unfinished::table
-            .filter(module_menu_unfinished::parent.eq(parent))
+            .filter(module_menu_unfinished::parent.eq(&parent))
             .load::<ModuleMenu>(&mut connection)
             .await?;
 
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .filter(module_menu_module::module_menu_id.nullable().eq(parent))
+            .filter(module_menu_module::module_menu_id.nullable().eq(&parent))
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
             .await?;
 
