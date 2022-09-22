@@ -134,7 +134,10 @@ impl TucanUser {
         Ok(url)
     }
 
-    pub async fn registration(&self, url: Registration) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
+    pub async fn registration(
+        &self,
+        url: Registration,
+    ) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         // list of subcategories
@@ -144,31 +147,67 @@ impl TucanUser {
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
         match (submenu_list, modules_list) {
-            (_, Some(list)) => Ok(RegistrationEnum::Modules(
-                list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
-                    .map(|e| {
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            e.value().attr("href").unwrap()
-                        ))
-                        .program
-                        .try_into()
-                        .unwrap()
-                    })
-                    .collect(),
+            (_, Some(list)) => Ok((
+                ModuleMenu {
+                    tucan_id: todo!(),
+                    tucan_last_checked: todo!(),
+                    name: todo!(),
+                    normalized_name: todo!(),
+                    parent: todo!(),
+                    child_type: todo!(),
+                },
+                RegistrationEnum::Modules(
+                    list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
+                        .map(|e| Module {
+                            tucan_id: TryInto::<Moduledetails>::try_into(
+                                parse_tucan_url(&format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    e.value().attr("href").unwrap()
+                                ))
+                                .program,
+                            )
+                            .unwrap()
+                            .id,
+                            tucan_last_checked: todo!(),
+                            title: todo!(),
+                            module_id: todo!(),
+                            credits: todo!(),
+                            content: todo!(),
+                            done: todo!(),
+                        })
+                        .collect(),
+                ),
             )),
-            (Some(list), None) => Ok(RegistrationEnum::Submenu(
-                list.select(&s("a[href]"))
-                    .map(|e| {
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            e.value().attr("href").unwrap()
-                        ))
-                        .program
-                        .try_into()
-                        .unwrap()
-                    })
-                    .collect(),
+            (Some(list), None) => Ok((
+                ModuleMenu {
+                    tucan_id: todo!(),
+                    tucan_last_checked: todo!(),
+                    name: todo!(),
+                    normalized_name: todo!(),
+                    parent: todo!(),
+                    child_type: todo!(),
+                },
+                RegistrationEnum::Submenu(
+                    list.select(&s("a[href]"))
+                        .map(|e| ModuleMenu {
+                            tucan_id: TryInto::<Registration>::try_into(
+                                parse_tucan_url(&format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    e.value().attr("href").unwrap()
+                                ))
+                                .program,
+                            )
+                            .unwrap()
+                            .path
+                            .unwrap(),
+                            tucan_last_checked: todo!(),
+                            name: todo!(),
+                            normalized_name: todo!(),
+                            parent: todo!(),
+                            child_type: todo!(),
+                        })
+                        .collect(),
+                ),
             )),
             _ => {
                 panic!(

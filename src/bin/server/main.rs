@@ -30,7 +30,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::{trace};
+use log::trace;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -148,7 +148,10 @@ async fn fetch_module(
     .boxed_local()
 }
 
-async fn yield_stream(stream: &mut async_stream::Stream<Bytes>, mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>) -> Result<(), MyError> {
+async fn yield_stream(
+    stream: &mut async_stream::Stream<Bytes>,
+    mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>,
+) -> Result<(), MyError> {
     loop {
         match inner_stream.next().await {
             Some(Ok(value)) => {
@@ -281,7 +284,10 @@ async fn fetch_registration(
                     .values(&module_menu)
                     .on_conflict(module_menu_unfinished::tucan_id)
                     .do_update()
-                    .set(module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)))
+                    .set(
+                        module_menu_unfinished::child_type
+                            .eq(excluded(module_menu_unfinished::child_type)),
+                    )
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
