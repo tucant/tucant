@@ -13,7 +13,7 @@ use crate::{
     models::{Module, ModuleMenu},
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl},
+    url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl, RootRegistration},
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -113,7 +113,7 @@ impl TucanUser {
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self
-            .fetch_document(&Registration { path: None }.into())
+            .fetch_document(&RootRegistration { }.into())
             .await?;
 
         let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
@@ -132,7 +132,7 @@ impl TucanUser {
         };
 
         Ok(ModuleMenu {
-            tucan_id: url.path.unwrap(),
+            tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
             name: "TODO".to_string(),
             normalized_name: "TODO".to_string(),
@@ -187,7 +187,7 @@ impl TucanUser {
             )),
             (Some(list), None) => Ok((
                 ModuleMenu {
-                    tucan_id: url.path,
+                    tucan_id: url.path.clone(),
                     tucan_last_checked: Utc::now().naive_utc(),
                     name: "TODO".to_string(),
                     normalized_name: "TODO".to_string(),

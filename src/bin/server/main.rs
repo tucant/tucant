@@ -138,7 +138,7 @@ async fn fetch_module(
         diesel::insert_into(module_menu_module::table)
             .values(&ModuleMenuEntryModule {
                 module_id: module.tucan_id,
-                module_menu_id: parent.path.unwrap().to_vec(),
+                module_menu_id: parent.path,
             })
             .on_conflict_do_nothing()
             .execute(&mut connection)
@@ -202,7 +202,7 @@ async fn fetch_registration(
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
-                    .filter(module_menu_unfinished::parent.eq(parent.path.as_ref().unwrap()))
+                    .filter(module_menu_unfinished::parent.eq(parent.path))
                     .load::<ModuleMenu>(connection)
                     .await?;
                 for submenu in submenus {
@@ -215,7 +215,7 @@ async fn fetch_registration(
                     let fetch_registration_stream = fetch_registration(
                         tucan.clone(),
                         Registration {
-                            path: Some(submenu.tucan_id),
+                            path: submenu.tucan_id,
                         },
                     )
                     .await;
@@ -263,7 +263,7 @@ async fn fetch_registration(
                 // don't know children yet, fetch them
                 let value = tucan.registration(parent.clone()).await?;
 
-                let child_type = match value {
+                let child_type = match value.1 {
                     RegistrationEnum::Submenu(_) => 1,
                     RegistrationEnum::Modules(_) => 2,
                 };
@@ -291,7 +291,7 @@ async fn fetch_registration(
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
-                match value {
+                match value.1 {
                     RegistrationEnum::Submenu(ref submenu) => {
                         trace!("New submenus for registration {:?}", parent);
 
@@ -304,8 +304,8 @@ async fn fetch_registration(
                                     .map(|s| ModuleMenuRef {
                                         name: "",
                                         normalized_name: "",
-                                        parent: parent.path.as_ref(),
-                                        tucan_id: s.path.as_ref().unwrap(),
+                                        parent: Some(&parent.path),
+                                        tucan_id: &s.tucan_id,
                                         tucan_last_checked: &utc,
                                         child_type: 0,
                                     })
