@@ -30,7 +30,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::trace;
+use log::{trace, error};
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -272,10 +272,13 @@ async fn get_modules<'a>(
 
         Ok(Either::Left(web::Json(module_result)))
     } else {
+        error!("test {:?}", parent);
         let menu_result = module_menu_unfinished::table
-            .filter(module_menu_unfinished::parent.eq(&parent))
+            .filter(module_menu_unfinished::parent.is_not_distinct_from(&parent))
             .load::<ModuleMenu>(&mut connection)
             .await?;
+
+        error!("test {:?}", menu_result);
 
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)

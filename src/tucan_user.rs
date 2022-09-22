@@ -328,7 +328,7 @@ impl TucanUser {
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
             .set(
-                module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)),
+                &module_menu
             )
             .get_result::<ModuleMenu>(connection)
             .await?;
