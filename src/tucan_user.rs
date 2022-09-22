@@ -17,6 +17,9 @@ use crate::{
 };
 
 use crate::schema::*;
+use diesel::QueryDsl;
+use diesel::ExpressionMethods;
+use diesel::OptionalExtension;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -67,6 +70,17 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let mut connection = &mut self.tucan.pool.get().await?;
+
+        let existing_module = modules_unfinished::table
+            .filter(modules_unfinished::tucan_id.eq(url.id))
+            .filter(modules_unfinished::done)
+            .get_result::<Module>(connection)
+            .await
+            .optional()?;
+
+        if let Some(existing_module) = existing_module {
+            return Ok(existing_module);
+        }
 
         let document = self.fetch_document(&url.clone().into()).await?;
 
