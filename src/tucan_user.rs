@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::Module,
+    models::{Module, ModuleMenu},
     s,
     tucan::Tucan,
     url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl},
@@ -30,8 +30,8 @@ pub struct TucanUser {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum RegistrationEnum {
-    Submenu(Vec<Registration>),
-    Modules(Vec<Moduledetails>),
+    Submenu(Vec<ModuleMenu>),
+    Modules(Vec<Module>),
 }
 
 impl TucanUser {
@@ -111,7 +111,7 @@ impl TucanUser {
         })
     }
 
-    pub async fn root_registration(&self) -> anyhow::Result<Registration> {
+    pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self
             .fetch_document(&Registration { path: None }.into())
             .await?;
@@ -134,7 +134,7 @@ impl TucanUser {
         Ok(url)
     }
 
-    pub async fn registration(&self, url: Registration) -> anyhow::Result<RegistrationEnum> {
+    pub async fn registration(&self, url: Registration) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         // list of subcategories

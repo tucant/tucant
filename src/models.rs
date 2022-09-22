@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 use crate::schema::{module_menu_module, module_menu_unfinished, modules_unfinished};
 
 // order needs to be equal to the table definition
-#[derive(Identifiable, Queryable, Insertable, AsChangeset, Serialize, Debug)]
+#[derive(Identifiable, Queryable, Insertable, AsChangeset, Serialize, Debug, Deserialize, PartialEq, Eq)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
 #[changeset_options(treat_none_as_null = "true")]
@@ -19,7 +19,7 @@ pub struct Module {
     pub done: bool,
 }
 
-#[derive(Associations, Identifiable, Queryable, AsChangeset, Insertable, Serialize, Debug)]
+#[derive(Associations, Identifiable, Queryable, AsChangeset, Insertable, Serialize, Debug, Eq, PartialEq, Deserialize)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
 #[belongs_to(ModuleMenu, foreign_key = "parent")]
