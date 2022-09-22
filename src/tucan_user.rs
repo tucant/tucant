@@ -157,21 +157,19 @@ impl TucanUser {
                     })
                     .collect(),
             )),
-            (Some(list), None) => {
-                Ok(RegistrationEnum::Submenu(
-                    list.select(&s("a[href]"))
-                        .map(|e| {
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                e.value().attr("href").unwrap()
-                            ))
-                            .program
-                            .try_into()
-                            .unwrap()
-                        })
-                        .collect(),
-                ))
-            }
+            (Some(list), None) => Ok(RegistrationEnum::Submenu(
+                list.select(&s("a[href]"))
+                    .map(|e| {
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            e.value().attr("href").unwrap()
+                        ))
+                        .program
+                        .try_into()
+                        .unwrap()
+                    })
+                    .collect(),
+            )),
             _ => {
                 panic!(
                     "{:?} {} {}",

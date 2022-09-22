@@ -125,38 +125,24 @@ async fn fetch_module(
         // TODO normalize url in a way that this can use cached data?
         // modules can probably be cached because we don't follow outgoing links
         // probably no infinite recursion though as our menu urls should be unique and therefore hit the cache?
-        tucan_clone
-            .tucan
-            .pool
-            .get()
-            .await?
-            .build_transaction()
-            .run::<_, diesel::result::Error, _>(|connection| {
-                async move {
-                    diesel::insert_into(modules_unfinished::table)
-                        .values(&module)
-                        .on_conflict(modules_unfinished::tucan_id)
-                        .do_update()
-                        .set(&module)
-                        .execute(connection)
-                        .await?;
 
-                    diesel::insert_into(module_menu_module::table)
-                        .values(&ModuleMenuEntryModule {
-                            module_id: module.tucan_id,
-                            module_menu_id: parent_clone.path.unwrap().to_vec(),
-                        })
-                        .on_conflict_do_nothing()
-                        .execute(connection)
-                        .await?;
-                    Ok(())
-                }
-                .boxed()
-            })
+        diesel::insert_into(modules_unfinished::table)
+            .values(&module)
+            .on_conflict(modules_unfinished::tucan_id)
+            .do_update()
+            .set(&module)
+            .execute(connection)
             .await?;
-        Ok(())
+
+        diesel::insert_into(module_menu_module::table)
+            .values(&ModuleMenuEntryModule {
+                module_id: module.tucan_id,
+                module_menu_id: parent_clone.path.unwrap().to_vec(),
+            })
+            .on_conflict_do_nothing()
+            .execute(connection)
+            .await?;
     })
-    .boxed_local()
 }
 
 async fn fetch_registration(
@@ -287,41 +273,27 @@ async fn fetch_registration(
                 let value = tucan.registration(parent.clone()).await?;
 
                 // mark current element as finished
-                tucan_clone
-                    .tucan
-                    .pool
-                    .get()
-                    .await?
-                    .build_transaction()
-                    .run::<_, diesel::result::Error, _>(|connection| {
-                        let child_type = match value {
-                            RegistrationEnum::Submenu(_) => 1,
-                            RegistrationEnum::Modules(_) => 2,
-                        };
-                        let parent = parent.path.clone().unwrap();
-                        async move {
-                            let module_menu = ModuleMenu {
-                                name: "".to_string(),
-                                normalized_name: "".to_string(),
-                                parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                                tucan_id: parent,
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                child_type,
-                            };
-                            diesel::insert_into(module_menu_unfinished::table)
-                                .values(&module_menu)
-                                .on_conflict(module_menu_unfinished::tucan_id)
-                                .do_update()
-                                .set(
-                                    module_menu_unfinished::name
-                                        .eq(excluded(module_menu_unfinished::name)),
-                                )
-                                .get_result::<ModuleMenu>(connection)
-                                .await
-                        }
-                        .boxed()
-                    })
-                    .await?;
+
+                let child_type = match value {
+                    RegistrationEnum::Submenu(_) => 1,
+                    RegistrationEnum::Modules(_) => 2,
+                };
+                let parent = parent.path.clone().unwrap();
+                let module_menu = ModuleMenu {
+                    name: "".to_string(),
+                    normalized_name: "".to_string(),
+                    parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                    tucan_id: parent,
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    child_type,
+                };
+                diesel::insert_into(module_menu_unfinished::table)
+                    .values(&module_menu)
+                    .on_conflict(module_menu_unfinished::tucan_id)
+                    .do_update()
+                    .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
+                    .get_result::<ModuleMenu>(connection)
+                    .await;
 
                 match value {
                     RegistrationEnum::Submenu(ref submenu) => {
@@ -562,42 +534,16 @@ async fn get_modules<'a>(
 
         Ok(Either::Left(web::Json(module_result)))
     } else {
-        let menu_result = tucan
-            .pool
-            .get()
-            .await?
-            .build_transaction()
-            .run::<_, diesel::result::Error, _>(|connection| {
-                let parent = parent.clone();
-                async move {
-                    let return_value: Result<Vec<ModuleMenu>, diesel::result::Error> =
-                        Ok(module_menu_unfinished::table
-                            .filter(module_menu_unfinished::parent.eq(parent))
-                            .load::<ModuleMenu>(connection)
-                            .await?);
-                    return_value
-                }
-                .boxed()
-            })
+        let menu_result = module_menu_unfinished::table
+            .filter(module_menu_unfinished::parent.eq(parent))
+            .load::<ModuleMenu>(&mut connection)
             .await?;
 
-        let module_result = tucan
-            .pool
-            .get()
-            .await?
-            .build_transaction()
-            .run::<_, diesel::result::Error, _>(|connection| {
-                let parent = parent.clone();
-                async move {
-                    module_menu_module::table
-                        .inner_join(modules_unfinished::table)
-                        .filter(module_menu_module::module_menu_id.nullable().eq(parent))
-                        .load::<(ModuleMenuEntryModule, Module)>(connection)
-                        .await
-                }
-                .boxed()
-            })
-            .await?;
+        let module_result = module_menu_module::table
+            .inner_join(modules_unfinished::table)
+            .filter(module_menu_module::module_menu_id.nullable().eq(parent))
+            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
+            .await;
 
         if !menu_result.is_empty() {
             Ok(Either::Right(web::Json(ModulesOrModuleMenus::Menus(
