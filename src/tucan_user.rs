@@ -17,7 +17,7 @@ use crate::{
 };
 
 use crate::schema::*;
-use diesel::dsl::not;
+use diesel::{dsl::not, upsert::excluded};
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
@@ -222,16 +222,53 @@ impl TucanUser {
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
+        let module_menu = ModuleMenu {
+            tucan_id: url.path,
+            tucan_last_checked: Utc::now().naive_utc(),
+            name: "TODO".to_string(),
+            normalized_name: "TODO".to_string(),
+            parent: None,
+            child_type: 1,
+        };
+
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&module_menu)
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(
+                module_menu_unfinished::child_type
+                    .eq(excluded(module_menu_unfinished::child_type)),
+            )
+            .get_result::<ModuleMenu>(connection)
+            .await?;
+        
         match (submenu_list, modules_list) {
-            (_, Some(list)) => Ok((
-                ModuleMenu {
-                    tucan_id: url.path,
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    name: "TODO".to_string(),
-                    normalized_name: "TODO".to_string(),
-                    parent: None,
-                    child_type: 1,
-                },
+            (_, Some(list)) => {
+                diesel::insert_into(module_menu_unfinished::table)
+                .values(
+                    submenu
+                        .iter()
+                        .map(|s| ModuleMenuRef {
+                            name: "",
+                            normalized_name: "",
+                            parent: Some(&parent.path),
+                            tucan_id: &s.tucan_id,
+                            tucan_last_checked: &utc,
+                            child_type: 0,
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .on_conflict(module_menu_unfinished::tucan_id)
+                .do_update()
+                .set(
+                    module_menu_unfinished::name
+                        .eq(excluded(module_menu_unfinished::name)),
+                )
+                .get_result::<ModuleMenu>(connection)
+                .await?;
+
+                Ok((
+                module_menu,
                 RegistrationEnum::Modules(
                     list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                         .map(|e| Module {
@@ -253,16 +290,44 @@ impl TucanUser {
                         })
                         .collect(),
                 ),
-            )),
-            (Some(list), None) => Ok((
-                ModuleMenu {
-                    tucan_id: url.path.clone(),
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    name: "TODO".to_string(),
-                    normalized_name: "TODO".to_string(),
-                    parent: None,
-                    child_type: 2,
-                },
+            ))
+        },
+            (Some(list), None) => {
+                diesel::insert_into(modules_unfinished::table)
+                .values(
+                    modules
+                        .iter()
+                        .map(|m| Module {
+                            done: false,
+                            tucan_id: m.tucan_id,
+                            tucan_last_checked: Utc::now().naive_utc(),
+                            title: "".to_string(),
+                            module_id: "".to_string(),
+                            credits: None,
+                            content: "".to_string(),
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .execute(connection)
+                .await?;
+
+            diesel::insert_into(module_menu_module::table)
+                .values(
+                    modules
+                        .iter()
+                        .map(|m| ModuleMenuEntryModuleRef {
+                            module_id: m.tucan_id,
+                            module_menu_id: &parent.path,
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .on_conflict_do_nothing()
+                .execute(connection)
+                .await?;
+
+
+                Ok((
+                module_menu,
                 RegistrationEnum::Submenu(
                     list.select(&s("a[href]"))
                         .map(|e| ModuleMenu {
@@ -283,146 +348,15 @@ impl TucanUser {
                         })
                         .collect(),
                 ),
-            )),
+            ))},
             _ => {
                 panic!(
                     "{:?} {} {}",
                     url.clone(),
                     Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)),
                     document.root_element().html()
-                )
+                );
             }
         }
-
-
-
-
-        let child_type = match value.1 {
-            RegistrationEnum::Submenu(_) => 1,
-            RegistrationEnum::Modules(_) => 2,
-        };
-        let utc = Utc::now().naive_utc();
-
-        // TODO FIXME aquire name?
-        let module_menu = ModuleMenuRef {
-            name: "",
-            normalized_name: "",
-            parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-            tucan_id: &url.path,
-            tucan_last_checked: &utc,
-            child_type,
-        };
-
-        // mark current element as finished
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&module_menu)
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(
-                module_menu_unfinished::child_type
-                    .eq(excluded(module_menu_unfinished::child_type)),
-            )
-            .get_result::<ModuleMenu>(connection)
-            .await?;
-
-        match value.1 {
-            RegistrationEnum::Submenu(ref submenu) => {
-                trace!("New submenus for registration {:?}", parent);
-
-                let utc = Utc::now().naive_utc();
-
-                diesel::insert_into(module_menu_unfinished::table)
-                    .values(
-                        submenu
-                            .iter()
-                            .map(|s| ModuleMenuRef {
-                                name: "",
-                                normalized_name: "",
-                                parent: Some(&parent.path),
-                                tucan_id: &s.tucan_id,
-                                tucan_last_checked: &utc,
-                                child_type: 0,
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                    .on_conflict(module_menu_unfinished::tucan_id)
-                    .do_update()
-                    .set(
-                        module_menu_unfinished::name
-                            .eq(excluded(module_menu_unfinished::name)),
-                    )
-                    .get_result::<ModuleMenu>(connection)
-                    .await?;
-
-                for menu in submenu {
-                    trace!(
-                        "Handling new submenu {:?} for registration {:?}",
-                        menu,
-                        parent
-                    );
-
-                    let fetch_registration_stream = fetch_registration(
-                        tucan.clone(),
-                        Registration {
-                            path: menu.tucan_id.clone(),
-                        },
-                    )
-                    .await;
-
-                    yield_stream(&mut stream, fetch_registration_stream).await?;
-                }
-            }
-            RegistrationEnum::Modules(modules) => {
-                trace!("New submodules for registration {:?}", parent);
-
-                diesel::insert_into(modules_unfinished::table)
-                    .values(
-                        modules
-                            .iter()
-                            .map(|m| Module {
-                                done: false,
-                                tucan_id: m.tucan_id,
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                title: "".to_string(),
-                                module_id: "".to_string(),
-                                credits: None,
-                                content: "".to_string(),
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                    .execute(connection)
-                    .await?;
-
-                diesel::insert_into(module_menu_module::table)
-                    .values(
-                        modules
-                            .iter()
-                            .map(|m| ModuleMenuEntryModuleRef {
-                                module_id: m.tucan_id,
-                                module_menu_id: &parent.path,
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                    .on_conflict_do_nothing()
-                    .execute(connection)
-                    .await?;
-
-                for module in modules {
-                    trace!(
-                        "Handling new submodule {:?} for registration {:?}",
-                        module,
-                        parent
-                    );
-
-                    tucan
-                        .module(Moduledetails {
-                            id: module.tucan_id,
-                        })
-                        .await
-                        .unwrap();
-                }
-            }
-        }
-
     }
 }
