@@ -30,7 +30,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::{info, trace, warn};
+use log::{trace};
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -209,7 +209,7 @@ async fn fetch_registration(
                         parent
                     );
 
-                    let mut fetch_registration_stream = fetch_registration(
+                    let fetch_registration_stream = fetch_registration(
                         tucan.clone(),
                         Registration {
                             path: Some(submenu.tucan_id),
@@ -242,7 +242,7 @@ async fn fetch_registration(
                         parent
                     );
 
-                    let mut fetch_module_stream = fetch_module(
+                    let fetch_module_stream = fetch_module(
                         tucan.clone(),
                         parent.clone(),
                         Moduledetails {
@@ -260,13 +260,13 @@ async fn fetch_registration(
                 // don't know children yet, fetch them
                 let value = tucan.registration(parent.clone()).await?;
 
-                // mark current element as finished
-
                 let child_type = match value {
                     RegistrationEnum::Submenu(_) => 1,
                     RegistrationEnum::Modules(_) => 2,
                 };
                 let utc = Utc::now().naive_utc();
+
+                // TODO FIXME aquire name?
                 let module_menu = ModuleMenuRef {
                     name: "",
                     normalized_name: "",
@@ -275,11 +275,13 @@ async fn fetch_registration(
                     tucan_last_checked: &utc,
                     child_type,
                 };
+
+                // mark current element as finished
                 diesel::insert_into(module_menu_unfinished::table)
                     .values(&module_menu)
                     .on_conflict(module_menu_unfinished::tucan_id)
                     .do_update()
-                    .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
+                    .set(module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)))
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
@@ -319,7 +321,7 @@ async fn fetch_registration(
                                 parent
                             );
 
-                            let mut fetch_registration_stream =
+                            let fetch_registration_stream =
                                 fetch_registration(tucan.clone(), menu.clone()).await;
 
                             yield_stream(&mut stream, fetch_registration_stream).await?;
@@ -368,7 +370,7 @@ async fn fetch_registration(
                                 parent
                             );
 
-                            let mut fetch_module_stream =
+                            let fetch_module_stream =
                                 fetch_module(tucan.clone(), parent.clone(), module).await;
 
                             yield_stream(&mut stream, fetch_module_stream).await?;
@@ -397,7 +399,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 trace!("Starting fetching module tree");
                 let root = tucan.root_registration().await.unwrap();
 
-                let mut input = fetch_registration(tucan, root).await;
+                let input = fetch_registration(tucan, root).await;
 
                 yield_stream(&mut stream, input).await.unwrap();
 
