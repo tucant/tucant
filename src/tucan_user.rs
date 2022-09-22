@@ -100,7 +100,7 @@ impl TucanUser {
             .unwrap()
             .inner_html();
 
-        Ok(Module {
+        let module = Module {
             tucan_id: url.id,
             tucan_last_checked: Utc::now().naive_utc(),
             title: module_name.unwrap().to_string(),
@@ -108,7 +108,17 @@ impl TucanUser {
             module_id: module_id.to_string(),
             content,
             done: true,
-        })
+        };
+
+        diesel::insert_into(modules_unfinished::table)
+            .values(&module)
+            .on_conflict(modules_unfinished::tucan_id)
+            .do_update()
+            .set(&module)
+            .execute(&mut connection)
+            .await?;
+
+        module
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {

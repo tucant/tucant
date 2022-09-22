@@ -107,45 +107,6 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
     Ok(HttpResponse::Ok())
 }
 
-async fn fetch_module(
-    tucan: TucanUser,
-    // TODO FIXME just use the original stuff as args
-    parent: Registration,
-    module: Moduledetails,
-) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
-    try_stream(move |mut stream| async move {
-        let mut connection = &mut tucan.tucan.pool.get().await?;
-        trace!("Fetching new module {:?}", parent);
-
-        stream
-            .yield_item(Bytes::from(format!("module {}", module.id)))
-            .await;
-
-        // TODO FIXME maybe put this into the tucan implementation directly?
-
-        let module = tucan.module(module).await.unwrap();
-
-        diesel::insert_into(modules_unfinished::table)
-            .values(&module)
-            .on_conflict(modules_unfinished::tucan_id)
-            .do_update()
-            .set(&module)
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(module_menu_module::table)
-            .values(&ModuleMenuEntryModule {
-                module_id: module.tucan_id,
-                module_menu_id: parent.path,
-            })
-            .on_conflict_do_nothing()
-            .execute(&mut connection)
-            .await?;
-        Ok(())
-    })
-    .boxed_local()
-}
-
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,
     mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>,
@@ -243,16 +204,7 @@ async fn fetch_registration(
                         parent
                     );
 
-                    let fetch_module_stream = fetch_module(
-                        tucan.clone(),
-                        parent.clone(),
-                        Moduledetails {
-                            id: module.1.tucan_id,
-                        },
-                    )
-                    .await;
-
-                    yield_stream(&mut stream, fetch_module_stream).await?;
+                    tucan.module(Moduledetails { id: module.1.tucan_id }).await.unwrap();
                 }
             }
             _ => {
@@ -354,7 +306,6 @@ async fn fetch_registration(
                             .execute(connection)
                             .await?;
 
-                        // TODO FIXME transaction
                         diesel::insert_into(module_menu_module::table)
                             .values(
                                 modules
@@ -376,10 +327,7 @@ async fn fetch_registration(
                                 parent
                             );
 
-                            let fetch_module_stream =
-                                fetch_module(tucan.clone(), parent.clone(), Moduledetails { id: module.tucan_id }).await;
-
-                            yield_stream(&mut stream, fetch_module_stream).await?;
+                            tucan.module(Moduledetails { id: module.tucan_id }).await.unwrap();
                         }
                     }
                 }
