@@ -148,6 +148,22 @@ async fn fetch_module(
     .boxed_local()
 }
 
+async fn yield_stream(stream: &mut async_stream::Stream<Bytes>, mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>) -> Result<(), MyError> {
+    loop {
+        match inner_stream.next().await {
+            Some(Ok(value)) => {
+                stream.yield_item(value).await;
+            }
+            Some(err @ Err(_)) => {
+                err?;
+            }
+            None => {
+                break Ok(());
+            }
+        }
+    }
+}
+
 async fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
@@ -169,7 +185,6 @@ async fn fetch_registration(
                                 .replace('ö', "oe")
                                 .replace('ü', "ue");
         */
-        //trace!("jo {:?}", parent);
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.nullable().eq(&parent.path))
@@ -202,19 +217,7 @@ async fn fetch_registration(
                     )
                     .await;
 
-                    loop {
-                        match fetch_registration_stream.next().await {
-                            Some(Ok(value)) => {
-                                stream.yield_item(value).await;
-                            }
-                            Some(err @ Err(_)) => {
-                                err?;
-                            }
-                            None => {
-                                break;
-                            }
-                        }
-                    }
+                    yield_stream(&mut stream, fetch_registration_stream).await?;
                 }
             }
             Some(ModuleMenu { child_type: 2, .. }) => {
@@ -248,23 +251,10 @@ async fn fetch_registration(
                     )
                     .await;
 
-                    loop {
-                        match fetch_module_stream.next().await {
-                            Some(Ok(value)) => {
-                                stream.yield_item(value).await;
-                            }
-                            Some(err @ Err(_)) => {
-                                err?;
-                            }
-                            None => {
-                                break;
-                            }
-                        }
-                    }
+                    yield_stream(&mut stream, fetch_module_stream).await?;
                 }
             }
-            Some(_) => panic!(),
-            None => {
+            _ => {
                 trace!("Handling new registration {:?}", parent);
 
                 // don't know children yet, fetch them
@@ -332,19 +322,7 @@ async fn fetch_registration(
                             let mut fetch_registration_stream =
                                 fetch_registration(tucan.clone(), menu.clone()).await;
 
-                            loop {
-                                match fetch_registration_stream.next().await {
-                                    Some(Ok(value)) => {
-                                        stream.yield_item(value).await;
-                                    }
-                                    Some(err @ Err(_)) => {
-                                        err?;
-                                    }
-                                    None => {
-                                        break;
-                                    }
-                                }
-                            }
+                            yield_stream(&mut stream, fetch_registration_stream).await?;
                         }
                     }
                     RegistrationEnum::Modules(modules) => {
@@ -393,19 +371,7 @@ async fn fetch_registration(
                             let mut fetch_module_stream =
                                 fetch_module(tucan.clone(), parent.clone(), module).await;
 
-                            loop {
-                                match fetch_module_stream.next().await {
-                                    Some(Ok(value)) => {
-                                        stream.yield_item(value).await;
-                                    }
-                                    Some(err @ Err(_)) => {
-                                        err?;
-                                    }
-                                    None => {
-                                        break;
-                                    }
-                                }
-                            }
+                            yield_stream(&mut stream, fetch_module_stream).await?;
                         }
                     }
                 }
@@ -433,19 +399,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
                 let mut input = fetch_registration(tucan, root).await;
 
-                loop {
-                    match input.next().await {
-                        Some(Ok(value)) => {
-                            stream.yield_item(value).await;
-                        }
-                        Some(Err(err)) => {
-                            Err::<(), MyError>(err).unwrap(); // TODO FIXME
-                        }
-                        None => {
-                            break;
-                        }
-                    }
-                }
+                yield_stream(&mut stream, input).await.unwrap();
 
                 trace!("Done fetching module tree");
 
