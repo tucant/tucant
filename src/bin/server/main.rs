@@ -135,15 +135,7 @@ async fn fetch_registration(
 
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
-                trace!("New submenus for registration {:?}", parent);
-
                 for menu in submenu {
-                    trace!(
-                        "Handling new submenu {:?} for registration {:?}",
-                        menu,
-                        parent
-                    );
-
                     let fetch_registration_stream = fetch_registration(
                         tucan.clone(),
                         Registration {
@@ -156,15 +148,7 @@ async fn fetch_registration(
                 }
             }
             RegistrationEnum::Modules(modules) => {
-                trace!("New submodules for registration {:?}", parent);
-
                 for module in modules {
-                    trace!(
-                        "Handling new submodule {:?} for registration {:?}",
-                        module,
-                        parent
-                    );
-
                     tucan
                         .module(Moduledetails {
                             id: module.tucan_id,
@@ -191,7 +175,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
 
                 let tucan = tucan.continue_session(session).await.unwrap();
 
-                trace!("Starting fetching module tree");
                 let root = tucan.root_registration().await.unwrap();
 
                 let input = fetch_registration(
@@ -203,8 +186,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 .await;
 
                 yield_stream(&mut stream, input).await.unwrap();
-
-                trace!("Done fetching module tree");
 
                 stream.yield_item(Bytes::from("Fertig!")).await;
 

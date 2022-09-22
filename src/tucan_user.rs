@@ -81,6 +81,7 @@ impl TucanUser {
             .optional()?;
 
         if let Some(existing_module) = existing_module {
+            trace!("[~] module {:?}", existing_module);
             return Ok(existing_module);
         }
 
@@ -131,6 +132,8 @@ impl TucanUser {
             content,
             done: true,
         };
+
+        trace!("[+] module {:?}", existing_module);
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
@@ -188,7 +191,7 @@ impl TucanUser {
 
         match existing_registration_already_fetched {
             Some(module_menu @ ModuleMenu { child_type: 1, .. }) => {
-                trace!("Existing submenus for registration {:?}", url.path);
+                trace!("[~] menu {:?}", module_menu);
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
@@ -199,7 +202,7 @@ impl TucanUser {
                 return Ok((module_menu, RegistrationEnum::Submenu(submenus)));
             }
             Some(module_menu @ ModuleMenu { child_type: 2, .. }) => {
-                trace!("Existing submodules for registration {:?}", url);
+                trace!("[~] menu {:?}", module_menu);
 
                 // existing submodules
                 let submodules = module_menu_module::table
@@ -231,6 +234,8 @@ impl TucanUser {
             parent: None,
             child_type: 1,
         };
+
+        trace!("[+] menu {:?}", module_menu);
 
         diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
