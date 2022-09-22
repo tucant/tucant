@@ -131,50 +131,23 @@ async fn fetch_registration(
     parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
-        let connection = &mut tucan.tucan.pool.get().await?;
+        let value = tucan.registration(parent.clone()).await?;
 
-        trace!("Handling registration {:?}", parent);
+        match value.1 {
+            RegistrationEnum::Submenu(ref submenu) => {
+                trace!("New submenus for registration {:?}", parent);
 
-        // TODO check if already in DB and cache good
-        /*
-                            let normalized_name = title
-                                .to_lowercase()
-                                .replace('-', "")
-                                .replace(' ', "-")
-                                .replace(',', "")
-                                .replace('/', "-")
-                                .replace('ä', "ae")
-                                .replace('ö', "oe")
-                                .replace('ü', "ue");
-        */
-
-        let existing_registration_already_fetched = module_menu_unfinished::table
-            .filter(module_menu_unfinished::tucan_id.nullable().eq(&parent.path))
-            .filter(not(module_menu_unfinished::child_type.eq(0)))
-            .get_result::<ModuleMenu>(connection)
-            .await
-            .optional()?;
-
-        match existing_registration_already_fetched {
-            Some(ModuleMenu { child_type: 1, .. }) => {
-                trace!("Existing submenus for registration {:?}", parent);
-
-                // existing submenus
-                let submenus = module_menu_unfinished::table
-                    .filter(module_menu_unfinished::parent.eq(&parent.path))
-                    .load::<ModuleMenu>(connection)
-                    .await?;
-                for submenu in submenus {
+                for menu in submenu {
                     trace!(
-                        "Handling existing submenu {:?} for registration {:?}",
-                        submenu,
+                        "Handling new submenu {:?} for registration {:?}",
+                        menu,
                         parent
                     );
 
                     let fetch_registration_stream = fetch_registration(
                         tucan.clone(),
                         Registration {
-                            path: submenu.tucan_id,
+                            path: menu.tucan_id.clone(),
                         },
                     )
                     .await;
@@ -182,167 +155,22 @@ async fn fetch_registration(
                     yield_stream(&mut stream, fetch_registration_stream).await?;
                 }
             }
-            Some(ModuleMenu { child_type: 2, .. }) => {
-                trace!("Existing submodules for registration {:?}", parent);
+            RegistrationEnum::Modules(modules) => {
+                trace!("New submodules for registration {:?}", parent);
 
-                // existing submodules
-                let submodules = module_menu_module::table
-                    .inner_join(modules_unfinished::table)
-                    .filter(
-                        module_menu_module::module_menu_id
-                            .nullable()
-                            .eq(&parent.path),
-                    )
-                    .load::<(ModuleMenuEntryModule, Module)>(connection)
-                    .await?;
-
-                // TODO FIXME maybe store everything up until here in a registration enum and then unify the logic?
-                for module in submodules {
+                for module in modules {
                     trace!(
-                        "Handling existing submodule {:?} for registration {:?}",
+                        "Handling new submodule {:?} for registration {:?}",
                         module,
                         parent
                     );
 
                     tucan
                         .module(Moduledetails {
-                            id: module.1.tucan_id,
+                            id: module.tucan_id,
                         })
                         .await
                         .unwrap();
-                }
-            }
-            _ => {
-                trace!("Handling new registration {:?}", parent);
-
-                // don't know children yet, fetch them
-                let value = tucan.registration(parent.clone()).await?;
-
-                let child_type = match value.1 {
-                    RegistrationEnum::Submenu(_) => 1,
-                    RegistrationEnum::Modules(_) => 2,
-                };
-                let utc = Utc::now().naive_utc();
-
-                // TODO FIXME aquire name?
-                let module_menu = ModuleMenuRef {
-                    name: "",
-                    normalized_name: "",
-                    parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                    tucan_id: &parent.path,
-                    tucan_last_checked: &utc,
-                    child_type,
-                };
-
-                // mark current element as finished
-                diesel::insert_into(module_menu_unfinished::table)
-                    .values(&module_menu)
-                    .on_conflict(module_menu_unfinished::tucan_id)
-                    .do_update()
-                    .set(
-                        module_menu_unfinished::child_type
-                            .eq(excluded(module_menu_unfinished::child_type)),
-                    )
-                    .get_result::<ModuleMenu>(connection)
-                    .await?;
-
-                match value.1 {
-                    RegistrationEnum::Submenu(ref submenu) => {
-                        trace!("New submenus for registration {:?}", parent);
-
-                        let utc = Utc::now().naive_utc();
-
-                        diesel::insert_into(module_menu_unfinished::table)
-                            .values(
-                                submenu
-                                    .iter()
-                                    .map(|s| ModuleMenuRef {
-                                        name: "",
-                                        normalized_name: "",
-                                        parent: Some(&parent.path),
-                                        tucan_id: &s.tucan_id,
-                                        tucan_last_checked: &utc,
-                                        child_type: 0,
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                            .on_conflict(module_menu_unfinished::tucan_id)
-                            .do_update()
-                            .set(
-                                module_menu_unfinished::name
-                                    .eq(excluded(module_menu_unfinished::name)),
-                            )
-                            .get_result::<ModuleMenu>(connection)
-                            .await?;
-
-                        for menu in submenu {
-                            trace!(
-                                "Handling new submenu {:?} for registration {:?}",
-                                menu,
-                                parent
-                            );
-
-                            let fetch_registration_stream = fetch_registration(
-                                tucan.clone(),
-                                Registration {
-                                    path: menu.tucan_id.clone(),
-                                },
-                            )
-                            .await;
-
-                            yield_stream(&mut stream, fetch_registration_stream).await?;
-                        }
-                    }
-                    RegistrationEnum::Modules(modules) => {
-                        trace!("New submodules for registration {:?}", parent);
-
-                        diesel::insert_into(modules_unfinished::table)
-                            .values(
-                                modules
-                                    .iter()
-                                    .map(|m| Module {
-                                        done: false,
-                                        tucan_id: m.tucan_id,
-                                        tucan_last_checked: Utc::now().naive_utc(),
-                                        title: "".to_string(),
-                                        module_id: "".to_string(),
-                                        credits: None,
-                                        content: "".to_string(),
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                            .execute(connection)
-                            .await?;
-
-                        diesel::insert_into(module_menu_module::table)
-                            .values(
-                                modules
-                                    .iter()
-                                    .map(|m| ModuleMenuEntryModuleRef {
-                                        module_id: m.tucan_id,
-                                        module_menu_id: &parent.path,
-                                    })
-                                    .collect::<Vec<_>>(),
-                            )
-                            .on_conflict_do_nothing()
-                            .execute(connection)
-                            .await?;
-
-                        for module in modules {
-                            trace!(
-                                "Handling new submodule {:?} for registration {:?}",
-                                module,
-                                parent
-                            );
-
-                            tucan
-                                .module(Moduledetails {
-                                    id: module.tucan_id,
-                                })
-                                .await
-                                .unwrap();
-                        }
-                    }
                 }
             }
         }
