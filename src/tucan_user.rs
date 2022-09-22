@@ -204,17 +204,14 @@ impl TucanUser {
                 // existing submodules
                 let submodules = module_menu_module::table
                     .inner_join(modules_unfinished::table)
+                    .select(modules_unfinished::all_columns)
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
-                    .load::<(ModuleMenuEntryModule, Module)>(connection)
+                    .load::<Module>(connection)
                     .await?;
 
                 return Ok((module_menu, RegistrationEnum::Modules(submodules)));
             }
-            _ => {
-                trace!("Handling new registration {:?}", url);
-
-                
-            }
+            _ => {}
         }
 
         let document = self.fetch_document(&url.clone().into()).await?;
