@@ -111,11 +111,9 @@ async fn fetch_module(
     module: Moduledetails,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
-        let connection = &mut tucan.tucan.pool.get().await?;
+        let mut connection = &mut tucan.tucan.pool.get().await?;
         trace!("Fetching new module {:?}", parent);
 
-        let tucan_clone = tucan.clone();
-        let parent_clone = parent.clone();
         stream
             .yield_item(Bytes::from(format!("module {}", module.id)))
             .await;
@@ -138,7 +136,7 @@ async fn fetch_module(
         diesel::insert_into(module_menu_module::table)
             .values(&ModuleMenuEntryModule {
                 module_id: module.tucan_id,
-                module_menu_id: parent_clone.path.unwrap().to_vec(),
+                module_menu_id: parent.path.unwrap().to_vec(),
             })
             .on_conflict_do_nothing()
             .execute(&mut connection)
@@ -152,8 +150,7 @@ async fn fetch_registration(
     parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     try_stream(move |mut stream| async move {
-        let connection = &mut tucan_clone.tucan.pool.get().await?;
-        let tucan_clone = tucan.clone();
+        let connection = &mut tucan.tucan.pool.get().await?;
 
         trace!("Handling registration {:?}", parent);
 
@@ -280,12 +277,11 @@ async fn fetch_registration(
                     RegistrationEnum::Submenu(_) => 1,
                     RegistrationEnum::Modules(_) => 2,
                 };
-                let parent = parent.path.clone().unwrap();
                 let module_menu = ModuleMenu {
                     name: "".to_string(),
                     normalized_name: "".to_string(),
                     parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                    tucan_id: parent,
+                    tucan_id: parent.path.unwrap(),
                     tucan_last_checked: Utc::now().naive_utc(),
                     child_type,
                 };
@@ -308,7 +304,7 @@ async fn fetch_registration(
                                     .map(|s| ModuleMenu {
                                         name: "".to_string(),
                                         normalized_name: "".to_string(),
-                                        parent: parent.clone().path,
+                                        parent: parent.path,
                                         tucan_id: s.clone().path.unwrap(),
                                         tucan_last_checked: Utc::now().naive_utc(),
                                         child_type: 0,
@@ -377,7 +373,7 @@ async fn fetch_registration(
                                     .iter()
                                     .map(|m| ModuleMenuEntryModule {
                                         module_id: m.id,
-                                        module_menu_id: parent.clone().path.unwrap(),
+                                        module_menu_id: parent.path.unwrap(),
                                     })
                                     .collect::<Vec<_>>(),
                             )
@@ -545,7 +541,7 @@ async fn get_modules<'a>(
             .inner_join(modules_unfinished::table)
             .filter(module_menu_module::module_menu_id.nullable().eq(parent))
             .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
-            .await;
+            .await?;
 
         if !menu_result.is_empty() {
             Ok(Either::Right(web::Json(ModulesOrModuleMenus::Menus(
