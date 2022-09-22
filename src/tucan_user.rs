@@ -21,7 +21,7 @@ use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
-use log::trace;
+use log::{error, trace};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -133,7 +133,7 @@ impl TucanUser {
             done: true,
         };
 
-        trace!("[+] module {:?}", existing_module);
+        trace!("[+] module {:?}", module);
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
@@ -272,6 +272,7 @@ impl TucanUser {
 
                 diesel::insert_into(modules_unfinished::table)
                     .values(&modules[..])
+                    .on_conflict_do_nothing()
                     .execute(connection)
                     .await?;
 
