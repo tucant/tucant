@@ -33,7 +33,6 @@ pub struct ModuleMenu {
     pub child_type: i16,
 }
 
-
 #[derive(Associations, Identifiable, Queryable, AsChangeset, Insertable, Serialize, Debug)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]

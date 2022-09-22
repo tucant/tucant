@@ -35,7 +35,9 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuRef, ModuleMenuEntryModuleRef};
+use tucan_scraper::models::{
+    Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuEntryModuleRef, ModuleMenuRef,
+};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
@@ -118,7 +120,7 @@ async fn fetch_module(
             .yield_item(Bytes::from(format!("module {}", module.id)))
             .await;
 
-        let module = tucan.clone().module(module).await.unwrap();
+        let module = tucan.module(module).await.unwrap();
 
         // TODO FIXME warn if module already existed as that suggests recursive dependency
         // TODO normalize url in a way that this can use cached data?
@@ -142,7 +144,8 @@ async fn fetch_module(
             .execute(&mut connection)
             .await?;
         Ok(())
-    }).boxed_local()
+    })
+    .boxed_local()
 }
 
 async fn fetch_registration(
@@ -169,11 +172,7 @@ async fn fetch_registration(
         //trace!("jo {:?}", parent);
 
         let existing_registration_already_fetched = module_menu_unfinished::table
-            .filter(
-                module_menu_unfinished::tucan_id
-                    .nullable()
-                    .eq(parent.clone().path),
-            )
+            .filter(module_menu_unfinished::tucan_id.nullable().eq(&parent.path))
             .filter(not(module_menu_unfinished::child_type.eq(0)))
             .get_result::<ModuleMenu>(connection)
             .await
@@ -185,7 +184,7 @@ async fn fetch_registration(
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
-                    .filter(module_menu_unfinished::parent.eq(parent.clone().path.unwrap()))
+                    .filter(module_menu_unfinished::parent.eq(parent.path.as_ref().unwrap()))
                     .load::<ModuleMenu>(connection)
                     .await?;
                 for submenu in submenus {
@@ -227,7 +226,7 @@ async fn fetch_registration(
                     .filter(
                         module_menu_module::module_menu_id
                             .nullable()
-                            .eq(parent.clone().path.unwrap()),
+                            .eq(parent.path.as_ref().unwrap()),
                     )
                     .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await?;
