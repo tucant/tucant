@@ -225,29 +225,7 @@ impl TucanUser {
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
-        // ModuleMenuRef?
-        let module_menu = ModuleMenu {
-            tucan_id: url.path.clone(),
-            tucan_last_checked: Utc::now().naive_utc(),
-            name: "TODO".to_string(),
-            normalized_name: "TODO".to_string(),
-            parent: None,
-            child_type: 1,
-        };
-
-        trace!("[+] menu {:?}", module_menu);
-
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&module_menu)
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(
-                module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)),
-            )
-            .get_result::<ModuleMenu>(connection)
-            .await?;
-
-        match (submenu_list, modules_list) {
+        let (child_type, return_value) = match (submenu_list, modules_list) {
             (_, Some(list)) => {
                 let modules: Vec<Module> = list
                     .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
@@ -290,7 +268,7 @@ impl TucanUser {
                     .execute(connection)
                     .await?;
 
-                Ok((module_menu, RegistrationEnum::Modules(modules)))
+                (2, RegistrationEnum::Modules(modules))
             }
             (Some(list), None) => {
                 let submenus: Vec<ModuleMenu> = list
@@ -321,7 +299,7 @@ impl TucanUser {
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
-                Ok((module_menu, RegistrationEnum::Submenu(submenus)))
+                (1, RegistrationEnum::Submenu(submenus))
             }
             _ => {
                 panic!(
@@ -331,6 +309,30 @@ impl TucanUser {
                     document.root_element().html()
                 );
             }
-        }
+        };
+
+        // ModuleMenuRef?
+        let module_menu = ModuleMenu {
+            tucan_id: url.path.clone(),
+            tucan_last_checked: Utc::now().naive_utc(),
+            name: "TODO".to_string(),
+            normalized_name: "TODO".to_string(),
+            parent: None,
+            child_type,
+        };
+
+        trace!("[+] menu {:?}", module_menu);
+
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&module_menu)
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(
+                module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)),
+            )
+            .get_result::<ModuleMenu>(connection)
+            .await?;
+
+        Ok((module_menu, return_value))
     }
 }
