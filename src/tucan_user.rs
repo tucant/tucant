@@ -171,18 +171,6 @@ impl TucanUser {
                         })
                         .collect(),
                 ))
-
-                /*
-                let selector = s("a[href]");
-                let iterat = list
-                    .select(&selector)
-                    .map(async move |b| self.handle_sublink(b).await);
-
-                let mut futures: FuturesUnordered<_> = iterat.collect();
-                while let Some(result) = futures.next().await {
-                    result?;
-                }
-                */
             }
             _ => {
                 panic!(

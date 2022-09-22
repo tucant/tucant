@@ -5,9 +5,10 @@ use serde::Serialize;
 use crate::schema::{module_menu_module, module_menu_unfinished, modules_unfinished};
 
 // order needs to be equal to the table definition
-#[derive(Identifiable, Queryable, Insertable, Serialize, Debug)]
+#[derive(Identifiable, Queryable, Insertable, AsChangeset, Serialize, Debug)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
+#[changeset_options(treat_none_as_null = "true")]
 pub struct Module {
     pub tucan_id: i64,
     pub tucan_last_checked: NaiveDateTime,
@@ -18,10 +19,11 @@ pub struct Module {
     pub done: bool,
 }
 
-#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
+#[derive(Associations, Identifiable, Queryable, AsChangeset, Insertable, Serialize, Debug)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
 #[belongs_to(ModuleMenu, foreign_key = "parent")]
+#[changeset_options(treat_none_as_null = "true")]
 pub struct ModuleMenu {
     pub tucan_id: Vec<i64>,
     pub tucan_last_checked: NaiveDateTime,

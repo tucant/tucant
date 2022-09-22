@@ -137,7 +137,7 @@ async fn fetch_module(
                         .values(&module)
                         .on_conflict(modules_unfinished::tucan_id)
                         .do_update()
-                        .set(modules_unfinished::content.eq(excluded(modules_unfinished::content)))
+                        .set(&module)
                         .execute(connection)
                         .await?;
 
@@ -181,7 +181,6 @@ async fn fetch_registration(
                                 .replace('ü', "ue");
         */
         let connection = &mut tucan_clone.tucan.pool.get().await?;
-
         //trace!("jo {:?}", parent);
 
         let existing_registration_already_fetched = module_menu_unfinished::table
@@ -194,8 +193,6 @@ async fn fetch_registration(
             .get_result::<ModuleMenu>(connection)
             .await
             .optional()?;
-
-        //trace!("jo2 {:?}", existing_registration_already_fetched);
 
         match existing_registration_already_fetched {
             Some(ModuleMenu { child_type: 1, .. }) => {
@@ -303,15 +300,16 @@ async fn fetch_registration(
                         };
                         let parent = parent.path.clone().unwrap();
                         async move {
+                            let module_menu = ModuleMenu {
+                                name: "".to_string(),
+                                normalized_name: "".to_string(),
+                                parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
+                                tucan_id: parent,
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                child_type,
+                            };
                             diesel::insert_into(module_menu_unfinished::table)
-                                .values(&ModuleMenu {
-                                    name: "".to_string(),
-                                    normalized_name: "".to_string(),
-                                    parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                                    tucan_id: parent,
-                                    tucan_last_checked: Utc::now().naive_utc(),
-                                    child_type,
-                                })
+                                .values(&module_menu)
                                 .on_conflict(module_menu_unfinished::tucan_id)
                                 .do_update()
                                 .set(
