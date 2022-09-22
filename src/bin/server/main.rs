@@ -339,10 +339,7 @@ async fn fetch_registration(
                                         parent: parent.clone().path,
                                         tucan_id: s.clone().path.unwrap(),
                                         tucan_last_checked: Utc::now().naive_utc(),
-                                        child_type: match &value {
-                                            RegistrationEnum::Submenu(_) => 1,
-                                            RegistrationEnum::Modules(_) => 2,
-                                        },
+                                        child_type: 0,
                                     })
                                     .collect::<Vec<_>>(),
                             )
@@ -465,7 +462,6 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 let root = tucan.root_registration().await.unwrap();
 
                 let mut input = fetch_registration(tucan, root).await;
-                trace!("Done fetching module tree");
 
                 loop {
                     match input.next().await {
@@ -480,6 +476,8 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                         }
                     }
                 }
+
+                trace!("Done fetching module tree");
 
                 stream.yield_item(Bytes::from("Fertig!")).await;
 
