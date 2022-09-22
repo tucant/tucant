@@ -16,6 +16,8 @@ use crate::{
     url::{parse_tucan_url, Moduledetails, Registration, TucanProgram, TucanUrl, RootRegistration},
 };
 
+use crate::schema::*;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
     pub nr: i64,
@@ -62,6 +64,10 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = &mut self.tucan.pool.get().await?;
+
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let name = element_by_selector(&document, "h1").unwrap();
@@ -118,7 +124,7 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        module
+        Ok(module)
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
