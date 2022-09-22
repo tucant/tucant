@@ -202,7 +202,7 @@ async fn fetch_registration(
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
-                    .filter(module_menu_unfinished::parent.eq(parent.path))
+                    .filter(module_menu_unfinished::parent.eq(&parent.path))
                     .load::<ModuleMenu>(connection)
                     .await?;
                 for submenu in submenus {
@@ -232,7 +232,7 @@ async fn fetch_registration(
                     .filter(
                         module_menu_module::module_menu_id
                             .nullable()
-                            .eq(parent.path.as_ref().unwrap()),
+                            .eq(&parent.path),
                     )
                     .load::<(ModuleMenuEntryModule, Module)>(connection)
                     .await?;
@@ -274,7 +274,7 @@ async fn fetch_registration(
                     name: "",
                     normalized_name: "",
                     parent: None, // TODO FIXMe simply not modify this (maybe use the other update syntax)
-                    tucan_id: parent.path.as_ref().unwrap(),
+                    tucan_id: &parent.path,
                     tucan_last_checked: &utc,
                     child_type,
                 };
@@ -328,7 +328,9 @@ async fn fetch_registration(
                             );
 
                             let fetch_registration_stream =
-                                fetch_registration(tucan.clone(), menu.clone()).await;
+                                fetch_registration(tucan.clone(), Registration {
+                                    path: menu.tucan_id.clone()
+                                }).await;
 
                             yield_stream(&mut stream, fetch_registration_stream).await?;
                         }
@@ -342,7 +344,7 @@ async fn fetch_registration(
                                     .iter()
                                     .map(|m| Module {
                                         done: false,
-                                        tucan_id: m.id,
+                                        tucan_id: m.tucan_id,
                                         tucan_last_checked: Utc::now().naive_utc(),
                                         title: "".to_string(),
                                         module_id: "".to_string(),
@@ -360,8 +362,8 @@ async fn fetch_registration(
                                 modules
                                     .iter()
                                     .map(|m| ModuleMenuEntryModuleRef {
-                                        module_id: m.id,
-                                        module_menu_id: parent.path.as_ref().unwrap(),
+                                        module_id: m.tucan_id,
+                                        module_menu_id: &parent.path,
                                     })
                                     .collect::<Vec<_>>(),
                             )
@@ -377,7 +379,7 @@ async fn fetch_registration(
                             );
 
                             let fetch_module_stream =
-                                fetch_module(tucan.clone(), parent.clone(), module).await;
+                                fetch_module(tucan.clone(), parent.clone(), Moduledetails { id: module.tucan_id }).await;
 
                             yield_stream(&mut stream, fetch_module_stream).await?;
                         }
@@ -405,7 +407,9 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                 trace!("Starting fetching module tree");
                 let root = tucan.root_registration().await.unwrap();
 
-                let input = fetch_registration(tucan, root).await;
+                let input = fetch_registration(tucan, Registration {
+                    path: root.tucan_id
+                }).await;
 
                 yield_stream(&mut stream, input).await.unwrap();
 
