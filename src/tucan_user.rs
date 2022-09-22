@@ -10,17 +10,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuRef},
+    models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuEntryModuleRef, ModuleMenuRef},
     s,
     tucan::Tucan,
     url::{parse_tucan_url, Moduledetails, Registration, RootRegistration, TucanProgram, TucanUrl},
 };
 
 use crate::schema::*;
-use diesel::{dsl::not, upsert::excluded};
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
+use diesel::{dsl::not, upsert::excluded};
 use log::trace;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -195,7 +195,7 @@ impl TucanUser {
                     .filter(module_menu_unfinished::parent.eq(&url.path))
                     .load::<ModuleMenu>(connection)
                     .await?;
-                
+
                 return Ok((module_menu, RegistrationEnum::Submenu(submenus)));
             }
             Some(module_menu @ ModuleMenu { child_type: 2, .. }) => {
@@ -236,119 +236,86 @@ impl TucanUser {
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
             .set(
-                module_menu_unfinished::child_type
-                    .eq(excluded(module_menu_unfinished::child_type)),
+                module_menu_unfinished::child_type.eq(excluded(module_menu_unfinished::child_type)),
             )
             .get_result::<ModuleMenu>(connection)
             .await?;
-        
+
         match (submenu_list, modules_list) {
             (_, Some(list)) => {
-                diesel::insert_into(module_menu_unfinished::table)
-                .values(
-                    submenu
-                        .iter()
-                        .map(|s| ModuleMenuRef {
-                            name: "",
-                            normalized_name: "",
-                            parent: Some(&parent.path),
-                            tucan_id: &s.tucan_id,
-                            tucan_last_checked: &utc,
-                            child_type: 0,
-                        })
-                        .collect::<Vec<_>>(),
-                )
-                .on_conflict(module_menu_unfinished::tucan_id)
-                .do_update()
-                .set(
-                    module_menu_unfinished::name
-                        .eq(excluded(module_menu_unfinished::name)),
-                )
-                .get_result::<ModuleMenu>(connection)
-                .await?;
+                let modules: Vec<Module> = list
+                    .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
+                    .map(|e| Module {
+                        tucan_id: TryInto::<Moduledetails>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .id,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        title: "TODO".to_string(),
+                        module_id: "TODO".to_string(),
+                        credits: None,
+                        content: "TODO".to_string(),
+                        done: false,
+                    })
+                    .collect();
 
-                Ok((
-                module_menu,
-                RegistrationEnum::Modules(
-                    list.select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
-                        .map(|e| Module {
-                            tucan_id: TryInto::<Moduledetails>::try_into(
-                                parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    e.value().attr("href").unwrap()
-                                ))
-                                .program,
-                            )
-                            .unwrap()
-                            .id,
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            title: "TODO".to_string(),
-                            module_id: "TODO".to_string(),
-                            credits: None,
-                            content: "TODO".to_string(),
-                            done: false,
-                        })
-                        .collect(),
-                ),
-            ))
-        },
-            (Some(list), None) => {
                 diesel::insert_into(modules_unfinished::table)
-                .values(
-                    modules
-                        .iter()
-                        .map(|m| Module {
-                            done: false,
-                            tucan_id: m.tucan_id,
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            title: "".to_string(),
-                            module_id: "".to_string(),
-                            credits: None,
-                            content: "".to_string(),
-                        })
-                        .collect::<Vec<_>>(),
-                )
-                .execute(connection)
-                .await?;
+                    .values(modules)
+                    .execute(connection)
+                    .await?;
 
-            diesel::insert_into(module_menu_module::table)
-                .values(
-                    modules
-                        .iter()
-                        .map(|m| ModuleMenuEntryModuleRef {
-                            module_id: m.tucan_id,
-                            module_menu_id: &parent.path,
-                        })
-                        .collect::<Vec<_>>(),
-                )
-                .on_conflict_do_nothing()
-                .execute(connection)
-                .await?;
+                diesel::insert_into(module_menu_module::table)
+                    .values(
+                        modules
+                            .iter()
+                            .map(|m| ModuleMenuEntryModuleRef {
+                                module_id: m.tucan_id,
+                                module_menu_id: &url.path,
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                    .on_conflict_do_nothing()
+                    .execute(connection)
+                    .await?;
 
+                Ok((module_menu, RegistrationEnum::Modules(modules)))
+            }
+            (Some(list), None) => {
+                let submenus: Vec<ModuleMenu> = list
+                    .select(&s("a[href]"))
+                    .map(|e| ModuleMenu {
+                        tucan_id: TryInto::<Registration>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .path,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        name: "TODO".to_string(),
+                        normalized_name: "TODO".to_string(),
+                        parent: Some(url.path.clone()),
+                        child_type: 0,
+                    })
+                    .collect();
 
-                Ok((
-                module_menu,
-                RegistrationEnum::Submenu(
-                    list.select(&s("a[href]"))
-                        .map(|e| ModuleMenu {
-                            tucan_id: TryInto::<Registration>::try_into(
-                                parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    e.value().attr("href").unwrap()
-                                ))
-                                .program,
-                            )
-                            .unwrap()
-                            .path,
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            name: "TODO".to_string(),
-                            normalized_name: "TODO".to_string(),
-                            parent: Some(url.path.clone()),
-                            child_type: 0,
-                        })
-                        .collect(),
-                ),
-            ))},
+                diesel::insert_into(module_menu_unfinished::table)
+                    .values(submenus.clone())
+                    .on_conflict(module_menu_unfinished::tucan_id)
+                    .do_update()
+                    .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
+                    .get_result::<ModuleMenu>(connection)
+                    .await?;
+
+                Ok((module_menu, RegistrationEnum::Submenu(submenus)))
+            }
             _ => {
                 panic!(
                     "{:?} {} {}",
