@@ -35,7 +35,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule};
+use tucan_scraper::models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuRef};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
@@ -297,16 +297,18 @@ async fn fetch_registration(
                     RegistrationEnum::Submenu(ref submenu) => {
                         trace!("New submenus for registration {:?}", parent);
 
+                        let utc = Utc::now().naive_utc();
+
                         diesel::insert_into(module_menu_unfinished::table)
                             .values(
                                 submenu
                                     .iter()
-                                    .map(|s| ModuleMenu {
-                                        name: "".to_string(),
-                                        normalized_name: "".to_string(),
-                                        parent: parent.path,
-                                        tucan_id: s.clone().path.unwrap(),
-                                        tucan_last_checked: Utc::now().naive_utc(),
+                                    .map(|s| ModuleMenuRef {
+                                        name: "",
+                                        normalized_name: "",
+                                        parent: parent.path.as_ref(),
+                                        tucan_id: s.path.as_ref().unwrap(),
+                                        tucan_last_checked: &utc,
                                         child_type: 0,
                                     })
                                     .collect::<Vec<_>>(),
