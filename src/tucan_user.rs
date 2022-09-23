@@ -43,9 +43,13 @@ pub enum RegistrationEnum {
     Modules(Vec<Module>),
 }
 
-static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ )(.]+").unwrap());
+static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
 
 impl TucanUser {
+    pub fn normalize(string: &str) -> String {
+        NORMALIZED_NAME_REGEX.replace_all(&string, "-").trim_matches('-').to_lowercase()
+    }
+
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.id);
 
@@ -132,7 +136,7 @@ impl TucanUser {
             tucan_last_checked: Utc::now().naive_utc(),
             title: module_name.unwrap().to_string(),
             credits: Some(credits),
-            module_id: module_id.to_string(),
+            module_id: TucanUser::normalize(module_id),
             content,
             done: true,
         };
@@ -171,7 +175,7 @@ impl TucanUser {
         };
 
         let name = url_element.inner_html();
-        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&name, "-").trim_matches('-').to_lowercase();
+        let normalized_name = TucanUser::normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
@@ -239,7 +243,7 @@ impl TucanUser {
         }).last().unwrap();
 
         let name = url_element.inner_html();
-        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&name, "-").trim_matches('-').to_lowercase();
+        let normalized_name = TucanUser::normalize(&name);
 
         let child_type = match (submenu_list, modules_list) {
             (_, Some(_)) => 2,

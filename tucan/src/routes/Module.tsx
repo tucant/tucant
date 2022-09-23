@@ -51,7 +51,7 @@ export default function Module() {
       {error && <Alert severity="error">{error}</Alert>}
 
 {data && <>
-      <Typography variant="h3">{data.id} {data.name}</Typography>
+      <Typography variant="h3">{data.module_id} {data.title}</Typography>
       <Chip label={`${data.credits} Credits`} />
       <div dangerouslySetInnerHTML={{__html: sanitize(data.content)}}></div>
       </>}
