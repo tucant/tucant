@@ -4,6 +4,7 @@ use std::{
 };
 
 use chrono::Utc;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
@@ -42,7 +43,7 @@ pub enum RegistrationEnum {
     Modules(Vec<Module>),
 }
 
-static NORMALIZED_NAME_REGEX: Regex = Regex::new(r"[ )(.]+").unwrap();
+static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ )(.]+").unwrap());
 
 impl TucanUser {
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
@@ -152,7 +153,9 @@ impl TucanUser {
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
-        let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
+        let url_element =  document.select(&s("h2 a")).filter(|e| {
+            e.inner_html() != "<!--$MG_DESCNAVI-->"
+        }).last().unwrap();
 
         let url = parse_tucan_url(&format!(
             "https://www.tucan.tu-darmstadt.de{}",
@@ -167,13 +170,14 @@ impl TucanUser {
             _ => panic!(),
         };
 
-        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&url_element.inner_html(), "-");
+        let name = url_element.inner_html();
+        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&name, "-").trim_matches('-').to_lowercase();
 
         Ok(ModuleMenu {
             tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            normalized_name: normalized_name.into_owned(),
+            normalized_name: normalized_name,
             parent: None,
             child_type: 0,
         })
@@ -230,7 +234,40 @@ impl TucanUser {
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
-        let (child_type, return_value) = match (submenu_list, modules_list) {
+        let url_element =  document.select(&s("h2 a")).filter(|e| {
+            e.inner_html() != "<!--$MG_DESCNAVI-->"
+        }).last().unwrap();
+
+        let name = url_element.inner_html();
+        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&name, "-").trim_matches('-').to_lowercase();
+
+        let child_type = match (submenu_list, modules_list) {
+            (_, Some(_)) => 2,
+            (Some(_), None) => 1,
+            _ => panic!(),
+        };
+
+        // ModuleMenuRef?
+        let module_menu = ModuleMenu {
+            tucan_id: url.path.clone(),
+            tucan_last_checked: Utc::now().naive_utc(),
+            name: url_element.inner_html(),
+            normalized_name: normalized_name,
+            parent: None,
+            child_type,
+        };
+
+        trace!("[+] menu {:?}", module_menu);
+
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&module_menu)
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(&module_menu)
+            .get_result::<ModuleMenu>(connection)
+            .await?;
+
+        let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
                 let modules: Vec<Module> = list
                     .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
@@ -273,7 +310,7 @@ impl TucanUser {
                     .execute(connection)
                     .await?;
 
-                (2, RegistrationEnum::Modules(modules))
+                RegistrationEnum::Modules(modules)
             }
             (Some(list), None) => {
                 let submenus: Vec<ModuleMenu> = list
@@ -304,7 +341,7 @@ impl TucanUser {
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
-                (1, RegistrationEnum::Submenu(submenus))
+                RegistrationEnum::Submenu(submenus)
             }
             _ => {
                 panic!(
@@ -315,32 +352,6 @@ impl TucanUser {
                 );
             }
         };
-
-        let url_element = element_by_selector(&document, "h2 a:first-child").unwrap();
-
-        let normalized_name = NORMALIZED_NAME_REGEX.replace_all(&url_element.inner_html(), "-");
-
-        // ModuleMenuRef?
-        let module_menu = ModuleMenu {
-            tucan_id: url.path.clone(),
-            tucan_last_checked: Utc::now().naive_utc(),
-            name: url_element.inner_html(),
-            normalized_name: normalized_name.into_owned(),
-            parent: None,
-            child_type,
-        };
-
-        trace!("[+] menu {:?}", module_menu);
-
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&module_menu)
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(
-                &module_menu
-            )
-            .get_result::<ModuleMenu>(connection)
-            .await?;
 
         Ok((module_menu, return_value))
     }

@@ -30,7 +30,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::{trace, error};
+use log::{error, trace};
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
