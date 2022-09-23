@@ -47,7 +47,10 @@ static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+")
 
 impl TucanUser {
     pub fn normalize(string: &str) -> String {
-        NORMALIZED_NAME_REGEX.replace_all(&string, "-").trim_matches('-').to_lowercase()
+        NORMALIZED_NAME_REGEX
+            .replace_all(&string, "-")
+            .trim_matches('-')
+            .to_lowercase()
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
@@ -157,9 +160,11 @@ impl TucanUser {
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
-        let url_element =  document.select(&s("h2 a")).filter(|e| {
-            e.inner_html() != "<!--$MG_DESCNAVI-->"
-        }).last().unwrap();
+        let url_element = document
+            .select(&s("h2 a"))
+            .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
+            .last()
+            .unwrap();
 
         let url = parse_tucan_url(&format!(
             "https://www.tucan.tu-darmstadt.de{}",
@@ -238,9 +243,11 @@ impl TucanUser {
         // list of modules
         let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
-        let url_element =  document.select(&s("h2 a")).filter(|e| {
-            e.inner_html() != "<!--$MG_DESCNAVI-->"
-        }).last().unwrap();
+        let url_element = document
+            .select(&s("h2 a"))
+            .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
+            .last()
+            .unwrap();
 
         let name = url_element.inner_html();
         let normalized_name = TucanUser::normalize(&name);
