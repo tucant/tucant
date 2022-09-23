@@ -138,35 +138,34 @@ async fn fetch_registration(
 
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
-                for menu in submenu {
-                    let fetch_registration_stream = fetch_registration(
+                submenu.iter().map(|menu| async {
+                    fetch_registration(
                         tucan.clone(),
                         Registration {
                             path: menu.tucan_id.clone(),
                         },
                     )
-                    .await;
-
-                    yield_stream(&mut stream, fetch_registration_stream).await?;
-                }
+                    .await
+                }).flatten_unordered();
             }
             RegistrationEnum::Modules(modules) => {
-                futures::stream::iter(modules.into_iter()).fold((tucan, stream), |(tucan, mut stream), module| async move {
-                    let module = tucan
-                        .module(Moduledetails {
-                            id: module.tucan_id,
-                        })
-                        .await
-                        .unwrap();
+                let mut futures: FuturesUnordered<_> = modules
+                    .iter()
+                    .map(|module| async {
+                        tucan
+                            .module(Moduledetails {
+                                id: module.tucan_id,
+                            })
+                            .await
+                            .unwrap()
+                    })
+                    .collect();
 
+                while let Some(module) = futures.next().await {
                     stream
                         .yield_item(Bytes::from(format!("module {}", module.title)))
                         .await;
-
-                    (tucan, stream)
-                })
-                .await;
-
+                }
             }
         }
 

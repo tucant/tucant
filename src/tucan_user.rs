@@ -64,7 +64,7 @@ impl TucanUser {
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
-        let permit = self.tucan.semaphore.acquire().await?;
+        let permit = self.tucan.semaphore.clone().acquire_owned().await?;
         let resp = self.tucan.client.execute(b).await?.text().await?;
         drop(permit);
 
