@@ -26,18 +26,17 @@ use diesel::prelude::*;
 
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
+use futures::stream::FuturesUnordered;
 use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::{error};
+use log::error;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{
-    Module, ModuleMenu,
-};
+use tucan_scraper::models::{Module, ModuleMenu};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
 use tucan_scraper::url::{Moduledetails, Registration};
@@ -133,6 +132,10 @@ async fn fetch_registration(
     try_stream(move |mut stream| async move {
         let value = tucan.registration(parent.clone()).await?;
 
+        stream
+            .yield_item(Bytes::from(format!("menu {}", value.0.name)))
+            .await;
+
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
                 for menu in submenu {
@@ -148,14 +151,22 @@ async fn fetch_registration(
                 }
             }
             RegistrationEnum::Modules(modules) => {
-                for module in modules {
-                    tucan
+                futures::stream::iter(modules.into_iter()).fold((tucan, stream), |(tucan, mut stream), module| async move {
+                    let module = tucan
                         .module(Moduledetails {
                             id: module.tucan_id,
                         })
                         .await
                         .unwrap();
-                }
+
+                    stream
+                        .yield_item(Bytes::from(format!("module {}", module.title)))
+                        .await;
+
+                    (tucan, stream)
+                })
+                .await;
+
             }
         }
 

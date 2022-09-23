@@ -1,10 +1,14 @@
-use std::io::{Error, ErrorKind};
+use std::{
+    io::{Error, ErrorKind},
+    sync::Arc,
+};
 
 use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
 use reqwest::{Client, Url};
+use tokio::sync::Semaphore;
 
 use crate::{
     create_pool,
@@ -15,7 +19,7 @@ use crate::{
 #[derive(Clone)]
 pub struct Tucan {
     pub(crate) client: Client,
-    //pub(crate) semaphore: Semaphore,
+    pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
 }
 
@@ -26,7 +30,7 @@ impl Tucan {
         Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
-            //semaphore: Semaphore::new(10),
+            semaphore: Arc::new(Semaphore::new(10)),
         })
     }
 

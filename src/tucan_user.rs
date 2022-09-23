@@ -23,7 +23,7 @@ use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
-use log::{trace};
+use log::trace;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -64,9 +64,9 @@ impl TucanUser {
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
-        //let permit = self.tucan.semaphore.acquire().await?;
+        let permit = self.tucan.semaphore.acquire().await?;
         let resp = self.tucan.client.execute(b).await?.text().await?;
-        //drop(permit);
+        drop(permit);
 
         let html_doc = Html::parse_document(&resp);
 
