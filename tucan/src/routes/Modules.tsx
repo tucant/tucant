@@ -61,10 +61,10 @@ export default function Modules() {
             ></RouterLink>
           ))}
           {data != null && "Modules" in data &&
-          data.Modules.map((e: [string, string]) => (
+          data.Modules.map((e: { title: string; module_id: string; }) => (
             <RouterLink
-              to={`${location.pathname}${e[1]}`}
-              text={e[0]}
+              to={`${location.pathname}${e.module_id}`}
+              text={e.title}
             ></RouterLink>
           ))}
       </List>

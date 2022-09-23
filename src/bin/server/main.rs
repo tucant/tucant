@@ -87,7 +87,7 @@ struct LoginResult {
 #[derive(Serialize)]
 pub enum ModulesOrModuleMenus {
     Menus(Vec<ModuleMenu>),
-    Modules(Vec<(ModuleMenuEntryModule, Module)>),
+    Modules(Vec<Module>),
 }
 
 #[post("/login")]
@@ -244,7 +244,7 @@ async fn get_modules<'a>(
             module_menu_unfinished::table
                 .filter(
                     module_menu_unfinished::parent
-                        .eq(the_parent)
+                        .is_not_distinct_from(the_parent)
                         .and(module_menu_unfinished::normalized_name.eq(path_segment)),
                 )
                 .load::<ModuleMenu>(&mut connection)
@@ -282,8 +282,9 @@ async fn get_modules<'a>(
 
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
+            .select(modules_unfinished::all_columns)
             .filter(module_menu_module::module_menu_id.nullable().eq(&parent))
-            .load::<(ModuleMenuEntryModule, Module)>(&mut connection)
+            .load::<Module>(&mut connection)
             .await?;
 
         if !menu_result.is_empty() {
