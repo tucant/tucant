@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuEntryModuleRef, ModuleMenuRef},
+    models::{Module, ModuleMenu, ModuleMenuEntryModuleRef},
     s,
     tucan::Tucan,
     url::{parse_tucan_url, Moduledetails, Registration, RootRegistration, TucanProgram, TucanUrl},
@@ -23,7 +23,7 @@ use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
-use log::{error, trace};
+use log::{trace};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -48,7 +48,7 @@ static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+")
 impl TucanUser {
     pub fn normalize(string: &str) -> String {
         NORMALIZED_NAME_REGEX
-            .replace_all(&string, "-")
+            .replace_all(string, "-")
             .trim_matches('-')
             .to_lowercase()
     }
@@ -186,7 +186,7 @@ impl TucanUser {
             tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            normalized_name: normalized_name,
+            normalized_name,
             parent: None,
             child_type: 0,
         })
@@ -263,7 +263,7 @@ impl TucanUser {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            normalized_name: normalized_name,
+            normalized_name,
             parent: None,
             child_type,
         };

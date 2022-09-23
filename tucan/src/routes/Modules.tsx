@@ -53,15 +53,17 @@ export default function Modules() {
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       <List>
-        {data != null && "Menus" in data &&
-          data.Menus.map((e: { normalized_name: string; name: string; }) => (
+        {data != null &&
+          "Menus" in data &&
+          data.Menus.map((e: { normalized_name: string; name: string }) => (
             <RouterLink
               to={`${location.pathname}${e.normalized_name}/`}
               text={e.name}
             ></RouterLink>
           ))}
-          {data != null && "Modules" in data &&
-          data.Modules.map((e: { title: string; module_id: string; }) => (
+        {data != null &&
+          "Modules" in data &&
+          data.Modules.map((e: { title: string; module_id: string }) => (
             <RouterLink
               to={`${location.pathname}${e.module_id}`}
               text={e.title}

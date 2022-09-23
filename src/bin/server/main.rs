@@ -19,24 +19,24 @@ use actix_web::Either;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
 use async_stream::try_stream;
-use chrono::Utc;
+
 use csrf_middleware::CsrfMiddleware;
-use diesel::dsl::not;
+
 use diesel::prelude::*;
-use diesel::upsert::excluded;
+
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
 use futures::{FutureExt, Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
-use log::{error, trace};
+use log::{error};
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
 use tucan_scraper::models::{
-    Module, ModuleMenu, ModuleMenuEntryModule, ModuleMenuEntryModuleRef, ModuleMenuRef,
+    Module, ModuleMenu,
 };
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};

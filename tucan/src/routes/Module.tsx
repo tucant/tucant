@@ -50,11 +50,17 @@ export default function Module() {
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
 
-{data && <>
-      <Typography variant="h3">{data.module_id} {data.title}</Typography>
-      <Chip label={`${data.credits} Credits`} />
-      <div dangerouslySetInnerHTML={{__html: sanitize(data.content)}}></div>
-      </>}
+      {data && (
+        <>
+          <Typography variant="h3">
+            {data.module_id} {data.title}
+          </Typography>
+          <Chip label={`${data.credits} Credits`} />
+          <div
+            dangerouslySetInnerHTML={{ __html: sanitize(data.content) }}
+          ></div>
+        </>
+      )}
     </>
   );
 }

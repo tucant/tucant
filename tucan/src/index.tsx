@@ -21,11 +21,8 @@ root.render(
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
           <Route path="modules/*" element={<ModuleOrModules />} />
+          <Route index element={<Welcome />} />
           <Route
-        index
-        element={<Welcome />}
-      />
-       <Route
             path="*"
             element={
               <main style={{ padding: "1rem" }}>
