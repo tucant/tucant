@@ -125,11 +125,11 @@ async fn yield_stream(
     }
 }
 
-async fn fetch_registration(
+fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
-    try_stream(move |mut stream| async move {
+    Box::pin(try_stream(move |mut stream| async move {
         let value = tucan.registration(parent.clone()).await?;
 
         stream
@@ -138,15 +138,14 @@ async fn fetch_registration(
 
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
-                futures::stream::iter(submenu.iter()).map(|menu| async {
-                    fetch_registration(
+                futures::stream::iter(submenu.iter()).map(|menu| {
+                   fetch_registration(
                         tucan.clone(),
                         Registration {
                             path: menu.tucan_id.clone(),
                         },
                     )
-                    .await
-                }).flatten_unordered();
+                }).flatten_unordered(None);
             }
             RegistrationEnum::Modules(modules) => {
                 let mut futures: FuturesUnordered<_> = modules
@@ -170,8 +169,7 @@ async fn fetch_registration(
         }
 
         Ok(())
-    })
-    .boxed_local()
+    }))
 }
 
 #[post("/setup")]
