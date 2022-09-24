@@ -30,7 +30,7 @@ impl Tucan {
         Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
-            semaphore: Arc::new(Semaphore::new(5)),
+            semaphore: Arc::new(Semaphore::new(15)),
         })
     }
 

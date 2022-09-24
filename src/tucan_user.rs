@@ -91,6 +91,8 @@ impl TucanUser {
             .await
             .optional()?;
 
+        drop(connection);
+
         if let Some(existing_module) = existing_module {
             trace!("[~] module {:?}", existing_module);
             return Ok(existing_module);
@@ -145,6 +147,8 @@ impl TucanUser {
         };
 
         trace!("[+] module {:?}", module);
+
+        let mut connection = &mut self.tucan.pool.get().await?;
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
@@ -235,6 +239,8 @@ impl TucanUser {
             _ => {}
         }
 
+        drop(connection);
+
         let document = self.fetch_document(&url.clone().into()).await?;
 
         // list of subcategories
@@ -270,11 +276,13 @@ impl TucanUser {
 
         trace!("[+] menu {:?}", module_menu);
 
+        let connection = &mut self.tucan.pool.get().await?;
+
         diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
-            .set(&module_menu)
+            .set(&module_menu) // we don't override parent because it's set as optional and therefore not overwritten
             .get_result::<ModuleMenu>(connection)
             .await?;
 
@@ -348,7 +356,9 @@ impl TucanUser {
                     .values(&submenus[..])
                     .on_conflict(module_menu_unfinished::tucan_id)
                     .do_update()
-                    .set(module_menu_unfinished::name.eq(excluded(module_menu_unfinished::name)))
+                    .set((
+                        module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)),
+                    ))
                     .get_result::<ModuleMenu>(connection)
                     .await?;
 
