@@ -22,8 +22,8 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://github.com/mohe2015/tucan-scraper">
-        tucan-scraper
+      <Link color="inherit" href="https://github.com/mohe2015/tucant">
+        tucant
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}

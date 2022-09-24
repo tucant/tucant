@@ -24,6 +24,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import { NavLinkProps, Outlet } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import { ReactNode } from "react";
+import { SearchOutlined } from "@mui/icons-material";
 
 const drawerWidth = 240;
 
@@ -198,6 +199,11 @@ export default function MiniDrawer() {
             to="/modules/"
             text="Module"
             icon={<ViewModuleIcon />}
+          ></RouterLink>
+          <RouterLink
+            to="/search-modules"
+            text="Modulsuche"
+            icon={<SearchOutlined />}
           ></RouterLink>
           <RouterLink
             to="/login"
