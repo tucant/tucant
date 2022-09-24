@@ -85,7 +85,6 @@ SELECT ts_lexize('english_stem', 'stars');
 
 SELECT * FROM ts_parse('default', (select content from modules_unfinished where tucan_id = 383852987293994));
 
-SELECT * FROM ts_token_type('default');
 
 SELECT ts_lexize('english_stem', (select content from modules_unfinished where tucan_id = 383852987293994));
 
@@ -105,14 +104,18 @@ CREATE TEXT SEARCH DICTIONARY german_hunspell (
     Stopwords = german);
 
 -- https://www.postgresql.org/docs/current/sql-createtsconfig.html
-CREATE TEXT SEARCH CONFIGURATION tucan_textsearch(
-  PARSER = default;
-);
+CREATE TEXT SEARCH CONFIGURATION tucan (PARSER = default);
+
+SELECT * FROM ts_token_type('default');
+
+psql postgres://postgres:password@localhost:5432/tucant
+\dF+ german
+\dF+ english
+
+ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
+ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPINGS FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 
 -- https://www.postgresql.org/docs/current/sql-altertsconfig.html
-
-ALTER TEXT SEARCH CONFIGURATION astro_en
-    ADD MAPPING FOR asciiword WITH german_hunspell, english_hunspell, german_stem, default;
 
 
 
