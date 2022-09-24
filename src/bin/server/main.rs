@@ -137,15 +137,23 @@ fn fetch_registration(
             .await;
 
         match value.1 {
-            RegistrationEnum::Submenu(ref submenu) => {
-                yield_stream(&mut stream, Box::pin(futures::stream::iter(submenu.iter()).map(|menu| {
-                   fetch_registration(
-                        tucan.clone(),
-                        Registration {
-                            path: menu.tucan_id.clone(),
-                        },
-                    )
-                }).flatten_unordered(None)));
+            RegistrationEnum::Submenu(submenu) => {
+                yield_stream(
+                    &mut stream,
+                    Box::pin(
+                        futures::stream::iter(submenu.into_iter())
+                            .map(move |menu| {
+                                fetch_registration(
+                                    tucan.clone(),
+                                    Registration {
+                                        path: menu.tucan_id.clone(),
+                                    },
+                                )
+                            })
+                            .flatten_unordered(None),
+                    ),
+                )
+                .await?;
             }
             RegistrationEnum::Modules(modules) => {
                 let mut futures: FuturesUnordered<_> = modules
