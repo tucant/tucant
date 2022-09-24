@@ -8,6 +8,8 @@ This means unexpected changes there can cause your application to panic. We deci
 ## Installation
 
 ```bash
+sudo apt-get install hunspell hunspell-tools hunspell-de-de-frami
+
 cargo install diesel_cli --no-default-features --features postgres
 
 sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
@@ -22,6 +24,8 @@ RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=trace,info cargo run
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 
 flatpak install flathub io.dbeaver.DBeaverCommunity
+
+psql postgres://postgres:password@localhost:5432/tucant
 ```
 
 ## Interesting queries
@@ -69,60 +73,6 @@ SELECT modules.module_id, modules.title, modules.credits FROM module_menu
  JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
  NATURAL JOIN modules
  WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL AND modules.credits = 4 ORDER BY modules.credits ASC;
-
--- https://www.postgresql.org/docs/current/textsearch-configuration.html
--- https://www.postgresql.org/docs/current/textsearch-psql.html
-
--- sudo apt-get install hunspell hunspell-tools hunspell-de-de-frami
--- postgresql is doing magic and autoinstalls these
-
-CREATE TEXT SEARCH DICTIONARY english_hunspell (
-    TEMPLATE = ispell,
-    DictFile = en_us,
-    AffFile = en_us,
-    StopWords = english
-);
-
-CREATE TEXT SEARCH DICTIONARY german_hunspell (
-    TEMPLATE = ispell,
-    DictFile = de_de_frami,
-    AffFile = de_de_frami,
-    StopWords = german
-);
-
--- https://www.postgresql.org/docs/current/sql-createtsconfig.html
-CREATE TEXT SEARCH CONFIGURATION tucan (PARSER = default);
-
-SELECT * FROM ts_token_type('default');
-
-psql postgres://postgres:password@localhost:5432/tucant
-\dF+ german
-\dF+ english
-
-ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
-ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
-
-CREATE INDEX modules_idx ON modules_unfinished USING GIN (to_tsvector('tucan', content));
-
--- https://www.postgresql.org/docs/current/sql-altertsconfig.html
-
-
--- https://www.postgresql.org/docs/devel/textsearch-debugging.html
-select title, (to_tsvector('tucan', content) @@ to_tsquery('tucan', 'chemie & analytik')) as text_found from MODULES_UNFINISHED order by text_found desc;
-
-SELECT alias, description, token FROM ts_debug('tucan', 'Was machst du heute?');
-
-SELECT ts_lexize('english_hunspell', 'stars');
-
-SELECT * FROM ts_parse('default', (select content from modules_unfinished where tucan_id = 383852987293994));
-
-
-SELECT ts_lexize('default', (select content from modules_unfinished where tucan_id = 383852987293994));
-
-
-
-select title, to_tsvector('tucan', content) from modules_unfinished;
-
 
 select title, ts_headline('tucan', content, query), ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM modules_unfinished, websearch_to_tsquery('tucan', 'programmierkonzept') AS query WHERE to_tsvector('tucan', content) @@ query ORDER BY rank DESC;
 

@@ -1,0 +1,7 @@
+
+DROP INDEX modules_idx;
+
+DROP TEXT SEARCH CONFIGURATION tucan;
+
+DROP TEXT SEARCH DICTIONARY english_hunspell;
+DROP TEXT SEARCH DICTIONARY german_hunspell;
