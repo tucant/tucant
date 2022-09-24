@@ -138,14 +138,14 @@ fn fetch_registration(
 
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
-                futures::stream::iter(submenu.iter()).map(|menu| {
+                yield_stream(&mut stream, Box::pin(futures::stream::iter(submenu.iter()).map(|menu| {
                    fetch_registration(
                         tucan.clone(),
                         Registration {
                             path: menu.tucan_id.clone(),
                         },
                     )
-                }).flatten_unordered(None);
+                }).flatten_unordered(None)));
             }
             RegistrationEnum::Modules(modules) => {
                 let mut futures: FuturesUnordered<_> = modules
@@ -190,8 +190,7 @@ async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Respond
                     Registration {
                         path: root.tucan_id,
                     },
-                )
-                .await;
+                );
 
                 yield_stream(&mut stream, input).await.unwrap();
 
