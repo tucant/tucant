@@ -1,4 +1,4 @@
-import { Button, TextField } from "@mui/material";
+import { Button, Chip, TextField } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -72,12 +72,12 @@ export default function SearchModules() {
       {error && <Alert severity="error">{error}</Alert>}
       <List>
         {data != null &&
-          data.map((e: [string, string, string]) => (
+          data.map((e: [number, string, string, number]) => (
             <RouterLink
-              to={`${location.pathname}${e[0]}`}
-              text={e[0]}
+              to={`module/${e[0]}`}
+              text={<span><Chip label={e[3].toFixed(3)} /> {e[1]}</span>}
               secondary_text={<span
-                dangerouslySetInnerHTML={{ __html: sanitize(e[1]) }}
+                dangerouslySetInnerHTML={{ __html: sanitize(e[2]) }}
               ></span>}
             ></RouterLink>
           ))}

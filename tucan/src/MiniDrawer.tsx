@@ -99,7 +99,7 @@ const Drawer = styled(MuiDrawer, {
 
 type RouterLinkProps = React.PropsWithChildren<{
   to: string;
-  text: string;
+  text: React.ReactNode;
   secondary_text?: React.ReactNode;
   icon?: ReactNode;
 }>;

@@ -254,12 +254,16 @@ async fn search_module(
                 websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
             ),
         )
-        .order_by(ts_rank_cd_normalized(
-            to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
-            websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
-            1,
-        ))
+        .order_by(
+            ts_rank_cd_normalized(
+                to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
+                websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
+                1,
+            )
+            .desc(),
+        )
         .select((
+            modules_unfinished::tucan_id,
             modules_unfinished::title,
             ts_headline_with_search_config(
                 sql("'tucan'"),
@@ -276,7 +280,7 @@ async fn search_module(
     println!("{}", debug);
 
     let result = sql_query
-        .load::<(String, String, f32)>(&mut connection)
+        .load::<(i64, String, String, f32)>(&mut connection)
         .await?;
 
     Ok(web::Json(result))
