@@ -138,7 +138,7 @@ async fn fetch_registration(
 
         match value.1 {
             RegistrationEnum::Submenu(ref submenu) => {
-                submenu.iter().map(|menu| async {
+                futures::stream::iter(submenu.iter()).map(|menu| async {
                     fetch_registration(
                         tucan.clone(),
                         Registration {
