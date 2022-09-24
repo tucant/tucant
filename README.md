@@ -102,6 +102,8 @@ psql postgres://postgres:password@localhost:5432/tucant
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 
+CREATE INDEX modules_idx ON modules_unfinished USING GIN (to_tsvector('tucan', content));
+
 -- https://www.postgresql.org/docs/current/sql-altertsconfig.html
 
 
@@ -112,14 +114,16 @@ SELECT alias, description, token FROM ts_debug('tucan', 'Was machst du heute?');
 
 SELECT ts_lexize('english_hunspell', 'stars');
 
-SELECT * FROM ts_parse('tucan', (select content from modules_unfinished where tucan_id = 383852987293994));
+SELECT * FROM ts_parse('default', (select content from modules_unfinished where tucan_id = 383852987293994));
 
 
-SELECT ts_lexize('tucan', (select content from modules_unfinished where tucan_id = 383852987293994));
+SELECT ts_lexize('default', (select content from modules_unfinished where tucan_id = 383852987293994));
 
 
 
 select title, to_tsvector('tucan', content) from modules_unfinished;
 
+
+select title, ts_headline('tucan', content, query), ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM modules_unfinished, websearch_to_tsquery('tucan', 'programmierkonzept') AS query WHERE to_tsvector('tucan', content) @@ query ORDER BY rank DESC;
 
 ```
