@@ -91,17 +91,8 @@ SELECT ts_lexize('english_stem', (select content from modules_unfinished where t
 -- https://www.postgresql.org/docs/current/textsearch-configuration.html
 -- https://www.postgresql.org/docs/current/textsearch-psql.html
 
-CREATE TEXT SEARCH DICTIONARY english_hunspell (
-    TEMPLATE = ispell,
-    DictFile = en_us,
-    AffFile = en_us,
-    Stopwords = english);
-
-CREATE TEXT SEARCH DICTIONARY german_hunspell (
-    TEMPLATE = ispell,
-    DictFile = de_de,
-    AffFile = de_de,
-    Stopwords = german);
+-- sudo apt-get install hunspell hunspell-tools hunspell-de-de-frami
+-- postgresql is doing magic and autoinstalls these
 
 -- https://www.postgresql.org/docs/current/sql-createtsconfig.html
 CREATE TEXT SEARCH CONFIGURATION tucan (PARSER = default);
@@ -112,7 +103,7 @@ psql postgres://postgres:password@localhost:5432/tucant
 \dF+ german
 \dF+ english
 
-ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
+ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH de_de_frami, en_us, german_stem; -- maybe german_stem but also with english stop words?
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPINGS FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 
 -- https://www.postgresql.org/docs/current/sql-altertsconfig.html
