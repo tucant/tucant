@@ -21,7 +21,9 @@ use async_stream::try_stream;
 use csrf_middleware::CsrfMiddleware;
 
 use diesel::dsl::sql;
+use diesel::pg::Pg;
 use diesel::prelude::*;
+use diesel::debug_query;
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::to_tsvector_with_search_config;
@@ -242,18 +244,19 @@ async fn search_module(
     tucan: web::Data<Tucan>,
     search_query: web::Query<SearchQuery>,
 ) -> Result<impl Responder, MyError> {
+    // http://localhost:8080/search-module?q=digitale%20schaltung
     let mut connection = tucan.pool.get().await?;
 
     // TODO FIXME with search config
     let query = websearch_to_tsquery(&search_query.q);
-    let result = modules_unfinished::table
+    let sql_query = modules_unfinished::table
         .filter(
-            to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content)
+            to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content)
                 .matches(query),
         )
         .order_by(ts_rank_cd(
             // TODO FIXME normalize
-            to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content),
+            to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
             query,
         ))
         .select((
@@ -261,10 +264,15 @@ async fn search_module(
             // TODO FIXME with search config
             ts_headline(modules_unfinished::content, query),
             ts_rank_cd(
-                to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content),
+                to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
                 query,
             ),
-        ))
+        ));
+
+    let debug = debug_query::<Pg, _>(&sql_query);
+    println!("{:?}", debug);
+
+    let result = sql_query
         .load::<(String, String, f32)>(&mut connection)
         .await?;
 
@@ -405,6 +413,7 @@ async fn main() -> anyhow::Result<()> {
             .service(logout)
             .service(get_modules)
             .service(setup)
+            .service(search_module)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
