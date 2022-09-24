@@ -82,12 +82,12 @@ impl TucanUser {
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = &mut self.tucan.pool.get().await?;
+        let mut connection = self.tucan.pool.get().await?;
 
         let existing_module = modules_unfinished::table
             .filter(modules_unfinished::tucan_id.eq(url.id))
             .filter(modules_unfinished::done)
-            .get_result::<Module>(connection)
+            .get_result::<Module>(&mut connection)
             .await
             .optional()?;
 
@@ -148,7 +148,7 @@ impl TucanUser {
 
         trace!("[+] module {:?}", module);
 
-        let mut connection = &mut self.tucan.pool.get().await?;
+        let mut connection = self.tucan.pool.get().await?;
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
@@ -202,12 +202,12 @@ impl TucanUser {
     ) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
         use diesel_async::RunQueryDsl;
 
-        let connection = &mut self.tucan.pool.get().await?;
+        let mut connection = self.tucan.pool.get().await?;
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.eq(&url.path))
             .filter(not(module_menu_unfinished::child_type.eq(0)))
-            .get_result::<ModuleMenu>(connection)
+            .get_result::<ModuleMenu>(&mut connection)
             .await
             .optional()?;
 
@@ -218,7 +218,7 @@ impl TucanUser {
                 // existing submenus
                 let submenus = module_menu_unfinished::table
                     .filter(module_menu_unfinished::parent.eq(&url.path))
-                    .load::<ModuleMenu>(connection)
+                    .load::<ModuleMenu>(&mut connection)
                     .await?;
 
                 return Ok((module_menu, RegistrationEnum::Submenu(submenus)));
@@ -231,7 +231,7 @@ impl TucanUser {
                     .inner_join(modules_unfinished::table)
                     .select(modules_unfinished::all_columns)
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
-                    .load::<Module>(connection)
+                    .load::<Module>(&mut connection)
                     .await?;
 
                 return Ok((module_menu, RegistrationEnum::Modules(submodules)));
@@ -276,14 +276,14 @@ impl TucanUser {
 
         trace!("[+] menu {:?}", module_menu);
 
-        let connection = &mut self.tucan.pool.get().await?;
+        let mut connection = self.tucan.pool.get().await?;
 
         diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
             .set(&module_menu) // we don't override parent because it's set as optional and therefore not overwritten
-            .get_result::<ModuleMenu>(connection)
+            .get_result::<ModuleMenu>(&mut connection)
             .await?;
 
         let return_value = match (submenu_list, modules_list) {
@@ -312,7 +312,7 @@ impl TucanUser {
                 diesel::insert_into(modules_unfinished::table)
                     .values(&modules[..])
                     .on_conflict_do_nothing()
-                    .execute(connection)
+                    .execute(&mut connection)
                     .await?;
 
                 diesel::insert_into(module_menu_module::table)
@@ -326,7 +326,7 @@ impl TucanUser {
                             .collect::<Vec<_>>(),
                     )
                     .on_conflict_do_nothing()
-                    .execute(connection)
+                    .execute(&mut connection)
                     .await?;
 
                 RegistrationEnum::Modules(modules)
@@ -359,7 +359,7 @@ impl TucanUser {
                     .set((
                         module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)),
                     ))
-                    .get_result::<ModuleMenu>(connection)
+                    .get_result::<ModuleMenu>(&mut connection)
                     .await?;
 
                 RegistrationEnum::Submenu(submenus)

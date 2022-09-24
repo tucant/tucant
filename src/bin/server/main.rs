@@ -27,7 +27,7 @@ use diesel::prelude::*;
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
 use futures::stream::FuturesUnordered;
-use futures::{FutureExt, Stream, StreamExt};
+use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
@@ -146,7 +146,7 @@ fn fetch_registration(
                                 fetch_registration(
                                     tucan.clone(),
                                     Registration {
-                                        path: menu.tucan_id.clone(),
+                                        path: menu.tucan_id,
                                     },
                                 )
                             })
