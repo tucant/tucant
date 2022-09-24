@@ -239,11 +239,11 @@ async fn search_module(tucan: web::Data<Tucan>) -> Result<impl Responder, MyErro
 
     // select  ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM ORDER BY rank DESC;
     let query = websearch_to_tsquery("programmierkonzept");
-    let content_tsquery = to_tsquery_with_search_config(sql("tucan"), modules_unfinished::content);
-    let rank = ts_rank_cd(content_tsquery, query); 
+    let content_tsvector = to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content);
+    let rank = ts_rank_cd(content_tsvector, query); 
     modules_unfinished::table.filter(to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content).matches(query))
     .order_by(rank)
-    .select((modules_unfinished::title, ts_headline(sql("tucan"), content_tsquery, query), rank))
+    .select((modules_unfinished::title, ts_headline(modules_unfinished::content, query), rank))
     ;
 
 
