@@ -35,6 +35,8 @@ export default function SearchModules() {
   useEffect(() => {
     const getData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const response = await fetch(
           // TODO FIXME url injection
           `http://localhost:8080/search-module?q=${form.q}`,
@@ -65,7 +67,7 @@ export default function SearchModules() {
   return (
     <>
       <Typography variant="h2">Modulsuche</Typography>
-      <TextField name="q" onChange={handleInputChange} id="standard-basic" label="Suche" variant="standard" margin="normal" />
+      <TextField name="q" onChange={handleInputChange} value={form.q} id="standard-basic" label="Suche" variant="standard" margin="normal" />
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       <List>
