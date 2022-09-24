@@ -833,6 +833,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "diesel_full_text_search"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2ec394eff8a81dd1bbb1fc731581d07c46c3cba1c2c51246f5dabe03760e673"
+dependencies = [
+ "diesel",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3060,6 +3069,7 @@ dependencies = [
  "derive_more",
  "diesel",
  "diesel-async",
+ "diesel_full_text_search",
  "dotenvy",
  "either",
  "enum_dispatch",

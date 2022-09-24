@@ -1,4 +1,3 @@
-#![feature(async_closure)]
 pub mod models;
 pub mod schema;
 pub mod tucan;

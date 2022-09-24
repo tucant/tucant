@@ -13,7 +13,7 @@ tokio = { version = "1", features = ["full"] }
 html5ever = "0.26"
 scraper = "0.13"
 futures = "0.3"
-diesel = { version = "2", features = ["postgres", "chrono", "nightly-error-messages"] }
+diesel = { version = "2", features = ["postgres", "chrono"] }
 diesel-async = { git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"] }
 dotenvy = "0.15"
 anyhow = { version = "1", features = ["backtrace"] }
@@ -35,3 +35,4 @@ derive_more = "0.99"
 itertools = "0.10"
 either = "1"
 once_cell = "1"
+diesel_full_text_search = "2"

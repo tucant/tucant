@@ -1,5 +1,3 @@
-#![feature(try_trait_v2)]
-
 mod csrf_middleware;
 
 use std::io::Error;
@@ -22,10 +20,15 @@ use async_stream::try_stream;
 
 use csrf_middleware::CsrfMiddleware;
 
+use diesel::dsl::sql;
 use diesel::prelude::*;
-
+use diesel_full_text_search::{TsVectorExtensions, to_tsquery_with_search_config};
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
+use diesel_full_text_search::to_tsvector_with_search_config;
+use diesel_full_text_search::ts_headline;
+use diesel_full_text_search::ts_rank_cd;
+use diesel_full_text_search::websearch_to_tsquery;
 use futures::stream::FuturesUnordered;
 use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -227,6 +230,25 @@ async fn index(session: Session) -> Result<impl Responder, MyError> {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
         None => Ok(web::Json("Welcome Anonymous!".to_owned())),
     }
+}
+
+#[get("/search-module")]
+async fn search_module(tucan: web::Data<Tucan>) -> Result<impl Responder, MyError> {
+    let mut connection = tucan.pool.get().await?;
+
+
+    // select  ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM ORDER BY rank DESC;
+    let query = websearch_to_tsquery("programmierkonzept");
+    let content_tsquery = to_tsquery_with_search_config(sql("tucan"), modules_unfinished::content);
+    let rank = ts_rank_cd(content_tsquery, query); 
+    modules_unfinished::table.filter(to_tsvector_with_search_config(sql("tucan"), modules_unfinished::content).matches(query))
+    .order_by(rank)
+    .select((modules_unfinished::title, ts_headline(sql("tucan"), content_tsquery, query), rank))
+    ;
+
+
+
+    Ok(web::Json(()))
 }
 
 // trailing slash is menu
