@@ -3,6 +3,7 @@ import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
+import { sanitize } from "dompurify";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
@@ -73,6 +74,9 @@ export default function SearchModules() {
             <RouterLink
               to={`${location.pathname}${e[0]}`}
               text={e[0]}
+              secondary_text={<span
+                dangerouslySetInnerHTML={{ __html: sanitize(e[1]) }}
+              ></span>}
             ></RouterLink>
           ))}
       </List>

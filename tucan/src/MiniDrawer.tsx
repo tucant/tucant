@@ -100,6 +100,7 @@ const Drawer = styled(MuiDrawer, {
 type RouterLinkProps = React.PropsWithChildren<{
   to: string;
   text: string;
+  secondary_text?: React.ReactNode;
   icon?: ReactNode;
 }>;
 export const RouterLink = (props: RouterLinkProps) => {
@@ -138,7 +139,7 @@ export const RouterLink = (props: RouterLinkProps) => {
           {props.icon}
         </ListItemIcon>
       )}
-      <ListItemText primary={props.text} />
+      <ListItemText primary={props.text} secondary={props.secondary_text} />
     </ListItemButton>
   );
 };
