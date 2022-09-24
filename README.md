@@ -10,7 +10,8 @@ This means unexpected changes there can cause your application to panic. We deci
 ```bash
 cargo install diesel_cli --no-default-features --features postgres
 
-sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres:15beta4-alpine
+sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
+sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 
 echo DATABASE_URL=postgres://postgres:password@localhost/tucant > .env
 
@@ -69,30 +70,25 @@ SELECT modules.module_id, modules.title, modules.credits FROM module_menu
  NATURAL JOIN modules
  WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL AND modules.credits = 4 ORDER BY modules.credits ASC;
 
--- https://www.postgresql.org/docs/devel/textsearch-debugging.html
-select title, (to_tsvector(content) @@ to_tsquery('chemie & analytik')) as text_found from MODULES_UNFINISHED order by text_found desc;
-
-
-SELECT alias, description, token FROM ts_debug('foo-bar-beta1');
-
-
-
-SELECT ts_lexize('english_stem', 'stars');
-
-
-
-
-
-SELECT * FROM ts_parse('default', (select content from modules_unfinished where tucan_id = 383852987293994));
-
-
-SELECT ts_lexize('english_stem', (select content from modules_unfinished where tucan_id = 383852987293994));
-
 -- https://www.postgresql.org/docs/current/textsearch-configuration.html
 -- https://www.postgresql.org/docs/current/textsearch-psql.html
 
 -- sudo apt-get install hunspell hunspell-tools hunspell-de-de-frami
 -- postgresql is doing magic and autoinstalls these
+
+CREATE TEXT SEARCH DICTIONARY english_hunspell (
+    TEMPLATE = ispell,
+    DictFile = en_us,
+    AffFile = en_us,
+    StopWords = english
+);
+
+CREATE TEXT SEARCH DICTIONARY german_hunspell (
+    TEMPLATE = ispell,
+    DictFile = de_de_frami,
+    AffFile = de_de_frami,
+    StopWords = german
+);
 
 -- https://www.postgresql.org/docs/current/sql-createtsconfig.html
 CREATE TEXT SEARCH CONFIGURATION tucan (PARSER = default);
@@ -103,13 +99,27 @@ psql postgres://postgres:password@localhost:5432/tucant
 \dF+ german
 \dF+ english
 
-ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH de_de_frami, en_us, german_stem; -- maybe german_stem but also with english stop words?
-ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPINGS FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
+ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
+ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 
 -- https://www.postgresql.org/docs/current/sql-altertsconfig.html
 
 
+-- https://www.postgresql.org/docs/devel/textsearch-debugging.html
+select title, (to_tsvector('tucan', content) @@ to_tsquery('tucan', 'chemie & analytik')) as text_found from MODULES_UNFINISHED order by text_found desc;
 
+SELECT alias, description, token FROM ts_debug('tucan', 'Was machst du heute?');
+
+SELECT ts_lexize('english_hunspell', 'stars');
+
+SELECT * FROM ts_parse('tucan', (select content from modules_unfinished where tucan_id = 383852987293994));
+
+
+SELECT ts_lexize('tucan', (select content from modules_unfinished where tucan_id = 383852987293994));
+
+
+
+select title, to_tsvector('tucan', content) from modules_unfinished;
 
 
 ```

@@ -1,0 +1,4 @@
+# sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
+FROM postgres:15beta4
+
+RUN apt-get update && apt-get install -y hunspell-en-us hunspell-de-de-frami
