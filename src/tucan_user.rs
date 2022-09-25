@@ -12,7 +12,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{Module, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry},
+    models::{
+        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry,
+    },
     s,
     tucan::Tucan,
     url::{
@@ -141,16 +143,24 @@ impl TucanUser {
             .inner_html();
 
         let courses = document
-            .select(&s(r#"tr.tbdata td.tbdata + td a[name="eventLink"]"#))
-            .map(|c| {
-                TryInto::<Coursedetails>::try_into(
+            .select(&s(r#"a[name="eventLink"]"#))
+            .map(|c| Course {
+                tucan_id: TryInto::<Coursedetails>::try_into(
                     parse_tucan_url(&format!(
                         "https://www.tucan.tu-darmstadt.de{}",
                         c.value().attr("href").unwrap()
                     ))
                     .program,
                 )
-            });
+                .unwrap()
+                .id,
+                tucan_last_checked: Utc::now().naive_utc(),
+                title: "TODO".to_string(),
+                course_id: "TODO".to_string(),
+                content: "TODO".to_string(),
+                done: false,
+            })
+            .collect::<Vec<_>>();
 
         let module = Module {
             tucan_id: url.id,
@@ -171,6 +181,28 @@ impl TucanUser {
             .on_conflict(modules_unfinished::tucan_id)
             .do_update()
             .set(&module)
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(&courses)
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_courses::table)
+            .values(
+                courses
+                    .into_iter()
+                    .map(|c| ModuleCourse {
+                        course: c.tucan_id,
+                        module: module.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(module_courses::all_columns)
+            .do_nothing()
             .execute(&mut connection)
             .await?;
 
