@@ -1,6 +1,24 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    courses_unfinished (tucan_id) {
+        tucan_id -> Bytea,
+        tucan_last_checked -> Timestamptz,
+        title -> Text,
+        course_id -> Text,
+        content -> Text,
+        done -> Bool,
+    }
+}
+
+diesel::table! {
+    module_courses (module, course) {
+        module -> Bytea,
+        course -> Bytea,
+    }
+}
+
+diesel::table! {
     module_menu_module (module_id, module_menu_id) {
         module_menu_id -> Bytea,
         module_id -> Bytea,
@@ -50,12 +68,16 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(module_courses -> courses_unfinished (course));
+diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(users_studies -> module_menu_unfinished (study));
 diesel::joinable!(users_studies -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    courses_unfinished,
+    module_courses,
     module_menu_module,
     module_menu_tree,
     module_menu_unfinished,
