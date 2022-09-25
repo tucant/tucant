@@ -364,7 +364,6 @@ async fn get_modules<'a>(
 
         Ok(Either::Left(web::Json(module_result)))
     } else {
-        error!("test {:?}", parent);
         let menu_result = module_menu_unfinished::table
             .left_outer_join(
                 module_menu_tree::table
@@ -378,8 +377,6 @@ async fn get_modules<'a>(
             )
             .load::<ModuleMenu>(&mut connection)
             .await?;
-
-        error!("test {:?}", menu_result);
 
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)

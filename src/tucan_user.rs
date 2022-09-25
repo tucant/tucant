@@ -72,9 +72,7 @@ impl TucanUser {
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
         let permit = self.tucan.semaphore.clone().acquire_owned().await?;
-        debug!("actually fetching");
         let resp = self.tucan.client.execute(b).await?.text().await?;
-        debug!("actually done");
         drop(permit);
 
         let html_doc = Html::parse_document(&resp);
@@ -225,16 +223,12 @@ impl TucanUser {
 
         let mut connection = self.tucan.pool.get().await?;
 
-        debug!("loading course");
-
         let existing = courses_unfinished::table
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
             .get_result::<Course>(&mut connection)
             .await
             .optional()?;
-
-        debug!("loaded course");
 
         drop(connection);
 
@@ -243,20 +237,11 @@ impl TucanUser {
             return Ok(existing);
         }
 
-        debug!(
-            "nonexisting {:?}",
-            Into::<TucanProgram>::into(url.clone()).to_tucan_url(Some(self.session.nr))
-        );
-
         let document = self.fetch_document(&url.clone().into()).await?;
-
-        error!("fetched course");
 
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
-        debug!("test {}", text);
-
         let mut fs = text.split("\n");
         let course_id = fs.next().unwrap().trim();
 
@@ -265,14 +250,14 @@ impl TucanUser {
         let sws = document
             .select(&s(r#"#contentlayoutleft b"#))
             .find(|e| e.inner_html() == "Semesterwochenstunden: ")
-            .unwrap()
+            .map(|v| v
             .next_sibling()
             .unwrap()
             .value()
             .as_text()
-            .unwrap();
+            .unwrap());
 
-        let sws = sws.trim().parse::<i16>().ok().unwrap_or(0);
+        let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
 
         let content = document
             .select(&s("#contentlayoutleft td.tbdata"))
