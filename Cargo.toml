@@ -14,7 +14,7 @@ html5ever = "0.26"
 scraper = "0.13"
 futures = "0.3"
 diesel = { version = "2", features = ["postgres", "chrono"] }
-diesel-async = { git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"] }
+diesel-async = { git = "https://github.com/Razican/diesel_async.git", branch = "dieselv2", features = ["postgres", "deadpool"] }
 dotenvy = "0.15"
 anyhow = { version = "1", features = ["backtrace"] }
 regex = "1"
@@ -36,3 +36,6 @@ itertools = "0.10"
 either = "1"
 once_cell = "1"
 diesel_full_text_search = { path = "../diesel_full_text_search" }
+
+[patch.crates-io]
+diesel = { path = "../diesel/diesel" }

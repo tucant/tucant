@@ -25,9 +25,11 @@ use diesel::dsl::sql;
 use diesel::expression::SqlLiteral;
 use diesel::pg::Pg;
 use diesel::prelude::*;
+use diesel::sql_types::Text;
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::configuration::TsConfigurationByName;
+use diesel_full_text_search::setweight;
 use diesel_full_text_search::to_tsvector_with_search_config;
 use diesel_full_text_search::ts_headline_with_search_config;
 use diesel_full_text_search::ts_rank_cd;
@@ -310,32 +312,33 @@ async fn search_course(
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
-    let tsvector = to_tsvector_with_search_config(config, courses_unfinished::content);
+    let tsvector = setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::course_id),
+        'A',
+    )
+    .concat(setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::title),
+        'A',
+    ))
+    .concat(setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::content),
+        'D',
+    ));
+    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
     let sql_query = courses_unfinished::table
-        .filter(tsvector.matches(websearch_to_tsquery_with_search_config(
-            config,
-            &search_query.q,
-        )))
-        .order_by(
-            ts_rank_cd_normalized(
-                to_tsvector_with_search_config(config, courses_unfinished::content),
-                websearch_to_tsquery_with_search_config(config, &search_query.q),
-                1,
-            )
-            .desc(),
-        )
+        .filter(tsvector.matches(tsquery))
+        .order_by(ts_rank_cd_normalized(tsvector, tsquery, 1).desc())
         .select((
             courses_unfinished::tucan_id,
             courses_unfinished::title,
             ts_headline_with_search_config(
                 config,
-                courses_unfinished::content,
-                websearch_to_tsquery_with_search_config(config, &search_query.q),
+                courses_unfinished::course_id
+                    .concat(courses_unfinished::title)
+                    .concat(courses_unfinished::content),
+                tsquery,
             ),
-            ts_rank_cd(
-                to_tsvector_with_search_config(config, courses_unfinished::content),
-                websearch_to_tsquery_with_search_config(config, &search_query.q),
-            ),
+            ts_rank_cd(tsvector, tsquery),
         ));
 
     let debug = debug_query::<Pg, _>(&sql_query);
