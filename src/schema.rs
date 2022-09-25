@@ -6,6 +6,7 @@ diesel::table! {
         tucan_last_checked -> Timestamptz,
         title -> Text,
         course_id -> Text,
+        sws -> Int2,
         content -> Text,
         done -> Bool,
     }

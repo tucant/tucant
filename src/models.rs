@@ -117,6 +117,7 @@ pub struct Course {
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
     pub course_id: String,
+    pub sws: i16,
     pub content: String,
     pub done: bool,
 }

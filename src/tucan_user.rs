@@ -167,6 +167,7 @@ impl TucanUser {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: "TODO".to_string(),
                 course_id: "TODO".to_string(),
+                sws: 0,
                 content: "TODO".to_string(),
                 done: false,
             })
@@ -271,7 +272,7 @@ impl TucanUser {
             .as_text()
             .unwrap();
 
-        let sws = sws.trim().parse::<i32>().ok().unwrap_or(0);
+        let sws = sws.trim().parse::<i16>().ok().unwrap_or(0);
 
         let content = document
             .select(&s("#contentlayoutleft td.tbdata"))
@@ -283,7 +284,7 @@ impl TucanUser {
             tucan_id: url.id,
             tucan_last_checked: Utc::now().naive_utc(),
             title: course_name.unwrap().to_string(),
-            //sws: Some(sws),
+            sws,
             course_id: TucanUser::normalize(course_id),
             content,
             done: true,
