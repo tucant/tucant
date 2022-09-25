@@ -12,19 +12,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{Module, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuRef, ModuleMenuTreeEntry},
+    models::{
+        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry,
+    },
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, RootRegistration, TucanProgram, TucanUrl},
+    url::{
+        parse_tucan_url, Coursedetails, Moduledetails, Registration, RootRegistration,
+        TucanProgram, TucanUrl,
+    },
 };
 
 use crate::schema::*;
+use diesel::dsl::not;
+use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use diesel::{dsl::not, upsert::excluded};
-use log::trace;
+use log::{debug, error, trace};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -66,7 +72,9 @@ impl TucanUser {
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
         let permit = self.tucan.semaphore.clone().acquire_owned().await?;
+        debug!("actually fetching");
         let resp = self.tucan.client.execute(b).await?.text().await?;
+        debug!("actually done");
         drop(permit);
 
         let html_doc = Html::parse_document(&resp);
@@ -80,7 +88,7 @@ impl TucanUser {
         Ok(html_doc)
     }
 
-    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<Module> {
+    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -92,12 +100,19 @@ impl TucanUser {
             .await
             .optional()?;
 
-        drop(connection);
-
         if let Some(existing_module) = existing_module {
             trace!("[~] module {:?}", existing_module);
-            return Ok(existing_module);
+
+            let course_list = ModuleCourse::belonging_to(&existing_module)
+                .inner_join(courses_unfinished::table)
+                .select(courses_unfinished::all_columns)
+                .load::<Course>(&mut connection)
+                .await?;
+
+            return Ok((existing_module, course_list));
         }
+
+        drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
 
@@ -134,8 +149,29 @@ impl TucanUser {
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
-            .unwrap()
+            .expect(&document.root_element().inner_html())
             .inner_html();
+
+        let courses = document
+            .select(&s(r#"a[name="eventLink"]"#))
+            .map(|c| Course {
+                tucan_id: TryInto::<Coursedetails>::try_into(
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        c.value().attr("href").unwrap()
+                    ))
+                    .program,
+                )
+                .unwrap()
+                .id,
+                tucan_last_checked: Utc::now().naive_utc(),
+                title: "TODO".to_string(),
+                course_id: "TODO".to_string(),
+                sws: 0,
+                content: "TODO".to_string(),
+                done: false,
+            })
+            .collect::<Vec<_>>();
 
         let module = Module {
             tucan_id: url.id,
@@ -159,7 +195,114 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(module)
+        diesel::insert_into(courses_unfinished::table)
+            .values(&courses)
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_courses::table)
+            .values(
+                courses
+                    .iter()
+                    .map(|c| ModuleCourse {
+                        course: c.tucan_id.clone(),
+                        module: module.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(module_courses::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        Ok((module, courses))
+    }
+
+    pub async fn course(&self, url: Coursedetails) -> anyhow::Result<Course> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        debug!("loading course");
+
+        let existing = courses_unfinished::table
+            .filter(courses_unfinished::tucan_id.eq(&url.id))
+            .filter(courses_unfinished::done)
+            .get_result::<Course>(&mut connection)
+            .await
+            .optional()?;
+
+        debug!("loaded course");
+
+        drop(connection);
+
+        if let Some(existing) = existing {
+            debug!("[~] course {:?}", existing);
+            return Ok(existing);
+        }
+
+        debug!(
+            "nonexisting {:?}",
+            Into::<TucanProgram>::into(url.clone()).to_tucan_url(Some(self.session.nr))
+        );
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+
+        error!("fetched course");
+
+        let name = element_by_selector(&document, "h1").unwrap();
+
+        let text = name.inner_html();
+        debug!("test {}", text);
+
+        let mut fs = text.split("\n");
+        let course_id = fs.next().unwrap().trim();
+
+        let course_name = fs.next().map(str::trim);
+
+        let sws = document
+            .select(&s(r#"#contentlayoutleft b"#))
+            .find(|e| e.inner_html() == "Semesterwochenstunden: ")
+            .unwrap()
+            .next_sibling()
+            .unwrap()
+            .value()
+            .as_text()
+            .unwrap();
+
+        let sws = sws.trim().parse::<i16>().ok().unwrap_or(0);
+
+        let content = document
+            .select(&s("#contentlayoutleft td.tbdata"))
+            .next()
+            .expect(&document.root_element().inner_html())
+            .inner_html();
+
+        let course = Course {
+            tucan_id: url.id,
+            tucan_last_checked: Utc::now().naive_utc(),
+            title: course_name.unwrap().to_string(),
+            sws,
+            course_id: TucanUser::normalize(course_id),
+            content,
+            done: true,
+        };
+
+        debug!("[+] course {:?}", course);
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(&course)
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_update()
+            .set(&course)
+            .execute(&mut connection)
+            .await?;
+
+        Ok(course)
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {

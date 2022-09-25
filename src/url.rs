@@ -30,6 +30,11 @@ pub struct Moduledetails {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+pub struct Coursedetails {
+    pub id: Vec<u8>,
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
     pub path: Vec<u8>,
 }
@@ -74,6 +79,7 @@ pub enum TucanProgram {
     Examresults(Examresults),
     StudentResult(StudentResult),
     Moduledetails(Moduledetails),
+    Coursedetails(Coursedetails),
     StartpageDispatch(StartpageDispatch),
     Externalpages(Externalpages),
 }
@@ -112,6 +118,16 @@ impl TucanProgram {
                             )),
                         ]
                         .into_iter(),
+                    ),
+                ),
+                TucanProgram::Coursedetails(Coursedetails { id }) => (
+                    "COURSEDETAILS",
+                    Box::new(
+                        [TucanArgument::Number(311), TucanArgument::Number(0)]
+                            .into_iter()
+                            .chain(id.chunks(std::mem::size_of::<u64>()).map(|n| {
+                                TucanArgument::Number(u64::from_be_bytes(n.try_into().unwrap()))
+                            })),
                     ),
                 ),
                 TucanProgram::StartpageDispatch(_) => todo!(),
@@ -282,6 +298,19 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             string(&mut arguments);
             program
         }
+        "COURSEDETAILS" => {
+            assert_eq!(number(&mut arguments), 311);
+            assert_eq!(number(&mut arguments), 0);
+            TucanProgram::Coursedetails(Coursedetails {
+                id: vec![
+                    number(&mut arguments).to_be_bytes(),
+                    number(&mut arguments).to_be_bytes(),
+                    number(&mut arguments).to_be_bytes(),
+                    number(&mut arguments).to_be_bytes(),
+                ]
+                .concat(),
+            })
+        }
         other => {
             panic!("invalid appname: {}", other);
         }
@@ -357,6 +386,9 @@ mod tests {
         // Moduldetails
 
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N988222970824392,-N000311,-N376373060881867,-A3f5EHWl9PqwMeD2AvWmMWDl-QUpCmjaN7ZKJmNFt7-UpvMAx4omKmd6gmUR9mfft3oRQP-PaxNZtPqGdRUpsOZmeQNHv7URzmQVdOBBF3SftxMo8PU5S7dwZfbZYmdPfQd5ycYntWopZmoUBYDotPMPNmkZdPILZ7gmT4SPXHjV-cBUxxNPWR-m9QkZLvUovfgPXvqR5YBG-eZo8WqmAHjHfeMpqRkZ97DKZQIo5PfP9HSRBeqAHvDZjrUUeHWV6xZR7YIL3OuULPQHHVNK8f-5wvZ5kYUUvYWlNQoljQIU5eUBjHDPmmZLb4YGhPIUTmuWXYfnAvfWAYWW54D6hQ-58HWPpmQBNWqeFYM5HvDUgcupLmMfAxM5D4MoAcuopQuPjfYHvfqLqeqwZeMWXVDZjPMHVcocZcNmt7ZDjQZedWfmyfDWUWSAeHDajVdmUOjBtmNWpvqP9OqG3VNHlPQPKvocZWqZYVWoxfSLlcDPQQWKZegeNQY5afu5COzH-fDoKWU79CQoErUPHYDHVQtin");
+
+        // Kursdetails
+        let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N967307082288504,-N000311,-N0,-N379144023730730,-N379144023752731,-N0,-N0");
 
         // urls we still need to reverse
 

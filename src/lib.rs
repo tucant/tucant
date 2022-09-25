@@ -28,5 +28,5 @@ fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection>
 
 fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
     let config = get_config();
-    Pool::builder(config).max_size(100).build().unwrap()
+    Pool::builder(config).build().unwrap()
 }
