@@ -15,15 +15,18 @@ use crate::{
     models::{Module, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry},
     s,
     tucan::Tucan,
-    url::{parse_tucan_url, Moduledetails, Registration, RootRegistration, TucanProgram, TucanUrl},
+    url::{
+        parse_tucan_url, Coursedetails, Moduledetails, Registration, RootRegistration,
+        TucanProgram, TucanUrl,
+    },
 };
 
 use crate::schema::*;
+use diesel::dsl::not;
 use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use diesel::dsl::not;
 use log::trace;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -136,6 +139,18 @@ impl TucanUser {
             .next()
             .unwrap()
             .inner_html();
+
+        let courses = document
+            .select(&s(r#"tr.tbdata td.tbdata + td a[name="eventLink"]"#))
+            .map(|c| {
+                TryInto::<Coursedetails>::try_into(
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        c.value().attr("href").unwrap()
+                    ))
+                    .program,
+                )
+            });
 
         let module = Module {
             tucan_id: url.id,
