@@ -45,7 +45,7 @@ use tokio::{
 use tucan_scraper::models::{Module, ModuleMenu};
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
-use tucan_scraper::url::{Moduledetails, Registration};
+use tucan_scraper::url::{Coursedetails, Moduledetails, Registration};
 
 #[derive(Debug)]
 struct MyError {
@@ -165,12 +165,25 @@ fn fetch_registration(
                 let mut futures: FuturesUnordered<_> = modules
                     .iter()
                     .map(|module| async {
-                        tucan
+                        // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
+                        let module = tucan
                             .module(Moduledetails {
                                 id: module.tucan_id.clone(),
                             })
                             .await
-                            .unwrap()
+                            .unwrap();
+
+                        // TODO FIXME make this in parallel for absolute overkill?
+                        for course in module.1 {
+                            let course = tucan
+                                .course(Coursedetails {
+                                    id: course.tucan_id.clone(),
+                                })
+                                .await;
+                            print!("courseee {:?}", course);
+                        }
+
+                        module.0
                     })
                     .collect();
 

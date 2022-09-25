@@ -122,11 +122,13 @@ impl TucanProgram {
                 ),
                 TucanProgram::Coursedetails(Coursedetails { id }) => (
                     "COURSEDETAILS",
-                    Box::new(iter::once(TucanArgument::Number(311)).chain(
-                        id.chunks(std::mem::size_of::<u64>()).map(|n| {
-                            TucanArgument::Number(u64::from_be_bytes(n.try_into().unwrap()))
-                        }),
-                    )),
+                    Box::new(
+                        [TucanArgument::Number(311), TucanArgument::Number(0)]
+                            .into_iter()
+                            .chain(id.chunks(std::mem::size_of::<u64>()).map(|n| {
+                                TucanArgument::Number(u64::from_be_bytes(n.try_into().unwrap()))
+                            })),
+                    ),
                 ),
                 TucanProgram::StartpageDispatch(_) => todo!(),
                 TucanProgram::Externalpages(_) => todo!(),

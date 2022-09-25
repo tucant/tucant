@@ -15,7 +15,7 @@ sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=
 
 diesel setup
 
-RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=trace,info cargo run
+RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run
 
 cd tucant
 npm install

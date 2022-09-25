@@ -122,13 +122,22 @@ pub struct Course {
 }
 
 #[derive(
-    Identifiable, Queryable, Insertable, Serialize, Debug, Deserialize, PartialEq, Eq, Clone,
+    Associations,
+    Identifiable,
+    Queryable,
+    Insertable,
+    Serialize,
+    Debug,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Clone,
 )]
 #[diesel(primary_key(module, course))]
 #[diesel(table_name = module_courses)]
 #[diesel(treat_none_as_null = true)]
-#[diesel(belongs_to(Module))]
-#[diesel(belongs_to(Course))]
+#[diesel(belongs_to(Module, foreign_key = module))]
+#[diesel(belongs_to(Course, foreign_key = course))]
 pub struct ModuleCourse {
     pub module: Vec<u8>,
     pub course: Vec<u8>,
