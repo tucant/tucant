@@ -250,12 +250,7 @@ impl TucanUser {
         let sws = document
             .select(&s(r#"#contentlayoutleft b"#))
             .find(|e| e.inner_html() == "Semesterwochenstunden: ")
-            .map(|v| v
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap());
+            .map(|v| v.next_sibling().unwrap().value().as_text().unwrap());
 
         let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
 
