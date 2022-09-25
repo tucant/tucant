@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{Module, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuRef, ModuleMenuTreeEntry},
+    models::{Module, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry},
     s,
     tucan::Tucan,
     url::{parse_tucan_url, Moduledetails, Registration, RootRegistration, TucanProgram, TucanUrl},
@@ -23,7 +23,7 @@ use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use diesel::{dsl::not, upsert::excluded};
+use diesel::dsl::not;
 use log::trace;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
