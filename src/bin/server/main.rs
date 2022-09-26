@@ -184,7 +184,8 @@ fn fetch_registration(
                                 .course(Coursedetails {
                                     id: course.tucan_id.clone(),
                                 })
-                                .await;
+                                .await
+                                .unwrap();
                         }
 
                         module.0
@@ -265,32 +266,37 @@ async fn search_module(
     // http://localhost:8080/search-module?q=digitale%20schaltung
     let mut connection = tucan.pool.get().await?;
 
+    let config = TsConfigurationByName("tucan");
+    let tsvector = setweight(
+        to_tsvector_with_search_config(config, modules_unfinished::module_id),
+        'A',
+    )
+    .concat(setweight(
+        to_tsvector_with_search_config(config, modules_unfinished::title),
+        'A',
+    ))
+    .concat(setweight(
+        to_tsvector_with_search_config(config, modules_unfinished::content),
+        'D',
+    ));
+    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
-        .filter(
-            to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content).matches(
-                websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
-            ),
-        )
-        .order_by(
-            ts_rank_cd_normalized(
-                to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
-                websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
-                1,
-            )
-            .desc(),
-        )
+        .filter(tsvector.matches(tsquery))
+        .order_by(rank.desc())
         .select((
             modules_unfinished::tucan_id,
             modules_unfinished::title,
             ts_headline_with_search_config(
-                sql("'tucan'"),
-                modules_unfinished::content,
-                websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
+                config,
+                modules_unfinished::module_id
+                    .concat(" ")
+                    .concat(modules_unfinished::title)
+                    .concat(" ")
+                    .concat(modules_unfinished::content),
+                tsquery,
             ),
-            ts_rank_cd(
-                to_tsvector_with_search_config(sql("'tucan'"), modules_unfinished::content),
-                websearch_to_tsquery_with_search_config(sql("'tucan'"), &search_query.q),
-            ),
+            rank,
         ));
 
     let debug = debug_query::<Pg, _>(&sql_query);
@@ -324,9 +330,10 @@ async fn search_course(
         'D',
     ));
     let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = courses_unfinished::table
         .filter(tsvector.matches(tsquery))
-        .order_by(ts_rank_cd_normalized(tsvector, tsquery, 1).desc())
+        .order_by(rank.desc())
         .select((
             courses_unfinished::tucan_id,
             courses_unfinished::title,
@@ -339,7 +346,7 @@ async fn search_course(
                     .concat(courses_unfinished::content),
                 tsquery,
             ),
-            ts_rank_cd(tsvector, tsquery),
+            rank,
         ));
 
     let debug = debug_query::<Pg, _>(&sql_query);
@@ -403,7 +410,15 @@ async fn get_modules<'a>(
     if let Some(module) = module {
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
+            .select((
+                modules_unfinished::tucan_id,
+                modules_unfinished::tucan_last_checked,
+                modules_unfinished::title,
+                modules_unfinished::module_id,
+                modules_unfinished::credits,
+                modules_unfinished::content,
+                modules_unfinished::done,
+            ))
             .filter(
                 module_menu_module::module_menu_id
                     .eq(parent.unwrap())
@@ -434,7 +449,15 @@ async fn get_modules<'a>(
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
             .filter(module_menu_module::module_menu_id.nullable().eq(&parent))
-            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
+            .select((
+                modules_unfinished::tucan_id,
+                modules_unfinished::tucan_last_checked,
+                modules_unfinished::title,
+                modules_unfinished::module_id,
+                modules_unfinished::credits,
+                modules_unfinished::content,
+                modules_unfinished::done,
+            ))
             .load::<Module>(&mut connection)
             .await?;
 

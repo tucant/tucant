@@ -100,7 +100,15 @@ impl TucanUser {
         let existing_module = modules_unfinished::table
             .filter(modules_unfinished::tucan_id.eq(&url.id))
             .filter(modules_unfinished::done)
-            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
+            .select((
+                modules_unfinished::tucan_id,
+                modules_unfinished::tucan_last_checked,
+                modules_unfinished::title,
+                modules_unfinished::module_id,
+                modules_unfinished::credits,
+                modules_unfinished::content,
+                modules_unfinished::done,
+            ))
             .get_result::<Module>(&mut connection)
             .await
             .optional()?;
@@ -110,7 +118,15 @@ impl TucanUser {
 
             let course_list = ModuleCourse::belonging_to(&existing_module)
                 .inner_join(courses_unfinished::table)
-                .select((courses_unfinished::tucan_id, courses_unfinished::tucan_last_checked, courses_unfinished::title, courses_unfinished::course_id, courses_unfinished::sws, courses_unfinished::content, courses_unfinished::done))
+                .select((
+                    courses_unfinished::tucan_id,
+                    courses_unfinished::tucan_last_checked,
+                    courses_unfinished::title,
+                    courses_unfinished::course_id,
+                    courses_unfinished::sws,
+                    courses_unfinished::content,
+                    courses_unfinished::done,
+                ))
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -233,7 +249,15 @@ impl TucanUser {
         let existing = courses_unfinished::table
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
-            .select((courses_unfinished::tucan_id, courses_unfinished::tucan_last_checked, courses_unfinished::title, courses_unfinished::course_id, courses_unfinished::sws, courses_unfinished::content, courses_unfinished::done))
+            .select((
+                courses_unfinished::tucan_id,
+                courses_unfinished::tucan_last_checked,
+                courses_unfinished::title,
+                courses_unfinished::course_id,
+                courses_unfinished::sws,
+                courses_unfinished::content,
+                courses_unfinished::done,
+            ))
             .get_result::<Course>(&mut connection)
             .await
             .optional()?;
@@ -364,7 +388,15 @@ impl TucanUser {
                 // existing submodules
                 let submodules = module_menu_module::table
                     .inner_join(modules_unfinished::table)
-                    .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
+                    .select((
+                        modules_unfinished::tucan_id,
+                        modules_unfinished::tucan_last_checked,
+                        modules_unfinished::title,
+                        modules_unfinished::module_id,
+                        modules_unfinished::credits,
+                        modules_unfinished::content,
+                        modules_unfinished::done,
+                    ))
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
                     .load::<Module>(&mut connection)
                     .await?;
