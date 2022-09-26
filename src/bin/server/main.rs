@@ -402,7 +402,7 @@ async fn get_modules<'a>(
     if let Some(module) = module {
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .select(modules_unfinished::all_columns)
+            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
             .filter(
                 module_menu_module::module_menu_id
                     .eq(parent.unwrap())
@@ -432,8 +432,8 @@ async fn get_modules<'a>(
 
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .select(modules_unfinished::all_columns)
             .filter(module_menu_module::module_menu_id.nullable().eq(&parent))
+            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
             .load::<Module>(&mut connection)
             .await?;
 
