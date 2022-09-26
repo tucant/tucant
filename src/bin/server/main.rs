@@ -267,18 +267,7 @@ async fn search_module(
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
-    let tsvector = setweight(
-        to_tsvector_with_search_config(config, modules_unfinished::module_id),
-        'A',
-    )
-    .concat(setweight(
-        to_tsvector_with_search_config(config, modules_unfinished::title),
-        'A',
-    ))
-    .concat(setweight(
-        to_tsvector_with_search_config(config, modules_unfinished::content),
-        'D',
-    ));
+    let tsvector = modules_unfinished::tsv;
     let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
@@ -317,18 +306,7 @@ async fn search_course(
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
-    let tsvector = setweight(
-        to_tsvector_with_search_config(config, courses_unfinished::course_id),
-        'A',
-    )
-    .concat(setweight(
-        to_tsvector_with_search_config(config, courses_unfinished::title),
-        'A',
-    ))
-    .concat(setweight(
-        to_tsvector_with_search_config(config, courses_unfinished::content),
-        'D',
-    ));
+    let tsvector = courses_unfinished::tsv;
     let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = courses_unfinished::table

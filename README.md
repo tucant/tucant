@@ -78,6 +78,5 @@ SELECT modules.module_id, modules.title, modules.credits FROM module_menu
  NATURAL JOIN modules
  WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL AND modules.credits = 4 ORDER BY modules.credits ASC;
 
-select title, ts_headline('tucan', content, query), ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM modules_unfinished, websearch_to_tsquery('tucan', 'programmierkonzept') AS query WHERE to_tsvector('tucan', content) @@ query ORDER BY rank DESC;
-
+EXPLAIN ANALYZE SELECT "modules_unfinished"."tucan_id", "modules_unfinished"."title", ts_headline('tucan', (((((((("modules_unfinished"."module_id" || ' ')) || "modules_unfinished"."title")) || ' ')) || "modules_unfinished"."content")), websearch_to_tsquery('tucan', 'papierprüfung')), ts_rank_cd(tsv, websearch_to_tsquery('tucan', 'papierprüfung'), 1) FROM "modules_unfinished" WHERE tsv @@ websearch_to_tsquery('tucan', 'papierprüfung') ORDER BY ts_rank_cd(tsv, websearch_to_tsquery('tucan', 'papierprüfung'), 1) DESC;s
 ```
