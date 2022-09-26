@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
-import { sanitize } from "dompurify";
+import dompurify from "dompurify";
 
 export default function Module() {
   const [data, setData] = useState<any>(null);
@@ -57,7 +57,7 @@ export default function Module() {
           </Typography>
           <Chip label={`${data.credits} Credits`} />
           <div
-            dangerouslySetInnerHTML={{ __html: sanitize(data.content) }}
+            dangerouslySetInnerHTML={{ __html: dompurify.sanitize(data.content) }}
           ></div>
         </>
       )}
