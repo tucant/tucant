@@ -244,9 +244,8 @@ impl TucanUser {
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
-        let mut fs = text.split("\n");
+        let mut fs = text.trim().split("\n");
         let course_id = fs.next().unwrap().trim();
-
         let course_name = fs.next().map(str::trim);
 
         let sws = document

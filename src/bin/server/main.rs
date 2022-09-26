@@ -334,7 +334,9 @@ async fn search_course(
             ts_headline_with_search_config(
                 config,
                 courses_unfinished::course_id
+                    .concat(" ")
                     .concat(courses_unfinished::title)
+                    .concat(" ")
                     .concat(courses_unfinished::content),
                 tsquery,
             ),
