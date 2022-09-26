@@ -207,6 +207,11 @@ export default function MiniDrawer() {
             icon={<SearchOutlined />}
           ></RouterLink>
           <RouterLink
+            to="/search-courses"
+            text="Veranstaltungssuche"
+            icon={<SearchOutlined />}
+          ></RouterLink>
+          <RouterLink
             to="/login"
             text="Login"
             icon={<LoginIcon />}

@@ -13,7 +13,7 @@ cargo install diesel_cli --no-default-features --features postgres
 sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
 sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 
-diesel setup
+$HOME/.cargo/bin/diesel setup
 
 RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run
 
