@@ -3,14 +3,14 @@ import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
-import { sanitize } from "dompurify";
+import dompurify from "dompurify";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import Module from "./Module";
 
-export default function SearchCourses() {
+export default function SearchModules() {
   const location = useLocation();
 
   const [data, setData] = useState<any>(null);
@@ -39,7 +39,7 @@ export default function SearchCourses() {
         setError(null);
         const response = await fetch(
           // TODO FIXME url injection
-          `http://localhost:8080/search-course?q=${form.q}`,
+          `http://localhost:8080/search-module?q=${form.q}`,
           {
             credentials: "include",
           }
@@ -66,7 +66,7 @@ export default function SearchCourses() {
 
   return (
     <>
-      <Typography variant="h2">Veranstaltungssuche</Typography>
+      <Typography variant="h2">Modulsuche</Typography>
       <TextField name="q" onChange={handleInputChange} value={form.q} id="standard-basic" label="Suche" variant="standard" margin="normal" />
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
@@ -85,10 +85,10 @@ export default function SearchCourses() {
         {data != null &&
           data.map((e: [number, string, string, number]) => (
             <RouterLink
-              to={`/course/${e[0]}`}
+              to={`/module/${e[0]}`}
               text={<span><Chip label={e[3].toFixed(3)} /> {e[1]}</span>}
               secondary_text={<span
-                dangerouslySetInnerHTML={{ __html: sanitize(e[2]) }}
+                dangerouslySetInnerHTML={{ __html: dompurify.sanitize(e[2]) }}
               ></span>}
             ></RouterLink>
           ))}
