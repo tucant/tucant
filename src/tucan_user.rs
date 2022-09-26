@@ -54,6 +54,12 @@ static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+")
 
 impl TucanUser {
     pub fn normalize(string: &str) -> String {
+        // maybe do in postgres as this is generated?
+        // &amp; replace with -
+        // replace , to -
+        // remove consecutive -
+        // remove [] to -
+        // remove - at end and start
         NORMALIZED_NAME_REGEX
             .replace_all(string, "-")
             .trim_matches('-')

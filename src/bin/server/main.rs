@@ -180,12 +180,11 @@ fn fetch_registration(
 
                         // TODO FIXME make this in parallel for absolute overkill?
                         for course in module.1 {
-                            let course = tucan
+                            tucan
                                 .course(Coursedetails {
                                     id: course.tucan_id.clone(),
                                 })
                                 .await;
-                            print!("courseee {:?}", course);
                         }
 
                         module.0
