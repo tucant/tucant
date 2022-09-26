@@ -502,7 +502,7 @@ async fn main() -> anyhow::Result<()> {
             .supports_credentials()
             .allow_any_method()
             .allow_any_header()
-            .allowed_origin("http://localhost:3000");
+            .allowed_origin("http://localhost:5173");
 
         App::new()
             .app_data(tucan.clone())
