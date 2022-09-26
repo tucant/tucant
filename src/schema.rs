@@ -1,6 +1,15 @@
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "tsvector", schema = "pg_catalog"))]
+    pub struct Tsvector;
+}
+
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Tsvector;
+
     courses_unfinished (tucan_id) {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
@@ -9,6 +18,7 @@ diesel::table! {
         sws -> Int2,
         content -> Text,
         done -> Bool,
+        tsv -> Tsvector,
     }
 }
 
@@ -44,6 +54,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Tsvector;
+
     modules_unfinished (tucan_id) {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
@@ -52,6 +65,7 @@ diesel::table! {
         credits -> Nullable<Int4>,
         content -> Text,
         done -> Bool,
+        tsv -> Tsvector,
     }
 }
 
