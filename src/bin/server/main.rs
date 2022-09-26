@@ -22,15 +22,20 @@ use csrf_middleware::CsrfMiddleware;
 
 use diesel::debug_query;
 use diesel::dsl::sql;
+use diesel::expression::SqlLiteral;
 use diesel::pg::Pg;
 use diesel::prelude::*;
+use diesel::sql_types::Text;
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
+use diesel_full_text_search::configuration::TsConfigurationByName;
+use diesel_full_text_search::setweight;
 use diesel_full_text_search::to_tsvector_with_search_config;
 use diesel_full_text_search::ts_headline_with_search_config;
 use diesel_full_text_search::ts_rank_cd;
 use diesel_full_text_search::ts_rank_cd_normalized;
 use diesel_full_text_search::websearch_to_tsquery_with_search_config;
+use diesel_full_text_search::RegConfig;
 use diesel_full_text_search::TsVectorExtensions;
 use futures::stream::FuturesUnordered;
 use futures::{Stream, StreamExt};
@@ -299,6 +304,55 @@ async fn search_module(
     Ok(web::Json(result))
 }
 
+#[get("/search-course")]
+async fn search_course(
+    tucan: web::Data<Tucan>,
+    search_query: web::Query<SearchQuery>,
+) -> Result<impl Responder, MyError> {
+    let mut connection = tucan.pool.get().await?;
+
+    let config = TsConfigurationByName("tucan");
+    let tsvector = setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::course_id),
+        'A',
+    )
+    .concat(setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::title),
+        'A',
+    ))
+    .concat(setweight(
+        to_tsvector_with_search_config(config, courses_unfinished::content),
+        'D',
+    ));
+    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let sql_query = courses_unfinished::table
+        .filter(tsvector.matches(tsquery))
+        .order_by(ts_rank_cd_normalized(tsvector, tsquery, 1).desc())
+        .select((
+            courses_unfinished::tucan_id,
+            courses_unfinished::title,
+            ts_headline_with_search_config(
+                config,
+                courses_unfinished::course_id
+                    .concat(" ")
+                    .concat(courses_unfinished::title)
+                    .concat(" ")
+                    .concat(courses_unfinished::content),
+                tsquery,
+            ),
+            ts_rank_cd(tsvector, tsquery),
+        ));
+
+    let debug = debug_query::<Pg, _>(&sql_query);
+    println!("{}", debug);
+
+    let result = sql_query
+        .load::<(Vec<u8>, String, String, f32)>(&mut connection)
+        .await?;
+
+    Ok(web::Json(result))
+}
+
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
 async fn get_modules<'a>(
@@ -350,7 +404,7 @@ async fn get_modules<'a>(
     if let Some(module) = module {
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .select(modules_unfinished::all_columns)
+            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
             .filter(
                 module_menu_module::module_menu_id
                     .eq(parent.unwrap())
@@ -364,7 +418,6 @@ async fn get_modules<'a>(
 
         Ok(Either::Left(web::Json(module_result)))
     } else {
-        error!("test {:?}", parent);
         let menu_result = module_menu_unfinished::table
             .left_outer_join(
                 module_menu_tree::table
@@ -379,12 +432,10 @@ async fn get_modules<'a>(
             .load::<ModuleMenu>(&mut connection)
             .await?;
 
-        error!("test {:?}", menu_result);
-
         let module_result = module_menu_module::table
             .inner_join(modules_unfinished::table)
-            .select(modules_unfinished::all_columns)
             .filter(module_menu_module::module_menu_id.nullable().eq(&parent))
+            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
             .load::<Module>(&mut connection)
             .await?;
 
@@ -449,6 +500,7 @@ async fn main() -> anyhow::Result<()> {
             .service(get_modules)
             .service(setup)
             .service(search_module)
+            .service(search_course)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

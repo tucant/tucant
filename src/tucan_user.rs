@@ -72,9 +72,7 @@ impl TucanUser {
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
 
         let permit = self.tucan.semaphore.clone().acquire_owned().await?;
-        debug!("actually fetching");
         let resp = self.tucan.client.execute(b).await?.text().await?;
-        debug!("actually done");
         drop(permit);
 
         let html_doc = Html::parse_document(&resp);
@@ -96,6 +94,7 @@ impl TucanUser {
         let existing_module = modules_unfinished::table
             .filter(modules_unfinished::tucan_id.eq(&url.id))
             .filter(modules_unfinished::done)
+            .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
             .get_result::<Module>(&mut connection)
             .await
             .optional()?;
@@ -105,7 +104,7 @@ impl TucanUser {
 
             let course_list = ModuleCourse::belonging_to(&existing_module)
                 .inner_join(courses_unfinished::table)
-                .select(courses_unfinished::all_columns)
+                .select((courses_unfinished::tucan_id, courses_unfinished::tucan_last_checked, courses_unfinished::title, courses_unfinished::course_id, courses_unfinished::sws, courses_unfinished::content, courses_unfinished::done))
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -225,16 +224,13 @@ impl TucanUser {
 
         let mut connection = self.tucan.pool.get().await?;
 
-        debug!("loading course");
-
         let existing = courses_unfinished::table
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
+            .select((courses_unfinished::tucan_id, courses_unfinished::tucan_last_checked, courses_unfinished::title, courses_unfinished::course_id, courses_unfinished::sws, courses_unfinished::content, courses_unfinished::done))
             .get_result::<Course>(&mut connection)
             .await
             .optional()?;
-
-        debug!("loaded course");
 
         drop(connection);
 
@@ -243,36 +239,21 @@ impl TucanUser {
             return Ok(existing);
         }
 
-        debug!(
-            "nonexisting {:?}",
-            Into::<TucanProgram>::into(url.clone()).to_tucan_url(Some(self.session.nr))
-        );
-
         let document = self.fetch_document(&url.clone().into()).await?;
-
-        error!("fetched course");
 
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
-        debug!("test {}", text);
-
-        let mut fs = text.split("\n");
+        let mut fs = text.trim().split("\n");
         let course_id = fs.next().unwrap().trim();
-
         let course_name = fs.next().map(str::trim);
 
         let sws = document
             .select(&s(r#"#contentlayoutleft b"#))
             .find(|e| e.inner_html() == "Semesterwochenstunden: ")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap();
+            .map(|v| v.next_sibling().unwrap().value().as_text().unwrap());
 
-        let sws = sws.trim().parse::<i16>().ok().unwrap_or(0);
+        let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
 
         let content = document
             .select(&s("#contentlayoutleft td.tbdata"))
@@ -377,7 +358,7 @@ impl TucanUser {
                 // existing submodules
                 let submodules = module_menu_module::table
                     .inner_join(modules_unfinished::table)
-                    .select(modules_unfinished::all_columns)
+                    .select((modules_unfinished::tucan_id,modules_unfinished::tucan_last_checked,modules_unfinished::title,modules_unfinished::module_id,modules_unfinished::credits,modules_unfinished::content,modules_unfinished::done,))
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
                     .load::<Module>(&mut connection)
                     .await?;

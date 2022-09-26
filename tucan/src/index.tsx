@@ -10,6 +10,7 @@ import Modules from "./routes/Modules";
 import Module from "./routes/Module";
 import ModuleOrModules from "./routes/ModuleOrModules";
 import SearchModules from "./routes/SearchModules";
+import SearchCourses from "./routes/SearchCourses";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -22,6 +23,7 @@ root.render(
         <Route path="/" element={<MiniDrawer />}>
           <Route path="login" element={<Login />} />
           <Route path="search-modules" element={<SearchModules />} />
+          <Route path="search-courses" element={<SearchCourses />} />
           <Route path="modules/*" element={<ModuleOrModules />} />
           <Route index element={<Welcome />} />
           <Route
