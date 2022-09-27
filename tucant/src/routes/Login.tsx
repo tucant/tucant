@@ -34,7 +34,7 @@ function Copyright(props: any) {
 const theme = createTheme();
 
 export default function SignIn() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export default function SignIn() {
     password: "",
   });
 
-  let handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
@@ -55,14 +55,14 @@ export default function SignIn() {
     } as any);
   };
 
-  let handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setError(null);
     setLoading(true);
 
     try {
-      let response = await fetch("http://localhost:8080/login", {
+      const response = await fetch("http://localhost:8080/login", {
         credentials: "include",
         method: "POST",
         headers: {
@@ -71,7 +71,7 @@ export default function SignIn() {
         },
         body: JSON.stringify(form),
       });
-      let result = await response.json();
+      const result = await response.json();
 
       if (result.success) {
         navigate("/");

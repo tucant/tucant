@@ -31,7 +31,7 @@ export default function Course() {
             }. ${await response.text()}`
           );
         }
-        let actualData = await response.json();
+        const actualData = await response.json();
         setData(actualData);
         setError(null);
       } catch (err) {
@@ -56,7 +56,9 @@ export default function Course() {
             {data.course_id} {data.title}
           </Typography>
           <div
-            dangerouslySetInnerHTML={{ __html: dompurify.sanitize(data.content) }}
+            dangerouslySetInnerHTML={{
+              __html: dompurify.sanitize(data.content),
+            }}
           ></div>
         </>
       )}

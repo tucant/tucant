@@ -1,9 +1,5 @@
 use itertools::Itertools;
-use std::{
-    collections::HashMap,
-    fmt::Display,
-    iter::{self, Peekable},
-};
+use std::{collections::HashMap, fmt::Display, iter::Peekable};
 
 use derive_more::{From, TryInto};
 use serde::{Deserialize, Serialize};

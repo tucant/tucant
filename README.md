@@ -8,6 +8,9 @@ This means unexpected changes there can cause your application to panic. We deci
 ## Installation
 
 ```bash
+# if you want automatic formatting and linting on commit
+ln -srf pre-commit.sh .git/hooks/pre-commit
+
 # You might need to install libpq before: sudo apt install libpq-dev
 cargo install diesel_cli --no-default-features --features postgres
 
@@ -24,7 +27,7 @@ npm install
 npm run dev
 ```
 
-##  Development
+## Development
 
 ```bash
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time

@@ -18,7 +18,7 @@ export default function InitialFetch() {
           setLoading(true);
 
           try {
-            let response = await fetch("http://localhost:8080/setup", {
+            const response = await fetch("http://localhost:8080/setup", {
               credentials: "include",
               method: "POST",
               headers: {
@@ -27,7 +27,7 @@ export default function InitialFetch() {
               body: "",
             });
 
-            let reader = response.body?.getReader();
+            const reader = response.body?.getReader();
             let value: ReadableStreamReadResult<Uint8Array> | undefined;
             while (!(value = await reader?.read())?.done) {
               setData(new TextDecoder().decode(value?.value));

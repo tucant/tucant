@@ -19,8 +19,7 @@ import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import HomeIcon from "@mui/icons-material/Home";
 import LoginIcon from "@mui/icons-material/Login";
-import { NavLinkProps, Outlet } from "react-router-dom";
-import { NavLink } from "react-router-dom";
+import { NavLinkProps, Outlet, NavLink } from "react-router-dom";
 import { ReactNode } from "react";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
 

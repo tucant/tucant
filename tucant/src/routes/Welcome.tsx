@@ -10,7 +10,7 @@ export default function Welcome() {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080`, {
+        const response = await fetch("http://localhost:8080", {
           credentials: "include",
         });
         if (!response.ok) {
@@ -18,7 +18,7 @@ export default function Welcome() {
             `This is an HTTP error: The status is ${response.status}`
           );
         }
-        let actualData = await response.json();
+        const actualData = await response.json();
         setData(actualData);
         setError(null);
       } catch (err) {
