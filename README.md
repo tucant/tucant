@@ -22,7 +22,7 @@ npm install
 npm start
 ```
 
-##  Development
+## Development
 
 ```bash
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
