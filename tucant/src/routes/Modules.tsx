@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Breadcrumbs, Button, Link } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import Module from "./Module";
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 export default function Modules() {
   const location = useLocation();
@@ -45,9 +46,31 @@ export default function Modules() {
     getData();
   }, [location]);
 
+  const breadcrumbs = [
+    <Link underline="hover" key="1" color="inherit" href="/">
+      MUI
+    </Link>,
+    <Link
+      underline="hover"
+      key="2"
+      color="inherit"
+      href="/material-ui/getting-started/installation/"
+    >
+      Core
+    </Link>,
+    <Typography key="3" color="text.primary">
+      Breadcrumb
+    </Typography>,
+  ];
+
   return (
     <>
-      <InitialFetch></InitialFetch>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize="small" />}
+        aria-label="breadcrumb"
+      >
+        {breadcrumbs}
+      </Breadcrumbs>
 
       <Typography variant="h2">Module</Typography>
       {loading && <LinearProgress />}
@@ -70,6 +93,8 @@ export default function Modules() {
             ></RouterLink>
           ))}
       </List>
+
+      <InitialFetch></InitialFetch>
     </>
   );
 }
