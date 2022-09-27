@@ -8,10 +8,12 @@ This means unexpected changes there can cause your application to panic. We deci
 ## Installation
 
 ```bash
+# You might need to install libpq before: sudo apt install libpq-dev
 cargo install diesel_cli --no-default-features --features postgres
 
-sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
-sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
+# Depending on your system you might have to run these with sudo
+docker build . -f Dockerfile-postgres --tag postgres-hunspell
+docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 
 $HOME/.cargo/bin/diesel setup
 
@@ -19,7 +21,7 @@ RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run
 
 cd tucant
 npm install
-npm start
+npm run dev
 ```
 
 ##  Development
@@ -27,8 +29,10 @@ npm start
 ```bash
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub io.dbeaver.DBeaverCommunity
 
+# Only used for debugging, you may need to install psql first: sudo apt-get install postgresql
 psql postgres://postgres:password@localhost:5432/tucant
 ```
 
