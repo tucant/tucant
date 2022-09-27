@@ -5,7 +5,7 @@ import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
+import Typography, { TypographyTypeMap } from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
@@ -13,7 +13,7 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
 
-function Copyright(props: any) {
+function Copyright(props: TypographyTypeMap<{}, "span">["props"]) {
   return (
     <Typography
       variant="body2"
