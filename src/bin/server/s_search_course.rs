@@ -19,6 +19,7 @@ use diesel_full_text_search::{
 use tucan_scraper::{schema::courses_unfinished, tucan::Tucan};
 
 sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
+sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
 #[get("/search-course")]
 pub async fn search_course(
@@ -36,7 +37,7 @@ pub async fn search_course(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            encode(courses_unfinished::tucan_id, "base64"),
+            rtrim(encode(courses_unfinished::tucan_id, "base64"), "="),
             courses_unfinished::title,
             ts_headline_with_search_config(
                 config,

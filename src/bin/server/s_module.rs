@@ -11,7 +11,7 @@ use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
 use tucan_scraper::{models::Module, schema::modules_unfinished, tucan::Tucan};
 
-#[get("/module/{id}")]
+#[get("/module/{id:.*}")]
 pub async fn module(
     _: Session,
     tucan: Data<Tucan>,

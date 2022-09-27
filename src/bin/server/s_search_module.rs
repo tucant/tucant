@@ -1,4 +1,4 @@
-use crate::s_search_course::encode;
+use crate::s_search_course::{encode, rtrim};
 use crate::{MyError, SearchQuery};
 use actix_session::Session;
 use actix_web::Responder;
@@ -34,7 +34,7 @@ pub async fn search_module(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            encode(modules_unfinished::tucan_id, "base64"),
+            rtrim(encode(modules_unfinished::tucan_id, "base64"), "="),
             modules_unfinished::title,
             ts_headline_with_search_config(
                 config,
