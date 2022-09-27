@@ -35,48 +35,18 @@ psql postgres://postgres:password@localhost:5432/tucant
 ## Interesting queries
 
 ```sql
--- Fachprüfungen mit mind. 2 CP
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(5)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits >= 2 ORDER BY modules.credits ASC;
+SELECT encode(x.child, 'base64'), mmu."name"  FROM public.module_menu_tree x join module_menu_unfinished mmu  on x.child  = mmu.tucan_id  
+ORDER BY encode(x.child, 'base64')
 
--- Wahl- und Pflichtbereich
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(3)
-	UNION
-	VALUES(4)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL ORDER BY modules.credits ASC;
+-- https://www.postgresql.org/docs/current/queries-with.html
+WITH RECURSIVE search_tree(parent, child) AS (
+    SELECT t.parent, t.child
+    FROM module_menu_tree t WHERE child = decode('AAFWRgfUoQwAAU0igA5HiwABOeh5Z465', 'base64')
+  UNION ALL
+    SELECT t.parent, t.child
+    FROM module_menu_tree t, search_tree st
+    WHERE t.child = st.parent
+)
+SELECT * FROM search_tree;
 
--- 4 CP Module
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(3)
-	UNION
-	VALUES(4)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.module_id, modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL AND modules.credits = 4 ORDER BY modules.credits ASC;
-
-EXPLAIN ANALYZE SELECT "modules_unfinished"."tucan_id", "modules_unfinished"."title", ts_headline('tucan', (((((((("modules_unfinished"."module_id" || ' ')) || "modules_unfinished"."title")) || ' ')) || "modules_unfinished"."content")), websearch_to_tsquery('tucan', 'papierprüfung')), ts_rank_cd(tsv, websearch_to_tsquery('tucan', 'papierprüfung'), 1) FROM "modules_unfinished" WHERE tsv @@ websearch_to_tsquery('tucan', 'papierprüfung') ORDER BY ts_rank_cd(tsv, websearch_to_tsquery('tucan', 'papierprüfung'), 1) DESC;s
 ```
