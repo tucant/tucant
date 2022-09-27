@@ -1,5 +1,7 @@
 mod csrf_middleware;
+mod get_search_course;
 
+use get_search_course::search_course;
 use std::io::Error;
 
 use std::fmt::Display;
@@ -298,44 +300,6 @@ async fn search_module(
     Ok(web::Json(result))
 }
 
-#[get("/search-course")]
-async fn search_course(
-    tucan: web::Data<Tucan>,
-    search_query: web::Query<SearchQuery>,
-) -> Result<impl Responder, MyError> {
-    let mut connection = tucan.pool.get().await?;
-
-    let config = TsConfigurationByName("tucan");
-    let tsvector = courses_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
-    let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
-    let sql_query = courses_unfinished::table
-        .filter(tsvector.matches(tsquery))
-        .order_by(rank.desc())
-        .select((
-            courses_unfinished::tucan_id,
-            courses_unfinished::title,
-            ts_headline_with_search_config(
-                config,
-                courses_unfinished::course_id
-                    .concat(" ")
-                    .concat(courses_unfinished::title)
-                    .concat(" ")
-                    .concat(courses_unfinished::content),
-                tsquery,
-            ),
-            rank,
-        ));
-
-    let debug = debug_query::<Pg, _>(&sql_query);
-    println!("{}", debug);
-
-    let result = sql_query
-        .load::<(Vec<u8>, String, String, f32)>(&mut connection)
-        .await?;
-
-    Ok(web::Json(result))
-}
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
