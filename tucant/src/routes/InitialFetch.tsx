@@ -1,12 +1,12 @@
-import LoadingButton from '@mui/lab/LoadingButton'
-import Alert from '@mui/material/Alert'
-import Button from '@mui/material/Button'
-import { useEffect, useRef, useState } from 'react'
+import LoadingButton from "@mui/lab/LoadingButton";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import { useEffect, useRef, useState } from "react";
 
-export default function InitialFetch () {
-  const [data, setData] = useState<any>('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default function InitialFetch() {
+  const [data, setData] = useState<any>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <>
@@ -14,28 +14,28 @@ export default function InitialFetch () {
       <LoadingButton
         loading={loading}
         onClick={async (event) => {
-          setError(null)
-          setLoading(true)
+          setError(null);
+          setLoading(true);
 
           try {
-            const response = await fetch('http://localhost:8080/setup', {
-              credentials: 'include',
-              method: 'POST',
+            const response = await fetch("http://localhost:8080/setup", {
+              credentials: "include",
+              method: "POST",
               headers: {
-                'x-csrf-protection': 'tucant'
+                "x-csrf-protection": "tucant",
               },
-              body: ''
-            })
+              body: "",
+            });
 
-            const reader = response.body?.getReader()
-            let value: ReadableStreamReadResult<Uint8Array> | undefined
+            const reader = response.body?.getReader();
+            let value: ReadableStreamReadResult<Uint8Array> | undefined;
             while (!(value = await reader?.read())?.done) {
-              setData(new TextDecoder().decode(value?.value))
+              setData(new TextDecoder().decode(value?.value));
             }
           } catch (error) {
-            setError(String(error))
+            setError(String(error));
           } finally {
-            setLoading(false)
+            setLoading(false);
           }
         }}
       >
@@ -43,5 +43,5 @@ export default function InitialFetch () {
       </LoadingButton>
       {data}
     </>
-  )
+  );
 }
