@@ -35,49 +35,22 @@ psql postgres://postgres:password@localhost:5432/tucant
 ## Interesting queries
 
 ```sql
--- Fachprüfungen mit mind. 2 CP
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(5)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits >= 2 ORDER BY modules.credits ASC;
+-- there don't seem to be module entries that have multiple parents
+SELECT child, COUNT(*) FROM module_menu_tree GROUP BY child HAVING COUNT(*) != 1;
 
--- Wahl- und Pflichtbereich
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(3)
-	UNION
-	VALUES(4)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL ORDER BY modules.credits ASC;
+-- there seem to be modules that are in multiple menus
+SELECT modules_unfinished.title, module_menu_unfinished.name, modules_unfinished.tucan_id FROM module_menu_module NATURAL JOIN (SELECT module_id FROM module_menu_module GROUP BY module_id HAVING COUNT(*) != 1) dm JOIN module_menu_unfinished ON module_menu_unfinished.tucan_id = module_menu_module.module_menu_id JOIN modules_unfinished ON modules_unfinished.tucan_id = module_menu_module.module_id ORDER BY modules_unfinished.tucan_id;
 
--- 4 CP Module
-WITH RECURSIVE
-  works_for_alice(n) AS (
-    VALUES(3)
-	UNION
-	VALUES(4)
-    UNION
-    SELECT id FROM module_menu, works_for_alice
-     WHERE module_menu.parent=works_for_alice.n
-  )
-SELECT modules.module_id, modules.title, modules.credits FROM module_menu
- JOIN module_menu_module ON module_menu_module.module_menu_id = module_menu.id
- NATURAL JOIN modules
- WHERE module_menu.id IN works_for_alice AND modules.credits IS NOT NULL AND modules.credits = 4 ORDER BY modules.credits ASC;
-
-select title, ts_headline('tucan', content, query), ts_rank_cd(to_tsvector('tucan', content), query) AS RANK FROM modules_unfinished, websearch_to_tsquery('tucan', 'programmierkonzept') AS query WHERE to_tsvector('tucan', content) @@ query ORDER BY rank DESC;
+-- https://www.postgresql.org/docs/current/queries-with.html
+-- get path from module menu entry to root
+WITH RECURSIVE search_tree(parent, child) AS (
+    SELECT t.parent, t.child
+    FROM module_menu_tree t JOIN module_menu_module mmm ON mmm.module_menu_id = t.child WHERE mmm.module_id = '\x000154f481a77362'
+  UNION ALL
+    SELECT t.parent, t.child
+    FROM module_menu_tree t, search_tree st
+    WHERE t.child = st.parent
+)
+SELECT * FROM search_tree;
 
 ```

@@ -1,14 +1,8 @@
 // @generated automatically by Diesel CLI.
 
-pub mod sql_types {
-    #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "tsvector", schema = "pg_catalog"))]
-    pub struct Tsvector;
-}
-
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::Tsvector;
+    use diesel_full_text_search::*;
 
     courses_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -23,6 +17,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     module_courses (module, course) {
         module -> Bytea,
         course -> Bytea,
@@ -30,6 +27,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     module_menu_module (module_id, module_menu_id) {
         module_menu_id -> Bytea,
         module_id -> Bytea,
@@ -37,6 +37,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     module_menu_tree (child, parent) {
         parent -> Bytea,
         child -> Bytea,
@@ -44,6 +47,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     module_menu_unfinished (tucan_id) {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
@@ -55,7 +61,7 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::Tsvector;
+    use diesel_full_text_search::*;
 
     modules_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -70,6 +76,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     users (user_id) {
         user_id -> Text,
         name -> Text,
@@ -77,6 +86,9 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     users_studies (user_id, study) {
         user_id -> Text,
         study -> Bytea,

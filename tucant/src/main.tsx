@@ -10,6 +10,7 @@ import Module from "./routes/Module";
 import ModuleOrModules from "./routes/ModuleOrModules";
 import SearchModules from "./routes/SearchModules";
 import SearchCourses from "./routes/SearchCourses";
+import Course from "./routes/Course";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -24,6 +25,8 @@ root.render(
           <Route path="search-modules" element={<SearchModules />} />
           <Route path="search-courses" element={<SearchCourses />} />
           <Route path="modules/*" element={<ModuleOrModules />} />
+          <Route path="module/*" element={<Module />} />
+          <Route path="course/*" element={<Course />} />
           <Route index element={<Welcome />} />
           <Route
             path="*"

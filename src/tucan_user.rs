@@ -30,7 +30,7 @@ use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use log::{debug, error, trace};
+use log::{debug, trace};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -170,7 +170,7 @@ impl TucanUser {
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
-            .expect(&document.root_element().inner_html())
+            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
             .inner_html();
 
         let courses = document
@@ -274,7 +274,7 @@ impl TucanUser {
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
-        let mut fs = text.trim().split("\n");
+        let mut fs = text.trim().split('\n');
         let course_id = fs.next().unwrap().trim();
         let course_name = fs.next().map(str::trim);
 
@@ -288,7 +288,7 @@ impl TucanUser {
         let content = document
             .select(&s("#contentlayoutleft td.tbdata"))
             .next()
-            .expect(&document.root_element().inner_html())
+            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
             .inner_html();
 
         let course = Course {
