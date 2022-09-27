@@ -5,9 +5,11 @@ use actix_web::{
     get,
     web::{Data, Json, Query},
 };
-use diesel::ExpressionMethods;
+use diesel::pg::sql_types::Bytea;
+use diesel::sql_types::Text;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
+use diesel::{sql_function, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::TsVectorExtensions;
 use diesel_full_text_search::{
@@ -15,6 +17,8 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use tucan_scraper::{schema::courses_unfinished, tucan::Tucan};
+
+sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
 
 #[get("/search-course")]
 pub async fn search_course(
@@ -32,7 +36,7 @@ pub async fn search_course(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            courses_unfinished::tucan_id,
+            encode(courses_unfinished::tucan_id, "base64"),
             courses_unfinished::title,
             ts_headline_with_search_config(
                 config,
@@ -47,7 +51,7 @@ pub async fn search_course(
         ));
 
     let result = sql_query
-        .load::<(Vec<u8>, String, String, f32)>(&mut connection)
+        .load::<(String, String, String, f32)>(&mut connection)
         .await?;
 
     Ok(Json(result))

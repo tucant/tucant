@@ -36,6 +36,7 @@ itertools = "0.10"
 either = "1"
 once_cell = "1"
 diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "mohe2015-patch-1" }
+base64 = "0.13"
 
 [patch.crates-io]
 diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-type" }
