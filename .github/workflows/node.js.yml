@@ -36,5 +36,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - run: npm ci
+      - run: npm audit
+      - run: ./tucant/node_modules/.bin/prettier --check .
+        working-directory: .
+      - run: ./node_modules/.bin/eslint .
       - run: npm run build
 #   - run: npm test
