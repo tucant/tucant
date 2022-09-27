@@ -1,53 +1,33 @@
 mod csrf_middleware;
 mod s_search_course;
+mod s_search_module;
 mod s_get_modules;
 mod s_setup;
 
 use s_get_modules::get_modules;
 use s_search_course::search_course;
+use s_search_module::search_module;
 use s_setup::setup;
-
-
 use std::fmt::Display;
-
-
-
 use actix_cors::Cors;
-
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
-
-
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
-
-
-
 use csrf_middleware::CsrfMiddleware;
-
 use diesel::debug_query;
-
-
 use diesel::pg::Pg;
 use diesel::prelude::*;
-
 use diesel_async::pooled_connection::PoolError;
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::configuration::TsConfigurationByName;
-
-
 use diesel_full_text_search::ts_headline_with_search_config;
-
 use diesel_full_text_search::ts_rank_cd_normalized;
 use diesel_full_text_search::websearch_to_tsquery_with_search_config;
-
 use diesel_full_text_search::TsVectorExtensions;
-
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
-
-
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -133,46 +113,6 @@ async fn index(session: Session) -> Result<impl Responder, MyError> {
 #[derive(Deserialize)]
 pub struct SearchQuery {
     q: String,
-}
-
-#[get("/search-module")]
-async fn search_module(
-    tucan: web::Data<Tucan>,
-    search_query: web::Query<SearchQuery>,
-) -> Result<impl Responder, MyError> {
-    // http://localhost:8080/search-module?q=digitale%20schaltung
-    let mut connection = tucan.pool.get().await?;
-
-    let config = TsConfigurationByName("tucan");
-    let tsvector = modules_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
-    let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
-    let sql_query = modules_unfinished::table
-        .filter(tsvector.matches(tsquery))
-        .order_by(rank.desc())
-        .select((
-            modules_unfinished::tucan_id,
-            modules_unfinished::title,
-            ts_headline_with_search_config(
-                config,
-                modules_unfinished::module_id
-                    .concat(" ")
-                    .concat(modules_unfinished::title)
-                    .concat(" ")
-                    .concat(modules_unfinished::content),
-                tsquery,
-            ),
-            rank,
-        ));
-
-    let debug = debug_query::<Pg, _>(&sql_query);
-    println!("{}", debug);
-
-    let result = sql_query
-        .load::<(Vec<u8>, String, String, f32)>(&mut connection)
-        .await?;
-
-    Ok(web::Json(result))
 }
 
 #[actix_web::main]
