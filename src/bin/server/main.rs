@@ -1,4 +1,5 @@
 mod csrf_middleware;
+mod s_course;
 mod s_get_modules;
 mod s_search_course;
 mod s_search_module;

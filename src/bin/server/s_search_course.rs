@@ -1,4 +1,5 @@
 use crate::{MyError, SearchQuery};
+use actix_session::Session;
 use actix_web::Responder;
 use actix_web::{
     get,
@@ -17,6 +18,7 @@ use tucan_scraper::{schema::courses_unfinished, tucan::Tucan};
 
 #[get("/search-course")]
 pub async fn search_course(
+    _: Session,
     tucan: Data<Tucan>,
     search_query: Query<SearchQuery>,
 ) -> Result<impl Responder, MyError> {

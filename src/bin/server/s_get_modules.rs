@@ -1,4 +1,5 @@
 use crate::{ModulesOrModuleMenus, MyError};
+use actix_session::Session;
 use actix_web::Either;
 use actix_web::Responder;
 use actix_web::{
@@ -21,6 +22,7 @@ use tucan_scraper::{
 // trailing slash is menu
 #[get("/modules{tail:.*}")]
 pub async fn get_modules<'a>(
+    _: Session,
     tucan: Data<Tucan>,
     path: Path<String>,
 ) -> Result<impl Responder, MyError> {
