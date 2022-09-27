@@ -6,11 +6,11 @@ mod s_setup;
 use s_get_modules::get_modules;
 use s_search_course::search_course;
 use s_setup::setup;
-use std::io::Error;
+
 
 use std::fmt::Display;
 
-use std::pin::Pin;
+
 
 use actix_cors::Cors;
 
@@ -18,11 +18,11 @@ use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
-use actix_web::web::{Bytes};
+
 
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 
-use async_stream::try_stream;
+
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -43,8 +43,7 @@ use diesel_full_text_search::ts_rank_cd_normalized;
 use diesel_full_text_search::websearch_to_tsquery_with_search_config;
 
 use diesel_full_text_search::TsVectorExtensions;
-use futures::stream::FuturesUnordered;
-use futures::{Stream, StreamExt};
+
 use serde::{Deserialize, Serialize};
 use tucan_scraper::schema::*;
 
@@ -55,7 +54,7 @@ use tokio::{
 };
 use tucan_scraper::models::{Module, ModuleMenu};
 use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{RegistrationEnum, TucanSession, TucanUser};
+use tucan_scraper::tucan_user::{TucanSession, TucanUser};
 use tucan_scraper::url::{Coursedetails, Moduledetails, Registration};
 
 #[derive(Debug)]
