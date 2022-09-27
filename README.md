@@ -35,13 +35,17 @@ psql postgres://postgres:password@localhost:5432/tucant
 ## Interesting queries
 
 ```sql
-SELECT encode(x.child, 'base64'), mmu."name"  FROM public.module_menu_tree x join module_menu_unfinished mmu  on x.child  = mmu.tucan_id  
-ORDER BY encode(x.child, 'base64')
+-- there don't seem to be module entries that have multiple parents
+SELECT child, COUNT(*) FROM module_menu_tree GROUP BY child HAVING COUNT(*) != 1;
+
+-- there seem to be modules that are in multiple menus
+SELECT modules_unfinished.title, module_menu_unfinished.name, modules_unfinished.tucan_id FROM module_menu_module NATURAL JOIN (SELECT module_id FROM module_menu_module GROUP BY module_id HAVING COUNT(*) != 1) dm JOIN module_menu_unfinished ON module_menu_unfinished.tucan_id = module_menu_module.module_menu_id JOIN modules_unfinished ON modules_unfinished.tucan_id = module_menu_module.module_id ORDER BY modules_unfinished.tucan_id;
 
 -- https://www.postgresql.org/docs/current/queries-with.html
+-- get path from module menu entry to root
 WITH RECURSIVE search_tree(parent, child) AS (
     SELECT t.parent, t.child
-    FROM module_menu_tree t WHERE child = decode('AAFWRgfUoQwAAU0igA5HiwABOeh5Z465', 'base64')
+    FROM module_menu_tree t JOIN module_menu_module mmm ON mmm.module_menu_id = t.child WHERE mmm.module_id = '\x000154f481a77362'
   UNION ALL
     SELECT t.parent, t.child
     FROM module_menu_tree t, search_tree st
