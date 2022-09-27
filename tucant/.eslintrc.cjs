@@ -10,6 +10,7 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:react/recommended",
     "standard-with-typescript",
+    "plugin:react/jsx-runtime",
   ],
   parser: "@typescript-eslint/parser",
   overrides: [],
@@ -18,8 +19,16 @@ module.exports = {
     sourceType: "module",
     tsconfigRootDir: __dirname,
     project: ["./tsconfig.json"],
+    ecmaFeatures: {
+      jsx: true,
+    },
   },
   plugins: ["react", "@typescript-eslint"],
   rules: {},
   root: true,
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
 };
