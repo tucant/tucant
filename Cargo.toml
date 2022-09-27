@@ -35,7 +35,7 @@ derive_more = "0.99"
 itertools = "0.10"
 either = "1"
 once_cell = "1"
-diesel_full_text_search = { path = "../diesel_full_text_search" }
+diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "mohe2015-patch-1" }
 
 [patch.crates-io]
-diesel = { path = "../diesel/diesel" }
+diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-type" }
