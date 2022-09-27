@@ -1,3 +1,4 @@
+use crate::s_search_course::encode;
 use crate::{MyError, SearchQuery};
 use actix_session::Session;
 use actix_web::Responder;
@@ -33,7 +34,7 @@ pub async fn search_module(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            modules_unfinished::tucan_id,
+            encode(modules_unfinished::tucan_id, "base64"),
             modules_unfinished::title,
             ts_headline_with_search_config(
                 config,
@@ -48,7 +49,7 @@ pub async fn search_module(
         ));
 
     let result = sql_query
-        .load::<(Vec<u8>, String, String, f32)>(&mut connection)
+        .load::<(String, String, String, f32)>(&mut connection)
         .await?;
 
     Ok(Json(result))

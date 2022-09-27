@@ -19,7 +19,7 @@ pub async fn course(
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await?;
 
-    let course_result = courses_unfinished::table
+    let result = courses_unfinished::table
         .filter(courses_unfinished::tucan_id.eq(base64::decode(path.as_bytes()).unwrap()))
         .select((
             courses_unfinished::tucan_id,
@@ -33,5 +33,5 @@ pub async fn course(
         .get_result::<Course>(&mut connection)
         .await?;
 
-    Ok(Json(course_result))
+    Ok(Json(result))
 }

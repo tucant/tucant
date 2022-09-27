@@ -25,6 +25,7 @@ root.render(
           <Route path="search-modules" element={<SearchModules />} />
           <Route path="search-courses" element={<SearchCourses />} />
           <Route path="modules/*" element={<ModuleOrModules />} />
+          <Route path="module/*" element={<Module />} />
           <Route path="course/*" element={<Course />} />
           <Route index element={<Welcome />} />
           <Route
