@@ -29,7 +29,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    
+    - run: ls -la /home/runner/work/tucant/tucant
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
