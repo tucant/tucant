@@ -1,15 +1,22 @@
-use actix_web::{web::{Data, Path, Json}, get};
-use tucan_scraper::{tucan::Tucan, models::{ModuleMenu, Module}, schema::{module_menu_unfinished, module_menu_tree, module_menu_module, modules_unfinished}};
-use actix_web::Responder;
-use crate::{MyError, ModulesOrModuleMenus};
+use crate::{ModulesOrModuleMenus, MyError};
 use actix_web::Either;
-use diesel::NullableExpressionMethods;
-use diesel::QueryDsl;
-use diesel::JoinOnDsl;
-use diesel::ExpressionMethods;
-use diesel_async::RunQueryDsl;
-use diesel::PgExpressionMethods;
+use actix_web::Responder;
+use actix_web::{
+    get,
+    web::{Data, Json, Path},
+};
 use diesel::BoolExpressionMethods;
+use diesel::ExpressionMethods;
+use diesel::JoinOnDsl;
+use diesel::NullableExpressionMethods;
+use diesel::PgExpressionMethods;
+use diesel::QueryDsl;
+use diesel_async::RunQueryDsl;
+use tucan_scraper::{
+    models::{Module, ModuleMenu},
+    schema::{module_menu_module, module_menu_tree, module_menu_unfinished, modules_unfinished},
+    tucan::Tucan,
+};
 
 // trailing slash is menu
 #[get("/modules{tail:.*}")]

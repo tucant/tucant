@@ -1,14 +1,9 @@
 mod csrf_middleware;
+mod s_get_modules;
 mod s_search_course;
 mod s_search_module;
-mod s_get_modules;
 mod s_setup;
 
-use s_get_modules::get_modules;
-use s_search_course::search_course;
-use s_search_module::search_module;
-use s_setup::setup;
-use std::fmt::Display;
 use actix_cors::Cors;
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
@@ -16,18 +11,13 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 use csrf_middleware::CsrfMiddleware;
-use diesel::debug_query;
-use diesel::pg::Pg;
-use diesel::prelude::*;
 use diesel_async::pooled_connection::PoolError;
-use diesel_async::RunQueryDsl;
-use diesel_full_text_search::configuration::TsConfigurationByName;
-use diesel_full_text_search::ts_headline_with_search_config;
-use diesel_full_text_search::ts_rank_cd_normalized;
-use diesel_full_text_search::websearch_to_tsquery_with_search_config;
-use diesel_full_text_search::TsVectorExtensions;
+use s_get_modules::get_modules;
+use s_search_course::search_course;
+use s_search_module::search_module;
+use s_setup::setup;
 use serde::{Deserialize, Serialize};
-use tucan_scraper::schema::*;
+use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,

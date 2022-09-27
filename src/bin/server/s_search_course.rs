@@ -1,13 +1,19 @@
-use actix_web::{get, web::{Data, Query, Json}};
-use diesel_full_text_search::{configuration::TsConfigurationByName, websearch_to_tsquery_with_search_config, ts_rank_cd_normalized, ts_headline_with_search_config};
-use tucan_scraper::{tucan::Tucan, schema::courses_unfinished};
+use crate::{MyError, SearchQuery};
 use actix_web::Responder;
-use crate::{SearchQuery, MyError};
-use diesel::QueryDsl;
-use diesel_full_text_search::TsVectorExtensions;
+use actix_web::{
+    get,
+    web::{Data, Json, Query},
+};
 use diesel::ExpressionMethods;
+use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
 use diesel_async::RunQueryDsl;
+use diesel_full_text_search::TsVectorExtensions;
+use diesel_full_text_search::{
+    configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
+    websearch_to_tsquery_with_search_config,
+};
+use tucan_scraper::{schema::courses_unfinished, tucan::Tucan};
 
 #[get("/search-course")]
 pub async fn search_course(

@@ -170,7 +170,7 @@ impl TucanUser {
         let content = document
             .select(&s("#contentlayoutleft tr.tbdata"))
             .next()
-            .unwrap_or_else(|| { panic!("{}", document.root_element().inner_html()) })
+            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
             .inner_html();
 
         let courses = document
@@ -288,7 +288,7 @@ impl TucanUser {
         let content = document
             .select(&s("#contentlayoutleft td.tbdata"))
             .next()
-            .unwrap_or_else(|| { panic!("{}", document.root_element().inner_html()) })
+            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
             .inner_html();
 
         let course = Course {

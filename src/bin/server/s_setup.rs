@@ -1,24 +1,23 @@
+use crate::Coursedetails;
+use crate::Moduledetails;
+use crate::MyError;
+use crate::Registration;
+use crate::Tucan;
+use crate::TucanSession;
+use crate::TucanUser;
+use actix_session::Session;
 use actix_web::post;
 use actix_web::web::Bytes;
 use actix_web::web::Data;
-use tucan_scraper::tucan_user::RegistrationEnum;
-use core::pin::Pin;
-use futures::Stream;
-use crate::MyError;
-use crate::TucanUser;
-use crate::Registration;
-use futures_util::StreamExt;
 use actix_web::HttpResponse;
+use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
-use crate::TucanSession;
-use actix_web::Responder;
-use actix_session::Session;
+use core::pin::Pin;
 use futures::stream::FuturesUnordered;
-use crate::Moduledetails;
-use crate::Coursedetails;
-use crate::Tucan;
-
+use futures::Stream;
+use futures_util::StreamExt;
+use tucan_scraper::tucan_user::RegistrationEnum;
 
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,
