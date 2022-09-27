@@ -57,7 +57,9 @@ export default function Module() {
           </Typography>
           <Chip label={`${data.credits} Credits`} />
           <div
-            dangerouslySetInnerHTML={{ __html: dompurify.sanitize(data.content) }}
+            dangerouslySetInnerHTML={{
+              __html: dompurify.sanitize(data.content),
+            }}
           ></div>
         </>
       )}

@@ -56,7 +56,9 @@ export default function Course() {
             {data.course_id} {data.title}
           </Typography>
           <div
-            dangerouslySetInnerHTML={{ __html: dompurify.sanitize(data.content) }}
+            dangerouslySetInnerHTML={{
+              __html: dompurify.sanitize(data.content),
+            }}
           ></div>
         </>
       )}

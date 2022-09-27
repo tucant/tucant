@@ -67,17 +67,37 @@ export default function SearchModules() {
   return (
     <>
       <Typography variant="h2">Modulsuche</Typography>
-      <TextField name="q" onChange={handleInputChange} value={form.q} id="standard-basic" label="Suche" variant="standard" margin="normal" />
+      <TextField
+        name="q"
+        onChange={handleInputChange}
+        value={form.q}
+        id="standard-basic"
+        label="Suche"
+        variant="standard"
+        margin="normal"
+      />
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
 
       <p>
         The following syntax is supported:
         <ul>
-          <li>unquoted text: text not inside quote marks means all words need to occur in the document</li>
-          <li>"quoted text": text inside quote marks means the words need to be in the document in that order</li>
-          <li>OR: the word “or” means one of the words needs to occur in the document</li>
-          <li>-: a dash means a word is not allowed to be contained in the document</li>
+          <li>
+            unquoted text: text not inside quote marks means all words need to
+            occur in the document
+          </li>
+          <li>
+            "quoted text": text inside quote marks means the words need to be in
+            the document in that order
+          </li>
+          <li>
+            OR: the word “or” means one of the words needs to occur in the
+            document
+          </li>
+          <li>
+            -: a dash means a word is not allowed to be contained in the
+            document
+          </li>
         </ul>
       </p>
 
@@ -86,10 +106,16 @@ export default function SearchModules() {
           data.map((e: [number, string, string, number]) => (
             <RouterLink
               to={`/module/${e[0]}`}
-              text={<span><Chip label={e[3].toFixed(3)} /> {e[1]}</span>}
-              secondary_text={<span
-                dangerouslySetInnerHTML={{ __html: dompurify.sanitize(e[2]) }}
-              ></span>}
+              text={
+                <span>
+                  <Chip label={e[3].toFixed(3)} /> {e[1]}
+                </span>
+              }
+              secondary_text={
+                <span
+                  dangerouslySetInnerHTML={{ __html: dompurify.sanitize(e[2]) }}
+                ></span>
+              }
             ></RouterLink>
           ))}
       </List>
