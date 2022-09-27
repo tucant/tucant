@@ -1,9 +1,11 @@
 mod csrf_middleware;
 mod s_search_course;
 mod s_get_modules;
+mod s_setup;
 
 use s_get_modules::get_modules;
 use s_search_course::search_course;
+use s_setup::setup;
 use std::io::Error;
 
 use std::fmt::Display;
@@ -119,134 +121,6 @@ async fn login(
 async fn logout(session: Session) -> Result<impl Responder, MyError> {
     session.purge();
     Ok(HttpResponse::Ok())
-}
-
-async fn yield_stream(
-    stream: &mut async_stream::Stream<Bytes>,
-    mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>,
-) -> Result<(), MyError> {
-    loop {
-        match inner_stream.next().await {
-            Some(Ok(value)) => {
-                stream.yield_item(value).await;
-            }
-            Some(err @ Err(_)) => {
-                err?;
-            }
-            None => {
-                break Ok(());
-            }
-        }
-    }
-}
-
-fn fetch_registration(
-    tucan: TucanUser,
-    parent: Registration,
-) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
-    Box::pin(try_stream(move |mut stream| async move {
-        let value = tucan.registration(parent.clone()).await?;
-
-        stream
-            .yield_item(Bytes::from(format!("menu {}", value.0.name)))
-            .await;
-
-        match value.1 {
-            RegistrationEnum::Submenu(submenu) => {
-                yield_stream(
-                    &mut stream,
-                    Box::pin(
-                        futures::stream::iter(submenu.into_iter())
-                            .map(move |menu| {
-                                fetch_registration(
-                                    tucan.clone(),
-                                    Registration {
-                                        path: menu.tucan_id,
-                                    },
-                                )
-                            })
-                            .flatten_unordered(None),
-                    ),
-                )
-                .await?;
-            }
-            RegistrationEnum::Modules(modules) => {
-                let mut futures: FuturesUnordered<_> = modules
-                    .iter()
-                    .map(|module| async {
-                        // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
-                        let module = tucan
-                            .module(Moduledetails {
-                                id: module.tucan_id.clone(),
-                            })
-                            .await
-                            .unwrap();
-
-                        // TODO FIXME make this in parallel for absolute overkill?
-                        for course in module.1 {
-                            tucan
-                                .course(Coursedetails {
-                                    id: course.tucan_id.clone(),
-                                })
-                                .await
-                                .unwrap();
-                        }
-
-                        module.0
-                    })
-                    .collect();
-
-                while let Some(module) = futures.next().await {
-                    stream
-                        .yield_item(Bytes::from(format!("module {}", module.title)))
-                        .await;
-                }
-            }
-        }
-
-        Ok(())
-    }))
-}
-
-#[post("/setup")]
-async fn setup(tucan: web::Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
-    match session.get::<TucanSession>("session").unwrap() {
-        Some(session) => {
-            let stream = try_stream(move |mut stream| async move {
-                stream
-                    .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
-                    .await;
-
-                let tucan = tucan.continue_session(session).await.unwrap();
-
-                let root = tucan.root_registration().await.unwrap();
-
-                let input = fetch_registration(
-                    tucan,
-                    Registration {
-                        path: root.tucan_id,
-                    },
-                );
-
-                yield_stream(&mut stream, input).await.unwrap();
-
-                stream.yield_item(Bytes::from("Fertig!")).await;
-
-                let return_value: Result<(), Error> = Ok(());
-
-                return_value
-            });
-
-            // TODO FIXME search for <h1>Timeout!</h1>
-
-            Ok(HttpResponse::Ok()
-                .content_type("text/plain")
-                .streaming(stream))
-        }
-        None => Ok(HttpResponse::Ok()
-            .content_type("text/plain")
-            .body("not logged in")),
-    }
 }
 
 #[get("/")]
