@@ -1,19 +1,19 @@
-import * as React from 'react'
-import Avatar from '@mui/material/Avatar'
-import CssBaseline from '@mui/material/CssBaseline'
-import TextField from '@mui/material/TextField'
-import Link from '@mui/material/Link'
-import Box from '@mui/material/Box'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { useState } from 'react'
-import LoadingButton from '@mui/lab/LoadingButton'
-import Alert from '@mui/material/Alert'
-import { useNavigate } from 'react-router-dom'
+import * as React from "react";
+import Avatar from "@mui/material/Avatar";
+import CssBaseline from "@mui/material/CssBaseline";
+import TextField from "@mui/material/TextField";
+import Link from "@mui/material/Link";
+import Box from "@mui/material/Box";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useState } from "react";
+import LoadingButton from "@mui/lab/LoadingButton";
+import Alert from "@mui/material/Alert";
+import { useNavigate } from "react-router-dom";
 
-function Copyright (props: any) {
+function Copyright(props: any) {
   return (
     <Typography
       variant="body2"
@@ -21,69 +21,69 @@ function Copyright (props: any) {
       align="center"
       {...props}
     >
-      {'Copyright © '}
+      {"Copyright © "}
       <Link color="inherit" href="https://github.com/mohe2015/tucant">
         tucant
-      </Link>{' '}
+      </Link>{" "}
       {new Date().getFullYear()}
-      {'.'}
+      {"."}
     </Typography>
-  )
+  );
 }
 
-const theme = createTheme()
+const theme = createTheme();
 
-export default function SignIn () {
-  const navigate = useNavigate()
+export default function SignIn() {
+  const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    username: '',
-    password: ''
-  })
+    username: "",
+    password: "",
+  });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const target = event.target
-    const value = target.type === 'checkbox' ? target.checked : target.value
-    const name = target.name
+    const target = event.target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
 
     setForm({
       ...form,
-      [name]: value
-    } as any)
-  }
+      [name]: value,
+    } as any);
+  };
 
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
-    setError(null)
-    setLoading(true)
+    setError(null);
+    setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/login', {
-        credentials: 'include',
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/login", {
+        credentials: "include",
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-csrf-protection': 'tucant'
+          "Content-Type": "application/json",
+          "x-csrf-protection": "tucant",
         },
-        body: JSON.stringify(form)
-      })
-      const result = await response.json()
+        body: JSON.stringify(form),
+      });
+      const result = await response.json();
 
       if (result.success) {
-        navigate('/')
+        navigate("/");
       } else {
-        setError(String('Falscher Nutzername oder falsches Passwort!'))
+        setError(String("Falscher Nutzername oder falsches Passwort!"));
       }
     } catch (error) {
-      setError(String(error))
+      setError(String(error));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -92,12 +92,12 @@ export default function SignIn () {
         <Box
           sx={{
             marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
@@ -149,5 +149,5 @@ export default function SignIn () {
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>
-  )
+  );
 }

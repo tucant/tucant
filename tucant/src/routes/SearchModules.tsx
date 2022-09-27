@@ -1,68 +1,68 @@
-import { Button, Chip, TextField } from '@mui/material'
-import Alert from '@mui/material/Alert'
-import LinearProgress from '@mui/material/LinearProgress'
-import List from '@mui/material/List'
-import Typography from '@mui/material/Typography'
-import dompurify from 'dompurify'
-import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
-import { RouterLink } from '../MiniDrawer'
-import InitialFetch from './InitialFetch'
-import Module from './Module'
+import { Button, Chip, TextField } from "@mui/material";
+import Alert from "@mui/material/Alert";
+import LinearProgress from "@mui/material/LinearProgress";
+import List from "@mui/material/List";
+import Typography from "@mui/material/Typography";
+import dompurify from "dompurify";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { RouterLink } from "../MiniDrawer";
+import InitialFetch from "./InitialFetch";
+import Module from "./Module";
 
-export default function SearchModules () {
-  const location = useLocation()
+export default function SearchModules() {
+  const location = useLocation();
 
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    q: ''
-  })
+    q: "",
+  });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const target = event.target
-    const value = target.value
-    const name = target.name
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
 
     setForm({
       ...form,
-      [name]: value
-    } as any)
-  }
+      [name]: value,
+    } as any);
+  };
 
   useEffect(() => {
     const getData = async () => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
         const response = await fetch(
           // TODO FIXME url injection
           `http://localhost:8080/search-module?q=${form.q}`,
           {
-            credentials: 'include'
+            credentials: "include",
           }
-        )
+        );
         if (!response.ok) {
           throw new Error(
             `This is an HTTP error: The status is ${
               response.status
             }. ${await response.text()}`
-          )
+          );
         }
-        const actualData = await response.json()
-        setData(actualData)
-        setError(null)
+        const actualData = await response.json();
+        setData(actualData);
+        setError(null);
       } catch (err) {
-        setError(String(err))
-        setData(null)
+        setError(String(err));
+        setData(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    getData()
-  }, [form])
+    };
+    getData();
+  }, [form]);
 
   return (
     <>
@@ -120,5 +120,5 @@ export default function SearchModules () {
           ))}
       </List>
     </>
-  )
+  );
 }

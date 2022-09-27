@@ -9,7 +9,6 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:react/recommended",
-    "standard-with-typescript",
     "plugin:react/jsx-runtime",
   ],
   parser: "@typescript-eslint/parser",
