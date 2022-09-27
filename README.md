@@ -11,9 +11,9 @@ This means unexpected changes there can cause your application to panic. We deci
 # You might need to install libpq before: sudo apt install libpq-dev
 cargo install diesel_cli --no-default-features --features postgres
 
-# Depending on your system you might have to run these without sudo
-sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
-sudo docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
+# Depending on your system you might have to run these with sudo
+docker build . -f Dockerfile-postgres --tag postgres-hunspell
+docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 
 $HOME/.cargo/bin/diesel setup
 
