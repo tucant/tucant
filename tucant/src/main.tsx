@@ -5,7 +5,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
 import Welcome from "./routes/Welcome";
-import Modules from "./routes/Modules";
 import Module from "./routes/Module";
 import ModuleOrModules from "./routes/ModuleOrModules";
 import SearchModules from "./routes/SearchModules";

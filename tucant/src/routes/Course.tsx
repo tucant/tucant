@@ -1,12 +1,8 @@
-import { Button, Chip } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
-import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { RouterLink } from "../MiniDrawer";
-import InitialFetch from "./InitialFetch";
 import dompurify from "dompurify";
 
 export default function Course() {

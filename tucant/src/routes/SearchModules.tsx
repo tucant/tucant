@@ -1,4 +1,4 @@
-import { Button, Chip, TextField } from "@mui/material";
+import { Chip, TextField } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -7,8 +7,6 @@ import dompurify from "dompurify";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
-import InitialFetch from "./InitialFetch";
-import Module from "./Module";
 
 export default function SearchModules() {
   const location = useLocation();

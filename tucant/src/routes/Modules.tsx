@@ -1,4 +1,4 @@
-import { Breadcrumbs, Button, Link } from "@mui/material";
+import { Breadcrumbs, Link } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
-import Module from "./Module";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 export default function Modules() {
