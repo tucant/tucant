@@ -11,10 +11,6 @@ on:
 
 jobs:
   build:
-    defaults:
-      run:
-        working-directory: tucant
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -24,14 +20,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        path: '..'
-    - run: ls -la /home/runner/work/tucant/tucant
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm ci
+      working-directory: tucant
     - run: npm run build --if-present
+      working-directory: tucant
     - run: npm test
+      working-directory: tucant
