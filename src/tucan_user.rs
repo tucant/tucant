@@ -30,7 +30,7 @@ use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use log::{debug, error, trace};
+use log::{debug, trace};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
