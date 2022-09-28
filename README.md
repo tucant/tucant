@@ -57,9 +57,6 @@ psql postgres://postgres:password@localhost:5432/tucant
 ## Interesting queries
 
 ```sql
--- there don't seem to be module entries that have multiple parents
-SELECT child, COUNT(*) FROM module_menu_tree GROUP BY child HAVING COUNT(*) != 1;
-
 -- there seem to be modules that are in multiple menus
 SELECT modules_unfinished.title, module_menu_unfinished.name, modules_unfinished.tucan_id FROM module_menu_module NATURAL JOIN (SELECT module_id FROM module_menu_module GROUP BY module_id HAVING COUNT(*) != 1) dm JOIN module_menu_unfinished ON module_menu_unfinished.tucan_id = module_menu_module.module_menu_id JOIN modules_unfinished ON modules_unfinished.tucan_id = module_menu_module.module_id ORDER BY modules_unfinished.tucan_id;
 
