@@ -12,6 +12,9 @@ import { useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
+import { LoginResponseSchema } from "../validation-io-ts";
+import { isLeft } from "fp-ts/lib/Either";
+import { PathReporter } from "io-ts/lib/PathReporter";
 
 function Copyright(props: TypographyTypeMap<{}, "span">["props"]) {
   return (
@@ -71,9 +74,15 @@ export default function SignIn() {
         },
         body: JSON.stringify(form),
       });
-      const result = await response.json();
-
-      if (result.success) {
+      const actualData = LoginResponseSchema.decode(await response.json());
+      if (isLeft(actualData)) {
+        throw new Error(
+          `Internal Error: Invalid data format in response ${PathReporter.report(
+            actualData
+          ).join("\n")}`
+        );
+      }
+      if (actualData.right.success) {
         navigate("/");
       } else {
         setError(String("Falscher Nutzername oder falsches Passwort!"));

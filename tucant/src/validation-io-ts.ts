@@ -34,3 +34,9 @@ export const ModuleSchema = strict({
 });
 
 export type ModuleType = TypeOf<typeof ModuleSchema>;
+
+export const LoginResponseSchema = strict({
+  success: boolean,
+});
+
+export type LoginResponseType = TypeOf<typeof LoginResponseSchema>;

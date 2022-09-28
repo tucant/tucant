@@ -14,7 +14,6 @@
     "@mui/icons-material": "^5.10.3",
     "@mui/lab": "^5.0.0-alpha.99",
     "@mui/material": "^5.10.5",
-    "ajv": "^8.11.0",
     "dompurify": "^2.4.0",
     "fp-ts": "^2.12.3",
     "io-ts": "^2.2.18",
