@@ -1,2 +1,3 @@
 /backend-rust/target
 /backend-rust/sessions.key
+.eslintcache
