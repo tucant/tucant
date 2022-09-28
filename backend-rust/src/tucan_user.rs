@@ -30,7 +30,7 @@ use diesel::ExpressionMethods;
 use diesel::JoinOnDsl;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use log::{debug, trace};
+use log::debug;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -114,7 +114,7 @@ impl TucanUser {
             .optional()?;
 
         if let Some(existing_module) = existing_module {
-            trace!("[~] module {:?}", existing_module);
+            debug!("[~] module {:?}", existing_module);
 
             let course_list = ModuleCourse::belonging_to(&existing_module)
                 .inner_join(courses_unfinished::table)
@@ -204,7 +204,7 @@ impl TucanUser {
             done: true,
         };
 
-        trace!("[+] module {:?}", module);
+        debug!("[+] module {:?}", module);
 
         let mut connection = self.tucan.pool.get().await?;
 
@@ -367,7 +367,7 @@ impl TucanUser {
 
         match existing_registration_already_fetched {
             Some(module_menu @ ModuleMenu { child_type: 1, .. }) => {
-                trace!("[~] menu {:?}", module_menu);
+                debug!("[~] menu {:?}", module_menu);
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
@@ -383,7 +383,7 @@ impl TucanUser {
                 return Ok((module_menu, RegistrationEnum::Submenu(submenus)));
             }
             Some(module_menu @ ModuleMenu { child_type: 2, .. }) => {
-                trace!("[~] menu {:?}", module_menu);
+                debug!("[~] menu {:?}", module_menu);
 
                 // existing submodules
                 let submodules = module_menu_module::table
@@ -440,7 +440,7 @@ impl TucanUser {
             child_type,
         };
 
-        trace!("[+] menu {:?}", module_menu);
+        debug!("[+] menu {:?}", module_menu);
 
         let mut connection = self.tucan.pool.get().await?;
 

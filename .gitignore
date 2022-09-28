@@ -1,6 +1,3 @@
-/target
-*.db
-*.db-shm
-*.db-wal
-sessions.key
+/backend-rust/target
+/backend-rust/sessions.key
 .eslintcache
