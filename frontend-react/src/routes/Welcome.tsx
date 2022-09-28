@@ -12,33 +12,33 @@ export default function Welcome() {
 
   useEffect(() => {
     const getData = async () => {
-      try {
-        const response = await fetch("http://localhost:8080", {
-          credentials: "include",
-        });
-        if (!response.ok) {
-          throw new Error(
-            `This is an HTTP error: The status is ${response.status}`
-          );
-        }
-        const actualData = WelcomeSchema.decode(await response.json());
-        if (isLeft(actualData)) {
-          throw new Error(
-            `Internal Error: Invalid data format in response ${PathReporter.report(
-              actualData
-            ).join("\n")}`
-          );
-        }
-        setData(actualData.right);
-        setError(null);
-      } catch (err) {
+      const response = await fetch("http://localhost:8080", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(
+          `This is an HTTP error: The status is ${response.status}`
+        );
+      }
+      const actualData = WelcomeSchema.decode(await response.json());
+      if (isLeft(actualData)) {
+        throw new Error(
+          `Internal Error: Invalid data format in response ${PathReporter.report(
+            actualData
+          ).join("\n")}`
+        );
+      }
+      setData(actualData.right);
+      setError(null);
+    };
+    getData()
+      .catch((err) => {
         setError(String(err));
         setData(null);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-    getData();
+      });
   }, []);
 
   return (

@@ -8,8 +8,6 @@ import {
   union,
   tuple,
   array,
-  StrictC,
-  taggedUnion,
 } from "io-ts";
 
 // https://github.com/gcanti/io-ts/blob/master/index.md
@@ -45,7 +43,7 @@ export const LoginResponseSchema = strict({
 export type LoginResponseType = TypeOf<typeof LoginResponseSchema>;
 
 export const SearchResultSchema = array(
-  tuple([number, string, string, number])
+  tuple([string, string, string, number])
 );
 
 export type SearchResultType = TypeOf<typeof SearchResultSchema>;

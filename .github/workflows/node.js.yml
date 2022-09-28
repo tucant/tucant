@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: tucant
+        working-directory: frontend-react
 
     steps:
       - uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
             ${{ runner.os }}-node-
       - run: npm ci
       - run: npm audit
-      - run: ./tucant/node_modules/.bin/prettier --check .
+      - run: ./frontend-react/node_modules/.bin/prettier --check .
         working-directory: .
       - run: npm run build
       - run: ./node_modules/.bin/eslint .

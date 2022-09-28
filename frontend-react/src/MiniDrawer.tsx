@@ -104,23 +104,24 @@ export const RouterLink = (props: RouterLinkProps) => {
   type MyNavLinkProps = Omit<NavLinkProps, "to">;
   const MyNavLink = React.useMemo(
     () =>
-      React.forwardRef<HTMLAnchorElement, MyNavLinkProps>(
-        (navLinkProps, ref) => {
-          const { className: previousClasses, ...rest } = navLinkProps;
-          const elementClasses = previousClasses?.toString() ?? "";
-          return (
-            <NavLink
-              {...rest}
-              ref={ref}
-              to={props.to}
-              end
-              className={({ isActive }) =>
-                isActive ? elementClasses + " Mui-selected" : elementClasses
-              }
-            />
-          );
-        }
-      ),
+      React.forwardRef<HTMLAnchorElement, MyNavLinkProps>(function test(
+        navLinkProps,
+        ref
+      ) {
+        const { className: previousClasses, ...rest } = navLinkProps;
+        const elementClasses = previousClasses?.toString() ?? "";
+        return (
+          <NavLink
+            {...rest}
+            ref={ref}
+            to={props.to}
+            end
+            className={({ isActive }) =>
+              isActive ? elementClasses + " Mui-selected" : elementClasses
+            }
+          />
+        );
+      }),
     [props.to]
   );
   return (
