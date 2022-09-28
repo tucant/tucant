@@ -1,15 +1,19 @@
-# tucan-scraper
+# tucant
 
-## Design
+## Architecture
 
-Panics are used for unexpected things including changes to the TUCAN interaction.
-This means unexpected changes there can cause your application to panic. We decided to do this because there usually wouldn't be a better thing to do at the application side as you could just reject that particular operation otherwise. You can probably wrap a function call in an unwind wrapper if you really need this. "Expected" things like session timeout, service unavailable etc will return an Err.
+### Backend
 
-## Installation
+The backend is written in [Rust](https://www.rust-lang.org/) and is supposed to crawl TUCaN when first logging in. This data is then stored in a database to allow arbitrary analysis with it. There are also some web API endpoints for common things like navigating modules and full text search.
+
+### Frontend
+
+The frontend is written using [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/). It should be a much faster, nicer looking and more featureful frontend to TUCaN.
+
+## Installation of backend
 
 ```bash
-# if you want automatic formatting and linting on commit
-ln -srf pre-commit.sh .git/hooks/pre-commit
+cd backend-rust
 
 # You might need to install libpq before: sudo apt install libpq-dev
 cargo install diesel_cli --no-default-features --features postgres
@@ -21,8 +25,12 @@ docker run -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=passw
 $HOME/.cargo/bin/diesel setup
 
 RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run
+```
 
-cd tucant
+## Installation of frontend
+
+```bash
+cd frontend-react
 npm install
 npm run dev
 ```
@@ -30,11 +38,18 @@ npm run dev
 ## Development
 
 ```bash
+# if you want automatic formatting and linting on commit
+ln -srf pre-commit.sh .git/hooks/pre-commit
+
+# run some tests (currently not many)
+cd backend-rust
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 
+# nice gui to access the database
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub io.dbeaver.DBeaverCommunity
 
+# console application to access the database
 # Only used for debugging, you may need to install psql first: sudo apt-get install postgresql
 psql postgres://postgres:password@localhost:5432/tucant
 ```
