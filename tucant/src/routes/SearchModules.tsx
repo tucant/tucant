@@ -43,41 +43,41 @@ export default function SearchModules() {
 
   useEffect(() => {
     const getData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(
-          // TODO FIXME url injection
-          `http://localhost:8080/search-module?q=${form.q}`,
-          {
-            credentials: "include",
-          }
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        // TODO FIXME url injection
+        `http://localhost:8080/search-module?q=${form.q}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(
+          `This is an HTTP error: The status is ${
+            response.status
+          }. ${await response.text()}`
         );
-        if (!response.ok) {
-          throw new Error(
-            `This is an HTTP error: The status is ${
-              response.status
-            }. ${await response.text()}`
-          );
-        }
-        const actualData = SearchResultSchema.decode(await response.json());
-        if (isLeft(actualData)) {
-          throw new Error(
-            `Internal Error: Invalid data format in response ${PathReporter.report(
-              actualData
-            ).join("\n")}`
-          );
-        }
-        setData(actualData.right);
-        setError(null);
-      } catch (err) {
+      }
+      const actualData = SearchResultSchema.decode(await response.json());
+      if (isLeft(actualData)) {
+        throw new Error(
+          `Internal Error: Invalid data format in response ${PathReporter.report(
+            actualData
+          ).join("\n")}`
+        );
+      }
+      setData(actualData.right);
+      setError(null);
+    };
+    getData()
+      .catch((err) => {
         setError(String(err));
         setData(null);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-    getData();
+      });
   }, [form]);
 
   return (

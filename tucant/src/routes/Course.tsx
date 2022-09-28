@@ -9,6 +9,7 @@ import { PathReporter } from "io-ts/PathReporter";
 import { isLeft } from "fp-ts/lib/Either";
 
 export default function Course() {
+  // TODO refactor into Hook
   const [data, setData] = useState<CourseType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,38 +17,38 @@ export default function Course() {
 
   useEffect(() => {
     const getData = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:8080${location.pathname}`,
-          {
-            credentials: "include",
-          }
+      const response = await fetch(
+        `http://localhost:8080${location.pathname}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(
+          `This is an HTTP error: The status is ${
+            response.status
+          }. ${await response.text()}`
         );
-        if (!response.ok) {
-          throw new Error(
-            `This is an HTTP error: The status is ${
-              response.status
-            }. ${await response.text()}`
-          );
-        }
-        const actualData = CourseSchema.decode(await response.json());
-        if (isLeft(actualData)) {
-          throw new Error(
-            `Internal Error: Invalid data format in response ${PathReporter.report(
-              actualData
-            ).join("\n")}`
-          );
-        }
-        setData(actualData.right);
-        setError(null);
-      } catch (err) {
+      }
+      const actualData = CourseSchema.decode(await response.json());
+      if (isLeft(actualData)) {
+        throw new Error(
+          `Internal Error: Invalid data format in response ${PathReporter.report(
+            actualData
+          ).join("\n")}`
+        );
+      }
+      setData(actualData.right);
+      setError(null);
+    };
+    getData()
+      .catch((err) => {
         setError(String(err));
         setData(null);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-    getData();
+      });
   }, [location]);
 
   return (
