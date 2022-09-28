@@ -1,5 +1,4 @@
 import {
-  type,
   string,
   number,
   boolean,
@@ -7,6 +6,8 @@ import {
   TypeOf,
   nullType,
   union,
+  tuple,
+  array,
 } from "io-ts";
 
 // https://github.com/gcanti/io-ts/blob/master/index.md
@@ -40,3 +41,9 @@ export const LoginResponseSchema = strict({
 });
 
 export type LoginResponseType = TypeOf<typeof LoginResponseSchema>;
+
+export const SearchResultSchema = array(
+  tuple([number, string, string, number])
+);
+
+export type SearchResultType = TypeOf<typeof SearchResultSchema>;

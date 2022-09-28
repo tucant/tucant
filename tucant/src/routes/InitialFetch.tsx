@@ -3,7 +3,7 @@ import Alert from "@mui/material/Alert";
 import { useState } from "react";
 
 export default function InitialFetch() {
-  const [data, setData] = useState<any>("");
+  const [data, setData] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
