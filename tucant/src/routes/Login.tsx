@@ -15,8 +15,11 @@ import { useNavigate } from "react-router-dom";
 import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
+import { keyof } from "io-ts";
 
-function Copyright(props: TypographyTypeMap<{}, "span">["props"]) {
+function Copyright(
+  props: TypographyTypeMap<Record<string, unknown>, "span">["props"]
+) {
   return (
     <Typography
       variant="body2"
@@ -50,21 +53,32 @@ export default function SignIn() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
 
+    const AllowedNames = keyof({
+      username: null,
+      password: null,
+    });
+    const name = AllowedNames.decode(target.name);
+    if (isLeft(name)) {
+      throw new Error(
+        `Internal Error: Invalid data format in response ${PathReporter.report(
+          name
+        ).join("\n")}`
+      );
+    }
     setForm({
       ...form,
-      [name]: value,
-    } as any);
+      [name.right]: value,
+    });
   };
 
-  const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setError(null);
-    setLoading(true);
+    (async () => {
+      setError(null);
+      setLoading(true);
 
-    try {
       const response = await fetch("http://localhost:8080/login", {
         credentials: "include",
         method: "POST",
@@ -87,11 +101,9 @@ export default function SignIn() {
       } else {
         setError(String("Falscher Nutzername oder falsches Passwort!"));
       }
-    } catch (error) {
-      setError(String(error));
-    } finally {
-      setLoading(false);
-    }
+    })()
+      .catch((error) => setError(String(error)))
+      .finally(() => setLoading(false));
   };
 
   return (

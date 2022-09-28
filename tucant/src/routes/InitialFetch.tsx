@@ -12,11 +12,11 @@ export default function InitialFetch() {
       {error && <Alert severity="error">{error}</Alert>}
       <LoadingButton
         loading={loading}
-        onClick={async (event) => {
-          setError(null);
-          setLoading(true);
+        onClick={() => {
+          (async () => {
+            setError(null);
+            setLoading(true);
 
-          try {
             const response = await fetch("http://localhost:8080/setup", {
               credentials: "include",
               method: "POST",
@@ -31,11 +31,13 @@ export default function InitialFetch() {
             while (!(value = await reader?.read())?.done) {
               setData(new TextDecoder().decode(value?.value));
             }
-          } catch (error) {
-            setError(String(error));
-          } finally {
-            setLoading(false);
-          }
+          })()
+            .catch((error) => {
+              setError(String(error));
+            })
+            .finally(() => {
+              setLoading(false);
+            });
         }}
       >
         Initial sync

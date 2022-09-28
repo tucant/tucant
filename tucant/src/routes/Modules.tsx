@@ -24,38 +24,38 @@ export default function Modules() {
 
   useEffect(() => {
     const getData = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:8080${location.pathname}`,
-          {
-            credentials: "include",
-          }
+      const response = await fetch(
+        `http://localhost:8080${location.pathname}`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(
+          `This is an HTTP error: The status is ${
+            response.status
+          }. ${await response.text()}`
         );
-        if (!response.ok) {
-          throw new Error(
-            `This is an HTTP error: The status is ${
-              response.status
-            }. ${await response.text()}`
-          );
-        }
-        const actualData = ModulesResponseSchema.decode(await response.json());
-        if (isLeft(actualData)) {
-          throw new Error(
-            `Internal Error: Invalid data format in response ${PathReporter.report(
-              actualData
-            ).join("\n")}`
-          );
-        }
-        setData(actualData.right);
-        setError(null);
-      } catch (err) {
+      }
+      const actualData = ModulesResponseSchema.decode(await response.json());
+      if (isLeft(actualData)) {
+        throw new Error(
+          `Internal Error: Invalid data format in response ${PathReporter.report(
+            actualData
+          ).join("\n")}`
+        );
+      }
+      setData(actualData.right);
+      setError(null);
+    };
+    getData()
+      .catch((err) => {
         setError(String(err));
         setData(null);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-    getData();
+      });
   }, [location]);
 
   const breadcrumbs = [
@@ -90,16 +90,18 @@ export default function Modules() {
       <List>
         {data != null &&
           "Menus" in data &&
-          data.Menus.map((e: { normalized_name: string; name: string }) => (
+          data.Menus.map((e) => (
             <RouterLink
+              key={e.tucan_id}
               to={`${location.pathname}${e.normalized_name}/`}
               text={e.name}
             ></RouterLink>
           ))}
         {data != null &&
           "Modules" in data &&
-          data.Modules.map((e: { title: string; module_id: string }) => (
+          data.Modules.map((e) => (
             <RouterLink
+              key={e.tucan_id}
               to={`${location.pathname}${e.module_id}`}
               text={e.title}
             ></RouterLink>
