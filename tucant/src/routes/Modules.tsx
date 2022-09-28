@@ -8,11 +8,17 @@ import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import {
+  ModulesResponseSchema,
+  ModulesResponseType,
+} from "../validation-io-ts";
+import { isLeft } from "fp-ts/lib/Either";
+import { PathReporter } from "io-ts/lib/PathReporter";
 
 export default function Modules() {
   const location = useLocation();
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ModulesResponseType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +38,15 @@ export default function Modules() {
             }. ${await response.text()}`
           );
         }
-        const actualData = await response.json();
-        setData(actualData);
+        const actualData = ModulesResponseSchema.decode(await response.json());
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
+        }
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));

@@ -8,6 +8,8 @@ import {
   union,
   tuple,
   array,
+  StrictC,
+  taggedUnion,
 } from "io-ts";
 
 // https://github.com/gcanti/io-ts/blob/master/index.md
@@ -51,3 +53,24 @@ export type SearchResultType = TypeOf<typeof SearchResultSchema>;
 export const WelcomeSchema = string;
 
 export type WelcomeType = TypeOf<typeof WelcomeSchema>;
+
+export const ModuleMenuSchema = strict({
+  tucan_id: string,
+  tucan_last_checked: string,
+  name: string,
+  normalized_name: string,
+  child_type: number,
+});
+
+export type ModuleMenuType = TypeOf<typeof ModuleMenuSchema>;
+
+export const ModulesResponseSchema = union([
+  strict({
+    Menus: array(ModuleMenuSchema),
+  }),
+  strict({
+    Modules: array(ModuleSchema),
+  }),
+]);
+
+export type ModulesResponseType = TypeOf<typeof ModulesResponseSchema>;
