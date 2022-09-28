@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     element_by_selector,
     models::{
-        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuChangeset, ModuleMenuEntryModuleRef,
+        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
     },
     s,
     tucan::Tucan,
@@ -26,7 +26,7 @@ use crate::{
 use crate::schema::*;
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
-use diesel::JoinOnDsl;
+
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
@@ -339,7 +339,7 @@ impl TucanUser {
         };
 
         let name = url_element.inner_html();
-        let normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = TucanUser::normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
@@ -419,7 +419,7 @@ impl TucanUser {
             .unwrap();
 
         let name = url_element.inner_html();
-        let normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = TucanUser::normalize(&name);
 
         let child_type = match (submenu_list, modules_list) {
             (_, Some(_)) => 2,
@@ -510,7 +510,7 @@ impl TucanUser {
                         .path;
 
                         ModuleMenu {
-                            tucan_id: child.clone(),
+                            tucan_id: child,
                             tucan_last_checked: utc,
                             name: "TODO".to_string(),
                             child_type: 0,

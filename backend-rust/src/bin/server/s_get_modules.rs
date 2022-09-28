@@ -1,24 +1,22 @@
-use crate::{ModulesOrModuleMenus, MyError};
+use crate::{MyError};
 use actix_session::Session;
-use actix_web::Either;
+
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use actix_web::{
     get,
-    web::{Data, Json, Path},
+    web::{Data, Path},
 };
-use diesel::BoolExpressionMethods;
-use diesel::ExpressionMethods;
-use diesel::JoinOnDsl;
-use diesel::NullableExpressionMethods;
-use diesel::PgExpressionMethods;
-use diesel::QueryDsl;
-use diesel_async::RunQueryDsl;
+
+
+
+
+
+
+
 use tucan_scraper::tucan_user::TucanSession;
 use tucan_scraper::url::Registration;
 use tucan_scraper::{
-    models::{Module, ModuleMenu},
-    schema::{module_menu_module, module_menu_unfinished, modules_unfinished},
     tucan::Tucan,
 };
 // trailing slash is menu
