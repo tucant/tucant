@@ -1,16 +1,15 @@
-import { Button, Chip } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
-import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { RouterLink } from "../MiniDrawer";
-import InitialFetch from "./InitialFetch";
 import dompurify from "dompurify";
+import { CourseSchema, CourseType } from "../validation-io-ts";
+import { PathReporter } from "io-ts/PathReporter";
+import { isLeft } from "fp-ts/lib/Either";
 
 export default function Course() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<CourseType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
@@ -31,8 +30,15 @@ export default function Course() {
             }. ${await response.text()}`
           );
         }
-        const actualData = await response.json();
-        setData(actualData);
+        const actualData = CourseSchema.decode(await response.json());
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
+        }
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));

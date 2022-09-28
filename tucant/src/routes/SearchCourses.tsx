@@ -1,19 +1,17 @@
-import { Button, Chip, TextField } from "@mui/material";
+import { Chip, TextField } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
+import { isLeft } from "fp-ts/lib/Either";
+import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
-import InitialFetch from "./InitialFetch";
-import Module from "./Module";
+import { SearchResultSchema, SearchResultType } from "../validation-io-ts";
 
 export default function SearchCourses() {
-  const location = useLocation();
-
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<SearchResultType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,8 +49,15 @@ export default function SearchCourses() {
             }. ${await response.text()}`
           );
         }
-        const actualData = await response.json();
-        setData(actualData);
+        const actualData = SearchResultSchema.decode(await response.json());
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
+        }
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));
@@ -103,7 +108,7 @@ export default function SearchCourses() {
 
       <List>
         {data != null &&
-          data.map((e: [number, string, string, number]) => (
+          data.map((e) => (
             <RouterLink
               to={`/course/${e[0]}`}
               text={

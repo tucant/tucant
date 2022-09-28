@@ -171,7 +171,7 @@ export default function MiniDrawer() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            TUCaN't
+            TUCaN&apos;t
           </Typography>
         </Toolbar>
       </AppBar>

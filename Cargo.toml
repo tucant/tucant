@@ -14,7 +14,7 @@ html5ever = "0.26"
 scraper = "0.13"
 futures = "0.3"
 diesel = { version = "2", features = ["postgres", "chrono"] }
-diesel-async = { git = "https://github.com/Razican/diesel_async.git", branch = "dieselv2", features = ["postgres", "deadpool"] }
+diesel-async = { version = "0.1", features = ["postgres", "deadpool"] }
 dotenvy = "0.15"
 anyhow = { version = "1", features = ["backtrace"] }
 regex = "1"

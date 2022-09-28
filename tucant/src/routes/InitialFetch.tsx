@@ -1,10 +1,9 @@
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
-import Button from "@mui/material/Button";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 export default function InitialFetch() {
-  const [data, setData] = useState<any>("");
+  const [data, setData] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
