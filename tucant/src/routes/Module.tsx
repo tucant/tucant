@@ -5,9 +5,12 @@ import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import dompurify from "dompurify";
+import { ModuleSchema, ModuleType } from "../validation-io-ts";
+import { PathReporter } from "io-ts/PathReporter";
+import { isLeft } from "fp-ts/lib/Either";
 
 export default function Module() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ModuleType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
@@ -28,8 +31,15 @@ export default function Module() {
             }. ${await response.text()}`
           );
         }
-        const actualData = await response.json();
-        setData(actualData);
+        const actualData = ModuleSchema.decode(await response.json());
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
+        }
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));
