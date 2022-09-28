@@ -12,7 +12,7 @@ export default function InitialFetch() {
       {error && <Alert severity="error">{error}</Alert>}
       <LoadingButton
         loading={loading}
-        onClick={async (event) => {
+        onClick={async () => {
           setError(null);
           setLoading(true);
 

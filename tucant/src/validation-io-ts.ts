@@ -8,8 +8,6 @@ import {
   union,
   tuple,
   array,
-  StrictC,
-  taggedUnion,
 } from "io-ts";
 
 // https://github.com/gcanti/io-ts/blob/master/index.md

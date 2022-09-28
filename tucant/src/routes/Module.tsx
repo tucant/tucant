@@ -62,7 +62,7 @@ export default function Module() {
           <Typography variant="h3">
             {data.module_id} {data.title}
           </Typography>
-          <Chip label={`${data.credits} Credits`} />
+          <Chip label={`${data.credits ?? 0} Credits`} />
           <div
             dangerouslySetInnerHTML={{
               __html: dompurify.sanitize(data.content),

@@ -16,7 +16,9 @@ import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
 
-function Copyright(props: TypographyTypeMap<{}, "span">["props"]) {
+function Copyright(
+  props: TypographyTypeMap<Record<string, unknown>, "span">["props"]
+) {
   return (
     <Typography
       variant="body2"
