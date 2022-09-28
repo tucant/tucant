@@ -10,7 +10,7 @@ FILES=$(git diff  --name-only --cached --diff-filter=ACMR | sed 's| |\\ |g')
 # Prettify all selected files
 echo "$FILES" | xargs ./frontend-react/node_modules/.bin/prettier --ignore-unknown --write
 
-./frontend-react/node_modules/.bin/eslint --cache --fix tucant
+./frontend-react/node_modules/.bin/eslint --cache --fix frontend-react
 
 # Add back the modified/prettified files to staging
 echo "$FILES" | xargs git add
