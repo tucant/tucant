@@ -72,13 +72,13 @@ export default function SignIn() {
     });
   };
 
-  const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setError(null);
-    setLoading(true);
+    (async () => {
+      setError(null);
+      setLoading(true);
 
-    try {
       const response = await fetch("http://localhost:8080/login", {
         credentials: "include",
         method: "POST",
@@ -101,11 +101,9 @@ export default function SignIn() {
       } else {
         setError(String("Falscher Nutzername oder falsches Passwort!"));
       }
-    } catch (error) {
-      setError(String(error));
-    } finally {
-      setLoading(false);
-    }
+    })()
+      .catch((error) => setError(String(error)))
+      .finally(() => setLoading(false));
   };
 
   return (
