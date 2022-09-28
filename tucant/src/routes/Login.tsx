@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
+import { keyof } from "io-ts";
 
 function Copyright(
   props: TypographyTypeMap<Record<string, unknown>, "span">["props"]
@@ -52,12 +53,23 @@ export default function SignIn() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
 
+    const AllowedNames = keyof({
+      username: null,
+      password: null,
+    });
+    const name = AllowedNames.decode(target.name);
+    if (isLeft(name)) {
+      throw new Error(
+        `Internal Error: Invalid data format in response ${PathReporter.report(
+          name
+        ).join("\n")}`
+      );
+    }
     setForm({
       ...form,
-      [name]: value,
-    } as any);
+      [name.right]: value,
+    });
   };
 
   const handleSubmit = async (event: React.ChangeEvent<HTMLFormElement>) => {

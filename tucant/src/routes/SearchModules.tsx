@@ -5,6 +5,7 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
 import { isLeft } from "fp-ts/lib/Either";
+import { keyof } from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
 import { RouterLink } from "../MiniDrawer";
@@ -22,11 +23,21 @@ export default function SearchModules() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.value;
-    const name = target.name;
+    const AllowedNames = keyof({
+      q: null,
+    });
+    const name = AllowedNames.decode(target.name);
+    if (isLeft(name)) {
+      throw new Error(
+        `Internal Error: Invalid data format in response ${PathReporter.report(
+          name
+        ).join("\n")}`
+      );
+    }
 
     setForm({
       ...form,
-      [name]: value,
+      [name.right]: value,
     } as any);
   };
 
@@ -92,8 +103,8 @@ export default function SearchModules() {
             occur in the document
           </li>
           <li>
-            "quoted text": text inside quote marks means the words need to be in
-            the document in that order
+            &quot;quoted text&quot;: text inside quote marks means the words
+            need to be in the document in that order
           </li>
           <li>
             OR: the word “or” means one of the words needs to occur in the
@@ -110,6 +121,7 @@ export default function SearchModules() {
         {data != null &&
           data.map((e) => (
             <RouterLink
+              key={e[0]}
               to={`/module/${e[0]}`}
               text={
                 <span>

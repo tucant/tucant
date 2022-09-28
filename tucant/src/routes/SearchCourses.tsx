@@ -121,6 +121,7 @@ export default function SearchCourses() {
         {data != null &&
           data.map((e) => (
             <RouterLink
+              key={e[0]}
               to={`/course/${e[0]}`}
               text={
                 <span>
