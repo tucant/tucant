@@ -38,7 +38,7 @@ export default function SearchCourses() {
     setForm({
       ...form,
       [name.right]: value,
-    } as any);
+    });
   };
 
   useEffect(() => {

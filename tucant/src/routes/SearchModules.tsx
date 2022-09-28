@@ -38,7 +38,7 @@ export default function SearchModules() {
     setForm({
       ...form,
       [name.right]: value,
-    } as any);
+    });
   };
 
   useEffect(() => {
