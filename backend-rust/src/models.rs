@@ -3,8 +3,8 @@ use diesel::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::schema::{
-    courses_unfinished, module_courses, module_menu_module,
-    module_menu_unfinished, modules_unfinished,
+    courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
+    modules_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -23,7 +23,6 @@ where
     String::deserialize(deserializer)
         .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
 }
-
 
 pub fn as_option_base64<T, S>(buffer: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -44,7 +43,9 @@ where
     use serde::de::Error;
     let s: Option<String> = Option::deserialize(deserializer)?;
     if let Some(s) = s {
-        base64::decode(&s).map(Option::Some).map_err(|err| Error::custom(err.to_string()))
+        base64::decode(&s)
+            .map(Option::Some)
+            .map_err(|err| Error::custom(err.to_string()))
     } else {
         Ok(None)
     }
@@ -87,6 +88,7 @@ pub struct Module {
     PartialEq,
     Deserialize,
     Clone,
+    AsChangeset,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
@@ -98,15 +100,14 @@ pub struct ModuleMenu {
     pub name: String,
     pub child_type: i16,
     #[serde(default)]
-    #[serde(serialize_with = "as_option_base64", deserialize_with = "from_option_base64")]
+    #[serde(
+        serialize_with = "as_option_base64",
+        deserialize_with = "from_option_base64"
+    )]
     pub parent: Option<Vec<u8>>,
 }
 
-#[derive(
-    AsChangeset,
-    Debug,
-    Insertable
-)]
+#[derive(AsChangeset, Debug, Insertable)]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
 #[diesel(treat_none_as_null = true)]
@@ -128,7 +129,10 @@ pub struct ModuleMenuRef<'a> {
     pub tucan_last_checked: &'a NaiveDateTime,
     pub name: &'a str,
     pub child_type: i16,
-    #[serde(serialize_with = "as_option_base64", deserialize_with = "from_option_base64")]
+    #[serde(
+        serialize_with = "as_option_base64",
+        deserialize_with = "from_option_base64"
+    )]
     pub parent: Option<&'a [u8]>,
 }
 
