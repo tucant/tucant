@@ -1,9 +1,12 @@
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
+import { isLeft } from "fp-ts/lib/Either";
+import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
+import { WelcomeSchema } from "../validation-io-ts";
 
 export default function Welcome() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,8 +21,15 @@ export default function Welcome() {
             `This is an HTTP error: The status is ${response.status}`
           );
         }
-        const actualData = await response.json();
-        setData(actualData);
+        const actualData = WelcomeSchema.decode(await response.json());
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
+        }
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));

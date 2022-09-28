@@ -47,3 +47,7 @@ export const SearchResultSchema = array(
 );
 
 export type SearchResultType = TypeOf<typeof SearchResultSchema>;
+
+export const WelcomeSchema = string;
+
+export type WelcomeType = TypeOf<typeof WelcomeSchema>;

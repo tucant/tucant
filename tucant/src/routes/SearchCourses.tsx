@@ -7,7 +7,6 @@ import dompurify from "dompurify";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import { SearchResultSchema, SearchResultType } from "../validation-io-ts";
 
