@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import dompurify from "dompurify";
 import { CourseSchema, CourseType } from "../validation-io-ts";
+import { PathReporter } from "io-ts/PathReporter";
+import { isLeft } from "fp-ts/lib/Either";
 
 export default function Course() {
   const [data, setData] = useState<CourseType | null>(null);
@@ -29,8 +31,12 @@ export default function Course() {
           );
         }
         const actualData = CourseSchema.decode(await response.json());
-        if (actualData._tag === "Left") {
-          throw new Error("Internal Error: Invalid data format in response");
+        if (isLeft(actualData)) {
+          throw new Error(
+            `Internal Error: Invalid data format in response ${PathReporter.report(
+              actualData
+            ).join("\n")}`
+          );
         }
         setData(actualData.right);
         setError(null);

@@ -13,31 +13,3 @@ export const CourseSchema = strict({
 });
 
 export type CourseType = TypeOf<typeof CourseSchema>;
-
-alert(
-  CourseSchema.is({
-    tucan_id: "",
-    tucan_lasjt_checked: "",
-    title: "",
-    course_id: "",
-    sws: 0,
-    content: "",
-    done: false,
-    test: 1,
-  })
-);
-
-alert(
-  JSON.stringify(
-    CourseSchema.decode({
-      tucan_id: "",
-      tucan_lasjt_checked: "",
-      title: "",
-      course_id: "",
-      sws: 0,
-      content: "",
-      done: false,
-      test: 1,
-    })
-  )
-);
