@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import dompurify from "dompurify";
-import { CourseType, courseValidator } from "../validation";
+import { CourseSchema, CourseType } from "../validation-io-ts";
 
 export default function Course() {
   const [data, setData] = useState<CourseType | null>(null);
@@ -28,11 +28,11 @@ export default function Course() {
             }. ${await response.text()}`
           );
         }
-        const actualData = await response.json();
-        if (!courseValidator(actualData)) {
+        const actualData = CourseSchema.decode(await response.json());
+        if (actualData._tag === "Left") {
           throw new Error("Internal Error: Invalid data format in response");
         }
-        setData(actualData);
+        setData(actualData.right);
         setError(null);
       } catch (err) {
         setError(String(err));
