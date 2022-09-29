@@ -12,6 +12,9 @@ import {
   union,
   tuple,
   array,
+  undefined,
+  partial,
+  intersection,
 } from "io-ts";
 
 // https://github.com/gcanti/io-ts/blob/master/index.md
@@ -66,12 +69,22 @@ export const ModuleMenuSchema = strict({
 export type ModuleMenuType = TypeOf<typeof ModuleMenuSchema>;
 
 export const ModulesResponseSchema = union([
-  strict({
-    Submenu: array(ModuleMenuSchema),
-  }),
-  strict({
-    Modules: array(ModuleSchema),
-  }),
+  intersection([
+    strict({
+      Submenu: union([array(ModuleMenuSchema), undefined]),
+    }),
+    partial({
+      Modules: undefined,
+    })
+  ]),
+  intersection([
+    strict({
+      Modules: union([array(ModuleSchema), undefined]),
+    }),
+    partial({
+      Submenu: undefined,
+    })
+  ]),
 ]);
 
 export type ModulesResponseType = TypeOf<typeof ModulesResponseSchema>;
