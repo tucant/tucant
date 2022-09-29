@@ -16,7 +16,7 @@ import {
 } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
-import {ModuleList} from "../components/ModuleList";
+import { ModuleList } from "../components/ModuleList";
 
 export default function Modules() {
   const location = useLocation();

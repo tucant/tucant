@@ -75,7 +75,7 @@ export const ModulesResponseSchema = union([
     }),
     partial({
       Modules: undefined,
-    })
+    }),
   ]),
   intersection([
     strict({
@@ -83,7 +83,7 @@ export const ModulesResponseSchema = union([
     }),
     partial({
       Submenu: undefined,
-    })
+    }),
   ]),
 ]);
 
