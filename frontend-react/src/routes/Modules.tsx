@@ -102,7 +102,7 @@ export default function Modules() {
           data.Modules.map((e) => (
             <RouterLink
               key={e.tucan_id}
-              to={`${location.pathname}${e.module_id}`}
+              to={`/module/${e.tucan_id}`}
               text={e.title}
             ></RouterLink>
           ))}
