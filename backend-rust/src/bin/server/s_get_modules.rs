@@ -14,7 +14,7 @@ use actix_web::{
     web::{Data, Path},
 };
 use diesel::sql_query;
-use diesel::QueryDsl;
+
 use diesel::QueryableByName;
 
 use diesel::sql_types::Bool;
@@ -23,8 +23,10 @@ use diesel::sql_types::Nullable;
 use diesel::sql_types::Text;
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
-use tucan_scraper::models::ModuleMenu;
-use tucan_scraper::schema::module_menu_module;
+use tucan_scraper::models::as_base64;
+
+
+
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::RegistrationEnum;
 use tucan_scraper::tucan_user::TucanSession;
@@ -36,6 +38,7 @@ pub struct ModuleMenuPathPart {
     #[serde(skip)]
     pub parent: Option<Vec<u8>>,
     #[diesel(sql_type = Bytea)]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     #[diesel(sql_type = Text)]
     pub name: String,
@@ -67,25 +70,31 @@ pub async fn get_modules<'a>(
                     path: Vec::new(),
                 }
             } else {
-                let (module_menu, subentries) = tucan
+                let binary_path = base64::decode(path.as_bytes()).unwrap();
+                let (_module_menu, subentries) = tucan
                     .registration(Registration {
-                        path: base64::decode(path.as_bytes()).unwrap(),
+                        path: binary_path.clone(),
                     })
                     .await?;
 
                 let mut connection = tucan.tucan.pool.get().await?;
 
-                let path_to_root = sql_query(r#"
+                let path_to_root = sql_query(
+                    r#"
                         WITH RECURSIVE search_tree AS (
                             SELECT t.parent, t.tucan_id, t.name, true as leaf
-                            FROM module_menu_unfinished t JOIN module_menu_module mmm ON mmm.module_menu_id = t.tucan_id WHERE mmm.module_id = '\x000154f481a77362'
+                            FROM module_menu_unfinished t WHERE t.tucan_id = $1
                           UNION
                             SELECT t.parent, t.tucan_id, t.name, false as leaf
                             FROM module_menu_unfinished t JOIN search_tree st
                             ON t.tucan_id = st.parent
                         )
                         SELECT * FROM search_tree;
-        "#).load::<ModuleMenuPathPart>(&mut connection).await?;
+        "#,
+                )
+                .bind::<Bytea, _>(binary_path)
+                .load::<ModuleMenuPathPart>(&mut connection)
+                .await?;
 
                 let leaves = path_to_root.iter().take_while(|v| v.leaf);
 

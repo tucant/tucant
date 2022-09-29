@@ -75,3 +75,13 @@ export const ModulesResponseSchema = union([
 ]);
 
 export type ModulesResponseType = TypeOf<typeof ModulesResponseSchema>;
+
+export const ModuleMenuPathPart = strict({
+  tucan_id: string,
+  name: string,
+});
+
+export const ModuleMenuResponse = strict({
+  entries: ModulesResponseSchema,
+  path: array(array(ModuleMenuPathPart)),
+});

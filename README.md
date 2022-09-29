@@ -64,6 +64,10 @@ npm run dev
 # if you want automatic formatting and linting on commit
 ln -srf pre-commit.sh .git/hooks/pre-commit
 
+cargo install cargo-watch
+cargo watch -x check -s 'touch .trigger'
+cargo watch --no-gitignore -w .trigger -x run
+
 # run some tests (currently not many)
 cd backend-rust
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time

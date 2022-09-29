@@ -4,5 +4,6 @@
 
 /backend-rust/target
 /backend-rust/sessions.key
+/backend-rust/.trigger
 .eslintcache
 analyze.json
