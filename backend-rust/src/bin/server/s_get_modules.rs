@@ -25,8 +25,6 @@ use diesel_async::RunQueryDsl;
 use serde::Serialize;
 use tucan_scraper::models::as_base64;
 
-
-
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::RegistrationEnum;
 use tucan_scraper::tucan_user::TucanSession;
