@@ -26,7 +26,7 @@ import { LinkProps } from "@mui/material/Link";
 const LinkBehavior = React.forwardRef<
   HTMLAnchorElement,
   Omit<RouterLinkProps, "to"> & { href: RouterLinkProps["to"] }
->((props, ref) => {
+>(function ReactRouterLink(props, ref) {
   const { href, ...other } = props;
   // Map href (MUI) -> to (react-router)
   return <RouterLink ref={ref} to={href} {...other} />;
