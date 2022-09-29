@@ -85,3 +85,8 @@ export const ModuleMenuResponse = strict({
   entries: ModulesResponseSchema,
   path: array(array(ModuleMenuPathPart)),
 });
+
+export const ModuleResponse = strict({
+  module: ModuleSchema,
+  path: array(array(ModuleMenuPathPart)),
+});

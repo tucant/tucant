@@ -2,19 +2,21 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Chip } from "@mui/material";
+import { Breadcrumbs, Chip, Link } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import dompurify from "dompurify";
-import { ModuleSchema, ModuleType } from "../validation-io-ts";
+import { ModuleResponse } from "../validation-io-ts";
 import { PathReporter } from "io-ts/PathReporter";
 import { isLeft } from "fp-ts/lib/Either";
+import { TypeOf } from "io-ts";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 export default function Module() {
-  const [data, setData] = useState<ModuleType | null>(null);
+  const [data, setData] = useState<TypeOf<typeof ModuleResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
@@ -34,7 +36,7 @@ export default function Module() {
           }. ${await response.text()}`
         );
       }
-      const actualData = ModuleSchema.decode(await response.json());
+      const actualData = ModuleResponse.decode(await response.json());
       if (isLeft(actualData)) {
         throw new Error(
           `Internal Error: Invalid data format in response ${PathReporter.report(
@@ -64,12 +66,30 @@ export default function Module() {
       {data && (
         <>
           <Typography variant="h3">
-            {data.module_id} {data.title}
+            {data.module.module_id} {data.module.title}
           </Typography>
-          <Chip label={`${data.credits ?? 0} Credits`} />
+          {data.path.map((p, i) => (
+            <Breadcrumbs
+              key={i}
+              separator={<NavigateNextIcon fontSize="small" />}
+              aria-label="breadcrumb"
+            >
+              {p.map((pe) => (
+                <Link
+                  underline="hover"
+                  key={pe.tucan_id}
+                  color="inherit"
+                  href={`/modules/${pe.tucan_id}`}
+                >
+                  {pe.name}
+                </Link>
+              ))}
+            </Breadcrumbs>
+          ))}
+          <Chip label={`${data.module.credits ?? 0} Credits`} />
           <div
             dangerouslySetInnerHTML={{
-              __html: dompurify.sanitize(data.content),
+              __html: dompurify.sanitize(data.module.content),
             }}
           ></div>
         </>
