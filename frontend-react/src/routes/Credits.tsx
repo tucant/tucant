@@ -9,7 +9,11 @@ export default function Credits() {
       <Typography variant="h2" align="center">
         Software
       </Typography>
-      <a target="_blank" href="https://github.com/mohe2015/tucant" rel="noreferrer">
+      <a
+        target="_blank"
+        href="https://github.com/mohe2015/tucant"
+        rel="noreferrer"
+      >
         tucant
       </a>{" "}
       von den{" "}
@@ -45,7 +49,7 @@ export default function Credits() {
           ></img>
         </a>
         <br />
-        <span>Das „TUCaN't“-Logo</span> von{" "}
+        <span>Das „TUCaN&apos;t“-Logo</span> von{" "}
         <a
           target="_blank"
           rel="cc:attributionURL noreferrer"
