@@ -16,8 +16,36 @@ import Course from "./routes/Course";
 import Modules from "./routes/Modules";
 import Credits from "./routes/Credits";
 import { createTheme, ThemeProvider } from "@mui/material";
+import {
+  Link as RouterLink,
+  LinkProps as RouterLinkProps,
+} from "react-router-dom";
+import { LinkProps } from "@mui/material/Link";
 
-const theme = createTheme();
+// https://mui.com/material-ui/guides/routing/
+const LinkBehavior = React.forwardRef<
+  HTMLAnchorElement,
+  Omit<RouterLinkProps, "to"> & { href: RouterLinkProps["to"] }
+>((props, ref) => {
+  const { href, ...other } = props;
+  // Map href (MUI) -> to (react-router)
+  return <RouterLink ref={ref} to={href} {...other} />;
+});
+
+const theme = createTheme({
+  components: {
+    MuiLink: {
+      defaultProps: {
+        component: LinkBehavior,
+      } as LinkProps,
+    },
+    MuiButtonBase: {
+      defaultProps: {
+        LinkComponent: LinkBehavior,
+      },
+    },
+  },
+});
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
