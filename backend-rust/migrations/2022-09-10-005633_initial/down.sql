@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: The tucant Contributors
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 DROP INDEX courses_idx;
 DROP INDEX modules_idx;
 

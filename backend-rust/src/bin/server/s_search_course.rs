@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use crate::{MyError, SearchQuery};
 use actix_session::Session;
 use actix_web::Responder;

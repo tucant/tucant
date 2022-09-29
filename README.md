@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: The tucant Contributors
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # tucant
 
 ## Architecture
@@ -72,4 +78,10 @@ WITH RECURSIVE search_tree(parent, child) AS (
 )
 SELECT * FROM search_tree;
 
+```
+
+## Add license headers
+
+```bash
+reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-later --exclude-year --recursive --skip-unrecognised .
 ```
