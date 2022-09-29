@@ -89,11 +89,11 @@ export default function Modules() {
       {error && <Alert severity="error">{error}</Alert>}
       <List>
         {data != null &&
-          "Menus" in data &&
-          data.Menus.map((e) => (
+          "Submenu" in data &&
+          data.Submenu.map((e) => (
             <RouterLink
               key={e.tucan_id}
-              to={`${location.pathname}${e.normalized_name}/`}
+              to={`/modules/${e.tucan_id}`}
               text={e.name}
             ></RouterLink>
           ))}

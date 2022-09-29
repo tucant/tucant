@@ -12,9 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{
-        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
-    },
+    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     s,
     tucan::Tucan,
     url::{
