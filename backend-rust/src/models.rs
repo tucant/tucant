@@ -93,6 +93,7 @@ pub struct Module {
     Deserialize,
     Clone,
     AsChangeset,
+    QueryableByName,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]

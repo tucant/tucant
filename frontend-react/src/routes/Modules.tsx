@@ -12,17 +12,17 @@ import { useLocation } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import {
-  ModulesResponseSchema,
-  ModulesResponseType,
-} from "../validation-io-ts";
+import { ModuleMenuResponse } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
+import { TypeOf } from "io-ts";
 
 export default function Modules() {
   const location = useLocation();
 
-  const [data, setData] = useState<ModulesResponseType | null>(null);
+  const [data, setData] = useState<TypeOf<typeof ModuleMenuResponse> | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +41,7 @@ export default function Modules() {
           }. ${await response.text()}`
         );
       }
-      const actualData = ModulesResponseSchema.decode(await response.json());
+      const actualData = ModuleMenuResponse.decode(await response.json());
       if (isLeft(actualData)) {
         throw new Error(
           `Internal Error: Invalid data format in response ${PathReporter.report(
@@ -62,39 +62,33 @@ export default function Modules() {
       });
   }, [location]);
 
-  const breadcrumbs = [
-    <Link underline="hover" key="1" color="inherit" href="/">
-      MUI
-    </Link>,
-    <Link
-      underline="hover"
-      key="2"
-      color="inherit"
-      href="/material-ui/getting-started/installation/"
-    >
-      Core
-    </Link>,
-    <Typography key="3" color="text.primary">
-      Breadcrumb
-    </Typography>,
-  ];
-
   return (
     <>
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-      >
-        {breadcrumbs}
-      </Breadcrumbs>
-
       <Typography variant="h2">Module</Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
+      {data?.path.map((p, i) => (
+        <Breadcrumbs
+          key={i}
+          separator={<NavigateNextIcon fontSize="small" />}
+          aria-label="breadcrumb"
+        >
+          {p.map((pe) => (
+            <Link
+              underline="hover"
+              key={pe.tucan_id}
+              color="inherit"
+              href={`/modules/${pe.tucan_id}`}
+            >
+              {pe.name}
+            </Link>
+          ))}
+        </Breadcrumbs>
+      ))}
       <List>
         {data != null &&
-          "Submenu" in data &&
-          data.Submenu.map((e) => (
+          "Submenu" in data.entries &&
+          data.entries.Submenu.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/modules/${e.tucan_id}`}
@@ -102,8 +96,8 @@ export default function Modules() {
             ></RouterLink>
           ))}
         {data != null &&
-          "Modules" in data &&
-          data.Modules.map((e) => (
+          "Modules" in data.entries &&
+          data.entries.Modules.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/module/${e.tucan_id}`}
