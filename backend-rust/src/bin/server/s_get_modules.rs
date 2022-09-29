@@ -24,6 +24,7 @@ use diesel::sql_types::Text;
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
 use tucan_scraper::models::as_base64;
+use tucan_scraper::models::ModuleMenu;
 
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::RegistrationEnum;
@@ -47,6 +48,7 @@ pub struct ModuleMenuPathPart {
 
 #[derive(Serialize)]
 pub struct ModuleMenuResponse {
+    module_menu: ModuleMenu,
     entries: RegistrationEnum,
     path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
@@ -63,13 +65,15 @@ pub async fn get_modules<'a>(
             let tucan = tucan.continue_session(session).await.unwrap();
 
             let value = if path.is_empty() {
+                let module_menu = tucan.root_registration().await?;
                 ModuleMenuResponse {
-                    entries: RegistrationEnum::Submenu(vec![tucan.root_registration().await?]),
+                    module_menu: module_menu.clone(),
+                    entries: RegistrationEnum::Submenu(vec![module_menu]),
                     path: Vec::new(),
                 }
             } else {
                 let binary_path = base64::decode(path.as_bytes()).unwrap();
-                let (_module_menu, subentries) = tucan
+                let (module_menu, subentries) = tucan
                     .registration(Registration {
                         path: binary_path.clone(),
                     })
@@ -122,6 +126,7 @@ pub async fn get_modules<'a>(
                 println!("{:?}", paths);
 
                 ModuleMenuResponse {
+                    module_menu,
                     entries: subentries,
                     path: paths,
                 }
