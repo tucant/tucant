@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::collections::HashMap;
+use std::collections::VecDeque;
 
 use crate::MyError;
 use actix_session::Session;
@@ -28,7 +29,7 @@ use tucan_scraper::tucan_user::RegistrationEnum;
 use tucan_scraper::tucan_user::TucanSession;
 use tucan_scraper::url::Registration;
 
-#[derive(QueryableByName)]
+#[derive(QueryableByName, Hash, PartialEq, Eq, Debug)]
 pub struct ModuleMenuPathPart {
     #[diesel(sql_type = Nullable<Bytea>)]
     pub parent: Option<Vec<u8>>,
@@ -80,8 +81,20 @@ pub async fn get_modules<'a>(
                     .iter()
                     .rev()
                     .take_while(|v| !v.leaf)
-                    .map(|v| (&v.tucan_id, (&v.parent, &v.name)))
+                    .map(|v| (&v.tucan_id, v))
                     .collect::<HashMap<_, _>>();
+
+                let paths = leaves.map(|l| {
+                    let mut current = Some(&l);
+                    let mut path = VecDeque::new();
+                    while let Some(curr @ ModuleMenuPathPart { parent: Some(parent), .. }) = current {
+                        path.push_front(&curr.name);
+                        current = nonleaves.get(&parent);
+                    }
+                    path
+                }).collect::<Vec<_>>();
+
+                println!("{:?}", paths);
 
                 subentries
             };
