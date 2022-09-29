@@ -40,22 +40,12 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    module_menu_tree (child, parent) {
-        parent -> Bytea,
-        child -> Bytea,
-    }
-}
-
-diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
-
     module_menu_unfinished (tucan_id) {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
         name -> Text,
-        normalized_name -> Text,
         child_type -> Int2,
+        parent -> Nullable<Bytea>,
     }
 }
 
@@ -106,7 +96,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     courses_unfinished,
     module_courses,
     module_menu_module,
-    module_menu_tree,
     module_menu_unfinished,
     modules_unfinished,
     users,

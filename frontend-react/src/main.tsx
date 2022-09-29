@@ -6,10 +6,10 @@ import Login from "./routes/Login";
 import MiniDrawer from "./MiniDrawer";
 import Welcome from "./routes/Welcome";
 import Module from "./routes/Module";
-import ModuleOrModules from "./routes/ModuleOrModules";
 import SearchModules from "./routes/SearchModules";
 import SearchCourses from "./routes/SearchCourses";
 import Course from "./routes/Course";
+import Modules from "./routes/Modules";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -23,7 +23,7 @@ root.render(
           <Route path="login" element={<Login />} />
           <Route path="search-modules" element={<SearchModules />} />
           <Route path="search-courses" element={<SearchCourses />} />
-          <Route path="modules/*" element={<ModuleOrModules />} />
+          <Route path="modules/*" element={<Modules />} />
           <Route path="module/*" element={<Module />} />
           <Route path="course/*" element={<Course />} />
           <Route index element={<Welcome />} />

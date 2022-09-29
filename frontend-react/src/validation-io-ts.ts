@@ -56,7 +56,6 @@ export const ModuleMenuSchema = strict({
   tucan_id: string,
   tucan_last_checked: string,
   name: string,
-  normalized_name: string,
   child_type: number,
 });
 
@@ -64,7 +63,7 @@ export type ModuleMenuType = TypeOf<typeof ModuleMenuSchema>;
 
 export const ModulesResponseSchema = union([
   strict({
-    Menus: array(ModuleMenuSchema),
+    Submenu: array(ModuleMenuSchema),
   }),
   strict({
     Modules: array(ModuleSchema),

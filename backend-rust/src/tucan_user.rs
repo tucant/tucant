@@ -12,9 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     element_by_selector,
-    models::{
-        Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, ModuleMenuTreeEntry,
-    },
+    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     s,
     tucan::Tucan,
     url::{
@@ -24,12 +22,12 @@ use crate::{
 };
 
 use crate::schema::*;
-use diesel::dsl::not;
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
-use diesel::JoinOnDsl;
+
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
+use diesel::{dsl::not, upsert::excluded};
 use log::debug;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -339,14 +337,14 @@ impl TucanUser {
         };
 
         let name = url_element.inner_html();
-        let normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = TucanUser::normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            normalized_name,
             child_type: 0,
+            parent: None,
         })
     }
 
@@ -371,12 +369,8 @@ impl TucanUser {
 
                 // existing submenus
                 let submenus = module_menu_unfinished::table
-                    .inner_join(
-                        module_menu_tree::table
-                            .on(module_menu_tree::child.eq(module_menu_unfinished::tucan_id)),
-                    )
                     .select(module_menu_unfinished::all_columns)
-                    .filter(module_menu_tree::parent.eq(&url.path))
+                    .filter(module_menu_unfinished::parent.eq(&url.path))
                     .load::<ModuleMenu>(&mut connection)
                     .await?;
 
@@ -423,7 +417,7 @@ impl TucanUser {
             .unwrap();
 
         let name = url_element.inner_html();
-        let normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = TucanUser::normalize(&name);
 
         let child_type = match (submenu_list, modules_list) {
             (_, Some(_)) => 2,
@@ -436,19 +430,20 @@ impl TucanUser {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            normalized_name,
             child_type,
+            parent: None,
         };
 
         debug!("[+] menu {:?}", module_menu);
 
         let mut connection = self.tucan.pool.get().await?;
 
-        diesel::insert_into(module_menu_unfinished::table)
+        let module_menu = diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
-            .set(&module_menu) // we don't override parent because it's set as optional and therefore not overwritten
+            .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
+            // I think there is a bug here when using ModuleMenuChangeset in set() the types are wrong.
             .get_result::<ModuleMenu>(&mut connection)
             .await?;
 
@@ -499,7 +494,7 @@ impl TucanUser {
             }
             (Some(list), None) => {
                 let utc = Utc::now().naive_utc();
-                let (submenus, menu_tree): (Vec<ModuleMenu>, Vec<ModuleMenuTreeEntry>) = list
+                let submenus: Vec<ModuleMenu> = list
                     .select(&s("a[href]"))
                     .map(|e| {
                         let child = TryInto::<Registration>::try_into(
@@ -511,34 +506,25 @@ impl TucanUser {
                         )
                         .unwrap()
                         .path;
-                        (
-                            ModuleMenu {
-                                tucan_id: child.clone(),
-                                tucan_last_checked: utc,
-                                name: "TODO".to_string(),
-                                normalized_name: "TODO".to_string(),
-                                child_type: 0,
-                            },
-                            ModuleMenuTreeEntry {
-                                parent: url.path.clone(),
-                                child,
-                            },
-                        )
+
+                        ModuleMenu {
+                            tucan_id: child,
+                            tucan_last_checked: utc,
+                            name: "TODO".to_string(),
+                            child_type: 0,
+                            parent: Some(url.path.clone()),
+                        }
                     })
-                    .unzip();
+                    .collect::<Vec<_>>();
 
                 diesel::insert_into(module_menu_unfinished::table)
                     .values(&submenus[..])
                     .on_conflict(module_menu_unfinished::tucan_id)
-                    .do_nothing()
+                    .do_update()
+                    .set(
+                        module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)),
+                    )
                     .get_result::<ModuleMenu>(&mut connection)
-                    .await?;
-
-                diesel::insert_into(module_menu_tree::table)
-                    .values(&menu_tree[..])
-                    .on_conflict((module_menu_tree::child, module_menu_tree::parent))
-                    .do_nothing()
-                    .get_result::<ModuleMenuTreeEntry>(&mut connection)
                     .await?;
 
                 RegistrationEnum::Submenu(submenus)

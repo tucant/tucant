@@ -26,7 +26,7 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucan_scraper::models::{Module, ModuleMenu};
+
 use tucan_scraper::tucan::Tucan;
 use tucan_scraper::tucan_user::{TucanSession, TucanUser};
 use tucan_scraper::url::{Coursedetails, Moduledetails, Registration};
@@ -71,12 +71,6 @@ struct Login {
 #[derive(Serialize)]
 struct LoginResult {
     success: bool,
-}
-
-#[derive(Serialize)]
-pub enum ModulesOrModuleMenus {
-    Menus(Vec<ModuleMenu>),
-    Modules(Vec<Module>),
 }
 
 #[post("/login")]

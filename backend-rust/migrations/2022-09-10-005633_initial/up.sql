@@ -36,14 +36,9 @@ CREATE TABLE module_menu_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
     name TEXT NOT NULL,
-    normalized_name TEXT NOT NULL,
-    child_type SMALLINT NOT NULL DEFAULT 0 -- 0 means not done, 1 means menu, 2 means module
-);
-
-CREATE TABLE module_menu_tree (
-    parent BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
-    child BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
-    PRIMARY KEY (child, parent)
+    child_type SMALLINT NOT NULL DEFAULT 0, -- 0 means not done, 1 means menu, 2 means module
+    -- there is always only one parent
+    parent BYTEA REFERENCES module_menu_unfinished (tucan_id)
 );
 
 CREATE TABLE module_menu_module (
