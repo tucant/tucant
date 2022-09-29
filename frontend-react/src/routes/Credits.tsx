@@ -37,6 +37,28 @@ export default function Credits() {
         AGPL-3.0
       </a>{" "}
       lizensiert.
+      <p>
+        tucant - a nicer, faster and more featureful frontend to TUCaN
+        <br />
+        Copyright (C) The tucant Contributors
+        <br />
+        This program is free software: you can redistribute it and/or modify it
+        under the terms of the GNU Affero General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or (at
+        your option) any later version.
+        <br />
+        This program is distributed in the hope that it will be useful, but
+        WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+        General Public License for more details.
+        <br />
+        You should have received a copy of the GNU Affero General Public License
+        along with this program. If not, see{" "}
+        <a href="https://www.gnu.org/licenses/">
+          https://www.gnu.org/licenses/
+        </a>
+        .
+      </p>
       <Typography variant="h2" align="center">
         Logo
       </Typography>
