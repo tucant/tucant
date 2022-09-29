@@ -86,15 +86,53 @@ SELECT modules_unfinished.title, module_menu_unfinished.name, modules_unfinished
 -- https://www.postgresql.org/docs/current/queries-with.html
 -- get path from module menu entry to root
 WITH RECURSIVE search_tree(parent, child) AS (
-    SELECT t.parent, t.child
-    FROM module_menu_tree t JOIN module_menu_module mmm ON mmm.module_menu_id = t.child WHERE mmm.module_id = '\x000154f481a77362'
-  UNION ALL
-    SELECT t.parent, t.child
-    FROM module_menu_tree t, search_tree st
-    WHERE t.child = st.parent
+    SELECT t.parent, t.tucan_id
+    FROM module_menu_unfinished t JOIN module_menu_module mmm ON mmm.module_menu_id = t.tucan_id WHERE mmm.module_id = '\x000154f481a77362'
+  UNION
+    SELECT t.parent, t.tucan_id
+    FROM module_menu_unfinished t, search_tree st
+    WHERE t.tucan_id = st.parent
 )
 SELECT * FROM search_tree;
 
+
+SELECT title FROM modules_unfinished WHERE tucan_id = '\x000154f481a77362';
+
+SELECT * FROM module_menu_module WHERE module_id = '\x000154f481a77362';
+
+-- https://explain.dalibo.com/
+SET enable_seqscan TO off;
+WITH RECURSIVE search_tree AS (
+    SELECT t.parent, t.tucan_id, t.name
+    FROM module_menu_unfinished t JOIN module_menu_module mmm ON mmm.module_menu_id = t.tucan_id WHERE mmm.module_id = '\x000154f481a77362'
+  UNION
+    SELECT t.parent, t.tucan_id, t.name
+    FROM module_menu_unfinished t JOIN search_tree st
+    ON t.tucan_id = st.parent
+)
+SELECT * FROM search_tree;
+
+psql postgres://postgres:password@localhost:5432/tucant -XqAt -f explain.sql > analyze.json
+
+
+WITH RECURSIVE search_tree(parent, tucan_id, name) AS (
+    SELECT '\x0001564607d4a10c00014d22800c5b4b000130aad487c66c'::bytea, '\x0001564607d4a10c00014d22800c5b4b000130f9c84409be'::bytea, 'Serviceveranstaltungen des FB Mathematik'
+  UNION
+    SELECT t.parent, t.tucan_id, t.name
+    FROM module_menu_unfinished t JOIN search_tree st
+    ON t.tucan_id = st.parent
+)
+SELECT * FROM search_tree;
+
+
+WITH RECURSIVE search_tree(parent) AS (
+    SELECT '\x0001564607d4a10c00014d22800c5b4b000130aad487c66c'::bytea
+  UNION
+    SELECT t.parent
+    FROM module_menu_unfinished t JOIN search_tree st
+    ON t.tucan_id = st.parent
+)
+SELECT * FROM search_tree;
 ```
 
 ## Add license headers
