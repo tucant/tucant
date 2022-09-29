@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

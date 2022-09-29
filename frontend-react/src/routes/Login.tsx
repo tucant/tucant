@@ -1,11 +1,14 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
-import Link from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography, { TypographyTypeMap } from "@mui/material/Typography";
+import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useState } from "react";
@@ -16,26 +19,6 @@ import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { keyof } from "io-ts";
-
-function Copyright(
-  props: TypographyTypeMap<Record<string, unknown>, "span">["props"]
-) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://github.com/mohe2015/tucant">
-        tucant
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
 
 const theme = createTheme();
 
@@ -167,7 +150,6 @@ export default function SignIn() {
             </LoadingButton>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
     </ThemeProvider>
   );

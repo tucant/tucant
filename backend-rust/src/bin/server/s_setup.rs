@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 use crate::Coursedetails;
 use crate::Moduledetails;
 use crate::MyError;

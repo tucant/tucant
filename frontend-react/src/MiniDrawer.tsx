@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import * as React from "react";
 import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -22,6 +26,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import { NavLinkProps, Outlet, NavLink } from "react-router-dom";
 import { ReactNode } from "react";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
+import AttributionIcon from "@mui/icons-material/Attribution";
 
 const drawerWidth = 240;
 
@@ -213,6 +218,11 @@ export default function MiniDrawer() {
             to="/login"
             text="Login"
             icon={<LoginIcon />}
+          ></RouterLink>
+          <RouterLink
+            to="/credits"
+            text="Credits"
+            icon={<AttributionIcon />}
           ></RouterLink>
         </List>
       </Drawer>

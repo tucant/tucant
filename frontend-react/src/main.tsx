@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import CssBaseline from "@mui/material/CssBaseline";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -10,6 +14,7 @@ import SearchModules from "./routes/SearchModules";
 import SearchCourses from "./routes/SearchCourses";
 import Course from "./routes/Course";
 import Modules from "./routes/Modules";
+import Credits from "./routes/Credits";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -26,6 +31,7 @@ root.render(
           <Route path="modules/*" element={<Modules />} />
           <Route path="module/*" element={<Module />} />
           <Route path="course/*" element={<Course />} />
+          <Route path="credits" element={<Credits />} />
           <Route index element={<Welcome />} />
           <Route
             path="*"

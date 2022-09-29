@@ -1,10 +1,9 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "name": "tucant",
   "icons": [
     {
-      "src": "logo.webp",
-      "type": "image/webp"
+      "src": "TUCaNt-gross.png",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
