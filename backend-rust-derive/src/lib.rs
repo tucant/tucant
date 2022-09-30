@@ -1,11 +1,11 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse::{Parse, ParseStream},
+    parse::Nothing,
     parse_macro_input,
     spanned::Spanned,
     visit::{self, Visit},
-    DeriveInput, Error, Item, ItemFn, ItemStruct, Token,
+    Error, Item, ItemFn, Type, TypePath,
 };
 
 /*
@@ -58,20 +58,34 @@ struct FnVisitor;
 impl<'ast> Visit<'ast> for FnVisitor {
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
         println!("Function with name={}", node.sig.ident);
+        let return_type = match &node.sig.output {
+            syn::ReturnType::Default => "void".to_string(),
+            syn::ReturnType::Type(_, path) => match &**path {
+                Type::Path(TypePath { path, .. }) => format!(
+                    "{:?}",
+                    path.segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect::<Vec<_>>()
+                        .join("_")
+                ),
+                _ => panic!(),
+            },
+        };
+        println!("Function with return type={}", return_type);
 
-        // Delegate to the default impl to visit any nested functions.
         visit::visit_item_fn(self, node);
     }
 }
 
 #[proc_macro_attribute]
 pub fn typescript(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // Parse the input tokens into a syntax tree
+    parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as Item);
 
     match input {
-        Item::Fn(_) => {}
-        Item::Struct(_) => {}
+        Item::Fn(function) => FnVisitor.visit_item_fn(&function),
+        Item::Struct(structure) => {}
         wrong_item => {
             return TokenStream::from(
                 Error::new(wrong_item.span(), "expected function or struct").to_compile_error(),
