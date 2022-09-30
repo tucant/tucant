@@ -60,9 +60,9 @@ root.render(
             <Route path="login" element={<Login />} />
             <Route path="search-modules" element={<SearchModules />} />
             <Route path="search-courses" element={<SearchCourses />} />
-            <Route path="modules/*" element={<Modules />} />
-            <Route path="module/*" element={<Module />} />
-            <Route path="course/*" element={<Course />} />
+            <Route path="modules/:id" element={<Modules />} />
+            <Route path="module/:id" element={<Module />} />
+            <Route path="course/:id" element={<Course />} />
             <Route path="credits" element={<Credits />} />
             <Route index element={<Welcome />} />
             <Route

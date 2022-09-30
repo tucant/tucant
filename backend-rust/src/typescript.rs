@@ -9,9 +9,7 @@ use chrono::NaiveDateTime;
 pub trait Typescriptable {
     fn name() -> String;
     fn code() -> HashSet<String> {
-        let mut result = HashSet::from(["".to_string()]);
-        result.extend(HashSet::from(["".to_string()]));
-        result
+        HashSet::new()
     }
 }
 
@@ -71,19 +69,28 @@ impl Typescriptable for i32 {
 
 impl<T: Typescriptable> Typescriptable for Vec<T> {
     fn name() -> String {
-        "boolean".to_string()
+        T::name() + "[]"
+    }
+    fn code() -> HashSet<String> {
+        T::code()
     }
 }
 
 impl<T: Typescriptable> Typescriptable for VecDeque<T> {
     fn name() -> String {
-        "boolean".to_string()
+        T::name() + "[]"
+    }
+    fn code() -> HashSet<String> {
+        T::code()
     }
 }
 
 impl<T: Typescriptable> Typescriptable for Option<T> {
     fn name() -> String {
-        "boolean".to_string()
+        T::name() + " | undefined"
+    }
+    fn code() -> HashSet<String> {
+        T::code()
     }
 }
 
