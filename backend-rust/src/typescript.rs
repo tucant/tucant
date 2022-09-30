@@ -1,4 +1,5 @@
 use actix_web::{dev::{HttpServiceFactory, ServiceFactory, ServiceRequest}, Error};
+use chrono::NaiveDateTime;
 
 pub trait Typescriptable {
     fn name() -> String;
@@ -11,8 +12,13 @@ impl Typescriptable for u32 {
     }
 }
 
-
 impl Typescriptable for String {
+    fn name() -> String {
+        "string".to_string()
+    }
+}
+
+impl Typescriptable for NaiveDateTime {
     fn name() -> String {
         "string".to_string()
     }
@@ -21,6 +27,30 @@ impl Typescriptable for String {
 impl Typescriptable for () {
     fn name() -> String {
         "void".to_string()
+    }
+}
+
+impl Typescriptable for bool {
+    fn name() -> String {
+        "boolean".to_string()
+    }
+}
+
+impl Typescriptable for i16 {
+    fn name() -> String {
+        "number".to_string()
+    }
+}
+
+impl Typescriptable for u8 {
+    fn name() -> String {
+        "number".to_string()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for Vec<T> {
+    fn name() -> String {
+        "boolean".to_string()
     }
 }
 

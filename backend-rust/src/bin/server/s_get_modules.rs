@@ -9,6 +9,7 @@ use crate::MyError;
 use actix_session::Session;
 use actix_web::HttpResponse;
 use actix_web::Responder;
+use actix_web::web::Json;
 use actix_web::{
     get,
     web::{Data, Path},
@@ -30,6 +31,7 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::RegistrationEnum;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
+use tucant_derive::ts;
 
 #[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone)]
 pub struct ModuleMenuPathPart {
@@ -54,17 +56,18 @@ pub struct ModuleMenuResponse {
 }
 
 // trailing slash is menu
-#[get("/modules/{menu_id:.*}")]
+#[ts]
+#[get("/modules")]
 pub async fn get_modules<'a>(
     session: Session,
     tucan: Data<Tucan>,
-    path: Path<String>,
-) -> Result<impl Responder, MyError> {
+    input: Json<String>,
+) -> Result<Json<ModuleMenuResponse>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => {
             let tucan = tucan.continue_session(session).await.unwrap();
 
-            let value = if path.is_empty() {
+            let value = if input.is_empty() {
                 let module_menu = tucan.root_registration().await?;
                 ModuleMenuResponse {
                     module_menu: module_menu.clone(),
@@ -72,7 +75,7 @@ pub async fn get_modules<'a>(
                     path: Vec::new(),
                 }
             } else {
-                let binary_path = base64::decode(path.as_bytes()).unwrap();
+                let binary_path = base64::decode(input.as_bytes()).unwrap();
                 let (module_menu, subentries) = tucan
                     .registration(Registration {
                         path: binary_path.clone(),

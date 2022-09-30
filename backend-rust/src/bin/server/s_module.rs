@@ -19,6 +19,7 @@ use diesel::{sql_query, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
 use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant_derive::ts;
 
 #[derive(Serialize)]
 pub struct ModuleResponse {
@@ -26,15 +27,16 @@ pub struct ModuleResponse {
     path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
-#[get("/module/{id:.*}")]
+#[ts]
+#[get("/module")]
 pub async fn module(
     _: Session,
     tucan: Data<Tucan>,
-    path: Path<String>,
+    input: Json<String>,
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await?;
 
-    let binary_path = base64::decode(path.as_bytes()).unwrap();
+    let binary_path = base64::decode(input.as_bytes()).unwrap();
 
     let result = modules_unfinished::table
         .filter(modules_unfinished::tucan_id.eq(&binary_path))

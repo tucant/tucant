@@ -59,7 +59,6 @@ struct InnermostTypeVisitor(Option<TokenStream>);
 
 impl<'ast> Visit<'ast> for InnermostTypeVisitor {
     fn visit_ident(&mut self, ident: &'ast Ident) {
-        println!("ident: {:?}", ident);
         self.0 = Some(ident.to_token_stream());
     }
 
@@ -67,12 +66,10 @@ impl<'ast> Visit<'ast> for InnermostTypeVisitor {
             &mut self,
             i: &'ast syn::AngleBracketedGenericArguments,
         ) {
-        println!("AngleBracketedGenericArguments: {:?}", i);
         i.args.first().map(|v| self.visit_generic_argument(v));
     }
 
     fn visit_type_tuple(&mut self, i: &'ast syn::TypeTuple) {
-        println!("ident: {:?}", i);
         self.0 = Some(i.to_token_stream());
     }
 }
@@ -82,16 +79,14 @@ struct FnVisitor(Option<TokenStream>);
 
 impl<'ast> Visit<'ast> for FnVisitor {
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
-        println!("Function with name={}", node.sig.ident);
         let return_type = match node.sig.output {
             syn::ReturnType::Default => format_ident!("void").to_token_stream(),
             syn::ReturnType::Type(_, ref path) => {
                 let mut innermost_type_visitor = InnermostTypeVisitor(None);
                 innermost_type_visitor.visit_type(path);
-                innermost_type_visitor.0.unwrap().to_token_stream()
+                innermost_type_visitor.0.unwrap()
             },
         };
-        println!("Function with return type={}", return_type);
 
         let arg_type = node.sig.inputs.iter().filter_map(|arg| {
             match arg {
@@ -99,7 +94,6 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
                         if ident.to_string() == "input" {
-                            println!("ty: {:?}", ty);
                             let mut innermost_type_visitor = InnermostTypeVisitor(None);
                             innermost_type_visitor.visit_type(ty);
                             return Some(innermost_type_visitor.0.unwrap().to_token_stream())
@@ -116,14 +110,14 @@ impl<'ast> Visit<'ast> for FnVisitor {
             self.0 = Some(quote! {
                 #node
     
-                impl ::tucant::typescript::Typescriptable for #name {
+                impl tucant::typescript::Typescriptable for #name {
                     fn name() -> String {
                         #name_string.to_string()
                     }
     
                     fn code() -> String {
-                        "function ".to_string() + &<#name as ::tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as ::tucant::typescript::Typescriptable>::name() + ")"
-                        + " -> " + &<#return_type as ::tucant::typescript::Typescriptable>::name() + " {\n"
+                        "function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
+                        + " -> " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n"
     
                         + "\n}"
                     }
@@ -148,7 +142,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
                     quote! {
-                       "  " + #ident_string + ": " + &<#field_type as ::tucant::typescript::Typescriptable>::name() + ",\n"
+                       "  " + #ident_string + ": " + &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
                     }
                 }).fold(quote! {}, |acc, x| quote! {
                     #acc + #x
@@ -159,7 +153,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
         };
 
         self.0 = Some(quote! {
-            impl ::tucant::typescript::Typescriptable for #name {
+            impl tucant::typescript::Typescriptable for #name {
                 fn name() -> String {
                     #name_string.to_string()
                 }

@@ -5,6 +5,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use tucant_derive::ts;
 
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
@@ -165,6 +166,7 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     pub module_id: &'a [u8],
 }
 
+#[ts]
 #[derive(
     Identifiable,
     Queryable,

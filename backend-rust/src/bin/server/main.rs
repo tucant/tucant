@@ -69,32 +69,36 @@ impl From<diesel::result::Error> for MyError {
     }
 }
 
+#[ts]
 #[derive(Deserialize)]
 struct Login {
     username: String,
     password: String,
 }
 
+#[ts]
 #[derive(Serialize)]
 struct LoginResult {
     success: bool,
 }
 
+#[ts]
 #[post("/login")]
 async fn login(
     session: Session,
     tucan: web::Data<Tucan>,
-    login: web::Json<Login>,
-) -> Result<impl Responder, MyError> {
-    let tucan_user = tucan.login(&login.username, &login.password).await?;
+    input: web::Json<Login>,
+) -> Result<Json<LoginResult>, MyError> {
+    let tucan_user = tucan.login(&input.username, &input.password).await?;
     session.insert("session", tucan_user.session).unwrap();
     Ok(web::Json(LoginResult { success: true }))
 }
 
+#[ts]
 #[post("/logout")]
-async fn logout(session: Session) -> Result<impl Responder, MyError> {
+async fn logout(session: Session, input: Json<()>) -> Result<Json<()>, MyError> {
     session.purge();
-    Ok(HttpResponse::Ok())
+    Ok(web::Json(()))
 }
 
 #[ts]

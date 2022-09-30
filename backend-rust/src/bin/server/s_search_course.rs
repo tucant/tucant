@@ -21,21 +21,23 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use tucant::{schema::courses_unfinished, tucan::Tucan};
+use tucant_derive::ts;
 
 sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
 sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
+#[ts]
 #[get("/search-course")]
 pub async fn search_course(
     _: Session,
     tucan: Data<Tucan>,
-    search_query: Query<SearchQuery>,
+    input: Json<String>,
 ) -> Result<impl Responder, MyError> {
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = courses_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let tsquery = websearch_to_tsquery_with_search_config(config, &input);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = courses_unfinished::table
         .filter(tsvector.matches(tsquery))

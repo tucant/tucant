@@ -20,19 +20,21 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use tucant::{schema::modules_unfinished, tucan::Tucan};
+use tucant_derive::ts;
 
+#[ts]
 #[get("/search-module")]
 pub async fn search_module(
     _: Session,
     tucan: Data<Tucan>,
-    search_query: Query<SearchQuery>,
+    input: Json<String>,
 ) -> Result<impl Responder, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = modules_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let tsquery = websearch_to_tsquery_with_search_config(config, &input);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
         .filter(tsvector.matches(tsquery))
