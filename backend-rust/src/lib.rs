@@ -7,7 +7,7 @@ pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
 pub mod url;
-pub mod typescriptable;
+pub mod typescript;
 
 use diesel_async::{
     pooled_connection::{deadpool::Pool, AsyncDieselConnectionManager},

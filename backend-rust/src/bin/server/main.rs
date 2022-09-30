@@ -25,7 +25,7 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
-use typescriptable::TypescriptableApp;
+use tucant::typescript::TypescriptableApp;
 use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
@@ -35,6 +35,7 @@ use tokio::{
 use tucant::tucan::Tucan;
 use tucant::tucan_user::{TucanSession, TucanUser};
 use tucant::url::{Coursedetails, Moduledetails, Registration};
+use tucant_derive::ts;
 
 #[derive(Debug)]
 pub struct MyError {
@@ -96,6 +97,7 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
 }
 
 #[get("/")]
+#[ts]
 async fn index(session: Session) -> Result<impl Responder, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
@@ -151,6 +153,7 @@ async fn main() -> anyhow::Result<()> {
             .wrap(CsrfMiddleware {})
             .wrap(cors)
             .wrap(logger);
+
 
         let app = TypescriptableApp {
             app

@@ -18,10 +18,6 @@ impl Typescriptable for String {
     }
 }
 
-pub trait TypescriptableService<T: HttpServiceFactory + 'static> {
-    fn get_handler() -> T;
-}
-
 pub struct TypescriptableApp<T> {
     pub app: actix_web::App<T>,
 }
@@ -30,13 +26,12 @@ impl<T> TypescriptableApp<T>
 where
     T: ServiceFactory<ServiceRequest, Config = (), Error = Error, InitError = ()>,
 {
-    pub fn service<F, S>(mut self, factory: S) -> Self
+    pub fn service<F>(mut self, factory: F) -> Self
     where
-        F: HttpServiceFactory + 'static,
-        S: Typescriptable + TypescriptableService<F>,
+        F: Typescriptable + HttpServiceFactory + 'static,
     {
-        println!("{}", S::code());
-        self.app = self.app.service(S::get_handler());
+        println!("{}", <F as Typescriptable>::code());
+        self.app = self.app.service(factory);
         self
     }
 }
