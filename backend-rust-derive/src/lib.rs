@@ -5,7 +5,7 @@ use syn::{
     parse_macro_input,
     spanned::Spanned,
     visit::{self, Visit},
-    Error, Item, ItemFn, Type, TypePath,
+    Error, Item, ItemFn, Pat, PatIdent, PatType, Type, TypePath,
 };
 
 /*
@@ -55,24 +55,49 @@ write_to_file(login_typescript, ...)
 
 struct FnVisitor;
 
+fn type_to_string(the_type: &Box<Type>) -> String {
+    match &**the_type {
+        Type::Path(TypePath { path, .. }) => format!(
+            "{:?}",
+            path.segments
+                .iter()
+                .map(|s| s.ident.to_string())
+                .collect::<Vec<_>>()
+                .join("_")
+        ),
+        _ => panic!(),
+    }
+}
+
+fn pat_to_string(pat: &Box<Pat>) -> String {
+    match &**pat {
+        Pat::Ident(PatIdent { ident, .. }) => ident.to_string(),
+        _ => panic!(),
+    }
+}
+
 impl<'ast> Visit<'ast> for FnVisitor {
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
         println!("Function with name={}", node.sig.ident);
-        let return_type = match &node.sig.output {
+        let return_type = match node.sig.output {
             syn::ReturnType::Default => "void".to_string(),
-            syn::ReturnType::Type(_, path) => match &**path {
-                Type::Path(TypePath { path, .. }) => format!(
-                    "{:?}",
-                    path.segments
-                        .iter()
-                        .map(|s| s.ident.to_string())
-                        .collect::<Vec<_>>()
-                        .join("_")
-                ),
-                _ => panic!(),
-            },
+            syn::ReturnType::Type(_, ref path) => type_to_string(path),
         };
         println!("Function with return type={}", return_type);
+
+        let args = node
+            .sig
+            .inputs
+            .iter()
+            .map(|input| match input {
+                syn::FnArg::Receiver(_) => todo!(),
+                syn::FnArg::Typed(PatType { pat, ty, .. }) => {
+                    (pat_to_string(pat), type_to_string(ty))
+                }
+            })
+            .collect::<Vec<_>>();
+
+        println!("Function with args={:?}", args);
 
         visit::visit_item_fn(self, node);
     }
