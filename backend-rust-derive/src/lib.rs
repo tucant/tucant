@@ -1,5 +1,5 @@
-use proc_macro::TokenStream;
-use quote::quote;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 use syn::{
     parse::Nothing,
     parse_macro_input,
@@ -14,7 +14,7 @@ struct Struct1 {
     val2: Type2
 }
 -->
-static Struct1_typescript: &str = R#"
+static Struct1_typescript: &str = r#"
 type Struct1 {
     val1: Type1,
     val2: Type2
@@ -53,8 +53,6 @@ app.service(index).service(login).service(logout),....
 write_to_file(login_typescript, ...)
 */
 
-struct FnVisitor;
-
 fn type_to_string(the_type: &Box<Type>) -> String {
     match &**the_type {
         Type::Path(TypePath { path, .. }) => format!(
@@ -75,6 +73,8 @@ fn pat_to_string(pat: &Box<Pat>) -> String {
         _ => panic!(),
     }
 }
+
+struct FnVisitor(Option<TokenStream>);
 
 impl<'ast> Visit<'ast> for FnVisitor {
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
@@ -99,32 +99,42 @@ impl<'ast> Visit<'ast> for FnVisitor {
 
         println!("Function with args={:?}", args);
 
-        visit::visit_item_fn(self, node);
+        let test = node.sig.ident.to_string();
+        self.0 = Some(quote! {
+           static Struct1_typescript: &str = #test;
+        });
+    }
+}
+
+fn typescript_impl(input: Item) -> TokenStream {
+    let typescript = match &input {
+        Item::Fn(function) => {
+            let mut visitor = FnVisitor(None);
+            visitor.visit_item_fn(&function);
+            visitor.0.unwrap()
+        },
+        Item::Struct(structure) => {
+            quote! {
+                
+            }
+        }
+        wrong_item => {
+            return Error::new(wrong_item.span(), "expected function or struct").to_compile_error()
+        }
+    };
+
+    quote! {
+        #typescript
+        #input
     }
 }
 
 #[proc_macro_attribute]
-pub fn typescript(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn typescript(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as Item);
 
-    match input {
-        Item::Fn(function) => FnVisitor.visit_item_fn(&function),
-        Item::Struct(structure) => {}
-        wrong_item => {
-            return TokenStream::from(
-                Error::new(wrong_item.span(), "expected function or struct").to_compile_error(),
-            )
-        }
-    }
-
-    // Build the output, possibly using quasi-quotation
-    let expanded = quote! {
-        // ...
-    };
-
-    // Hand the output tokens back to the compiler
-    TokenStream::from(expanded)
+    proc_macro::TokenStream::from(typescript_impl(input))
 }
 
 #[cfg(test)]
