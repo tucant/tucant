@@ -59,13 +59,12 @@ export default function Module() {
 
   return (
     <>
-      <Typography variant="h2">Modul</Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
 
       {data && (
         <>
-          <Typography variant="h3">
+          <Typography variant="h4" component="h1">
             {data.module.module_id} {data.module.title}
           </Typography>
           {data.path.map((p, i) => (

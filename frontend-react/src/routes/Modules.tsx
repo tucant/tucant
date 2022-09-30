@@ -65,7 +65,7 @@ export default function Modules() {
   return (
     <>
       <Typography variant="h4" component="h1">
-        Module {data?.module_menu.name}
+        {data?.module_menu.name}
       </Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
