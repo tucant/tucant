@@ -1,11 +1,11 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::Nothing,
     parse_macro_input,
     spanned::Spanned,
-    visit::{self, Visit},
-    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType, Type, TypePath,
+    visit::{Visit},
+    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -66,7 +66,7 @@ impl<'ast> Visit<'ast> for InnermostTypeVisitor {
         &mut self,
         i: &'ast syn::AngleBracketedGenericArguments,
     ) {
-        i.args.first().map(|v| self.visit_generic_argument(v));
+        if let Some(v) = i.args.first() { self.visit_generic_argument(v) }
     }
 
     fn visit_type_tuple(&mut self, i: &'ast syn::TypeTuple) {
@@ -95,7 +95,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 syn::FnArg::Receiver(_) => None,
                 syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
-                        if ident.to_string() == "input" {
+                        if *ident == "input" {
                             let mut innermost_type_visitor = InnermostTypeVisitor(None);
                             innermost_type_visitor.visit_type(ty);
                             return Some(innermost_type_visitor.0.unwrap().to_token_stream());
@@ -232,12 +232,12 @@ fn typescript_impl(input: Item) -> TokenStream {
     match &input {
         Item::Fn(function) => {
             let mut visitor = FnVisitor(None);
-            visitor.visit_item_fn(&function);
+            visitor.visit_item_fn(function);
             visitor.0.unwrap()
         }
         Item::Struct(structure) => {
             let mut visitor = StructVisitor(None);
-            visitor.visit_item_struct(&structure);
+            visitor.visit_item_struct(structure);
             let typescript_code = visitor.0.unwrap();
             quote! {
                 #typescript_code
@@ -253,7 +253,7 @@ fn typescript_impl(input: Item) -> TokenStream {
         }
         // TODO for enums add #[serde(tag = "type")]
         wrong_item => {
-            return Error::new(wrong_item.span(), "expected function or struct").to_compile_error()
+            Error::new(wrong_item.span(), "expected function or struct").to_compile_error()
         }
     }
 }
@@ -268,7 +268,7 @@ pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
 
     #[test]
     fn it_works() {}
