@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens, format_ident};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::Nothing,
     parse_macro_input,
@@ -55,26 +55,15 @@ app.service(index).service(login).service(logout),....
 write_to_file(login_typescript, ...)
 */
 
-fn type_to_string(the_type: &Box<Type>) -> String {
-    match &**the_type {
-        Type::Path(TypePath { path, .. }) => format!(
-            "{:?}",
-            path.segments
-                .iter()
-                .map(|s| s.ident.to_string())
-                .collect::<Vec<_>>()
-                .join("_")
-        ),
-        _ => panic!(),
+struct InnermostTypeVisitor<'ast>(Option<&'ast Ident>);
+
+impl<'ast> Visit<'ast> for InnermostTypeVisitor<'ast> {
+    fn visit_ident(&mut self, ident: &'ast Ident) {
+        println!("ident: {:?}", ident);
+        self.0 = Some(ident);
     }
 }
 
-fn pat_to_string(pat: &Box<Pat>) -> String {
-    match &**pat {
-        Pat::Ident(PatIdent { ident, .. }) => ident.to_string(),
-        _ => panic!(),
-    }
-}
 
 struct FnVisitor(Option<TokenStream>);
 
@@ -83,28 +72,30 @@ impl<'ast> Visit<'ast> for FnVisitor {
         println!("Function with name={}", node.sig.ident);
         let return_type = match node.sig.output {
             syn::ReturnType::Default => format_ident!("void").to_token_stream(),
-            syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
+            syn::ReturnType::Type(_, ref path) => {
+                let mut innermost_type_visitor = InnermostTypeVisitor(None);
+                innermost_type_visitor.visit_type(path);
+                innermost_type_visitor.0.unwrap().to_token_stream()
+            },
         };
         println!("Function with return type={}", return_type);
 
         /*let args = node
-            .sig
-            .inputs
-            .iter()
-            .map(|input| match input {
-                syn::FnArg::Receiver(_) => todo!(),
-                syn::FnArg::Typed(PatType { pat, ty, .. }) => {
-                    (pat_to_string(pat), type_to_string(ty))
-                }
-            })
-            .collect::<Vec<_>>();*/
+        .sig
+        .inputs
+        .iter()
+        .map(|input| match input {
+            syn::FnArg::Receiver(_) => todo!(),
+            syn::FnArg::Typed(PatType { pat, ty, .. }) => {
+                (pat_to_string(pat), type_to_string(ty))
+            }
+        })
+        .collect::<Vec<_>>();*/
 
         let arg = node.sig.inputs.iter().next().unwrap();
         let arg_type = match arg {
             syn::FnArg::Receiver(_) => todo!(),
-            syn::FnArg::Typed(PatType { ty, .. }) => {
-                ty
-            }
+            syn::FnArg::Typed(PatType { ty, .. }) => ty,
         };
 
         let name = &node.sig.ident;
@@ -191,10 +182,7 @@ fn typescript_impl(input: Item) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn ts(
-    attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
+pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as Item);
 

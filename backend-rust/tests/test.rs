@@ -1,4 +1,4 @@
-use actix_web::get;
+use actix_web::{get, web::{self, Json}};
 use tucant_derive::ts;
 
 // cargo install cargo-expand
@@ -13,9 +13,15 @@ pub struct Struct1 {
     val2: String,
 }
 
+#[ts]
+#[get("/")]
+async fn index(session: String) -> actix_web::Result<Json<String>> {
+    Ok(web::Json("Welcome Anonymous!".to_owned()))
+}
 
 #[test]
 pub fn test() {
     // cargo test -- --show-output
-    println!("{}", <Struct1 as ::tucant::typescript::Typescriptable>::code());    
+    println!("{}", <Struct1 as ::tucant::typescript::Typescriptable>::code()); 
+    println!("{}", <index as ::tucant::typescript::Typescriptable>::code());       
 }

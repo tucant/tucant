@@ -15,6 +15,7 @@ use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
+use actix_web::web::Json;
 use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
 use csrf_middleware::CsrfMiddleware;
 use diesel_async::pooled_connection::PoolError;
@@ -96,9 +97,9 @@ async fn logout(session: Session) -> Result<impl Responder, MyError> {
     Ok(HttpResponse::Ok())
 }
 
-#[get("/")]
 #[ts]
-async fn index(session: Session) -> Result<impl Responder, MyError> {
+#[get("/")]
+async fn index(session: Session) -> Result<Json<String>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
         None => Ok(web::Json("Welcome Anonymous!".to_owned())),
