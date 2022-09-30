@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 /backend-rust/target
+/backend-rust-derive/target
 /backend-rust/sessions.key
 /backend-rust/.trigger
 .eslintcache
