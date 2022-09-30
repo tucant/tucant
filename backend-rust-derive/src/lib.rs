@@ -55,12 +55,25 @@ app.service(index).service(login).service(logout),....
 write_to_file(login_typescript, ...)
 */
 
-struct InnermostTypeVisitor<'ast>(Option<&'ast Ident>);
+struct InnermostTypeVisitor(Option<TokenStream>);
 
-impl<'ast> Visit<'ast> for InnermostTypeVisitor<'ast> {
+impl<'ast> Visit<'ast> for InnermostTypeVisitor {
     fn visit_ident(&mut self, ident: &'ast Ident) {
         println!("ident: {:?}", ident);
-        self.0 = Some(ident);
+        self.0 = Some(ident.to_token_stream());
+    }
+
+    fn visit_angle_bracketed_generic_arguments(
+            &mut self,
+            i: &'ast syn::AngleBracketedGenericArguments,
+        ) {
+        println!("AngleBracketedGenericArguments: {:?}", i);
+        i.args.first().map(|v| self.visit_generic_argument(v));
+    }
+
+    fn visit_type_tuple(&mut self, i: &'ast syn::TypeTuple) {
+        println!("ident: {:?}", i);
+        self.0 = Some(i.to_token_stream());
     }
 }
 
@@ -86,6 +99,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
                         if ident.to_string() == "input" {
+                            println!("ty: {:?}", ty);
                             let mut innermost_type_visitor = InnermostTypeVisitor(None);
                             innermost_type_visitor.visit_type(ty);
                             return Some(innermost_type_visitor.0.unwrap().to_token_stream())
@@ -108,8 +122,8 @@ impl<'ast> Visit<'ast> for FnVisitor {
                     }
     
                     fn code() -> String {
-                        "function ".to_string() + &#name::name() + "(input: " + &#arg_type::name() + ")"
-                        + " -> " + &#return_type::name() + " {\n"
+                        "function ".to_string() + &<#name as ::tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as ::tucant::typescript::Typescriptable>::name() + ")"
+                        + " -> " + &<#return_type as ::tucant::typescript::Typescriptable>::name() + " {\n"
     
                         + "\n}"
                     }

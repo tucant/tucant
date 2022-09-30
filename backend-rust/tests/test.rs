@@ -15,7 +15,7 @@ pub struct Struct1 {
 
 #[ts]
 #[get("/")]
-async fn index(session: String) -> actix_web::Result<Json<String>> {
+async fn index(session: String, input: Json<()>) -> actix_web::Result<Json<String>> {
     Ok(web::Json("Welcome Anonymous!".to_owned()))
 }
 

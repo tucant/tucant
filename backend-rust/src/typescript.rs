@@ -18,6 +18,12 @@ impl Typescriptable for String {
     }
 }
 
+impl Typescriptable for () {
+    fn name() -> String {
+        "void".to_string()
+    }
+}
+
 pub struct TypescriptableApp<T> {
     pub app: actix_web::App<T>,
 }
