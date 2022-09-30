@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::s_search_course::{encode, rtrim};
+use crate::s_search_course::{encode, rtrim, SearchResult};
 use crate::{MyError, SearchQuery};
 use actix_session::Session;
 use actix_web::Responder;
@@ -28,13 +28,13 @@ pub async fn search_module(
     _: Session,
     tucan: Data<Tucan>,
     input: Json<String>,
-) -> Result<impl Responder, MyError> {
+) -> Result<Json<Vec<SearchResult>>, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = modules_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &input);
+    let tsquery = websearch_to_tsquery_with_search_config(config, &input.0);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
         .filter(tsvector.matches(tsquery))
@@ -55,7 +55,7 @@ pub async fn search_module(
         ));
 
     let result = sql_query
-        .load::<(String, String, String, f32)>(&mut connection)
+        .load::<SearchResult>(&mut connection)
         .await?;
 
     Ok(Json(result))

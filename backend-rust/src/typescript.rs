@@ -48,6 +48,12 @@ impl Typescriptable for u8 {
     }
 }
 
+impl Typescriptable for f32 {
+    fn name() -> String {
+        "number".to_string()
+    }
+}
+
 impl<T: Typescriptable> Typescriptable for Vec<T> {
     fn name() -> String {
         "boolean".to_string()

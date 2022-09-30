@@ -11,7 +11,7 @@ use actix_web::{
 };
 use diesel::pg::sql_types::Bytea;
 use diesel::sql_types::Text;
-use diesel::QueryDsl;
+use diesel::{QueryDsl, Queryable};
 use diesel::TextExpressionMethods;
 use diesel::{sql_function, ExpressionMethods};
 use diesel_async::RunQueryDsl;
@@ -20,6 +20,7 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
+use serde::Serialize;
 use tucant::{schema::courses_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
@@ -27,17 +28,26 @@ sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
 sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
 #[ts]
+#[derive(Queryable, Serialize)]
+pub struct SearchResult {
+    a: String,
+    b: String,
+    c: String,
+    d: f32
+}
+
+#[ts]
 #[get("/search-course")]
 pub async fn search_course(
     _: Session,
     tucan: Data<Tucan>,
     input: Json<String>,
-) -> Result<impl Responder, MyError> {
+) -> Result<Json<Vec<SearchResult>>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = courses_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &input);
+    let tsquery = websearch_to_tsquery_with_search_config(config, &input.0);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = courses_unfinished::table
         .filter(tsvector.matches(tsquery))
@@ -58,7 +68,7 @@ pub async fn search_course(
         ));
 
     let result = sql_query
-        .load::<(String, String, String, f32)>(&mut connection)
+        .load::<SearchResult>(&mut connection)
         .await?;
 
     Ok(Json(result))
