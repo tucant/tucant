@@ -11,8 +11,10 @@ struct Struct1 {
     val2: String,
 }
 
-
-#[test]
-fn test_generation() {
-
+#[typescript]
+pub fn fake_request(input: Struct1) -> Struct1 {
+    Struct1 {
+        val1: 1,
+        val2: "".to_string(),
+    }
 }

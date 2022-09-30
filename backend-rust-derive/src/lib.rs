@@ -1,6 +1,12 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, ItemFn};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+    spanned::Spanned,
+    visit::{self, Visit},
+    DeriveInput, Error, Item, ItemFn, ItemStruct, Token,
+};
 
 /*
 struct Struct1 {
@@ -40,19 +46,38 @@ if syn is epic it may be possible to somehow extract the data based on a ref to 
 /*
 typescript_app!(app, index, login, logout, get_modules)
 
--> 
+->
 
 app.service(index).service(login).service(logout),....
 
 write_to_file(login_typescript, ...)
 */
 
-// https://github.com/dtolnay/syn/blob/master/examples/trace-var/trace-var/src/lib.rs
+struct FnVisitor;
+
+impl<'ast> Visit<'ast> for FnVisitor {
+    fn visit_item_fn(&mut self, node: &'ast ItemFn) {
+        println!("Function with name={}", node.sig.ident);
+
+        // Delegate to the default impl to visit any nested functions.
+        visit::visit_item_fn(self, node);
+    }
+}
 
 #[proc_macro_attribute]
 pub fn typescript(attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
-    let input = parse_macro_input!(item as DeriveInput);
+    let input = parse_macro_input!(item as Item);
+
+    match input {
+        Item::Fn(_) => {}
+        Item::Struct(_) => {}
+        wrong_item => {
+            return TokenStream::from(
+                Error::new(wrong_item.span(), "expected function or struct").to_compile_error(),
+            )
+        }
+    }
 
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
@@ -68,6 +93,5 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-    }
+    fn it_works() {}
 }
