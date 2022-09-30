@@ -113,8 +113,8 @@ impl<'ast> Visit<'ast> for FnVisitor {
     },
     body: JSON.stringify(input),
     });
-    return await response.json()
-}"#]);
+    return await response.json() as "# + &<#return_type as tucant::typescript::Typescriptable>::name() +
+"\n}"]);
                         result.extend(<#arg_type as tucant::typescript::Typescriptable>::code());
                         result.extend(<#return_type as tucant::typescript::Typescriptable>::code());       
                         result                
