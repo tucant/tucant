@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashSet};
 
 use actix_web::{
     dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
@@ -8,8 +8,10 @@ use chrono::NaiveDateTime;
 
 pub trait Typescriptable {
     fn name() -> String;
-    fn code() -> String {
-        "".to_string()
+    fn code() -> HashSet<String> {
+        let mut result = HashSet::from(["".to_string()]);
+        result.extend(HashSet::from(["".to_string()]));
+        result
     }
 }
 
@@ -97,7 +99,7 @@ where
     where
         F: Typescriptable + HttpServiceFactory + 'static,
     {
-        println!("{}", <F as Typescriptable>::code());
+        println!("{:?}", <F as Typescriptable>::code());
         self.app = self.app.service(factory);
         self
     }

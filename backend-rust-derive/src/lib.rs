@@ -117,11 +117,14 @@ impl<'ast> Visit<'ast> for FnVisitor {
                         #name_string.to_string()
                     }
 
-                    fn code() -> String {
-                        "function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
+                    fn code() -> ::std::collections::HashSet<String> {
+                        let mut result = ::std::collections::HashSet::from(["function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
                         + " -> " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n"
 
-                        + "\n}"
+                        + "\n}"]);
+                        result.extend(<#arg_type as tucant::typescript::Typescriptable>::code());
+                        result.extend(<#return_type as tucant::typescript::Typescriptable>::code());       
+                        result                
                     }
                 }
             });
@@ -166,10 +169,12 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     #name_string.to_string()
                 }
 
-                fn code() -> String {
-                    "type ".to_string() + &#name::name() + " = {\n"
+                fn code() -> ::std::collections::HashSet<String> {
+                    let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
                     #members
-                    + "}"
+                    + "}"]);
+
+                    result
                 }
             }
         })
@@ -219,10 +224,12 @@ fn handle_enum(item: &ItemEnum) -> TokenStream {
                 #name_string.to_string()
             }
 
-            fn code() -> String {
-                "type ".to_string() + &#name::name() + " = {\n"
+            fn code() -> ::std::collections::HashSet<String> {
+                let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
                 #members
-                + "}"
+                + "}"]);
+
+                result
             }
         }
     }
