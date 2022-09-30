@@ -2494,7 +2494,17 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tucant_derive",
  "url",
+]
+
+[[package]]
+name = "tucant_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

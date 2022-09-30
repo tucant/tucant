@@ -9,6 +9,7 @@ mod s_module;
 mod s_search_course;
 mod s_search_module;
 mod s_setup;
+mod typescriptable;
 
 use actix_cors::Cors;
 use actix_session::Session;
@@ -25,6 +26,7 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
+use typescriptable::TypescriptableApp;
 use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
@@ -149,8 +151,12 @@ async fn main() -> anyhow::Result<()> {
             )
             .wrap(CsrfMiddleware {})
             .wrap(cors)
-            .wrap(logger)
-            .service(index)
+            .wrap(logger);
+
+        let app = TypescriptableApp {
+            app
+        };
+            app.service(index)
             .service(login)
             .service(logout)
             .service(get_modules)
@@ -160,7 +166,7 @@ async fn main() -> anyhow::Result<()> {
             .service(course)
             .service(module);
 
-        app
+        app.app
     })
     .bind(("127.0.0.1", 8080))?
     .run()
