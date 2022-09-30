@@ -101,7 +101,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
                     }
 
                     fn code() -> ::std::collections::HashSet<String> {
-                        let mut result = ::std::collections::HashSet::from(["async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
+                        let mut result = ::std::collections::HashSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
                         + ": Promise<" + &<#return_type as tucant::typescript::Typescriptable>::name() + "> {" +
                         r#"
     const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
