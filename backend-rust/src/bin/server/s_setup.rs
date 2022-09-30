@@ -116,7 +116,7 @@ fn fetch_registration(
 pub async fn setup(
     tucan: Data<Tucan>,
     session: Session,
-    input: Json<()>,
+    _input: Json<()>,
 ) -> Result<impl Responder, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => {

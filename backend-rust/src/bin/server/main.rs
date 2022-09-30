@@ -84,23 +84,18 @@ async fn login(
 
 #[ts]
 #[post("/logout")]
-async fn logout(session: Session, input: Json<()>) -> Result<Json<()>, MyError> {
+async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
     session.purge();
     Ok(web::Json(()))
 }
 
 #[ts]
 #[get("/")]
-async fn index(session: Session, input: Json<()>) -> Result<Json<String>, MyError> {
+async fn index(session: Session, _input: Json<()>) -> Result<Json<String>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
         None => Ok(web::Json("Welcome Anonymous!".to_owned())),
     }
-}
-
-#[derive(Deserialize)]
-pub struct SearchQuery {
-    q: String,
 }
 
 #[actix_web::main]

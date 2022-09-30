@@ -95,7 +95,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 syn::FnArg::Receiver(_) => None,
                 syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
-                        if *ident == "input" {
+                        if *ident == "input" || *ident == "_input" {
                             let mut innermost_type_visitor = InnermostTypeVisitor(None);
                             innermost_type_visitor.visit_type(ty);
                             return Some(innermost_type_visitor.0.unwrap().to_token_stream());
@@ -129,7 +129,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
             self.0 = Some(
                 Error::new(
                     node.sig.inputs.span(),
-                    r#"name one of the parameters "input""#,
+                    r#"name one of the parameters `input` or `_input`"#,
                 )
                 .to_compile_error(),
             );
