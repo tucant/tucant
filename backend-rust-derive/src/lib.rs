@@ -80,42 +80,44 @@ impl<'ast> Visit<'ast> for FnVisitor {
         };
         println!("Function with return type={}", return_type);
 
-        /*let args = node
-        .sig
-        .inputs
-        .iter()
-        .map(|input| match input {
-            syn::FnArg::Receiver(_) => todo!(),
-            syn::FnArg::Typed(PatType { pat, ty, .. }) => {
-                (pat_to_string(pat), type_to_string(ty))
-            }
-        })
-        .collect::<Vec<_>>();*/
-
-        let arg = node.sig.inputs.iter().next().unwrap();
-        let arg_type = match arg {
-            syn::FnArg::Receiver(_) => todo!(),
-            syn::FnArg::Typed(PatType { ty, .. }) => ty,
-        };
-
-        let name = &node.sig.ident;
-        let name_string = node.sig.ident.to_string();
-        self.0 = Some(quote! {
-            #node
-
-            impl ::tucant::typescript::Typescriptable for #name {
-                fn name() -> String {
-                    #name_string.to_string()
-                }
-
-                fn code() -> String {
-                    "function ".to_string() + &#name::name() + "(input: " + &#arg_type::name() + ")"
-                    + " -> " + &#return_type::name() + " {\n"
-
-                    + "\n}"
+        let arg_type = node.sig.inputs.iter().filter_map(|arg| {
+            match arg {
+                syn::FnArg::Receiver(_) => None,
+                syn::FnArg::Typed(PatType { pat, ty, .. }) => {
+                    if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
+                        if ident.to_string() == "input" {
+                            let mut innermost_type_visitor = InnermostTypeVisitor(None);
+                            innermost_type_visitor.visit_type(ty);
+                            return Some(innermost_type_visitor.0.unwrap().to_token_stream())
+                        }
+                    }
+                    None
                 }
             }
-        });
+        }).next();
+
+        if let Some(arg_type) = arg_type {
+            let name = &node.sig.ident;
+            let name_string = node.sig.ident.to_string();
+            self.0 = Some(quote! {
+                #node
+    
+                impl ::tucant::typescript::Typescriptable for #name {
+                    fn name() -> String {
+                        #name_string.to_string()
+                    }
+    
+                    fn code() -> String {
+                        "function ".to_string() + &#name::name() + "(input: " + &#arg_type::name() + ")"
+                        + " -> " + &#return_type::name() + " {\n"
+    
+                        + "\n}"
+                    }
+                }
+            });
+        } else {
+            self.0 = Some(Error::new(node.sig.inputs.span(), r#"name one of the parameters "input""#).to_compile_error());
+        }
     }
 }
 
