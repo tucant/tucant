@@ -64,7 +64,9 @@ export default function Modules() {
 
   return (
     <>
-      <Typography variant="h2">Module</Typography>
+      <Typography variant="h4" component="h1">
+        {data?.module_menu.name}
+      </Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
       {data?.path.map((p, i) => (
