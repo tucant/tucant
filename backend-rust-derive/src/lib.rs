@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{quote, ToTokens, format_ident};
 use syn::{
     parse::Nothing,
     parse_macro_input,
@@ -101,7 +101,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
 
         println!("Function with args={:?}", args);
 
-        let name = Ident::new(&format!("{}Service", node.sig.ident), Span::call_site());
+        let name = format_ident!("{}Service", node.sig.ident);
         let name_string = node.sig.ident.to_string();
         self.0 = Some(quote! {
             struct #name;
@@ -123,6 +123,45 @@ impl<'ast> Visit<'ast> for FnVisitor {
     }
 }
 
+struct StructVisitor(Option<TokenStream>);
+
+impl<'ast> Visit<'ast> for StructVisitor {
+    fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
+        let name = &node.ident;
+        let name_string = node.ident.to_string();
+
+        let members = match &node.fields {
+            syn::Fields::Named(fields_named) => {
+                fields_named.named.iter().map(|field| {
+                    let ident_string = field.ident.as_ref().unwrap().to_string();
+                    let field_type = &field.ty;
+                    quote! {
+                        #ident_string.to_string() + ": ".to_string() + #field_type::name() + ", ".to_string()
+                    }
+                }).fold(quote! {}, |acc, x| quote! {
+                    #acc + #x
+                })
+            },
+            syn::Fields::Unnamed(_) => todo!(),
+            syn::Fields::Unit => todo!(),
+        };
+
+        self.0 = Some(quote! {
+            impl Typescriptable for #name {
+                fn name() -> String {
+                    #name_string.to_string()
+                }
+
+                fn code() -> String {
+                    "type ".to_string() + #name::name() + " {"
+                    #members
+                    + "}"
+                }
+            }
+        })
+    }
+}
+
 fn typescript_impl(input: Item) -> TokenStream {
     let typescript = match &input {
         Item::Fn(function) => {
@@ -131,7 +170,9 @@ fn typescript_impl(input: Item) -> TokenStream {
             visitor.0.unwrap()
         }
         Item::Struct(structure) => {
-            quote! {}
+            let mut visitor = StructVisitor(None);
+            visitor.visit_item_struct(&structure);
+            visitor.0.unwrap()
         }
         // TODO for enums add #[serde(tag = "type")]
         wrong_item => {
