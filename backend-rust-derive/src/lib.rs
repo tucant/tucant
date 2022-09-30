@@ -147,17 +147,22 @@ impl<'ast> Visit<'ast> for StructVisitor {
         let name = &node.ident;
         let name_string = node.ident.to_string();
 
-        let members = match &node.fields {
+        let (members, members_code) = match &node.fields {
             syn::Fields::Named(fields_named) => {
                 fields_named.named.iter().map(|field| {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
-                    quote! {
+                    (quote! {
                        "  " + #ident_string + ": " + &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                    }
-                }).fold(quote! {}, |acc, x| quote! {
-                    #acc + #x
-                })
+                    }, quote! {
+                        result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
+                    })
+                }).fold((quote! {}, quote! {}), |(accx, accy), (x, y)| (quote! {
+                    #accx + #x
+                }, quote! {
+                    #accy
+                    #y
+                }))
             },
             syn::Fields::Unnamed(_) => todo!(),
             syn::Fields::Unit => todo!(),
@@ -173,7 +178,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
                     #members
                     + "}"]);
-
+                    #members_code
                     result
                 }
             }
@@ -185,37 +190,45 @@ fn handle_enum(item: &ItemEnum) -> TokenStream {
     let name = &item.ident;
     let name_string = item.ident.to_string();
 
-    let members = item
+    let (members, members_code) = item
         .variants
         .iter()
         .map(|field| {
             let ident_string = field.ident.to_string();
-            let field_type = match &field.fields {
+            let (field_type, codes) = match &field.fields {
                 syn::Fields::Named(_) => todo!(),
                 syn::Fields::Unnamed(fields) => fields
                     .unnamed
                     .iter()
                     .map(|field| {
                         let field_type = &field.ty;
-                        quote! {
+                        (quote! {
                            &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                        }
+                        }, quote! {
+                            result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
+                        })
                     })
-                    .fold(quote! {}, |acc, x| {
-                        quote! {
-                            #acc + #x
-                        }
+                    .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                        (quote! {
+                            #accx + #x
+                        },  quote! {
+                            #accy
+                            #y
+                        })
                     }),
                 syn::Fields::Unit => todo!(),
             };
-            quote! {
+            (quote! {
                "  " + #ident_string + ": [" #field_type + "],\n"
-            }
+            }, codes)
         })
-        .fold(quote! {}, |acc, x| {
-            quote! {
-                #acc + #x
-            }
+        .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+            (quote! {
+                #accx + #x
+            }, quote! {
+                #accy
+                #y
+            })
         });
 
     quote! {
@@ -228,7 +241,7 @@ fn handle_enum(item: &ItemEnum) -> TokenStream {
                 let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
                 #members
                 + "}"]);
-
+                #members_code
                 result
             }
         }
