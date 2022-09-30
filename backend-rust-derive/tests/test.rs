@@ -5,8 +5,13 @@ use tucant_derive::typescript;
 
 // https://github.com/dtolnay/proc-macro-workshop
 
+pub trait Typescriptable {
+    fn name() -> String;
+    fn code() -> String;
+}
+
 #[typescript]
-struct Struct1 {
+pub struct Struct1 {
     val1: u32,
     val2: String,
 }

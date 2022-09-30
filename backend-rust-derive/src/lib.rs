@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
     parse::Nothing,
@@ -7,6 +7,8 @@ use syn::{
     visit::{self, Visit},
     Error, Item, ItemFn, Pat, PatIdent, PatType, Type, TypePath,
 };
+
+// RUSTFLAGS="-Z macro-backtrace" cargo test
 
 /*
 struct Struct1 {
@@ -99,9 +101,24 @@ impl<'ast> Visit<'ast> for FnVisitor {
 
         println!("Function with args={:?}", args);
 
-        let test = node.sig.ident.to_string();
+        let name = Ident::new(&format!("{}Service", node.sig.ident), Span::call_site());
+        let name_string = node.sig.ident.to_string();
         self.0 = Some(quote! {
-           static Struct1_typescript: &str = #test;
+            struct #name;
+
+            impl #name {
+                #node
+            }
+
+           impl Typescriptable for #name {
+                fn name() -> String {
+                    #name_string.to_string()
+                }
+
+                fn code() -> String {
+                    "type #name".to_string()
+                }
+           }
         });
     }
 }
@@ -112,12 +129,11 @@ fn typescript_impl(input: Item) -> TokenStream {
             let mut visitor = FnVisitor(None);
             visitor.visit_item_fn(&function);
             visitor.0.unwrap()
-        },
-        Item::Struct(structure) => {
-            quote! {
-                
-            }
         }
+        Item::Struct(structure) => {
+            quote! {}
+        }
+        // TODO for enums add #[serde(tag = "type")]
         wrong_item => {
             return Error::new(wrong_item.span(), "expected function or struct").to_compile_error()
         }
@@ -130,7 +146,10 @@ fn typescript_impl(input: Item) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn typescript(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn typescript(
+    attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as Item);
 
