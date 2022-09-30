@@ -24,7 +24,6 @@ use futures::Stream;
 use futures_util::StreamExt;
 use tucant::tucan_user::RegistrationEnum;
 
-
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,
     mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>,

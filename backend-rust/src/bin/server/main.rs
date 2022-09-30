@@ -19,6 +19,8 @@ use actix_web::web::Json;
 use actix_web::{cookie::Key, get, post, web, App, HttpServer};
 use csrf_middleware::CsrfMiddleware;
 
+use file_lock::{FileLock, FileOptions};
+use itertools::Itertools;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -26,6 +28,7 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
@@ -37,6 +40,7 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::{TucanSession, TucanUser};
 use tucant::url::{Coursedetails, Moduledetails, Registration};
 use tucant_derive::ts;
+use std::io::Write;
 
 #[derive(Debug)]
 pub struct MyError {
@@ -142,7 +146,10 @@ async fn main() -> anyhow::Result<()> {
             .wrap(cors)
             .wrap(logger);
 
-        let app = TypescriptableApp { app };
+        let app = TypescriptableApp {
+            app,
+            codes: HashSet::new(),
+        };
         let app = app
             .service(index)
             .service(login)
@@ -152,6 +159,19 @@ async fn main() -> anyhow::Result<()> {
             .service(search_course)
             .service(course)
             .service(module);
+
+        let should_we_block = true;
+        let lock_for_writing = FileOptions::new().write(true).truncate(true);
+
+        let mut filelock = match FileLock::lock("myfile.ts", should_we_block, lock_for_writing) {
+            Ok(lock) => lock,
+            Err(err) => panic!("Error getting write lock: {}", err),
+        };
+
+        filelock.file.write_all(app.codes.into_iter().join("\n").as_bytes()).unwrap();
+
+        // Manually unlocking is optional as we unlock on Drop
+        filelock.unlock().unwrap();
 
         app.app.service(setup)
     })

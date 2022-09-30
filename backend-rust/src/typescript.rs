@@ -1,4 +1,4 @@
-use std::collections::{VecDeque, HashSet};
+use std::collections::{HashSet, VecDeque};
 
 use actix_web::{
     dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
@@ -89,6 +89,7 @@ impl<T: Typescriptable> Typescriptable for Option<T> {
 
 pub struct TypescriptableApp<T> {
     pub app: actix_web::App<T>,
+    pub codes: HashSet<String>,
 }
 
 impl<T> TypescriptableApp<T>
@@ -100,6 +101,7 @@ where
         F: Typescriptable + HttpServiceFactory + 'static,
     {
         println!("{:?}", <F as Typescriptable>::code());
+        self.codes.extend(<F as Typescriptable>::code());
         self.app = self.app.service(factory);
         self
     }

@@ -10,51 +10,6 @@ use syn::{
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
 
-/*
-struct Struct1 {
-    val1: Type1,
-    val2: Type2
-}
--->
-static Struct1_typescript: &str = r#"
-type Struct1 {
-    val1: Type1,
-    val2: Type2
-}
-"#;
-
-#[post("/login")]
-async fn login(
-    session: Session,
-    tucan: web::Data<Tucan>,
-    login: web::Json<Login>,
-) -> Result<Json<LoginResult>>, MyError> {
-    let tucan_user = tucan.login(&login.username, &login.password).await?;
-    session.insert("session", tucan_user.session).unwrap();
-    Ok(web::Json(LoginResult { success: true }))
-}
--->
-static login_typescript: &str = r#"
-async function login(login: Login): LoginResult {
-    fetch("/login")...
-}
-"#;
-*/
-
-/*
-if syn is epic it may be possible to somehow extract the data based on a ref to the other types
-*/
-
-/*
-typescript_app!(app, index, login, logout, get_modules)
-
-->
-
-app.service(index).service(login).service(logout),....
-
-write_to_file(login_typescript, ...)
-*/
-
 struct InnermostTypeVisitor(Option<TokenStream>);
 
 impl<'ast> Visit<'ast> for InnermostTypeVisitor {
@@ -119,8 +74,17 @@ impl<'ast> Visit<'ast> for FnVisitor {
 
                     fn code() -> ::std::collections::HashSet<String> {
                         let mut result = ::std::collections::HashSet::from(["function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
-                        + " -> " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n"
-
+                        + ": " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n" +
+                        r#"const response = await fetch("http://localhost:8080/login", {
+                            credentials: "include",
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "x-csrf-protection": "tucant",
+                            },
+                            body: JSON.stringify(input),
+                          });
+                          return await response.json()"#
                         + "\n}"]);
                         result.extend(<#arg_type as tucant::typescript::Typescriptable>::code());
                         result.extend(<#return_type as tucant::typescript::Typescriptable>::code());       

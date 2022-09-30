@@ -9,10 +9,7 @@ use crate::MyError;
 use actix_session::Session;
 use actix_web::web::Json;
 
-use actix_web::{
-    get,
-    web::{Data},
-};
+use actix_web::{get, web::Data};
 use diesel::sql_types::Bytea;
 use diesel::QueryDsl;
 use diesel::{sql_query, ExpressionMethods};
