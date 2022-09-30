@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use actix_web::{dev::{HttpServiceFactory, ServiceFactory, ServiceRequest}, Error};
 use chrono::NaiveDateTime;
 
@@ -55,6 +57,18 @@ impl Typescriptable for f32 {
 }
 
 impl<T: Typescriptable> Typescriptable for Vec<T> {
+    fn name() -> String {
+        "boolean".to_string()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for VecDeque<T> {
+    fn name() -> String {
+        "boolean".to_string()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for Option<T> {
     fn name() -> String {
         "boolean".to_string()
     }

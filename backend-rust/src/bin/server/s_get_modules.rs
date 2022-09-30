@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::io::ErrorKind;
 
 use crate::MyError;
 use actix_session::Session;
@@ -33,6 +34,7 @@ use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
 use tucant_derive::ts;
 
+#[ts]
 #[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone)]
 pub struct ModuleMenuPathPart {
     #[diesel(sql_type = Nullable<Bytea>)]
@@ -48,6 +50,7 @@ pub struct ModuleMenuPathPart {
     pub leaf: bool,
 }
 
+#[ts]
 #[derive(Serialize)]
 pub struct ModuleMenuResponse {
     module_menu: ModuleMenu,
@@ -135,10 +138,8 @@ pub async fn get_modules<'a>(
                 }
             };
 
-            Ok(HttpResponse::Ok().content_type("text/plain").json(value))
+            Ok(Json(value))
         }
-        None => Ok(HttpResponse::Ok()
-            .content_type("text/plain")
-            .body("not logged in")),
+        None => Err(std::io::Error::new(ErrorKind::Other, "oh no!").into()),
     }
 }

@@ -83,6 +83,7 @@ pub struct Module {
     pub done: bool,
 }
 
+#[ts]
 #[derive(
     Identifiable,
     Queryable,

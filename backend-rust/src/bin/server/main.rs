@@ -51,20 +51,8 @@ impl Display for MyError {
 
 impl actix_web::error::ResponseError for MyError {}
 
-impl From<anyhow::Error> for MyError {
-    fn from(err: anyhow::Error) -> MyError {
-        MyError { err }
-    }
-}
-
-impl From<deadpool::managed::PoolError<PoolError>> for MyError {
-    fn from(err: deadpool::managed::PoolError<PoolError>) -> MyError {
-        MyError { err: err.into() }
-    }
-}
-
-impl From<diesel::result::Error> for MyError {
-    fn from(err: diesel::result::Error) -> MyError {
+impl<E: Into<anyhow::Error>> From<E> for MyError {
+    fn from(err: E) -> MyError {
         MyError { err: err.into() }
     }
 }
