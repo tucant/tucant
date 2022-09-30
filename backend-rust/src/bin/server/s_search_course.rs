@@ -11,9 +11,9 @@ use actix_web::{
 };
 use diesel::pg::sql_types::Bytea;
 use diesel::sql_types::Text;
-use diesel::{QueryDsl, Queryable};
 use diesel::TextExpressionMethods;
 use diesel::{sql_function, ExpressionMethods};
+use diesel::{QueryDsl, Queryable};
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::TsVectorExtensions;
 use diesel_full_text_search::{
@@ -33,7 +33,7 @@ pub struct SearchResult {
     a: String,
     b: String,
     c: String,
-    d: f32
+    d: f32,
 }
 
 #[ts]
@@ -67,9 +67,7 @@ pub async fn search_course(
             rank,
         ));
 
-    let result = sql_query
-        .load::<SearchResult>(&mut connection)
-        .await?;
+    let result = sql_query.load::<SearchResult>(&mut connection).await?;
 
     Ok(Json(result))
 }

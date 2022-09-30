@@ -1,11 +1,16 @@
 use std::collections::VecDeque;
 
-use actix_web::{dev::{HttpServiceFactory, ServiceFactory, ServiceRequest}, Error};
+use actix_web::{
+    dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
+    Error,
+};
 use chrono::NaiveDateTime;
 
 pub trait Typescriptable {
     fn name() -> String;
-    fn code() -> String { "".to_string() }
+    fn code() -> String {
+        "".to_string()
+    }
 }
 
 impl Typescriptable for u32 {

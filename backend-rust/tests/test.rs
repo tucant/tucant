@@ -1,11 +1,13 @@
-use actix_web::{get, web::{self, Json}};
+use actix_web::{
+    get,
+    web::{self, Json},
+};
 use tucant_derive::ts;
 
 // cargo install cargo-expand
 // cargo expand --test test
 
 // https://github.com/dtolnay/proc-macro-workshop
-
 
 #[ts]
 pub struct Struct1 {
@@ -22,6 +24,12 @@ async fn index(session: String, input: Json<()>) -> actix_web::Result<Json<Strin
 #[test]
 pub fn test() {
     // cargo test -- --show-output
-    println!("{}", <Struct1 as ::tucant::typescript::Typescriptable>::code()); 
-    println!("{}", <index as ::tucant::typescript::Typescriptable>::code());       
+    println!(
+        "{}",
+        <Struct1 as ::tucant::typescript::Typescriptable>::code()
+    );
+    println!(
+        "{}",
+        <index as ::tucant::typescript::Typescriptable>::code()
+    );
 }

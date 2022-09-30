@@ -180,28 +180,38 @@ fn handle_enum(item: &ItemEnum) -> TokenStream {
     let name = &item.ident;
     let name_string = item.ident.to_string();
 
-    let members = item.variants.iter().map(|field| {
-                let ident_string = field.ident.to_string();
-                let field_type = match &field.fields {
-                    syn::Fields::Named(_) => todo!(),
-                    syn::Fields::Unnamed(fields) => {
-                        fields.unnamed.iter().map(|field| {
-                            let field_type = &field.ty;
-                            quote! {
-                               &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                            }
-                        }).fold(quote! {}, |acc, x| quote! {
+    let members = item
+        .variants
+        .iter()
+        .map(|field| {
+            let ident_string = field.ident.to_string();
+            let field_type = match &field.fields {
+                syn::Fields::Named(_) => todo!(),
+                syn::Fields::Unnamed(fields) => fields
+                    .unnamed
+                    .iter()
+                    .map(|field| {
+                        let field_type = &field.ty;
+                        quote! {
+                           &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
+                        }
+                    })
+                    .fold(quote! {}, |acc, x| {
+                        quote! {
                             #acc + #x
-                        })
-                    },
-                    syn::Fields::Unit => todo!(),
-                };
-                quote! {
-                   "  " + #ident_string + ": [" #field_type + "],\n"
-                }
-            }).fold(quote! {}, |acc, x| quote! {
+                        }
+                    }),
+                syn::Fields::Unit => todo!(),
+            };
+            quote! {
+               "  " + #ident_string + ": [" #field_type + "],\n"
+            }
+        })
+        .fold(quote! {}, |acc, x| {
+            quote! {
                 #acc + #x
-            });
+            }
+        });
 
     quote! {
         impl tucant::typescript::Typescriptable for #name {

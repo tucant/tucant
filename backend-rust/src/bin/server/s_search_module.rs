@@ -54,9 +54,7 @@ pub async fn search_module(
             rank,
         ));
 
-    let result = sql_query
-        .load::<SearchResult>(&mut connection)
-        .await?;
+    let result = sql_query.load::<SearchResult>(&mut connection).await?;
 
     Ok(Json(result))
 }

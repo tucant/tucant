@@ -26,12 +26,12 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
-use tucant::typescript::TypescriptableApp;
 use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+use tucant::typescript::TypescriptableApp;
 
 use tucant::tucan::Tucan;
 use tucant::tucan_user::{TucanSession, TucanUser};
@@ -147,11 +147,9 @@ async fn main() -> anyhow::Result<()> {
             .wrap(cors)
             .wrap(logger);
 
-
-        let app = TypescriptableApp {
-            app
-        };
-        let app = app.service(index)
+        let app = TypescriptableApp { app };
+        let app = app
+            .service(index)
             .service(login)
             .service(logout)
             .service(get_modules)
