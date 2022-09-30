@@ -5,7 +5,7 @@ use syn::{
     parse_macro_input,
     spanned::Spanned,
     visit::{Visit},
-    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType,
+    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType, Meta, NestedMeta, Lit,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -42,6 +42,34 @@ impl<'ast> Visit<'ast> for FnVisitor {
             }
         };
 
+        let actix_macro = node.attrs.iter().find(|attr| {
+            attr.path.get_ident().map(Ident::to_string) == Some("get".to_string())
+            || attr.path.get_ident().map(Ident::to_string) == Some("post".to_string())
+        });
+
+        if actix_macro.is_none() {
+            self.0 = Some(
+                Error::new_spanned(
+                    node,
+                    r#"could not find actix get or post attribute macro"#,
+                )
+                .to_compile_error(),
+            );
+            return;
+        }
+        let url_path = actix_macro.unwrap().parse_meta().unwrap();
+        let url_path = match url_path {
+            Meta::List(meta_list) => {
+                match meta_list.nested.iter().next() {
+                    Some(NestedMeta::Lit(Lit::Str(str))) => {
+                        str.value()
+                    }
+                    _ => panic!()
+                }
+            }
+            _ => panic!()
+        };
+
         let arg_type = node
             .sig
             .inputs
@@ -73,19 +101,20 @@ impl<'ast> Visit<'ast> for FnVisitor {
                     }
 
                     fn code() -> ::std::collections::HashSet<String> {
-                        let mut result = ::std::collections::HashSet::from(["function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
-                        + ": " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n" +
-                        r#"const response = await fetch("http://localhost:8080/login", {
-                            credentials: "include",
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              "x-csrf-protection": "tucant",
-                            },
-                            body: JSON.stringify(input),
-                          });
-                          return await response.json()"#
-                        + "\n}"]);
+                        let mut result = ::std::collections::HashSet::from(["async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
+                        + ": Promise<" + &<#return_type as tucant::typescript::Typescriptable>::name() + "> {" +
+                        r#"
+    const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
+    credentials: "include",
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "x-csrf-protection": "tucant",
+    },
+    body: JSON.stringify(input),
+    });
+    return await response.json()
+}"#]);
                         result.extend(<#arg_type as tucant::typescript::Typescriptable>::code());
                         result.extend(<#return_type as tucant::typescript::Typescriptable>::code());       
                         result                

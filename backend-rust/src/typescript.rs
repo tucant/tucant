@@ -100,7 +100,6 @@ where
     where
         F: Typescriptable + HttpServiceFactory + 'static,
     {
-        println!("{:?}", <F as Typescriptable>::code());
         self.codes.extend(<F as Typescriptable>::code());
         self.app = self.app.service(factory);
         self
