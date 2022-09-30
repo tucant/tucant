@@ -23,7 +23,7 @@ use futures::stream::FuturesUnordered;
 use futures::Stream;
 use futures_util::StreamExt;
 use tucant::tucan_user::RegistrationEnum;
-use tucant_derive::ts;
+
 
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,

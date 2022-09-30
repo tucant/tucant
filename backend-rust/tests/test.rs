@@ -11,13 +11,13 @@ use tucant_derive::ts;
 
 #[ts]
 pub struct Struct1 {
-    val1: u32,
-    val2: String,
+    _val1: u32,
+    _val2: String,
 }
 
 #[ts]
 #[get("/")]
-async fn index(session: String, input: Json<()>) -> actix_web::Result<Json<String>> {
+async fn index(_session: String, _input: Json<()>) -> actix_web::Result<Json<String>> {
     Ok(web::Json("Welcome Anonymous!".to_owned()))
 }
 

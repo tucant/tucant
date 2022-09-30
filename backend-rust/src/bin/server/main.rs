@@ -16,9 +16,9 @@ use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
 use actix_web::web::Json;
-use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{cookie::Key, get, post, web, App, HttpServer};
 use csrf_middleware::CsrfMiddleware;
-use diesel_async::pooled_connection::PoolError;
+
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;

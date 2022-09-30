@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::s_search_course::{encode, rtrim, SearchResult};
-use crate::{MyError, SearchQuery};
+use crate::{MyError};
 use actix_session::Session;
-use actix_web::Responder;
+
 use actix_web::{
     get,
-    web::{Data, Json, Query},
+    web::{Data, Json},
 };
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
