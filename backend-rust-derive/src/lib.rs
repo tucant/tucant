@@ -136,7 +136,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
                     quote! {
-                        #ident_string.to_string() + ": ".to_string() + #field_type::name() + ", ".to_string()
+                        #ident_string + ": " + &<#field_type as Typescriptable>::name() + ", "
                     }
                 }).fold(quote! {}, |acc, x| quote! {
                     #acc + #x
@@ -153,7 +153,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                 }
 
                 fn code() -> String {
-                    "type ".to_string() + #name::name() + " {"
+                    "type ".to_string() + &#name::name() + " {"
                     #members
                     + "}"
                 }
