@@ -21,6 +21,7 @@ use serde::Serialize;
 use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
+#[ts]
 #[derive(Serialize)]
 pub struct ModuleResponse {
     module: Module,
@@ -33,7 +34,7 @@ pub async fn module(
     _: Session,
     tucan: Data<Tucan>,
     input: Json<String>,
-) -> Result<impl Responder, MyError> {
+) -> Result<Json<ModuleResponse>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
     let binary_path = base64::decode(input.as_bytes()).unwrap();

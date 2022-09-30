@@ -5,7 +5,7 @@ use syn::{
     parse_macro_input,
     spanned::Spanned,
     visit::{self, Visit},
-    Error, Item, ItemFn, Pat, PatIdent, PatType, Type, TypePath,
+    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType, Type, TypePath,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -63,9 +63,9 @@ impl<'ast> Visit<'ast> for InnermostTypeVisitor {
     }
 
     fn visit_angle_bracketed_generic_arguments(
-            &mut self,
-            i: &'ast syn::AngleBracketedGenericArguments,
-        ) {
+        &mut self,
+        i: &'ast syn::AngleBracketedGenericArguments,
+    ) {
         i.args.first().map(|v| self.visit_generic_argument(v));
     }
 
@@ -73,7 +73,6 @@ impl<'ast> Visit<'ast> for InnermostTypeVisitor {
         self.0 = Some(i.to_token_stream());
     }
 }
-
 
 struct FnVisitor(Option<TokenStream>);
 
@@ -85,46 +84,55 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 let mut innermost_type_visitor = InnermostTypeVisitor(None);
                 innermost_type_visitor.visit_type(path);
                 innermost_type_visitor.0.unwrap()
-            },
+            }
         };
 
-        let arg_type = node.sig.inputs.iter().filter_map(|arg| {
-            match arg {
+        let arg_type = node
+            .sig
+            .inputs
+            .iter()
+            .filter_map(|arg| match arg {
                 syn::FnArg::Receiver(_) => None,
                 syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                     if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
                         if ident.to_string() == "input" {
                             let mut innermost_type_visitor = InnermostTypeVisitor(None);
                             innermost_type_visitor.visit_type(ty);
-                            return Some(innermost_type_visitor.0.unwrap().to_token_stream())
+                            return Some(innermost_type_visitor.0.unwrap().to_token_stream());
                         }
                     }
                     None
                 }
-            }
-        }).next();
+            })
+            .next();
 
         if let Some(arg_type) = arg_type {
             let name = &node.sig.ident;
             let name_string = node.sig.ident.to_string();
             self.0 = Some(quote! {
                 #node
-    
+
                 impl tucant::typescript::Typescriptable for #name {
                     fn name() -> String {
                         #name_string.to_string()
                     }
-    
+
                     fn code() -> String {
                         "function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
                         + " -> " + &<#return_type as tucant::typescript::Typescriptable>::name() + " {\n"
-    
+
                         + "\n}"
                     }
                 }
             });
         } else {
-            self.0 = Some(Error::new(node.sig.inputs.span(), r#"name one of the parameters "input""#).to_compile_error());
+            self.0 = Some(
+                Error::new(
+                    node.sig.inputs.span(),
+                    r#"name one of the parameters "input""#,
+                )
+                .to_compile_error(),
+            );
         }
     }
 }
@@ -168,6 +176,48 @@ impl<'ast> Visit<'ast> for StructVisitor {
     }
 }
 
+fn handle_enum(item: &ItemEnum) -> TokenStream {
+    let name = &item.ident;
+    let name_string = item.ident.to_string();
+
+    let members = item.variants.iter().map(|field| {
+                let ident_string = field.ident.to_string();
+                let field_type = match &field.fields {
+                    syn::Fields::Named(_) => todo!(),
+                    syn::Fields::Unnamed(fields) => {
+                        fields.unnamed.iter().map(|field| {
+                            let field_type = &field.ty;
+                            quote! {
+                               &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
+                            }
+                        }).fold(quote! {}, |acc, x| quote! {
+                            #acc + #x
+                        })
+                    },
+                    syn::Fields::Unit => todo!(),
+                };
+                quote! {
+                   "  " + #ident_string + ": [" #field_type + "],\n"
+                }
+            }).fold(quote! {}, |acc, x| quote! {
+                #acc + #x
+            });
+
+    quote! {
+        impl tucant::typescript::Typescriptable for #name {
+            fn name() -> String {
+                #name_string.to_string()
+            }
+
+            fn code() -> String {
+                "type ".to_string() + &#name::name() + " = {\n"
+                #members
+                + "}"
+            }
+        }
+    }
+}
+
 fn typescript_impl(input: Item) -> TokenStream {
     match &input {
         Item::Fn(function) => {
@@ -179,6 +229,13 @@ fn typescript_impl(input: Item) -> TokenStream {
             let mut visitor = StructVisitor(None);
             visitor.visit_item_struct(&structure);
             let typescript_code = visitor.0.unwrap();
+            quote! {
+                #typescript_code
+                #input
+            }
+        }
+        Item::Enum(item) => {
+            let typescript_code = handle_enum(item);
             quote! {
                 #typescript_code
                 #input

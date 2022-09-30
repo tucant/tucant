@@ -57,6 +57,7 @@ where
 }
 
 // order needs to be equal to the table definition
+#[ts]
 #[derive(
     Identifiable,
     Queryable,

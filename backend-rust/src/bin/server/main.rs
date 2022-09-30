@@ -151,17 +151,16 @@ async fn main() -> anyhow::Result<()> {
         let app = TypescriptableApp {
             app
         };
-            app.service(index)
+        let app = app.service(index)
             .service(login)
             .service(logout)
             .service(get_modules)
-            .service(setup)
             .service(search_module)
             .service(search_course)
             .service(course)
             .service(module);
 
-        app.app
+        app.app.service(setup)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
