@@ -9,7 +9,6 @@ mod s_module;
 mod s_search_course;
 mod s_search_module;
 mod s_setup;
-mod typescriptable;
 
 use actix_cors::Cors;
 use actix_session::Session;

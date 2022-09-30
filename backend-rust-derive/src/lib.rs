@@ -116,7 +116,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 #node
             }
 
-           impl Typescriptable for #name {
+           impl ::tucant::typescriptable::Typescriptable for #name {
                 fn name() -> String {
                     #name_string.to_string()
                 }
@@ -145,7 +145,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
                     quote! {
-                       "  " + #ident_string + ": " + &<#field_type as Typescriptable>::name() + ",\n"
+                       "  " + #ident_string + ": " + &<#field_type as ::tucant::typescriptable::Typescriptable>::name() + ",\n"
                     }
                 }).fold(quote! {}, |acc, x| quote! {
                     #acc + #x
@@ -156,7 +156,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
         };
 
         self.0 = Some(quote! {
-            impl Typescriptable for #name {
+            impl ::tucant::typescriptable::Typescriptable for #name {
                 fn name() -> String {
                     #name_string.to_string()
                 }
