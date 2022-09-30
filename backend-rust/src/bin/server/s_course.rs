@@ -13,7 +13,7 @@ use actix_web::{
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
-use tucan_scraper::{models::Course, schema::courses_unfinished, tucan::Tucan};
+use tucant::{models::Course, schema::courses_unfinished, tucan::Tucan};
 
 #[get("/course/{id:.*}")]
 pub async fn course(

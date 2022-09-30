@@ -20,7 +20,7 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
-use tucan_scraper::{schema::courses_unfinished, tucan::Tucan};
+use tucant::{schema::courses_unfinished, tucan::Tucan};
 
 sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
 sql_function!(fn rtrim(string: Text, characters: Text) -> Text);

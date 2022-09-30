@@ -31,9 +31,9 @@ use tokio::{
     io::AsyncWriteExt,
 };
 
-use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{TucanSession, TucanUser};
-use tucan_scraper::url::{Coursedetails, Moduledetails, Registration};
+use tucant::tucan::Tucan;
+use tucant::tucan_user::{TucanSession, TucanUser};
+use tucant::url::{Coursedetails, Moduledetails, Registration};
 
 #[derive(Debug)]
 pub struct MyError {
@@ -138,7 +138,7 @@ async fn main() -> anyhow::Result<()> {
             .allow_any_header()
             .allowed_origin("http://localhost:5173");
 
-        App::new()
+        let app = App::new()
             .app_data(tucan.clone())
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
@@ -158,7 +158,9 @@ async fn main() -> anyhow::Result<()> {
             .service(search_module)
             .service(search_course)
             .service(course)
-            .service(module)
+            .service(module);
+
+        app
     })
     .bind(("127.0.0.1", 8080))?
     .run()

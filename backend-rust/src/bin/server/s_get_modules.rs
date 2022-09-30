@@ -23,13 +23,13 @@ use diesel::sql_types::Nullable;
 use diesel::sql_types::Text;
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
-use tucan_scraper::models::as_base64;
-use tucan_scraper::models::ModuleMenu;
+use tucant::models::as_base64;
+use tucant::models::ModuleMenu;
 
-use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::RegistrationEnum;
-use tucan_scraper::tucan_user::TucanSession;
-use tucan_scraper::url::Registration;
+use tucant::tucan::Tucan;
+use tucant::tucan_user::RegistrationEnum;
+use tucant::tucan_user::TucanSession;
+use tucant::url::Registration;
 
 #[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone)]
 pub struct ModuleMenuPathPart {

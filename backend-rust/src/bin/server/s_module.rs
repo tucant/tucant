@@ -18,7 +18,7 @@ use diesel::QueryDsl;
 use diesel::{sql_query, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
-use tucan_scraper::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
 
 #[derive(Serialize)]
 pub struct ModuleResponse {
