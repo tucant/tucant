@@ -39,5 +39,8 @@ pub fn fake_request(input: Struct1) -> Struct1 {
 
 #[test]
 pub fn test() {
-    println!("{}", Struct1::name());
+    // cargo test -- --show-output
+    println!("{}", <Struct1 as Typescriptable>::code());
+    println!("{}", <fake_requestService as Typescriptable>::code());
+
 }

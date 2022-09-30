@@ -82,12 +82,12 @@ impl<'ast> Visit<'ast> for FnVisitor {
     fn visit_item_fn(&mut self, node: &'ast ItemFn) {
         println!("Function with name={}", node.sig.ident);
         let return_type = match node.sig.output {
-            syn::ReturnType::Default => "void".to_string(),
-            syn::ReturnType::Type(_, ref path) => type_to_string(path),
+            syn::ReturnType::Default => format_ident!("void").to_token_stream(),
+            syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
         };
         println!("Function with return type={}", return_type);
 
-        let args = node
+        /*let args = node
             .sig
             .inputs
             .iter()
@@ -97,9 +97,15 @@ impl<'ast> Visit<'ast> for FnVisitor {
                     (pat_to_string(pat), type_to_string(ty))
                 }
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<_>>();*/
 
-        println!("Function with args={:?}", args);
+        let arg = node.sig.inputs.iter().next().unwrap();
+        let arg_type = match arg {
+            syn::FnArg::Receiver(_) => todo!(),
+            syn::FnArg::Typed(PatType { ty, .. }) => {
+                ty
+            }
+        };
 
         let name = format_ident!("{}Service", node.sig.ident);
         let name_string = node.sig.ident.to_string();
@@ -116,7 +122,10 @@ impl<'ast> Visit<'ast> for FnVisitor {
                 }
 
                 fn code() -> String {
-                    "type #name".to_string()
+                    "function ".to_string() + &#name::name() + "(input: " + &#arg_type::name() + ")"
+                    + " -> " + &#return_type::name() + " {\n"
+
+                    + "\n}"
                 }
            }
         });
@@ -136,7 +145,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
                     quote! {
-                        #ident_string + ": " + &<#field_type as Typescriptable>::name() + ", "
+                       "  " + #ident_string + ": " + &<#field_type as Typescriptable>::name() + ",\n"
                     }
                 }).fold(quote! {}, |acc, x| quote! {
                     #acc + #x
@@ -153,7 +162,7 @@ impl<'ast> Visit<'ast> for StructVisitor {
                 }
 
                 fn code() -> String {
-                    "type ".to_string() + &#name::name() + " {"
+                    "type ".to_string() + &#name::name() + " = {\n"
                     #members
                     + "}"
                 }
