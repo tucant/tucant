@@ -168,7 +168,6 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     pub module_id: &'a [u8],
 }
 
-#[ts]
 #[derive(
     Identifiable,
     Queryable,
@@ -184,8 +183,10 @@ pub struct ModuleMenuEntryModuleRef<'a> {
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = courses_unfinished)]
 #[diesel(treat_none_as_null = true)]
+#[ts]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[type(String)]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -193,6 +194,12 @@ pub struct Course {
     pub sws: i16,
     pub content: String,
     pub done: bool,
+}
+
+pub struct Testse {
+    pub tet: bool,
+    #[ts]
+    pub dfs: bool
 }
 
 #[derive(

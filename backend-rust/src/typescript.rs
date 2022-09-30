@@ -94,6 +94,7 @@ impl<T: Typescriptable> Typescriptable for Option<T> {
     }
 }
 
+
 pub struct TypescriptableApp<T> {
     pub app: actix_web::App<T>,
     pub codes: HashSet<String>,

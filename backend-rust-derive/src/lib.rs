@@ -271,6 +271,9 @@ fn typescript_impl(input: Item) -> TokenStream {
     }
 }
 
+// TODO FIXME convert to two macros, one as derive with #[proc_macro_derive(Typescriptable, attributes(type))]
+// so you can manually annotate with #[type(String)]
+
 #[proc_macro_attribute]
 pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     parse_macro_input!(attr as Nothing);
