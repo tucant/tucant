@@ -14,7 +14,7 @@ use actix_web::web::Json;
 use actix_web::web::Data;
 use diesel::sql_types::Bytea;
 
-use diesel::{sql_query};
+use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
 use tucant::tucan_user::TucanSession;

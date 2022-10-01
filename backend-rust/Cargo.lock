@@ -2511,6 +2511,7 @@ dependencies = [
  "diesel-async",
  "diesel_full_text_search",
  "dotenvy",
+ "ego-tree",
  "either",
  "enum_dispatch",
  "env_logger",
