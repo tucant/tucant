@@ -90,16 +90,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                     let mut result = ::std::collections::HashSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
-    const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
-        credentials: "include",
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-csrf-protection": "tucant",
-        },
-        body: JSON.stringify(input),
-    });
-    return await response.json() as "# + &#typescriptable_return_type_name +
+    return await genericFetch("http://localhost:8080"# + #url_path + r#"", input) as "# + &#typescriptable_return_type_name +
         "\n}"]);
                     result.extend(#typescriptable_arg_type_code);
                     result.extend(#typescriptable_return_type_code);
