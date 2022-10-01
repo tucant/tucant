@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream, Span};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens, __private::ext::RepToTokensExt};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
     DeriveInput, Error, Item, ItemEnum, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
@@ -152,50 +152,50 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
         Data::Enum(DataEnum { variants, .. }) => variants
             .iter()
             .map(|field| {
-                let ident_string = field.ident.to_string();
-                let (field_type, codes) = match &field.fields {
+                match &field.fields {
                     syn::Fields::Named(_) => todo!(),
-                    syn::Fields::Unnamed(fields) => fields
-                        .unnamed
-                        .iter()
-                        .map(|field| {
-                            let field_type = &field.ty;
-
-                            let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
-                                <#field_type as tucant::typescript::Typescriptable>::name()
-                            };
-
-                            let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
-                                <#field_type as tucant::typescript::Typescriptable>::code()
-                            };
-
-                            (
-                                quote! {
-                                   &#typescriptable_field_type_name + ",\n"
-                                },
-                                quote! {
-                                    result.extend(#typescriptable_field_type_code);
-                                },
-                            )
-                        })
-                        .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-                            (
-                                quote! {
-                                    #accx + #x
-                                },
-                                quote! {
-                                    #accy
-                                    #y
-                                },
-                            )
-                        }),
+                    syn::Fields::Unnamed(fields) => {
+                        let mut iter = fields.unnamed.iter();
+                        if let Some(field) = iter.next() {
+                            if let Some(field) = iter.next() {
+                                Err(Error::new(
+                                    field.span(),
+                                    r#"exactly one field in enum allowed"#,
+                                ))
+                            } else {
+                                Ok(field)
+                            }
+                        } else {
+                            Err(Error::new(
+                                field.fields.span(),
+                                r#"exactly one field in enum allowed"#,
+                            ))
+                        }
+                    }
                     syn::Fields::Unit => todo!(),
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?
+            .iter()
+            .map(|field| {
+                let ident_string = field.ident.as_ref().unwrap().to_string();
+                let field_type = &field.ty;
+
+                let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
+                    <#field_type as tucant::typescript::Typescriptable>::name()
                 };
+
+                let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
+                    <#field_type as tucant::typescript::Typescriptable>::code()
+                };
+
                 (
                     quote! {
-                       "  " + #ident_string + ": [" #field_type + "],\n"
+                       "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
                     },
-                    codes,
+                    quote! {
+                        result.extend(#typescriptable_field_type_code);
+                    },
                 )
             })
             .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
