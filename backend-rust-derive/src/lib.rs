@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream, Span};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens, __private::ext::RepToTokensExt};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
@@ -9,7 +9,12 @@ use syn::{
 
 fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     let return_type = match node.sig.output {
-        syn::ReturnType::Default => return Err(Error::new(node.sig.output.span(), r#"unexpected return type"#)),
+        syn::ReturnType::Default => {
+            return Err(Error::new(
+                node.sig.output.span(),
+                r#"unexpected return type"#,
+            ))
+        }
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
@@ -21,7 +26,10 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     let actix_macro = if let Some(actix_macro) = actix_macro {
         actix_macro
     } else {
-        return Err(Error::new(node.sig.output.span(), r#"could not find actix 'get` or `post` attribute macro"#))
+        return Err(Error::new(
+            node.sig.output.span(),
+            r#"could not find actix 'get` or `post` attribute macro"#,
+        ));
     };
     let url_path = actix_macro.parse_meta()?;
     let url_path = match url_path {
@@ -111,74 +119,90 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
     let name_string = input.ident.to_string();
 
     let (members, members_code) = match &input.data {
-        Data::Struct(DataStruct {
-            fields: syn::Fields::Named(fields_named),
-            ..
-        }) => fields_named
-            .named
-            .iter()
-            .map(|field| {
-                let ident_string = field.ident.as_ref().unwrap().to_string();
-                let field_type = &field.ty;
+        Data::Struct(DataStruct { fields, .. }) => match fields {
+            syn::Fields::Named(fields_named) => {
+                let (members, members_code) = fields_named
+                .named
+                .iter()
+                .map(|field| {
+                    let ident_string = field.ident.as_ref().unwrap().to_string();
+                    let field_type = &field.ty;
 
-                let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
-                    <#field_type as tucant::typescript::Typescriptable>::name()
-                };
+                    let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
+                        <#field_type as tucant::typescript::Typescriptable>::name()
+                    };
 
-                let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
-                    <#field_type as tucant::typescript::Typescriptable>::code()
-                };
+                    let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
+                        <#field_type as tucant::typescript::Typescriptable>::code()
+                    };
 
-                (
-                    quote! {
-                       "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
-                    },
-                    quote! {
-                        result.extend(#typescriptable_field_type_code);
-                    },
-                )
-            })
-            .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-                (
-                    quote! {
-                        #accx + #x
-                    },
-                    quote! {
-                        #accy
-                        #y
-                    },
-                )
-            }),
+                    (
+                        quote! {
+                           "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
+                        },
+                        quote! {
+                            result.extend(#typescriptable_field_type_code);
+                        },
+                    )
+                })
+                .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                    (
+                        quote! {
+                            #accx + #x
+                        },
+                        quote! {
+                            #accy
+                            #y
+                        },
+                    )
+                });
+                (quote! {
+                    + "{"
+                    #members
+                    + "}"
+                }, members_code)
+            },
+            err => {
+                return Err(Error::new(
+                    err.span(),
+                    r#"only structs with named fields supported"#,
+                ))
+            }
+        },
         Data::Enum(DataEnum { variants, .. }) => variants
             .iter()
-            .map(|field| {
-                match &field.fields {
-                    syn::Fields::Named(_) => todo!(),
-                    syn::Fields::Unnamed(fields) => {
-                        let mut iter = fields.unnamed.iter();
+            .map(|variant| match &variant.fields {
+                syn::Fields::Named(err) => Err(Error::new(
+                    err.span(),
+                    r#"only enums with unnamed fields allowed"#,
+                )),
+                syn::Fields::Unnamed(fields) => {
+                    let mut iter = fields.unnamed.iter();
+                    if let Some(field) = iter.next() {
                         if let Some(field) = iter.next() {
-                            if let Some(field) = iter.next() {
-                                Err(Error::new(
-                                    field.span(),
-                                    r#"exactly one field in enum allowed"#,
-                                ))
-                            } else {
-                                Ok(field)
-                            }
-                        } else {
                             Err(Error::new(
-                                field.fields.span(),
+                                field.span(),
                                 r#"exactly one field in enum allowed"#,
                             ))
+                        } else {
+                            Ok((variant, field))
                         }
+                    } else {
+                        Err(Error::new(
+                            variant.fields.span(),
+                            r#"exactly one field in enum allowed"#,
+                        ))
                     }
-                    syn::Fields::Unit => todo!(),
                 }
+                syn::Fields::Unit => Err(Error::new(
+                    variant.fields.span(),
+                    r#"only enums with unnamed fields allowed"#,
+                )),
             })
             .collect::<Result<Vec<_>, _>>()?
             .iter()
-            .map(|field| {
-                let ident_string = field.ident.as_ref().unwrap().to_string();
+            .map(|(variant, field)| {
+                let ident_string = variant.ident.to_string();
                 let field_type = &field.ty;
 
                 let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
@@ -191,7 +215,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
 
                 (
                     quote! {
-                       "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
+                       "{ type: \"" + #ident_string + "\", " + #ident_string + ": " + &#typescriptable_field_type_name + " }\n"
                     },
                     quote! {
                         result.extend(#typescriptable_field_type_code);
@@ -201,7 +225,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
             .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
                 (
                     quote! {
-                        #accx + #x
+                        #accx + " | " + #x
                     },
                     quote! {
                         #accy
@@ -209,7 +233,12 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     },
                 )
             }),
-        _ => panic!(),
+        Data::Union(err) => {
+            return Err(Error::new(
+                err.union_token.span(),
+                r#"unions not supported"#,
+            ))
+        }
     };
 
     Ok(quote! {
@@ -219,9 +248,9 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
             }
 
             fn code() -> ::std::collections::HashSet<String> {
-                let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
+                let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = \n"
                 #members
-                + "}"]);
+                ]);
                 #members_code
                 result
             }
@@ -241,7 +270,9 @@ pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_
 pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    proc_macro::TokenStream::from(typescriptable_impl(input).unwrap_or_else(Error::into_compile_error))
+    proc_macro::TokenStream::from(
+        typescriptable_impl(input).unwrap_or_else(Error::into_compile_error),
+    )
 }
 
 #[cfg(test)]
