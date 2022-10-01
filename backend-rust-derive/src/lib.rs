@@ -1,3 +1,5 @@
+#![feature(proc_macro_diagnostic)]
+
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
@@ -131,6 +133,14 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     let ts_type_attr = field.attrs.iter().find(|attr| {
                         attr.path.get_ident().map(Ident::to_string) == Some("ts_type".to_string())
                     });
+
+                    let serde_attr = field.attrs.iter().find(|attr| {
+                        attr.path.get_ident().map(Ident::to_string) == Some("serde".to_string())
+                    });
+
+                    if serde_attr.is_some() && ts_type_attr.is_none() {
+                        serde_attr.span().unwrap().warning("`serde` attribute macro but no `ts_type`. This may be a bug.").emit();
+                    }
 
                     let field_type = if let Some(ts_type_attr) = ts_type_attr {
                         match ts_type_attr.parse_meta()? {
