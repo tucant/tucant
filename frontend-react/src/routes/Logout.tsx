@@ -6,7 +6,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import { useNavigate } from "react-router-dom";
-import CircularProgress from '@mui/material/CircularProgress';
+import CircularProgress from "@mui/material/CircularProgress";
 import { useAppDispatch } from "../redux/hooks";
 import { setLoggedIn } from "../redux/user/userSlice";
 

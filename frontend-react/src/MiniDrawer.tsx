@@ -218,20 +218,20 @@ export default function MiniDrawer() {
             text="Veranstaltungssuche"
             icon={<SearchOutlined />}
           ></RouterLink>
-          {!isLoggedIn &&
+          {!isLoggedIn && (
             <RouterLink
               to="/login"
               text="Login"
               icon={<LoginIcon />}
             ></RouterLink>
-          }
-          {isLoggedIn &&
+          )}
+          {isLoggedIn && (
             <RouterLink
               to="/logout"
               text="Logout"
               icon={<LogoutIcon />}
             ></RouterLink>
-          }
+          )}
           <RouterLink
             to="/credits"
             text="Credits"

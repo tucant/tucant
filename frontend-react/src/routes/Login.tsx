@@ -24,8 +24,7 @@ export default function SignIn() {
 
   // if cookie id is set, redirect to home
   React.useEffect(() => {
-    if (isLoggedIn)
-      navigate("/");
+    if (isLoggedIn) navigate("/");
   }, [isLoggedIn]);
 
   const dispatch = useAppDispatch();
