@@ -29,10 +29,10 @@ sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
 #[derive(Queryable, Serialize, Typescriptable)]
 pub struct SearchResult {
-    a: String,
-    b: String,
-    c: String,
-    d: f32,
+    tucan_id: String,
+    title: String,
+    excerpt: String,
+    rank: f32,
 }
 
 #[ts]

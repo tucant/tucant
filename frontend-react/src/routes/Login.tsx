@@ -13,7 +13,6 @@ import { useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
-import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { keyof } from "io-ts";

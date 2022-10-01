@@ -9,9 +9,6 @@ import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import dompurify from "dompurify";
-import { PathReporter } from "io-ts/PathReporter";
-import { isLeft } from "fp-ts/lib/Either";
-import { TypeOf } from "io-ts";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { module, ModuleResponse } from "../api";
 

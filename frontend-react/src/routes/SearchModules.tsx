@@ -103,16 +103,18 @@ export default function SearchModules() {
         {data != null &&
           data.map((e) => (
             <RouterLink
-              key={e[0]}
-              to={`/module/${e[0]}`}
+              key={e.tucan_id}
+              to={`/module/${e.tucan_id}`}
               text={
                 <span>
-                  <Chip label={e[3].toFixed(3)} /> {e[1]}
+                  <Chip label={e.rank.toFixed(3)} /> {e.title}
                 </span>
               }
               secondary_text={
                 <span
-                  dangerouslySetInnerHTML={{ __html: dompurify.sanitize(e[2]) }}
+                  dangerouslySetInnerHTML={{
+                    __html: dompurify.sanitize(e.excerpt),
+                  }}
                 ></span>
               }
             ></RouterLink>
