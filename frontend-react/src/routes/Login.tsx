@@ -13,9 +13,6 @@ import { useState } from "react";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
-import { isLeft } from "fp-ts/lib/Either";
-import { PathReporter } from "io-ts/lib/PathReporter";
-import { keyof } from "io-ts";
 import { login } from "../api";
 
 export default function SignIn() {
@@ -33,21 +30,12 @@ export default function SignIn() {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
 
-    const AllowedNames = keyof({
-      username: null,
-      password: null,
-    });
-    const name = AllowedNames.decode(target.name);
-    if (isLeft(name)) {
-      throw new Error(
-        `Internal Error: Invalid data format in response ${PathReporter.report(
-          name
-        ).join("\n")}`
-      );
+    if (target.name != "username" && target.name != "password") {
+      throw new Error("unexpected input name");
     }
     setForm({
       ...form,
-      [name.right]: value,
+      [target.name]: value,
     });
   };
 

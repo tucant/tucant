@@ -8,9 +8,6 @@ import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
-import { isLeft } from "fp-ts/lib/Either";
-import { keyof } from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
 import { SearchResult, search_module } from "../api";
 import { RouterLink } from "../MiniDrawer";
@@ -27,21 +24,13 @@ export default function SearchModules() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.value;
-    const AllowedNames = keyof({
-      q: null,
-    });
-    const name = AllowedNames.decode(target.name);
-    if (isLeft(name)) {
-      throw new Error(
-        `Internal Error: Invalid data format in response ${PathReporter.report(
-          name
-        ).join("\n")}`
-      );
-    }
 
+    if (target.name != "q") {
+      throw new Error("unexpected input name");
+    }
     setForm({
       ...form,
-      [name.right]: value,
+      [target.name]: value,
     });
   };
 

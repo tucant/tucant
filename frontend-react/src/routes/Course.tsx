@@ -10,7 +10,7 @@ import { useLocation, useParams } from "react-router-dom";
 import dompurify from "dompurify";
 import { course, Course } from "../api";
 
-export default function Course() {
+export default function CourseRoute() {
   // TODO refactor into Hook
   const [data, setData] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
