@@ -74,6 +74,7 @@ where
 #[diesel(table_name = modules_unfinished)]
 #[diesel(treat_none_as_null = true)]
 pub struct Module {
+    #[ts_type(String)]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
@@ -102,12 +103,13 @@ pub struct Module {
 #[diesel(table_name = module_menu_unfinished)]
 #[diesel(treat_none_as_null = false)]
 pub struct ModuleMenu {
+    #[ts_type(String)]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
     pub child_type: i16,
-    #[serde(default)]
+    #[ts_type(String)]
     #[serde(
         serialize_with = "as_option_base64",
         deserialize_with = "from_option_base64"

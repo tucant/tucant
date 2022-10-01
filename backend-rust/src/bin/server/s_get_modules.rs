@@ -37,6 +37,7 @@ pub struct ModuleMenuPathPart {
     #[serde(skip)]
     pub parent: Option<Vec<u8>>,
     #[diesel(sql_type = Bytea)]
+    #[ts_type(String)]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     #[diesel(sql_type = Text)]
