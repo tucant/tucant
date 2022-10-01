@@ -4,3 +4,4 @@
 
 /backend-rust/target
 /frontend-react/node_modules
+/frontend-react/src/api.ts
