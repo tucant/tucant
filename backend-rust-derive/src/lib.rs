@@ -1,5 +1,3 @@
-#![feature(proc_macro_diagnostic)]
-
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
@@ -293,7 +291,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
             }
 
             fn code() -> ::std::collections::HashSet<String> {
-                let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = \n"
+                let mut result = ::std::collections::HashSet::from(["export type ".to_string() + &#name::name() + " = \n"
                 #members
                 ]);
                 #members_code

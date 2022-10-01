@@ -8,48 +8,26 @@ import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { ModuleMenuResponse } from "../validation-io-ts";
-import { isLeft } from "fp-ts/lib/Either";
-import { PathReporter } from "io-ts/lib/PathReporter";
-import { TypeOf } from "io-ts";
+import { get_modules, ModuleMenuResponse } from "../api";
 
 export default function Modules() {
   const location = useLocation();
 
-  const [data, setData] = useState<TypeOf<typeof ModuleMenuResponse> | null>(
-    null
-  );
+  const [data, setData] = useState<ModuleMenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { id } = useParams();
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch(
-        `http://localhost:8080${location.pathname}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
+      if (!id) {
+        throw new Error("Menünummer fehlt!");
       }
-      const actualData = ModuleMenuResponse.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await get_modules(id));
       setError(null);
     };
     getData()

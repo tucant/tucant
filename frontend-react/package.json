@@ -18,8 +18,6 @@
     "@mui/lab": "^5.0.0-alpha.101",
     "@mui/material": "^5.10.7",
     "dompurify": "^2.4.0",
-    "fp-ts": "^2.12.3",
-    "io-ts": "^2.2.18",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.1"

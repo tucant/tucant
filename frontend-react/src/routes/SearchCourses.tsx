@@ -12,11 +12,11 @@ import { isLeft } from "fp-ts/lib/Either";
 import { keyof } from "io-ts";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
+import { SearchResult, search_course } from "../api";
 import { RouterLink } from "../MiniDrawer";
-import { SearchResultSchema, SearchResultType } from "../validation-io-ts";
 
 export default function SearchCourses() {
-  const [data, setData] = useState<SearchResultType | null>(null);
+  const [data, setData] = useState<SearchResult[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,29 +49,7 @@ export default function SearchCourses() {
     const getData = async () => {
       setLoading(true);
       setError(null);
-      const response = await fetch(
-        // TODO FIXME url injection
-        `http://localhost:8080/search-course?q=${form.q}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
-      }
-      const actualData = SearchResultSchema.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await search_course(form.q));
       setError(null);
     };
     getData()

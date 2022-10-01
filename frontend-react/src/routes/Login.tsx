@@ -17,6 +17,7 @@ import { LoginResponseSchema } from "../validation-io-ts";
 import { isLeft } from "fp-ts/lib/Either";
 import { PathReporter } from "io-ts/lib/PathReporter";
 import { keyof } from "io-ts";
+import { login } from "../api";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -58,24 +59,8 @@ export default function SignIn() {
       setError(null);
       setLoading(true);
 
-      const response = await fetch("http://localhost:8080/login", {
-        credentials: "include",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-csrf-protection": "tucant",
-        },
-        body: JSON.stringify(form),
-      });
-      const actualData = LoginResponseSchema.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      if (actualData.right.success) {
+      const response = await login(form);
+      if (response.success) {
         navigate("/");
       } else {
         setError(String("Falscher Nutzername oder falsches Passwort!"));

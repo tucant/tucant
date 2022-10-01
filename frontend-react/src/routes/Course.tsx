@@ -8,14 +8,11 @@ import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import dompurify from "dompurify";
-import { CourseSchema, CourseType } from "../validation-io-ts";
-import { PathReporter } from "io-ts/PathReporter";
-import { isLeft } from "fp-ts/lib/Either";
-import { course } from "../api";
+import { course, Course } from "../api";
 
 export default function Course() {
   // TODO refactor into Hook
-  const [data, setData] = useState<CourseType | null>(null);
+  const [data, setData] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
@@ -23,6 +20,9 @@ export default function Course() {
 
   useEffect(() => {
     const getData = async () => {
+      if (!id) {
+        throw new Error("Veranstaltungsnummer fehlt!");
+      }
       setData(await course(id));
       setError(null);
     };
