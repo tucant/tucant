@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, TokenStream, Span};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
@@ -7,9 +7,9 @@ use syn::{
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
 
-fn handle_item_fn(node: &ItemFn) -> TokenStream {
+fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     let return_type = match node.sig.output {
-        syn::ReturnType::Default => format_ident!("void").to_token_stream(),
+        syn::ReturnType::Default => return Err(Error::new(node.sig.output.span(), r#"unexpected return type"#)),
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
@@ -18,17 +18,18 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
             || attr.path.get_ident().map(Ident::to_string) == Some("post".to_string())
     });
 
-    if actix_macro.is_none() {
-        return Error::new_spanned(node, r#"could not find actix get or post attribute macro"#)
-            .to_compile_error();
-    }
-    let url_path = actix_macro.unwrap().parse_meta().unwrap();
+    let actix_macro = if let Some(actix_macro) = actix_macro {
+        actix_macro
+    } else {
+        return Err(Error::new(node.sig.output.span(), r#"could not find actix 'get` or `post` attribute macro"#))
+    };
+    let url_path = actix_macro.parse_meta()?;
     let url_path = match url_path {
         Meta::List(meta_list) => match meta_list.nested.iter().next() {
             Some(NestedMeta::Lit(Lit::Str(str))) => str.value(),
-            _ => panic!(),
+            err => return Err(Error::new(err.span(), r#"expected a literal string"#)),
         },
-        _ => panic!(),
+        err => return Err(Error::new(err.span(), r#"expected a list"#)),
     };
 
     let arg_type = node
@@ -68,7 +69,7 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
             <#return_type as tucant::typescript::Typescriptable>::code()
         };
 
-        return quote! {
+        return Ok(quote! {
             #node
 
             impl tucant::typescript::Typescriptable for #name {
@@ -96,13 +97,12 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
                     result
                 }
             }
-        };
+        });
     } else {
-        return Error::new(
+        return Err(Error::new(
             node.sig.inputs.span(),
             r#"name one of the parameters `input` or `_input`"#,
-        )
-        .to_compile_error();
+        ));
     }
 }
 
@@ -234,7 +234,7 @@ pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_
     parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as ItemFn);
 
-    proc_macro::TokenStream::from(handle_item_fn(&input))
+    proc_macro::TokenStream::from(handle_item_fn(&input).unwrap_or_else(|e| e.into_compile_error()))
 }
 
 #[proc_macro_derive(Typescriptable, attributes(ts_type))]
