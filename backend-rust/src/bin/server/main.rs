@@ -16,7 +16,7 @@ use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
 use actix_web::web::Json;
-use actix_web::{cookie::Key, get, post, web, App, HttpServer};
+use actix_web::{cookie::Key, post, web, App, HttpServer};
 use csrf_middleware::CsrfMiddleware;
 
 use file_lock::{FileLock, FileOptions};

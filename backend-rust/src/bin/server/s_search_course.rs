@@ -6,8 +6,8 @@ use crate::MyError;
 use actix_session::Session;
 
 use actix_web::{
-    get,
-    web::{Data, Json}, post,
+    post,
+    web::{Data, Json},
 };
 use diesel::pg::sql_types::Bytea;
 use diesel::sql_types::Text;

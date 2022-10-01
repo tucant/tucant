@@ -1,6 +1,6 @@
 use actix_web::{
-    get,
-    web::{self, Json}, post,
+    post,
+    web::{self, Json},
 };
 use tucant_derive::{ts, Typescriptable};
 
