@@ -106,7 +106,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     }
 }
 
-fn typescriptable_impl(input: DeriveInput) -> TokenStream {
+fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
     let name_string = input.ident.to_string();
 
@@ -212,7 +212,7 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
         _ => panic!(),
     };
 
-    quote! {
+    Ok(quote! {
         impl tucant::typescript::Typescriptable for #name {
             fn name() -> String {
                 #name_string.to_string()
@@ -226,7 +226,7 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
                 result
             }
         }
-    }
+    })
 }
 
 #[proc_macro_attribute]
@@ -234,14 +234,14 @@ pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_
     parse_macro_input!(attr as Nothing);
     let input = parse_macro_input!(item as ItemFn);
 
-    proc_macro::TokenStream::from(handle_item_fn(&input).unwrap_or_else(|e| e.into_compile_error()))
+    proc_macro::TokenStream::from(handle_item_fn(&input).unwrap_or_else(Error::into_compile_error))
 }
 
 #[proc_macro_derive(Typescriptable, attributes(ts_type))]
 pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    proc_macro::TokenStream::from(typescriptable_impl(input))
+    proc_macro::TokenStream::from(typescriptable_impl(input).unwrap_or_else(Error::into_compile_error))
 }
 
 #[cfg(test)]
