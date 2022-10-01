@@ -90,13 +90,13 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
     const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
-    credentials: "include",
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "x-csrf-protection": "tucant",
-    },
-    body: JSON.stringify(input),
+        credentials: "include",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-csrf-protection": "tucant",
+        },
+        body: JSON.stringify(input),
     });
     return await response.json() as "# + &#typescriptable_return_type_name +
         "\n}"]);
@@ -157,7 +157,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     )
                 });
                 (quote! {
-                    + "{"
+                    + "{\n"
                     #members
                     + "}"
                 }, members_code)
