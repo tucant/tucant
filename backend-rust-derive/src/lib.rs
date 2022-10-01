@@ -1,8 +1,8 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{format_ident, quote, quote_spanned, ToTokens, __private::ext::RepToTokensExt};
+use proc_macro2::{Ident, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
-    DeriveInput, Error, Item, ItemEnum, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
+    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct,
+    DeriveInput, Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -77,7 +77,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
             <#return_type as tucant::typescript::Typescriptable>::code()
         };
 
-        return Ok(quote! {
+        Ok(quote! {
             #node
 
             impl tucant::typescript::Typescriptable for #name {
@@ -105,12 +105,12 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                     result
                 }
             }
-        });
+        })
     } else {
-        return Err(Error::new(
+        Err(Error::new(
             node.sig.inputs.span(),
             r#"name one of the parameters `input` or `_input`"#,
-        ));
+        ))
     }
 }
 
