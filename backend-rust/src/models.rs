@@ -5,7 +5,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tucant_derive::{Typescriptable};
+use tucant_derive::Typescriptable;
 
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,

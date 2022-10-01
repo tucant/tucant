@@ -1,8 +1,8 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
-    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct,
-    DeriveInput, Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
+    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
+    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
