@@ -282,7 +282,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
             }
 
             fn code() -> ::std::collections::HashSet<String> {
-                let mut result = ::std::collections::HashSet::from(["export type ".to_string() + &#name::name() + " = \n"
+                let mut result = ::std::collections::HashSet::from(["export type ".to_string() + &#name::name() + " =\n"
                 #members
                 ]);
                 #members_code

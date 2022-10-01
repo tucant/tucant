@@ -25,9 +25,10 @@ export default function InitialFetch() {
               credentials: "include",
               method: "POST",
               headers: {
+                "Content-Type": "application/json",
                 "x-csrf-protection": "tucant",
               },
-              body: "",
+              body: "null",
             });
 
             const reader = response.body?.getReader();
