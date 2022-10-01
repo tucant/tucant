@@ -18,7 +18,9 @@ export async function genericFetch(
         response.statusText
       }: ${await response.text()}`;
     } catch (err) {
-      errorMessage = `${response.status} ${response.statusText}, while loading error body: ${err}`;
+      errorMessage = `${response.status} ${
+        response.statusText
+      }, while loading error body: ${String(err)}`;
     }
     throw new Error(errorMessage);
   }
