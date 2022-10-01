@@ -5,7 +5,9 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  loggedIn: false,
+  loggedIn: document.cookie
+    .split(";")
+    .some((item) => item.trim().startsWith("id=")),
 };
 
 export const userSlice = createSlice({
