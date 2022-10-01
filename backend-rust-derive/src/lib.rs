@@ -5,7 +5,7 @@ use syn::{
     parse_macro_input,
     spanned::Spanned,
     visit::{Visit},
-    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType, Meta, NestedMeta, Lit, DeriveInput,
+    Error, Item, ItemEnum, ItemFn, Pat, PatIdent, PatType, Meta, NestedMeta, Lit, DeriveInput, Data, DataStruct, DataEnum,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -29,10 +29,8 @@ impl<'ast> Visit<'ast> for InnermostTypeVisitor {
     }
 }
 
-struct FnVisitor(Option<TokenStream>);
 
-impl<'ast> Visit<'ast> for FnVisitor {
-    fn visit_item_fn(&mut self, node: &'ast ItemFn) {
+    fn handle_item_fn(node: &ItemFn) -> TokenStream {
         let return_type = match node.sig.output {
             syn::ReturnType::Default => format_ident!("void").to_token_stream(),
             syn::ReturnType::Type(_, ref path) => {
@@ -48,14 +46,12 @@ impl<'ast> Visit<'ast> for FnVisitor {
         });
 
         if actix_macro.is_none() {
-            self.0 = Some(
-                Error::new_spanned(
+            return  Error::new_spanned(
                     node,
                     r#"could not find actix get or post attribute macro"#,
                 )
-                .to_compile_error(),
-            );
-            return;
+                .to_compile_error()
+            
         }
         let url_path = actix_macro.unwrap().parse_meta().unwrap();
         let url_path = match url_path {
@@ -92,7 +88,7 @@ impl<'ast> Visit<'ast> for FnVisitor {
         if let Some(arg_type) = arg_type {
             let name = &node.sig.ident;
             let name_string = node.sig.ident.to_string();
-            self.0 = Some(quote! {
+            return quote! {
                 #node
 
                 impl tucant::typescript::Typescriptable for #name {
@@ -120,108 +116,23 @@ impl<'ast> Visit<'ast> for FnVisitor {
                         result                
                     }
                 }
-            });
+            }
         } else {
-            self.0 = Some(
-                Error::new(
+            return Error::new(
                     node.sig.inputs.span(),
                     r#"name one of the parameters `input` or `_input`"#,
                 )
-                .to_compile_error(),
-            );
-        }
+                .to_compile_error()
+                    }
     }
-}
 
-fn handle_enum(item: &ItemEnum) -> TokenStream {
-    let name = &item.ident;
-    let name_string = item.ident.to_string();
-
-    let (members, members_code) = item
-        .variants
-        .iter()
-        .map(|field| {
-            let ident_string = field.ident.to_string();
-            let (field_type, codes) = match &field.fields {
-                syn::Fields::Named(_) => todo!(),
-                syn::Fields::Unnamed(fields) => fields
-                    .unnamed
-                    .iter()
-                    .map(|field| {
-                        let field_type = &field.ty;
-                        (quote! {
-                           &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                        }, quote! {
-                            result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
-                        })
-                    })
-                    .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-                        (quote! {
-                            #accx + #x
-                        },  quote! {
-                            #accy
-                            #y
-                        })
-                    }),
-                syn::Fields::Unit => todo!(),
-            };
-            (quote! {
-               "  " + #ident_string + ": [" #field_type + "],\n"
-            }, codes)
-        })
-        .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-            (quote! {
-                #accx + #x
-            }, quote! {
-                #accy
-                #y
-            })
-        });
-
-    quote! {
-        impl tucant::typescript::Typescriptable for #name {
-            fn name() -> String {
-                #name_string.to_string()
-            }
-
-            fn code() -> ::std::collections::HashSet<String> {
-                let mut result = ::std::collections::HashSet::from(["type ".to_string() + &#name::name() + " = {\n"
-                #members
-                + "}"]);
-                #members_code
-                result
-            }
-        }
-    }
-}
-
-fn typescript_impl(input: Item) -> TokenStream {
-    match &input {
-        Item::Fn(function) => {
-            let mut visitor = FnVisitor(None);
-            visitor.visit_item_fn(function);
-            visitor.0.unwrap()
-        }
-        Item::Enum(item) => {
-            let typescript_code = handle_enum(item);
-            quote! {
-                #typescript_code
-                #input
-            }
-        }
-        // TODO for enums add #[serde(tag = "type")]
-        wrong_item => {
-            Error::new(wrong_item.span(), "expected function or struct").to_compile_error()
-        }
-    }
-}
 
 fn typescriptable_impl(input: DeriveInput) -> TokenStream {
     let name = &input.ident;
         let name_string = input.ident.to_string();
 
-        let (members, members_code) = match &input.fields {
-            syn::Fields::Named(fields_named) => {
+        let (members, members_code) = match &input.data {
+            Data::Struct(DataStruct { fields: syn::Fields::Named(fields_named), .. }) => {
                 fields_named.named.iter().map(|field| {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
                     let field_type = &field.ty;
@@ -237,8 +148,48 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
                     #y
                 }))
             },
-            syn::Fields::Unnamed(_) => todo!(),
-            syn::Fields::Unit => todo!(),
+            Data::Enum(DataEnum { variants, .. }) => {
+                variants
+                .iter()
+                .map(|field| {
+                    let ident_string = field.ident.to_string();
+                    let (field_type, codes) = match &field.fields {
+                        syn::Fields::Named(_) => todo!(),
+                        syn::Fields::Unnamed(fields) => fields
+                            .unnamed
+                            .iter()
+                            .map(|field| {
+                                let field_type = &field.ty;
+                                (quote! {
+                                   &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
+                                }, quote! {
+                                    result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
+                                })
+                            })
+                            .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                                (quote! {
+                                    #accx + #x
+                                },  quote! {
+                                    #accy
+                                    #y
+                                })
+                            }),
+                        syn::Fields::Unit => todo!(),
+                    };
+                    (quote! {
+                       "  " + #ident_string + ": [" #field_type + "],\n"
+                    }, codes)
+                })
+                .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                    (quote! {
+                        #accx + #x
+                    }, quote! {
+                        #accy
+                        #y
+                    })
+                })
+            }
+            _ => panic!()
         };
 
         quote! {
@@ -263,9 +214,9 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ts(attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     parse_macro_input!(attr as Nothing);
-    let input = parse_macro_input!(item as Item);
+    let input = parse_macro_input!(item as ItemFn);
 
-    proc_macro::TokenStream::from(typescript_impl(input))
+    proc_macro::TokenStream::from(handle_item_fn(&input))
 }
 
 #[proc_macro_derive(Typescriptable, attributes(ts_type))]
