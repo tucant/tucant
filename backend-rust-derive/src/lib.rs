@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote, ToTokens, quote_spanned};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
     DeriveInput, Error, Item, ItemEnum, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
@@ -53,6 +53,19 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
     if let Some(arg_type) = arg_type {
         let name = &node.sig.ident;
         let name_string = node.sig.ident.to_string();
+
+        let typescriptable_arg_type_code = quote_spanned! {arg_type.span()=>
+            <#arg_type as tucant::typescript::Typescriptable>::code()
+        };
+
+        let typescriptable_return_type_name = quote_spanned! {return_type.span()=>
+            <#return_type as tucant::typescript::Typescriptable>::name()
+        };
+
+        let typescriptable_return_type_code = quote_spanned! {return_type.span()=>
+            <#return_type as tucant::typescript::Typescriptable>::code()
+        };
+
         return quote! {
             #node
 
@@ -63,7 +76,7 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
 
                 fn code() -> ::std::collections::HashSet<String> {
                     let mut result = ::std::collections::HashSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
-                    + ": Promise<" + &<#return_type as tucant::typescript::Typescriptable>::name() + "> {" +
+                    + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
     const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
     credentials: "include",
@@ -74,10 +87,10 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
     },
     body: JSON.stringify(input),
     });
-    return await response.json() as "# + &<#return_type as tucant::typescript::Typescriptable>::name() +
+    return await response.json() as "# + &#typescriptable_return_type_name +
         "\n}"]);
-                    result.extend(<#arg_type as tucant::typescript::Typescriptable>::code());
-                    result.extend(<#return_type as tucant::typescript::Typescriptable>::code());
+                    result.extend(#typescriptable_arg_type_code);
+                    result.extend(#typescriptable_return_type_code);
                     result
                 }
             }

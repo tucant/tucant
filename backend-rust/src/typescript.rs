@@ -2,7 +2,7 @@ use std::collections::{HashSet, VecDeque};
 
 use actix_web::{
     dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
-    Error,
+    Error, web::Json,
 };
 use chrono::NaiveDateTime;
 
@@ -94,6 +94,23 @@ impl<T: Typescriptable> Typescriptable for Option<T> {
     }
 }
 
+impl<T: Typescriptable, E> Typescriptable for Result<T, E> {
+    fn name() -> String {
+        T::name()
+    }
+    fn code() -> HashSet<String> {
+        T::code()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for Json<T> {
+    fn name() -> String {
+        T::name()
+    }
+    fn code() -> HashSet<String> {
+        T::code()
+    }
+}
 
 pub struct TypescriptableApp<T> {
     pub app: actix_web::App<T>,
