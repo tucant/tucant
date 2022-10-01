@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [package]
-name = "tucan-scraper"
+name = "tucant"
 version = "0.1.0"
 edition = "2021"
 authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
@@ -41,6 +41,8 @@ either = "1"
 once_cell = "1"
 diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "mohe2015-patch-1" }
 base64 = "0.13"
+tucant_derive = { path = "../backend-rust-derive" }
+file-lock = "2.1.6"
 
 [patch.crates-io]
 diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-type" }

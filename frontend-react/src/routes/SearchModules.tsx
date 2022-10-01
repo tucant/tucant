@@ -8,15 +8,12 @@ import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
-import { isLeft } from "fp-ts/lib/Either";
-import { keyof } from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
 import { useState, useEffect } from "react";
+import { SearchResult, search_module } from "../api";
 import { RouterLink } from "../MiniDrawer";
-import { SearchResultSchema, SearchResultType } from "../validation-io-ts";
 
 export default function SearchModules() {
-  const [data, setData] = useState<SearchResultType | null>(null);
+  const [data, setData] = useState<SearchResult[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,21 +24,13 @@ export default function SearchModules() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
     const value = target.value;
-    const AllowedNames = keyof({
-      q: null,
-    });
-    const name = AllowedNames.decode(target.name);
-    if (isLeft(name)) {
-      throw new Error(
-        `Internal Error: Invalid data format in response ${PathReporter.report(
-          name
-        ).join("\n")}`
-      );
-    }
 
+    if (target.name != "q") {
+      throw new Error("unexpected input name");
+    }
     setForm({
       ...form,
-      [name.right]: value,
+      [target.name]: value,
     });
   };
 
@@ -49,29 +38,7 @@ export default function SearchModules() {
     const getData = async () => {
       setLoading(true);
       setError(null);
-      const response = await fetch(
-        // TODO FIXME url injection
-        `http://localhost:8080/search-module?q=${form.q}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
-      }
-      const actualData = SearchResultSchema.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await search_module(form.q));
       setError(null);
     };
     getData()
@@ -125,16 +92,18 @@ export default function SearchModules() {
         {data != null &&
           data.map((e) => (
             <RouterLink
-              key={e[0]}
-              to={`/module/${e[0]}`}
+              key={e.tucan_id}
+              to={`/module/${e.tucan_id}`}
               text={
                 <span>
-                  <Chip label={e[3].toFixed(3)} /> {e[1]}
+                  <Chip label={e.rank.toFixed(3)} /> {e.title}
                 </span>
               }
               secondary_text={
                 <span
-                  dangerouslySetInnerHTML={{ __html: dompurify.sanitize(e[2]) }}
+                  dangerouslySetInnerHTML={{
+                    __html: dompurify.sanitize(e.excerpt),
+                  }}
                 ></span>
               }
             ></RouterLink>

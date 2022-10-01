@@ -13,6 +13,7 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
+use tucant_derive::Typescriptable;
 
 use crate::{
     element_by_selector,
@@ -46,7 +47,8 @@ pub struct TucanUser {
     pub session: TucanSession,
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Typescriptable)]
+#[serde(tag = "type", content = "value")]
 pub enum RegistrationEnum {
     Submenu(Vec<ModuleMenu>),
     Modules(Vec<Module>),

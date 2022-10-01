@@ -15,9 +15,12 @@ use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
-use actix_web::{cookie::Key, get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::web::Json;
+use actix_web::{cookie::Key, post, web, App, HttpServer};
 use csrf_middleware::CsrfMiddleware;
-use diesel_async::pooled_connection::PoolError;
+
+use file_lock::{FileLock, FileOptions};
+use itertools::Itertools;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -25,15 +28,19 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fmt::Display;
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+use tucant::typescript::TypescriptableApp;
 
-use tucan_scraper::tucan::Tucan;
-use tucan_scraper::tucan_user::{TucanSession, TucanUser};
-use tucan_scraper::url::{Coursedetails, Moduledetails, Registration};
+use std::io::Write;
+use tucant::tucan::Tucan;
+use tucant::tucan_user::{TucanSession, TucanUser};
+use tucant::url::{Coursedetails, Moduledetails, Registration};
+use tucant_derive::{ts, Typescriptable};
 
 #[derive(Debug)]
 pub struct MyError {
@@ -48,63 +55,49 @@ impl Display for MyError {
 
 impl actix_web::error::ResponseError for MyError {}
 
-impl From<anyhow::Error> for MyError {
-    fn from(err: anyhow::Error) -> MyError {
-        MyError { err }
-    }
-}
-
-impl From<deadpool::managed::PoolError<PoolError>> for MyError {
-    fn from(err: deadpool::managed::PoolError<PoolError>) -> MyError {
+impl<E: Into<anyhow::Error>> From<E> for MyError {
+    fn from(err: E) -> MyError {
         MyError { err: err.into() }
     }
 }
 
-impl From<diesel::result::Error> for MyError {
-    fn from(err: diesel::result::Error) -> MyError {
-        MyError { err: err.into() }
-    }
-}
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Typescriptable)]
 struct Login {
     username: String,
     password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Typescriptable)]
 struct LoginResult {
     success: bool,
 }
 
+#[ts]
 #[post("/login")]
 async fn login(
     session: Session,
     tucan: web::Data<Tucan>,
-    login: web::Json<Login>,
-) -> Result<impl Responder, MyError> {
-    let tucan_user = tucan.login(&login.username, &login.password).await?;
+    input: web::Json<Login>,
+) -> Result<Json<LoginResult>, MyError> {
+    let tucan_user = tucan.login(&input.username, &input.password).await?;
     session.insert("session", tucan_user.session).unwrap();
     Ok(web::Json(LoginResult { success: true }))
 }
 
+#[ts]
 #[post("/logout")]
-async fn logout(session: Session) -> Result<impl Responder, MyError> {
+async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
     session.purge();
-    Ok(HttpResponse::Ok())
+    Ok(web::Json(()))
 }
 
-#[get("/")]
-async fn index(session: Session) -> Result<impl Responder, MyError> {
+#[ts]
+#[post("/")]
+async fn index(session: Session, _input: Json<()>) -> Result<Json<String>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
         None => Ok(web::Json("Welcome Anonymous!".to_owned())),
     }
-}
-
-#[derive(Deserialize)]
-pub struct SearchQuery {
-    q: String,
 }
 
 #[actix_web::main]
@@ -138,7 +131,7 @@ async fn main() -> anyhow::Result<()> {
             .allow_any_header()
             .allowed_origin("http://localhost:5173");
 
-        App::new()
+        let app = App::new()
             .app_data(tucan.clone())
             .wrap(
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
@@ -149,16 +142,51 @@ async fn main() -> anyhow::Result<()> {
             )
             .wrap(CsrfMiddleware {})
             .wrap(cors)
-            .wrap(logger)
+            .wrap(logger);
+
+        let app = TypescriptableApp {
+            app,
+            codes: HashSet::new(),
+        };
+        let app = app
             .service(index)
             .service(login)
             .service(logout)
             .service(get_modules)
-            .service(setup)
             .service(search_module)
             .service(search_course)
             .service(course)
-            .service(module)
+            .service(module);
+
+        let should_we_block = true;
+        let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
+
+        let mut filelock = match FileLock::lock(
+            "../frontend-react/src/api.ts",
+            should_we_block,
+            lock_for_writing,
+        ) {
+            Ok(lock) => lock,
+            Err(err) => panic!("Error getting write lock: {}", err),
+        };
+
+        filelock
+            .file
+            .write_all(
+                (r#"
+// This file is automatically generated at startup. Do not modify.
+import { genericFetch } from "./api_base"
+"#
+                .to_string()
+                    + &app.codes.into_iter().join("\n"))
+                    .as_bytes(),
+            )
+            .unwrap();
+
+        // Manually unlocking is optional as we unlock on Drop
+        filelock.unlock().unwrap();
+
+        app.app.service(setup)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

@@ -4,27 +4,27 @@
 
 use crate::MyError;
 use actix_session::Session;
+use actix_web::post;
 use actix_web::web::Json;
-use actix_web::Responder;
-use actix_web::{
-    get,
-    web::{Data, Path},
-};
+
+use actix_web::web::Data;
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
-use tucan_scraper::{models::Course, schema::courses_unfinished, tucan::Tucan};
+use tucant::{models::Course, schema::courses_unfinished, tucan::Tucan};
+use tucant_derive::ts;
 
-#[get("/course/{id:.*}")]
+#[ts]
+#[post("/course")]
 pub async fn course(
     _: Session,
     tucan: Data<Tucan>,
-    path: Path<String>,
-) -> Result<impl Responder, MyError> {
+    input: Json<String>,
+) -> Result<Json<Course>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
     let result = courses_unfinished::table
-        .filter(courses_unfinished::tucan_id.eq(base64::decode(path.as_bytes()).unwrap()))
+        .filter(courses_unfinished::tucan_id.eq(base64::decode(input.as_bytes()).unwrap()))
         .select((
             courses_unfinished::tucan_id,
             courses_unfinished::tucan_last_checked,

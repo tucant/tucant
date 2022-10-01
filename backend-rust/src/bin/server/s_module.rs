@@ -7,34 +7,34 @@ use std::collections::{HashMap, VecDeque};
 use crate::s_get_modules::ModuleMenuPathPart;
 use crate::MyError;
 use actix_session::Session;
+use actix_web::post;
 use actix_web::web::Json;
-use actix_web::Responder;
-use actix_web::{
-    get,
-    web::{Data, Path},
-};
+
+use actix_web::web::Data;
 use diesel::sql_types::Bytea;
 use diesel::QueryDsl;
 use diesel::{sql_query, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
-use tucan_scraper::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant_derive::{ts, Typescriptable};
 
-#[derive(Serialize)]
+#[derive(Serialize, Typescriptable)]
 pub struct ModuleResponse {
     module: Module,
     path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
-#[get("/module/{id:.*}")]
+#[ts]
+#[post("/module")]
 pub async fn module(
     _: Session,
     tucan: Data<Tucan>,
-    path: Path<String>,
-) -> Result<impl Responder, MyError> {
+    input: Json<String>,
+) -> Result<Json<ModuleResponse>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
-    let binary_path = base64::decode(path.as_bytes()).unwrap();
+    let binary_path = base64::decode(input.as_bytes()).unwrap();
 
     let result = modules_unfinished::table
         .filter(modules_unfinished::tucan_id.eq(&binary_path))
@@ -91,8 +91,6 @@ pub async fn module(
             path
         })
         .collect::<Vec<_>>();
-
-    println!("{:?}", paths);
 
     Ok(Json(ModuleResponse {
         module: result,

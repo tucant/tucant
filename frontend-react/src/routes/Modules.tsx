@@ -8,48 +8,23 @@ import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { RouterLink } from "../MiniDrawer";
 import InitialFetch from "./InitialFetch";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { ModuleMenuResponse } from "../validation-io-ts";
-import { isLeft } from "fp-ts/lib/Either";
-import { PathReporter } from "io-ts/lib/PathReporter";
-import { TypeOf } from "io-ts";
+import { get_modules, ModuleMenuResponse } from "../api";
 
 export default function Modules() {
   const location = useLocation();
 
-  const [data, setData] = useState<TypeOf<typeof ModuleMenuResponse> | null>(
-    null
-  );
+  const [data, setData] = useState<ModuleMenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { id } = useParams();
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch(
-        `http://localhost:8080${location.pathname}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
-      }
-      const actualData = ModuleMenuResponse.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await get_modules(id || null));
       setError(null);
     };
     getData()
@@ -89,8 +64,8 @@ export default function Modules() {
       ))}
       <List>
         {data != null &&
-          "Submenu" in data.entries &&
-          data.entries.Submenu.map((e) => (
+          data.entries.type === "Submenu" &&
+          data.entries.value.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/modules/${e.tucan_id}`}
@@ -98,8 +73,8 @@ export default function Modules() {
             ></RouterLink>
           ))}
         {data != null &&
-          "Modules" in data.entries &&
-          data.entries.Modules.map((e) => (
+          data.entries.type === "Modules" &&
+          data.entries.value.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/module/${e.tucan_id}`}

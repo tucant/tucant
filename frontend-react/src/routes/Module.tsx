@@ -7,44 +7,24 @@ import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import dompurify from "dompurify";
-import { ModuleResponse } from "../validation-io-ts";
-import { PathReporter } from "io-ts/PathReporter";
-import { isLeft } from "fp-ts/lib/Either";
-import { TypeOf } from "io-ts";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { module, ModuleResponse } from "../api";
 
 export default function Module() {
-  const [data, setData] = useState<TypeOf<typeof ModuleResponse> | null>(null);
+  const [data, setData] = useState<ModuleResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
+  const { id } = useParams();
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch(
-        `http://localhost:8080${location.pathname}`,
-        {
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
+      if (!id) {
+        throw new Error("Modulnummer fehlt!");
       }
-      const actualData = ModuleResponse.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await module(id));
       setError(null);
     };
     getData()
