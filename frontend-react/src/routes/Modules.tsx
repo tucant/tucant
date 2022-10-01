@@ -24,10 +24,7 @@ export default function Modules() {
 
   useEffect(() => {
     const getData = async () => {
-      if (!id) {
-        throw new Error("Menünummer fehlt!");
-      }
-      setData(await get_modules(id));
+      setData(await get_modules(id || null));
       setError(null);
     };
     getData()
@@ -67,8 +64,8 @@ export default function Modules() {
       ))}
       <List>
         {data != null &&
-          "Submenu" in data.entries &&
-          data.entries.Submenu.map((e) => (
+          data.entries.type === "Submenu" &&
+          data.entries.value.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/modules/${e.tucan_id}`}
@@ -76,8 +73,8 @@ export default function Modules() {
             ></RouterLink>
           ))}
         {data != null &&
-          "Modules" in data.entries &&
-          data.entries.Modules.map((e) => (
+          data.entries.type === "Modules" &&
+          data.entries.value.map((e) => (
             <RouterLink
               key={e.tucan_id}
               to={`/module/${e.tucan_id}`}

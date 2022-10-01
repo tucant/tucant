@@ -249,7 +249,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
 
                 (
                     quote! {
-                       "{ type: \"" + #ident_string + "\", " + #ident_string + ": " + &#typescriptable_field_type_name + " }\n"
+                       "{ type: \"" + #ident_string + "\", value: " + &#typescriptable_field_type_name + " }\n"
                     },
                     quote! {
                         result.extend(#typescriptable_field_type_code);

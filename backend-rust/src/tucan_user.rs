@@ -48,7 +48,7 @@ pub struct TucanUser {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Typescriptable)]
-#[serde(tag = "type")]
+#[serde(tag = "type", content = "value")]
 pub enum RegistrationEnum {
     Submenu(Vec<ModuleMenu>),
     Modules(Vec<Module>),

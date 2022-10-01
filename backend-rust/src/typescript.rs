@@ -88,7 +88,7 @@ impl<T: Typescriptable> Typescriptable for VecDeque<T> {
 
 impl<T: Typescriptable> Typescriptable for Option<T> {
     fn name() -> String {
-        T::name() + " | undefined"
+        T::name() + " | null"
     }
     fn code() -> HashSet<String> {
         T::code()

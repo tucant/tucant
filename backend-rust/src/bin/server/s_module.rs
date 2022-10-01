@@ -92,8 +92,6 @@ pub async fn module(
         })
         .collect::<Vec<_>>();
 
-    println!("{:?}", paths);
-
     Ok(Json(ModuleResponse {
         module: result,
         path: paths,
