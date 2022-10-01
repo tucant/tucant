@@ -13,7 +13,7 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
-use tucant_derive::{ts, Typescriptable};
+use tucant_derive::{Typescriptable};
 
 use crate::{
     element_by_selector,

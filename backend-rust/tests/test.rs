@@ -25,11 +25,11 @@ async fn index(_session: String, _input: Json<()>) -> actix_web::Result<Json<Str
 pub fn test() {
     // cargo test -- --show-output
     println!(
-        "{}",
+        "{:?}",
         <Struct1 as ::tucant::typescript::Typescriptable>::code()
     );
     println!(
-        "{}",
+        "{:?}",
         <index as ::tucant::typescript::Typescriptable>::code()
     );
 }
