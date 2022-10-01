@@ -16,10 +16,9 @@ use diesel::{sql_query, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
 use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
-use tucant_derive::ts;
+use tucant_derive::{ts, Typescriptable};
 
-#[ts]
-#[derive(Serialize)]
+#[derive(Serialize, Typescriptable)]
 pub struct ModuleResponse {
     module: Module,
     path: Vec<VecDeque<ModuleMenuPathPart>>,

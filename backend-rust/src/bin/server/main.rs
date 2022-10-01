@@ -40,7 +40,7 @@ use std::io::Write;
 use tucant::tucan::Tucan;
 use tucant::tucan_user::{TucanSession, TucanUser};
 use tucant::url::{Coursedetails, Moduledetails, Registration};
-use tucant_derive::ts;
+use tucant_derive::{ts, Typescriptable};
 
 #[derive(Debug)]
 pub struct MyError {
@@ -61,15 +61,13 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
     }
 }
 
-#[ts]
-#[derive(Deserialize)]
+#[derive(Deserialize, Typescriptable)]
 struct Login {
     username: String,
     password: String,
 }
 
-#[ts]
-#[derive(Serialize)]
+#[derive(Serialize, Typescriptable)]
 struct LoginResult {
     success: bool,
 }

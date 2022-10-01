@@ -22,13 +22,12 @@ use diesel_full_text_search::{
 };
 use serde::Serialize;
 use tucant::{schema::courses_unfinished, tucan::Tucan};
-use tucant_derive::ts;
+use tucant_derive::{ts, Typescriptable};
 
 sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
 sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
-#[ts]
-#[derive(Queryable, Serialize)]
+#[derive(Queryable, Serialize, Typescriptable)]
 pub struct SearchResult {
     a: String,
     b: String,

@@ -28,10 +28,10 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::RegistrationEnum;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
+use tucant_derive::Typescriptable;
 use tucant_derive::ts;
 
-#[ts]
-#[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone)]
+#[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone, Typescriptable)]
 pub struct ModuleMenuPathPart {
     #[diesel(sql_type = Nullable<Bytea>)]
     #[serde(skip)]
@@ -46,8 +46,7 @@ pub struct ModuleMenuPathPart {
     pub leaf: bool,
 }
 
-#[ts]
-#[derive(Serialize)]
+#[derive(Serialize, Typescriptable)]
 pub struct ModuleMenuResponse {
     module_menu: ModuleMenu,
     entries: RegistrationEnum,

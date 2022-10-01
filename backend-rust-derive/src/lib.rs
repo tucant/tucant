@@ -182,8 +182,6 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
         };
 
     quote! {
-        #input
-
         impl tucant::typescript::Typescriptable for #name {
             fn name() -> String {
                 #name_string.to_string()

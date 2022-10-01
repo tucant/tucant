@@ -5,7 +5,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tucant_derive::ts;
+use tucant_derive::{ts, Typescriptable};
 
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
@@ -57,7 +57,6 @@ where
 }
 
 // order needs to be equal to the table definition
-#[ts]
 #[derive(
     Identifiable,
     Queryable,
@@ -69,6 +68,7 @@ where
     PartialEq,
     Eq,
     Clone,
+    Typescriptable
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
@@ -84,7 +84,6 @@ pub struct Module {
     pub done: bool,
 }
 
-#[ts]
 #[derive(
     Identifiable,
     Queryable,
@@ -97,6 +96,7 @@ pub struct Module {
     Clone,
     AsChangeset,
     QueryableByName,
+    Typescriptable
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
@@ -179,14 +179,14 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     PartialEq,
     Eq,
     Clone,
+    Typescriptable
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = courses_unfinished)]
 #[diesel(treat_none_as_null = true)]
-#[ts]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    #[type(String)]
+    #[ts_type(String)]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -196,11 +196,6 @@ pub struct Course {
     pub done: bool,
 }
 
-pub struct Testse {
-    pub tet: bool,
-    #[ts]
-    pub dfs: bool
-}
 
 #[derive(
     Associations,

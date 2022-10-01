@@ -2,14 +2,14 @@ use actix_web::{
     get,
     web::{self, Json},
 };
-use tucant_derive::ts;
+use tucant_derive::{ts, Typescriptable};
 
 // cargo install cargo-expand
 // cargo expand --test test
 
 // https://github.com/dtolnay/proc-macro-workshop
 
-#[ts]
+#[derive(Typescriptable)]
 pub struct Struct1 {
     _val1: u32,
     _val2: String,
