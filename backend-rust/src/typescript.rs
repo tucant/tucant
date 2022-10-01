@@ -34,7 +34,7 @@ impl Typescriptable for NaiveDateTime {
 
 impl Typescriptable for () {
     fn name() -> String {
-        "void".to_string()
+        "null".to_string()
     }
 }
 

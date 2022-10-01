@@ -14,7 +14,7 @@ export default function Welcome() {
 
   useEffect(() => {
     const getData = async () => {
-      setData(await index());
+      setData(await index(null));
       setError(null);
     };
     getData()
