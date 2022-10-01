@@ -28,8 +28,8 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::RegistrationEnum;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
-use tucant_derive::Typescriptable;
 use tucant_derive::ts;
+use tucant_derive::Typescriptable;
 
 #[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone, Typescriptable)]
 pub struct ModuleMenuPathPart {

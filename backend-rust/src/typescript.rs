@@ -2,7 +2,8 @@ use std::collections::{HashSet, VecDeque};
 
 use actix_web::{
     dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
-    Error, web::Json,
+    web::Json,
+    Error,
 };
 use chrono::NaiveDateTime;
 

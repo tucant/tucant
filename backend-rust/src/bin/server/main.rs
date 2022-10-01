@@ -161,7 +161,11 @@ async fn main() -> anyhow::Result<()> {
         let should_we_block = true;
         let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
-        let mut filelock = match FileLock::lock("../frontend-react/src/api.ts", should_we_block, lock_for_writing) {
+        let mut filelock = match FileLock::lock(
+            "../frontend-react/src/api.ts",
+            should_we_block,
+            lock_for_writing,
+        ) {
             Ok(lock) => lock,
             Err(err) => panic!("Error getting write lock: {}", err),
         };

@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{format_ident, quote, ToTokens, quote_spanned};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, visit::Visit, Data, DataEnum, DataStruct,
     DeriveInput, Error, Item, ItemEnum, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
@@ -10,9 +10,7 @@ use syn::{
 fn handle_item_fn(node: &ItemFn) -> TokenStream {
     let return_type = match node.sig.output {
         syn::ReturnType::Default => format_ident!("void").to_token_stream(),
-        syn::ReturnType::Type(_, ref path) => {
-            path.to_token_stream()
-        }
+        syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
     let actix_macro = node.attrs.iter().find(|attr| {
@@ -42,7 +40,7 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
             syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                 if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
                     if *ident == "input" || *ident == "_input" {
-                        return Some(ty.to_token_stream())
+                        return Some(ty.to_token_stream());
                     }
                 }
                 None
@@ -53,6 +51,10 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
     if let Some(arg_type) = arg_type {
         let name = &node.sig.ident;
         let name_string = node.sig.ident.to_string();
+
+        let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
+            <#arg_type as tucant::typescript::Typescriptable>::name()
+        };
 
         let typescriptable_arg_type_code = quote_spanned! {arg_type.span()=>
             <#arg_type as tucant::typescript::Typescriptable>::code()
@@ -75,7 +77,7 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
                 }
 
                 fn code() -> ::std::collections::HashSet<String> {
-                    let mut result = ::std::collections::HashSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &<#arg_type as tucant::typescript::Typescriptable>::name() + ")"
+                    let mut result = ::std::collections::HashSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
     const response = await fetch("http://localhost:8080"# + #url_path + r#"", {
@@ -109,65 +111,106 @@ fn typescriptable_impl(input: DeriveInput) -> TokenStream {
     let name_string = input.ident.to_string();
 
     let (members, members_code) = match &input.data {
-            Data::Struct(DataStruct { fields: syn::Fields::Named(fields_named), .. }) => {
-                fields_named.named.iter().map(|field| {
-                    let ident_string = field.ident.as_ref().unwrap().to_string();
-                    let field_type = &field.ty;
-                    (quote! {
-                       "  " + #ident_string + ": " + &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                    }, quote! {
-                        result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
-                    })
-                }).fold((quote! {}, quote! {}), |(accx, accy), (x, y)| (quote! {
-                    #accx + #x
-                }, quote! {
-                    #accy
-                    #y
-                }))
-            },
-            Data::Enum(DataEnum { variants, .. }) => {
-                variants
-                .iter()
-                .map(|field| {
-                    let ident_string = field.ident.to_string();
-                    let (field_type, codes) = match &field.fields {
-                        syn::Fields::Named(_) => todo!(),
-                        syn::Fields::Unnamed(fields) => fields
-                            .unnamed
-                            .iter()
-                            .map(|field| {
-                                let field_type = &field.ty;
-                                (quote! {
-                                   &<#field_type as tucant::typescript::Typescriptable>::name() + ",\n"
-                                }, quote! {
-                                    result.extend(<#field_type as tucant::typescript::Typescriptable>::code());
-                                })
-                            })
-                            .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-                                (quote! {
-                                    #accx + #x
-                                },  quote! {
-                                    #accy
-                                    #y
-                                })
-                            }),
-                        syn::Fields::Unit => todo!(),
-                    };
-                    (quote! {
-                       "  " + #ident_string + ": [" #field_type + "],\n"
-                    }, codes)
-                })
-                .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
-                    (quote! {
+        Data::Struct(DataStruct {
+            fields: syn::Fields::Named(fields_named),
+            ..
+        }) => fields_named
+            .named
+            .iter()
+            .map(|field| {
+                let ident_string = field.ident.as_ref().unwrap().to_string();
+                let field_type = &field.ty;
+
+                let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
+                    <#field_type as tucant::typescript::Typescriptable>::name()
+                };
+
+                let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
+                    <#field_type as tucant::typescript::Typescriptable>::code()
+                };
+
+                (
+                    quote! {
+                       "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
+                    },
+                    quote! {
+                        result.extend(#typescriptable_field_type_code);
+                    },
+                )
+            })
+            .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                (
+                    quote! {
                         #accx + #x
-                    }, quote! {
+                    },
+                    quote! {
                         #accy
                         #y
-                    })
-                })
-            }
-            _ => panic!()
-        };
+                    },
+                )
+            }),
+        Data::Enum(DataEnum { variants, .. }) => variants
+            .iter()
+            .map(|field| {
+                let ident_string = field.ident.to_string();
+                let (field_type, codes) = match &field.fields {
+                    syn::Fields::Named(_) => todo!(),
+                    syn::Fields::Unnamed(fields) => fields
+                        .unnamed
+                        .iter()
+                        .map(|field| {
+                            let field_type = &field.ty;
+
+                            let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
+                                <#field_type as tucant::typescript::Typescriptable>::name()
+                            };
+
+                            let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
+                                <#field_type as tucant::typescript::Typescriptable>::code()
+                            };
+
+                            (
+                                quote! {
+                                   &#typescriptable_field_type_name + ",\n"
+                                },
+                                quote! {
+                                    result.extend(#typescriptable_field_type_code);
+                                },
+                            )
+                        })
+                        .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                            (
+                                quote! {
+                                    #accx + #x
+                                },
+                                quote! {
+                                    #accy
+                                    #y
+                                },
+                            )
+                        }),
+                    syn::Fields::Unit => todo!(),
+                };
+                (
+                    quote! {
+                       "  " + #ident_string + ": [" #field_type + "],\n"
+                    },
+                    codes,
+                )
+            })
+            .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
+                (
+                    quote! {
+                        #accx + #x
+                    },
+                    quote! {
+                        #accy
+                        #y
+                    },
+                )
+            }),
+        _ => panic!(),
+    };
 
     quote! {
         impl tucant::typescript::Typescriptable for #name {

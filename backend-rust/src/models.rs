@@ -68,7 +68,7 @@ where
     PartialEq,
     Eq,
     Clone,
-    Typescriptable
+    Typescriptable,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = modules_unfinished)]
@@ -96,7 +96,7 @@ pub struct Module {
     Clone,
     AsChangeset,
     QueryableByName,
-    Typescriptable
+    Typescriptable,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = module_menu_unfinished)]
@@ -179,7 +179,7 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     PartialEq,
     Eq,
     Clone,
-    Typescriptable
+    Typescriptable,
 )]
 #[diesel(primary_key(tucan_id))]
 #[diesel(table_name = courses_unfinished)]
@@ -195,7 +195,6 @@ pub struct Course {
     pub content: String,
     pub done: bool,
 }
-
 
 #[derive(
     Associations,
