@@ -7,34 +7,11 @@ use syn::{
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
 
-struct InnermostTypeVisitor(Option<TokenStream>);
-
-impl<'ast> Visit<'ast> for InnermostTypeVisitor {
-    fn visit_ident(&mut self, ident: &'ast Ident) {
-        self.0 = Some(ident.to_token_stream());
-    }
-
-    fn visit_angle_bracketed_generic_arguments(
-        &mut self,
-        i: &'ast syn::AngleBracketedGenericArguments,
-    ) {
-        if let Some(v) = i.args.first() {
-            self.visit_generic_argument(v)
-        }
-    }
-
-    fn visit_type_tuple(&mut self, i: &'ast syn::TypeTuple) {
-        self.0 = Some(i.to_token_stream());
-    }
-}
-
 fn handle_item_fn(node: &ItemFn) -> TokenStream {
     let return_type = match node.sig.output {
         syn::ReturnType::Default => format_ident!("void").to_token_stream(),
         syn::ReturnType::Type(_, ref path) => {
-            let mut innermost_type_visitor = InnermostTypeVisitor(None);
-            innermost_type_visitor.visit_type(path);
-            innermost_type_visitor.0.unwrap()
+            path.to_token_stream()
         }
     };
 
@@ -65,9 +42,7 @@ fn handle_item_fn(node: &ItemFn) -> TokenStream {
             syn::FnArg::Typed(PatType { pat, ty, .. }) => {
                 if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
                     if *ident == "input" || *ident == "_input" {
-                        let mut innermost_type_visitor = InnermostTypeVisitor(None);
-                        innermost_type_visitor.visit_type(ty);
-                        return Some(innermost_type_visitor.0.unwrap().to_token_stream());
+                        return Some(ty.to_token_stream())
                     }
                 }
                 None
