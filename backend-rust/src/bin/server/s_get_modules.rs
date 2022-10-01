@@ -8,6 +8,7 @@ use std::io::ErrorKind;
 
 use crate::MyError;
 use actix_session::Session;
+use actix_web::post;
 use actix_web::web::Json;
 
 use actix_web::{get, web::Data};
@@ -56,7 +57,7 @@ pub struct ModuleMenuResponse {
 
 // trailing slash is menu
 #[ts]
-#[get("/modules")]
+#[post("/modules")]
 pub async fn get_modules<'a>(
     session: Session,
     tucan: Data<Tucan>,

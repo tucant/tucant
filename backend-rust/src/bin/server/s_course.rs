@@ -4,6 +4,7 @@
 
 use crate::MyError;
 use actix_session::Session;
+use actix_web::post;
 use actix_web::web::Json;
 
 use actix_web::{get, web::Data};
@@ -14,7 +15,7 @@ use tucant::{models::Course, schema::courses_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[get("/course")]
+#[post("/course")]
 pub async fn course(
     _: Session,
     tucan: Data<Tucan>,

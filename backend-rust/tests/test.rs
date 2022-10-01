@@ -1,6 +1,6 @@
 use actix_web::{
     get,
-    web::{self, Json},
+    web::{self, Json}, post,
 };
 use tucant_derive::{ts, Typescriptable};
 
@@ -16,7 +16,7 @@ pub struct Struct1 {
 }
 
 #[ts]
-#[get("/")]
+#[post("/")]
 async fn index(_session: String, _input: Json<()>) -> actix_web::Result<Json<String>> {
     Ok(web::Json("Welcome Anonymous!".to_owned()))
 }

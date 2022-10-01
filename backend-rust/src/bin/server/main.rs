@@ -92,7 +92,7 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
 }
 
 #[ts]
-#[get("/")]
+#[post("/")]
 async fn index(session: Session, _input: Json<()>) -> Result<Json<String>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),

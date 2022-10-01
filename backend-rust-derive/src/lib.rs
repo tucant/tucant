@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, TokenStream, Span};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
@@ -18,17 +18,17 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
-    let actix_macro = node.attrs.iter().find(|attr| {
-        attr.path.get_ident().map(Ident::to_string) == Some("get".to_string())
-            || attr.path.get_ident().map(Ident::to_string) == Some("post".to_string())
-    });
+    let actix_macro = node
+        .attrs
+        .iter()
+        .find(|attr| attr.path.get_ident().map(Ident::to_string) == Some("post".to_string()));
 
     let actix_macro = if let Some(actix_macro) = actix_macro {
         actix_macro
     } else {
         return Err(Error::new(
-            node.sig.output.span(),
-            r#"could not find actix 'get` or `post` attribute macro"#,
+            Span::call_site(),
+            r#"could not find actix `post` attribute macro"#,
         ));
     };
     let url_path = actix_macro.parse_meta()?;
@@ -127,7 +127,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                 .iter()
                 .map(|field| {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
-                    
+
                     let ts_type_attr = field.attrs.iter().find(|attr| {
                         attr.path.get_ident().map(Ident::to_string) == Some("ts_type".to_string())
                     });

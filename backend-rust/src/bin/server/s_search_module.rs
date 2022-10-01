@@ -6,6 +6,7 @@ use crate::s_search_course::{encode, rtrim, SearchResult};
 use crate::MyError;
 use actix_session::Session;
 
+use actix_web::post;
 use actix_web::{
     get,
     web::{Data, Json},
@@ -23,7 +24,7 @@ use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[get("/search-module")]
+#[post("/search-module")]
 pub async fn search_module(
     _: Session,
     tucan: Data<Tucan>,

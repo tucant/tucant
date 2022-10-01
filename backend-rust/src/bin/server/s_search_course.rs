@@ -7,7 +7,7 @@ use actix_session::Session;
 
 use actix_web::{
     get,
-    web::{Data, Json},
+    web::{Data, Json}, post,
 };
 use diesel::pg::sql_types::Bytea;
 use diesel::sql_types::Text;
@@ -36,7 +36,7 @@ pub struct SearchResult {
 }
 
 #[ts]
-#[get("/search-course")]
+#[post("/search-course")]
 pub async fn search_course(
     _: Session,
     tucan: Data<Tucan>,
