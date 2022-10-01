@@ -23,10 +23,12 @@ import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import HomeIcon from "@mui/icons-material/Home";
 import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { NavLinkProps, Outlet, NavLink } from "react-router-dom";
 import { ReactNode } from "react";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import AttributionIcon from "@mui/icons-material/Attribution";
+import { useAppSelector } from "./redux/hooks";
 
 const drawerWidth = 240;
 
@@ -151,6 +153,8 @@ export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
 
+  const isLoggedIn = useAppSelector((state) => state.user.loggedIn);
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -214,11 +218,20 @@ export default function MiniDrawer() {
             text="Veranstaltungssuche"
             icon={<SearchOutlined />}
           ></RouterLink>
-          <RouterLink
-            to="/login"
-            text="Login"
-            icon={<LoginIcon />}
-          ></RouterLink>
+          {!isLoggedIn &&
+            <RouterLink
+              to="/login"
+              text="Login"
+              icon={<LoginIcon />}
+            ></RouterLink>
+          }
+          {isLoggedIn &&
+            <RouterLink
+              to="/logout"
+              text="Logout"
+              icon={<LogoutIcon />}
+            ></RouterLink>
+          }
           <RouterLink
             to="/credits"
             text="Credits"
