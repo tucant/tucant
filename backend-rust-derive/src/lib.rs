@@ -35,6 +35,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     let url_path = match url_path {
         Meta::List(meta_list) => match meta_list.nested.iter().next() {
             Some(NestedMeta::Lit(Lit::Str(str))) => str.value(),
+            None => return Err(Error::new(meta_list.span(), r#"expected a literal string"#)),
             err => return Err(Error::new(err.span(), r#"expected a literal string"#)),
         },
         err => return Err(Error::new(err.span(), r#"expected a list"#)),
@@ -126,7 +127,23 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                 .iter()
                 .map(|field| {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
-                    let field_type = &field.ty;
+                    
+                    let ts_type_attr = field.attrs.iter().find(|attr| {
+                        attr.path.get_ident().map(Ident::to_string) == Some("ts_type".to_string())
+                    });
+
+                    let field_type = if let Some(ts_type_attr) = ts_type_attr {
+                        match ts_type_attr.parse_meta()? {
+                            Meta::List(meta_list) => match meta_list.nested.iter().next() {
+                                Some(NestedMeta::Meta(Meta::Path(path))) => path.to_token_stream(),
+                                None => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
+                                _ => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
+                            },
+                            err => return Err(Error::new(err.span(), r#"expected a list"#)),
+                        }
+                    } else {
+                        field.ty.to_token_stream()
+                    };
 
                     let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
                         <#field_type as tucant::typescript::Typescriptable>::name()
@@ -136,15 +153,17 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                         <#field_type as tucant::typescript::Typescriptable>::code()
                     };
 
-                    (
+                    Ok((
                         quote! {
                            "  " + #ident_string + ": " + &#typescriptable_field_type_name + ",\n"
                         },
                         quote! {
                             result.extend(#typescriptable_field_type_code);
                         },
-                    )
+                    ))
                 })
+                .collect::<Result<Vec<_>, _>>()?
+                .iter()
                 .fold((quote! {}, quote! {}), |(accx, accy), (x, y)| {
                     (
                         quote! {

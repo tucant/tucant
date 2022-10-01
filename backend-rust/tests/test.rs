@@ -11,8 +11,8 @@ use tucant_derive::{ts, Typescriptable};
 
 #[derive(Typescriptable)]
 pub struct Struct1 {
-    _val1: u32,
-    _val2: String,
+    #[ts_type(String)]
+    pub tucan_id: Vec<u8>,
 }
 
 #[ts]
