@@ -138,10 +138,6 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                         attr.path.get_ident().map(Ident::to_string) == Some("serde".to_string())
                     });
 
-                    if serde_attr.is_some() && ts_type_attr.is_none() {
-                        serde_attr.span().unwrap().warning("`serde` attribute macro but no `ts_type`. This may be a bug.").emit();
-                    }
-
                     let field_type = if let Some(ts_type_attr) = ts_type_attr {
                         match ts_type_attr.parse_meta()? {
                             Meta::List(meta_list) => match meta_list.nested.iter().next() {
@@ -152,6 +148,26 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                             err => return Err(Error::new(err.span(), r#"expected a list"#)),
                         }
                     } else {
+                        if let Some(serde_attr) = serde_attr {
+                            let serde_attr = serde_attr.parse_meta()?;
+                            match serde_attr {
+                                Meta::List(meta) => {
+                                    if let Some(meta) = meta.nested.iter().find(|meta| {
+                                        match meta {
+                                            NestedMeta::Meta(Meta::NameValue(meta)) => {
+                                                meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
+                                                || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
+                                            },
+                                            _ => false,
+                                        }
+                                    }) {
+                                        return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+
                         field.ty.to_token_stream()
                     };
 
