@@ -1,29 +1,25 @@
 import { RouterLink } from "../MiniDrawer";
 import List from "@mui/material/List";
-import {
-  ModuleMenuType,
-  ModulesResponseType,
-  ModuleType,
-} from "../validation-io-ts";
+import { ModuleMenuResponse } from "../api";
 
-type ModuleListProps = { listData: ModulesResponseType };
+type ModuleListProps = { listData: ModuleMenuResponse };
 export function ModuleList({ listData }: ModuleListProps) {
   return (
     <List>
-      {listData.Submenu &&
-        listData.Submenu.map((submenuEntry: ModuleMenuType) => (
+      {listData.entries.type === "Submenu" &&
+        listData.entries.value.map((e) => (
           <RouterLink
-            key={submenuEntry.tucan_id}
-            to={`/modules/${submenuEntry.tucan_id}`}
-            text={submenuEntry.name}
+            key={e.tucan_id}
+            to={`/modules/${e.tucan_id}`}
+            text={e.name}
           ></RouterLink>
         ))}
-      {listData.Modules &&
-        listData.Modules.map((module: ModuleType) => (
+      {listData.entries.type === "Modules" &&
+        listData.entries.value.map((e) => (
           <RouterLink
-            key={module.tucan_id}
-            to={`/module/${module.tucan_id}`}
-            text={module.title}
+            key={e.tucan_id}
+            to={`/module/${e.tucan_id}`}
+            text={e.title}
           ></RouterLink>
         ))}
     </List>

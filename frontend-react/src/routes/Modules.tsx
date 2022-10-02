@@ -61,26 +61,6 @@ export default function Modules() {
           ))}
         </Breadcrumbs>
       ))}
-      <List>
-        {data != null &&
-          data.entries.type === "Submenu" &&
-          data.entries.value.map((e) => (
-            <RouterLink
-              key={e.tucan_id}
-              to={`/modules/${e.tucan_id}`}
-              text={e.name}
-            ></RouterLink>
-          ))}
-        {data != null &&
-          data.entries.type === "Modules" &&
-          data.entries.value.map((e) => (
-            <RouterLink
-              key={e.tucan_id}
-              to={`/module/${e.tucan_id}`}
-              text={e.title}
-            ></RouterLink>
-          ))}
-      </List>
       {data && <ModuleList listData={data} />}
 
       <InitialFetch></InitialFetch>
