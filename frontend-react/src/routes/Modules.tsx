@@ -7,46 +7,23 @@ import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import InitialFetch from "./InitialFetch";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import {
-  ModulesResponseSchema,
-  ModulesResponseType,
-} from "../validation-io-ts";
-import { isLeft } from "fp-ts/lib/Either";
-import { PathReporter } from "io-ts/lib/PathReporter";
+import { get_modules, ModuleMenuResponse } from "../api";
 import { ModuleList } from "../components/ModuleList";
 
 export default function Modules() {
   const location = useLocation();
 
-  const [data, setData] = useState<ModulesResponseType | null>(null);
+  const [data, setData] = useState<ModuleMenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { id } = useParams();
 
   useEffect(() => {
     const getData = async () => {
-      const response = await fetch(
-        `http://localhost:8080${location.pathname}`,
-        { credentials: "include" }
-      );
-      if (!response.ok) {
-        throw new Error(
-          `This is an HTTP error: The status is ${
-            response.status
-          }. ${await response.text()}`
-        );
-      }
-      const actualData = ModulesResponseSchema.decode(await response.json());
-      if (isLeft(actualData)) {
-        throw new Error(
-          `Internal Error: Invalid data format in response ${PathReporter.report(
-            actualData
-          ).join("\n")}`
-        );
-      }
-      setData(actualData.right);
+      setData(await get_modules(id || null));
       setError(null);
     };
     getData()
@@ -59,35 +36,51 @@ export default function Modules() {
       });
   }, [location]);
 
-  const breadcrumbs = [
-    <Link underline="hover" key="1" color="inherit" href="/">
-      MUI
-    </Link>,
-    <Link
-      underline="hover"
-      key="2"
-      color="inherit"
-      href="/material-ui/getting-started/installation/"
-    >
-      Core
-    </Link>,
-    <Typography key="3" color="text.primary">
-      Breadcrumb
-    </Typography>,
-  ];
-
   return (
     <>
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        aria-label="breadcrumb"
-      >
-        {breadcrumbs}
-      </Breadcrumbs>
-
-      <Typography variant="h2">Module</Typography>
+      <Typography variant="h4" component="h1">
+        {data?.module_menu.name}
+      </Typography>
       {loading && <LinearProgress />}
       {error && <Alert severity="error">{error}</Alert>}
+      {data?.path.map((p, i) => (
+        <Breadcrumbs
+          key={i}
+          separator={<NavigateNextIcon fontSize="small" />}
+          aria-label="breadcrumb"
+        >
+          {p.map((pe) => (
+            <Link
+              underline="hover"
+              key={pe.tucan_id}
+              color="inherit"
+              href={`/modules/${pe.tucan_id}`}
+            >
+              {pe.name}
+            </Link>
+          ))}
+        </Breadcrumbs>
+      ))}
+      <List>
+        {data != null &&
+          data.entries.type === "Submenu" &&
+          data.entries.value.map((e) => (
+            <RouterLink
+              key={e.tucan_id}
+              to={`/modules/${e.tucan_id}`}
+              text={e.name}
+            ></RouterLink>
+          ))}
+        {data != null &&
+          data.entries.type === "Modules" &&
+          data.entries.value.map((e) => (
+            <RouterLink
+              key={e.tucan_id}
+              to={`/module/${e.tucan_id}`}
+              text={e.title}
+            ></RouterLink>
+          ))}
+      </List>
       {data && <ModuleList listData={data} />}
 
       <InitialFetch></InitialFetch>

@@ -13,6 +13,7 @@ use actix_session::Session;
 use actix_web::post;
 use actix_web::web::Bytes;
 use actix_web::web::Data;
+use actix_web::web::Json;
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use anyhow::Error;
@@ -21,7 +22,7 @@ use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
 use futures_util::StreamExt;
-use tucan_scraper::tucan_user::RegistrationEnum;
+use tucant::tucan_user::RegistrationEnum;
 
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,
@@ -111,7 +112,11 @@ fn fetch_registration(
 }
 
 #[post("/setup")]
-pub async fn setup(tucan: Data<Tucan>, session: Session) -> Result<impl Responder, MyError> {
+pub async fn setup(
+    tucan: Data<Tucan>,
+    session: Session,
+    _input: Json<()>,
+) -> Result<impl Responder, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => {
             let stream = try_stream(move |mut stream| async move {

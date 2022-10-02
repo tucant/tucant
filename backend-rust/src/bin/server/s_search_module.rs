@@ -2,14 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::s_search_course::{encode, rtrim};
-use crate::{MyError, SearchQuery};
+use crate::s_search_course::{encode, rtrim, SearchResult};
+use crate::MyError;
 use actix_session::Session;
-use actix_web::Responder;
-use actix_web::{
-    get,
-    web::{Data, Json, Query},
-};
+
+use actix_web::post;
+use actix_web::web::{Data, Json};
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
@@ -19,20 +17,22 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
-use tucan_scraper::{schema::modules_unfinished, tucan::Tucan};
+use tucant::{schema::modules_unfinished, tucan::Tucan};
+use tucant_derive::ts;
 
-#[get("/search-module")]
+#[ts]
+#[post("/search-module")]
 pub async fn search_module(
     _: Session,
     tucan: Data<Tucan>,
-    search_query: Query<SearchQuery>,
-) -> Result<impl Responder, MyError> {
+    input: Json<String>,
+) -> Result<Json<Vec<SearchResult>>, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
     let mut connection = tucan.pool.get().await?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = modules_unfinished::tsv;
-    let tsquery = websearch_to_tsquery_with_search_config(config, &search_query.q);
+    let tsquery = websearch_to_tsquery_with_search_config(config, &input.0);
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
         .filter(tsvector.matches(tsquery))
@@ -52,9 +52,7 @@ pub async fn search_module(
             rank,
         ));
 
-    let result = sql_query
-        .load::<(String, String, String, f32)>(&mut connection)
-        .await?;
+    let result = sql_query.load::<SearchResult>(&mut connection).await?;
 
     Ok(Json(result))
 }

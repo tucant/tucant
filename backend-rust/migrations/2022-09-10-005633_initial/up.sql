@@ -45,6 +45,8 @@ CREATE TABLE module_menu_unfinished (
     parent BYTEA REFERENCES module_menu_unfinished (tucan_id)
 );
 
+CREATE INDEX module_menu_unfinished_parent ON module_menu_unfinished USING HASH (parent);
+
 CREATE TABLE module_menu_module (
     module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
     module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),

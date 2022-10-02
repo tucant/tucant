@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+extern crate self as tucant;
 
 pub mod models;
 pub mod schema;
 pub mod tucan;
 pub mod tucan_user;
+pub mod typescript;
 pub mod url;
 
 use diesel_async::{
