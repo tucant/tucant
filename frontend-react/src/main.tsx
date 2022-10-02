@@ -24,6 +24,7 @@ import {
 import { LinkProps } from "@mui/material/Link";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
+import MyModules from "./routes/MyModules";
 
 // https://mui.com/material-ui/guides/routing/
 const LinkBehavior = React.forwardRef<
@@ -69,6 +70,7 @@ root.render(
               <Route path="modules/:id" element={<Modules />} />
               <Route path="module/:id" element={<Module />} />
               <Route path="course/:id" element={<Course />} />
+              <Route path="my-modules" element={<MyModules />} />
               <Route path="credits" element={<Credits />} />
               <Route index element={<Welcome />} />
               <Route

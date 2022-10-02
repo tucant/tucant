@@ -209,6 +209,11 @@ export default function MiniDrawer() {
             icon={<ViewModuleIcon />}
           ></RouterLink>
           <RouterLink
+            to="/my-modules/"
+            text="Meine Module"
+            icon={<ViewModuleIcon />}
+          ></RouterLink>
+          <RouterLink
             to="/search-modules"
             text="Modulsuche"
             icon={<SearchOutlined />}

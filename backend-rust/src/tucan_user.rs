@@ -9,6 +9,7 @@ use std::{
 
 use chrono::Utc;
 use ego_tree::NodeRef;
+use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -23,7 +24,7 @@ use crate::{
     s,
     tucan::Tucan,
     url::{
-        parse_tucan_url, Coursedetails, Moduledetails, Registration, RootRegistration,
+        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
         TucanProgram, TucanUrl,
     },
 };
@@ -564,5 +565,30 @@ impl TucanUser {
         };
 
         Ok((module_menu, return_value))
+    }
+
+    pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
+        let document = self.fetch_document(&Mymodules.clone().into()).await?;
+
+        let my_modules = document
+            .select(&s("tbody tr a"))
+            .map(|link| {
+                TryInto::<Moduledetails>::try_into(
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        link.value().attr("href").unwrap()
+                    ))
+                    .program,
+                )
+                .unwrap()
+            })
+            .map(|moduledetails| self.module(moduledetails))
+            .collect::<FuturesUnordered<_>>();
+
+        let results: Vec<_> = my_modules.collect().await;
+
+        let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
+
+        Ok(results?.into_iter().map(|r| r.0).collect())
     }
 }
