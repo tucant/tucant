@@ -30,7 +30,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   [![Rust](https://img.shields.io/github/workflow/status/mohe2015/tucant/Rust?label=Rust)](https://github.com/mohe2015/tucant/actions/workflows/rust.yml)
 </h1>
 
-A **nicer**, **faster** and more **featureful** frontend to [TUCaN](https://www.tucan.tu-darmstadt.de/).
+A **nicer**, **faster** and more **featureful** frontend to <a href="https://www.tucan.tu-darmstadt.de/" target="_blank">TUCaN</a>.
 
 ## How it works
 
