@@ -64,7 +64,7 @@ cd backend-rust
 
 # Depending on your system you might have to run these with sudo
 docker build . -f Dockerfile-postgres --tag postgres-hunspell
-docker run -d -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell --name tucant-postgres
+docker run -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell --name tucant-postgres
 ```
 
 ### Backend
