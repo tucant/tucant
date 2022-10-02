@@ -118,7 +118,7 @@ flatpak install flathub io.dbeaver.DBeaverCommunity
 ```
 
 To access the database from using a CLI on Linux  
-`posgestql` needs to be installed on the host system 
+`posgresql` needs to be installed on the host system 
 ```bash
 psql postgres://postgres:password@localhost:5432/tucant
 ```
