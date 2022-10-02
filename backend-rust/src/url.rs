@@ -88,7 +88,10 @@ impl TucanProgram {
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
             TucanProgram::Mlsstart(_) => todo!(),
-            TucanProgram::Mymodules(_) => todo!(),
+            TucanProgram::Mymodules(_) => (
+                "MYMODULES",
+                Box::new([TucanArgument::Number(275), TucanArgument::Number(999)].into_iter()),
+            ),
             TucanProgram::Profcourses(_) => todo!(),
             TucanProgram::Studentchoicecourses(_) => todo!(),
             TucanProgram::Registration(Registration { path }) => {
@@ -254,6 +257,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "MYMODULES" => {
             assert_eq!(number(&mut arguments), 275);
+            assert_eq!(number(&mut arguments), 999);
             TucanProgram::Mymodules(Mymodules)
         }
         "PROFCOURSES" => {
@@ -305,7 +309,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             TucanProgram::StudentResult(StudentResult)
         }
         "MODULEDETAILS" => {
-            assert_eq!(number(&mut arguments), 311);
+            assert!([311, 275].contains(&number(&mut arguments)));
             let program = TucanProgram::Moduledetails(Moduledetails {
                 id: number(&mut arguments).to_be_bytes().to_vec(),
             });
