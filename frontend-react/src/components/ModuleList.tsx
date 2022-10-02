@@ -5,7 +5,13 @@ import { ModuleMenuResponse } from "../api";
 type ModuleListProps = { listData: ModuleMenuResponse };
 export function ModuleList({ listData }: ModuleListProps) {
   return (
-    <List>
+    <List
+      sx={{
+        "& > :nth-child(2n):not(:hover)": {
+          background: "#f1f1f1",
+        },
+      }}
+    >
       {listData.entries.type === "Submenu" &&
         listData.entries.value.map((e) => (
           <RouterLink
