@@ -6,10 +6,12 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
 import { useState } from "react";
 
+type buttonVariantType = "primary" | "warning" | "success" | undefined;
 export default function InitialFetch() {
   const [data, setData] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [buttonVariant, setButtonVariant] = useState("primary");
+  const [buttonVariant, setButtonVariant] =
+    useState<buttonVariantType>("primary");
   const setSuccess = (success: boolean | null) => {
     switch (success) {
       default:
