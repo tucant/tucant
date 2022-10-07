@@ -30,7 +30,7 @@ That's it, we're done!
 ### Running
 
 ```bash
-trunk serve
+~/.cargo/bin/trunk serve --port 5173
 ```
 
 Rebuilds the app whenever a change is detected and runs a local server to host it.
