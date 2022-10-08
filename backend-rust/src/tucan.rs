@@ -33,7 +33,6 @@ fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPg
     Pool::builder(config).build().unwrap()
 }
 
-
 #[derive(Clone)]
 pub struct Tucan {
     pub(crate) client: Client,

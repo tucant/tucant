@@ -59,20 +59,11 @@ where
 }
 
 // order needs to be equal to the table definition
-#[derive( Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,)]
-#[cfg_attr(feature = "server", derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-    AsChangeset,
-   
-    Typescriptable,
-))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
@@ -88,21 +79,18 @@ pub struct Module {
     pub done: bool,
 }
 
-#[derive(    Serialize,
-    Debug,
-    Eq,
-    PartialEq,
-    Deserialize,
-    Clone,)]
-#[cfg_attr(feature = "server", derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-
-    AsChangeset,
-    QueryableByName,
-    Typescriptable,
-))]
+#[derive(Serialize, Debug, Eq, PartialEq, Deserialize, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(
+        Identifiable,
+        Queryable,
+        Insertable,
+        AsChangeset,
+        QueryableByName,
+        Typescriptable,
+    )
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = false))]
@@ -134,7 +122,10 @@ pub struct ModuleMenuChangeset {
 }
 
 #[derive(Serialize, Debug)]
-#[cfg_attr(feature = "server", derive(Identifiable, Queryable, AsChangeset, Insertable, ))]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, AsChangeset, Insertable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
@@ -152,7 +143,10 @@ pub struct ModuleMenuRef<'a> {
 }
 
 #[derive(Serialize, Debug)]
-#[cfg_attr(feature = "server", derive(Associations, Identifiable, Queryable, Insertable, ))]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
@@ -164,8 +158,11 @@ pub struct ModuleMenuEntryModule {
     pub module_id: Vec<u8>,
 }
 
-#[derive( Serialize, Debug)]
-#[cfg_attr(feature = "server", derive(Associations, Identifiable, Queryable, Insertable,))]
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
@@ -177,20 +174,11 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     pub module_id: &'a [u8],
 }
 
-#[derive( Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,)]
-#[cfg_attr(feature = "server", derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-    AsChangeset,
-   
-    Typescriptable,
-))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
@@ -206,19 +194,11 @@ pub struct Course {
     pub done: bool,
 }
 
-#[derive(Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,)]
-#[cfg_attr(feature = "server", derive(
-    Associations,
-    Identifiable,
-    Queryable,
-    Insertable,
-    
-))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(module, course)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]

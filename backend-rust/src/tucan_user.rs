@@ -36,7 +36,7 @@ use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
 use log::debug;
 
-use scraper::{Selector};
+use scraper::Selector;
 
 fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()

@@ -126,7 +126,7 @@ async fn main() -> anyhow::Result<()> {
 
     HttpServer::new(move || {
         let logger = Logger::default();
-/*
+        /*
         let cors = Cors::default()
             .supports_credentials()
             .allow_any_method()
