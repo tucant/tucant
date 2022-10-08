@@ -15,6 +15,8 @@ enum Route {
 }
 
 fn switch(routes: Route) -> Html {
+    // https://github.com/yewstack/yew/discussions/2670
+
     html! {
         <>
         <nav class="navbar navbar-expand-lg navbar-light">
@@ -56,7 +58,8 @@ fn switch(routes: Route) -> Html {
             </div>
         </div>
         </nav>
-        <main class="container">{
+        <main class="container">
+        {
                 match routes {
                     Route::Home => html! { <h1>{ "Home" }</h1> },
                     Route::Module { id: _ } => html! {
@@ -64,16 +67,21 @@ fn switch(routes: Route) -> Html {
                     },
                     Route::NotFound => html! { <h1>{ "404" }</h1> },
                 }
-            }</main>
+            }
+            </main>
     </>
     }
 }
 
 #[function_component(App)]
 pub fn app() -> Html {
+    let fallback = html! {<div>{"Loading..."}</div>};
+
     html! {
         <BrowserRouter>
+        <Suspense {fallback}>
             <Switch<Route> render={switch} />
+            </Suspense>
         </BrowserRouter>
     }
 }
