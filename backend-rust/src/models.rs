@@ -1,12 +1,22 @@
+use std::collections::VecDeque;
+
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-
 use chrono::NaiveDateTime;
+#[cfg(feature = "server")]
 use diesel::prelude::*;
+#[cfg(feature = "server")]
+use diesel::sql_types::Bool;
+#[cfg(feature = "server")]
+use diesel::sql_types::Text;
+#[cfg(feature = "server")]
+use diesel::sql_types::{Bytea, Nullable};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+#[cfg(feature = "server")]
 use tucant_derive::Typescriptable;
 
+#[cfg(feature = "server")]
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
     modules_unfinished,
@@ -57,24 +67,16 @@ where
 }
 
 // order needs to be equal to the table definition
-#[derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-    AsChangeset,
-    Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,
-    Typescriptable,
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
-#[diesel(primary_key(tucan_id))]
-#[diesel(table_name = modules_unfinished)]
-#[diesel(treat_none_as_null = true)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct Module {
-    #[ts_type(String)]
+    #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
@@ -85,31 +87,69 @@ pub struct Module {
     pub done: bool,
 }
 
-#[derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-    Serialize,
-    Debug,
-    Eq,
-    PartialEq,
-    Deserialize,
-    Clone,
-    AsChangeset,
-    QueryableByName,
-    Typescriptable,
+#[cfg_attr(feature = "server", derive(QueryableByName, Typescriptable))]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Clone, Deserialize)]
+pub struct ModuleMenuPathPart {
+    #[cfg_attr(feature = "server", diesel(sql_type = Nullable<Bytea>))]
+    #[serde(skip)]
+    pub parent: Option<Vec<u8>>,
+    #[cfg_attr(feature = "server", diesel(sql_type = Bytea))]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub tucan_id: Vec<u8>,
+    #[cfg_attr(feature = "server", diesel(sql_type = Text))]
+    pub name: String,
+    #[cfg_attr(feature = "server", diesel(sql_type = Bool))]
+    #[serde(skip)]
+    pub leaf: bool,
+}
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", content = "value")]
+pub enum RegistrationEnum {
+    Submenu(Vec<ModuleMenu>),
+    Modules(Vec<Module>),
+}
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+pub struct ModuleMenuResponse {
+    pub module_menu: ModuleMenu,
+    pub entries: RegistrationEnum,
+    pub path: Vec<VecDeque<ModuleMenuPathPart>>,
+}
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+pub struct ModuleResponse {
+    pub module: Module,
+    pub path: Vec<VecDeque<ModuleMenuPathPart>>,
+}
+
+#[derive(Serialize, Debug, Eq, PartialEq, Deserialize, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(
+        Identifiable,
+        Queryable,
+        Insertable,
+        AsChangeset,
+        QueryableByName,
+        Typescriptable,
+    )
 )]
-#[diesel(primary_key(tucan_id))]
-#[diesel(table_name = module_menu_unfinished)]
-#[diesel(treat_none_as_null = false)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = false))]
 pub struct ModuleMenu {
-    #[ts_type(String)]
+    #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
     pub child_type: i16,
-    #[ts_type(String)]
+    #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(
         serialize_with = "as_option_base64",
         deserialize_with = "from_option_base64"
@@ -117,10 +157,10 @@ pub struct ModuleMenu {
     pub parent: Option<Vec<u8>>,
 }
 
-#[derive(AsChangeset, Debug, Insertable)]
-#[diesel(primary_key(tucan_id))]
-#[diesel(table_name = module_menu_unfinished)]
-#[diesel(treat_none_as_null = true)]
+#[cfg_attr(feature = "server", derive(AsChangeset, Debug, Insertable))]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct ModuleMenuChangeset {
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
@@ -129,10 +169,14 @@ pub struct ModuleMenuChangeset {
     pub parent: Option<Option<Vec<u8>>>,
 }
 
-#[derive(Identifiable, Queryable, AsChangeset, Insertable, Serialize, Debug)]
-#[diesel(primary_key(tucan_id))]
-#[diesel(table_name = module_menu_unfinished)]
-#[diesel(treat_none_as_null = true)]
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, AsChangeset, Insertable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct ModuleMenuRef<'a> {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: &'a [u8],
@@ -146,11 +190,15 @@ pub struct ModuleMenuRef<'a> {
     pub parent: Option<&'a [u8]>,
 }
 
-#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
-#[diesel(primary_key(module_menu_id, module_id))]
-#[diesel(table_name = module_menu_module)]
-#[diesel(belongs_to(ModuleMenu))]
-#[diesel(belongs_to(Module))]
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
+#[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
 pub struct ModuleMenuEntryModule {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_menu_id: Vec<u8>,
@@ -158,11 +206,15 @@ pub struct ModuleMenuEntryModule {
     pub module_id: Vec<u8>,
 }
 
-#[derive(Associations, Identifiable, Queryable, Insertable, Serialize, Debug)]
-#[diesel(primary_key(module_menu_id, module_id))]
-#[diesel(table_name = module_menu_module)]
-#[diesel(belongs_to(ModuleMenu))]
-#[diesel(belongs_to(Module))]
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
+#[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
 pub struct ModuleMenuEntryModuleRef<'a> {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_menu_id: &'a [u8],
@@ -170,25 +222,17 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     pub module_id: &'a [u8],
 }
 
-#[derive(
-    Identifiable,
-    Queryable,
-    Insertable,
-    AsChangeset,
-    Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,
-    Typescriptable,
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
-#[diesel(primary_key(tucan_id))]
-#[diesel(table_name = courses_unfinished)]
-#[diesel(treat_none_as_null = true)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    #[ts_type(String)]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -198,23 +242,16 @@ pub struct Course {
     pub done: bool,
 }
 
-#[derive(
-    Associations,
-    Identifiable,
-    Queryable,
-    Insertable,
-    Serialize,
-    Debug,
-    Deserialize,
-    PartialEq,
-    Eq,
-    Clone,
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
 )]
-#[diesel(primary_key(module, course))]
-#[diesel(table_name = module_courses)]
-#[diesel(treat_none_as_null = true)]
-#[diesel(belongs_to(Module, foreign_key = module))]
-#[diesel(belongs_to(Course, foreign_key = course))]
+#[cfg_attr(feature = "server", diesel(primary_key(module, course)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_courses))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module: Vec<u8>,

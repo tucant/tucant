@@ -7,6 +7,15 @@ use std::{
     io::{Error, ErrorKind},
 };
 
+use crate::models::RegistrationEnum;
+use crate::{
+    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
+    tucan::Tucan,
+    url::{
+        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
+        TucanProgram, TucanUrl,
+    },
+};
 use chrono::Utc;
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
@@ -16,18 +25,6 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
-use tucant_derive::Typescriptable;
-
-use crate::{
-    element_by_selector,
-    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
-    s,
-    tucan::Tucan,
-    url::{
-        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
-        TucanProgram, TucanUrl,
-    },
-};
 
 use crate::schema::*;
 use diesel::BelongingToDsl;
@@ -37,6 +34,16 @@ use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
 use log::debug;
+
+use scraper::Selector;
+
+fn s(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap()
+}
+
+fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
+    document.select(&s(selector)).next()
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {
@@ -48,13 +55,6 @@ pub struct TucanSession {
 pub struct TucanUser {
     pub tucan: Tucan,
     pub session: TucanSession,
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Typescriptable)]
-#[serde(tag = "type", content = "value")]
-pub enum RegistrationEnum {
-    Submenu(Vec<ModuleMenu>),
-    Modules(Vec<Module>),
 }
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
