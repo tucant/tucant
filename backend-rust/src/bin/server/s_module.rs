@@ -18,10 +18,10 @@ use diesel_async::RunQueryDsl;
 
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleResponse;
+use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Moduledetails;
-use tucant::{tucan::Tucan};
-use tucant_derive::{ts};
+use tucant_derive::ts;
 #[ts]
 #[post("/module")]
 pub async fn module(

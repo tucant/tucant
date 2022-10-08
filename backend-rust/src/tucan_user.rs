@@ -26,7 +26,6 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
-
 use crate::schema::*;
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
