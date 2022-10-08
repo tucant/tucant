@@ -25,7 +25,7 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
-use tucant_derive::Typescriptable;
+
 
 use crate::schema::*;
 use diesel::BelongingToDsl;

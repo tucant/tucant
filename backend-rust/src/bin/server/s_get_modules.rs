@@ -14,16 +14,16 @@ use actix_web::web::Json;
 use actix_web::web::Data;
 use diesel::sql_query;
 
-use diesel::QueryableByName;
 
-use diesel::sql_types::Bool;
+
+
 use diesel::sql_types::Bytea;
-use diesel::sql_types::Nullable;
-use diesel::sql_types::Text;
+
+
 use diesel_async::RunQueryDsl;
-use serde::Serialize;
-use tucant::models::as_base64;
-use tucant::models::ModuleMenu;
+
+
+
 
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleMenuResponse;
@@ -32,7 +32,7 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
 use tucant_derive::ts;
-use tucant_derive::Typescriptable;
+
 // trailing slash is menu
 #[ts]
 #[post("/modules")]
