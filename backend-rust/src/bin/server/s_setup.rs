@@ -18,11 +18,11 @@ use actix_web::HttpResponse;
 use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
+use tucant::models::RegistrationEnum;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
 use futures_util::StreamExt;
-use tucant::tucan_user::RegistrationEnum;
 
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,

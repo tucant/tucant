@@ -5,7 +5,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::io::ErrorKind;
 
-use crate::s_get_modules::ModuleMenuPathPart;
 use crate::MyError;
 use actix_session::Session;
 use actix_web::post;
@@ -21,13 +20,8 @@ use tucant::tucan_user::TucanSession;
 use tucant::url::Moduledetails;
 use tucant::{models::Module, tucan::Tucan};
 use tucant_derive::{ts, Typescriptable};
-
-#[derive(Serialize, Typescriptable)]
-pub struct ModuleResponse {
-    module: Module,
-    path: Vec<VecDeque<ModuleMenuPathPart>>,
-}
-
+use tucant::models::ModuleResponse;
+use tucant::models::ModuleMenuPathPart;
 #[ts]
 #[post("/module")]
 pub async fn module(

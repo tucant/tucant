@@ -17,7 +17,7 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
-
+use crate::models::RegistrationEnum;
 use crate::{
     models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
@@ -56,13 +56,6 @@ pub struct TucanSession {
 pub struct TucanUser {
     pub tucan: Tucan,
     pub session: TucanSession,
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Typescriptable)]
-#[serde(tag = "type", content = "value")]
-pub enum RegistrationEnum {
-    Submenu(Vec<ModuleMenu>),
-    Modules(Vec<Module>),
 }
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());

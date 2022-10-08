@@ -1,9 +1,17 @@
+use std::collections::VecDeque;
+
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
 #[cfg(feature = "server")]
 use diesel::prelude::*;
+#[cfg(feature = "server")]
+use diesel::sql_types::Bool;
+#[cfg(feature = "server")]
+use diesel::sql_types::Text;
+#[cfg(feature = "server")]
+use diesel::sql_types::{Bytea, Nullable};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg(feature = "server")]
 use tucant_derive::Typescriptable;
@@ -77,6 +85,48 @@ pub struct Module {
     pub credits: Option<i32>,
     pub content: String,
     pub done: bool,
+}
+
+
+#[cfg_attr(feature = "server", derive(QueryableByName, Typescriptable))]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Clone, Deserialize)]
+pub struct ModuleMenuPathPart {
+    #[cfg_attr(feature = "server", diesel(sql_type = Nullable<Bytea>))]
+    #[serde(skip)]
+    pub parent: Option<Vec<u8>>,
+    #[cfg_attr(feature = "server", diesel(sql_type = Bytea))]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub tucan_id: Vec<u8>,
+    #[cfg_attr(feature = "server", diesel(sql_type = Text))]
+    pub name: String,
+    #[cfg_attr(feature = "server", diesel(sql_type = Bool))]
+    #[serde(skip)]
+    pub leaf: bool,
+}
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type", content = "value")]
+pub enum RegistrationEnum {
+    Submenu(Vec<ModuleMenu>),
+    Modules(Vec<Module>),
+}
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+pub struct ModuleMenuResponse {
+    pub module_menu: ModuleMenu,
+    pub entries: RegistrationEnum,
+    pub path: Vec<VecDeque<ModuleMenuPathPart>>,
+}
+
+
+#[cfg_attr(feature = "server", derive(Typescriptable))]
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+pub struct ModuleResponse {
+    pub module: Module,
+    pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
 #[derive(Serialize, Debug, Eq, PartialEq, Deserialize, Clone)]

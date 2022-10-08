@@ -26,35 +26,13 @@ use tucant::models::as_base64;
 use tucant::models::ModuleMenu;
 
 use tucant::tucan::Tucan;
-use tucant::tucan_user::RegistrationEnum;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
 use tucant_derive::ts;
 use tucant_derive::Typescriptable;
-
-#[derive(QueryableByName, Hash, PartialEq, Eq, Debug, Serialize, Clone, Typescriptable)]
-pub struct ModuleMenuPathPart {
-    #[diesel(sql_type = Nullable<Bytea>)]
-    #[serde(skip)]
-    pub parent: Option<Vec<u8>>,
-    #[diesel(sql_type = Bytea)]
-    #[ts_type(String)]
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub tucan_id: Vec<u8>,
-    #[diesel(sql_type = Text)]
-    pub name: String,
-    #[diesel(sql_type = Bool)]
-    #[serde(skip)]
-    pub leaf: bool,
-}
-
-#[derive(Serialize, Typescriptable)]
-pub struct ModuleMenuResponse {
-    module_menu: ModuleMenu,
-    entries: RegistrationEnum,
-    path: Vec<VecDeque<ModuleMenuPathPart>>,
-}
-
+use tucant::models::ModuleMenuPathPart;
+use tucant::models::ModuleMenuResponse;
+use tucant::models::RegistrationEnum;
 // trailing slash is menu
 #[ts]
 #[post("/modules")]
