@@ -1,5 +1,5 @@
-use yew_router::prelude::*;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 use crate::module::ModuleComponent;
 
@@ -8,12 +8,11 @@ enum Route {
     #[at("/")]
     Home,
     #[at("/module/:id")]
-    Module { id: String},
+    Module { id: String },
     #[not_found]
     #[at("/404")]
     NotFound,
 }
-
 
 fn switch(routes: Route) -> Html {
     html! {
@@ -68,7 +67,6 @@ fn switch(routes: Route) -> Html {
             }</main>
     </>
     }
-   
 }
 
 #[function_component(App)]

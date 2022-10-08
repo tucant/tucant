@@ -1,7 +1,7 @@
-use yew::prelude::*;
-use yew::suspense::{Suspension, SuspensionResult, use_future};
 use gloo_net::http::Request;
 use tucant::models::{Module, ModuleResponse};
+use yew::prelude::*;
+use yew::suspense::{use_future, Suspension, SuspensionResult};
 
 #[function_component(Content)]
 fn content() -> HtmlResult {
@@ -17,7 +17,7 @@ fn content() -> HtmlResult {
             .json()
             .await
             .unwrap();
-            module
+        module
     })?;
 
     Ok(html! {<div>{"Hello, "}{module.module.title.clone()}</div>})
