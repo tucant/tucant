@@ -1,29 +1,19 @@
 use yew_router::prelude::*;
 use yew::prelude::*;
 
+use crate::module::Module;
+
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/")]
     Home,
-    #[at("/secure")]
-    Secure,
+    #[at("/module/:id")]
+    Module { id: String},
     #[not_found]
     #[at("/404")]
     NotFound,
 }
 
-#[function_component(Secure)]
-fn secure() -> Html {
-    let navigator = use_navigator().unwrap();
-
-    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
-    html! {
-        <div>
-            <h1>{ "Secure" }</h1>
-            <button {onclick}>{ "Go Home" }</button>
-        </div>
-    }
-}
 
 fn switch(routes: Route) -> Html {
     html! {
@@ -40,10 +30,10 @@ fn switch(routes: Route) -> Html {
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                <a class={classes!("nav-link", matches!(routes.clone(), Route::Home).then_some("active"))} aria-current="page" href="#">{"Home"}</a>
+                <Link<Route> to={Route::Home} classes={classes!("nav-link", matches!(routes.clone(), Route::Home).then_some("active"))}>{ "Home" }</Link<Route>>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" href="#">{"Link"}</a>
+                <Link<Route> to={Route::Module { id: "test".to_string() }} classes={classes!("nav-link", matches!(routes.clone(), Route::Module{..}).then_some("active"))}>{ "Module" }</Link<Route>>
                 </li>
                 <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -70,8 +60,8 @@ fn switch(routes: Route) -> Html {
         <main class="container">{
                 match routes {
                     Route::Home => html! { <h1>{ "Home" }</h1> },
-                    Route::Secure => html! {
-                        <Secure />
+                    Route::Module { id } => html! {
+                        <Module />
                     },
                     Route::NotFound => html! { <h1>{ "404" }</h1> },
                 }

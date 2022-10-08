@@ -1,4 +1,5 @@
 mod app;
+mod module;
 
 use app::App;
 
