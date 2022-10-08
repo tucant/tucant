@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React from "react";
+import React, { startTransition, Suspense, useTransition } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import "./scss/styles.scss";
@@ -26,6 +26,7 @@ root.render(
             <Route path="/" element={<Navigation />}>
               <Route path="modules/" element={<Modules />} />
               <Route path="login" element={<Login />} />
+
               {/*
               <Route path="logout" element={<Logout />} />
               <Route path="search-modules" element={<SearchModules />} />

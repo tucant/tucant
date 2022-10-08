@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { Suspense } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAppSelector } from "./redux/hooks";
 
@@ -75,7 +76,6 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-
       <Outlet />
     </>
   );

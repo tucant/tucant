@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useState, useEffect, useTransition } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { get_modules, ModuleMenuResponse } from "../api";
 import { ModuleList } from "../components/ModuleList";
 
@@ -30,8 +30,21 @@ export default function Modules() {
       });
   }, [location]);
 
+  const navigate = useNavigate();
+  const [isPending, startTransition] = useTransition();
+
   return (
     <>
+      <button
+        onClick={() => {
+          startTransition(() => {
+            navigate("/");
+          });
+        }}
+      >
+        TEST {isPending ? "LOADING" : ""}
+      </button>
+
       <h1>{data?.module_menu.name}</h1>
       {data?.path.map((p, i) => (
         <div key={i} aria-label="breadcrumb">
