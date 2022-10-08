@@ -1,7 +1,7 @@
 use gloo_net::http::Request;
-use tucant::models::{ModuleResponse};
+use tucant::models::ModuleResponse;
 use yew::prelude::*;
-use yew::suspense::{use_future};
+use yew::suspense::use_future;
 
 #[function_component(Content)]
 fn content() -> HtmlResult {
