@@ -2,10 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
+import { Link } from "../Navigation";
 
 export default function Modules() {
   const { id } = useParams();

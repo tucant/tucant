@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { ModuleMenuResponse } from "../api";
+import { Link } from "../Navigation";
 
 type ModuleListProps = { listData: ModuleMenuResponse };
 export function ModuleList({ listData }: ModuleListProps) {

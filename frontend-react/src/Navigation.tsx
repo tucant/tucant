@@ -106,7 +106,7 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-      <Suspense>
+      <Suspense fallback="Loading...">
         <Outlet />
       </Suspense>
     </>
