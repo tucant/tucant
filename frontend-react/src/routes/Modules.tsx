@@ -30,21 +30,8 @@ export default function Modules() {
       });
   }, [location]);
 
-  const navigate = useNavigate();
-  const [isPending, startTransition] = useTransition();
-
   return (
     <>
-      <button
-        onClick={() => {
-          startTransition(() => {
-            navigate("/");
-          });
-        }}
-      >
-        TEST {isPending ? "LOADING" : ""}
-      </button>
-
       <h1>{data?.module_menu.name}</h1>
       {data?.path.map((p, i) => (
         <div key={i} aria-label="breadcrumb">

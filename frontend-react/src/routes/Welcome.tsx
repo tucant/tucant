@@ -2,10 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { index } from "../api";
-import useSWR, { useSWRConfig } from "swr";
-import { useNavigate } from "react-router-dom";
+import useSWR from "swr";
 
 export default function Welcome() {
   const [value, setValue] = useState("welcome");

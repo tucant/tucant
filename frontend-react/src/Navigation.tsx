@@ -1,9 +1,39 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Suspense } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Suspense, useTransition } from "react";
+import {
+  NavLink,
+  NavLinkProps,
+  Outlet,
+  useLinkClickHandler,
+  useNavigate,
+} from "react-router-dom";
 import { useAppSelector } from "./redux/hooks";
+
+export function Link(props: NavLinkProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const internalOnClick = useLinkClickHandler(props.to, {
+    replace: props.replace,
+    state: props.state,
+    target: props.target,
+    preventScrollReset: props.preventScrollReset,
+    relative: props.relative,
+  });
+
+  return (
+    <NavLink
+      onClick={(event) => {
+        event.preventDefault();
+        startTransition(() => {
+          internalOnClick(event);
+        });
+      }}
+      {...props}
+    ></NavLink>
+  );
+}
 
 export default function Navigation() {
   const isLoggedIn = useAppSelector((state) => state.user.loggedIn);
@@ -29,27 +59,27 @@ export default function Navigation() {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <NavLink className="nav-link" to="/" end>
+                <Link className="nav-link" to="/" end>
                   Startseite
-                </NavLink>
+                </Link>
               </li>
               <li className="nav-item">
-                <NavLink className="nav-link" to="/modules/">
+                <Link className="nav-link" to="/modules/">
                   Module
-                </NavLink>
+                </Link>
               </li>
               {!isLoggedIn && (
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/login">
+                  <Link className="nav-link" to="/login">
                     Login
-                  </NavLink>
+                  </Link>
                 </li>
               )}
               {isLoggedIn && (
                 <li className="nav-item">
-                  <NavLink className="nav-link" to="/logout">
+                  <Link className="nav-link" to="/logout">
                     Logout
-                  </NavLink>
+                  </Link>
                 </li>
               )}
               {/*
@@ -76,7 +106,9 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-      <Outlet />
+      <Suspense>
+        <Outlet />
+      </Suspense>
     </>
   );
 }
