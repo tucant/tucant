@@ -16,12 +16,12 @@ use diesel::sql_types::Bytea;
 use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use serde::Serialize;
+use tucant::models::ModuleMenuPathPart;
+use tucant::models::ModuleResponse;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Moduledetails;
 use tucant::{models::Module, tucan::Tucan};
 use tucant_derive::{ts, Typescriptable};
-use tucant::models::ModuleResponse;
-use tucant::models::ModuleMenuPathPart;
 #[ts]
 #[post("/module")]
 pub async fn module(

@@ -25,14 +25,14 @@ use serde::Serialize;
 use tucant::models::as_base64;
 use tucant::models::ModuleMenu;
 
+use tucant::models::ModuleMenuPathPart;
+use tucant::models::ModuleMenuResponse;
+use tucant::models::RegistrationEnum;
 use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
 use tucant_derive::ts;
 use tucant_derive::Typescriptable;
-use tucant::models::ModuleMenuPathPart;
-use tucant::models::ModuleMenuResponse;
-use tucant::models::RegistrationEnum;
 // trailing slash is menu
 #[ts]
 #[post("/modules")]

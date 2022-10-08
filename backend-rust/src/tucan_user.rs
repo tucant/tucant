@@ -7,6 +7,15 @@ use std::{
     io::{Error, ErrorKind},
 };
 
+use crate::models::RegistrationEnum;
+use crate::{
+    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
+    tucan::Tucan,
+    url::{
+        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
+        TucanProgram, TucanUrl,
+    },
+};
 use chrono::Utc;
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
@@ -17,15 +26,6 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
-use crate::models::RegistrationEnum;
-use crate::{
-    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
-    tucan::Tucan,
-    url::{
-        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
-        TucanProgram, TucanUrl,
-    },
-};
 
 use crate::schema::*;
 use diesel::BelongingToDsl;

@@ -87,7 +87,6 @@ pub struct Module {
     pub done: bool,
 }
 
-
 #[cfg_attr(feature = "server", derive(QueryableByName, Typescriptable))]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Clone, Deserialize)]
 pub struct ModuleMenuPathPart {
@@ -120,7 +119,6 @@ pub struct ModuleMenuResponse {
     pub entries: RegistrationEnum,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
-
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
