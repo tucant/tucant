@@ -19,9 +19,7 @@ use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
 
 use crate::{
-    element_by_selector,
     models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
-    s,
     tucan::Tucan,
     url::{
         parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
@@ -37,6 +35,16 @@ use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
 use log::debug;
+
+use scraper::{Selector};
+
+fn s(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap()
+}
+
+fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
+    document.select(&s(selector)).next()
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TucanSession {

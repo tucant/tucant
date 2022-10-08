@@ -15,10 +15,24 @@ use reqwest::{Client, Url};
 use tokio::sync::Semaphore;
 
 use crate::{
-    create_pool,
     tucan_user::{TucanSession, TucanUser},
     url::{parse_tucan_url, TucanUrl},
 };
+
+use dotenvy::dotenv;
+
+fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection> {
+    dotenv().ok();
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url)
+}
+
+fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
+    let config = get_config();
+    Pool::builder(config).build().unwrap()
+}
+
 
 #[derive(Clone)]
 pub struct Tucan {
