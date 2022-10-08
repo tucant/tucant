@@ -1,16 +1,12 @@
 use yew::prelude::*;
 use yew::suspense::{Suspension, SuspensionResult, use_future};
 use gloo_net::http::Request;
-
-#[derive(Debug)]
-struct User {
-    name: String,
-}
+use tucant::models::{Module, ModuleResponse};
 
 #[function_component(Content)]
 fn content() -> HtmlResult {
-    let user = use_future(|| async move {
-        let module: () = Request::post("http://localhost:8080/module")
+    let module = use_future(|| async move {
+        let module: ModuleResponse = Request::post("http://localhost:8080/module")
             .json("AAFZS0zPS1I=")
             .unwrap()
             .header("x-csrf-protection", "tucant")
@@ -24,10 +20,10 @@ fn content() -> HtmlResult {
             module
     })?;
 
-    Ok(html! {<div>{"Hello, "}</div>})
+    Ok(html! {<div>{"Hello, "}{module.module.title.clone()}</div>})
 }
 
-#[function_component(Module)]
+#[function_component(ModuleComponent)]
 pub fn module() -> Html {
     let fallback = html! {<div>{"Loading..."}</div>};
 

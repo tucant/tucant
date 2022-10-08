@@ -27,6 +27,13 @@ cargo install trunk wasm-bindgen-cli
 
 That's it, we're done!
 
+### Test building the backend type library
+
+```bash
+cd backend-rust
+cargo build --lib --no-default-features
+```
+
 ### Running
 
 ```bash

@@ -1,7 +1,7 @@
 use yew_router::prelude::*;
 use yew::prelude::*;
 
-use crate::module::Module;
+use crate::module::ModuleComponent;
 
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
@@ -61,7 +61,7 @@ fn switch(routes: Route) -> Html {
                 match routes {
                     Route::Home => html! { <h1>{ "Home" }</h1> },
                     Route::Module { id } => html! {
-                        <Module />
+                        <ModuleComponent />
                     },
                     Route::NotFound => html! { <h1>{ "404" }</h1> },
                 }
