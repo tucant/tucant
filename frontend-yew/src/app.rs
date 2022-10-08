@@ -59,7 +59,7 @@ fn switch(routes: Route) -> Html {
         <main class="container">{
                 match routes {
                     Route::Home => html! { <h1>{ "Home" }</h1> },
-                    Route::Module { id } => html! {
+                    Route::Module { id: _ } => html! {
                         <ModuleComponent />
                     },
                     Route::NotFound => html! { <h1>{ "404" }</h1> },
