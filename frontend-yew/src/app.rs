@@ -1,9 +1,33 @@
+use yew_router::prelude::*;
 use yew::prelude::*;
 
-#[function_component(App)]
-pub fn app() -> Html {
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Home,
+    #[at("/secure")]
+    Secure,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
+#[function_component(Secure)]
+fn secure() -> Html {
+    let navigator = use_navigator().unwrap();
+
+    let onclick = Callback::from(move |_| navigator.push(&Route::Home));
     html! {
-    <>
+        <div>
+            <h1>{ "Secure" }</h1>
+            <button {onclick}>{ "Go Home" }</button>
+        </div>
+    }
+}
+
+fn switch(routes: Route) -> Html {
+    html! {
+        <>
         <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
@@ -16,7 +40,7 @@ pub fn app() -> Html {
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">{"Home"}</a>
+                <a class={classes!("nav-link", matches!(routes.clone(), Route::Home).then_some("active"))} aria-current="page" href="#">{"Home"}</a>
                 </li>
                 <li class="nav-item">
                 <a class="nav-link" href="#">{"Link"}</a>
@@ -43,9 +67,25 @@ pub fn app() -> Html {
             </div>
         </div>
         </nav>
-        <main class="container">
-            <h1>{"h1. Bootstrap heading"}</h1>
-        </main>
+        <main class="container">{
+                match routes {
+                    Route::Home => html! { <h1>{ "Home" }</h1> },
+                    Route::Secure => html! {
+                        <Secure />
+                    },
+                    Route::NotFound => html! { <h1>{ "404" }</h1> },
+                }
+            }</main>
     </>
+    }
+   
+}
+
+#[function_component(App)]
+pub fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<Route> render={switch} />
+        </BrowserRouter>
     }
 }
