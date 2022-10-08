@@ -126,12 +126,16 @@ async fn main() -> anyhow::Result<()> {
 
     HttpServer::new(move || {
         let logger = Logger::default();
-
+/*
         let cors = Cors::default()
             .supports_credentials()
             .allow_any_method()
             .allow_any_header()
-            .allowed_origin("http://localhost:5173");
+            .allowed_origin_fn(|origin, _| {
+                println!("{:?}", origin);
+                origin == "http://127.0.0.1:5173" ||  origin == "http://localhost:5173"
+            });*/
+        let cors = Cors::permissive();
 
         let app = App::new()
             .app_data(tucan.clone())

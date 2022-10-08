@@ -1,41 +1,30 @@
 use yew::prelude::*;
-use yew::suspense::{Suspension, SuspensionResult};
+use yew::suspense::{Suspension, SuspensionResult, use_future};
+use gloo_net::http::Request;
 
 #[derive(Debug)]
 struct User {
     name: String,
 }
 
-fn load_user() -> Option<User> {
-    todo!()  // implementation omitted.
-}
-
-fn on_load_user_complete<F: FnOnce()>(_fn: F) {
-    todo!()  // implementation omitted.
-}
-
-#[hook]
-fn use_user() -> SuspensionResult<User> {
-    match load_user() {
-        // If a user is loaded, then we return it as Ok(user).
-        Some(m) => Ok(m),
-        None => {
-            // When user is still loading, then we create a `Suspension`
-            // and call `SuspensionHandle::resume` when data loading
-            // completes, the component will be re-rendered
-            // automatically.
-            let (s, handle) = Suspension::new();
-            on_load_user_complete(move || {handle.resume();});
-            Err(s)
-        },
-    }
-}
-
 #[function_component(Content)]
 fn content() -> HtmlResult {
-    let user = use_user()?;
+    let user = use_future(|| async move {
+        let module: () = Request::post("http://localhost:8080/module")
+            .json("AAFZS0zPS1I=")
+            .unwrap()
+            .header("x-csrf-protection", "tucant")
+            .credentials(gloo_net::http::RequestCredentials::Include)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+            module
+    })?;
 
-    Ok(html! {<div>{"Hello, "}{&user.name}</div>})
+    Ok(html! {<div>{"Hello, "}</div>})
 }
 
 #[function_component(Module)]
