@@ -8,7 +8,7 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { RouterLink } from "../MiniDrawer";
+import { RouterLink } from "../Navigation";
 import { Module, my_modules } from "../api";
 
 export default function MyModules() {

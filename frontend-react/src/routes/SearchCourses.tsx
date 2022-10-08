@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
 import { useState, useEffect } from "react";
 import { SearchResult, search_course } from "../api";
-import { RouterLink } from "../MiniDrawer";
+import { RouterLink } from "../Navigation";
 
 export default function SearchCourses() {
   const [data, setData] = useState<SearchResult[] | null>(null);

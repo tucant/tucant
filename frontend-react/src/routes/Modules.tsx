@@ -2,14 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Breadcrumbs, Link } from "@mui/material";
-import Alert from "@mui/material/Alert";
-import LinearProgress from "@mui/material/LinearProgress";
-import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import InitialFetch from "./InitialFetch";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { get_modules, ModuleMenuResponse } from "../api";
 import { ModuleList } from "../components/ModuleList";
 
@@ -38,32 +32,21 @@ export default function Modules() {
 
   return (
     <>
-      <Typography variant="h4" component="h1">
-        {data?.module_menu.name}
-      </Typography>
-      {loading && <LinearProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
+      <h1>{data?.module_menu.name}</h1>
       {data?.path.map((p, i) => (
-        <Breadcrumbs
-          key={i}
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
+        <div key={i} aria-label="breadcrumb">
           {p.map((pe) => (
             <Link
-              underline="hover"
               key={pe.tucan_id}
               color="inherit"
-              href={`/modules/${pe.tucan_id}`}
+              to={`/modules/${pe.tucan_id}`}
             >
               {pe.name}
             </Link>
           ))}
-        </Breadcrumbs>
+        </div>
       ))}
       {data && <ModuleList listData={data} />}
-
-      <InitialFetch></InitialFetch>
     </>
   );
 }
