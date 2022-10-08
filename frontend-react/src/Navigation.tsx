@@ -68,7 +68,7 @@ export default function Navigation() {
                   Module
                 </Link>
               </li>
-              {!isLoggedIn && (
+              {(!isLoggedIn || isLoggedIn) && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/login">
                     Login

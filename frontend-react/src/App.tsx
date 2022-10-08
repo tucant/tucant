@@ -23,13 +23,13 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigation />}>
                 <Route path="modules/" element={<Modules />} />
+                <Route path="modules/:id" element={<Modules />} />
                 <Route path="login" element={<Login />} />
 
                 {/*
               <Route path="logout" element={<Logout />} />
               <Route path="search-modules" element={<SearchModules />} />
               <Route path="search-courses" element={<SearchCourses />} />
-              <Route path="modules/:id" element={<Modules />} />
               <Route path="module/:id" element={<Module />} />
               <Route path="course/:id" element={<Course />} />
               <Route path="my-modules" element={<MyModules />} />

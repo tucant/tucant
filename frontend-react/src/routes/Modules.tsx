@@ -2,33 +2,17 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect, useTransition } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { get_modules, ModuleMenuResponse } from "../api";
+import { Link, useParams } from "react-router-dom";
+import useSWR from "swr";
+import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
 
 export default function Modules() {
-  const location = useLocation();
-
-  const [data, setData] = useState<ModuleMenuResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { id } = useParams();
 
-  useEffect(() => {
-    const getData = async () => {
-      setData(await get_modules(id || null));
-      setError(null);
-    };
-    getData()
-      .catch((err) => {
-        setError(String(err));
-        setData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [location]);
+  const { data, error } = useSWR(["module_menu", id ?? null], {
+    fetcher: (_, id) => get_modules(id),
+  });
 
   return (
     <>
