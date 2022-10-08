@@ -50,4 +50,19 @@ diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-
 
 [features]
 default = ["server"]
-server = []
+server = ["reqwest","tokio","html5ever","scraper","ego-tree","futures","diesel","diesel-async","dotenvy","anyhow","regex","actix-web","futures-util","actix-cors",
+"actix-session",
+"serde_json",
+"async-stream",
+"deadpool",
+"url",
+"log",
+"env_logger",
+"enum_dispatch",
+"derive_more",
+"itertools",
+"either",
+"once_cell",
+"diesel_full_text_search",
+"tucant_derive",
+"file-lock"]
