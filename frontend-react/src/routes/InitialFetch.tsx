@@ -86,7 +86,7 @@ export default function InitialFetch() {
         Initiale Synchronisierung
       </button>
       {everStarted && (
-        <div className="accordion" id="accordionExample">
+        <div className="accordion mb-3" id="accordionExample">
           <div className="accordion-item">
             <h2 className="accordion-header" id="headingOne">
               <button
