@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::s_search_course::{encode, rtrim, SearchResult};
+use crate::s_search_course::SearchResult;
 use crate::MyError;
 use actix_session::Session;
 
@@ -38,7 +38,7 @@ pub async fn search_module(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            rtrim(encode(modules_unfinished::tucan_id, "base64"), "="),
+            modules_unfinished::tucan_id,
             modules_unfinished::title,
             ts_headline_with_search_config(
                 config,

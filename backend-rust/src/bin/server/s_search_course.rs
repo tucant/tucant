@@ -9,10 +9,9 @@ use actix_web::{
     post,
     web::{Data, Json},
 };
-use diesel::pg::sql_types::Bytea;
-use diesel::sql_types::Text;
+
+use diesel::ExpressionMethods;
 use diesel::TextExpressionMethods;
-use diesel::{sql_function, ExpressionMethods};
 use diesel::{QueryDsl, Queryable};
 use diesel_async::RunQueryDsl;
 use diesel_full_text_search::TsVectorExtensions;
@@ -21,15 +20,14 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use serde::Serialize;
-use tucant::{schema::courses_unfinished, tucan::Tucan};
+use tucant::{models::as_base64, schema::courses_unfinished, tucan::Tucan};
 use tucant_derive::{ts, Typescriptable};
-
-sql_function!(fn encode(bytes: Bytea, format: Text) -> Text);
-sql_function!(fn rtrim(string: Text, characters: Text) -> Text);
 
 #[derive(Queryable, Serialize, Typescriptable)]
 pub struct SearchResult {
-    tucan_id: String,
+    #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub tucan_id: Vec<u8>,
     title: String,
     excerpt: String,
     rank: f32,
@@ -52,7 +50,7 @@ pub async fn search_course(
         .filter(tsvector.matches(tsquery))
         .order_by(rank.desc())
         .select((
-            rtrim(encode(courses_unfinished::tucan_id, "base64"), "="),
+            courses_unfinished::tucan_id,
             courses_unfinished::title,
             ts_headline_with_search_config(
                 config,
