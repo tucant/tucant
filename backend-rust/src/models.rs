@@ -27,7 +27,10 @@ where
     T: AsRef<[u8]>,
     S: Serializer,
 {
-    serializer.serialize_str(&base64::encode(buffer.as_ref()))
+    serializer.serialize_str(&base64::encode_config(
+        buffer.as_ref(),
+        base64::URL_SAFE_NO_PAD,
+    ))
 }
 
 pub fn from_base64<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
@@ -35,8 +38,10 @@ where
     D: Deserializer<'de>,
 {
     use serde::de::Error;
-    String::deserialize(deserializer)
-        .and_then(|string| base64::decode(&string).map_err(|err| Error::custom(err.to_string())))
+    String::deserialize(deserializer).and_then(|string| {
+        base64::decode_config(&string, base64::URL_SAFE_NO_PAD)
+            .map_err(|err| Error::custom(err.to_string()))
+    })
 }
 
 pub fn as_option_base64<T, S>(buffer: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
@@ -45,7 +50,7 @@ where
     S: Serializer,
 {
     if let Some(ref buffer) = *buffer {
-        serializer.serialize_str(&base64::encode(buffer.as_ref()))
+        as_base64(buffer, serializer)
     } else {
         serializer.serialize_none()
     }
@@ -56,9 +61,10 @@ where
     D: Deserializer<'de>,
 {
     use serde::de::Error;
-    let s: Option<String> = Option::deserialize(deserializer)?;
-    if let Some(s) = s {
-        base64::decode(&s)
+    let string: Option<String> = Option::deserialize(deserializer)?;
+
+    if let Some(string) = string {
+        base64::decode_config(&string, base64::URL_SAFE_NO_PAD)
             .map(Option::Some)
             .map_err(|err| Error::custom(err.to_string()))
     } else {

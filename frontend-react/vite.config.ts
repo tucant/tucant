@@ -8,7 +8,16 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), visualizer({})],
+  plugins: [
+    react({
+      fastRefresh: false,
+    }),
+    visualizer({}),
+  ],
+  server: {
+    // https://github.com/vitejs/vite/issues/3301
+    // hmr: false
+  },
 });
 /*
 ✓ 1008 modules transformed.

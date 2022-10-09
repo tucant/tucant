@@ -25,7 +25,8 @@ pub async fn course(
 ) -> Result<Json<Course>, MyError> {
     match session.get::<TucanSession>("session").unwrap() {
         Some(session) => {
-            let binary_path = base64::decode(input.as_bytes()).unwrap();
+            let binary_path =
+                base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
 
             let tucan = tucan.continue_session(session).await.unwrap();
 
