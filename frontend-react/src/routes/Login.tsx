@@ -3,15 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as React from "react";
-import Avatar from "@mui/material/Avatar";
-import TextField from "@mui/material/TextField";
-import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
 import { useState } from "react";
-import LoadingButton from "@mui/lab/LoadingButton";
-import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
@@ -24,13 +16,13 @@ export default function SignIn() {
 
   // if cookie id is set, redirect to home
   React.useEffect(() => {
-    if (isLoggedIn) navigate("/");
+    //if (isLoggedIn) navigate("/");
   }, [isLoggedIn]);
 
   const dispatch = useAppDispatch();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     username: "",
@@ -70,59 +62,43 @@ export default function SignIn() {
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Anmelden
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-          {error && <Alert severity="error">{error}</Alert>}
+    <div className="container">
+      <div className="row justify-content-md-center">
+        <form className="col-3 mt-3" onSubmit={handleSubmit}>
+          <h1 className="h3 mb-3 fw-normal">Anmelden</h1>
 
-          <TextField
-            onChange={handleInputChange}
-            value={form.username}
-            margin="normal"
-            required
-            fullWidth
-            id="username"
-            label="TU-ID"
-            name="username"
-            autoComplete="username"
-            autoFocus
-          />
-          <TextField
-            onChange={handleInputChange}
-            value={form.password}
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Passwort"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-          />
-          <LoadingButton
-            loading={loading}
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Anmelden
-          </LoadingButton>
-        </Box>
-      </Box>
-    </Container>
+          <div className="form-floating">
+            <input
+              id="floatingInput"
+              onChange={handleInputChange}
+              value={form.username}
+              name="username"
+              required
+              type="text"
+              className="form-control"
+              autoComplete="username"
+            />
+            <label htmlFor="floatingInput">TU-ID</label>
+          </div>
+          <div className="form-floating">
+            <input
+              id="floatingPassword"
+              onChange={handleInputChange}
+              name="password"
+              value={form.password}
+              type="password"
+              required
+              className="form-control"
+              autoComplete="current-password"
+            />
+            <label htmlFor="floatingPassword">Passwort</label>
+          </div>
+
+          <button className="mt-3 w-100 btn btn-lg btn-primary" type="submit">
+            Sign in
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }

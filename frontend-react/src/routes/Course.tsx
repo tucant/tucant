@@ -2,51 +2,26 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import Alert from "@mui/material/Alert";
-import LinearProgress from "@mui/material/LinearProgress";
-import Typography from "@mui/material/Typography";
-import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import dompurify from "dompurify";
-import { course, Course } from "../api";
+import { course } from "../api";
+import useSWR from "swr";
 
 export default function CourseRoute() {
-  // TODO refactor into Hook
-  const [data, setData] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const location = useLocation();
   const { id } = useParams();
 
-  useEffect(() => {
-    const getData = async () => {
-      if (!id) {
-        throw new Error("Veranstaltungsnummer fehlt!");
-      }
-      setData(await course(id));
-      setError(null);
-    };
-    getData()
-      .catch((err) => {
-        setError(String(err));
-        setData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [location]);
+  const { data } = useSWR(["course", id ?? ""], {
+    fetcher: (_, id) => course(id),
+  });
 
   return (
-    <>
-      <Typography variant="h2">Veranstaltung</Typography>
-      {loading && <LinearProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
-
+    <main className="container">
+      <h1 className="text-center">Veranstaltung</h1>
       {data && (
         <>
-          <Typography variant="h3">
+          <h3 className="text-center">
             {data.course_id} {data.title}
-          </Typography>
+          </h3>
           <div
             dangerouslySetInnerHTML={{
               __html: dompurify.sanitize(data.content),
@@ -54,6 +29,6 @@ export default function CourseRoute() {
           ></div>
         </>
       )}
-    </>
+    </main>
   );
 }

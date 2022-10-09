@@ -8,10 +8,10 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    visualizer({
-      template: "network",
-    }),
-  ],
+  plugins: [react(), visualizer({})],
 });
+/*
+✓ 1008 modules transformed.
+dist/index.html                 0.76 KiB
+dist/assets/index.f34a4907.js   426.20 KiB / gzip: 137.37 KiB
+*/

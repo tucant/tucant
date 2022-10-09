@@ -2,68 +2,42 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Breadcrumbs, Link } from "@mui/material";
-import Alert from "@mui/material/Alert";
-import LinearProgress from "@mui/material/LinearProgress";
-import Typography from "@mui/material/Typography";
-import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import InitialFetch from "./InitialFetch";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { get_modules, ModuleMenuResponse } from "../api";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
+import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
+import { Link } from "../Navigation";
 
 export default function Modules() {
-  const location = useLocation();
-
-  const [data, setData] = useState<ModuleMenuResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { id } = useParams();
 
-  useEffect(() => {
-    const getData = async () => {
-      setData(await get_modules(id || null));
-      setError(null);
-    };
-    getData()
-      .catch((err) => {
-        setError(String(err));
-        setData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [location]);
+  const { data } = useSWR(["module_menu", id ?? null], {
+    fetcher: (_, id) => get_modules(id),
+  });
 
   return (
-    <>
-      <Typography variant="h4" component="h1">
-        {data?.module_menu.name}
-      </Typography>
-      {loading && <LinearProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
+    <main className="container">
+      <h1 className="text-center">{data?.module_menu.name}</h1>
       {data?.path.map((p, i) => (
-        <Breadcrumbs
+        <nav
           key={i}
-          separator={<NavigateNextIcon fontSize="small" />}
+          style={{ "--bs-breadcrumb-divider": "'>'" }}
           aria-label="breadcrumb"
         >
-          {p.map((pe) => (
-            <Link
-              underline="hover"
-              key={pe.tucan_id}
-              color="inherit"
-              href={`/modules/${pe.tucan_id}`}
-            >
-              {pe.name}
-            </Link>
-          ))}
-        </Breadcrumbs>
+          <ol className="breadcrumb">
+            {p.map((pe) => (
+              <Link
+                key={pe.tucan_id}
+                className="breadcrumb-item active"
+                to={`/modules/${pe.tucan_id}`}
+              >
+                {pe.name}
+              </Link>
+            ))}
+          </ol>
+        </nav>
       ))}
       {data && <ModuleList listData={data} />}
-
-      <InitialFetch></InitialFetch>
-    </>
+    </main>
   );
 }

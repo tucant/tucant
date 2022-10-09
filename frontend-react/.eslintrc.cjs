@@ -27,7 +27,16 @@ module.exports = {
     },
   },
   plugins: ["react", "@typescript-eslint"],
-  rules: {},
+  rules: {
+    "@typescript-eslint/no-unused-vars": [
+      "warn", // or "error"
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
+  },
   root: true,
   settings: {
     react: {
