@@ -19,7 +19,7 @@ use tucant_derive::Typescriptable;
 #[cfg(feature = "server")]
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
-    modules_unfinished,
+    modules_unfinished, sessions, users_studies, users_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -263,4 +263,74 @@ pub struct ModuleCourse {
     pub module: Vec<u8>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub course: Vec<u8>,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
+#[cfg_attr(feature = "server", diesel(primary_key(tu_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = users_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct User {
+    tu_id: String,
+    title: String,
+    academic_title: String,
+    post_name: String,
+    first_name: String,
+    middle_name: String,
+    last_name: String,
+    pre_name: String,
+    redirect_messages_to_university_email: bool,
+    subject: String,
+    email: String,
+    department: i32,
+    post_title: String,
+    street: String,
+    address_addition: String,
+    country: String,
+    plz: i32,
+    city: String,
+    phone_number: String,
+    done: bool,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
+#[cfg_attr(feature = "server", diesel(primary_key(tu_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = users_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct UndoneUser {
+    tu_id: String,
+    done: bool,
+}
+
+impl UndoneUser {
+    pub fn new(tu_id: String) -> Self {
+        Self { tu_id, done: false }
+    }
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
+#[cfg_attr(feature = "server", diesel(primary_key(tu_id, session_nr, session_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = sessions))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct TucanSession {
+    pub tu_id: String,
+    pub session_nr: i64,
+    pub session_id: String,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(user_id, study)))]
+#[cfg_attr(feature = "server", diesel(table_name = users_studies))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
+pub struct UserStudy {
+    pub user_id: String,
+    pub study: Vec<u8>,
 }

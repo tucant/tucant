@@ -8,7 +8,7 @@ use std::{
     io::{Error, ErrorKind},
 };
 
-use crate::models::RegistrationEnum;
+use crate::models::{RegistrationEnum, TucanSession, UserStudy};
 use crate::{
     models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
@@ -19,7 +19,7 @@ use crate::{
 };
 use actix_session::SessionExt;
 use actix_web::{dev::Payload, error::ErrorUnauthorized, FromRequest, HttpRequest};
-use chrono::Utc;
+use chrono::{NaiveDateTime, Utc};
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
@@ -27,7 +27,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
-use serde::{Deserialize, Serialize};
 
 use crate::schema::*;
 use diesel::BelongingToDsl;
@@ -46,12 +45,6 @@ fn s(selector: &str) -> Selector {
 
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct TucanSession {
-    pub nr: u64,
-    pub id: String,
 }
 
 impl FromRequest for TucanSession {
@@ -91,12 +84,12 @@ impl TucanUser {
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
-        let cookie = format!("cnsc={}", self.session.id);
+        let cookie = format!("cnsc={}", self.session.session_id);
 
         let a = self
             .tucan
             .client
-            .get(url.to_tucan_url(Some(self.session.nr)));
+            .get(url.to_tucan_url(Some(self.session.session_nr.try_into().unwrap())));
         let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
@@ -575,7 +568,8 @@ impl TucanUser {
                 panic!(
                     "{:?} {} {}",
                     url.clone(),
-                    Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)),
+                    Into::<TucanProgram>::into(url)
+                        .to_tucan_url(Some(self.session.session_nr.try_into().unwrap())),
                     document.root_element().html()
                 );
             }
@@ -585,6 +579,49 @@ impl TucanUser {
     }
 
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
+        {
+            let mut connection = self.tucan.pool.get().await?;
+            let tu_id = self.session.tu_id.clone();
+
+            let modules = connection
+                .build_transaction()
+                .run(|mut connection| {
+                    Box::pin(async move {
+                        let user_studies_already_fetched = users_unfinished::table
+                            .filter(users_unfinished::tu_id.eq(&tu_id))
+                            .select(users_unfinished::user_studies_last_checked)
+                            .get_result::<Option<NaiveDateTime>>(&mut connection)
+                            .await?;
+
+                        if user_studies_already_fetched.is_some() {
+                            Ok::<Option<Vec<Module>>, diesel::result::Error>(Some(
+                                users_studies::table
+                                    .filter(users_studies::user_id.eq(&tu_id))
+                                    .inner_join(modules_unfinished::table)
+                                    .select((
+                                        modules_unfinished::tucan_id,
+                                        modules_unfinished::tucan_last_checked,
+                                        modules_unfinished::title,
+                                        modules_unfinished::module_id,
+                                        modules_unfinished::credits,
+                                        modules_unfinished::content,
+                                        modules_unfinished::done,
+                                    ))
+                                    .load::<Module>(&mut connection)
+                                    .await?,
+                            ))
+                        } else {
+                            Ok(None)
+                        }
+                    })
+                })
+                .await?;
+
+            if let Some(modules) = modules {
+                return Ok(modules);
+            }
+        }
+
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
 
         let my_modules = document
@@ -602,10 +639,52 @@ impl TucanUser {
             .map(|moduledetails| self.module(moduledetails))
             .collect::<FuturesUnordered<_>>();
 
-        let results: Vec<_> = my_modules.collect().await;
+        let results: Vec<anyhow::Result<(Module, Vec<Course>)>> = my_modules.collect().await;
 
-        let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
+        let results: anyhow::Result<Vec<(Module, Vec<Course>)>> = results.into_iter().collect();
 
-        Ok(results?.into_iter().map(|r| r.0).collect())
+        let results: Vec<(Module, Vec<Course>)> = results?;
+
+        let my_user_studies = results
+            .iter()
+            .map(|(m, _cs)| UserStudy {
+                user_id: self.session.tu_id.clone(),
+                study: m.tucan_id.clone(),
+            })
+            .collect::<Vec<_>>();
+
+        use diesel_async::RunQueryDsl;
+
+        {
+            let mut connection = self.tucan.pool.get().await?;
+
+            let tu_id = self.session.tu_id.clone();
+            connection
+                .build_transaction()
+                .run(|mut connection| {
+                    Box::pin(async move {
+                        diesel::insert_into(users_studies::table)
+                            .values(my_user_studies)
+                            .on_conflict((users_studies::user_id, users_studies::study))
+                            .do_nothing()
+                            .execute(&mut connection)
+                            .await?;
+
+                        diesel::update(users_unfinished::table)
+                            .filter(users_unfinished::tu_id.eq(tu_id))
+                            .set(
+                                users_unfinished::user_studies_last_checked
+                                    .eq(Utc::now().naive_utc()),
+                            )
+                            .execute(&mut connection)
+                            .await?;
+
+                        Ok::<(), diesel::result::Error>(())
+                    })
+                })
+                .await?;
+        }
+
+        Ok(results.into_iter().map(|r| r.0).collect())
     }
 }

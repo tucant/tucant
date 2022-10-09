@@ -15,7 +15,9 @@ use reqwest::{Client, Url};
 use tokio::sync::Semaphore;
 
 use crate::{
-    tucan_user::{TucanSession, TucanUser},
+    models::{TucanSession, UndoneUser},
+    schema::{sessions, users_unfinished},
+    tucan_user::TucanUser,
     url::{parse_tucan_url, TucanUrl},
 };
 
@@ -105,9 +107,45 @@ impl Tucan {
 
                 res_headers.text().await?;
 
+                let user = UndoneUser::new(username.to_string());
+
+                let session = TucanSession {
+                    tu_id: username.to_string(),
+                    session_nr: nr.try_into().unwrap(),
+                    session_id: id.to_string(),
+                };
+
+                use diesel_async::RunQueryDsl;
+
+                let mut connection = self.pool.get().await?;
+
+                {
+                    let session = session.clone();
+                    connection
+                        .build_transaction()
+                        .run(|mut connection| {
+                            Box::pin(async move {
+                                diesel::insert_into(users_unfinished::table)
+                                    .values(user)
+                                    .on_conflict(users_unfinished::tu_id)
+                                    .do_nothing()
+                                    .execute(&mut connection)
+                                    .await?;
+
+                                diesel::insert_into(sessions::table)
+                                    .values(session)
+                                    .execute(&mut connection)
+                                    .await?;
+
+                                Ok::<(), diesel::result::Error>(())
+                            })
+                        })
+                        .await?;
+                }
+
                 return Ok(TucanUser {
                     tucan: self.clone(),
-                    session: TucanSession { id, nr },
+                    session,
                 });
             } else {
                 panic!("Failed to extract session_nr");

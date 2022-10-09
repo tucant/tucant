@@ -20,7 +20,9 @@ use diesel_full_text_search::{
 };
 use serde::Serialize;
 use tucant::{
-    models::as_base64, schema::courses_unfinished, tucan::Tucan, tucan_user::TucanSession,
+    models::{as_base64, TucanSession},
+    schema::courses_unfinished,
+    tucan::Tucan,
 };
 use tucant_derive::{ts, Typescriptable};
 

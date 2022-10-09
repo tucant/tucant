@@ -33,6 +33,7 @@ use s_setup::setup;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt::Display;
+use tucant::models::TucanSession;
 
 use tokio::{
     fs::{self, OpenOptions},
@@ -42,7 +43,7 @@ use tucant::typescript::TypescriptableApp;
 
 use std::io::Write;
 use tucant::tucan::Tucan;
-use tucant::tucan_user::{TucanSession, TucanUser};
+use tucant::tucan_user::TucanUser;
 use tucant::url::{Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 
@@ -98,7 +99,7 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
-    Ok(web::Json(format!("Welcome! {}", session.nr)))
+    Ok(web::Json(format!("Welcome! {}", session.tu_id)))
 }
 
 #[actix_web::main]
