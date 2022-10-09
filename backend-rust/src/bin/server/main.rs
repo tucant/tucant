@@ -18,6 +18,7 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
 use actix_web::web::Json;
 use actix_web::{cookie::Key, post, web, App, HttpServer};
+
 use csrf_middleware::CsrfMiddleware;
 
 use file_lock::{FileLock, FileOptions};
@@ -32,6 +33,7 @@ use s_setup::setup;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt::Display;
+
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
@@ -95,11 +97,8 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
 
 #[ts]
 #[post("/")]
-async fn index(session: Session, _input: Json<()>) -> Result<Json<String>, MyError> {
-    match session.get::<TucanSession>("session").unwrap() {
-        Some(session) => Ok(web::Json(format!("Welcome! {}", session.nr))),
-        None => Ok(web::Json("Welcome Anonymous!".to_owned())),
-    }
+async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
+    Ok(web::Json(format!("Welcome! {}", session.nr)))
 }
 
 #[actix_web::main]

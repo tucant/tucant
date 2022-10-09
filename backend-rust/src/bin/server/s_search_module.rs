@@ -4,7 +4,6 @@
 
 use crate::s_search_course::SearchResult;
 use crate::MyError;
-use actix_session::Session;
 
 use actix_web::post;
 use actix_web::web::{Data, Json};
@@ -17,13 +16,14 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
+use tucant::tucan_user::TucanSession;
 use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
 #[post("/search-module")]
 pub async fn search_module(
-    _: Session,
+    _: TucanSession,
     tucan: Data<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {

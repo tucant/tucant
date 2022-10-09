@@ -5,11 +5,16 @@
 import useSWR from "swr";
 import { my_modules } from "../api";
 import { Link } from "../Navigation";
+import SignOut from "./Logout";
 
 export default function MyModules() {
   const { data } = useSWR("my-modules", {
     fetcher: () => my_modules(null),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <div className="container">

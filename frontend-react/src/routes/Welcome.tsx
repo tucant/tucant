@@ -4,12 +4,17 @@
 
 import { index } from "../api";
 import useSWR from "swr";
+import SignOut from "./Logout";
 
 export default function Welcome() {
   // TODO FIXME add user id to cache key
   const { data } = useSWR("welcome", {
     fetcher: () => index(null),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <main className="container">

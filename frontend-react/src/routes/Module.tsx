@@ -7,6 +7,7 @@ import dompurify from "dompurify";
 import { module } from "../api";
 import useSWR from "swr";
 import { Link } from "../Navigation";
+import SignOut from "./Logout";
 
 export default function Module() {
   const { id } = useParams();
@@ -14,6 +15,10 @@ export default function Module() {
   const { data } = useSWR(["course", id ?? ""], {
     fetcher: (_, id) => module(id),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <main className="container">

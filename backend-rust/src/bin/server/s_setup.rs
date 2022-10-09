@@ -9,7 +9,7 @@ use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 use crate::TucanUser;
-use actix_session::Session;
+
 use actix_web::post;
 use actix_web::web::Bytes;
 use actix_web::web::Data;
@@ -114,44 +114,37 @@ fn fetch_registration(
 #[post("/setup")]
 pub async fn setup(
     tucan: Data<Tucan>,
-    session: Session,
+    session: TucanSession,
     _input: Json<()>,
 ) -> Result<impl Responder, MyError> {
-    match session.get::<TucanSession>("session").unwrap() {
-        Some(session) => {
-            let stream = try_stream(move |mut stream| async move {
-                stream
-                    .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
-                    .await;
+    let stream = try_stream(move |mut stream| async move {
+        stream
+            .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
+            .await;
 
-                let tucan = tucan.continue_session(session).await.unwrap();
+        let tucan = tucan.continue_session(session).await.unwrap();
 
-                let root = tucan.root_registration().await.unwrap();
+        let root = tucan.root_registration().await.unwrap();
 
-                let input = fetch_registration(
-                    tucan,
-                    Registration {
-                        path: root.tucan_id,
-                    },
-                );
+        let input = fetch_registration(
+            tucan,
+            Registration {
+                path: root.tucan_id,
+            },
+        );
 
-                yield_stream(&mut stream, input).await.unwrap();
+        yield_stream(&mut stream, input).await.unwrap();
 
-                stream.yield_item(Bytes::from("Fertig!")).await;
+        stream.yield_item(Bytes::from("Fertig!")).await;
 
-                let return_value: Result<(), Error> = Ok(());
+        let return_value: Result<(), Error> = Ok(());
 
-                return_value
-            });
+        return_value
+    });
 
-            // TODO FIXME search for <h1>Timeout!</h1>
+    // TODO FIXME search for <h1>Timeout!</h1>
 
-            Ok(HttpResponse::Ok()
-                .content_type("text/plain")
-                .streaming(stream))
-        }
-        None => Ok(HttpResponse::Ok()
-            .content_type("text/plain")
-            .body("not logged in")),
-    }
+    Ok(HttpResponse::Ok()
+        .content_type("text/plain")
+        .streaming(stream))
 }

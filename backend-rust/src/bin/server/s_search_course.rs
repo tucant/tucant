@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::MyError;
-use actix_session::Session;
 
 use actix_web::{
     post,
@@ -20,7 +19,9 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use serde::Serialize;
-use tucant::{models::as_base64, schema::courses_unfinished, tucan::Tucan};
+use tucant::{
+    models::as_base64, schema::courses_unfinished, tucan::Tucan, tucan_user::TucanSession,
+};
 use tucant_derive::{ts, Typescriptable};
 
 #[derive(Queryable, Serialize, Typescriptable)]
@@ -36,7 +37,7 @@ pub struct SearchResult {
 #[ts]
 #[post("/search-course")]
 pub async fn search_course(
-    _: Session,
+    _: TucanSession,
     tucan: Data<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
