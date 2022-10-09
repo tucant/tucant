@@ -16,7 +16,7 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
-use tucant::tucan_user::TucanSession;
+use tucant::models::TucanSession;
 use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 

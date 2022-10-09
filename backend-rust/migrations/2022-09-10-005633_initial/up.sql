@@ -53,13 +53,41 @@ CREATE TABLE module_menu_module (
     PRIMARY KEY (module_id, module_menu_id)
 );
 
-CREATE TABLE users (
-    user_id TEXT NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL
+-- normally we should create a view that removes all that are not done.
+-- the problem is diesel doesn't support views. instead we should probably create the proper
+-- abstractions on the rust side
+CREATE TABLE users_unfinished (
+    tu_id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL DEFAULT '',
+    academic_title TEXT NOT NULL DEFAULT '',
+    post_name TEXT NOT NULL DEFAULT '',
+    first_name TEXT NOT NULL DEFAULT '',
+    middle_name TEXT NOT NULL DEFAULT '',
+    last_name TEXT NOT NULL DEFAULT '',
+    pre_name TEXT NOT NULL DEFAULT '',
+    redirect_messages_to_university_email BOOLEAN NOT NULL DEFAULT FALSE,
+    subject TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    department INTEGER NOT NULL DEFAULT 0,
+    post_title TEXT NOT NULL DEFAULT '',
+    street TEXT NOT NULL DEFAULT '',
+    address_addition TEXT NOT NULL DEFAULT '',
+    country TEXT NOT NULL DEFAULT '',
+    plz INTEGER NOT NULL DEFAULT 0,
+    city TEXT NOT NULL DEFAULT '',
+    phone_number TEXT NOT NULL DEFAULT '',
+    done BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE sessions (
+    tu_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    session_nr BIGINT NOT NULL,
+    session_id TEXT NOT NULL,
+    PRIMARY KEY (tu_id, session_nr, session_id)
 );
 
 CREATE TABLE users_studies (
-    user_id TEXT NOT NULL REFERENCES users (user_id),
+    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
     study BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
     PRIMARY KEY (user_id, study)
 );

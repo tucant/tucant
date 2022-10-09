@@ -20,8 +20,8 @@ use diesel_async::RunQueryDsl;
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleMenuResponse;
 use tucant::models::RegistrationEnum;
+use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
-use tucant::tucan_user::TucanSession;
 use tucant::url::Registration;
 use tucant_derive::ts;
 

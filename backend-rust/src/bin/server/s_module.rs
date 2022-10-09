@@ -17,8 +17,8 @@ use diesel_async::RunQueryDsl;
 
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleResponse;
+use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
-use tucant::tucan_user::TucanSession;
 use tucant::url::Moduledetails;
 use tucant_derive::ts;
 #[ts]

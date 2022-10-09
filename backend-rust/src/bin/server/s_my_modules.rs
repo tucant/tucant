@@ -10,8 +10,8 @@ use actix_web::web::Json;
 use actix_web::web::Data;
 
 use tucant::models::Module;
+use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
-use tucant::tucan_user::TucanSession;
 use tucant_derive::ts;
 
 #[ts]

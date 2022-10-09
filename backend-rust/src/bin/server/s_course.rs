@@ -9,7 +9,7 @@ use actix_web::web::Json;
 
 use actix_web::web::Data;
 
-use tucant::tucan_user::TucanSession;
+use tucant::models::TucanSession;
 use tucant::url::Coursedetails;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;

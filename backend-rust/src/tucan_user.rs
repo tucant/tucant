@@ -8,7 +8,7 @@ use std::{
     io::{Error, ErrorKind},
 };
 
-use crate::models::RegistrationEnum;
+use crate::models::{RegistrationEnum, TucanSession};
 use crate::{
     models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
@@ -27,7 +27,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
-use serde::{Deserialize, Serialize};
 
 use crate::schema::*;
 use diesel::BelongingToDsl;
@@ -46,12 +45,6 @@ fn s(selector: &str) -> Selector {
 
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct TucanSession {
-    pub nr: u64,
-    pub id: String,
 }
 
 impl FromRequest for TucanSession {
@@ -91,12 +84,12 @@ impl TucanUser {
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
-        let cookie = format!("cnsc={}", self.session.id);
+        let cookie = format!("cnsc={}", self.session.session_id);
 
         let a = self
             .tucan
             .client
-            .get(url.to_tucan_url(Some(self.session.nr)));
+            .get(url.to_tucan_url(Some(self.session.session_nr.try_into().unwrap())));
         let mut b = a.build().unwrap();
         b.headers_mut()
             .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
@@ -575,7 +568,8 @@ impl TucanUser {
                 panic!(
                     "{:?} {} {}",
                     url.clone(),
-                    Into::<TucanProgram>::into(url).to_tucan_url(Some(self.session.nr)),
+                    Into::<TucanProgram>::into(url)
+                        .to_tucan_url(Some(self.session.session_nr.try_into().unwrap())),
                     document.root_element().html()
                 );
             }
