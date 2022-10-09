@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Suspense, useTransition } from "react";
+import { ReactNode, Suspense, useContext } from "react";
 import {
   NavLink,
   NavLinkProps,
@@ -9,10 +9,13 @@ import {
   useLinkClickHandler,
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { NavigationContext } from "./NavigationContext";
 import { useAppSelector } from "./redux/hooks";
 
-export function Link(props: NavLinkProps) {
-  const [_, startTransition] = useTransition();
+export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
+  console.log("render link");
+
+  const startTransition = useContext(NavigationContext);
 
   const internalOnClick = useLinkClickHandler(props.to, props);
 
@@ -21,6 +24,7 @@ export function Link(props: NavLinkProps) {
       onClick={(event) => {
         event.preventDefault();
         startTransition(() => {
+          console.log("onClickHandler");
           internalOnClick(event);
         });
       }}
@@ -29,11 +33,11 @@ export function Link(props: NavLinkProps) {
   );
 }
 
-export default function Navigation() {
+export default function Navigation({ isLoading }: { isLoading: boolean }) {
   const isLoggedIn = useAppSelector((state) => state.user.loggedIn);
 
   return (
-    <>
+    <div className="vh-100 position-relative">
       <nav className="navbar navbar-expand-lg bg-light">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">
@@ -116,6 +120,16 @@ export default function Navigation() {
           <Outlet />
         </Suspense>
       </ErrorBoundary>
-    </>
+      <div
+        style={{ zIndex: 10000 }}
+        className="position-absolute top-50 start-50 translate-middle"
+      >
+        {isLoading && (
+          <div className="spinner-grow" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

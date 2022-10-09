@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React from "react";
+import React, { useTransition } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Provider } from "react-redux";
@@ -20,37 +20,46 @@ import Module from "./routes/Module";
 import Course from "./routes/Course";
 import Credits from "./routes/Credits";
 import { SearchCourses } from "./routes/SearchCourses";
+import { NavigationContext } from "./NavigationContext";
 
 function App() {
+  const [isLoading, startTransition] = useTransition();
+  console.log("App updated", isLoading);
+
   return (
     <React.StrictMode>
       <SWRConfig value={{ suspense: true }}>
         <Provider store={store}>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Navigation />}>
-                <Route path="modules/" element={<Modules />} />
-                <Route path="modules/:id" element={<Modules />} />
-                <Route path="login" element={<Login />} />
-                <Route path="my-modules" element={<MyModules />} />
-                <Route path="search-courses" element={<SearchCourses />} />
-                <Route path="logout" element={<Logout />} />
-                <Route path="search-modules" element={<SearchModules />} />
-                <Route path="module/:id" element={<Module />} />
-                <Route path="course/:id" element={<Course />} />
-                <Route path="credits" element={<Credits />} />
-                <Route index element={<Welcome />} />
+          <NavigationContext.Provider value={startTransition}>
+            <BrowserRouter>
+              <Routes>
                 <Route
-                  path="*"
-                  element={
-                    <main style={{ padding: "1rem" }}>
-                      <p>Seite nicht gefunden!</p>
-                    </main>
-                  }
-                />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+                  path="/"
+                  element={<Navigation isLoading={isLoading}></Navigation>}
+                >
+                  <Route path="modules/" element={<Modules />} />
+                  <Route path="modules/:id" element={<Modules />} />
+                  <Route path="login" element={<Login />} />
+                  <Route path="my-modules" element={<MyModules />} />
+                  <Route path="search-courses" element={<SearchCourses />} />
+                  <Route path="logout" element={<Logout />} />
+                  <Route path="search-modules" element={<SearchModules />} />
+                  <Route path="module/:id" element={<Module />} />
+                  <Route path="course/:id" element={<Course />} />
+                  <Route path="credits" element={<Credits />} />
+                  <Route index element={<Welcome />} />
+                  <Route
+                    path="*"
+                    element={
+                      <main style={{ padding: "1rem" }}>
+                        <p>Seite nicht gefunden!</p>
+                      </main>
+                    }
+                  />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </NavigationContext.Provider>
         </Provider>
       </SWRConfig>
     </React.StrictMode>
