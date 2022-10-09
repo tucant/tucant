@@ -13,6 +13,8 @@ import Modules from "./routes/Modules";
 import Login from "./routes/Login";
 import Welcome from "./routes/Welcome";
 import { SWRConfig } from "swr";
+import MyModules from "./routes/MyModules";
+import SearchCourses from "./routes/SearchCourses";
 
 function App() {
   return (
@@ -25,14 +27,13 @@ function App() {
                 <Route path="modules/" element={<Modules />} />
                 <Route path="modules/:id" element={<Modules />} />
                 <Route path="login" element={<Login />} />
-
+                <Route path="my-modules" element={<MyModules />} />
+                <Route path="search-courses" element={<SearchCourses />} />
                 {/*
               <Route path="logout" element={<Logout />} />
               <Route path="search-modules" element={<SearchModules />} />
-              <Route path="search-courses" element={<SearchCourses />} />
               <Route path="module/:id" element={<Module />} />
               <Route path="course/:id" element={<Course />} />
-              <Route path="my-modules" element={<MyModules />} />
               <Route path="credits" element={<Credits />} />
             */}
                 <Route index element={<Welcome />} />

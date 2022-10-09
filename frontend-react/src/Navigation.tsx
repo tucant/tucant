@@ -76,6 +76,16 @@ export default function Navigation() {
                   Module
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/my-modules/">
+                  Meine Module
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/search-courses">
+                  Veranstaltungssuche
+                </Link>
+              </li>
               {(!isLoggedIn || isLoggedIn) && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/login">
@@ -91,17 +101,6 @@ export default function Navigation() {
                 </li>
               )}
               {/*
-       
-          <RouterLink
-            to="/my-modules/"
-            text="Meine Module"
-            icon={<ViewModuleIcon />}
-          ></RouterLink>
-          <RouterLink
-            to="/search-modules"
-            text="Modulsuche"
-            icon={<SearchOutlined />}
-          ></RouterLink>
           <RouterLink
             to="/search-courses"
             text="Veranstaltungssuche"

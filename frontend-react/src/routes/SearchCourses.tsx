@@ -2,21 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Chip, TextField } from "@mui/material";
-import Alert from "@mui/material/Alert";
-import LinearProgress from "@mui/material/LinearProgress";
-import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
 import dompurify from "dompurify";
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
+import useSWR from "swr";
 import { SearchResult, search_course } from "../api";
-import { RouterLink } from "../Navigation";
+import { Link } from "../Navigation";
 
 export default function SearchCourses() {
-  const [data, setData] = useState<SearchResult[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [form, setForm] = useState({
     q: "",
   });
@@ -28,87 +20,83 @@ export default function SearchCourses() {
     if (target.name != "q") {
       throw new Error("unexpected input name");
     }
-    setForm({
-      ...form,
-      [target.name]: value,
+    startTransition(() => {
+      setForm({
+        ...form,
+        [target.name]: value,
+      });
     });
   };
 
-  useEffect(() => {
-    const getData = async () => {
-      setLoading(true);
-      setError(null);
-      setData(await search_course(form.q));
-      setError(null);
-    };
-    getData()
-      .catch((err) => {
-        setError(String(err));
-        setData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [form]);
+  const { data, error } = useSWR(["search-course", form.q], {
+    fetcher: (_, q) => search_course(q),
+  });
 
   return (
-    <>
-      <Typography variant="h2">Veranstaltungssuche</Typography>
-      <TextField
-        name="q"
-        onChange={handleInputChange}
-        value={form.q}
-        id="standard-basic"
-        label="Suche"
-        variant="standard"
-        margin="normal"
-      />
-      {loading && <LinearProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
+    <main className="container">
+      <h1 className="text-center">Veranstaltungssuche</h1>
+      <form>
+        <div className="mb-3">
+          <label htmlFor="searchInput" className="form-label">
+            Suchbegriff
+          </label>
+          <input
+            name="q"
+            onChange={handleInputChange}
+            value={form.q}
+            type="text"
+            placeholder="Suche"
+            className="form-control"
+            id="searchInput"
+            aria-describedby="searchHelp"
+          />
+          <div id="searchHelp" className="form-text">
+            The following syntax is supported:
+            <ul>
+              <li>
+                unquoted text: text not inside quote marks means all words need
+                to occur in the document
+              </li>
+              <li>
+                &quot;quoted text&quot;: text inside quote marks means the words
+                need to be in the document in that order
+              </li>
+              <li>
+                OR: the word “or” means one of the words needs to occur in the
+                document
+              </li>
+              <li>
+                -: a dash means a word is not allowed to be contained in the
+                document
+              </li>
+            </ul>
+          </div>
+        </div>
+      </form>
 
-      <p>
-        The following syntax is supported:
-        <ul>
-          <li>
-            unquoted text: text not inside quote marks means all words need to
-            occur in the document
-          </li>
-          <li>
-            &quot;quoted text&quot;: text inside quote marks means the words
-            need to be in the document in that order
-          </li>
-          <li>
-            OR: the word “or” means one of the words needs to occur in the
-            document
-          </li>
-          <li>
-            -: a dash means a word is not allowed to be contained in the
-            document
-          </li>
-        </ul>
-      </p>
-
-      <List>
+      <div className="list-group">
         {data != null &&
           data.map((e) => (
-            <RouterLink
+            <Link
               key={e.tucan_id}
+              className="list-group-item list-group-item-action"
               to={`/course/${e.tucan_id}`}
-              text={
-                <span>
-                  <Chip label={e.rank.toFixed(3)} /> {e.title}
+            >
+              <div className="d-flex w-100 justify-content-between align-items-center">
+                <h5 className="mb-1">{e.title}</h5>
+                <span className="badge bg-primary rounded-pill">
+                  {e.rank.toFixed(3)}
                 </span>
-              }
-              secondary_text={
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: dompurify.sanitize(e.excerpt),
-                  }}
-                ></span>
-              }
-            ></RouterLink>
+              </div>
+              <p
+                className="mb-1"
+                dangerouslySetInnerHTML={{
+                  __html: dompurify.sanitize(e.excerpt),
+                }}
+              ></p>
+            </Link>
           ))}
-      </List>
-    </>
+      </div>
+    </main>
   );
 }
