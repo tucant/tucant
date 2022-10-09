@@ -76,6 +76,7 @@ CREATE TABLE users_unfinished (
     plz INTEGER NOT NULL DEFAULT 0,
     city TEXT NOT NULL DEFAULT '',
     phone_number TEXT NOT NULL DEFAULT '',
+    user_studies_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -88,7 +89,7 @@ CREATE TABLE sessions (
 
 CREATE TABLE users_studies (
     user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
-    study BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
+    study BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
     PRIMARY KEY (user_id, study)
 );
 

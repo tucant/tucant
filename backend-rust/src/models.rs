@@ -19,7 +19,7 @@ use tucant_derive::Typescriptable;
 #[cfg(feature = "server")]
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
-    modules_unfinished, sessions, users_unfinished,
+    modules_unfinished, sessions, users_studies, users_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -318,4 +318,19 @@ pub struct TucanSession {
     pub tu_id: String,
     pub session_nr: i64,
     pub session_id: String,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(user_id, study)))]
+#[cfg_attr(feature = "server", diesel(table_name = users_studies))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
+pub struct UserStudy {
+    pub user_id: String,
+    pub study: Vec<u8>,
 }

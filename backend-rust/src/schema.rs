@@ -110,6 +110,7 @@ diesel::table! {
         plz -> Int4,
         city -> Text,
         phone_number -> Text,
+        user_studies_last_checked -> Nullable<Timestamptz>,
         done -> Bool,
     }
 }
@@ -119,7 +120,7 @@ diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (tu_id));
-diesel::joinable!(users_studies -> module_menu_unfinished (study));
+diesel::joinable!(users_studies -> modules_unfinished (study));
 diesel::joinable!(users_studies -> users_unfinished (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
