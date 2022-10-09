@@ -9,7 +9,7 @@ export function SearchModules() {
   return (
     <SearchPage
       title="Modulsuche"
-      key="search-modules"
+      cache_key="search-modules"
       function={search_module}
     ></SearchPage>
   );

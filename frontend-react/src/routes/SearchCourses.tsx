@@ -9,7 +9,7 @@ export function SearchCourses() {
   return (
     <SearchPage
       title="Veranstaltungssuche"
-      key="search-courses"
+      cache_key="search-courses"
       function={search_course}
     ></SearchPage>
   );

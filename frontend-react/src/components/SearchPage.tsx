@@ -11,7 +11,7 @@ import { Link } from "../Navigation";
 export default function SearchPage(props: {
   title: string;
   function: (input: string) => Promise<SearchResult[]>;
-  key: string;
+  cache_key: string;
 }) {
   const [form, setForm] = useState({
     q: "",
@@ -32,7 +32,7 @@ export default function SearchPage(props: {
     });
   };
 
-  const { data, error } = useSWR([props.key, form.q], {
+  const { data, error } = useSWR([props.cache_key, form.q], {
     fetcher: (_, q) => props.function(q),
   });
 
