@@ -9,6 +9,7 @@ import {
   useLinkClickHandler,
   useNavigate,
 } from "react-router-dom";
+import { ErrorBoundary } from "./App";
 import { useAppSelector } from "./redux/hooks";
 
 export function Link(props: NavLinkProps) {
@@ -43,6 +44,13 @@ export default function Navigation() {
       <nav className="navbar navbar-expand-lg bg-light">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">
+            <img
+              src="/TUCaNt.svg"
+              alt="Logo"
+              width="30"
+              height="24"
+              className="me-1 d-inline-block align-text-top"
+            />
             TUCaN&apos;t
           </Link>
           <button
@@ -106,9 +114,15 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
-      <Suspense fallback="Loading...">
-        <Outlet />
-      </Suspense>
+      <ErrorBoundary
+        fallback={
+          "Etwas ist richtig schief gelaufen. Versuche mal die Seite neu zu laden."
+        }
+      >
+        <Suspense fallback="Loading...">
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }
