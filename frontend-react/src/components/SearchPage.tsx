@@ -7,6 +7,7 @@ import { useState, startTransition } from "react";
 import useSWR from "swr";
 import { SearchResult } from "../api";
 import { Link } from "../Navigation";
+import SignOut from "../routes/Logout";
 
 export default function SearchPage(props: {
   title: string;
@@ -35,6 +36,10 @@ export default function SearchPage(props: {
   const { data } = useSWR([`search_${props.base_path}`, form.q], {
     fetcher: (_, q) => props.function(q),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <main className="container">

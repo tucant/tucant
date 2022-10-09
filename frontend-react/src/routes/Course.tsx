@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import dompurify from "dompurify";
 import { course } from "../api";
 import useSWR from "swr";
+import SignOut from "./Logout";
 
 export default function CourseRoute() {
   const { id } = useParams();
@@ -13,6 +14,10 @@ export default function CourseRoute() {
   const { data } = useSWR(["course", id ?? ""], {
     fetcher: (_, id) => course(id),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <main className="container">

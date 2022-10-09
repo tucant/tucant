@@ -13,8 +13,6 @@ import { NavigationContext } from "./NavigationContext";
 import { useAppSelector } from "./redux/hooks";
 
 export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
-  console.log("render link");
-
   const startTransition = useContext(NavigationContext);
 
   const internalOnClick = useLinkClickHandler(props.to, props);
@@ -24,7 +22,6 @@ export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
       onClick={(event) => {
         event.preventDefault();
         startTransition(() => {
-          console.log("onClickHandler");
           internalOnClick(event);
         });
       }}
@@ -93,7 +90,7 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
                   Credits
                 </Link>
               </li>
-              {(!isLoggedIn || isLoggedIn) && (
+              {!isLoggedIn && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/login">
                     Login

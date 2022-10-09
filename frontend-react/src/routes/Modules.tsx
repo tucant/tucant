@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
 import { Link } from "../Navigation";
+import SignOut from "./Logout";
 
 export default function Modules() {
   const { id } = useParams();
@@ -14,6 +15,10 @@ export default function Modules() {
   const { data } = useSWR(["module_menu", id ?? null], {
     fetcher: (_, id) => get_modules(id),
   });
+
+  if (data === null) {
+    return <SignOut />;
+  }
 
   return (
     <main className="container">

@@ -12,12 +12,12 @@ export default function SignOut() {
 
   const dispatch = useAppDispatch();
 
-  // remove id cookie and redirect to home
+  // remove id cookie and redirect to login
   React.useEffect(() => {
     document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     dispatch(setLoggedIn(false));
-    navigate("/");
+    navigate("/login");
   }, []);
 
-  return <main className="container">progress</main>;
+  return <main className="container">Bitte warten.</main>;
 }

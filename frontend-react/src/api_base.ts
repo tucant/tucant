@@ -12,6 +12,9 @@ export async function genericFetch(
     body: JSON.stringify(input),
   });
   if (!response.ok) {
+    if (response.status == 401) {
+      return null;
+    }
     let errorMessage;
     try {
       errorMessage = `${response.status} ${
