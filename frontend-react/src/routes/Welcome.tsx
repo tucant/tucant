@@ -7,7 +7,7 @@ import useSWR from "swr";
 
 export default function Welcome() {
   // TODO FIXME add user id to cache key
-  const { data, error } = useSWR("welcome", {
+  const { data } = useSWR("welcome", {
     fetcher: () => index(null),
   });
 

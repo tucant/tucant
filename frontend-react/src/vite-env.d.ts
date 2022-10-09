@@ -4,8 +4,6 @@
 
 /// <reference types="vite/client" />
 
-import type * as CSS from "csstype";
-
 declare module "csstype" {
   interface Properties {
     "--bs-breadcrumb-divider"?: string;

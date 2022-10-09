@@ -7,8 +7,8 @@ import { useState } from "react";
 type buttonVariantType = "primary" | "warning" | "success" | undefined;
 export default function InitialFetch() {
   const [data, setData] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [buttonVariant, setButtonVariant] =
+  const [_loading, setLoading] = useState(false);
+  const [_buttonVariant, setButtonVariant] =
     useState<buttonVariantType>("primary");
   const setSuccess = (success: boolean | null) => {
     switch (success) {
@@ -24,7 +24,7 @@ export default function InitialFetch() {
         break;
     }
   };
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   return (
     <>

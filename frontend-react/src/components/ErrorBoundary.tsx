@@ -1,8 +1,11 @@
-import { Component } from "react";
+import { Component, ReactNode } from "react";
 
-export class ErrorBoundary extends Component<any> {
+export class ErrorBoundary extends Component<{
+  fallback: ReactNode;
+  children: ReactNode;
+}> {
   state = { hasError: false, error: null };
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: unknown) {
     console.error(error);
     return {
       hasError: true,

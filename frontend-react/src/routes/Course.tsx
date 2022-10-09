@@ -2,16 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import dompurify from "dompurify";
-import { course, Course } from "../api";
+import { course } from "../api";
 import useSWR from "swr";
 
 export default function CourseRoute() {
   const { id } = useParams();
 
-  const { data, error } = useSWR(["course", id ?? ""], {
+  const { data } = useSWR(["course", id ?? ""], {
     fetcher: (_, id) => course(id),
   });
 

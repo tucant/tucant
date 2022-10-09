@@ -11,7 +11,7 @@ import { Link } from "../Navigation";
 export default function Modules() {
   const { id } = useParams();
 
-  const { data, error } = useSWR(["module_menu", id ?? null], {
+  const { data } = useSWR(["module_menu", id ?? null], {
     fetcher: (_, id) => get_modules(id),
   });
 

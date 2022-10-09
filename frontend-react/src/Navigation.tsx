@@ -7,21 +7,14 @@ import {
   NavLinkProps,
   Outlet,
   useLinkClickHandler,
-  useNavigate,
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useAppSelector } from "./redux/hooks";
 
 export function Link(props: NavLinkProps) {
-  const [isPending, startTransition] = useTransition();
+  const [_, startTransition] = useTransition();
 
-  const internalOnClick = useLinkClickHandler(props.to, {
-    replace: props.replace,
-    state: props.state,
-    target: props.target,
-    preventScrollReset: props.preventScrollReset,
-    relative: props.relative,
-  });
+  const internalOnClick = useLinkClickHandler(props.to, props);
 
   return (
     <NavLink

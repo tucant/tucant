@@ -2,14 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import useSWR from "swr";
-import { Module, my_modules } from "../api";
+import { my_modules } from "../api";
 import { Link } from "../Navigation";
 
 export default function MyModules() {
-  const { data, error } = useSWR("my-modules", {
+  const { data } = useSWR("my-modules", {
     fetcher: () => my_modules(null),
   });
 

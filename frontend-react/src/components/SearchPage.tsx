@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import dompurify from "dompurify";
-import { useState, useEffect, startTransition } from "react";
+import { useState, startTransition } from "react";
 import useSWR from "swr";
-import { SearchResult, search_course } from "../api";
+import { SearchResult } from "../api";
 import { Link } from "../Navigation";
 
 export default function SearchPage(props: {
@@ -32,7 +32,7 @@ export default function SearchPage(props: {
     });
   };
 
-  const { data, error } = useSWR([`search_${props.base_path}`, form.q], {
+  const { data } = useSWR([`search_${props.base_path}`, form.q], {
     fetcher: (_, q) => props.function(q),
   });
 
