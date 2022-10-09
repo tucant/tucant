@@ -2,10 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::io::ErrorKind;
-
 use crate::MyError;
-use actix_session::Session;
+
 use actix_web::post;
 use actix_web::web::Json;
 
@@ -19,25 +17,19 @@ use tucant_derive::ts;
 #[ts]
 #[post("/course")]
 pub async fn course(
-    session: Session,
+    session: TucanSession,
     tucan: Data<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Course>, MyError> {
-    match session.get::<TucanSession>("session").unwrap() {
-        Some(session) => {
-            let binary_path =
-                base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
+    let binary_path = base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
 
-            let tucan = tucan.continue_session(session).await.unwrap();
+    let tucan = tucan.continue_session(session).await.unwrap();
 
-            let result = tucan
-                .course(Coursedetails {
-                    id: binary_path.clone(),
-                })
-                .await?;
+    let result = tucan
+        .course(Coursedetails {
+            id: binary_path.clone(),
+        })
+        .await?;
 
-            Ok(Json(result))
-        }
-        None => Err(std::io::Error::new(ErrorKind::Other, "no session!").into()),
-    }
+    Ok(Json(result))
 }

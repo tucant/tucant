@@ -4,6 +4,7 @@
 
 use std::{
     convert::TryInto,
+    future::{ready, Ready},
     io::{Error, ErrorKind},
 };
 
@@ -16,6 +17,8 @@ use crate::{
         TucanProgram, TucanUrl,
     },
 };
+use actix_session::SessionExt;
+use actix_web::{dev::Payload, error::ErrorUnauthorized, FromRequest, HttpRequest};
 use chrono::Utc;
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
@@ -49,6 +52,20 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 pub struct TucanSession {
     pub nr: u64,
     pub id: String,
+}
+
+impl FromRequest for TucanSession {
+    type Error = actix_web::error::Error;
+    type Future = Ready<Result<TucanSession, actix_web::error::Error>>;
+
+    #[inline]
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let session = SessionExt::get_session(req);
+        match session.get::<TucanSession>("session").unwrap() {
+            Some(session) => ready(Ok(session)),
+            None => ready(Err(ErrorUnauthorized("Not logged in!"))),
+        }
+    }
 }
 
 #[derive(Clone)]
