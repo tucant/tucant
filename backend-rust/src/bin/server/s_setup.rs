@@ -51,7 +51,7 @@ fn fetch_registration(
         let value = tucan.registration(parent.clone()).await?;
 
         stream
-            .yield_item(Bytes::from(format!("menu {}", value.0.name)))
+            .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
             .await;
 
         match value.1 {
@@ -101,7 +101,7 @@ fn fetch_registration(
 
                 while let Some(module) = futures.next().await {
                     stream
-                        .yield_item(Bytes::from(format!("module {}", module.title)))
+                        .yield_item(Bytes::from(format!("\nmodule {}", module.title)))
                         .await;
                 }
             }
@@ -119,7 +119,7 @@ pub async fn setup(
 ) -> Result<impl Responder, MyError> {
     let stream = try_stream(move |mut stream| async move {
         stream
-            .yield_item(Bytes::from("Alle Module werden heruntergeladen..."))
+            .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
 
         let tucan = tucan.continue_session(session).await.unwrap();
@@ -135,7 +135,7 @@ pub async fn setup(
 
         yield_stream(&mut stream, input).await.unwrap();
 
-        stream.yield_item(Bytes::from("Fertig!")).await;
+        stream.yield_item(Bytes::from("\nFertig!")).await;
 
         let return_value: Result<(), Error> = Ok(());
 

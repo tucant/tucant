@@ -7,6 +7,7 @@ import { useState, startTransition } from "react";
 import useSWR from "swr";
 import { SearchResult } from "../api";
 import { Link } from "../Navigation";
+import InitialFetch from "../routes/InitialFetch";
 import SignOut from "../routes/Logout";
 
 export default function SearchPage(props: {
@@ -106,6 +107,7 @@ export default function SearchPage(props: {
             </Link>
           ))}
       </div>
+      <InitialFetch />
     </main>
   );
 }

@@ -21,8 +21,8 @@ export default function SignIn() {
 
   const dispatch = useAppDispatch();
 
-  const [_loading, setLoading] = useState(false);
-  const [_error, setError] = useState<string | null>(null);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     username: "",
@@ -51,8 +51,10 @@ export default function SignIn() {
 
       const response = await login(form);
       if (response.success) {
-        dispatch(setLoggedIn(true));
-        navigate("/");
+        React.startTransition(() => {
+          dispatch(setLoggedIn(true));
+          navigate("/");
+        });
       } else {
         setError(String("Falscher Nutzername oder falsches Passwort!"));
       }
@@ -62,8 +64,14 @@ export default function SignIn() {
   };
 
   return (
-    <div className="container">
+    <div className="mt-3 container">
       <div className="row justify-content-md-center">
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+
         <form className="col-3 mt-3" onSubmit={handleSubmit}>
           <h1 className="h3 mb-3 fw-normal">Anmelden</h1>
 
@@ -94,7 +102,18 @@ export default function SignIn() {
             <label htmlFor="floatingPassword">Passwort</label>
           </div>
 
-          <button className="mt-3 w-100 btn btn-lg btn-primary" type="submit">
+          <button
+            className="mt-3 w-100 btn btn-lg btn-primary"
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading && (
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            )}{" "}
             Sign in
           </button>
         </form>
