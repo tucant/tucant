@@ -12,9 +12,9 @@ export default function Welcome() {
   });
 
   return (
-    <div className="App">
-      <h1>Welcome</h1>
+    <main className="container">
+      <h1 className="text-center">Welcome</h1>
       <ul>{JSON.stringify(data)}</ul>
-    </div>
+    </main>
   );
 }

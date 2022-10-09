@@ -9,7 +9,7 @@ import {
   useLinkClickHandler,
   useNavigate,
 } from "react-router-dom";
-import { ErrorBoundary } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useAppSelector } from "./redux/hooks";
 
 export function Link(props: NavLinkProps) {

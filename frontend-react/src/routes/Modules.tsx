@@ -16,22 +16,28 @@ export default function Modules() {
   });
 
   return (
-    <>
-      <h1>{data?.module_menu.name}</h1>
+    <main className="container">
+      <h1 className="text-center">{data?.module_menu.name}</h1>
       {data?.path.map((p, i) => (
-        <div key={i} aria-label="breadcrumb">
-          {p.map((pe) => (
-            <Link
-              key={pe.tucan_id}
-              color="inherit"
-              to={`/modules/${pe.tucan_id}`}
-            >
-              {pe.name}
-            </Link>
-          ))}
-        </div>
+        <nav
+          key={i}
+          style={{ "--bs-breadcrumb-divider": "'>'" }}
+          aria-label="breadcrumb"
+        >
+          <ol className="breadcrumb">
+            {p.map((pe) => (
+              <Link
+                key={pe.tucan_id}
+                className="breadcrumb-item active"
+                to={`/modules/${pe.tucan_id}`}
+              >
+                {pe.name}
+              </Link>
+            ))}
+          </ol>
+        </nav>
       ))}
       {data && <ModuleList listData={data} />}
-    </>
+    </main>
   );
 }
