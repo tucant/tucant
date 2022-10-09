@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import dompurify from "dompurify";
-import { useState, startTransition } from "react";
+import { useState, useTransition } from "react";
 import useSWR from "swr";
 import { SearchResult } from "../api";
 import { Link } from "../Navigation";
+import InitialFetch from "../routes/InitialFetch";
 import SignOut from "../routes/Logout";
 
 export default function SearchPage(props: {
@@ -17,6 +18,8 @@ export default function SearchPage(props: {
   const [form, setForm] = useState({
     q: "",
   });
+
+  const [isLoading, startTransition] = useTransition();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
@@ -44,21 +47,44 @@ export default function SearchPage(props: {
   return (
     <main className="container">
       <h1 className="text-center">{props.title}</h1>
+      <InitialFetch />
       <form>
         <div className="mb-3">
-          <label htmlFor="searchInput" className="form-label">
-            Suchbegriff
-          </label>
-          <input
-            name="q"
-            onChange={handleInputChange}
-            value={form.q}
-            type="text"
-            placeholder="Suche"
-            className="form-control"
-            id="searchInput"
-            aria-describedby="searchHelp"
-          />
+          <div className="input-group mb-3">
+            <input
+              name="q"
+              onChange={handleInputChange}
+              value={form.q}
+              type="text"
+              placeholder="Suche"
+              className="form-control"
+              id="searchInput"
+              aria-describedby="searchButton"
+            />
+            <button
+              className="btn btn-outline-secondary"
+              disabled={isLoading}
+              type="button"
+              id="searchButton"
+              onClick={() => {
+                startTransition(() => {
+                  setForm({
+                    ...form,
+                  });
+                });
+              }}
+            >
+              {isLoading && (
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+              )}{" "}
+              Suchen
+            </button>
+          </div>
+
           <div id="searchHelp" className="form-text">
             The following syntax is supported:
             <ul>
