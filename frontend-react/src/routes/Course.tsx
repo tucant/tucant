@@ -16,11 +16,11 @@ export default function CourseRoute() {
   });
 
   return (
-    <>
-      <h1>Veranstaltung</h1>
+    <main className="container">
+      <h1 className="text-center">Veranstaltung</h1>
       {data && (
         <>
-          <h3>
+          <h3 className="text-center">
             {data.course_id} {data.title}
           </h3>
           <div
@@ -30,6 +30,6 @@ export default function CourseRoute() {
           ></div>
         </>
       )}
-    </>
+    </main>
   );
 }

@@ -18,7 +18,7 @@ export default function Module() {
   });
 
   return (
-    <>
+    <main className="container">
       {data && (
         <>
           <h1>
@@ -45,6 +45,6 @@ export default function Module() {
           ></div>
         </>
       )}
-    </>
+    </main>
   );
 }

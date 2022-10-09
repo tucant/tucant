@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import LoadingButton from "@mui/lab/LoadingButton";
-import Alert from "@mui/material/Alert";
 import { useState } from "react";
 
 type buttonVariantType = "primary" | "warning" | "success" | undefined;
@@ -30,10 +28,7 @@ export default function InitialFetch() {
 
   return (
     <>
-      {error && <Alert severity="error">{error}</Alert>}
-      <LoadingButton
-        loading={loading}
-        color={buttonVariant}
+      <div
         onClick={() => {
           (async () => {
             setSuccess(null);
@@ -69,7 +64,7 @@ export default function InitialFetch() {
         }}
       >
         Initial sync
-      </LoadingButton>
+      </div>
       {data}
     </>
   );

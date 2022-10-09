@@ -11,7 +11,7 @@ import { Link } from "../Navigation";
 export default function SearchPage(props: {
   title: string;
   function: (input: string) => Promise<SearchResult[]>;
-  cache_key: string;
+  base_path: string;
 }) {
   const [form, setForm] = useState({
     q: "",
@@ -32,7 +32,7 @@ export default function SearchPage(props: {
     });
   };
 
-  const { data, error } = useSWR([props.cache_key, form.q], {
+  const { data, error } = useSWR([`search_${props.base_path}`, form.q], {
     fetcher: (_, q) => props.function(q),
   });
 
@@ -84,7 +84,7 @@ export default function SearchPage(props: {
             <Link
               key={e.tucan_id}
               className="list-group-item list-group-item-action"
-              to={`/course/${e.tucan_id}`}
+              to={`/${props.base_path}/${e.tucan_id}`}
             >
               <div className="d-flex w-100 justify-content-between align-items-center">
                 <h5 className="mb-1">{e.title}</h5>

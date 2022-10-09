@@ -12,13 +12,15 @@ export class ErrorBoundary extends Component<any> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="alert alert-success" role="alert">
-          <h4 className="alert-heading">{this.props.fallback}</h4>
-          <p>Die Fehlermeldung lautet: ${String(this.state.error)}</p>
-          <hr />
-          <p className="mb-0">
-            Eventuell hilft die Fehlermeldung einem Entwickler.
-          </p>
+        <div className="container">
+          <div className="alert alert-success" role="alert">
+            <h4 className="alert-heading">{this.props.fallback}</h4>
+            <p>Die Fehlermeldung lautet: {String(this.state.error)}</p>
+            <hr />
+            <p className="mb-0">
+              Eventuell hilft die Fehlermeldung einem Entwickler.
+            </p>
+          </div>
         </div>
       );
     }
