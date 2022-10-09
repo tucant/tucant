@@ -82,8 +82,18 @@ export default function Navigation() {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link className="nav-link" to="/search-modules">
+                  Modulsuche
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link" to="/search-courses">
                   Veranstaltungssuche
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/credits">
+                  Credits
                 </Link>
               </li>
               {(!isLoggedIn || isLoggedIn) && (
@@ -100,15 +110,6 @@ export default function Navigation() {
                   </Link>
                 </li>
               )}
-              {/*
-          <RouterLink
-            to="/search-courses"
-            text="Veranstaltungssuche"
-            icon={<SearchOutlined />}
-          ></RouterLink>
-         
-          
-          */}
             </ul>
           </div>
         </div>

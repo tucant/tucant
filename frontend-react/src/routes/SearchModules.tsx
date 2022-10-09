@@ -2,113 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Chip, TextField } from "@mui/material";
-import Alert from "@mui/material/Alert";
-import LinearProgress from "@mui/material/LinearProgress";
-import List from "@mui/material/List";
-import Typography from "@mui/material/Typography";
-import dompurify from "dompurify";
-import { useState, useEffect } from "react";
-import { SearchResult, search_module } from "../api";
-import { RouterLink } from "../Navigation";
+import { search_module } from "../api";
+import SearchPage from "../components/SearchPage";
 
-export default function SearchModules() {
-  const [data, setData] = useState<SearchResult[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    q: "",
-  });
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const target = event.target;
-    const value = target.value;
-
-    if (target.name != "q") {
-      throw new Error("unexpected input name");
-    }
-    setForm({
-      ...form,
-      [target.name]: value,
-    });
-  };
-
-  useEffect(() => {
-    const getData = async () => {
-      setLoading(true);
-      setError(null);
-      setData(await search_module(form.q));
-      setError(null);
-    };
-    getData()
-      .catch((err) => {
-        setError(String(err));
-        setData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [form]);
-
+export function SearchModules() {
   return (
-    <>
-      <Typography variant="h2">Modulsuche</Typography>
-      <TextField
-        name="q"
-        onChange={handleInputChange}
-        value={form.q}
-        id="standard-basic"
-        label="Suche"
-        variant="standard"
-        margin="normal"
-      />
-      {loading && <LinearProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
-
-      <p>
-        The following syntax is supported:
-        <ul>
-          <li>
-            unquoted text: text not inside quote marks means all words need to
-            occur in the document
-          </li>
-          <li>
-            &quot;quoted text&quot;: text inside quote marks means the words
-            need to be in the document in that order
-          </li>
-          <li>
-            OR: the word “or” means one of the words needs to occur in the
-            document
-          </li>
-          <li>
-            -: a dash means a word is not allowed to be contained in the
-            document
-          </li>
-        </ul>
-      </p>
-
-      <List>
-        {data != null &&
-          data.map((e) => (
-            <RouterLink
-              key={e.tucan_id}
-              to={`/module/${e.tucan_id}`}
-              text={
-                <span>
-                  <Chip label={e.rank.toFixed(3)} /> {e.title}
-                </span>
-              }
-              secondary_text={
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: dompurify.sanitize(e.excerpt),
-                  }}
-                ></span>
-              }
-            ></RouterLink>
-          ))}
-      </List>
-    </>
+    <SearchPage
+      title="Modulsuche"
+      key="search-modules"
+      function={search_module}
+    ></SearchPage>
   );
 }

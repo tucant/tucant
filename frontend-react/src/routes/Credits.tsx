@@ -2,17 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Typography } from "@mui/material";
-
 export default function Credits() {
   return (
-    <>
-      <Typography variant="h1" align="center">
-        Credits
-      </Typography>
-      <Typography variant="h2" align="center">
-        Software
-      </Typography>
+    <main className="container">
+      <h1 className="text-center">Credits</h1>
+      <h2 className="text-center">Software</h2>
       <a
         target="_blank"
         href="https://github.com/mohe2015/tucant"
@@ -59,9 +53,7 @@ export default function Credits() {
         </a>
         .
       </p>
-      <Typography variant="h2" align="center">
-        Logo
-      </Typography>
+      <h2 className="text-center">Logo</h2>
       <p>
         <a
           target="_blank"
@@ -94,6 +86,6 @@ export default function Credits() {
         </a>
         .
       </p>
-    </>
+    </main>
   );
 }
