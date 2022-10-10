@@ -1,0 +1,1 @@
+["/home/moritz/.vscode-insiders/extensions/tucant-vscode-language-client/tucant-language-server/target/debug/tucant-language-server", "--pipe=/run/user/1000/vscode-ipc-21ab8b7664301a152e3a9f4b38a6cdc83bcd5ac92d.sock"]

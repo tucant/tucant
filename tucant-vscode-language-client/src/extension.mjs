@@ -1,4 +1,3 @@
-import * as path from "path";
 import { ExtensionContext } from "vscode";
 
 import {
@@ -12,25 +11,18 @@ import {
 let client;
 
 export function activate(/** @type {ExtensionContext} */ context) {
-  const serverModule = context.asAbsolutePath(path.join("out", "test.sh"));
-  const debugOptions = { execArgv: [] };
+  const serverModule = context.asAbsolutePath(
+    "./tucant-language-server/target/debug/tucant-language-server"
+  );
 
   /** @type {ServerOptions} */
   const serverOptions = {
-    run: { module: serverModule, transport: TransportKind.stdio },
-    debug: {
-      module: serverModule,
-      transport: TransportKind.ipc,
-      options: debugOptions,
-    },
+    run: { command: serverModule, transport: TransportKind.pipe },
   };
 
   /** @type {LanguageClientOptions} */
   const clientOptions = {
     documentSelector: [{ scheme: "file", language: "tucant" }],
-    synchronize: {
-      //fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-    },
   };
 
   client = new LanguageClient(
