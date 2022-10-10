@@ -80,9 +80,19 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    users_studies (user_id, study) {
+    user_courses (user_id, course_id) {
         user_id -> Text,
-        study -> Bytea,
+        course_id -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    user_modules (user_id, module_id) {
+        user_id -> Text,
+        module_id -> Bytea,
     }
 }
 
@@ -110,7 +120,8 @@ diesel::table! {
         plz -> Int4,
         city -> Text,
         phone_number -> Text,
-        user_studies_last_checked -> Nullable<Timestamptz>,
+        user_modules_last_checked -> Nullable<Timestamptz>,
+        user_courses_last_checked -> Nullable<Timestamptz>,
         done -> Bool,
     }
 }
@@ -120,8 +131,10 @@ diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (tu_id));
-diesel::joinable!(users_studies -> modules_unfinished (study));
-diesel::joinable!(users_studies -> users_unfinished (user_id));
+diesel::joinable!(user_courses -> courses_unfinished (course_id));
+diesel::joinable!(user_courses -> users_unfinished (user_id));
+diesel::joinable!(user_modules -> modules_unfinished (module_id));
+diesel::joinable!(user_modules -> users_unfinished (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     courses_unfinished,
@@ -130,6 +143,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     module_menu_unfinished,
     modules_unfinished,
     sessions,
-    users_studies,
+    user_courses,
+    user_modules,
     users_unfinished,
 );

@@ -92,7 +92,10 @@ impl TucanProgram {
                 "MYMODULES",
                 Box::new([TucanArgument::Number(275), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Profcourses(_) => todo!(),
+            TucanProgram::Profcourses(_) => (
+                "PROFCOURSES",
+                Box::new([TucanArgument::Number(274), TucanArgument::Number(999)].into_iter()),
+            ),
             TucanProgram::Studentchoicecourses(_) => todo!(),
             TucanProgram::Registration(Registration { path }) => {
                 let mut a = path.chunks(std::mem::size_of::<u64>());
@@ -262,6 +265,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "PROFCOURSES" => {
             assert_eq!(number(&mut arguments), 274);
+            assert_eq!(number(&mut arguments), 999);
             TucanProgram::Profcourses(Profcourses)
         }
         "STUDENTCHOICECOURSES" => {
@@ -317,17 +321,19 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             program
         }
         "COURSEDETAILS" => {
-            assert_eq!(number(&mut arguments), 311);
-            assert_eq!(number(&mut arguments), 0);
+            // TODO FIXME this now also parses subgroups of courses as courses
+            assert!([311, 274].contains(&number(&mut arguments)));
+            assert!([0, 376333755785484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
-                    number(&mut arguments).to_be_bytes(),
-                    number(&mut arguments).to_be_bytes(),
+                    number(&mut arguments).to_be_bytes(), // this *should* be unique per course
+                    number(&mut arguments).to_be_bytes(), // this *should* be different per sub-group in a course and the course itself
                 ]
                 .concat(),
             });
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
+            // assert_eq!(number(&mut arguments), 3); // I think this is optional in the url but we should parse it at some point
             prog
         }
         other => {
