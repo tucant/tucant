@@ -1,0 +1,31 @@
+{
+  "name": "tucant-vscode-language-client",
+  "version": "1.0.0",
+  "description": "<!-- SPDX-FileCopyrightText: The tucant Contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohe2015/tucant.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mohe2015/tucant/issues"
+  },
+  "homepage": "https://github.com/mohe2015/tucant#readme",
+  "engines": {
+    "vscode": "^1.63.0"
+  },
+  "activationEvents": [
+    "onLanguage:tucant"
+  ],
+  "main": "./src/extension.js",
+  "scripts": {},
+  "dependencies": {
+    "vscode-languageclient": "^8.0.2"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.72.0",
+    "@types/node": "^18.8.3",
+    "typescript": "^4.8.4"
+  }
+}
