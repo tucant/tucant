@@ -76,6 +76,11 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link className="nav-link" to="/my-courses/">
+                  Meine Veranstaltungen
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link" to="/search-modules">
                   Modulsuche
                 </Link>
@@ -113,7 +118,18 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
           "Etwas ist richtig schief gelaufen. Versuche mal die Seite neu zu laden."
         }
       >
-        <Suspense fallback="Loading...">
+        <Suspense
+          fallback={
+            <div
+              style={{ zIndex: 10000 }}
+              className="position-absolute top-50 start-50 translate-middle"
+            >
+              <div className="spinner-grow" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          }
+        >
           <Outlet />
         </Suspense>
       </ErrorBoundary>

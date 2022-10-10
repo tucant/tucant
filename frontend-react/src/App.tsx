@@ -21,6 +21,7 @@ import Course from "./routes/Course";
 import Credits from "./routes/Credits";
 import { SearchCourses } from "./routes/SearchCourses";
 import { NavigationContext } from "./NavigationContext";
+import MyCourses from "./routes/MyCourses";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
@@ -41,6 +42,7 @@ function App() {
                   <Route path="modules/:id" element={<Modules />} />
                   <Route path="login" element={<Login />} />
                   <Route path="my-modules" element={<MyModules />} />
+                  <Route path="my-courses" element={<MyCourses />} />
                   <Route path="search-courses" element={<SearchCourses />} />
                   <Route path="logout" element={<Logout />} />
                   <Route path="search-modules" element={<SearchModules />} />

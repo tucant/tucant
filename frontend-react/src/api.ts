@@ -19,6 +19,9 @@ export async function logout(input: null): Promise<null> {
 export async function module(input: string): Promise<ModuleResponse> {
     return await genericFetch("http://localhost:8080/module", input) as ModuleResponse
 }
+export async function my_courses(input: null): Promise<Course[]> {
+    return await genericFetch("http://localhost:8080/my_courses", input) as Course[]
+}
 export async function my_modules(input: null): Promise<Module[]> {
     return await genericFetch("http://localhost:8080/my_modules", input) as Module[]
 }

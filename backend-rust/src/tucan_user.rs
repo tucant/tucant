@@ -8,7 +8,6 @@ use std::{
     io::{Error, ErrorKind},
 };
 
-use crate::models::{RegistrationEnum, TucanSession, UserStudy};
 use crate::{
     models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
@@ -16,6 +15,10 @@ use crate::{
         parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
         TucanProgram, TucanUrl,
     },
+};
+use crate::{
+    models::{RegistrationEnum, TucanSession, UserCourse, UserModule},
+    url::Profcourses,
 };
 use actix_session::SessionExt;
 use actix_web::{dev::Payload, error::ErrorUnauthorized, FromRequest, HttpRequest};
@@ -589,14 +592,14 @@ impl TucanUser {
                     Box::pin(async move {
                         let user_studies_already_fetched = users_unfinished::table
                             .filter(users_unfinished::tu_id.eq(&tu_id))
-                            .select(users_unfinished::user_studies_last_checked)
+                            .select(users_unfinished::user_modules_last_checked)
                             .get_result::<Option<NaiveDateTime>>(&mut connection)
                             .await?;
 
                         if user_studies_already_fetched.is_some() {
                             Ok::<Option<Vec<Module>>, diesel::result::Error>(Some(
-                                users_studies::table
-                                    .filter(users_studies::user_id.eq(&tu_id))
+                                user_modules::table
+                                    .filter(user_modules::user_id.eq(&tu_id))
                                     .inner_join(modules_unfinished::table)
                                     .select((
                                         modules_unfinished::tucan_id,
@@ -647,9 +650,9 @@ impl TucanUser {
 
         let my_user_studies = results
             .iter()
-            .map(|(m, _cs)| UserStudy {
+            .map(|(m, _cs)| UserModule {
                 user_id: self.session.tu_id.clone(),
-                study: m.tucan_id.clone(),
+                module_id: m.tucan_id.clone(),
             })
             .collect::<Vec<_>>();
 
@@ -663,9 +666,9 @@ impl TucanUser {
                 .build_transaction()
                 .run(|mut connection| {
                     Box::pin(async move {
-                        diesel::insert_into(users_studies::table)
+                        diesel::insert_into(user_modules::table)
                             .values(my_user_studies)
-                            .on_conflict((users_studies::user_id, users_studies::study))
+                            .on_conflict((user_modules::user_id, user_modules::module_id))
                             .do_nothing()
                             .execute(&mut connection)
                             .await?;
@@ -673,7 +676,7 @@ impl TucanUser {
                         diesel::update(users_unfinished::table)
                             .filter(users_unfinished::tu_id.eq(tu_id))
                             .set(
-                                users_unfinished::user_studies_last_checked
+                                users_unfinished::user_modules_last_checked
                                     .eq(Utc::now().naive_utc()),
                             )
                             .execute(&mut connection)
@@ -686,5 +689,115 @@ impl TucanUser {
         }
 
         Ok(results.into_iter().map(|r| r.0).collect())
+    }
+
+    pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
+        {
+            let mut connection = self.tucan.pool.get().await?;
+            let tu_id = self.session.tu_id.clone();
+
+            let courses = connection
+                .build_transaction()
+                .run(|mut connection| {
+                    Box::pin(async move {
+                        let user_courses_already_fetched = users_unfinished::table
+                            .filter(users_unfinished::tu_id.eq(&tu_id))
+                            .select(users_unfinished::user_courses_last_checked)
+                            .get_result::<Option<NaiveDateTime>>(&mut connection)
+                            .await?;
+
+                        if user_courses_already_fetched.is_some() {
+                            Ok::<Option<Vec<Course>>, diesel::result::Error>(Some(
+                                user_courses::table
+                                    .filter(user_courses::user_id.eq(&tu_id))
+                                    .inner_join(courses_unfinished::table)
+                                    .select((
+                                        courses_unfinished::tucan_id,
+                                        courses_unfinished::tucan_last_checked,
+                                        courses_unfinished::title,
+                                        courses_unfinished::course_id,
+                                        courses_unfinished::sws,
+                                        courses_unfinished::content,
+                                        courses_unfinished::done,
+                                    ))
+                                    .load::<Course>(&mut connection)
+                                    .await?,
+                            ))
+                        } else {
+                            Ok(None)
+                        }
+                    })
+                })
+                .await?;
+
+            if let Some(courses) = courses {
+                return Ok(courses);
+            }
+        }
+
+        let document = self.fetch_document(&Profcourses.clone().into()).await?;
+
+        let my_courses = document
+            .select(&s("tbody tr a"))
+            .map(|link| {
+                TryInto::<Coursedetails>::try_into(
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        link.value().attr("href").unwrap()
+                    ))
+                    .program,
+                )
+                .unwrap()
+            })
+            .map(|details| self.course(details))
+            .collect::<FuturesUnordered<_>>();
+
+        let results: Vec<anyhow::Result<Course>> = my_courses.collect().await;
+
+        let results: anyhow::Result<Vec<Course>> = results.into_iter().collect();
+
+        let results: Vec<Course> = results?;
+
+        let my_user_studies = results
+            .iter()
+            .map(|c| UserCourse {
+                user_id: self.session.tu_id.clone(),
+                course_id: c.tucan_id.clone(),
+            })
+            .collect::<Vec<_>>();
+
+        use diesel_async::RunQueryDsl;
+
+        {
+            let mut connection = self.tucan.pool.get().await?;
+
+            let tu_id = self.session.tu_id.clone();
+            connection
+                .build_transaction()
+                .run(|mut connection| {
+                    Box::pin(async move {
+                        diesel::insert_into(user_courses::table)
+                            .values(my_user_studies)
+                            .on_conflict((user_courses::user_id, user_courses::course_id))
+                            .do_nothing()
+                            .execute(&mut connection)
+                            .await?;
+
+                        diesel::update(users_unfinished::table)
+                            .filter(users_unfinished::tu_id.eq(tu_id))
+                            .set(
+                                users_unfinished::user_courses_last_checked
+                                    .eq(Utc::now().naive_utc()),
+                            )
+                            .execute(&mut connection)
+                            .await?;
+
+                        Ok::<(), diesel::result::Error>(())
+                    })
+                })
+                .await?;
+        }
+
+        Ok(results)
     }
 }

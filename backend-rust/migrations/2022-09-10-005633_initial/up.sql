@@ -76,7 +76,8 @@ CREATE TABLE users_unfinished (
     plz INTEGER NOT NULL DEFAULT 0,
     city TEXT NOT NULL DEFAULT '',
     phone_number TEXT NOT NULL DEFAULT '',
-    user_studies_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    user_modules_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    user_courses_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -85,12 +86,6 @@ CREATE TABLE sessions (
     session_nr BIGINT NOT NULL,
     session_id TEXT NOT NULL,
     PRIMARY KEY (tu_id, session_nr, session_id)
-);
-
-CREATE TABLE users_studies (
-    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
-    study BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
-    PRIMARY KEY (user_id, study)
 );
 
 CREATE TABLE courses_unfinished (
@@ -113,4 +108,16 @@ CREATE TABLE module_courses (
     module BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
     course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
     PRIMARY KEY (module, course)
+);
+
+CREATE TABLE user_modules (
+    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
+    PRIMARY KEY (user_id, module_id)
+);
+
+CREATE TABLE user_courses (
+    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    PRIMARY KEY (user_id, course_id)
 );

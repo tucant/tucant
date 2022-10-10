@@ -6,6 +6,7 @@ mod csrf_middleware;
 mod s_course;
 mod s_get_modules;
 mod s_module;
+mod s_my_courses;
 mod s_my_modules;
 mod s_search_course;
 mod s_search_module;
@@ -26,6 +27,7 @@ use itertools::Itertools;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
+use s_my_courses::my_courses;
 use s_my_modules::my_modules;
 use s_search_course::search_course;
 use s_search_module::search_module;
@@ -163,7 +165,8 @@ async fn main() -> anyhow::Result<()> {
             .service(search_course)
             .service(course)
             .service(module)
-            .service(my_modules);
+            .service(my_modules)
+            .service(my_courses);
 
         let should_we_block = true;
         let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
