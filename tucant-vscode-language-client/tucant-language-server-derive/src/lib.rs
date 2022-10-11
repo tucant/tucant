@@ -562,11 +562,11 @@ fn handle_magic() -> syn::Result<TokenStream> {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::String } => {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("{}", value.name);
+                    let name = format_ident!("_{}", value.name);
                     let value: &String = (&value.value).try_into().unwrap();
                     Ok(quote! {
                         #[serde(rename = #value)]
-                        #name:
+                        #name
                     })
                 }).scan(&mut values_err, until_err);
         
