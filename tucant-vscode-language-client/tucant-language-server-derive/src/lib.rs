@@ -6,11 +6,43 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use syn::{parse::Nothing, parse_macro_input, Error, LitStr, token::Brace, Expr};
 
+// this is manually extracted from the metaModel.schema.json (but we should probably generate this at some point)
+// well it contains insufficient information e.g. no default for proposed so we need to probably do this manually
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents a LSP request
+struct Request {
+    /// An optional documentation
+    documentation: Option<String>,
+    /// An optional error data type.
+    error_data: Option<Value>, // Type
+    /// The direction in which this request is sent in the protocol.
+    message_direction: String, // MessageDirection
+    /// The request's method name.
+    method: String,
+    /// The parameter type(s) if any.
+    params: Option<Value>, // Type or Vec<Type> (if we can parse as Vec<Type> always)
+    /// Optional partial result type if the request supports partial result reporting.
+    partial_result: Option<Value>, // Type
+    /// Whether this is a proposed feature. If omitted the feature is final.
+    #[serde(default)]
+    proposed: bool,
+    /// Optional a dynamic registration method if it different from the request's method.
+    registration_method: Option<String>,
+    /// Optional registration options if the request supports dynamic registration.
+    registration_options: Option<Value>, // Type
+    /// The result type.
+    result: Value, // Type
+    /// Since when (release number) this request is available. Is undefined if not known.
+    since: Option<String>
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct MetaModel {
     meta_data: Value,
-    requests: Vec<Value>,
+    requests: Vec<Request>,
     notifications: Vec<Value>,
     structures: Vec<Value>,
     enumerations: Vec<Value>,
