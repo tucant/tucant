@@ -460,9 +460,20 @@ enum TypeKind {
     BooleanLiteral,
 }
 
+// what about letting this return two things, one is the actual return value and the second one is anonymous struct definitions
 fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
     match _type {
-        Type::BaseType(_) => Ok(quote! { () }),
+        Type::BaseType(BaseType { name }) => match name {
+            BaseTypes::Uri => Ok(quote! { String }),
+            BaseTypes::DocumentUri => Ok(quote! { String }),
+            BaseTypes::Integer => Ok(quote! { i64 }),
+            BaseTypes::UnsignedInteger => Ok(quote! { u64 }),
+            BaseTypes::Decimal => Ok(quote! { f64 }),
+            BaseTypes::RegExp => Ok(quote! { String }),
+            BaseTypes::String => Ok(quote! { String }),
+            BaseTypes::Boolean => Ok(quote! { bool }),
+            BaseTypes::Null => Ok(quote! { Null }),
+        },
         Type::ReferenceType(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name);
              Ok(quote! { #name }) 
@@ -474,8 +485,36 @@ fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
         Type::MapType(_) => Ok(quote! { () }),
         Type::AndType(_) => Ok(quote! { () }),
         Type::OrType(_) => Ok(quote! { () }),
-        Type::TupleType(_) => Ok(quote! { () }),
-        Type::StructureLiteralType(_) => Ok(quote! { () }),
+        Type::TupleType(TupleType { items }) => {
+            let mut err = Ok(());
+            let items = items.iter().map(handle_type).scan(&mut err, until_err);
+            let return_value = Ok(quote! {
+                #(#items),*
+            });
+            err?;
+            return_value
+        },
+        Type::StructureLiteralType(StructureLiteralType { value }) => {
+            let mut properties_err = Ok(());
+            let properties = value.properties.iter().map(|property| -> syn::Result<TokenStream> {
+                let name = format_ident!("r#{}", property.name);
+                let converted_type = handle_type(&property._type)?;
+
+                // TODO FIXME optional
+
+                Ok(quote! {
+                    #name: #converted_type,
+                })
+            }).scan(&mut properties_err, until_err);
+
+            let return_value = quote! {
+                struct {
+                    #(#properties)*
+                }
+            };
+            properties_err?;
+            Ok(return_value)
+        },
         Type::StringLiteralType(_) => Ok(quote! { () }),
         Type::IntegerLiteralType(_) => Ok(quote! { () }),
         Type::BooleanLiteralType(_) => Ok(quote! { () }),
@@ -513,10 +552,15 @@ fn handle_magic() -> syn::Result<TokenStream> {
             })
         }).scan(&mut extends_err, until_err);
 
+        // TODO FIXME mixins
+
         let mut properties_err = Ok(());
         let properties = structure.properties.iter().map(|property| -> syn::Result<TokenStream> {
             let name = format_ident!("r#{}", property.name);
             let converted_type = handle_type(&property._type)?;
+
+            // TODO FIXME optional
+
             Ok(quote! {
                 #name: #converted_type,
             })
@@ -536,6 +580,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
         let name = format_ident!("r#{}", enumeration.name);
+        // TODO supports_custom_values
         match enumeration._type {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
                 let mut values_err = Ok(());
