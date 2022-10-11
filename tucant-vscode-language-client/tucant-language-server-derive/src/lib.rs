@@ -460,8 +460,14 @@ enum TypeKind {
 fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
     match _type {
         Type::BaseType(_) => Ok(quote! { () }),
-        Type::ReferenceType(_) => Ok(quote! { () }),
-        Type::ArrayType(_) => Ok(quote! { () }),
+        Type::ReferenceType(ReferenceType { name }) => {
+            let name = format_ident!("{}", name);
+             Ok(quote! { #name }) 
+        },
+        Type::ArrayType(ArrayType { element }) => {
+            let element = handle_type(&element)?;
+            Ok(quote! { Vec<#element> })
+        },
         Type::MapType(_) => Ok(quote! { () }),
         Type::AndType(_) => Ok(quote! { () }),
         Type::OrType(_) => Ok(quote! { () }),
@@ -502,16 +508,27 @@ fn handle_magic() -> syn::Result<TokenStream> {
             let name = format_ident!("extends_{}", i);
             let converted_type = handle_type(_type)?;
             Ok(quote! {
-                #name: #converted_type,
+                #name: #converted_type
             })
         }).scan(&mut err, until_err);
 
+        let mut properties_err = Ok(());
+        let properties = structure.properties.iter().map(|property| -> syn::Result<TokenStream> {
+            let name = format_ident!("{}", property.name);
+            let converted_type = handle_type(&property._type)?;
+            Ok(quote! {
+                #name: #converted_type
+            })
+        }).scan(&mut properties_err, until_err);
+
         let return_value = quote! {
             struct #name {
-                #(#extends)*
+                #(#extends),*
+                #(#properties),*
             }
         };
         err?;
+        properties_err?;
         Ok(return_value)
     }).scan(&mut err, until_err);
     let return_value = Ok(quote! {
