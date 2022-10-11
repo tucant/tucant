@@ -194,6 +194,7 @@ struct MetaData {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 /// The actual meta model.
 struct MetaModel {
     /// The enumerations.
@@ -210,6 +211,64 @@ struct MetaModel {
     type_aliases: Vec<Value> // TypeAlias
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents a LSP notification
+struct Notification {
+    /// An optional documentation
+    documentation: Option<String>,
+    /// The direction in which this notification is sent in the protocol.
+    message_direction: MessageDirection,
+    /// The request's method name.
+    method: String,
+    /// The parameter type(s) if any.
+    params: Value, // Type or Vec<Type> or None
+    /// Whether this is a proposed notification. If omitted the notification is final.
+    #[serde(default)]
+    proposed: bool,
+    /// Optional a dynamic registration method if it different from the request's method.
+    registration_method: String,
+    /// Optional registration options if the notification supports dynamic registration.
+    registration_options: Type,
+    /// Since when (release number) this notification is available. Is undefined if not known.
+    since: String
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents an `or` type (e.g. `Location | LocationLink`).
+/// kind = "or"
+struct OrType {
+    items: Vec<Type>,
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents an object property.
+struct Property {
+    /// An optional documentation.
+    documentation: String,
+    /// The property name;
+    name: String,
+    /// Whether the property is optional. If omitted, the property is mandatory.
+    #[serde(default)]
+    optional: bool,
+    /// Whether this is a proposed property. If omitted, the structure is final.
+    #[serde(default)]
+    proposed: bool,
+    /// Since when (release number) this property is available. Is undefined if not known.
+    since: String,
+    /// The type of the property
+    #[serde(rename = "type")]
+    _type: Type
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
@@ -222,10 +281,94 @@ struct ReferenceType {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
+/// Represents a LSP request
+struct Request {
+    /// An optional documentation
+    documentation: Option<String>,
+    /// An optional error data type.
+    error_data: Option<Type>,
+    /// The direction in which this request is sent in the protocol.
+    message_direction: String, // MessageDirection
+    /// The request's method name.
+    method: String,
+    /// The parameter type(s) if any.
+    params: Option<Value>, // Type or Vec<Type> (if we can parse as Vec<Type> always)
+    /// Optional partial result type if the request supports partial result reporting.
+    partial_result: Option<Type>,
+    /// Whether this is a proposed feature. If omitted the feature is final.
+    #[serde(default)]
+    proposed: bool,
+    /// Optional a dynamic registration method if it different from the request's method.
+    registration_method: Option<String>,
+    /// Optional registration options if the request supports dynamic registration.
+    registration_options: Option<Type>,
+    /// The result type.
+    result: Type,
+    /// Since when (release number) this request is available. Is undefined if not known.
+    since: Option<String>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 /// Represents a string literal type (e.g. `kind: 'rename'`).
 /// kind = "stringLiteral"
 struct StringLiteralType {
     value: String
+}
+
+/// Defines the structure of an object literal.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct Structure {
+    /// An optional documentation
+    documentation: String,
+    /// Structures extended from. This structures form a polymorphic type hierarchy.
+    extends: Vec<Type>,
+    /// Structures to mix in. The properties of these structures are `copied` into this structure. Mixins don't form a polymorphic type hierarchy in LSP.
+    mixins: Vec<Type>,
+    /// The name of the structure.
+    name: String,
+    /// The properties.
+    properties: Vec<Property>,
+    /// Whether this is a proposed structure. If omitted, the structure is final.
+    proposed: bool,
+    /// Since when (release number) this structure is available. Is undefined if not known.
+    since: String,
+}
+
+/// Defines a unnamed structure of an object literal.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct StructureLiteral {
+    /// An optional documentation
+    documentation: String,
+    /// The properties.
+    properties: Vec<Property>,
+    /// Whether this is a proposed structure. If omitted, the structure is final.
+    proposed: bool,
+    /// Since when (release number) this structure is available. Is undefined if not known.
+    since: String,
+}
+
+/// Represents a literal structure (e.g. `property: { start: uinteger; end: uinteger; }`).
+/// kind = "literal"
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct StructureLiteralType {
+    value: StructureLiteral,
+}
+
+/// Represents a `tuple` type (e.g. `[integer, integer]`).
+/// kind = "tuple"
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct TupleType {
+    items: Vec<Type>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -234,7 +377,27 @@ enum Type {
     BaseType(BaseType),
     StringLiteralType(StringLiteralType),
     IntegerLiteralType(IntegerLiteralType),
-    BooleanLiteralType(BooleanLiteralType)
+    BooleanLiteralType(BooleanLiteralType),
+    // TODO FIXME
+}
+
+/// Defines a type alias. (e.g. `type Definition = Location | LocationLink`)
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct TypeAlias {
+    /// An optional documentation.
+    documentation: String,
+    /// The name of the type alias.
+    name: String,
+    /// Whether this is a proposed type alias. If omitted, the type alias is final.
+    #[serde(default)]
+    proposed: bool,
+    /// Since when (release number) this structure is available. Is undefined if not known.
+    since: String,
+    /// The aliased type.
+    #[serde(rename = "type")]
+    _type: Type,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -261,36 +424,6 @@ enum TypeKind {
     IntegerLiteral,
     #[serde(rename = "booleanLiteral")]
     BooleanLiteral,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-/// Represents a LSP request
-struct Request {
-    /// An optional documentation
-    documentation: Option<String>,
-    /// An optional error data type.
-    error_data: Option<Value>, // Type
-    /// The direction in which this request is sent in the protocol.
-    message_direction: String, // MessageDirection
-    /// The request's method name.
-    method: String,
-    /// The parameter type(s) if any.
-    params: Option<Value>, // Type or Vec<Type> (if we can parse as Vec<Type> always)
-    /// Optional partial result type if the request supports partial result reporting.
-    partial_result: Option<Value>, // Type
-    /// Whether this is a proposed feature. If omitted the feature is final.
-    #[serde(default)]
-    proposed: bool,
-    /// Optional a dynamic registration method if it different from the request's method.
-    registration_method: Option<String>,
-    /// Optional registration options if the request supports dynamic registration.
-    registration_options: Option<Value>, // Type
-    /// The result type.
-    result: Value, // Type
-    /// Since when (release number) this request is available. Is undefined if not known.
-    since: Option<String>
 }
 
 fn handle_lit_fn() -> syn::Result<TokenStream> {
