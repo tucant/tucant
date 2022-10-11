@@ -464,7 +464,7 @@ fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
     match _type {
         Type::BaseType(_) => Ok(quote! { () }),
         Type::ReferenceType(ReferenceType { name }) => {
-            let name = format_ident!("{}", name);
+            let name = format_ident!("_{}", name);
              Ok(quote! { #name }) 
         },
         Type::ArrayType(ArrayType { element }) => {
@@ -498,36 +498,34 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let meta_model: MetaModel = serde_json::from_reader(file)
     .expect("file should be proper JSON");
 
-    println!("structures: {:?}", meta_model.structures);
-
     // most important part is json.requests
 
     let mut structures_err = Ok(());
     let structures = meta_model.structures.iter().map(|structure| -> syn::Result<TokenStream> {
-        let name = format_ident!("{}", structure.name);
+        let name = format_ident!("_{}", structure.name);
 
         let mut extends_err = Ok(());
         let extends = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<TokenStream> {
-            let name = format_ident!("extends_{}", i);
+            let name = format_ident!("_{}", i);
             let converted_type = handle_type(_type)?;
             Ok(quote! {
-                #name: #converted_type
+                #name: #converted_type,
             })
         }).scan(&mut extends_err, until_err);
 
         let mut properties_err = Ok(());
         let properties = structure.properties.iter().map(|property| -> syn::Result<TokenStream> {
-            let name = format_ident!("{}", property.name);
+            let name = format_ident!("_{}", property.name);
             let converted_type = handle_type(&property._type)?;
             Ok(quote! {
-                #name: #converted_type
+                #name: #converted_type,
             })
         }).scan(&mut properties_err, until_err);
 
         let return_value = quote! {
             struct #name {
-                #(#extends),*
-                #(#properties),*
+                #(#extends)*
+                #(#properties)*
             }
         };
         extends_err?;
@@ -537,15 +535,15 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
-        let name = format_ident!("{}", enumeration.name);
+        let name = format_ident!("_{}", enumeration.name);
         match enumeration._type {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("{}", value.name);
+                    let name = format_ident!("_{}", value.name);
                     let value: &i64 = (&value.value).try_into().unwrap();
                     Ok(quote! {
-                        #name = #value
+                        #name = #value,
                     })
                 }).scan(&mut values_err, until_err);
         
@@ -553,7 +551,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                     #[derive(Serialize_repr, Deserialize_repr, Debug)]
                     #[repr(i64)]
                     enum #name {
-                        #(#values),*
+                        #(#values)*
                     }
                 };
                 values_err?;
@@ -566,14 +564,14 @@ fn handle_magic() -> syn::Result<TokenStream> {
                     let value: &String = (&value.value).try_into().unwrap();
                     Ok(quote! {
                         #[serde(rename = #value)]
-                        #name
+                        #name,
                     })
                 }).scan(&mut values_err, until_err);
         
-                let return_value = quote! {     
+                let return_value = quote! {
                     #[derive(Serialize, Deserialize, Debug)]
                     enum #name {
-                        #(#values),*
+                        #(#values)*
                     }
                 };
                 values_err?;
