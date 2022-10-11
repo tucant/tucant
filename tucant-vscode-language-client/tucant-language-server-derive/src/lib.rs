@@ -580,13 +580,23 @@ fn handle_magic() -> syn::Result<TokenStream> {
         }
     }).scan(&mut enumerations_err, until_err);
 
+    let mut type_aliases_err = Ok(());
+    let type_aliases = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<TokenStream> {
+        let name = format_ident!("_{}", type_alias.name);
+        let converted_type = handle_type(&type_alias._type)?;
+        Ok(quote! {
+            type #name = #converted_type;
+        })
+    }).scan(&mut type_aliases_err, until_err);
 
     let return_value = Ok(quote! {
         #(#structures)*
         #(#enumerations)*
+        #(#type_aliases)*
     });
     structures_err?;
     enumerations_err?;
+    type_aliases_err?;
     return_value
 }
 
