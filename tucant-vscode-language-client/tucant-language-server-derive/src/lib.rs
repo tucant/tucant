@@ -4,9 +4,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use syn::{parse::Nothing, parse_macro_input, Error, LitStr, token::Brace, Expr};
+use syn::{parse::Nothing, parse_macro_input, Error, LitStr, token::{Brace, Enum}, Expr};
 
-// Try https://crates.io/crates/schemafy
+// Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
 
 // this is manually extracted from the metaModel.schema.json (but we should probably generate this at some point)
 // well it contains insufficient information e.g. no default for proposed so we need to probably do this manually
@@ -142,6 +142,38 @@ struct IntegerLiteralType {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+enum UriOrDocumentUriOrStringOrInteger {
+    #[serde(rename = "URI")]
+    Uri,
+    #[serde(rename = "DocumentUri")]
+    DocumentUri,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "string")]
+    String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "kind")]
+/// Represents a type that can be used as a key in a map type. If a reference type is used then the type must either resolve to a `string` or `integer` type. (e.g. `type ChangeAnnotationIdentifier === string`).
+enum MapKeyType {
+    Base {
+        name: UriOrDocumentUriOrStringOrInteger,
+    },
+    Reference(ReferenceType),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents a JSON object map (e.g. `interface Map<K extends string | integer, V> { [key: K] => V; }`).
+/// kind = "map"
+struct MapType {
+    key: MapKeyType,
+    value: Type,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 /// Indicates in which direction a message is sent in the protocol.
 enum MessageDirection {
     #[serde(rename = "clientToServer")]
@@ -152,7 +184,6 @@ enum MessageDirection {
     Both
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
@@ -161,6 +192,23 @@ struct MetaData {
     version: String
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+/// The actual meta model.
+struct MetaModel {
+    /// The enumerations.
+    enumerations: Vec<Enumeration>,
+    /// Additional meta data.
+    meta_data: Value,
+    /// The notifications.
+    notifications: Vec<Value>, // Notification
+    /// The requests.
+    requests: Vec<Request>,
+    /// The structures.
+    structures: Vec<Value>, // Structure
+    /// The type aliases.
+    type_aliases: Vec<Value> // TypeAlias
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -243,17 +291,6 @@ struct Request {
     result: Value, // Type
     /// Since when (release number) this request is available. Is undefined if not known.
     since: Option<String>
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct MetaModel {
-    meta_data: Value,
-    requests: Vec<Request>,
-    notifications: Vec<Value>,
-    structures: Vec<Value>,
-    enumerations: Vec<Value>,
-    type_aliases: Vec<Value>
 }
 
 fn handle_lit_fn() -> syn::Result<TokenStream> {
