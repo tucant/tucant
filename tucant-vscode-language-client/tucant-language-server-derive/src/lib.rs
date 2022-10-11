@@ -83,6 +83,7 @@ struct Enumeration {
     /// Since when (release number) this enumeration is available. Is undefined if not known.
     since: Option<String>,
     /// Whether the enumeration supports custom values (e.g. values which are not part of the set defined in `values`). If omitted no custom values are supported.
+    #[serde(default)]
     supports_custom_values: bool,
     /// The type of the elements.
     #[serde(rename = "type")]
@@ -127,11 +128,10 @@ enum StringOrIntegerOrUnsignedIntegerLiteral {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-/// kind = "base"
-struct EnumerationType {
-    name: StringOrIntegerOrUnsignedIntegerLiteral
+#[serde(tag = "kind")]
+enum EnumerationType {
+    #[serde(rename = "base")]
+    Base { name: StringOrIntegerOrUnsignedIntegerLiteral }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
