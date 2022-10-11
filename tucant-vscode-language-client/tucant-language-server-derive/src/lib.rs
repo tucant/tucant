@@ -75,6 +75,72 @@ struct EnumerationEntry {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+enum StringOrIntegerOrUnsignedIntegerLiteral {
+    #[serde(rename = "string")]
+    String,
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "uinteger")]
+    UnsignedInteger
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// kind = "base"
+struct EnumerationType {
+    name: StringOrIntegerOrUnsignedIntegerLiteral
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents an integer literal type (e.g. `kind: 1`).
+/// kind = "integerLiteral"
+struct IntegerLiteralType {
+    value: i64
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+/// Indicates in which direction a message is sent in the protocol.
+enum MessageDirection {
+    #[serde(rename = "clientToServer")]
+    ClientToServer,
+    #[serde(rename = "serverToClient")]
+    ServerToClient,
+    #[serde(rename = "both")]
+    Both
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+struct MetaData {
+    /// The protocol version.
+    version: String
+}
+
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents a reference to another type (e.g. `TextDocument`). This is either a `Structure`, a `Enumeration` or a `TypeAlias` in the same meta model.
+/// kind = "reference"
+struct ReferenceType {
+    name: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Represents a string literal type (e.g. `kind: 'rename'`).
+/// kind = "stringLiteral"
+struct StringLiteralType {
+    value: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 /// Represents a LSP request
