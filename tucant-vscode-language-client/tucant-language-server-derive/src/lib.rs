@@ -3,8 +3,7 @@ use std::fs;
 use proc_macro2::TokenStream;
 use quote::quote;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use syn::{parse::Nothing, parse_macro_input, Error, LitStr, token::{Brace, Enum}, Expr};
+use syn::{parse::Nothing, parse_macro_input, Error};
 
 // Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
 
@@ -22,6 +21,9 @@ struct AndType {
 
 /// Represents an array type (e.g. `TextDocument[]`).
 /// kind = "array"
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
 struct ArrayType {
     element: Type,
 }
@@ -200,17 +202,23 @@ struct MetaModel {
     /// The enumerations.
     enumerations: Vec<Enumeration>,
     /// Additional meta data.
-    meta_data: Value,
+    meta_data: MetaData,
     /// The notifications.
-    notifications: Vec<Value>, // Notification
+    notifications: Vec<Notification>,
     /// The requests.
     requests: Vec<Request>,
     /// The structures.
-    structures: Vec<Value>, // Structure
+    structures: Vec<Structure>,
     /// The type aliases.
-    type_aliases: Vec<Value> // TypeAlias
+    type_aliases: Vec<TypeAlias>
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+enum TypeOrVecType {
+    Type(Type),
+    VecType(Vec<Type>),
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -224,7 +232,7 @@ struct Notification {
     /// The request's method name.
     method: String,
     /// The parameter type(s) if any.
-    params: Value, // Type or Vec<Type> or None
+    params: TypeOrVecType,
     /// Whether this is a proposed notification. If omitted the notification is final.
     #[serde(default)]
     proposed: bool,
@@ -292,7 +300,7 @@ struct Request {
     /// The request's method name.
     method: String,
     /// The parameter type(s) if any.
-    params: Option<Value>, // Type or Vec<Type> (if we can parse as Vec<Type> always)
+    params: Option<TypeOrVecType>,
     /// Optional partial result type if the request supports partial result reporting.
     partial_result: Option<Type>,
     /// Whether this is a proposed feature. If omitted the feature is final.
@@ -375,10 +383,17 @@ struct TupleType {
 #[serde(tag = "kind")]
 enum Type {
     BaseType(BaseType),
+    ReferenceType(ReferenceType),
+    ArrayType(ArrayType),
+    MapType(MapType),
+    AndType(AndType),
+    OrType(OrType),
+    TupleType(TupleType),
+    StructureLiteralType(StringLiteralType),
     StringLiteralType(StringLiteralType),
     IntegerLiteralType(IntegerLiteralType),
     BooleanLiteralType(BooleanLiteralType),
-    // TODO FIXME
+
 }
 
 /// Defines a type alias. (e.g. `type Definition = Location | LocationLink`)
