@@ -1,7 +1,7 @@
 use std::fs;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, format_ident};
 use serde::{Deserialize, Serialize};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
@@ -459,19 +459,24 @@ enum TypeKind {
 fn handle_lit_fn() -> syn::Result<TokenStream> {
     let file = fs::File::open("src/metaModel.json")
     .expect("file should open read only");
-    let json: MetaModel = serde_json::from_reader(file)
+    let meta_model: MetaModel = serde_json::from_reader(file)
     .expect("file should be proper JSON");
 
-    println!("test: {:?}", json);
+    println!("structures: {:?}", meta_model.structures);
+
+    // most important part is json.requests
+
+    let structures = meta_model.structures.iter().map(|structure| {
+        let name = format_ident!("{}", structure.name);
+        quote! {
+            struct #name {
+
+            }
+        }
+    });
 
     Ok(quote! {
-        pub fn dsfsf() {
-
-        }
-
-        struct test {
-            
-        }
+        #(#structures)*
     })
 }
 
