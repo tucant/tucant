@@ -564,9 +564,9 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
                     let name = format_ident!("{}", value.name);
                     let value: &String = (&value.value).try_into().unwrap();
-                    let value = format_ident!("{}", value);
                     Ok(quote! {
-                        #name: #value
+                        #[serde(rename = #value)]
+                        #name:
                     })
                 }).scan(&mut values_err, until_err);
         
