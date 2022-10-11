@@ -25,7 +25,7 @@ struct AndType {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 struct ArrayType {
-    element: Type,
+    element: Box<Type>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -111,7 +111,7 @@ struct EnumerationEntry {
     #[serde(default)]
     proposed: bool,
     /// Since when (release number) this enumeration entry is available. Is undefined if not known.
-    since: String,
+    since: Option<String>,
     /// The value.
     value: StringOrNumber
 }
@@ -159,9 +159,11 @@ enum UriOrDocumentUriOrStringOrInteger {
 #[serde(tag = "kind")]
 /// Represents a type that can be used as a key in a map type. If a reference type is used then the type must either resolve to a `string` or `integer` type. (e.g. `type ChangeAnnotationIdentifier === string`).
 enum MapKeyType {
+    #[serde(rename = "base")]
     Base {
         name: UriOrDocumentUriOrStringOrInteger,
     },
+    #[serde(rename = "reference")]
     Reference(ReferenceType),
 }
 
@@ -172,7 +174,7 @@ enum MapKeyType {
 /// kind = "map"
 struct MapType {
     key: MapKeyType,
-    value: Type,
+    value: Box<Type>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -232,16 +234,16 @@ struct Notification {
     /// The request's method name.
     method: String,
     /// The parameter type(s) if any.
-    params: TypeOrVecType,
+    params: Option<TypeOrVecType>,
     /// Whether this is a proposed notification. If omitted the notification is final.
     #[serde(default)]
     proposed: bool,
     /// Optional a dynamic registration method if it different from the request's method.
-    registration_method: String,
+    registration_method: Option<String>,
     /// Optional registration options if the notification supports dynamic registration.
-    registration_options: Type,
+    registration_options: Option<Type>,
     /// Since when (release number) this notification is available. Is undefined if not known.
-    since: String
+    since: Option<String>
 }
 
 
@@ -261,7 +263,7 @@ struct OrType {
 /// Represents an object property.
 struct Property {
     /// An optional documentation.
-    documentation: String,
+    documentation: Option<String>,
     /// The property name;
     name: String,
     /// Whether the property is optional. If omitted, the property is mandatory.
@@ -271,7 +273,7 @@ struct Property {
     #[serde(default)]
     proposed: bool,
     /// Since when (release number) this property is available. Is undefined if not known.
-    since: String,
+    since: Option<String>,
     /// The type of the property
     #[serde(rename = "type")]
     _type: Type
@@ -331,19 +333,20 @@ struct StringLiteralType {
 #[serde(deny_unknown_fields)]
 struct Structure {
     /// An optional documentation
-    documentation: String,
+    documentation: Option<String>,
     /// Structures extended from. This structures form a polymorphic type hierarchy.
-    extends: Vec<Type>,
+    extends: Option<Vec<Type>>,
     /// Structures to mix in. The properties of these structures are `copied` into this structure. Mixins don't form a polymorphic type hierarchy in LSP.
-    mixins: Vec<Type>,
+    mixins: Option<Vec<Type>>,
     /// The name of the structure.
     name: String,
     /// The properties.
     properties: Vec<Property>,
     /// Whether this is a proposed structure. If omitted, the structure is final.
+    #[serde(default)]
     proposed: bool,
     /// Since when (release number) this structure is available. Is undefined if not known.
-    since: String,
+    since: Option<String>,
 }
 
 /// Defines a unnamed structure of an object literal.
@@ -352,13 +355,14 @@ struct Structure {
 #[serde(deny_unknown_fields)]
 struct StructureLiteral {
     /// An optional documentation
-    documentation: String,
+    documentation: Option<String>,
     /// The properties.
     properties: Vec<Property>,
     /// Whether this is a proposed structure. If omitted, the structure is final.
+    #[serde(default)]
     proposed: bool,
     /// Since when (release number) this structure is available. Is undefined if not known.
-    since: String,
+    since: Option<String>,
 }
 
 /// Represents a literal structure (e.g. `property: { start: uinteger; end: uinteger; }`).
@@ -382,16 +386,27 @@ struct TupleType {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "kind")]
 enum Type {
+    #[serde(rename = "base")]
     BaseType(BaseType),
+    #[serde(rename = "reference")]
     ReferenceType(ReferenceType),
+    #[serde(rename = "array")]
     ArrayType(ArrayType),
+    #[serde(rename = "map")]
     MapType(MapType),
+    #[serde(rename = "and")]
     AndType(AndType),
+    #[serde(rename = "or")]
     OrType(OrType),
+    #[serde(rename = "tuple")]
     TupleType(TupleType),
-    StructureLiteralType(StringLiteralType),
+    #[serde(rename = "literal")]
+    StructureLiteralType(StructureLiteralType),
+    #[serde(rename = "stringLiteral")]
     StringLiteralType(StringLiteralType),
+    #[serde(rename = "integerLiteral")]
     IntegerLiteralType(IntegerLiteralType),
+    #[serde(rename = "booleanLiteral")]
     BooleanLiteralType(BooleanLiteralType),
 
 }
@@ -402,14 +417,14 @@ enum Type {
 #[serde(deny_unknown_fields)]
 struct TypeAlias {
     /// An optional documentation.
-    documentation: String,
+    documentation: Option<String>,
     /// The name of the type alias.
     name: String,
     /// Whether this is a proposed type alias. If omitted, the type alias is final.
     #[serde(default)]
     proposed: bool,
     /// Since when (release number) this structure is available. Is undefined if not known.
-    since: String,
+    since: Option<String>,
     /// The aliased type.
     #[serde(rename = "type")]
     _type: Type,
