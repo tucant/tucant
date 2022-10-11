@@ -1,8 +1,10 @@
 use std::fs;
 
+use derive_more::TryInto;
 use proc_macro2::TokenStream;
 use quote::{quote, format_ident};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Serialize_repr, Deserialize_repr};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
 // Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
@@ -92,7 +94,7 @@ struct Enumeration {
     values: Vec<EnumerationEntry>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, TryInto)]
 #[serde(untagged)]
 enum StringOrNumber {
     String(String),
@@ -531,6 +533,37 @@ fn handle_magic() -> syn::Result<TokenStream> {
         properties_err?;
         Ok(return_value)
     }).scan(&mut err, until_err);
+
+    // TODO FIXME important: enumerations
+    let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
+        let name = format_ident!("{}", enumeration.name);
+        match enumeration._type {
+            EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
+
+            },
+            EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::String } => {
+                let mut values_err = Ok(());
+                let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
+                    let name = format_ident!("{}", value.name);
+                    let value = format_ident!("{}", value.value.try_into().unwrap());
+                    Ok(quote! {
+                        #name: #value
+                    })
+                }).scan(&mut values_err, until_err);
+        
+                let return_value = quote! {     
+                    #[derive(Serialize, Deserialize, Debug)]
+                    enum #name {
+                        #(#values),*
+                    }
+                };
+                values_err?;
+                Ok(return_value)
+            },
+        }
+    });
+
+
     let return_value = Ok(quote! {
         #(#structures)*
     });
