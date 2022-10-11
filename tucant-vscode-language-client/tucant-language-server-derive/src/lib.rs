@@ -335,7 +335,8 @@ struct Structure {
     /// An optional documentation
     documentation: Option<String>,
     /// Structures extended from. This structures form a polymorphic type hierarchy.
-    extends: Option<Vec<Type>>,
+    #[serde(default)]
+    extends: Vec<Type>,
     /// Structures to mix in. The properties of these structures are `copied` into this structure. Mixins don't form a polymorphic type hierarchy in LSP.
     mixins: Option<Vec<Type>>,
     /// The name of the structure.
@@ -456,7 +457,33 @@ enum TypeKind {
     BooleanLiteral,
 }
 
-fn handle_lit_fn() -> syn::Result<TokenStream> {
+fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
+    match _type {
+        Type::BaseType(_) => Ok(quote! { () }),
+        Type::ReferenceType(_) => Ok(quote! { () }),
+        Type::ArrayType(_) => Ok(quote! { () }),
+        Type::MapType(_) => Ok(quote! { () }),
+        Type::AndType(_) => Ok(quote! { () }),
+        Type::OrType(_) => Ok(quote! { () }),
+        Type::TupleType(_) => Ok(quote! { () }),
+        Type::StructureLiteralType(_) => Ok(quote! { () }),
+        Type::StringLiteralType(_) => Ok(quote! { () }),
+        Type::IntegerLiteralType(_) => Ok(quote! { () }),
+        Type::BooleanLiteralType(_) => Ok(quote! { () }),
+    }
+}
+
+fn until_err<T, E>(err: &mut &mut Result<(), E>, item: Result<T, E>) -> Option<T> {
+    match item {
+        Ok(item) => Some(item),
+        Err(e) => {
+            **err = Err(e);
+            None
+        }
+    }
+}
+
+fn handle_magic() -> syn::Result<TokenStream> {
     let file = fs::File::open("src/metaModel.json")
     .expect("file should open read only");
     let meta_model: MetaModel = serde_json::from_reader(file)
@@ -466,25 +493,40 @@ fn handle_lit_fn() -> syn::Result<TokenStream> {
 
     // most important part is json.requests
 
-    let structures = meta_model.structures.iter().map(|structure| {
+    let mut err = Ok(());
+    let structures = meta_model.structures.iter().map(|structure| -> syn::Result<TokenStream> {
         let name = format_ident!("{}", structure.name);
-        quote! {
+
+        let mut err = Ok(());
+        let extends = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<TokenStream> {
+            let name = format_ident!("extends_{}", i);
+            let converted_type = handle_type(_type)?;
+            Ok(quote! {
+                #name: #converted_type,
+            })
+        }).scan(&mut err, until_err);
+
+        let return_value = quote! {
             struct #name {
-
+                #(#extends)*
             }
-        }
-    });
-
-    Ok(quote! {
+        };
+        err?;
+        Ok(return_value)
+    }).scan(&mut err, until_err);
+    let return_value = Ok(quote! {
         #(#structures)*
-    })
+    });
+    err?;
+    return_value
 }
 
 // cargo expand --test meta_model
+// cargo doc --document-private-items
 #[proc_macro]
 pub fn magic(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // TODO FIXME I think this parses weird
     let input = parse_macro_input!(item as Nothing);
 
-    proc_macro::TokenStream::from(handle_lit_fn().unwrap_or_else(Error::into_compile_error))
+    proc_macro::TokenStream::from(handle_magic().unwrap_or_else(Error::into_compile_error))
 }
