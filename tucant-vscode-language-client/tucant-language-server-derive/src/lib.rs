@@ -95,6 +95,7 @@ struct Enumeration {
 }
 
 #[derive(Serialize, Deserialize, Debug, TryInto)]
+#[try_into(owned, ref)]
 #[serde(untagged)]
 enum StringOrNumber {
     String(String),
@@ -501,18 +502,18 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
     // most important part is json.requests
 
-    let mut err = Ok(());
+    let mut structures_err = Ok(());
     let structures = meta_model.structures.iter().map(|structure| -> syn::Result<TokenStream> {
         let name = format_ident!("{}", structure.name);
 
-        let mut err = Ok(());
+        let mut extends_err = Ok(());
         let extends = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<TokenStream> {
             let name = format_ident!("extends_{}", i);
             let converted_type = handle_type(_type)?;
             Ok(quote! {
                 #name: #converted_type
             })
-        }).scan(&mut err, until_err);
+        }).scan(&mut extends_err, until_err);
 
         let mut properties_err = Ok(());
         let properties = structure.properties.iter().map(|property| -> syn::Result<TokenStream> {
@@ -529,23 +530,41 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 #(#properties),*
             }
         };
-        err?;
+        extends_err?;
         properties_err?;
         Ok(return_value)
-    }).scan(&mut err, until_err);
+    }).scan(&mut structures_err, until_err);
 
-    // TODO FIXME important: enumerations
+    let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
         let name = format_ident!("{}", enumeration.name);
         match enumeration._type {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
-
+                let mut values_err = Ok(());
+                let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
+                    let name = format_ident!("{}", value.name);
+                    let value: &i64 = (&value.value).try_into().unwrap();
+                    Ok(quote! {
+                        #name = #value
+                    })
+                }).scan(&mut values_err, until_err);
+        
+                let return_value = quote! {     
+                    #[derive(Serialize_repr, Deserialize_repr, Debug)]
+                    #[repr(i64)]
+                    enum #name {
+                        #(#values),*
+                    }
+                };
+                values_err?;
+                Ok(return_value)
             },
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::String } => {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
                     let name = format_ident!("{}", value.name);
-                    let value = format_ident!("{}", value.value.try_into().unwrap());
+                    let value: &String = (&value.value).try_into().unwrap();
+                    let value = format_ident!("{}", value);
                     Ok(quote! {
                         #name: #value
                     })
@@ -561,13 +580,15 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 Ok(return_value)
             },
         }
-    });
+    }).scan(&mut enumerations_err, until_err);
 
 
     let return_value = Ok(quote! {
         #(#structures)*
+        #(#enumerations)*
     });
-    err?;
+    structures_err?;
+    enumerations_err?;
     return_value
 }
 
