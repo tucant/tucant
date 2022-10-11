@@ -548,7 +548,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {     
-                    #[derive(Serialize_repr, Deserialize_repr, Debug)]
+                    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
                     #[repr(i64)]
                     enum #name {
                         #(#values)*
@@ -569,7 +569,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {
-                    #[derive(Serialize, Deserialize, Debug)]
+                    #[derive(serde::Serialize, serde::Deserialize, Debug)]
                     enum #name {
                         #(#values)*
                     }
