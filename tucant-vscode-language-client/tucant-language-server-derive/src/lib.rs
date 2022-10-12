@@ -5,7 +5,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, format_ident};
 use serde::{Deserialize, Serialize};
 
-use sha3::{Sha3_512, Digest};
+use sha3::{Sha3_512, Digest, Sha3_224};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
 // Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
@@ -483,29 +483,67 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             let (element, rest) = handle_type(element)?;
             Ok((quote! { Vec<#element> }, quote! { #rest }))
         },
-        Type::MapType(_) => Ok((quote! { () }, quote! {})),
+        Type::MapType(MapType { key, value }) => {
+            let (value_type, value_rest) = handle_type(value)?;
+            let key_type = match key {
+                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Uri } => quote! { String },
+                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::DocumentUri } => quote! { String },
+                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::String } => quote! { String },
+                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Integer } => quote! { i64 },
+                MapKeyType::Reference(ReferenceType { name }) => {
+                    let name = format_ident!("r#{}", name);
+                    quote! { #name }
+                },
+            };
+            Ok((quote! { ::std::collections::HashMap<#key_type, #value_type> }, quote! { #value_rest }))
+        },
         Type::AndType(_) => Ok((quote! { () }, quote! {})),
-        Type::OrType(_) => Ok((quote! { () }, quote! {})),
+        Type::OrType(OrType { items }) => {
+            let mut hasher = Sha3_224::new();
+            hasher.update(format!("{:?}", items));
+            hasher.update(rand::random::<[u8; 32]>());
+            let result = hasher.finalize();
+            let result = hex::encode(result);
+            let name = format_ident!("_{}", result);
+
+            let mut err = Ok(());
+            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().enumerate().map(|(i, item)| -> syn::Result<(TokenStream, TokenStream)> {
+                let (item_type, item_rest) = handle_type(item)?;
+                let name = format_ident!("_{}", i);
+                Ok((quote! {
+                    #name(#item_type),
+                }, quote! { #item_rest }))
+            }).scan(&mut err, until_err).unzip();
+            let return_value = Ok((quote! {
+                #name
+            }, quote! {
+                enum #name {
+                    #(#items)*
+                }
+                #(#rests)*
+            }));
+            err?;
+            return_value
+        },
         Type::TupleType(TupleType { items }) => {
             let mut err = Ok(());
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(handle_type).scan(&mut err, until_err).unzip();
             let return_value = Ok((quote! {
-                #(#items),*
+                (#(#items),*)
             }, quote! {
-                #(#rests),*
+                #(#rests)*
             }));
             err?;
             return_value
         },
         Type::StructureLiteralType(StructureLiteralType { value }) => {
-            let mut hasher = Sha3_512::new();
+            let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", value));
             hasher.update(rand::random::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
-
-            // based on the hash of the debug value of the json?
             let name = format_ident!("_{}", result);
+
             let mut properties_err = Ok(());
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                 let name = format_ident!("r#{}", property.name);
@@ -529,9 +567,9 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             properties_err?;
             Ok(return_value)
         },
-        Type::StringLiteralType(_) => Ok((quote! { () }, quote! {})),
-        Type::IntegerLiteralType(_) => Ok((quote! { () }, quote! {})),
-        Type::BooleanLiteralType(_) => Ok((quote! { () }, quote! {})),
+        Type::StringLiteralType(StringLiteralType { value }) => Ok((quote! { () }, quote! {})),
+        Type::IntegerLiteralType(IntegerLiteralType { value }) => Ok((quote! { () }, quote! {})),
+        Type::BooleanLiteralType(BooleanLiteralType { value }) => Ok((quote! { () }, quote! {})),
     }
 }
 
@@ -607,7 +645,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {     
-                    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
+                    //#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
                     #[repr(i64)]
                     enum #name {
                         #(#values)*
@@ -622,13 +660,13 @@ fn handle_magic() -> syn::Result<TokenStream> {
                     let name = format_ident!("r#{}", value.name);
                     let value: &String = (&value.value).try_into().unwrap();
                     Ok(quote! {
-                        #[serde(rename = #value)]
+                        //#[serde(rename = #value)]
                         #name,
                     })
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {
-                    #[derive(serde::Serialize, serde::Deserialize, Debug)]
+                    //#[derive(serde::Serialize, serde::Deserialize, Debug)]
                     enum #name {
                         #(#values)*
                     }
