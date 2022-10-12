@@ -1,7 +1,7 @@
-use std::env;
+
 use clap::Parser;
 use itertools::Itertools;
-use tokio::{fs::File, io::{BufWriter, self, AsyncWriteExt, BufStream, AsyncBufReadExt, AsyncReadExt}, net::UnixStream};
+use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt}, net::UnixStream};
 use tucant_language_server_derive::magic;
 
 magic!();
@@ -38,7 +38,7 @@ async fn main() -> io::Result<()> {
 
         let length_string = std::str::from_utf8(value).unwrap().trim();
 
-        let length: usize = length_string.parse().unwrap();
+        let length = length_string.parse::<usize>().unwrap() + 2;
 
         buf.resize(length, 0);
 
@@ -49,8 +49,8 @@ async fn main() -> io::Result<()> {
         let request: Requests = serde_json::from_slice(&buf)?;
 
         match request {
-            Requests::InitializeRequest(initializeRequest) => {
-                println!("got an initialize {:?}", initializeRequest);
+            Requests::InitializeRequest(initialize_request) => {
+                println!("got an initialize {:?}", initialize_request);
             }
             _ => panic!("unknown request")
         }
