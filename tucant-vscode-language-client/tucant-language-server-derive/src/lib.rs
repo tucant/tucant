@@ -346,7 +346,8 @@ struct Structure {
     #[serde(default)]
     extends: Vec<Type>,
     /// Structures to mix in. The properties of these structures are `copied` into this structure. Mixins don't form a polymorphic type hierarchy in LSP.
-    mixins: Option<Vec<Type>>,
+    #[serde(default)]
+    mixins: Vec<Type>,
     /// The name of the structure.
     name: String,
     /// The properties.
@@ -552,12 +553,14 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
 
             let mut properties_err = Ok(());
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
+                let name_text = &property.name;
                 let name = format_ident!("r#{}", property.name.to_snake_case());
                 let (converted_type, rest) = handle_type(random, &property._type)?;
 
                 // TODO FIXME optional
 
                 Ok((quote! {
+                    #[serde(rename = #name_text)]
                     #name: #converted_type,
                 }, rest))
             }).scan(&mut properties_err, until_err).unzip();
@@ -611,14 +614,25 @@ fn handle_magic() -> syn::Result<TokenStream> {
             let name = format_ident!("r#variant{}", i);
             let (converted_type, rest) = handle_type(&mut random, _type)?;
             Ok((quote! {
+                #[serde(flatten)]
                 #name: #converted_type,
             }, rest))
         }).scan(&mut extends_err, until_err).unzip();
 
-        // TODO FIXME mixins
+        let mut mixins_err = Ok(());
+        let (mixins, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.mixins.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+            // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
+            let name = format_ident!("r#variant{}", structure.extends.len() + i);
+            let (converted_type, rest) = handle_type(&mut random, _type)?;
+            Ok((quote! {
+                #[serde(flatten)]
+                #name: #converted_type,
+            }, rest))
+        }).scan(&mut mixins_err, until_err).unzip();
 
         let mut properties_err = Ok(());
-        let (properties, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
+        let (properties, rest3): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
+            let name_text = &property.name;
             let name = format_ident!("r#{}", property.name.to_snake_case());
             let documentation = property.documentation.as_ref().map(|string| quote! {
                 #[doc = #string]
@@ -629,6 +643,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
             Ok((quote! {
                 #documentation
+                #[serde(rename = #name_text)]
                 #name: #converted_type,
             }, rest))
         }).scan(&mut properties_err, until_err).unzip();
@@ -638,9 +653,10 @@ fn handle_magic() -> syn::Result<TokenStream> {
             #documentation
             struct #name {
                 #(#extends)*
+                #(#mixins)*
                 #(#properties)*
             }
-        }, quote! { #(#rest1)*  #(#rest2)*});
+        }, quote! { #(#rest1)*  #(#rest2)* #(#rest3)* });
         extends_err?;
         properties_err?;
         Ok(return_value)
