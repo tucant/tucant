@@ -396,28 +396,27 @@ struct TupleType {
 #[serde(tag = "kind")]
 enum Type {
     #[serde(rename = "base")]
-    BaseType(BaseType),
+    Base(BaseType),
     #[serde(rename = "reference")]
-    ReferenceType(ReferenceType),
+    Reference(ReferenceType),
     #[serde(rename = "array")]
-    ArrayType(ArrayType),
+    Array(ArrayType),
     #[serde(rename = "map")]
-    MapType(MapType),
+    Map(MapType),
     #[serde(rename = "and")]
-    AndType(AndType),
+    And(AndType),
     #[serde(rename = "or")]
-    OrType(OrType),
+    Or(OrType),
     #[serde(rename = "tuple")]
-    TupleType(TupleType),
+    Tuple(TupleType),
     #[serde(rename = "literal")]
-    StructureLiteralType(StructureLiteralType),
+    StructureLiteral(StructureLiteralType),
     #[serde(rename = "stringLiteral")]
-    StringLiteralType(StringLiteralType),
+    StringLiteral(StringLiteralType),
     #[serde(rename = "integerLiteral")]
-    IntegerLiteralType(IntegerLiteralType),
+    IntegerLiteral(IntegerLiteralType),
     #[serde(rename = "booleanLiteral")]
-    BooleanLiteralType(BooleanLiteralType),
-
+    BooleanLiteral(BooleanLiteralType),
 }
 
 /// Defines a type alias. (e.g. `type Definition = Location | LocationLink`)
@@ -468,7 +467,7 @@ enum TypeKind {
 // what about letting this return two things, one is the actual return value and the second one is anonymous struct definitions
 fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
     match _type {
-        Type::BaseType(BaseType { name }) => match name {
+        Type::Base(BaseType { name }) => match name {
             BaseTypes::Uri => Ok((quote! { String }, quote! {})),
             BaseTypes::DocumentUri => Ok((quote! { String }, quote! {})),
             BaseTypes::Integer => Ok((quote! { i64 }, quote! {})),
@@ -479,15 +478,15 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             BaseTypes::Boolean => Ok((quote! { bool }, quote! {})),
             BaseTypes::Null => Ok((quote! { () }, quote! {})),
         },
-        Type::ReferenceType(ReferenceType { name }) => {
+        Type::Reference(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name.to_upper_camel_case());
              Ok((quote! { Box<#name> }, quote! {})) 
         },
-        Type::ArrayType(ArrayType { element }) => {
+        Type::Array(ArrayType { element }) => {
             let (element, rest) = handle_type(random, element)?;
             Ok((quote! { Vec<#element> }, quote! { #rest }))
         },
-        Type::MapType(MapType { key, value }) => {
+        Type::Map(MapType { key, value }) => {
             let (value_type, value_rest) = handle_type(random, value)?;
             let key_type = match key {
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Uri } => quote! { String },
@@ -501,10 +500,10 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             };
             Ok((quote! { ::std::collections::HashMap<#key_type, #value_type> }, quote! { #value_rest }))
         },
-        Type::AndType(AndType { items }) => {
-            return Err(Error::new(Span::call_site(), r#"we don't support and types yet"#));
+        Type::And(AndType { items: _ }) => {
+            Err(Error::new(Span::call_site(), r#"we don't support and types yet"#))
         },
-        Type::OrType(OrType { items }) => {
+        Type::Or(OrType { items }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", items));
             hasher.update(random.gen::<[u8; 32]>());
@@ -532,7 +531,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             err?;
             return_value
         },
-        Type::TupleType(TupleType { items }) => {
+        Type::Tuple(TupleType { items }) => {
             let mut err = Ok(());
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(|v| handle_type(random, v)).scan(&mut err, until_err).unzip();
             let return_value = Ok((quote! {
@@ -543,7 +542,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             err?;
             return_value
         },
-        Type::StructureLiteralType(StructureLiteralType { value }) => {
+        Type::StructureLiteral(StructureLiteralType { value }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", value));
             hasher.update(random.gen::<[u8; 32]>());
@@ -575,9 +574,9 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             properties_err?;
             Ok(return_value)
         },
-        Type::StringLiteralType(StringLiteralType { value }) => Ok((quote! { String }, quote! {})),
-        Type::IntegerLiteralType(IntegerLiteralType { value }) => Ok((quote! { i64 }, quote! {})),
-        Type::BooleanLiteralType(BooleanLiteralType { value }) => Ok((quote! { bool }, quote! {})),
+        Type::StringLiteral(StringLiteralType { value: _ }) => Ok((quote! { String }, quote! {})),
+        Type::IntegerLiteral(IntegerLiteralType { value: _ }) => Ok((quote! { i64 }, quote! {})),
+        Type::BooleanLiteral(BooleanLiteralType { value: _ }) => Ok((quote! { bool }, quote! {})),
     }
 }
 
@@ -724,13 +723,13 @@ fn handle_magic() -> syn::Result<TokenStream> {
         });
         let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
             let method = &request.method;
-            let name = format_ident!("r#{}Request", request.method.replace("_", " ").to_upper_camel_case());
+            let name = format_ident!("r#{}Request", request.method.replace('_', " ").to_upper_camel_case());
             let (params, rest) = match &request.params {
-                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, &_type)?,
+                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
                 Some(TypeOrVecType::VecType(vec_type)) => {
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type.iter().map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                        handle_type(&mut random, &_type)
+                        handle_type(&mut random, _type)
                     }).scan(&mut params_err, until_err).unzip();
                     let return_value = (quote! {
                         (#(#types)*)
@@ -756,7 +755,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             (quote! {}, quote! {}, quote! {})
         };
         let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
-            let name = format_ident!("r#{}Response", request.method.replace("_", " ").to_upper_camel_case());
+            let name = format_ident!("r#{}Response", request.method.replace('_', " ").to_upper_camel_case());
             quote! {
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
