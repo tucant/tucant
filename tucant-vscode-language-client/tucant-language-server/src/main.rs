@@ -46,6 +46,15 @@ async fn main() -> io::Result<()> {
         
         println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
+        let request: Requests = serde_json::from_slice(&buf)?;
+
+        match request {
+            Requests::InitializeRequest(initializeRequest) => {
+                println!("got an initialize {:?}", initializeRequest);
+            }
+            _ => panic!("unknown request")
+        }
+
         buf.clear();
     }
 
