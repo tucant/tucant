@@ -473,7 +473,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             BaseTypes::RegExp => Ok((quote! { String }, quote! {})),
             BaseTypes::String => Ok((quote! { String }, quote! {})),
             BaseTypes::Boolean => Ok((quote! { bool }, quote! {})),
-            BaseTypes::Null => Ok((quote! { Null }, quote! {})),
+            BaseTypes::Null => Ok((quote! { () }, quote! {})),
         },
         Type::ReferenceType(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name);
