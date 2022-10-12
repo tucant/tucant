@@ -602,6 +602,9 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let mut structures_err = Ok(());
     let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.structures.iter().map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
         let name = format_ident!("r#{}", structure.name);
+        let documentation = structure.documentation.as_ref().map(|string| quote! {
+            #[doc = #string]
+        });
 
         let mut extends_err = Ok(());
         let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
@@ -617,17 +620,22 @@ fn handle_magic() -> syn::Result<TokenStream> {
         let mut properties_err = Ok(());
         let (properties, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", property.name);
+            let documentation = property.documentation.as_ref().map(|string| quote! {
+                #[doc = #string]
+            });
             let (converted_type, rest) = handle_type(&mut random, &property._type)?;
 
             // TODO FIXME optional
 
             Ok((quote! {
+                #documentation
                 #name: #converted_type,
             }, rest))
         }).scan(&mut properties_err, until_err).unzip();
 
         let return_value = (quote! {
             #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+            #documentation
             struct #name {
                 #(#extends)*
                 #(#properties)*
@@ -641,6 +649,9 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
         let name = format_ident!("r#{}", enumeration.name);
+        let documentation = enumeration.documentation.as_ref().map(|string| quote! {
+            #[doc = #string]
+        });
         // TODO supports_custom_values
         match enumeration._type {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
@@ -656,6 +667,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 let return_value = quote! {     
                     #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
                     #[repr(i64)]
+                    #documentation
                     enum #name {
                         #(#values)*
                     }
@@ -667,15 +679,20 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
                     let name = format_ident!("r#{}", value.name);
+                    let documentation = value.documentation.as_ref().map(|string| quote! {
+                        #[doc = #string]
+                    });
                     let value: &String = (&value.value).try_into().unwrap();
                     Ok(quote! {
                         #[serde(rename = #value)]
+                        #documentation
                         #name,
                     })
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {
                     #[derive(serde::Serialize, serde::Deserialize, Debug)]
+                    #documentation
                     enum #name {
                         #(#values)*
                     }
@@ -690,13 +707,20 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
         let name = format_ident!("r#{}", type_alias.name);
         let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
+        let documentation = type_alias.documentation.as_ref().map(|string| quote! {
+            #[doc = #string]
+        });
         Ok((quote! {
+            #documentation
             type #name = #converted_type;
         }, rest))
     }).scan(&mut type_aliases_err, until_err).unzip();
 
     let mut requests_err = Ok(());
     let (requests, requests_rest, request_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream)> {
+        let documentation = request.documentation.as_ref().map(|string| quote! {
+            #[doc = #string]
+        });
         let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
             let method = &request.method;
             let name = format_ident!("r#{}Request", request.method.replace("/", "_"));
@@ -717,6 +741,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             };
             (quote! {
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #documentation
                 struct #name {
                     id: StringOrNumber,
                     method: String,
@@ -733,6 +758,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             let name = format_ident!("r#{}Response", request.method.replace("/", "_"));
             quote! {
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #documentation
                 struct #name {
 
                 }

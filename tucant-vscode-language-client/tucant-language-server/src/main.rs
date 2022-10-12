@@ -14,6 +14,7 @@ struct Args {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
+// cargo doc --document-private-items --open
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let args = Args::parse();
