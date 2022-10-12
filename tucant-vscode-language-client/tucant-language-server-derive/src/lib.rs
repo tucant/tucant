@@ -5,6 +5,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, format_ident};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Serialize_repr, Deserialize_repr};
+use sha3::{Sha3_512, Digest};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
 // Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
@@ -461,63 +462,72 @@ enum TypeKind {
 }
 
 // what about letting this return two things, one is the actual return value and the second one is anonymous struct definitions
-fn handle_type(_type: &Type) -> syn::Result<TokenStream> {
+fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
     match _type {
         Type::BaseType(BaseType { name }) => match name {
-            BaseTypes::Uri => Ok(quote! { String }),
-            BaseTypes::DocumentUri => Ok(quote! { String }),
-            BaseTypes::Integer => Ok(quote! { i64 }),
-            BaseTypes::UnsignedInteger => Ok(quote! { u64 }),
-            BaseTypes::Decimal => Ok(quote! { f64 }),
-            BaseTypes::RegExp => Ok(quote! { String }),
-            BaseTypes::String => Ok(quote! { String }),
-            BaseTypes::Boolean => Ok(quote! { bool }),
-            BaseTypes::Null => Ok(quote! { Null }),
+            BaseTypes::Uri => Ok((quote! { String }, quote! {})),
+            BaseTypes::DocumentUri => Ok((quote! { String }, quote! {})),
+            BaseTypes::Integer => Ok((quote! { i64 }, quote! {})),
+            BaseTypes::UnsignedInteger => Ok((quote! { u64 }, quote! {})),
+            BaseTypes::Decimal => Ok((quote! { f64 }, quote! {})),
+            BaseTypes::RegExp => Ok((quote! { String }, quote! {})),
+            BaseTypes::String => Ok((quote! { String }, quote! {})),
+            BaseTypes::Boolean => Ok((quote! { bool }, quote! {})),
+            BaseTypes::Null => Ok((quote! { Null }, quote! {})),
         },
         Type::ReferenceType(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name);
-             Ok(quote! { #name }) 
+             Ok((quote! { #name }, quote! {})) 
         },
         Type::ArrayType(ArrayType { element }) => {
-            let element = handle_type(&element)?;
-            Ok(quote! { Vec<#element> })
+            let (element, rest) = handle_type(&element)?;
+            Ok((quote! { Vec<#element> }, quote! { #rest }))
         },
-        Type::MapType(_) => Ok(quote! { () }),
-        Type::AndType(_) => Ok(quote! { () }),
-        Type::OrType(_) => Ok(quote! { () }),
+        Type::MapType(_) => Ok((quote! { () }, quote! {})),
+        Type::AndType(_) => Ok((quote! { () }, quote! {})),
+        Type::OrType(_) => Ok((quote! { () }, quote! {})),
         Type::TupleType(TupleType { items }) => {
             let mut err = Ok(());
-            let items = items.iter().map(handle_type).scan(&mut err, until_err);
-            let return_value = Ok(quote! {
+            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(handle_type).scan(&mut err, until_err).unzip();
+            let return_value = Ok((quote! {
                 #(#items),*
-            });
+            }, quote! {
+                #(#rests),*
+            }));
             err?;
             return_value
         },
         Type::StructureLiteralType(StructureLiteralType { value }) => {
+            let mut hasher = Sha3_512::new();
+            hasher.update(format!("{:?}", value));
+            let result = hasher.finalize();
+            let result = hex::encode(result);
+
+            // based on the hash of the debug value of the json?
+            let name = format_ident!("r#{}", result);
             let mut properties_err = Ok(());
-            let properties = value.properties.iter().map(|property| -> syn::Result<TokenStream> {
+            let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                 let name = format_ident!("r#{}", property.name);
-                let converted_type = handle_type(&property._type)?;
+                let (converted_type, rest) = handle_type(&property._type)?;
 
                 // TODO FIXME optional
 
-                Ok(quote! {
+                Ok((quote! {
                     #name: #converted_type,
-                })
-            }).scan(&mut properties_err, until_err);
+                }, rest))
+            }).scan(&mut properties_err, until_err).unzip();
 
-            let return_value = quote! {
-                struct {
+            let return_value = (quote! {
+                struct #name {
                     #(#properties)*
                 }
-            };
+            }, quote! { #(#rest)* });
             properties_err?;
             Ok(return_value)
         },
-        Type::StringLiteralType(_) => Ok(quote! { () }),
-        Type::IntegerLiteralType(_) => Ok(quote! { () }),
-        Type::BooleanLiteralType(_) => Ok(quote! { () }),
+        Type::StringLiteralType(_) => Ok((quote! { () }, quote! {})),
+        Type::IntegerLiteralType(_) => Ok((quote! { () }, quote! {})),
+        Type::BooleanLiteralType(_) => Ok((quote! { () }, quote! {})),
     }
 }
 
