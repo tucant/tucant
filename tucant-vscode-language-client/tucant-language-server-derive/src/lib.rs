@@ -524,6 +524,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                 #name
             }, quote! {
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #[serde(untagged)]
                 enum #name {
                     #(#items)*
                 }
@@ -555,9 +556,11 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                 let name_text = &property.name;
                 let name = format_ident!("r#{}", property.name.to_snake_case());
-                let (converted_type, rest) = handle_type(random, &property._type)?;
+                let (mut converted_type, rest) = handle_type(random, &property._type)?;
 
-                // TODO FIXME optional
+                if property.optional {
+                    converted_type = quote! { Option<#converted_type> }
+                }
 
                 Ok((quote! {
                     #[serde(rename = #name_text)]
@@ -611,6 +614,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
         let mut extends_err = Ok(());
         let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+            // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
             let name = format_ident!("r#variant{}", i);
             let (converted_type, rest) = handle_type(&mut random, _type)?;
             Ok((quote! {
@@ -637,9 +641,11 @@ fn handle_magic() -> syn::Result<TokenStream> {
             let documentation = property.documentation.as_ref().map(|string| quote! {
                 #[doc = #string]
             });
-            let (converted_type, rest) = handle_type(&mut random, &property._type)?;
+            let (mut converted_type, rest) = handle_type(&mut random, &property._type)?;
 
-            // TODO FIXME optional
+            if property.optional {
+                converted_type = quote! { Option<#converted_type> }
+            }
 
             Ok((quote! {
                 #documentation
@@ -760,7 +766,6 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 #documentation
                 struct #name {
                     id: StringOrNumber,
-                    method: String,
                     params: #params
                 }
             }, rest, quote! {
