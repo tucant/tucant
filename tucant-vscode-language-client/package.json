@@ -29,6 +29,12 @@
           ".tucant"
         ]
       }
+    ],
+    "commands": [
+      {
+        "command": "tucant.restart-language-server",
+        "title": "TUCaN't: Restart language server"
+      }
     ]
   },
   "type": "commonjs",
