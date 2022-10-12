@@ -44,13 +44,13 @@ async fn main() -> io::Result<()> {
 
         pipe.read_exact(&mut buf).await?;       
         
-        println!("read: {}", std::str::from_utf8(&buf).unwrap());
+        // println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
 
         match request {
             Requests::InitializeRequest(initialize_request) => {
-                println!("got an initialize {:?}", initialize_request);
+                println!("got an initialize {:#?}", initialize_request);
             }
             _ => panic!("unknown request")
         }
