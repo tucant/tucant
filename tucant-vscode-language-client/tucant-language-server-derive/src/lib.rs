@@ -4,7 +4,7 @@ use derive_more::TryInto;
 use proc_macro2::TokenStream;
 use quote::{quote, format_ident};
 use serde::{Deserialize, Serialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+
 use sha3::{Sha3_512, Digest};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
@@ -480,7 +480,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
              Ok((quote! { #name }, quote! {})) 
         },
         Type::ArrayType(ArrayType { element }) => {
-            let (element, rest) = handle_type(&element)?;
+            let (element, rest) = handle_type(element)?;
             Ok((quote! { Vec<#element> }, quote! { #rest }))
         },
         Type::MapType(_) => Ok((quote! { () }, quote! {})),
@@ -666,7 +666,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 #[proc_macro]
 pub fn magic(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // TODO FIXME I think this parses weird
-    let input = parse_macro_input!(item as Nothing);
+    let _input = parse_macro_input!(item as Nothing);
 
     proc_macro::TokenStream::from(handle_magic().unwrap_or_else(Error::into_compile_error))
 }
