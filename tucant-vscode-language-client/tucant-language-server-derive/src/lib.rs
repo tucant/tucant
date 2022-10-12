@@ -550,42 +550,42 @@ fn handle_magic() -> syn::Result<TokenStream> {
     // most important part is json.requests
 
     let mut structures_err = Ok(());
-    let structures = meta_model.structures.iter().map(|structure| -> syn::Result<TokenStream> {
+    let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.structures.iter().map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
         let name = format_ident!("r#{}", structure.name);
 
         let mut extends_err = Ok(());
-        let extends = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<TokenStream> {
+        let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#_{}", i);
-            let converted_type = handle_type(_type)?;
-            Ok(quote! {
+            let (converted_type, rest) = handle_type(_type)?;
+            Ok((quote! {
                 #name: #converted_type,
-            })
-        }).scan(&mut extends_err, until_err);
+            }, rest))
+        }).scan(&mut extends_err, until_err).unzip();
 
         // TODO FIXME mixins
 
         let mut properties_err = Ok(());
-        let properties = structure.properties.iter().map(|property| -> syn::Result<TokenStream> {
+        let (properties, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", property.name);
-            let converted_type = handle_type(&property._type)?;
+            let (converted_type, rest) = handle_type(&property._type)?;
 
             // TODO FIXME optional
 
-            Ok(quote! {
+            Ok((quote! {
                 #name: #converted_type,
-            })
-        }).scan(&mut properties_err, until_err);
+            }, rest))
+        }).scan(&mut properties_err, until_err).unzip();
 
-        let return_value = quote! {
+        let return_value = (quote! {
             struct #name {
                 #(#extends)*
                 #(#properties)*
             }
-        };
+        }, quote! { #(#rest1)*  #(#rest2)*});
         extends_err?;
         properties_err?;
         Ok(return_value)
-    }).scan(&mut structures_err, until_err);
+    }).scan(&mut structures_err, until_err).unzip();
 
     let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
@@ -636,18 +636,20 @@ fn handle_magic() -> syn::Result<TokenStream> {
     }).scan(&mut enumerations_err, until_err);
 
     let mut type_aliases_err = Ok(());
-    let type_aliases = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<TokenStream> {
+    let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
         let name = format_ident!("r#{}", type_alias.name);
-        let converted_type = handle_type(&type_alias._type)?;
-        Ok(quote! {
+        let (converted_type, rest) = handle_type(&type_alias._type)?;
+        Ok((quote! {
             type #name = #converted_type;
-        })
-    }).scan(&mut type_aliases_err, until_err);
+        }, rest))
+    }).scan(&mut type_aliases_err, until_err).unzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
         #(#enumerations)*
         #(#type_aliases)*
+        #(#rest_structures)*
+        #(#rest_type_aliases)*
     });
     structures_err?;
     enumerations_err?;
