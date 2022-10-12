@@ -7,7 +7,7 @@ use rand::{SeedableRng, Rng};
 use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
 
-use sha3::{Sha3_512, Digest, Sha3_224};
+use sha3::{Digest, Sha3_224};
 use syn::{parse::Nothing, parse_macro_input, Error};
 
 // Try https://crates.io/crates/schemafy (maybe not, e.g. anyOf would be badly named etc)
@@ -304,7 +304,7 @@ struct Request {
     /// An optional error data type.
     error_data: Option<Type>,
     /// The direction in which this request is sent in the protocol.
-    message_direction: String, // MessageDirection
+    message_direction: MessageDirection,
     /// The request's method name.
     method: String,
     /// The parameter type(s) if any.
@@ -690,10 +690,52 @@ fn handle_magic() -> syn::Result<TokenStream> {
         }, rest))
     }).scan(&mut type_aliases_err, until_err).unzip();
 
+    let mut requests_err = Ok(());
+    let (requests, requests_rest): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream)> {
+        let (client_to_server, client_to_server_rest) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
+            let name = format_ident!("r#{}Request", request.method.replace("/", "_"));
+            let (params, rest) = match &request.params {
+                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, &_type)?,
+                Some(TypeOrVecType::VecType(vec_type)) => {
+                    let mut params_err = Ok(());
+                    let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type.iter().map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
+                        handle_type(&mut random, &_type)
+                    }).scan(&mut params_err, until_err).unzip();
+                    let return_value = (quote! {
+                        (#(#types)*)
+                    }, quote! { #(#rest)* });
+                    params_err?;
+                    return_value
+                },
+                None => (quote! { () }, quote! {}),
+            };
+            (quote! {
+                struct #name {
+                    id: StringOrNumber,
+                    method: String,
+                    params: #params
+                }
+            }, rest)
+        } else {
+            (quote! {}, quote! {})
+        };
+        let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
+            let name = format_ident!("r#{}Response", request.method.replace("/", "_"));
+            quote! {
+                struct #name {
 
-    let requests = meta_model.requests.iter().map(|request| {
-        
-    });
+                }
+            }
+        } else {
+            quote! {}
+        };
+        Ok((quote! {
+            #client_to_server
+            #server_to_client
+        }, quote! {
+            #client_to_server_rest
+        }))
+    }).scan(&mut requests_err, until_err).unzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
@@ -701,10 +743,13 @@ fn handle_magic() -> syn::Result<TokenStream> {
         #(#type_aliases)*
         #(#rest_structures)*
         #(#rest_type_aliases)*
+        #(#requests)*
+        #(#requests_rest)*
     });
     structures_err?;
     enumerations_err?;
     type_aliases_err?;
+    requests_err?;
     return_value
 }
 

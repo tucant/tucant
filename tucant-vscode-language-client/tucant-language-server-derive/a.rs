@@ -2222,6 +2222,290 @@ struct _7ea381a4a158976a877fbb0f7e5e6b42381dcc2dfc0b69745c691473 {
     scheme: String,
     pattern: String,
 }
+struct textDocument_implementationRequest {
+    id: StringOrNumber,
+    method: String,
+    params: ImplementationParams,
+}
+struct textDocument_typeDefinitionRequest {
+    id: StringOrNumber,
+    method: String,
+    params: TypeDefinitionParams,
+}
+struct workspace_workspaceFoldersResponse {}
+struct workspace_configurationResponse {}
+struct textDocument_documentColorRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentColorParams,
+}
+struct textDocument_colorPresentationRequest {
+    id: StringOrNumber,
+    method: String,
+    params: ColorPresentationParams,
+}
+struct textDocument_foldingRangeRequest {
+    id: StringOrNumber,
+    method: String,
+    params: FoldingRangeParams,
+}
+struct textDocument_declarationRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DeclarationParams,
+}
+struct textDocument_selectionRangeRequest {
+    id: StringOrNumber,
+    method: String,
+    params: SelectionRangeParams,
+}
+struct window_workDoneProgress_createResponse {}
+struct textDocument_prepareCallHierarchyRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CallHierarchyPrepareParams,
+}
+struct callHierarchy_incomingCallsRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CallHierarchyIncomingCallsParams,
+}
+struct callHierarchy_outgoingCallsRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CallHierarchyOutgoingCallsParams,
+}
+struct textDocument_semanticTokens_fullRequest {
+    id: StringOrNumber,
+    method: String,
+    params: SemanticTokensParams,
+}
+struct textDocument_semanticTokens_full_deltaRequest {
+    id: StringOrNumber,
+    method: String,
+    params: SemanticTokensDeltaParams,
+}
+struct textDocument_semanticTokens_rangeRequest {
+    id: StringOrNumber,
+    method: String,
+    params: SemanticTokensRangeParams,
+}
+struct workspace_semanticTokens_refreshRequest {
+    id: StringOrNumber,
+    method: String,
+    params: (),
+}
+struct window_showDocumentResponse {}
+struct textDocument_linkedEditingRangeRequest {
+    id: StringOrNumber,
+    method: String,
+    params: LinkedEditingRangeParams,
+}
+struct workspace_willCreateFilesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CreateFilesParams,
+}
+struct workspace_willRenameFilesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: RenameFilesParams,
+}
+struct workspace_willDeleteFilesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DeleteFilesParams,
+}
+struct textDocument_monikerRequest {
+    id: StringOrNumber,
+    method: String,
+    params: MonikerParams,
+}
+struct textDocument_prepareTypeHierarchyRequest {
+    id: StringOrNumber,
+    method: String,
+    params: TypeHierarchyPrepareParams,
+}
+struct typeHierarchy_supertypesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: TypeHierarchySupertypesParams,
+}
+struct typeHierarchy_subtypesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: TypeHierarchySubtypesParams,
+}
+struct textDocument_inlineValueRequest {
+    id: StringOrNumber,
+    method: String,
+    params: InlineValueParams,
+}
+struct workspace_inlineValue_refreshRequest {
+    id: StringOrNumber,
+    method: String,
+    params: (),
+}
+struct textDocument_inlayHintRequest {
+    id: StringOrNumber,
+    method: String,
+    params: InlayHintParams,
+}
+struct inlayHint_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: InlayHint,
+}
+struct workspace_inlayHint_refreshRequest {
+    id: StringOrNumber,
+    method: String,
+    params: (),
+}
+struct textDocument_diagnosticRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentDiagnosticParams,
+}
+struct workspace_diagnosticRequest {
+    id: StringOrNumber,
+    method: String,
+    params: WorkspaceDiagnosticParams,
+}
+struct workspace_diagnostic_refreshRequest {
+    id: StringOrNumber,
+    method: String,
+    params: (),
+}
+struct client_registerCapabilityResponse {}
+struct client_unregisterCapabilityResponse {}
+struct initializeRequest {
+    id: StringOrNumber,
+    method: String,
+    params: InitializeParams,
+}
+struct shutdownRequest {
+    id: StringOrNumber,
+    method: String,
+    params: (),
+}
+struct window_showMessageRequestResponse {}
+struct textDocument_willSaveWaitUntilRequest {
+    id: StringOrNumber,
+    method: String,
+    params: WillSaveTextDocumentParams,
+}
+struct textDocument_completionRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CompletionParams,
+}
+struct completionItem_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CompletionItem,
+}
+struct textDocument_hoverRequest {
+    id: StringOrNumber,
+    method: String,
+    params: HoverParams,
+}
+struct textDocument_signatureHelpRequest {
+    id: StringOrNumber,
+    method: String,
+    params: SignatureHelpParams,
+}
+struct textDocument_definitionRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DefinitionParams,
+}
+struct textDocument_referencesRequest {
+    id: StringOrNumber,
+    method: String,
+    params: ReferenceParams,
+}
+struct textDocument_documentHighlightRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentHighlightParams,
+}
+struct textDocument_documentSymbolRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentSymbolParams,
+}
+struct textDocument_codeActionRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CodeActionParams,
+}
+struct codeAction_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CodeAction,
+}
+struct workspace_symbolRequest {
+    id: StringOrNumber,
+    method: String,
+    params: WorkspaceSymbolParams,
+}
+struct workspaceSymbol_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: WorkspaceSymbol,
+}
+struct textDocument_codeLensRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CodeLensParams,
+}
+struct codeLens_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: CodeLens,
+}
+struct workspace_codeLens_refreshResponse {}
+struct textDocument_documentLinkRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentLinkParams,
+}
+struct documentLink_resolveRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentLink,
+}
+struct textDocument_formattingRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentFormattingParams,
+}
+struct textDocument_rangeFormattingRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentRangeFormattingParams,
+}
+struct textDocument_onTypeFormattingRequest {
+    id: StringOrNumber,
+    method: String,
+    params: DocumentOnTypeFormattingParams,
+}
+struct textDocument_renameRequest {
+    id: StringOrNumber,
+    method: String,
+    params: RenameParams,
+}
+struct textDocument_prepareRenameRequest {
+    id: StringOrNumber,
+    method: String,
+    params: PrepareRenameParams,
+}
+struct workspace_executeCommandRequest {
+    id: StringOrNumber,
+    method: String,
+    params: ExecuteCommandParams,
+}
+struct workspace_applyEditResponse {}
 #[rustc_main]
 pub fn main() -> () {
     extern crate test;
