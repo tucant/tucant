@@ -500,6 +500,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
         Type::StructureLiteralType(StructureLiteralType { value }) => {
             let mut hasher = Sha3_512::new();
             hasher.update(format!("{:?}", value));
+            hasher.update(rand::random::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
 

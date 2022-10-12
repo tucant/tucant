@@ -314,7 +314,7 @@ struct InitializeParams {
 }
 struct InitializeResult {
     capabilities: ServerCapabilities,
-    serverInfo: _563ddff94a260c8b2d94e9ad020b69022352be2db8728031a59a40b2ce5a4c7628ded6dceaa54c14f5d058dc100079605bba7ee4a21835bf105dd0fe482cf971,
+    serverInfo: _a5bc90b4e274fd1dfe6c37f2977a1724fad6dab81ddb997d93176e830c732244314f26ceb5df30335a18650ced74c2785b8a725ac0eaa63822e80a46bfb14714,
 }
 struct InitializeError {
     retry: bool,
@@ -410,7 +410,7 @@ struct CompletionItem {
 }
 struct CompletionList {
     isIncomplete: bool,
-    itemDefaults: _360efa9bcb14228fe8a4b0d52f58f1d6726891d4bc23d9824fd774fe3620525dd567e37ba50d5e0f50229c5b4c9d48aac5375a289e660cd29ca1075f91cebe0f,
+    itemDefaults: _7ae7e55a8a79b0971e84ecd7062ed3de19819bafca1fac6bd4d9685d50550ed78eb68d6b22deca9ca6b224119d6b7136f3f896284da13f1b95e1921b9580514f,
     items: Vec<CompletionItem>,
 }
 struct CompletionRegistrationOptions {
@@ -504,7 +504,7 @@ struct CodeAction {
     kind: CodeActionKind,
     diagnostics: Vec<Diagnostic>,
     isPreferred: bool,
-    disabled: _2e6276a7f75458c39c4ad3dd18822a843cb7b5235ce1d884952b78558c5d54d966a1c2bce8dd3cc8296f840cfda4981ee70f4b9f3b622fc74025baf46ae1b0de,
+    disabled: _ce1090e415d966ccb27f2a997f901efccd17ac40366663a71ce3bb09a5a4e9a63df27ffac45793458022ddeb4b1795ba091724b324e25383fa228f38463258c1,
     edit: WorkspaceEdit,
     command: Command,
     data: LSPAny,
@@ -814,7 +814,7 @@ struct VersionedNotebookDocumentIdentifier {
 }
 struct NotebookDocumentChangeEvent {
     metadata: LSPObject,
-    cells: _ef0b5e691ed7edff54b45b88dfaa2be4360d33a7d8adfb53d014b9ede91485054593de35aac2957eb64342295002328d9650b13a5bea6d8c99cb1b07d166f64f,
+    cells: _1ebbbe894fc68ac5cd2e39a59705aba06f8b8d811e54864460b0a724e3e5d7e2a6a777d1d5ddd22ae3f22f366cc7423997521a2b9da799e8ea90b2f0d65472c6,
 }
 struct NotebookDocumentIdentifier {
     uri: String,
@@ -830,7 +830,7 @@ struct Unregistration {
 }
 struct _InitializeParams {
     processId: (),
-    clientInfo: _4e3c48f9a9504e6f1aa72ba341e3cfe955b62feba861caceaf557f73c8b921189d6248d18a8276283ac47214b39e23c0df0e976145a0fcca58a0b5393b66eb10,
+    clientInfo: _8e9eec0a047ad6b4edd461f2ca17d65d05c6a610f60dc85839911e9b7b66f8139928ed36fcc97dde7ba973cf5c09af6cf11b1e6f9e24851eefd7bcf7ec577cff,
     locale: String,
     rootPath: (),
     rootUri: (),
@@ -875,7 +875,7 @@ struct ServerCapabilities {
     inlineValueProvider: (),
     inlayHintProvider: (),
     diagnosticProvider: (),
-    workspace: _26e2a9aed39796019b911296e9acc6f9013d634613b3dbb625b182c1503803d4bdd9f228873f9602ab30555034dd27ef149182d89c5a251c6bad28cb58000b46,
+    workspace: _36de340c982b6a081a5bdff8d29d6d8938a1dae81bd312be301a0591a65917dbd16cfc8ef79dfc87d0922ab425f43d23abc8b57ee6d96c3d51e460c825c5c3df,
     experimental: LSPAny,
 }
 struct VersionedTextDocumentIdentifier {
@@ -921,7 +921,7 @@ struct CompletionOptions {
     triggerCharacters: Vec<String>,
     allCommitCharacters: Vec<String>,
     resolveProvider: bool,
-    completionItem: _2ca414707c994d957dac55c7bbb2ec572eabbc0da986aa62078f9132c36fc14cd9ad9310f105cbcf3a422e7c8ec2dc1220010e75fa3aa97603e2326d3f3cbdf0,
+    completionItem: _b5e527483acb8945bd5eca8784653bb555de57482d0df5a3748e6b72861e2a5aa154f350c5da05e8b027b51b7f02c0b1f0a11b8f3a138852a8dc032b45499dd6,
 }
 struct HoverOptions {}
 struct SignatureHelpContext {
@@ -1160,7 +1160,7 @@ struct WindowClientCapabilities {
     showDocument: ShowDocumentClientCapabilities,
 }
 struct GeneralClientCapabilities {
-    staleRequestSupport: _3e55d8c4c1fe6d2180476a5c165f4a30a2f64c8a20eeb33e54aa69610fe9a3e110c8d1e1f9093222c7a58bc240e70584973fd26cceba00d9adbfedc211e3e8f4,
+    staleRequestSupport: _7fcf6aa68293a2b4614dc94d58ca257915ce4e0538d72651edf5c458023826a5db214355b4f0dbed7127f6da8a8a5a367f16c009fdd98fde9d2275d229a2c62b,
     regularExpressions: RegularExpressionsClientCapabilities,
     markdown: MarkdownClientCapabilities,
     positionEncodings: Vec<PositionEncodingKind>,
@@ -1174,7 +1174,7 @@ struct WorkspaceEditClientCapabilities {
     resourceOperations: Vec<ResourceOperationKind>,
     failureHandling: FailureHandlingKind,
     normalizesLineEndings: bool,
-    changeAnnotationSupport: _5757c5571f0790268f4dcd94dc243fc03813e2936bad9d0dc7802c0a16a98c6b883002b0d941990dfe1854bef85987fc7df592aaa601468179265fef4de240ab,
+    changeAnnotationSupport: _fdffbb0f38f59a1d10cfb8c2569663f1805bfa4fe53b6ef608ad0426abd91bd895266c8b7e777b70e72d17475fd75204e58d3641a56bb349e71c72a36cfcbd56,
 }
 struct DidChangeConfigurationClientCapabilities {
     dynamicRegistration: bool,
@@ -1185,9 +1185,9 @@ struct DidChangeWatchedFilesClientCapabilities {
 }
 struct WorkspaceSymbolClientCapabilities {
     dynamicRegistration: bool,
-    symbolKind: _987f58dd82b8fbb174dfc385c7578bfdbc4aa9068a400960dd862373d4d21abb150852a4bf62b3fb14747e3bcad72f5866dabfa8f99d495aa2386a5d43014ab1,
-    tagSupport: _529cf91c770c92c53bd8b97507f5bd148f718e9ed76e616539811da6662f22ad23876485bb769bf995a6b96ce1c61aa566ad04213faf9f78c5a464545181204b,
-    resolveSupport: _02df7872995f2ede217e1eec9b7de5ec4b059e934a4f51916598bc15a152a75e09c876108737d84e46c8704602f3e1da4a65c5b837e69eddfb3279ba0e676571,
+    symbolKind: _21d303f52f0333abd47205a7887a5324b848d6157926fd601929f7f72b13919d40c9248962648c13fd146a2e564b6bf4b2972b456bfb77ee25860604f46c39a6,
+    tagSupport: _806faf2a8ba70a755f5b5e2e06ecb7114b9fdb5cabaf8ad4011da6c3c8b8713c6ce50ae916a542fa24b89270d37b20afe5d495364e786893b612156b5ee71f42,
+    resolveSupport: _e67ced71b750eb19e9db7df593ee2cfb82565f084c734396e196585999a93a93629d24439c0e22b5a315d93888f7026d67ef3e25e00f8ffca289a2502e928d10,
 }
 struct ExecuteCommandClientCapabilities {
     dynamicRegistration: bool,
@@ -1224,11 +1224,11 @@ struct TextDocumentSyncClientCapabilities {
 }
 struct CompletionClientCapabilities {
     dynamicRegistration: bool,
-    completionItem: _46c3ef3e8f785a76cefab4bd05b206167769de0d7c2664712e91f5ff486913b5cd3a796f95707a45c270261bd3368da1385617cf40f10af5fc2956e3763f1bbb,
-    completionItemKind: _17081fb710c4edf69a8ef8b755d2ebd77741cfa84f691bb698f676778077ef4f0defae4fdca33020a89ae042afdf53a2c804c4dff3d6327bae633dcad5af6547,
+    completionItem: _7f1acadde6489bc941a252e04a12b385814bdb081ccd4efb8f8c45529b871eaf7345858db7cee396e5c5d04ba260bcd60dece33e2d38cbf64d1fd31c90611d12,
+    completionItemKind: _112ee96493dbd1af80c741be48287de36e748dfe2787be1d12031a724aa62510ed5c84f8a425273051c0ba775ad9dfae16fad8ab56a9c893c37087ffd0687da1,
     insertTextMode: InsertTextMode,
     contextSupport: bool,
-    completionList: _f726a7af78374e8ef3f126475c0cc5c5571d25f985b06f4fc13abdefd7cd0751ba53a71377b0fd03071f5adc022b413e54dc7056b6b6bb4214579f857eff8416,
+    completionList: _f09316013831cd16817cdc4e93ff7742daeb134af0593e2e7528b180c256b0d533dcb2ce0313517b4d0f676069c8ac75cedffde11905e714ff9078f22f314896,
 }
 struct HoverClientCapabilities {
     dynamicRegistration: bool,
@@ -1236,7 +1236,7 @@ struct HoverClientCapabilities {
 }
 struct SignatureHelpClientCapabilities {
     dynamicRegistration: bool,
-    signatureInformation: _7eb50838eae987ce29a75d0097f3c072b0521e40e783136991eee676139e6cbe2851d3471b8573631457c8dcc09ef0e02dfb56f890b5d68ec8e3559e3b59934a,
+    signatureInformation: _27c4c3e44bc0d3be9515ede577d8651e493629884f1b2f33bda7070d9f2d262059e94c50b4b86b4e8a2db815e5a42b7c18510dbb588c68a34e8b8d6297bf5322,
     contextSupport: bool,
 }
 struct DeclarationClientCapabilities {
@@ -1263,18 +1263,18 @@ struct DocumentHighlightClientCapabilities {
 }
 struct DocumentSymbolClientCapabilities {
     dynamicRegistration: bool,
-    symbolKind: _987f58dd82b8fbb174dfc385c7578bfdbc4aa9068a400960dd862373d4d21abb150852a4bf62b3fb14747e3bcad72f5866dabfa8f99d495aa2386a5d43014ab1,
+    symbolKind: _b105da1b775754f6969b9af37f32d5dfcbac5f1d88aa9c9676e1d43dc11e35f896acb31001dd77192b857d38bf141d8e161bea90348ff51ef2b60dd8a68fc494,
     hierarchicalDocumentSymbolSupport: bool,
-    tagSupport: _529cf91c770c92c53bd8b97507f5bd148f718e9ed76e616539811da6662f22ad23876485bb769bf995a6b96ce1c61aa566ad04213faf9f78c5a464545181204b,
+    tagSupport: _162dc8b47d41b280e6a2c8cf5e6cd8d1c17fc12a36fda2fa40caaf9550ec03086fefebd9997dc602f43950f18d1cb4bbe9825758bf69e9d6d1866f4061667ec0,
     labelSupport: bool,
 }
 struct CodeActionClientCapabilities {
     dynamicRegistration: bool,
-    codeActionLiteralSupport: _7964f29c8ce8bcec34ba557049e05907961dde3fb0a76004be8afe9a10a81690191d19c7403ff573b444899e7021effa260a7dead39bb66fca65f17605c10bcc,
+    codeActionLiteralSupport: _f42244e16477cb41bd4d88a591a848939ec6da820b03065797359e167f83d2bf94c32671ebb9f7c5e0afba632c811de68f9fd446e2dcc8798386568af5679bf1,
     isPreferredSupport: bool,
     disabledSupport: bool,
     dataSupport: bool,
-    resolveSupport: _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4,
+    resolveSupport: _72613928c93e66504aa7e63a79f7510b3b923b17d0f0536f814cc744ddbceb90335b271a67d869b11d2c01dee698f512d84575c963cbb9bb1ca258dcf50d480f,
     honorsChangeAnnotations: bool,
 }
 struct CodeLensClientCapabilities {
@@ -1306,15 +1306,15 @@ struct FoldingRangeClientCapabilities {
     dynamicRegistration: bool,
     rangeLimit: u64,
     lineFoldingOnly: bool,
-    foldingRangeKind: _57c8c41e0b85357ebe568f807decc86798ef47eb4762e176e95290fe19095699dbae4686b5cf8578df6fe7bcbf4ff8a2016901603730f17117edd24809744afe,
-    foldingRange: _35320de8f5771ce4036ddd6b0316ed8e4caceeb2e97f8181e38c944c01525b7948db2b375490bce9021556270e6ebff027af9af7c4a274ff4a2afce1ec008ff3,
+    foldingRangeKind: _e7443b70f8dd8f53ef9e6c7718eaedc077237826481a5bba027f2e363e6342685da8048c6e80d804d4468bcc42a0da1626b2810e0f0eee7a7825d009c9292330,
+    foldingRange: _14a067214339c724729317fe39539073e349f3e1bdc1eb89930d34087aee869e0224609bb296082db201a675d87c185ad9ea577c805f575424de48d9b468995c,
 }
 struct SelectionRangeClientCapabilities {
     dynamicRegistration: bool,
 }
 struct PublishDiagnosticsClientCapabilities {
     relatedInformation: bool,
-    tagSupport: _6e9170e62c153c213bc4fc2693217c869fa1b4683847d8dd0bfe0ccca1efd4eaccb8b56b623e45702fac4a13eba9fe0d74ec989f0632454784593ad52d6ad3c0,
+    tagSupport: _59b898e0c0c5afe9493233c28c4cf6ab41107db22f1363849c443415161b5c9656b52bc4bd0d5ddd1f647709eb3f16afb99679cf98de4af217ec4c640c8b0ee0,
     versionSupport: bool,
     codeDescriptionSupport: bool,
     dataSupport: bool,
@@ -1324,7 +1324,7 @@ struct CallHierarchyClientCapabilities {
 }
 struct SemanticTokensClientCapabilities {
     dynamicRegistration: bool,
-    requests: _68ec57b0fd42d92db1fc3e2eef34fccfc08baf01f21c2874274278af6e6176abbca9f51b777ea31ca44380670c89e69e0f71644507ecc27ed58c320642f3b94b,
+    requests: _b1f0972623f5caad1fb4a9450e63197ec12a1f68de46c61d83b7bee46cd04a5ee516229a814a38227093abfb2a162abf4a2cf9fa21de4894cda2d90c50c538f1,
     tokenTypes: Vec<String>,
     tokenModifiers: Vec<String>,
     formats: Vec<TokenFormat>,
@@ -1347,7 +1347,7 @@ struct InlineValueClientCapabilities {
 }
 struct InlayHintClientCapabilities {
     dynamicRegistration: bool,
-    resolveSupport: _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4,
+    resolveSupport: _a9cb216a72ad09a7b75a04b96f0336300b7b138f8cf648f1e556d786e1cd9dc607822ebe7132d714e44a651f08f3a9dc28838f68803c1b8eddfc703fdbac1111,
 }
 struct DiagnosticClientCapabilities {
     dynamicRegistration: bool,
@@ -1358,7 +1358,7 @@ struct NotebookDocumentSyncClientCapabilities {
     executionSummarySupport: bool,
 }
 struct ShowMessageRequestClientCapabilities {
-    messageActionItem: _9ebec9ee03be443256b5b2ee750d273c41b45398329f4fc25cc3cf55ad0663b0a7453f01f1779a650ec85d23a5d4eed4d168a85284e647ca47d612f7686f161f,
+    messageActionItem: _d6d88b24c8a62fc4f6708f29adaefd6e16fa2715626a0a276635eff7cfcefae41123c9efc024620be428440319d37882a201533f77c717722f3a7cb55222fa08,
 }
 struct ShowDocumentClientCapabilities {
     support: bool,
@@ -7636,130 +7636,130 @@ type GlobPattern = ();
 type TextDocumentFilter = ();
 type NotebookDocumentFilter = ();
 type Pattern = String;
-struct _563ddff94a260c8b2d94e9ad020b69022352be2db8728031a59a40b2ce5a4c7628ded6dceaa54c14f5d058dc100079605bba7ee4a21835bf105dd0fe482cf971 {
+struct _a5bc90b4e274fd1dfe6c37f2977a1724fad6dab81ddb997d93176e830c732244314f26ceb5df30335a18650ced74c2785b8a725ac0eaa63822e80a46bfb14714 {
     name: String,
     version: String,
 }
-struct _360efa9bcb14228fe8a4b0d52f58f1d6726891d4bc23d9824fd774fe3620525dd567e37ba50d5e0f50229c5b4c9d48aac5375a289e660cd29ca1075f91cebe0f {
+struct _7ae7e55a8a79b0971e84ecd7062ed3de19819bafca1fac6bd4d9685d50550ed78eb68d6b22deca9ca6b224119d6b7136f3f896284da13f1b95e1921b9580514f {
     commitCharacters: Vec<String>,
     editRange: (),
     insertTextFormat: InsertTextFormat,
     insertTextMode: InsertTextMode,
     data: LSPAny,
 }
-struct _2e6276a7f75458c39c4ad3dd18822a843cb7b5235ce1d884952b78558c5d54d966a1c2bce8dd3cc8296f840cfda4981ee70f4b9f3b622fc74025baf46ae1b0de {
+struct _ce1090e415d966ccb27f2a997f901efccd17ac40366663a71ce3bb09a5a4e9a63df27ffac45793458022ddeb4b1795ba091724b324e25383fa228f38463258c1 {
     reason: String,
 }
-struct _ef0b5e691ed7edff54b45b88dfaa2be4360d33a7d8adfb53d014b9ede91485054593de35aac2957eb64342295002328d9650b13a5bea6d8c99cb1b07d166f64f {
-    structure: _ca832f4aef259688e9a0495ff39474e36f66ab0445f94183078139863f533a29fafb88af67e6def0e8591a645af6db04294180bc425acb27b36dfc6a064279e1,
+struct _1ebbbe894fc68ac5cd2e39a59705aba06f8b8d811e54864460b0a724e3e5d7e2a6a777d1d5ddd22ae3f22f366cc7423997521a2b9da799e8ea90b2f0d65472c6 {
+    structure: _0a10a87b5f105469277bb5c4b6c06e2449801e7ab514985adaf9c6cf29d66596b01075fe579af4d7370f28ef7a63e1a70a505de2a163a116f49ea000764265f7,
     data: Vec<NotebookCell>,
     textContent: Vec<
-        _0be211a6d18eb8bc4370a672855ef7ca7571d5ac1ca73b5db1cc2ef3ea05a31a54b2951330f101d55a64c90089d4d1aa8ca12722b0a8f4b2ae6f29123019b3cf,
+        _549adf68a3ceae636fe0ea94c83fc7a9441bf20b1966d85163009dbf29672f97b569b1883e2d6aaf9bfa47c2196ead593e2c3328f02979d633f26d263a0fb4e9,
     >,
 }
-struct _ca832f4aef259688e9a0495ff39474e36f66ab0445f94183078139863f533a29fafb88af67e6def0e8591a645af6db04294180bc425acb27b36dfc6a064279e1 {
+struct _0a10a87b5f105469277bb5c4b6c06e2449801e7ab514985adaf9c6cf29d66596b01075fe579af4d7370f28ef7a63e1a70a505de2a163a116f49ea000764265f7 {
     array: NotebookCellArrayChange,
     didOpen: Vec<TextDocumentItem>,
     didClose: Vec<TextDocumentIdentifier>,
 }
-struct _0be211a6d18eb8bc4370a672855ef7ca7571d5ac1ca73b5db1cc2ef3ea05a31a54b2951330f101d55a64c90089d4d1aa8ca12722b0a8f4b2ae6f29123019b3cf {
+struct _549adf68a3ceae636fe0ea94c83fc7a9441bf20b1966d85163009dbf29672f97b569b1883e2d6aaf9bfa47c2196ead593e2c3328f02979d633f26d263a0fb4e9 {
     document: VersionedTextDocumentIdentifier,
     changes: Vec<TextDocumentContentChangeEvent>,
 }
-struct _4e3c48f9a9504e6f1aa72ba341e3cfe955b62feba861caceaf557f73c8b921189d6248d18a8276283ac47214b39e23c0df0e976145a0fcca58a0b5393b66eb10 {
+struct _8e9eec0a047ad6b4edd461f2ca17d65d05c6a610f60dc85839911e9b7b66f8139928ed36fcc97dde7ba973cf5c09af6cf11b1e6f9e24851eefd7bcf7ec577cff {
     name: String,
     version: String,
 }
-struct _26e2a9aed39796019b911296e9acc6f9013d634613b3dbb625b182c1503803d4bdd9f228873f9602ab30555034dd27ef149182d89c5a251c6bad28cb58000b46 {
+struct _36de340c982b6a081a5bdff8d29d6d8938a1dae81bd312be301a0591a65917dbd16cfc8ef79dfc87d0922ab425f43d23abc8b57ee6d96c3d51e460c825c5c3df {
     workspaceFolders: WorkspaceFoldersServerCapabilities,
     fileOperations: FileOperationOptions,
 }
-struct _2ca414707c994d957dac55c7bbb2ec572eabbc0da986aa62078f9132c36fc14cd9ad9310f105cbcf3a422e7c8ec2dc1220010e75fa3aa97603e2326d3f3cbdf0 {
+struct _b5e527483acb8945bd5eca8784653bb555de57482d0df5a3748e6b72861e2a5aa154f350c5da05e8b027b51b7f02c0b1f0a11b8f3a138852a8dc032b45499dd6 {
     labelDetailsSupport: bool,
 }
-struct _3e55d8c4c1fe6d2180476a5c165f4a30a2f64c8a20eeb33e54aa69610fe9a3e110c8d1e1f9093222c7a58bc240e70584973fd26cceba00d9adbfedc211e3e8f4 {
+struct _7fcf6aa68293a2b4614dc94d58ca257915ce4e0538d72651edf5c458023826a5db214355b4f0dbed7127f6da8a8a5a367f16c009fdd98fde9d2275d229a2c62b {
     cancel: bool,
     retryOnContentModified: Vec<String>,
 }
-struct _5757c5571f0790268f4dcd94dc243fc03813e2936bad9d0dc7802c0a16a98c6b883002b0d941990dfe1854bef85987fc7df592aaa601468179265fef4de240ab {
+struct _fdffbb0f38f59a1d10cfb8c2569663f1805bfa4fe53b6ef608ad0426abd91bd895266c8b7e777b70e72d17475fd75204e58d3641a56bb349e71c72a36cfcbd56 {
     groupsOnLabel: bool,
 }
-struct _987f58dd82b8fbb174dfc385c7578bfdbc4aa9068a400960dd862373d4d21abb150852a4bf62b3fb14747e3bcad72f5866dabfa8f99d495aa2386a5d43014ab1 {
+struct _21d303f52f0333abd47205a7887a5324b848d6157926fd601929f7f72b13919d40c9248962648c13fd146a2e564b6bf4b2972b456bfb77ee25860604f46c39a6 {
     valueSet: Vec<SymbolKind>,
 }
-struct _529cf91c770c92c53bd8b97507f5bd148f718e9ed76e616539811da6662f22ad23876485bb769bf995a6b96ce1c61aa566ad04213faf9f78c5a464545181204b {
+struct _806faf2a8ba70a755f5b5e2e06ecb7114b9fdb5cabaf8ad4011da6c3c8b8713c6ce50ae916a542fa24b89270d37b20afe5d495364e786893b612156b5ee71f42 {
     valueSet: Vec<SymbolTag>,
 }
-struct _02df7872995f2ede217e1eec9b7de5ec4b059e934a4f51916598bc15a152a75e09c876108737d84e46c8704602f3e1da4a65c5b837e69eddfb3279ba0e676571 {
+struct _e67ced71b750eb19e9db7df593ee2cfb82565f084c734396e196585999a93a93629d24439c0e22b5a315d93888f7026d67ef3e25e00f8ffca289a2502e928d10 {
     properties: Vec<String>,
 }
-struct _46c3ef3e8f785a76cefab4bd05b206167769de0d7c2664712e91f5ff486913b5cd3a796f95707a45c270261bd3368da1385617cf40f10af5fc2956e3763f1bbb {
+struct _7f1acadde6489bc941a252e04a12b385814bdb081ccd4efb8f8c45529b871eaf7345858db7cee396e5c5d04ba260bcd60dece33e2d38cbf64d1fd31c90611d12 {
     snippetSupport: bool,
     commitCharactersSupport: bool,
     documentationFormat: Vec<MarkupKind>,
     deprecatedSupport: bool,
     preselectSupport: bool,
-    tagSupport: _4c4ec3259dc3cdae82fb8620ace14a04e7f498e35c30f22685dd90817cf4eec92a2cbe13c0d21080da6b4e31583c48b3c80aa258e807facff5b517d4814dfb80,
+    tagSupport: _c6fe7fb3b1a0f6b4acee0359636273ac25c3307ee210ddfbb0287966401bf3946bf74c12673d49e44cc9dc49963e80103b412ad180ca25a2ca6704aaf5292000,
     insertReplaceSupport: bool,
-    resolveSupport: _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4,
-    insertTextModeSupport: _f7fcbb86ee8ee713505cbf2b614f872aca67304d8b7c660c2017b88bc6cba37a520be7170b98169fcd409270bcb20394c7640a0ad419bd6d170260ecdee4becc,
+    resolveSupport: _4877d657d7e10474af0457c2cb0ce6d0ef7ecc25741ef24dcb9aedb47ac558c548956d56d11ea5977e15b1322216edc4e20e3a14b714c35be41fda84cc6658b1,
+    insertTextModeSupport: _36fa2e6aa2c98805a7b99d679ca9f8b5d717f843506f3fd85364a860334e74a5127820fb4e3e76b0e98a893aecadfc6883143c31157e3292eb1a3e34f9b07f09,
     labelDetailsSupport: bool,
 }
-struct _4c4ec3259dc3cdae82fb8620ace14a04e7f498e35c30f22685dd90817cf4eec92a2cbe13c0d21080da6b4e31583c48b3c80aa258e807facff5b517d4814dfb80 {
+struct _c6fe7fb3b1a0f6b4acee0359636273ac25c3307ee210ddfbb0287966401bf3946bf74c12673d49e44cc9dc49963e80103b412ad180ca25a2ca6704aaf5292000 {
     valueSet: Vec<CompletionItemTag>,
 }
-struct _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4 {
+struct _4877d657d7e10474af0457c2cb0ce6d0ef7ecc25741ef24dcb9aedb47ac558c548956d56d11ea5977e15b1322216edc4e20e3a14b714c35be41fda84cc6658b1 {
     properties: Vec<String>,
 }
-struct _f7fcbb86ee8ee713505cbf2b614f872aca67304d8b7c660c2017b88bc6cba37a520be7170b98169fcd409270bcb20394c7640a0ad419bd6d170260ecdee4becc {
+struct _36fa2e6aa2c98805a7b99d679ca9f8b5d717f843506f3fd85364a860334e74a5127820fb4e3e76b0e98a893aecadfc6883143c31157e3292eb1a3e34f9b07f09 {
     valueSet: Vec<InsertTextMode>,
 }
-struct _17081fb710c4edf69a8ef8b755d2ebd77741cfa84f691bb698f676778077ef4f0defae4fdca33020a89ae042afdf53a2c804c4dff3d6327bae633dcad5af6547 {
+struct _112ee96493dbd1af80c741be48287de36e748dfe2787be1d12031a724aa62510ed5c84f8a425273051c0ba775ad9dfae16fad8ab56a9c893c37087ffd0687da1 {
     valueSet: Vec<CompletionItemKind>,
 }
-struct _f726a7af78374e8ef3f126475c0cc5c5571d25f985b06f4fc13abdefd7cd0751ba53a71377b0fd03071f5adc022b413e54dc7056b6b6bb4214579f857eff8416 {
+struct _f09316013831cd16817cdc4e93ff7742daeb134af0593e2e7528b180c256b0d533dcb2ce0313517b4d0f676069c8ac75cedffde11905e714ff9078f22f314896 {
     itemDefaults: Vec<String>,
 }
-struct _7eb50838eae987ce29a75d0097f3c072b0521e40e783136991eee676139e6cbe2851d3471b8573631457c8dcc09ef0e02dfb56f890b5d68ec8e3559e3b59934a {
+struct _27c4c3e44bc0d3be9515ede577d8651e493629884f1b2f33bda7070d9f2d262059e94c50b4b86b4e8a2db815e5a42b7c18510dbb588c68a34e8b8d6297bf5322 {
     documentationFormat: Vec<MarkupKind>,
-    parameterInformation: _384aa0bf18edc7bb73bcb9e7504f01685d2a891ef3e9cc7e1e42b95f1bc3192a630a1a9c21dbae080d34a6fd7cc8ceace24031f9538e726e1ebf6479d117e6bb,
+    parameterInformation: _9915f0f4dcc5133298f4f17846804130e16f3a7dff01967426ca041d16f505fd39f6fc39fa5f84f7d05b28e2ad5df632c11243af088a0abfff7343c507514dae,
     activeParameterSupport: bool,
 }
-struct _384aa0bf18edc7bb73bcb9e7504f01685d2a891ef3e9cc7e1e42b95f1bc3192a630a1a9c21dbae080d34a6fd7cc8ceace24031f9538e726e1ebf6479d117e6bb {
+struct _9915f0f4dcc5133298f4f17846804130e16f3a7dff01967426ca041d16f505fd39f6fc39fa5f84f7d05b28e2ad5df632c11243af088a0abfff7343c507514dae {
     labelOffsetSupport: bool,
 }
-struct _987f58dd82b8fbb174dfc385c7578bfdbc4aa9068a400960dd862373d4d21abb150852a4bf62b3fb14747e3bcad72f5866dabfa8f99d495aa2386a5d43014ab1 {
+struct _b105da1b775754f6969b9af37f32d5dfcbac5f1d88aa9c9676e1d43dc11e35f896acb31001dd77192b857d38bf141d8e161bea90348ff51ef2b60dd8a68fc494 {
     valueSet: Vec<SymbolKind>,
 }
-struct _529cf91c770c92c53bd8b97507f5bd148f718e9ed76e616539811da6662f22ad23876485bb769bf995a6b96ce1c61aa566ad04213faf9f78c5a464545181204b {
+struct _162dc8b47d41b280e6a2c8cf5e6cd8d1c17fc12a36fda2fa40caaf9550ec03086fefebd9997dc602f43950f18d1cb4bbe9825758bf69e9d6d1866f4061667ec0 {
     valueSet: Vec<SymbolTag>,
 }
-struct _7964f29c8ce8bcec34ba557049e05907961dde3fb0a76004be8afe9a10a81690191d19c7403ff573b444899e7021effa260a7dead39bb66fca65f17605c10bcc {
-    codeActionKind: _2c772a4531fafac1cf7a5e11184589bda38921f68578bcbb3d035a48a25127cd1989884b63caf76f665f1a4518276bf9c2526aab8507096f268630e67437af6a,
+struct _f42244e16477cb41bd4d88a591a848939ec6da820b03065797359e167f83d2bf94c32671ebb9f7c5e0afba632c811de68f9fd446e2dcc8798386568af5679bf1 {
+    codeActionKind: _77b2044b975da398f7bb419a83cb266711604995a9acf57de863c474567be9d7f3c1f191b617a5531b81257b49ebfcbddcf09416f97e478c604a5794ff11d792,
 }
-struct _2c772a4531fafac1cf7a5e11184589bda38921f68578bcbb3d035a48a25127cd1989884b63caf76f665f1a4518276bf9c2526aab8507096f268630e67437af6a {
+struct _77b2044b975da398f7bb419a83cb266711604995a9acf57de863c474567be9d7f3c1f191b617a5531b81257b49ebfcbddcf09416f97e478c604a5794ff11d792 {
     valueSet: Vec<CodeActionKind>,
 }
-struct _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4 {
+struct _72613928c93e66504aa7e63a79f7510b3b923b17d0f0536f814cc744ddbceb90335b271a67d869b11d2c01dee698f512d84575c963cbb9bb1ca258dcf50d480f {
     properties: Vec<String>,
 }
-struct _57c8c41e0b85357ebe568f807decc86798ef47eb4762e176e95290fe19095699dbae4686b5cf8578df6fe7bcbf4ff8a2016901603730f17117edd24809744afe {
+struct _e7443b70f8dd8f53ef9e6c7718eaedc077237826481a5bba027f2e363e6342685da8048c6e80d804d4468bcc42a0da1626b2810e0f0eee7a7825d009c9292330 {
     valueSet: Vec<FoldingRangeKind>,
 }
-struct _35320de8f5771ce4036ddd6b0316ed8e4caceeb2e97f8181e38c944c01525b7948db2b375490bce9021556270e6ebff027af9af7c4a274ff4a2afce1ec008ff3 {
+struct _14a067214339c724729317fe39539073e349f3e1bdc1eb89930d34087aee869e0224609bb296082db201a675d87c185ad9ea577c805f575424de48d9b468995c {
     collapsedText: bool,
 }
-struct _6e9170e62c153c213bc4fc2693217c869fa1b4683847d8dd0bfe0ccca1efd4eaccb8b56b623e45702fac4a13eba9fe0d74ec989f0632454784593ad52d6ad3c0 {
+struct _59b898e0c0c5afe9493233c28c4cf6ab41107db22f1363849c443415161b5c9656b52bc4bd0d5ddd1f647709eb3f16afb99679cf98de4af217ec4c640c8b0ee0 {
     valueSet: Vec<DiagnosticTag>,
 }
-struct _68ec57b0fd42d92db1fc3e2eef34fccfc08baf01f21c2874274278af6e6176abbca9f51b777ea31ca44380670c89e69e0f71644507ecc27ed58c320642f3b94b {
+struct _b1f0972623f5caad1fb4a9450e63197ec12a1f68de46c61d83b7bee46cd04a5ee516229a814a38227093abfb2a162abf4a2cf9fa21de4894cda2d90c50c538f1 {
     range: (),
     full: (),
 }
-struct _633aae1f4ba0bced2a6bd7884522d8e4426387be9659fed14a6e8b2ec3c5396dc85fe185d2302ee065364cfd76e50630562c4e989fa8d9e5bb0121218ef4eec4 {
+struct _a9cb216a72ad09a7b75a04b96f0336300b7b138f8cf648f1e556d786e1cd9dc607822ebe7132d714e44a651f08f3a9dc28838f68803c1b8eddfc703fdbac1111 {
     properties: Vec<String>,
 }
-struct _9ebec9ee03be443256b5b2ee750d273c41b45398329f4fc25cc3cf55ad0663b0a7453f01f1779a650ec85d23a5d4eed4d168a85284e647ca47d612f7686f161f {
+struct _d6d88b24c8a62fc4f6708f29adaefd6e16fa2715626a0a276635eff7cfcefae41123c9efc024620be428440319d37882a201533f77c717722f3a7cb55222fa08 {
     additionalPropertiesSupport: bool,
 }
 #[rustc_main]
