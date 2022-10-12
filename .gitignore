@@ -8,3 +8,5 @@
 /backend-rust/.trigger
 .eslintcache
 analyze.json
+node_modules/
+target/

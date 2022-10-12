@@ -1,0 +1,51 @@
+{
+  "name": "tucant-vscode-language-client",
+  "version": "1.0.0",
+  "description": "<!-- SPDX-FileCopyrightText: The tucant Contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohe2015/tucant.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mohe2015/tucant/issues"
+  },
+  "homepage": "https://github.com/mohe2015/tucant#readme",
+  "engines": {
+    "vscode": "^1.63.0"
+  },
+  "activationEvents": [
+    "onLanguage:tucant"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tucant",
+        "aliases": [
+          "TUCaN't Language"
+        ],
+        "extensions": [
+          ".tucant"
+        ]
+      }
+    ]
+  },
+  "type": "commonjs",
+  "main": "./out/main.js",
+  "scripts": {
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.mjs --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "build": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.8.3",
+    "@types/vscode": "^1.72.0",
+    "esbuild": "^0.15.10",
+    "typescript": "^4.8.4"
+  }
+}

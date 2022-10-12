@@ -1,0 +1,24 @@
+[package]
+name = "tucant_language_server_derive"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "1", features = ["full", "extra-traits"] }
+quote = "1"
+proc-macro2 = "1"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+serde_repr = "0.1"
+itertools = "0.10"
+derive_more = "0.99"
+sha3 = "0.10"
+hex = "0.4"
+rand = "0.8"
+rand_chacha = "0.3"
+heck = "0.4"
