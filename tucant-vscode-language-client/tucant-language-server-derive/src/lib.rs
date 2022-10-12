@@ -1,6 +1,7 @@
 use std::fs;
 
 use derive_more::TryInto;
+use heck::{ToUpperCamelCase, ToSnakeCase};
 use itertools::Itertools;
 use proc_macro2::{TokenStream, Span};
 use quote::{quote, format_ident};
@@ -479,7 +480,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             BaseTypes::Null => Ok((quote! { () }, quote! {})),
         },
         Type::ReferenceType(ReferenceType { name }) => {
-            let name = format_ident!("r#{}", name);
+            let name = format_ident!("r#{}", name.to_upper_camel_case());
              Ok((quote! { Box<#name> }, quote! {})) 
         },
         Type::ArrayType(ArrayType { element }) => {
@@ -494,7 +495,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::String } => quote! { String },
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Integer } => quote! { i64 },
                 MapKeyType::Reference(ReferenceType { name }) => {
-                    let name = format_ident!("r#{}", name);
+                    let name = format_ident!("r#{}", name.to_upper_camel_case());
                     quote! { Box<#name> }
                 },
             };
@@ -509,12 +510,12 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
-            let name = format_ident!("_{}", result);
+            let name = format_ident!("H{}", result);
 
             let mut err = Ok(());
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().enumerate().map(|(i, item)| -> syn::Result<(TokenStream, TokenStream)> {
                 let (item_type, item_rest) = handle_type(random, item)?;
-                let name = format_ident!("_{}", i);
+                let name = format_ident!("Variant{}", i);
                 Ok((quote! {
                     #name(#item_type),
                 }, quote! { #item_rest }))
@@ -548,11 +549,11 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
-            let name = format_ident!("_{}", result);
+            let name = format_ident!("H{}", result);
 
             let mut properties_err = Ok(());
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
-                let name = format_ident!("r#{}", property.name);
+                let name = format_ident!("r#{}", property.name.to_snake_case());
                 let (converted_type, rest) = handle_type(random, &property._type)?;
 
                 // TODO FIXME optional
@@ -601,14 +602,14 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut structures_err = Ok(());
     let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.structures.iter().map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
-        let name = format_ident!("r#{}", structure.name);
+        let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
         let documentation = structure.documentation.as_ref().map(|string| quote! {
             #[doc = #string]
         });
 
         let mut extends_err = Ok(());
         let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
-            let name = format_ident!("r#_{}", i);
+            let name = format_ident!("r#variant{}", i);
             let (converted_type, rest) = handle_type(&mut random, _type)?;
             Ok((quote! {
                 #name: #converted_type,
@@ -619,7 +620,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
         let mut properties_err = Ok(());
         let (properties, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
-            let name = format_ident!("r#{}", property.name);
+            let name = format_ident!("r#{}", property.name.to_snake_case());
             let documentation = property.documentation.as_ref().map(|string| quote! {
                 #[doc = #string]
             });
@@ -648,7 +649,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut enumerations_err = Ok(());
     let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
-        let name = format_ident!("r#{}", enumeration.name);
+        let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
         let documentation = enumeration.documentation.as_ref().map(|string| quote! {
             #[doc = #string]
         });
@@ -657,7 +658,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("r#{}", value.name);
+                    let name = format_ident!("r#{}", value.name.to_upper_camel_case());
                     let value: &i64 = (&value.value).try_into().unwrap();
                     Ok(quote! {
                         #name = #value,
@@ -678,7 +679,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::String } => {
                 let mut values_err = Ok(());
                 let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("r#{}", value.name);
+                    let name = format_ident!("r#{}", value.name.to_upper_camel_case());
                     let documentation = value.documentation.as_ref().map(|string| quote! {
                         #[doc = #string]
                     });
@@ -705,7 +706,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut type_aliases_err = Ok(());
     let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
-        let name = format_ident!("r#{}", type_alias.name);
+        let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
         let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
         let documentation = type_alias.documentation.as_ref().map(|string| quote! {
             #[doc = #string]
@@ -723,7 +724,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         });
         let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
             let method = &request.method;
-            let name = format_ident!("r#{}Request", request.method.replace("/", "_"));
+            let name = format_ident!("r#{}Request", request.method.replace("_", " ").to_upper_camel_case());
             let (params, rest) = match &request.params {
                 Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, &_type)?,
                 Some(TypeOrVecType::VecType(vec_type)) => {
@@ -755,7 +756,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
             (quote! {}, quote! {}, quote! {})
         };
         let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
-            let name = format_ident!("r#{}Response", request.method.replace("/", "_"));
+            let name = format_ident!("r#{}Response", request.method.replace("_", " ").to_upper_camel_case());
             quote! {
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
