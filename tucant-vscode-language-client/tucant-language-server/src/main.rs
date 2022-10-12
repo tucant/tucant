@@ -2,6 +2,9 @@ use std::env;
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{fs::File, io::{BufWriter, self, AsyncWriteExt, BufStream, AsyncBufReadExt, AsyncReadExt}, net::UnixStream};
+use tucant_language_server_derive::magic;
+
+magic!();
 
 #[derive(Parser)]
 struct Args {

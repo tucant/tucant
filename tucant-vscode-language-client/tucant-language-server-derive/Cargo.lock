@@ -255,7 +255,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucant-language-server-derive"
+name = "tucant_language_server_derive"
 version = "0.1.0"
 dependencies = [
  "derive_more",
