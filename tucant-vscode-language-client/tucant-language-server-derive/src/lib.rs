@@ -504,7 +504,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             let result = hex::encode(result);
 
             // based on the hash of the debug value of the json?
-            let name = format_ident!("r#{}", result);
+            let name = format_ident!("_{}", result);
             let mut properties_err = Ok(());
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                 let name = format_ident!("r#{}", property.name);
@@ -518,10 +518,13 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             }).scan(&mut properties_err, until_err).unzip();
 
             let return_value = (quote! {
+                #name
+            }, quote! {
                 struct #name {
                     #(#properties)*
                 }
-            }, quote! { #(#rest)* });
+                #(#rest)*
+            });
             properties_err?;
             Ok(return_value)
         },
