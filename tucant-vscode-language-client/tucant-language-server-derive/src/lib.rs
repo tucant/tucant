@@ -1,6 +1,7 @@
 use std::fs;
 
 use derive_more::TryInto;
+use itertools::Itertools;
 use proc_macro2::{TokenStream, Span};
 use quote::{quote, format_ident};
 use rand::{SeedableRng, Rng};
@@ -691,8 +692,8 @@ fn handle_magic() -> syn::Result<TokenStream> {
     }).scan(&mut type_aliases_err, until_err).unzip();
 
     let mut requests_err = Ok(());
-    let (requests, requests_rest): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream)> {
-        let (client_to_server, client_to_server_rest) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
+    let (requests, requests_rest, request_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream)> {
+        let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
             let name = format_ident!("r#{}Request", request.method.replace("/", "_"));
             let (params, rest) = match &request.params {
                 Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, &_type)?,
@@ -715,9 +716,11 @@ fn handle_magic() -> syn::Result<TokenStream> {
                     method: String,
                     params: #params
                 }
-            }, rest)
+            }, rest, quote! {
+                #name(#name),
+            })
         } else {
-            (quote! {}, quote! {})
+            (quote! {}, quote! {}, quote! {})
         };
         let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
             let name = format_ident!("r#{}Response", request.method.replace("/", "_"));
@@ -734,8 +737,10 @@ fn handle_magic() -> syn::Result<TokenStream> {
             #server_to_client
         }, quote! {
             #client_to_server_rest
+        }, quote! {
+            #request_enum
         }))
-    }).scan(&mut requests_err, until_err).unzip();
+    }).scan(&mut requests_err, until_err).multiunzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
@@ -751,6 +756,10 @@ fn handle_magic() -> syn::Result<TokenStream> {
         enum StringOrNumber {
             String(String),
             Number(i64),
+        }
+
+        enum Requests {
+            #(#request_enum)*
         }
     });
     structures_err?;
