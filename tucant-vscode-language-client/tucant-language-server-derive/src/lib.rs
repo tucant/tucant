@@ -480,7 +480,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
         },
         Type::ReferenceType(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name);
-             Ok((quote! { #name }, quote! {})) 
+             Ok((quote! { Box<#name> }, quote! {})) 
         },
         Type::ArrayType(ArrayType { element }) => {
             let (element, rest) = handle_type(random, element)?;
@@ -495,7 +495,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Integer } => quote! { i64 },
                 MapKeyType::Reference(ReferenceType { name }) => {
                     let name = format_ident!("r#{}", name);
-                    quote! { #name }
+                    quote! { Box<#name> }
                 },
             };
             Ok((quote! { ::std::collections::HashMap<#key_type, #value_type> }, quote! { #value_rest }))
@@ -522,6 +522,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let return_value = Ok((quote! {
                 #name
             }, quote! {
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 enum #name {
                     #(#items)*
                 }
@@ -564,6 +565,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let return_value = (quote! {
                 #name
             }, quote! {
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 struct #name {
                     #(#properties)*
                 }
@@ -588,6 +590,7 @@ fn until_err<T, E>(err: &mut &mut Result<(), E>, item: Result<T, E>) -> Option<T
     }
 }
 
+// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
 fn handle_magic() -> syn::Result<TokenStream> {
     let file = fs::File::open("src/metaModel.json")
     .expect("file should open read only");
@@ -624,6 +627,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         }).scan(&mut properties_err, until_err).unzip();
 
         let return_value = (quote! {
+            #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
             struct #name {
                 #(#extends)*
                 #(#properties)*
@@ -650,7 +654,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {     
-                    //#[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
+                    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
                     #[repr(i64)]
                     enum #name {
                         #(#values)*
@@ -665,13 +669,13 @@ fn handle_magic() -> syn::Result<TokenStream> {
                     let name = format_ident!("r#{}", value.name);
                     let value: &String = (&value.value).try_into().unwrap();
                     Ok(quote! {
-                        //#[serde(rename = #value)]
+                        #[serde(rename = #value)]
                         #name,
                     })
                 }).scan(&mut values_err, until_err);
         
                 let return_value = quote! {
-                    //#[derive(serde::Serialize, serde::Deserialize, Debug)]
+                    #[derive(serde::Serialize, serde::Deserialize, Debug)]
                     enum #name {
                         #(#values)*
                     }
@@ -694,6 +698,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let mut requests_err = Ok(());
     let (requests, requests_rest, request_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream)> {
         let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
+            let method = &request.method;
             let name = format_ident!("r#{}Request", request.method.replace("/", "_"));
             let (params, rest) = match &request.params {
                 Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, &_type)?,
@@ -711,12 +716,14 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 None => (quote! { () }, quote! {}),
             };
             (quote! {
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 struct #name {
                     id: StringOrNumber,
                     method: String,
                     params: #params
                 }
             }, rest, quote! {
+                #[serde(rename = #method)]
                 #name(#name),
             })
         } else {
@@ -725,6 +732,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
             let name = format_ident!("r#{}Response", request.method.replace("/", "_"));
             quote! {
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 struct #name {
 
                 }
@@ -758,6 +766,8 @@ fn handle_magic() -> syn::Result<TokenStream> {
             Number(i64),
         }
 
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[serde(tag = "method")]
         enum Requests {
             #(#request_enum)*
         }
@@ -773,8 +783,6 @@ fn handle_magic() -> syn::Result<TokenStream> {
 // cargo doc --document-private-items
 #[proc_macro]
 pub fn magic(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    // TODO FIXME I think this parses weird
-    let _input = parse_macro_input!(item as Nothing);
-
+    parse_macro_input!(item as Nothing);
     proc_macro::TokenStream::from(handle_magic().unwrap_or_else(Error::into_compile_error))
 }
