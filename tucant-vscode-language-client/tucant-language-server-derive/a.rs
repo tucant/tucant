@@ -2506,6 +2506,100 @@ struct workspace_executeCommandRequest {
     params: ExecuteCommandParams,
 }
 struct workspace_applyEditResponse {}
+#[serde(untagged)]
+enum StringOrNumber {
+    String(String),
+    Number(i64),
+}
+#[doc(hidden)]
+#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+const _: () = {
+    #[allow(unused_extern_crates, clippy::useless_attribute)]
+    extern crate serde as _serde;
+    #[automatically_derived]
+    impl _serde::Serialize for StringOrNumber {
+        fn serialize<__S>(
+            &self,
+            __serializer: __S,
+        ) -> _serde::__private::Result<__S::Ok, __S::Error>
+        where
+            __S: _serde::Serializer,
+        {
+            match *self {
+                StringOrNumber::String(ref __field0) => {
+                    _serde::Serialize::serialize(__field0, __serializer)
+                }
+                StringOrNumber::Number(ref __field0) => {
+                    _serde::Serialize::serialize(__field0, __serializer)
+                }
+            }
+        }
+    }
+};
+#[doc(hidden)]
+#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+const _: () = {
+    #[allow(unused_extern_crates, clippy::useless_attribute)]
+    extern crate serde as _serde;
+    #[automatically_derived]
+    impl<'de> _serde::Deserialize<'de> for StringOrNumber {
+        fn deserialize<__D>(
+            __deserializer: __D,
+        ) -> _serde::__private::Result<Self, __D::Error>
+        where
+            __D: _serde::Deserializer<'de>,
+        {
+            let __content = match <_serde::__private::de::Content as _serde::Deserialize>::deserialize(
+                __deserializer,
+            ) {
+                _serde::__private::Ok(__val) => __val,
+                _serde::__private::Err(__err) => {
+                    return _serde::__private::Err(__err);
+                }
+            };
+            if let _serde::__private::Ok(__ok)
+                = _serde::__private::Result::map(
+                    <String as _serde::Deserialize>::deserialize(
+                        _serde::__private::de::ContentRefDeserializer::<
+                            __D::Error,
+                        >::new(&__content),
+                    ),
+                    StringOrNumber::String,
+                ) {
+                return _serde::__private::Ok(__ok);
+            }
+            if let _serde::__private::Ok(__ok)
+                = _serde::__private::Result::map(
+                    <i64 as _serde::Deserialize>::deserialize(
+                        _serde::__private::de::ContentRefDeserializer::<
+                            __D::Error,
+                        >::new(&__content),
+                    ),
+                    StringOrNumber::Number,
+                ) {
+                return _serde::__private::Ok(__ok);
+            }
+            _serde::__private::Err(
+                _serde::de::Error::custom(
+                    "data did not match any variant of untagged enum StringOrNumber",
+                ),
+            )
+        }
+    }
+};
+#[automatically_derived]
+impl ::core::fmt::Debug for StringOrNumber {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+        match self {
+            StringOrNumber::String(__self_0) => {
+                ::core::fmt::Formatter::debug_tuple_field1_finish(f, "String", &__self_0)
+            }
+            StringOrNumber::Number(__self_0) => {
+                ::core::fmt::Formatter::debug_tuple_field1_finish(f, "Number", &__self_0)
+            }
+        }
+    }
+}
 #[rustc_main]
 pub fn main() -> () {
     extern crate test;

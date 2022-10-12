@@ -745,6 +745,13 @@ fn handle_magic() -> syn::Result<TokenStream> {
         #(#rest_type_aliases)*
         #(#requests)*
         #(#requests_rest)*
+                
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[serde(untagged)]
+        enum StringOrNumber {
+            String(String),
+            Number(i64),
+        }
     });
     structures_err?;
     enumerations_err?;
