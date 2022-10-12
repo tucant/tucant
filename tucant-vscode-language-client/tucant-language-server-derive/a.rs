@@ -60,7 +60,7 @@ struct WorkDoneProgressOptions {
     workDoneProgress: bool,
 }
 struct TextDocumentRegistrationOptions {
-    documentSelector: _a056750a60f1952caf9266e34e49b31c360e6a1f1807ab19a4cb9e3c,
+    documentSelector: _a44ada36690aa9d6934048498ebb2d11d7e3ab87b446efd60b2de068,
 }
 struct FoldingRangeParams {
     textDocument: TextDocumentIdentifier,
@@ -187,7 +187,7 @@ struct CreateFilesParams {
 }
 struct WorkspaceEdit {
     changes: ::std::collections::HashMap<String, Vec<TextEdit>>,
-    documentChanges: Vec<_7191064c973478b80fc8c60220997a16961f2f6a6fd3733edfb8722a>,
+    documentChanges: Vec<_20675497c287ff97f9244e435bca9e9a8b5c7936f347df9a84977dc6>,
     changeAnnotations: ::std::collections::HashMap<
         ChangeAnnotationIdentifier,
         ChangeAnnotation,
@@ -253,10 +253,10 @@ struct InlayHintParams {
 }
 struct InlayHint {
     position: Position,
-    label: _ff638392c2084be979bca73c67a9ff5ce48b4d831488b7a96d522fab,
+    label: _ba0d6f1d93f0f52ae80f8653ed379208dfa122b9d6ab538eb5f7f5b8,
     kind: InlayHintKind,
     textEdits: Vec<TextEdit>,
-    tooltip: _884cc41f89ac76d14ad276f05f61d17b0a84b1738faa7d62b8af4d08,
+    tooltip: _abfb8cb4ed84c41033c3e8c94c7bc4234afde188f0736e3282edf5dc,
     paddingLeft: bool,
     paddingRight: bool,
     data: LSPAny,
@@ -273,7 +273,7 @@ struct DocumentDiagnosticParams {
 struct DocumentDiagnosticReportPartialResult {
     relatedDocuments: ::std::collections::HashMap<
         String,
-        _3fc208fa8531e16f51fe2d6556f3d4ccf38ceff71ec52d486dcde26d,
+        _4520b827a9946c409d4b42de2e4a18335321292200d8d65ce2a28876,
     >,
 }
 struct DiagnosticServerCancellationData {
@@ -320,7 +320,7 @@ struct InitializeParams {
 }
 struct InitializeResult {
     capabilities: ServerCapabilities,
-    serverInfo: _a61bc5d7496fb1efa1e9b725864fd45cb9a1408070cc0dffd85a70c5,
+    serverInfo: _91c9dc45c080d1f1a95c6818893ae7fa3ec9e84798a2817872e75d03,
 }
 struct InitializeError {
     retry: bool,
@@ -330,7 +330,7 @@ struct DidChangeConfigurationParams {
     settings: LSPAny,
 }
 struct DidChangeConfigurationRegistrationOptions {
-    section: _a4685177a66e3b501e6cc62916bace54742fa85908984cd2881ed04d,
+    section: _caf5cf098d279755c6a146b930996a5222fb8f3cf7671675f9355ebf,
 }
 struct ShowMessageParams {
     r#type: MessageType,
@@ -399,7 +399,7 @@ struct CompletionItem {
     kind: CompletionItemKind,
     tags: Vec<CompletionItemTag>,
     detail: String,
-    documentation: _7d6bb204775151a30d94c8f3f290f43785b27796aebdfd57661b1c53,
+    documentation: _33791edbde5612b3e9a0a48ea5480ef154a9d1eed6a74c041df9b176,
     deprecated: bool,
     preselect: bool,
     sortText: String,
@@ -407,7 +407,7 @@ struct CompletionItem {
     insertText: String,
     insertTextFormat: InsertTextFormat,
     insertTextMode: InsertTextMode,
-    textEdit: _b9458109bbf5e70d956d873a8321de8414cc9ef003d7d317b8295e4c,
+    textEdit: _d2dab3ccad894e72e0de4c2b4e889018dcd1b1e3b052fc28a4f4cd21,
     textEditText: String,
     additionalTextEdits: Vec<TextEdit>,
     commitCharacters: Vec<String>,
@@ -416,7 +416,7 @@ struct CompletionItem {
 }
 struct CompletionList {
     isIncomplete: bool,
-    itemDefaults: _3e2b373e868b42c09d4b77ec92f0c9be680e8745ad1ebc61234242fe,
+    itemDefaults: _8a8b6e6a8a871e6484eb8ced645e6a3e443e790082d095ad8cb8385c,
     items: Vec<CompletionItem>,
 }
 struct CompletionRegistrationOptions {
@@ -427,7 +427,7 @@ struct HoverParams {
     _0: TextDocumentPositionParams,
 }
 struct Hover {
-    contents: _4b1a093db38b713ca100a78f933a283d4d84d2ff15a951ec34bc1dd0,
+    contents: _bfec2e49c40d813ccb10029d4c7b8c2471ae38c4ff312706af10eeb0,
     range: Range,
 }
 struct HoverRegistrationOptions {
@@ -510,7 +510,7 @@ struct CodeAction {
     kind: CodeActionKind,
     diagnostics: Vec<Diagnostic>,
     isPreferred: bool,
-    disabled: _c608c61340f31402c88067bab181725abdfedc887eade9a02cef744f,
+    disabled: _1ce6a9ccd9fcec313ffdcadb56b6160b36c92b5ac3ca6e40c9f66dc0,
     edit: WorkspaceEdit,
     command: Command,
     data: LSPAny,
@@ -524,7 +524,7 @@ struct WorkspaceSymbolParams {
 }
 struct WorkspaceSymbol {
     _0: BaseSymbolInformation,
-    location: _8f2dab9edc049982d2fe47d233fbd3d0c8a543108c48ca253448ab24,
+    location: _18b5dc6db7895860b906cc51e292bb2ac211a660ae07470b25d2e8c1,
     data: LSPAny,
 }
 struct WorkspaceSymbolRegistrationOptions {
@@ -611,20 +611,20 @@ struct ApplyWorkspaceEditResult {
     failedChange: u64,
 }
 struct WorkDoneProgressBegin {
-    kind: (),
+    kind: String,
     title: String,
     cancellable: bool,
     message: String,
     percentage: u64,
 }
 struct WorkDoneProgressReport {
-    kind: (),
+    kind: String,
     cancellable: bool,
     message: String,
     percentage: u64,
 }
 struct WorkDoneProgressEnd {
-    kind: (),
+    kind: String,
     message: String,
 }
 struct SetTraceParams {
@@ -635,7 +635,7 @@ struct LogTraceParams {
     verbose: String,
 }
 struct CancelParams {
-    id: _46876517743bdc4dc23598ff397bfe4060b99be6b3cdacdf95e7b692,
+    id: _e484dcae964f0d94615a89d4de298aa4cc7ff17990d8efc175c243e8,
 }
 struct ProgressParams {
     token: ProgressToken,
@@ -691,8 +691,8 @@ struct SelectionRangeOptions {}
 struct CallHierarchyOptions {}
 struct SemanticTokensOptions {
     legend: SemanticTokensLegend,
-    range: _b570f9f1b1bd0545adafef02995449a937f718c9e07ea93a7067e91e,
-    full: _3d62efa3984910a9decfd267ff8cc3a28d8ef7ccdb27012e13a4b196,
+    range: _7cedacdb8f2608a3266928b05f54cdc82197d99a81ce841e29d10f84,
+    full: _a1b9729827e5c2fd2a4e3da85261ac57dc84e8e0157a0cf4efa2aee7,
 }
 struct SemanticTokensEdit {
     start: u64,
@@ -705,24 +705,24 @@ struct FileCreate {
 }
 struct TextDocumentEdit {
     textDocument: OptionalVersionedTextDocumentIdentifier,
-    edits: Vec<_86c355212a6ac4cde2daeb9e4abacb35470d8ddc2f09f5603c45eab5>,
+    edits: Vec<_d884e31411b1a38e866960107f8f2b2306585dc53400572442d68860>,
 }
 struct CreateFile {
     _0: ResourceOperation,
-    kind: (),
+    kind: String,
     uri: String,
     options: CreateFileOptions,
 }
 struct RenameFile {
     _0: ResourceOperation,
-    kind: (),
+    kind: String,
     oldUri: String,
     newUri: String,
     options: RenameFileOptions,
 }
 struct DeleteFile {
     _0: ResourceOperation,
-    kind: (),
+    kind: String,
     uri: String,
     options: DeleteFileOptions,
 }
@@ -764,7 +764,7 @@ struct InlineValueEvaluatableExpression {
 struct InlineValueOptions {}
 struct InlayHintLabelPart {
     value: String,
-    tooltip: _55c44133dddc6460f9bd95e7bd4ae1954b6fdc3ac0a277ceaf7aff03,
+    tooltip: _eb8ecb8838ba4a00b282699457e32fccc703b1d1c3faebfb7e96ae30,
     location: Location,
     command: Command,
 }
@@ -779,23 +779,23 @@ struct RelatedFullDocumentDiagnosticReport {
     _0: FullDocumentDiagnosticReport,
     relatedDocuments: ::std::collections::HashMap<
         String,
-        _6d4d7397e719a0c242e2443276252a12751959ca3ff66421fd91f902,
+        _b3ca25fbfe8b20de6181622013377af7c1f6257cf6b9d86bfa2872b7,
     >,
 }
 struct RelatedUnchangedDocumentDiagnosticReport {
     _0: UnchangedDocumentDiagnosticReport,
     relatedDocuments: ::std::collections::HashMap<
         String,
-        _da4007d8065e0cfbc8daf1fc291e41264f9c9966c8bf1ee89ad11858,
+        _1ca5b10c67e806deeb36127aeafa207dbdb8647a2a63b9af8df38207,
     >,
 }
 struct FullDocumentDiagnosticReport {
-    kind: (),
+    kind: String,
     resultId: String,
     items: Vec<Diagnostic>,
 }
 struct UnchangedDocumentDiagnosticReport {
-    kind: (),
+    kind: String,
     resultId: String,
 }
 struct DiagnosticOptions {
@@ -826,7 +826,7 @@ struct VersionedNotebookDocumentIdentifier {
 }
 struct NotebookDocumentChangeEvent {
     metadata: LSPObject,
-    cells: _8686c18ca013eba49728040785b6375a8f875efe117e7f99d479300b,
+    cells: _0827542da33a17d9f40414b9f03753572161a06e777dd45c6e42ec2a,
 }
 struct NotebookDocumentIdentifier {
     uri: String,
@@ -841,53 +841,53 @@ struct Unregistration {
     method: String,
 }
 struct _InitializeParams {
-    processId: _4741baf77e5c28311ca100a74e2b7a42263c81f17fbf1de0cb17ed7f,
-    clientInfo: _cbb7ad32da0385d751c075c64aa8156298bac14e31f888175df60a65,
+    processId: _bbf5da1a1972f59d774caf56f3ef97e5234edfbe24884bbbdc807518,
+    clientInfo: _e81cedb4a7992d2c524c1332c27281220fa6b9b6b4785d3242d6c68b,
     locale: String,
-    rootPath: _4e0c08e9e816138aef047f8aa74a40d6c847d63128617e9a29c49f6f,
-    rootUri: _c125ac7b3b9c1b26f77c2d8738f29748ce6a58ed7880cdcdbf8c5765,
+    rootPath: _a6213563b2450a4eb22320e9bb7ebbb15da6df3cf993ac3c7180d4cd,
+    rootUri: _e1cb7e71e106059ca1b81c378634d898d565366055db97b975b543f5,
     capabilities: ClientCapabilities,
     initializationOptions: LSPAny,
-    trace: _5e1fd87b1246e9ef8ff39c1b0e0a45421dd55d5766381d4dc899a0cc,
+    trace: _2dc33e1f50a8cda2e91789f950352d11c9524eedff1aa4b66c8324fc,
 }
 struct WorkspaceFoldersInitializeParams {
-    workspaceFolders: _5868a169622a556bfcf7731695edfdb33b898f01f9d0350a52a77f7e,
+    workspaceFolders: _df55105f2791f862d88387733d882c188fd7796b82554503ba371a7e,
 }
 struct ServerCapabilities {
     positionEncoding: PositionEncodingKind,
-    textDocumentSync: _b1df196d752f1c7feb0315def8e74b71e062b97ea211598052596d7c,
-    notebookDocumentSync: _595182541430ce6a312c274105fa59a127c14d1d17a1e25c6c129d39,
+    textDocumentSync: _472e2438f119d76b775111dfb9dedc34cc2ce02b2c51bcb881ecac67,
+    notebookDocumentSync: _631c1e348c9c0248262b4d663e3cec4418da06c0cfcfb0154b86a82c,
     completionProvider: CompletionOptions,
-    hoverProvider: _a0c90c4ed2f85bdf6d6ade31475a91c2b6e528f3cdf3a6fce7c28c48,
+    hoverProvider: _cf775c8998c6a7b8a4a6fe5209e3deca20b72c9865c8ea5d6df7d643,
     signatureHelpProvider: SignatureHelpOptions,
-    declarationProvider: _04317f8f91f555b30cf0fe639c4a6cf89998bfa11af1e020f565b7e1,
-    definitionProvider: _726064a7dd875570b101a00559dbbbea4e4fb7e7f397095f7a2f9a80,
-    typeDefinitionProvider: _3d304a6b55694e7e08b55b6ad74e76b9269f6685c1c790d771c20967,
-    implementationProvider: _9a04310084e02a69ec04c1e6a6c574e184bfff6a77584f33cd67d8b0,
-    referencesProvider: _f0cf0d87d16d412504c9a4cb798aca07129307ac35d239b74863cba5,
-    documentHighlightProvider: _e222f1036626f9d16353835dc3d53219c5926f19b8de60f19287d8b1,
-    documentSymbolProvider: _e96adf8509731b7d08ac976b369b7f37a66fb17996416ea183ebcf66,
-    codeActionProvider: _02a8ba13640b991b671fbd9c60c0c32b0a42a45f2f515782fce974f2,
+    declarationProvider: _471c7d149428ca9c83ae8c0bec87ae584d6c99d2e6f2a331db1f5f7a,
+    definitionProvider: _34120553501f416c49457cc8abfea84cd3b2803b0d59c52ea9a50dca,
+    typeDefinitionProvider: _33316dc96fe5bf162c9a81a24d8e0067546c3d0b914ed2e3450b69d3,
+    implementationProvider: _c31973563ba643ef0f655ff876eee0b182c45ce8d722a7e641bb0a14,
+    referencesProvider: _20fe5f1b4b363fa62b85bf61a3ef8eaacde4133ec79bb25f0710b3c5,
+    documentHighlightProvider: _b0213d5e10cb792421236a7d35262b8a34b4ea5fae7a041db4f6fb6e,
+    documentSymbolProvider: _cb2f3a3a125b8eb211123187f73ca187f91dcc169309f52adc28a6d7,
+    codeActionProvider: _0a9310fc2871c7abe46dc99211e8822b62a1ade507e0729e917d98f7,
     codeLensProvider: CodeLensOptions,
     documentLinkProvider: DocumentLinkOptions,
-    colorProvider: _26c0166cf265412c6232bcd7db1a3bf9a814bf0ca902c7e9c0ca852d,
-    workspaceSymbolProvider: _6d1693fd1d58ffd1345642cebc8631754b1956701e4538bb175e8ee0,
-    documentFormattingProvider: _e6fe21d118d621ee9bd07de8bd6f25de4738ea2eebfff67bd3b93c86,
-    documentRangeFormattingProvider: _7b91c96dbdd4cf7328bb6b714c2e9183af61d6cc08396f4dc4bae568,
+    colorProvider: _759c3263fd62a12b6f972b08030d81f1b7a891e4528a8a056d11577d,
+    workspaceSymbolProvider: _b766abd82bdd5e9eb60e5afd17870f019c6bcbb0f68df14e9c3bbf20,
+    documentFormattingProvider: _ee2c078b28dcd05719724fdf217e85f822848aadc1411bc2ea35c166,
+    documentRangeFormattingProvider: _40730836c5df37e13ddbe5249a2a22941b241afdc0a1d76e5d03d293,
     documentOnTypeFormattingProvider: DocumentOnTypeFormattingOptions,
-    renameProvider: _aa9bf9fdb1f89b77538d1909dfa7cfd192a75e91547501ba395ba7d3,
-    foldingRangeProvider: _e759e7a403d62cb3109d326e3c424b596eccb1a9e99bc7c3693c9513,
-    selectionRangeProvider: _505a646dc962718cb3169c822e33a538d79d540e58cf080545dbf9ae,
+    renameProvider: _2da4bbcdf63df92264b0f186c1101404d3308406620555a2b2832602,
+    foldingRangeProvider: _d1d4857902bb343b601d4229ae52fb51f1fb63f806e4ff617dad2b57,
+    selectionRangeProvider: _72dd1afb7f78a6695603ed1d2d38cd2aa4e1c23b0bf3f0f0e7719b9c,
     executeCommandProvider: ExecuteCommandOptions,
-    callHierarchyProvider: _48fb1fa3da14d65578b5d664c9158ae81311eefb97acc98fa0e31b98,
-    linkedEditingRangeProvider: _734c41cfb5333dab38738128fcb520d279027501d1639841dd1083fa,
-    semanticTokensProvider: _a23047d956bbb441b6f0c388d6f70c57ad2a259fc66e89fd607cd974,
-    monikerProvider: _8702b8c310a621de29bb724ae324d822ff769d4055a37a01da756c38,
-    typeHierarchyProvider: _9b377653dfd0cac2b3c93d4227eed3e9735cb45cdeb84ef0b81c4a5f,
-    inlineValueProvider: _0cab083e9333223d5b76b08ac7d5aefac1820a3af21f1f5a414d2a9b,
-    inlayHintProvider: _531b32e5541cdc8ec6bc8aa8e0ed39d106f3bc108195c096b6106e9f,
-    diagnosticProvider: _4e24549c800892ecca8f3ea185df09e2fed5062e9cd529e33667d9d0,
-    workspace: _5418b79a89f5cc28e7a102d33ce199381b6f1e9bf0bdb3f46968c229,
+    callHierarchyProvider: _759c4718cabf2f76222cd7b35b2bc2f40ecdd38e4bcef6cfd2da17c2,
+    linkedEditingRangeProvider: _5b0665666407d3ae8dad3b5d12551db0325c81d06a1f53397309ac36,
+    semanticTokensProvider: _df10bdc8b75a050b8725ea66d80d46547765c121fc6bf65d3294332b,
+    monikerProvider: _f7e360ebc643990141b62cb57d0a2e60b1e25723421b6695fac74a9f,
+    typeHierarchyProvider: _370e67f8a822b87f59e6d3a9e2c71d9e65b9731343b40d3aee6c04f7,
+    inlineValueProvider: _34e5a53bd856e29fa59a168b49eafe9075cc1fc90fcbd66a37e9a8f7,
+    inlayHintProvider: _3ca2f77a5178e2314989918bf506052bd741d59e066e757c16231187,
+    diagnosticProvider: _7289765a9786ad6c1670a248df07ed18abe333d2794456fc30b208bc,
+    workspace: _ab8afde3c03eda225c6957467f9d403a779ddc30b781d0da1817ca25,
     experimental: LSPAny,
 }
 struct VersionedTextDocumentIdentifier {
@@ -908,7 +908,7 @@ struct FileSystemWatcher {
 struct Diagnostic {
     range: Range,
     severity: DiagnosticSeverity,
-    code: _18d7e36fdbc505296f71e2f93b82efebeeb9426e15069f2ab43ba542,
+    code: _3a98b10d8860f5560269068fb79c8f6d525edb98a6825b052917b812,
     codeDescription: CodeDescription,
     source: String,
     message: String,
@@ -933,7 +933,7 @@ struct CompletionOptions {
     triggerCharacters: Vec<String>,
     allCommitCharacters: Vec<String>,
     resolveProvider: bool,
-    completionItem: _688088efd1b14986d98f20cf44230f728f6e1a914b331ee9a6126f4f,
+    completionItem: _9deab373943e594476f716e144173916f8e267057c142a036dfbe648,
 }
 struct HoverOptions {}
 struct SignatureHelpContext {
@@ -944,7 +944,7 @@ struct SignatureHelpContext {
 }
 struct SignatureInformation {
     label: String,
-    documentation: _664ca25c59505bd4079b05c93b742c52fe16fc98f1c8e5a3a59ab064,
+    documentation: _48a512537f21818e7f05388de299cdf80541037c0dfb1da3fe55c4c5,
     parameters: Vec<ParameterInformation>,
     activeParameter: u64,
 }
@@ -1010,7 +1010,7 @@ struct SemanticTokensLegend {
 }
 struct OptionalVersionedTextDocumentIdentifier {
     _0: TextDocumentIdentifier,
-    version: _e911abe98649132bc4f7460d1ede2881cb9018c613e2d7d167c8ca90,
+    version: _fa9e7cd9cb626f933f7c62eaee947ae76e2070b58679a3f05e23d705,
 }
 struct AnnotatedTextEdit {
     _0: TextEdit,
@@ -1040,12 +1040,12 @@ struct FileOperationPattern {
 struct WorkspaceFullDocumentDiagnosticReport {
     _0: FullDocumentDiagnosticReport,
     uri: String,
-    version: _e5075c3e3fc87f4559c38c96edfac0a0f57e50eb51032e5fcacd5dfc,
+    version: _7882e51885e541f29d88c33b93b41dba3afd3fe6bd2bec34dccc17c3,
 }
 struct WorkspaceUnchangedDocumentDiagnosticReport {
     _0: UnchangedDocumentDiagnosticReport,
     uri: String,
-    version: _eb3c8858872159820455156ca8344d61c40c1fe79e60d9c500ec5736,
+    version: _50aac40081ea3f35f0a63acbd073ce48426f6c02d0b1552620c98402,
 }
 struct LSPObject {}
 struct NotebookCell {
@@ -1072,10 +1072,10 @@ struct TextDocumentSyncOptions {
     change: TextDocumentSyncKind,
     willSave: bool,
     willSaveWaitUntil: bool,
-    save: _63cb47a5952dcc1e06bf042e05f7d29db500a5d7acae00fc07d4dd8f,
+    save: _75f522d38560ad26a10fc53c9eb2011ae27430c5e3f0a50a248d3ce9,
 }
 struct NotebookDocumentSyncOptions {
-    notebookSelector: Vec<_f0494010a863ad5b5c35127a6170fa4f5109dbe797c8c290bfa69502>,
+    notebookSelector: Vec<_71710b5eeb134cdfd3faac4f3466cce13eba2d0cd09f29f1c7befd57>,
     save: bool,
 }
 struct NotebookDocumentSyncRegistrationOptions {
@@ -1083,7 +1083,7 @@ struct NotebookDocumentSyncRegistrationOptions {
 }
 struct WorkspaceFoldersServerCapabilities {
     supported: bool,
-    changeNotifications: _fe81a511bd7bdf218978e741051f1f7d417ffb3ad154f24e718e1390,
+    changeNotifications: _a5b1c7a5b38fa0cb4a633d1629b8ff234be7bd63fbb551b8efd12f55,
 }
 struct FileOperationOptions {
     didCreate: FileOperationRegistrationOptions,
@@ -1101,11 +1101,11 @@ struct DiagnosticRelatedInformation {
     message: String,
 }
 struct ParameterInformation {
-    label: _a6d429ebad4d0c5cb627a44498b1513a14e0f6597fb2b59ec3f05120,
-    documentation: _f6c860f8fae52697f4faa203922b9c62d994532ee6667fedbd642380,
+    label: _4ada4c59395876e63d0a7a4818d3c49aacce382a9edbfcc6a02edfc6,
+    documentation: _d365b6956f33a59b45c02b054124b384b8e05392edcce4537230b64b,
 }
 struct NotebookCellTextDocumentFilter {
-    notebook: _be533a4f33e057440c4f64a408d63f6c22aa65744e3102f8d12875c6,
+    notebook: _109998d954d8a8555a7930f92f093847cb1d2e8686cf7324de08154b,
     language: String,
 }
 struct FileOperationPatternOptions {
@@ -1172,13 +1172,13 @@ struct WindowClientCapabilities {
     showDocument: ShowDocumentClientCapabilities,
 }
 struct GeneralClientCapabilities {
-    staleRequestSupport: _003415e244d2612d789a19dab8421b511187b3755b9473930b674d12,
+    staleRequestSupport: _877bb6e73765d649dd9c8c7456ea5c545f30065d79a37e5e30a69d9b,
     regularExpressions: RegularExpressionsClientCapabilities,
     markdown: MarkdownClientCapabilities,
     positionEncodings: Vec<PositionEncodingKind>,
 }
 struct RelativePattern {
-    baseUri: _55e35d0ecaaf41c17687df82ca01b08921e446491ab4731af65fe581,
+    baseUri: _8d73a06b22a77b0af506cf893505701a2af9ce8ae9c659dc9fbf630e,
     pattern: Pattern,
 }
 struct WorkspaceEditClientCapabilities {
@@ -1186,7 +1186,7 @@ struct WorkspaceEditClientCapabilities {
     resourceOperations: Vec<ResourceOperationKind>,
     failureHandling: FailureHandlingKind,
     normalizesLineEndings: bool,
-    changeAnnotationSupport: _b6707bcef1be5e545e98099e53ea44f18347faf75ed7d7edf6d44ef0,
+    changeAnnotationSupport: _7cf4587e22dc7fe3c2c16b127cd5b5b2d4432963d9d6862ad806251b,
 }
 struct DidChangeConfigurationClientCapabilities {
     dynamicRegistration: bool,
@@ -1197,9 +1197,9 @@ struct DidChangeWatchedFilesClientCapabilities {
 }
 struct WorkspaceSymbolClientCapabilities {
     dynamicRegistration: bool,
-    symbolKind: _0d8e0f734067929cc8e5b9d0da8d1d3f54e69aa40241215a69208b1f,
-    tagSupport: _591e4745558d2dc75c1523b59943c321d24eabd0847dddfbd9af505e,
-    resolveSupport: _b9b6711c52b95e4c40da4d25dfaa2e5c9f540bbb7739fbfcc6b56568,
+    symbolKind: _a5ee93db7bac8441b27dfaf3df0c808b950c56f2fba4c06a7898b076,
+    tagSupport: _7f3ec240bcaae6e39d8ed59f2360e8bd2865b5011eb1ec929bc7d6ac,
+    resolveSupport: _aa6b36b97757a707759f7a803a6c2deaa91129c2bfa04a13676d60a6,
 }
 struct ExecuteCommandClientCapabilities {
     dynamicRegistration: bool,
@@ -1236,11 +1236,11 @@ struct TextDocumentSyncClientCapabilities {
 }
 struct CompletionClientCapabilities {
     dynamicRegistration: bool,
-    completionItem: _abed05221375ee6f658341ceb8a2fd3422dd58eefa7cf4603ab2244d,
-    completionItemKind: _f9a77c24bb228bd169055f2a5897495d25038ea2f0416d17a90e2452,
+    completionItem: _4377f9faebeb42fe2891e8feaa21e0e9246fec3262250294c1ab4328,
+    completionItemKind: _fd010b92ea5ad219bc163a3b3b73bfd81e2d2d7ff03b76c076d753c9,
     insertTextMode: InsertTextMode,
     contextSupport: bool,
-    completionList: _c97efab1d6dddb53f99b49656a2402f88a4737325119a6483e2b5db5,
+    completionList: _9ef0e4a9b616da9d5f5a35c13842e528ccb60b3ccc3eb1cd57e695b4,
 }
 struct HoverClientCapabilities {
     dynamicRegistration: bool,
@@ -1248,7 +1248,7 @@ struct HoverClientCapabilities {
 }
 struct SignatureHelpClientCapabilities {
     dynamicRegistration: bool,
-    signatureInformation: _ca746e2f1bb1fdee9b60dfe2e4a60af75e7fe3ec193521018781c496,
+    signatureInformation: _78cc05b724b41a4ac819ae4421efaa2e70b095997c30016530fbe9e4,
     contextSupport: bool,
 }
 struct DeclarationClientCapabilities {
@@ -1275,18 +1275,18 @@ struct DocumentHighlightClientCapabilities {
 }
 struct DocumentSymbolClientCapabilities {
     dynamicRegistration: bool,
-    symbolKind: _2e39f4b7aeaa9e12fc785358cdaf981e9fa1f74c27deeef45fa32aa0,
+    symbolKind: _53feb9d647e5eac04c614f0e541477425c2b27c778c136a58db7a8cd,
     hierarchicalDocumentSymbolSupport: bool,
-    tagSupport: _a103d42a15a2985aa612bb759666278a5ce67d2a782dd5e1e3271823,
+    tagSupport: _7bd184f8510b42d31dd38ce5079d82b3bea743a385fb9e4fd928f988,
     labelSupport: bool,
 }
 struct CodeActionClientCapabilities {
     dynamicRegistration: bool,
-    codeActionLiteralSupport: _f58e6e95aac5dafb26357ad6a6d171269bfce7b2ddc435a2f6f057bc,
+    codeActionLiteralSupport: _c22b892c96ed670d4fd0d701f9bd74444324760cb17fa0866acfc2fe,
     isPreferredSupport: bool,
     disabledSupport: bool,
     dataSupport: bool,
-    resolveSupport: _b5e7a4ebd7246f63611beec6ae6a7ecc6bee967c3b921da16371bfc0,
+    resolveSupport: _d845d28de26a6562ab0f3071b0148ba78003f2388250522c14292103,
     honorsChangeAnnotations: bool,
 }
 struct CodeLensClientCapabilities {
@@ -1318,15 +1318,15 @@ struct FoldingRangeClientCapabilities {
     dynamicRegistration: bool,
     rangeLimit: u64,
     lineFoldingOnly: bool,
-    foldingRangeKind: _6de36e91868f2b78b3e86b8f4028da34d8457ce95ca8f9ca5842c0db,
-    foldingRange: _e508b892eb91775d344b084cb01a1f3f32162e3cd19294e8a7962903,
+    foldingRangeKind: _b33a9d8f58762edd9c9ae397bf07c2276a289581dd512e56b8de54d1,
+    foldingRange: _0505e161b62b03f89c9040894d9c584ddeb00fdfb5cc71400f79d800,
 }
 struct SelectionRangeClientCapabilities {
     dynamicRegistration: bool,
 }
 struct PublishDiagnosticsClientCapabilities {
     relatedInformation: bool,
-    tagSupport: _1b0c8a8bf5ec254687aa4e85350349aa8e1d874454ce6e58d4ad3c81,
+    tagSupport: _e0ce07c89e64b9fc734b6a13028cea213fb910373a6d3671abbdeff9,
     versionSupport: bool,
     codeDescriptionSupport: bool,
     dataSupport: bool,
@@ -1336,7 +1336,7 @@ struct CallHierarchyClientCapabilities {
 }
 struct SemanticTokensClientCapabilities {
     dynamicRegistration: bool,
-    requests: _76956417a800c7206b54add57d83af24eae22079e702e05e38173c6b,
+    requests: _6b9e5f4576aaadb5e4831cc0a3d43014b56e26ba5365f2c344ff4f91,
     tokenTypes: Vec<String>,
     tokenModifiers: Vec<String>,
     formats: Vec<TokenFormat>,
@@ -1359,7 +1359,7 @@ struct InlineValueClientCapabilities {
 }
 struct InlayHintClientCapabilities {
     dynamicRegistration: bool,
-    resolveSupport: _598578991bb319e2e390858fa8230eb695b82100ae440f642ccb9968,
+    resolveSupport: _ef7c979ec14639533fa3bb0704627fdb6b583546b37655fb83fe7070,
 }
 struct DiagnosticClientCapabilities {
     dynamicRegistration: bool,
@@ -1370,7 +1370,7 @@ struct NotebookDocumentSyncClientCapabilities {
     executionSummarySupport: bool,
 }
 struct ShowMessageRequestClientCapabilities {
-    messageActionItem: _310d9d6f7229eea387894a6e9eeefb6de5b6a34f5bb997c33ffd34e5,
+    messageActionItem: _b5f1d20437f2f7025880041fc630d405b7bb17f0e9ea9efee2540ad6,
 }
 struct ShowDocumentClientCapabilities {
     support: bool,
@@ -1657,461 +1657,461 @@ enum PrepareSupportDefaultBehavior {
 enum TokenFormat {
     Relative,
 }
-type Definition = _7d00f70d7c70a0a2fc97c00cf98aaffa2116c600cedc4680d0e2826f;
+type Definition = _57db34cbae3e865d37fbe18717f824151b68b0441fb5e562fb553571;
 type DefinitionLink = LocationLink;
 type LSPArray = Vec<LSPAny>;
-type LSPAny = _ba101a3798c9f0f62231075cfbee9ed781238babbb2a538f97e41e10;
-type Declaration = _593dc727e9f6426a65edf3cc967071489c5e33d7ba8ac69c517780ae;
+type LSPAny = _f8075aa5d2087b5c0878a1972f58738346fbbe3c85b3edb9a00bd8ab;
+type Declaration = _c6d47e4f103f8720ea2a11f8ec405e1bde5456d75462de0078ce5feb;
 type DeclarationLink = LocationLink;
-type InlineValue = _b2a503fde3d06d3a4ace49fbb762ff9adab60a96f568ecdd04bd8631;
-type DocumentDiagnosticReport = _2a42f4e83d6483635081daa6bf3fdbe7dca1486c19fe7895ec86c7c6;
-type PrepareRenameResult = _fba93686f5a56329c6d0f516609839553e7b6c1a3fda79e23d4bff52;
-type ProgressToken = _ca720ec3ac8719ab1592e127cdfde53da10e7f1455b874501a37d732;
+type InlineValue = _2e758aa6ee708a750718947a2d5b3a8392558191db9b509da97c5747;
+type DocumentDiagnosticReport = _34ceea7c9a5184c7f66dd0f692565d4117a336d4717aa415372086fc;
+type PrepareRenameResult = _24cd2f59a21d5cc2188ca1cc9d3c3c653d2b2f26784ea6cba7e33fc1;
+type ProgressToken = _cc2b257df43de00fffbcedb2cb07aecc087f3c2f3d66207fd3732a0a;
 type DocumentSelector = Vec<DocumentFilter>;
 type ChangeAnnotationIdentifier = String;
-type WorkspaceDocumentDiagnosticReport = _41e6cfaaca3360e543cf714742a7421f5b5df079b8984285e0a4b31f;
-type TextDocumentContentChangeEvent = _2011ab7bc3bde22e3caa415e54c859e382f3337bbe445f969c496b36;
-type MarkedString = _8a11f9b93ae449d085ef0e8b9314e8301351317a08020a3f3ddc6cbf;
-type DocumentFilter = _c822a55395a19f4050cc4fcc03f6ad568cab0d855de31f9ac74c87f6;
-type GlobPattern = _cc37b2d840f6c78b854d2bb23520f3a9eea1342ed9fe532d5acf7c91;
-type TextDocumentFilter = _68055c228d7044947d80776ce1dfaef481bd941cdc5e6afaa1984d84;
-type NotebookDocumentFilter = _a161ce038f036e4c63f9edd54e16304491db88c580b564cb758c09e5;
+type WorkspaceDocumentDiagnosticReport = _9f06980ce22b7ceb6af07a48b710d9034dbdabd9b50bb5234fb7b419;
+type TextDocumentContentChangeEvent = _4cc02a265d9bed84724db0c1d65d23328b06e95e396366c244f4f58f;
+type MarkedString = _7bc5227534f7b9dc132836606a76c4fe3bd5ea140c06bd2fcebe0a7d;
+type DocumentFilter = _558cd18a8427d08f92d76714233029346a549a97ca8e2b6515b4e37d;
+type GlobPattern = _6b7fd1908d90a0dabbfa8fbf9ba7df096ac5d7d0161feb71b055f24f;
+type TextDocumentFilter = _2addba27f50770d7aad108720db2224f2753404b0dea9be4ae47c37a;
+type NotebookDocumentFilter = _809a7858a37f3a1c67a06dbf4a4837c90797dc79c9cce00803115ea0;
 type Pattern = String;
-enum _a056750a60f1952caf9266e34e49b31c360e6a1f1807ab19a4cb9e3c {
+enum _a44ada36690aa9d6934048498ebb2d11d7e3ab87b446efd60b2de068 {
     _0(DocumentSelector),
     _1(()),
 }
-enum _7191064c973478b80fc8c60220997a16961f2f6a6fd3733edfb8722a {
+enum _20675497c287ff97f9244e435bca9e9a8b5c7936f347df9a84977dc6 {
     _0(TextDocumentEdit),
     _1(CreateFile),
     _2(RenameFile),
     _3(DeleteFile),
 }
-enum _ff638392c2084be979bca73c67a9ff5ce48b4d831488b7a96d522fab {
+enum _ba0d6f1d93f0f52ae80f8653ed379208dfa122b9d6ab538eb5f7f5b8 {
     _0(String),
     _1(Vec<InlayHintLabelPart>),
 }
-enum _884cc41f89ac76d14ad276f05f61d17b0a84b1738faa7d62b8af4d08 {
+enum _abfb8cb4ed84c41033c3e8c94c7bc4234afde188f0736e3282edf5dc {
     _0(String),
     _1(MarkupContent),
 }
-enum _3fc208fa8531e16f51fe2d6556f3d4ccf38ceff71ec52d486dcde26d {
+enum _4520b827a9946c409d4b42de2e4a18335321292200d8d65ce2a28876 {
     _0(FullDocumentDiagnosticReport),
     _1(UnchangedDocumentDiagnosticReport),
 }
-struct _a61bc5d7496fb1efa1e9b725864fd45cb9a1408070cc0dffd85a70c5 {
+struct _91c9dc45c080d1f1a95c6818893ae7fa3ec9e84798a2817872e75d03 {
     name: String,
     version: String,
 }
-enum _a4685177a66e3b501e6cc62916bace54742fa85908984cd2881ed04d {
+enum _caf5cf098d279755c6a146b930996a5222fb8f3cf7671675f9355ebf {
     _0(String),
     _1(Vec<String>),
 }
-enum _7d6bb204775151a30d94c8f3f290f43785b27796aebdfd57661b1c53 {
+enum _33791edbde5612b3e9a0a48ea5480ef154a9d1eed6a74c041df9b176 {
     _0(String),
     _1(MarkupContent),
 }
-enum _b9458109bbf5e70d956d873a8321de8414cc9ef003d7d317b8295e4c {
+enum _d2dab3ccad894e72e0de4c2b4e889018dcd1b1e3b052fc28a4f4cd21 {
     _0(TextEdit),
     _1(InsertReplaceEdit),
 }
-struct _3e2b373e868b42c09d4b77ec92f0c9be680e8745ad1ebc61234242fe {
+struct _8a8b6e6a8a871e6484eb8ced645e6a3e443e790082d095ad8cb8385c {
     commitCharacters: Vec<String>,
-    editRange: _6270490502445dc6e513fb3d611e21ce9cc440d0b44e133ccc74a0f6,
+    editRange: _4a661eb1629af6ffcd5f953adc06f1435bbd6ccd0de7f6d1a7e5c8d3,
     insertTextFormat: InsertTextFormat,
     insertTextMode: InsertTextMode,
     data: LSPAny,
 }
-enum _6270490502445dc6e513fb3d611e21ce9cc440d0b44e133ccc74a0f6 {
+enum _4a661eb1629af6ffcd5f953adc06f1435bbd6ccd0de7f6d1a7e5c8d3 {
     _0(Range),
-    _1(_d11db4ffa6d25baa8a8eb19ad5309bee7391cceaf724a014882d4a59),
+    _1(_eec90c37cc838a249e4a871874c6c2e70086e9e239199fa6e2967d8b),
 }
-struct _d11db4ffa6d25baa8a8eb19ad5309bee7391cceaf724a014882d4a59 {
+struct _eec90c37cc838a249e4a871874c6c2e70086e9e239199fa6e2967d8b {
     insert: Range,
     replace: Range,
 }
-enum _4b1a093db38b713ca100a78f933a283d4d84d2ff15a951ec34bc1dd0 {
+enum _bfec2e49c40d813ccb10029d4c7b8c2471ae38c4ff312706af10eeb0 {
     _0(MarkupContent),
     _1(MarkedString),
     _2(Vec<MarkedString>),
 }
-struct _c608c61340f31402c88067bab181725abdfedc887eade9a02cef744f {
+struct _1ce6a9ccd9fcec313ffdcadb56b6160b36c92b5ac3ca6e40c9f66dc0 {
     reason: String,
 }
-enum _8f2dab9edc049982d2fe47d233fbd3d0c8a543108c48ca253448ab24 {
+enum _18b5dc6db7895860b906cc51e292bb2ac211a660ae07470b25d2e8c1 {
     _0(Location),
-    _1(_463a33b810a2a9c977e3a4fa000d946d30534cbd203ecfeb2982e4a6),
+    _1(_bb0b00659ec15f1624ad7acf3928eacdc1439052056606a3f29ca9fa),
 }
-struct _463a33b810a2a9c977e3a4fa000d946d30534cbd203ecfeb2982e4a6 {
+struct _bb0b00659ec15f1624ad7acf3928eacdc1439052056606a3f29ca9fa {
     uri: String,
 }
-enum _46876517743bdc4dc23598ff397bfe4060b99be6b3cdacdf95e7b692 {
+enum _e484dcae964f0d94615a89d4de298aa4cc7ff17990d8efc175c243e8 {
     _0(i64),
     _1(String),
 }
-enum _b570f9f1b1bd0545adafef02995449a937f718c9e07ea93a7067e91e {
+enum _7cedacdb8f2608a3266928b05f54cdc82197d99a81ce841e29d10f84 {
     _0(bool),
-    _1(_6dfe5f6209afd6de59c91109468aae36b44db38482379e9711cb5e10),
+    _1(_9d562f1a0201cda8610075d0daea2be20a8a7968dd04d1bde874d38e),
 }
-struct _6dfe5f6209afd6de59c91109468aae36b44db38482379e9711cb5e10 {}
-enum _3d62efa3984910a9decfd267ff8cc3a28d8ef7ccdb27012e13a4b196 {
+struct _9d562f1a0201cda8610075d0daea2be20a8a7968dd04d1bde874d38e {}
+enum _a1b9729827e5c2fd2a4e3da85261ac57dc84e8e0157a0cf4efa2aee7 {
     _0(bool),
-    _1(_cfdc059e86f529182ac373eb120495defc57dd6417461f294c02cea8),
+    _1(_a1d587e2689fb6e728e56b3353fe26995e7b79f95c9e20f203259786),
 }
-struct _cfdc059e86f529182ac373eb120495defc57dd6417461f294c02cea8 {
+struct _a1d587e2689fb6e728e56b3353fe26995e7b79f95c9e20f203259786 {
     delta: bool,
 }
-enum _86c355212a6ac4cde2daeb9e4abacb35470d8ddc2f09f5603c45eab5 {
+enum _d884e31411b1a38e866960107f8f2b2306585dc53400572442d68860 {
     _0(TextEdit),
     _1(AnnotatedTextEdit),
 }
-enum _55c44133dddc6460f9bd95e7bd4ae1954b6fdc3ac0a277ceaf7aff03 {
+enum _eb8ecb8838ba4a00b282699457e32fccc703b1d1c3faebfb7e96ae30 {
     _0(String),
     _1(MarkupContent),
 }
-enum _6d4d7397e719a0c242e2443276252a12751959ca3ff66421fd91f902 {
+enum _b3ca25fbfe8b20de6181622013377af7c1f6257cf6b9d86bfa2872b7 {
     _0(FullDocumentDiagnosticReport),
     _1(UnchangedDocumentDiagnosticReport),
 }
-enum _da4007d8065e0cfbc8daf1fc291e41264f9c9966c8bf1ee89ad11858 {
+enum _1ca5b10c67e806deeb36127aeafa207dbdb8647a2a63b9af8df38207 {
     _0(FullDocumentDiagnosticReport),
     _1(UnchangedDocumentDiagnosticReport),
 }
-struct _8686c18ca013eba49728040785b6375a8f875efe117e7f99d479300b {
-    structure: _18f28dadf6726dfc06292ac2befe882cc5fa11059a6d6224f6b6cb75,
+struct _0827542da33a17d9f40414b9f03753572161a06e777dd45c6e42ec2a {
+    structure: _07b5fe75c5f917885b0ab1f5f651ba8ad9361d4a8c72dab9c26d05b6,
     data: Vec<NotebookCell>,
-    textContent: Vec<_c6d8c106086edd9dde195ea15eace30e44cb9d25b0772bbc021e7d2d>,
+    textContent: Vec<_d3a036b8284383fdb9d12ab4e89cfaaab1918575af527951c692d383>,
 }
-struct _18f28dadf6726dfc06292ac2befe882cc5fa11059a6d6224f6b6cb75 {
+struct _07b5fe75c5f917885b0ab1f5f651ba8ad9361d4a8c72dab9c26d05b6 {
     array: NotebookCellArrayChange,
     didOpen: Vec<TextDocumentItem>,
     didClose: Vec<TextDocumentIdentifier>,
 }
-struct _c6d8c106086edd9dde195ea15eace30e44cb9d25b0772bbc021e7d2d {
+struct _d3a036b8284383fdb9d12ab4e89cfaaab1918575af527951c692d383 {
     document: VersionedTextDocumentIdentifier,
     changes: Vec<TextDocumentContentChangeEvent>,
 }
-enum _4741baf77e5c28311ca100a74e2b7a42263c81f17fbf1de0cb17ed7f {
+enum _bbf5da1a1972f59d774caf56f3ef97e5234edfbe24884bbbdc807518 {
     _0(i64),
     _1(()),
 }
-struct _cbb7ad32da0385d751c075c64aa8156298bac14e31f888175df60a65 {
+struct _e81cedb4a7992d2c524c1332c27281220fa6b9b6b4785d3242d6c68b {
     name: String,
     version: String,
 }
-enum _4e0c08e9e816138aef047f8aa74a40d6c847d63128617e9a29c49f6f {
+enum _a6213563b2450a4eb22320e9bb7ebbb15da6df3cf993ac3c7180d4cd {
     _0(String),
     _1(()),
 }
-enum _c125ac7b3b9c1b26f77c2d8738f29748ce6a58ed7880cdcdbf8c5765 {
+enum _e1cb7e71e106059ca1b81c378634d898d565366055db97b975b543f5 {
     _0(String),
     _1(()),
 }
-enum _5e1fd87b1246e9ef8ff39c1b0e0a45421dd55d5766381d4dc899a0cc {
-    _0(()),
-    _1(()),
-    _2(()),
-    _3(()),
+enum _2dc33e1f50a8cda2e91789f950352d11c9524eedff1aa4b66c8324fc {
+    _0(String),
+    _1(String),
+    _2(String),
+    _3(String),
 }
-enum _5868a169622a556bfcf7731695edfdb33b898f01f9d0350a52a77f7e {
+enum _df55105f2791f862d88387733d882c188fd7796b82554503ba371a7e {
     _0(Vec<WorkspaceFolder>),
     _1(()),
 }
-enum _b1df196d752f1c7feb0315def8e74b71e062b97ea211598052596d7c {
+enum _472e2438f119d76b775111dfb9dedc34cc2ce02b2c51bcb881ecac67 {
     _0(TextDocumentSyncOptions),
     _1(TextDocumentSyncKind),
 }
-enum _595182541430ce6a312c274105fa59a127c14d1d17a1e25c6c129d39 {
+enum _631c1e348c9c0248262b4d663e3cec4418da06c0cfcfb0154b86a82c {
     _0(NotebookDocumentSyncOptions),
     _1(NotebookDocumentSyncRegistrationOptions),
 }
-enum _a0c90c4ed2f85bdf6d6ade31475a91c2b6e528f3cdf3a6fce7c28c48 {
+enum _cf775c8998c6a7b8a4a6fe5209e3deca20b72c9865c8ea5d6df7d643 {
     _0(bool),
     _1(HoverOptions),
 }
-enum _04317f8f91f555b30cf0fe639c4a6cf89998bfa11af1e020f565b7e1 {
+enum _471c7d149428ca9c83ae8c0bec87ae584d6c99d2e6f2a331db1f5f7a {
     _0(bool),
     _1(DeclarationOptions),
     _2(DeclarationRegistrationOptions),
 }
-enum _726064a7dd875570b101a00559dbbbea4e4fb7e7f397095f7a2f9a80 {
+enum _34120553501f416c49457cc8abfea84cd3b2803b0d59c52ea9a50dca {
     _0(bool),
     _1(DefinitionOptions),
 }
-enum _3d304a6b55694e7e08b55b6ad74e76b9269f6685c1c790d771c20967 {
+enum _33316dc96fe5bf162c9a81a24d8e0067546c3d0b914ed2e3450b69d3 {
     _0(bool),
     _1(TypeDefinitionOptions),
     _2(TypeDefinitionRegistrationOptions),
 }
-enum _9a04310084e02a69ec04c1e6a6c574e184bfff6a77584f33cd67d8b0 {
+enum _c31973563ba643ef0f655ff876eee0b182c45ce8d722a7e641bb0a14 {
     _0(bool),
     _1(ImplementationOptions),
     _2(ImplementationRegistrationOptions),
 }
-enum _f0cf0d87d16d412504c9a4cb798aca07129307ac35d239b74863cba5 {
+enum _20fe5f1b4b363fa62b85bf61a3ef8eaacde4133ec79bb25f0710b3c5 {
     _0(bool),
     _1(ReferenceOptions),
 }
-enum _e222f1036626f9d16353835dc3d53219c5926f19b8de60f19287d8b1 {
+enum _b0213d5e10cb792421236a7d35262b8a34b4ea5fae7a041db4f6fb6e {
     _0(bool),
     _1(DocumentHighlightOptions),
 }
-enum _e96adf8509731b7d08ac976b369b7f37a66fb17996416ea183ebcf66 {
+enum _cb2f3a3a125b8eb211123187f73ca187f91dcc169309f52adc28a6d7 {
     _0(bool),
     _1(DocumentSymbolOptions),
 }
-enum _02a8ba13640b991b671fbd9c60c0c32b0a42a45f2f515782fce974f2 {
+enum _0a9310fc2871c7abe46dc99211e8822b62a1ade507e0729e917d98f7 {
     _0(bool),
     _1(CodeActionOptions),
 }
-enum _26c0166cf265412c6232bcd7db1a3bf9a814bf0ca902c7e9c0ca852d {
+enum _759c3263fd62a12b6f972b08030d81f1b7a891e4528a8a056d11577d {
     _0(bool),
     _1(DocumentColorOptions),
     _2(DocumentColorRegistrationOptions),
 }
-enum _6d1693fd1d58ffd1345642cebc8631754b1956701e4538bb175e8ee0 {
+enum _b766abd82bdd5e9eb60e5afd17870f019c6bcbb0f68df14e9c3bbf20 {
     _0(bool),
     _1(WorkspaceSymbolOptions),
 }
-enum _e6fe21d118d621ee9bd07de8bd6f25de4738ea2eebfff67bd3b93c86 {
+enum _ee2c078b28dcd05719724fdf217e85f822848aadc1411bc2ea35c166 {
     _0(bool),
     _1(DocumentFormattingOptions),
 }
-enum _7b91c96dbdd4cf7328bb6b714c2e9183af61d6cc08396f4dc4bae568 {
+enum _40730836c5df37e13ddbe5249a2a22941b241afdc0a1d76e5d03d293 {
     _0(bool),
     _1(DocumentRangeFormattingOptions),
 }
-enum _aa9bf9fdb1f89b77538d1909dfa7cfd192a75e91547501ba395ba7d3 {
+enum _2da4bbcdf63df92264b0f186c1101404d3308406620555a2b2832602 {
     _0(bool),
     _1(RenameOptions),
 }
-enum _e759e7a403d62cb3109d326e3c424b596eccb1a9e99bc7c3693c9513 {
+enum _d1d4857902bb343b601d4229ae52fb51f1fb63f806e4ff617dad2b57 {
     _0(bool),
     _1(FoldingRangeOptions),
     _2(FoldingRangeRegistrationOptions),
 }
-enum _505a646dc962718cb3169c822e33a538d79d540e58cf080545dbf9ae {
+enum _72dd1afb7f78a6695603ed1d2d38cd2aa4e1c23b0bf3f0f0e7719b9c {
     _0(bool),
     _1(SelectionRangeOptions),
     _2(SelectionRangeRegistrationOptions),
 }
-enum _48fb1fa3da14d65578b5d664c9158ae81311eefb97acc98fa0e31b98 {
+enum _759c4718cabf2f76222cd7b35b2bc2f40ecdd38e4bcef6cfd2da17c2 {
     _0(bool),
     _1(CallHierarchyOptions),
     _2(CallHierarchyRegistrationOptions),
 }
-enum _734c41cfb5333dab38738128fcb520d279027501d1639841dd1083fa {
+enum _5b0665666407d3ae8dad3b5d12551db0325c81d06a1f53397309ac36 {
     _0(bool),
     _1(LinkedEditingRangeOptions),
     _2(LinkedEditingRangeRegistrationOptions),
 }
-enum _a23047d956bbb441b6f0c388d6f70c57ad2a259fc66e89fd607cd974 {
+enum _df10bdc8b75a050b8725ea66d80d46547765c121fc6bf65d3294332b {
     _0(SemanticTokensOptions),
     _1(SemanticTokensRegistrationOptions),
 }
-enum _8702b8c310a621de29bb724ae324d822ff769d4055a37a01da756c38 {
+enum _f7e360ebc643990141b62cb57d0a2e60b1e25723421b6695fac74a9f {
     _0(bool),
     _1(MonikerOptions),
     _2(MonikerRegistrationOptions),
 }
-enum _9b377653dfd0cac2b3c93d4227eed3e9735cb45cdeb84ef0b81c4a5f {
+enum _370e67f8a822b87f59e6d3a9e2c71d9e65b9731343b40d3aee6c04f7 {
     _0(bool),
     _1(TypeHierarchyOptions),
     _2(TypeHierarchyRegistrationOptions),
 }
-enum _0cab083e9333223d5b76b08ac7d5aefac1820a3af21f1f5a414d2a9b {
+enum _34e5a53bd856e29fa59a168b49eafe9075cc1fc90fcbd66a37e9a8f7 {
     _0(bool),
     _1(InlineValueOptions),
     _2(InlineValueRegistrationOptions),
 }
-enum _531b32e5541cdc8ec6bc8aa8e0ed39d106f3bc108195c096b6106e9f {
+enum _3ca2f77a5178e2314989918bf506052bd741d59e066e757c16231187 {
     _0(bool),
     _1(InlayHintOptions),
     _2(InlayHintRegistrationOptions),
 }
-enum _4e24549c800892ecca8f3ea185df09e2fed5062e9cd529e33667d9d0 {
+enum _7289765a9786ad6c1670a248df07ed18abe333d2794456fc30b208bc {
     _0(DiagnosticOptions),
     _1(DiagnosticRegistrationOptions),
 }
-struct _5418b79a89f5cc28e7a102d33ce199381b6f1e9bf0bdb3f46968c229 {
+struct _ab8afde3c03eda225c6957467f9d403a779ddc30b781d0da1817ca25 {
     workspaceFolders: WorkspaceFoldersServerCapabilities,
     fileOperations: FileOperationOptions,
 }
-enum _18d7e36fdbc505296f71e2f93b82efebeeb9426e15069f2ab43ba542 {
+enum _3a98b10d8860f5560269068fb79c8f6d525edb98a6825b052917b812 {
     _0(i64),
     _1(String),
 }
-struct _688088efd1b14986d98f20cf44230f728f6e1a914b331ee9a6126f4f {
+struct _9deab373943e594476f716e144173916f8e267057c142a036dfbe648 {
     labelDetailsSupport: bool,
 }
-enum _664ca25c59505bd4079b05c93b742c52fe16fc98f1c8e5a3a59ab064 {
+enum _48a512537f21818e7f05388de299cdf80541037c0dfb1da3fe55c4c5 {
     _0(String),
     _1(MarkupContent),
 }
-enum _e911abe98649132bc4f7460d1ede2881cb9018c613e2d7d167c8ca90 {
+enum _fa9e7cd9cb626f933f7c62eaee947ae76e2070b58679a3f05e23d705 {
     _0(i64),
     _1(()),
 }
-enum _e5075c3e3fc87f4559c38c96edfac0a0f57e50eb51032e5fcacd5dfc {
+enum _7882e51885e541f29d88c33b93b41dba3afd3fe6bd2bec34dccc17c3 {
     _0(i64),
     _1(()),
 }
-enum _eb3c8858872159820455156ca8344d61c40c1fe79e60d9c500ec5736 {
+enum _50aac40081ea3f35f0a63acbd073ce48426f6c02d0b1552620c98402 {
     _0(i64),
     _1(()),
 }
-enum _63cb47a5952dcc1e06bf042e05f7d29db500a5d7acae00fc07d4dd8f {
+enum _75f522d38560ad26a10fc53c9eb2011ae27430c5e3f0a50a248d3ce9 {
     _0(bool),
     _1(SaveOptions),
 }
-enum _f0494010a863ad5b5c35127a6170fa4f5109dbe797c8c290bfa69502 {
-    _0(_a7967a8e9bd9e3ca10a628c28972dc3f293580d0955670cdf7859c06),
-    _1(_599188607bc2e8702d74b42d3f32265b2f410a378a132a4210adb901),
+enum _71710b5eeb134cdfd3faac4f3466cce13eba2d0cd09f29f1c7befd57 {
+    _0(_fc748e7efbd170598cfc955974595e2de85d6779a22427fcfe4c290d),
+    _1(_a038bbd73aacecb07ada8dd45331eae81a172dfcbfc79b5581091453),
 }
-struct _a7967a8e9bd9e3ca10a628c28972dc3f293580d0955670cdf7859c06 {
-    notebook: _d40ce8f249ca116bbfdc84dfc555ca14fd4b17b950a869e9dfa22038,
-    cells: Vec<_f54578ee99eb534d0d668bb39e1da7c07c7b0be407d8030aafa66f37>,
+struct _fc748e7efbd170598cfc955974595e2de85d6779a22427fcfe4c290d {
+    notebook: _d82e7596bccc9c65bac5a82e74833ae8d9880f9226ee1f907041e675,
+    cells: Vec<_66db0f4aa9683e57075794b314042bd66b897f206016088084b8304d>,
 }
-enum _d40ce8f249ca116bbfdc84dfc555ca14fd4b17b950a869e9dfa22038 {
+enum _d82e7596bccc9c65bac5a82e74833ae8d9880f9226ee1f907041e675 {
     _0(String),
     _1(NotebookDocumentFilter),
 }
-struct _f54578ee99eb534d0d668bb39e1da7c07c7b0be407d8030aafa66f37 {
+struct _66db0f4aa9683e57075794b314042bd66b897f206016088084b8304d {
     language: String,
 }
-struct _599188607bc2e8702d74b42d3f32265b2f410a378a132a4210adb901 {
-    notebook: _794c5496bd7b3212921ae2c322fd2c13d401881abbf556ccdd466b48,
-    cells: Vec<_18d5f395024f5f91722be644af56d599154b980e8627901dd4c2725a>,
+struct _a038bbd73aacecb07ada8dd45331eae81a172dfcbfc79b5581091453 {
+    notebook: _3992fbfcd6b64d84a40505ebb61496b93a47511e59c4c870098d7162,
+    cells: Vec<_438a7e4ffcd45d11161da5ab68c7c8e42aff9d7b313519fea89544db>,
 }
-enum _794c5496bd7b3212921ae2c322fd2c13d401881abbf556ccdd466b48 {
+enum _3992fbfcd6b64d84a40505ebb61496b93a47511e59c4c870098d7162 {
     _0(String),
     _1(NotebookDocumentFilter),
 }
-struct _18d5f395024f5f91722be644af56d599154b980e8627901dd4c2725a {
+struct _438a7e4ffcd45d11161da5ab68c7c8e42aff9d7b313519fea89544db {
     language: String,
 }
-enum _fe81a511bd7bdf218978e741051f1f7d417ffb3ad154f24e718e1390 {
+enum _a5b1c7a5b38fa0cb4a633d1629b8ff234be7bd63fbb551b8efd12f55 {
     _0(String),
     _1(bool),
 }
-enum _a6d429ebad4d0c5cb627a44498b1513a14e0f6597fb2b59ec3f05120 {
+enum _4ada4c59395876e63d0a7a4818d3c49aacce382a9edbfcc6a02edfc6 {
     _0(String),
     _1((u64, u64)),
 }
-enum _f6c860f8fae52697f4faa203922b9c62d994532ee6667fedbd642380 {
+enum _d365b6956f33a59b45c02b054124b384b8e05392edcce4537230b64b {
     _0(String),
     _1(MarkupContent),
 }
-enum _be533a4f33e057440c4f64a408d63f6c22aa65744e3102f8d12875c6 {
+enum _109998d954d8a8555a7930f92f093847cb1d2e8686cf7324de08154b {
     _0(String),
     _1(NotebookDocumentFilter),
 }
-struct _003415e244d2612d789a19dab8421b511187b3755b9473930b674d12 {
+struct _877bb6e73765d649dd9c8c7456ea5c545f30065d79a37e5e30a69d9b {
     cancel: bool,
     retryOnContentModified: Vec<String>,
 }
-enum _55e35d0ecaaf41c17687df82ca01b08921e446491ab4731af65fe581 {
+enum _8d73a06b22a77b0af506cf893505701a2af9ce8ae9c659dc9fbf630e {
     _0(WorkspaceFolder),
     _1(String),
 }
-struct _b6707bcef1be5e545e98099e53ea44f18347faf75ed7d7edf6d44ef0 {
+struct _7cf4587e22dc7fe3c2c16b127cd5b5b2d4432963d9d6862ad806251b {
     groupsOnLabel: bool,
 }
-struct _0d8e0f734067929cc8e5b9d0da8d1d3f54e69aa40241215a69208b1f {
+struct _a5ee93db7bac8441b27dfaf3df0c808b950c56f2fba4c06a7898b076 {
     valueSet: Vec<SymbolKind>,
 }
-struct _591e4745558d2dc75c1523b59943c321d24eabd0847dddfbd9af505e {
+struct _7f3ec240bcaae6e39d8ed59f2360e8bd2865b5011eb1ec929bc7d6ac {
     valueSet: Vec<SymbolTag>,
 }
-struct _b9b6711c52b95e4c40da4d25dfaa2e5c9f540bbb7739fbfcc6b56568 {
+struct _aa6b36b97757a707759f7a803a6c2deaa91129c2bfa04a13676d60a6 {
     properties: Vec<String>,
 }
-struct _abed05221375ee6f658341ceb8a2fd3422dd58eefa7cf4603ab2244d {
+struct _4377f9faebeb42fe2891e8feaa21e0e9246fec3262250294c1ab4328 {
     snippetSupport: bool,
     commitCharactersSupport: bool,
     documentationFormat: Vec<MarkupKind>,
     deprecatedSupport: bool,
     preselectSupport: bool,
-    tagSupport: _c247e21d7db40ebcf5d8c61ce12e079ca2e5f2dd1c3d5dac8af88712,
+    tagSupport: _577a751b4c3159fb1257d64e099fce2ede35b0c0cc1e37ad0fafebc5,
     insertReplaceSupport: bool,
-    resolveSupport: _3a2cfe89bd7eaabd54691d111f9ccce617a24a8b4353a860b3140d08,
-    insertTextModeSupport: _7c5fbc0302d62079da34aab0ae5d73d3fdee6f4ec96f684477ba00aa,
+    resolveSupport: _3dab7f1ec8e89fd81be06547c799c4add8996541b75a784b4791203c,
+    insertTextModeSupport: _7484980ef95111dcf633ecc9c946341dccdd9290d15f13a554573b5c,
     labelDetailsSupport: bool,
 }
-struct _c247e21d7db40ebcf5d8c61ce12e079ca2e5f2dd1c3d5dac8af88712 {
+struct _577a751b4c3159fb1257d64e099fce2ede35b0c0cc1e37ad0fafebc5 {
     valueSet: Vec<CompletionItemTag>,
 }
-struct _3a2cfe89bd7eaabd54691d111f9ccce617a24a8b4353a860b3140d08 {
+struct _3dab7f1ec8e89fd81be06547c799c4add8996541b75a784b4791203c {
     properties: Vec<String>,
 }
-struct _7c5fbc0302d62079da34aab0ae5d73d3fdee6f4ec96f684477ba00aa {
+struct _7484980ef95111dcf633ecc9c946341dccdd9290d15f13a554573b5c {
     valueSet: Vec<InsertTextMode>,
 }
-struct _f9a77c24bb228bd169055f2a5897495d25038ea2f0416d17a90e2452 {
+struct _fd010b92ea5ad219bc163a3b3b73bfd81e2d2d7ff03b76c076d753c9 {
     valueSet: Vec<CompletionItemKind>,
 }
-struct _c97efab1d6dddb53f99b49656a2402f88a4737325119a6483e2b5db5 {
+struct _9ef0e4a9b616da9d5f5a35c13842e528ccb60b3ccc3eb1cd57e695b4 {
     itemDefaults: Vec<String>,
 }
-struct _ca746e2f1bb1fdee9b60dfe2e4a60af75e7fe3ec193521018781c496 {
+struct _78cc05b724b41a4ac819ae4421efaa2e70b095997c30016530fbe9e4 {
     documentationFormat: Vec<MarkupKind>,
-    parameterInformation: _cf048e4a7d221ae07a48ad4675710dd0e3ecba292360dd6a2ca90b0b,
+    parameterInformation: _66a9e7c83615243bc05d2e70619744d7a45604bb9f6202f2bff4fa37,
     activeParameterSupport: bool,
 }
-struct _cf048e4a7d221ae07a48ad4675710dd0e3ecba292360dd6a2ca90b0b {
+struct _66a9e7c83615243bc05d2e70619744d7a45604bb9f6202f2bff4fa37 {
     labelOffsetSupport: bool,
 }
-struct _2e39f4b7aeaa9e12fc785358cdaf981e9fa1f74c27deeef45fa32aa0 {
+struct _53feb9d647e5eac04c614f0e541477425c2b27c778c136a58db7a8cd {
     valueSet: Vec<SymbolKind>,
 }
-struct _a103d42a15a2985aa612bb759666278a5ce67d2a782dd5e1e3271823 {
+struct _7bd184f8510b42d31dd38ce5079d82b3bea743a385fb9e4fd928f988 {
     valueSet: Vec<SymbolTag>,
 }
-struct _f58e6e95aac5dafb26357ad6a6d171269bfce7b2ddc435a2f6f057bc {
-    codeActionKind: _46f12128952cde5cb4c35d71a1a02c1f5015570732655f9208379222,
+struct _c22b892c96ed670d4fd0d701f9bd74444324760cb17fa0866acfc2fe {
+    codeActionKind: _c9659be8f205d8ccdad7d1ac3fa3964785f875d38c47cd3c7565e339,
 }
-struct _46f12128952cde5cb4c35d71a1a02c1f5015570732655f9208379222 {
+struct _c9659be8f205d8ccdad7d1ac3fa3964785f875d38c47cd3c7565e339 {
     valueSet: Vec<CodeActionKind>,
 }
-struct _b5e7a4ebd7246f63611beec6ae6a7ecc6bee967c3b921da16371bfc0 {
+struct _d845d28de26a6562ab0f3071b0148ba78003f2388250522c14292103 {
     properties: Vec<String>,
 }
-struct _6de36e91868f2b78b3e86b8f4028da34d8457ce95ca8f9ca5842c0db {
+struct _b33a9d8f58762edd9c9ae397bf07c2276a289581dd512e56b8de54d1 {
     valueSet: Vec<FoldingRangeKind>,
 }
-struct _e508b892eb91775d344b084cb01a1f3f32162e3cd19294e8a7962903 {
+struct _0505e161b62b03f89c9040894d9c584ddeb00fdfb5cc71400f79d800 {
     collapsedText: bool,
 }
-struct _1b0c8a8bf5ec254687aa4e85350349aa8e1d874454ce6e58d4ad3c81 {
+struct _e0ce07c89e64b9fc734b6a13028cea213fb910373a6d3671abbdeff9 {
     valueSet: Vec<DiagnosticTag>,
 }
-struct _76956417a800c7206b54add57d83af24eae22079e702e05e38173c6b {
-    range: _0b9cc544c4d3fdadd71602916cc5d868aabafbc43c14378c06469fe1,
-    full: _cad75675432c4b06a64252cd5129cdc771fba324cfd66ec492d306fa,
+struct _6b9e5f4576aaadb5e4831cc0a3d43014b56e26ba5365f2c344ff4f91 {
+    range: _90fb067fdfb5cbdaf70ebab612f19dd398bcd95c3bc7b04e0164e050,
+    full: _f085831ce61299a7f9f15f5d292ab1bbf62e68bfed37f3c537b0a8c2,
 }
-enum _0b9cc544c4d3fdadd71602916cc5d868aabafbc43c14378c06469fe1 {
+enum _90fb067fdfb5cbdaf70ebab612f19dd398bcd95c3bc7b04e0164e050 {
     _0(bool),
-    _1(_e7f2f8efe37078238932640f47f01656c881c58a7be92775183feb5a),
+    _1(_1c061a5aecdf1d3d206f5f4b3f55a568b39b43ab0963db6955fabbb5),
 }
-struct _e7f2f8efe37078238932640f47f01656c881c58a7be92775183feb5a {}
-enum _cad75675432c4b06a64252cd5129cdc771fba324cfd66ec492d306fa {
+struct _1c061a5aecdf1d3d206f5f4b3f55a568b39b43ab0963db6955fabbb5 {}
+enum _f085831ce61299a7f9f15f5d292ab1bbf62e68bfed37f3c537b0a8c2 {
     _0(bool),
-    _1(_e74326b5b465bcd7e98a73490f0dbbd29fe9353c6b330887a9d47a2b),
+    _1(_7fcc9c5571cbf64f8eadb9b946482a4d783f9d6ef48a514078672377),
 }
-struct _e74326b5b465bcd7e98a73490f0dbbd29fe9353c6b330887a9d47a2b {
+struct _7fcc9c5571cbf64f8eadb9b946482a4d783f9d6ef48a514078672377 {
     delta: bool,
 }
-struct _598578991bb319e2e390858fa8230eb695b82100ae440f642ccb9968 {
+struct _ef7c979ec14639533fa3bb0704627fdb6b583546b37655fb83fe7070 {
     properties: Vec<String>,
 }
-struct _310d9d6f7229eea387894a6e9eeefb6de5b6a34f5bb997c33ffd34e5 {
+struct _b5f1d20437f2f7025880041fc630d405b7bb17f0e9ea9efee2540ad6 {
     additionalPropertiesSupport: bool,
 }
-enum _7d00f70d7c70a0a2fc97c00cf98aaffa2116c600cedc4680d0e2826f {
+enum _57db34cbae3e865d37fbe18717f824151b68b0441fb5e562fb553571 {
     _0(Location),
     _1(Vec<Location>),
 }
-enum _ba101a3798c9f0f62231075cfbee9ed781238babbb2a538f97e41e10 {
+enum _f8075aa5d2087b5c0878a1972f58738346fbbe3c85b3edb9a00bd8ab {
     _0(LSPObject),
     _1(LSPArray),
     _2(String),
@@ -2121,103 +2121,103 @@ enum _ba101a3798c9f0f62231075cfbee9ed781238babbb2a538f97e41e10 {
     _6(bool),
     _7(()),
 }
-enum _593dc727e9f6426a65edf3cc967071489c5e33d7ba8ac69c517780ae {
+enum _c6d47e4f103f8720ea2a11f8ec405e1bde5456d75462de0078ce5feb {
     _0(Location),
     _1(Vec<Location>),
 }
-enum _b2a503fde3d06d3a4ace49fbb762ff9adab60a96f568ecdd04bd8631 {
+enum _2e758aa6ee708a750718947a2d5b3a8392558191db9b509da97c5747 {
     _0(InlineValueText),
     _1(InlineValueVariableLookup),
     _2(InlineValueEvaluatableExpression),
 }
-enum _2a42f4e83d6483635081daa6bf3fdbe7dca1486c19fe7895ec86c7c6 {
+enum _34ceea7c9a5184c7f66dd0f692565d4117a336d4717aa415372086fc {
     _0(RelatedFullDocumentDiagnosticReport),
     _1(RelatedUnchangedDocumentDiagnosticReport),
 }
-enum _fba93686f5a56329c6d0f516609839553e7b6c1a3fda79e23d4bff52 {
+enum _24cd2f59a21d5cc2188ca1cc9d3c3c653d2b2f26784ea6cba7e33fc1 {
     _0(Range),
-    _1(_f2737a9b8eade6f6009d0e825331b043d651c57c921241b5ae264b55),
-    _2(_8b71ef301f710841d62568b8f3c859367838614d32febbc2ffeed67e),
+    _1(_c17afae22d1e9d86a4f70b71625da81224cb77af35ca9d06ede767ab),
+    _2(_2f0a3483e6a6b72347939589d4bec7399f0e83c61a651ab08f87c9d0),
 }
-struct _f2737a9b8eade6f6009d0e825331b043d651c57c921241b5ae264b55 {
+struct _c17afae22d1e9d86a4f70b71625da81224cb77af35ca9d06ede767ab {
     range: Range,
     placeholder: String,
 }
-struct _8b71ef301f710841d62568b8f3c859367838614d32febbc2ffeed67e {
+struct _2f0a3483e6a6b72347939589d4bec7399f0e83c61a651ab08f87c9d0 {
     defaultBehavior: bool,
 }
-enum _ca720ec3ac8719ab1592e127cdfde53da10e7f1455b874501a37d732 {
+enum _cc2b257df43de00fffbcedb2cb07aecc087f3c2f3d66207fd3732a0a {
     _0(i64),
     _1(String),
 }
-enum _41e6cfaaca3360e543cf714742a7421f5b5df079b8984285e0a4b31f {
+enum _9f06980ce22b7ceb6af07a48b710d9034dbdabd9b50bb5234fb7b419 {
     _0(WorkspaceFullDocumentDiagnosticReport),
     _1(WorkspaceUnchangedDocumentDiagnosticReport),
 }
-enum _2011ab7bc3bde22e3caa415e54c859e382f3337bbe445f969c496b36 {
-    _0(_0194b2158e43870f9ed1729c0be737bb9989612ac67eb4d3c0f6c1b1),
-    _1(_6cbcf4df659a6abc9d7ad0e6b43bab8f1a05681482a58b133f297138),
+enum _4cc02a265d9bed84724db0c1d65d23328b06e95e396366c244f4f58f {
+    _0(_4a4710efc1ea1e620ddc9227721dac1fe62c29fbf433636fea33d333),
+    _1(_20ddc8727b9a06cb4f0ffb4122486834686cacabb628a10d4743809c),
 }
-struct _0194b2158e43870f9ed1729c0be737bb9989612ac67eb4d3c0f6c1b1 {
+struct _4a4710efc1ea1e620ddc9227721dac1fe62c29fbf433636fea33d333 {
     range: Range,
     rangeLength: u64,
     text: String,
 }
-struct _6cbcf4df659a6abc9d7ad0e6b43bab8f1a05681482a58b133f297138 {
+struct _20ddc8727b9a06cb4f0ffb4122486834686cacabb628a10d4743809c {
     text: String,
 }
-enum _8a11f9b93ae449d085ef0e8b9314e8301351317a08020a3f3ddc6cbf {
+enum _7bc5227534f7b9dc132836606a76c4fe3bd5ea140c06bd2fcebe0a7d {
     _0(String),
-    _1(_988a26ef30ae52e58a75837d07f858145fe8d2d0789ef87b69903d3f),
+    _1(_8317cc78a62f99cf10c5aa90b3dbdb3452f45d3138109914e8d10bfa),
 }
-struct _988a26ef30ae52e58a75837d07f858145fe8d2d0789ef87b69903d3f {
+struct _8317cc78a62f99cf10c5aa90b3dbdb3452f45d3138109914e8d10bfa {
     language: String,
     value: String,
 }
-enum _c822a55395a19f4050cc4fcc03f6ad568cab0d855de31f9ac74c87f6 {
+enum _558cd18a8427d08f92d76714233029346a549a97ca8e2b6515b4e37d {
     _0(TextDocumentFilter),
     _1(NotebookCellTextDocumentFilter),
 }
-enum _cc37b2d840f6c78b854d2bb23520f3a9eea1342ed9fe532d5acf7c91 {
+enum _6b7fd1908d90a0dabbfa8fbf9ba7df096ac5d7d0161feb71b055f24f {
     _0(Pattern),
     _1(RelativePattern),
 }
-enum _68055c228d7044947d80776ce1dfaef481bd941cdc5e6afaa1984d84 {
-    _0(_a5c0dc11809667513876076647999c7681d937005a0ee416a2199309),
-    _1(_dd376675a079e7b3105bb428be2f1370a24aa597daafe00400fe98f3),
-    _2(_af5eee3314105b5316d5569ed5cbc0a0da2540d70ef23cf2839bcffc),
+enum _2addba27f50770d7aad108720db2224f2753404b0dea9be4ae47c37a {
+    _0(_eae44dc401016bf477ff6a94cadc7723bd9d22df525aba82e50a314c),
+    _1(_b1735898896674cd2eed4b35eaec9e53b943b36ed3d480d1ad3bef1b),
+    _2(_e0bd0041ea27f042422739f742388a7d67f55c4fd4a08355baa82877),
 }
-struct _a5c0dc11809667513876076647999c7681d937005a0ee416a2199309 {
+struct _eae44dc401016bf477ff6a94cadc7723bd9d22df525aba82e50a314c {
     language: String,
     scheme: String,
     pattern: String,
 }
-struct _dd376675a079e7b3105bb428be2f1370a24aa597daafe00400fe98f3 {
+struct _b1735898896674cd2eed4b35eaec9e53b943b36ed3d480d1ad3bef1b {
     language: String,
     scheme: String,
     pattern: String,
 }
-struct _af5eee3314105b5316d5569ed5cbc0a0da2540d70ef23cf2839bcffc {
+struct _e0bd0041ea27f042422739f742388a7d67f55c4fd4a08355baa82877 {
     language: String,
     scheme: String,
     pattern: String,
 }
-enum _a161ce038f036e4c63f9edd54e16304491db88c580b564cb758c09e5 {
-    _0(_884a48069b11155b64329846e13fe00f66ffe3d9203bf5eab782f4cd),
-    _1(_74a75563be555ab1c2f75bd8f0bf30cc397ae9d4dafa8713819c9823),
-    _2(_c06b72935257b2230afd45ee6ecaf4e391c9e12886b04497a88b981c),
+enum _809a7858a37f3a1c67a06dbf4a4837c90797dc79c9cce00803115ea0 {
+    _0(_e52544f1f1c92f0221467304f012719387a0f0df65a76666d358acae),
+    _1(_c07d24f5c4bb7c0fdf1a97f9830984870d2c9d1e790ae48c19fb2840),
+    _2(_7ea381a4a158976a877fbb0f7e5e6b42381dcc2dfc0b69745c691473),
 }
-struct _884a48069b11155b64329846e13fe00f66ffe3d9203bf5eab782f4cd {
+struct _e52544f1f1c92f0221467304f012719387a0f0df65a76666d358acae {
     notebookType: String,
     scheme: String,
     pattern: String,
 }
-struct _74a75563be555ab1c2f75bd8f0bf30cc397ae9d4dafa8713819c9823 {
+struct _c07d24f5c4bb7c0fdf1a97f9830984870d2c9d1e790ae48c19fb2840 {
     notebookType: String,
     scheme: String,
     pattern: String,
 }
-struct _c06b72935257b2230afd45ee6ecaf4e391c9e12886b04497a88b981c {
+struct _7ea381a4a158976a877fbb0f7e5e6b42381dcc2dfc0b69745c691473 {
     notebookType: String,
     scheme: String,
     pattern: String,

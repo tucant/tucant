@@ -1,8 +1,10 @@
 use std::fs;
 
 use derive_more::TryInto;
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, Span};
 use quote::{quote, format_ident};
+use rand::{SeedableRng, Rng};
+use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
 
 use sha3::{Sha3_512, Digest, Sha3_224};
@@ -462,7 +464,7 @@ enum TypeKind {
 }
 
 // what about letting this return two things, one is the actual return value and the second one is anonymous struct definitions
-fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
+fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
     match _type {
         Type::BaseType(BaseType { name }) => match name {
             BaseTypes::Uri => Ok((quote! { String }, quote! {})),
@@ -480,11 +482,11 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
              Ok((quote! { #name }, quote! {})) 
         },
         Type::ArrayType(ArrayType { element }) => {
-            let (element, rest) = handle_type(element)?;
+            let (element, rest) = handle_type(random, element)?;
             Ok((quote! { Vec<#element> }, quote! { #rest }))
         },
         Type::MapType(MapType { key, value }) => {
-            let (value_type, value_rest) = handle_type(value)?;
+            let (value_type, value_rest) = handle_type(random, value)?;
             let key_type = match key {
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Uri } => quote! { String },
                 MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::DocumentUri } => quote! { String },
@@ -497,18 +499,20 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             };
             Ok((quote! { ::std::collections::HashMap<#key_type, #value_type> }, quote! { #value_rest }))
         },
-        Type::AndType(_) => Ok((quote! { () }, quote! {})),
+        Type::AndType(AndType { items }) => {
+            return Err(Error::new(Span::call_site(), r#"we don't support and types yet"#));
+        },
         Type::OrType(OrType { items }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", items));
-            hasher.update(rand::random::<[u8; 32]>());
+            hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
             let name = format_ident!("_{}", result);
 
             let mut err = Ok(());
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().enumerate().map(|(i, item)| -> syn::Result<(TokenStream, TokenStream)> {
-                let (item_type, item_rest) = handle_type(item)?;
+                let (item_type, item_rest) = handle_type(random, item)?;
                 let name = format_ident!("_{}", i);
                 Ok((quote! {
                     #name(#item_type),
@@ -527,7 +531,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
         },
         Type::TupleType(TupleType { items }) => {
             let mut err = Ok(());
-            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(handle_type).scan(&mut err, until_err).unzip();
+            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(|v| handle_type(random, v)).scan(&mut err, until_err).unzip();
             let return_value = Ok((quote! {
                 (#(#items),*)
             }, quote! {
@@ -539,7 +543,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
         Type::StructureLiteralType(StructureLiteralType { value }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", value));
-            hasher.update(rand::random::<[u8; 32]>());
+            hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
             let name = format_ident!("_{}", result);
@@ -547,7 +551,7 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             let mut properties_err = Ok(());
             let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                 let name = format_ident!("r#{}", property.name);
-                let (converted_type, rest) = handle_type(&property._type)?;
+                let (converted_type, rest) = handle_type(random, &property._type)?;
 
                 // TODO FIXME optional
 
@@ -567,9 +571,9 @@ fn handle_type(_type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
             properties_err?;
             Ok(return_value)
         },
-        Type::StringLiteralType(StringLiteralType { value }) => Ok((quote! { () }, quote! {})),
-        Type::IntegerLiteralType(IntegerLiteralType { value }) => Ok((quote! { () }, quote! {})),
-        Type::BooleanLiteralType(BooleanLiteralType { value }) => Ok((quote! { () }, quote! {})),
+        Type::StringLiteralType(StringLiteralType { value }) => Ok((quote! { String }, quote! {})),
+        Type::IntegerLiteralType(IntegerLiteralType { value }) => Ok((quote! { i64 }, quote! {})),
+        Type::BooleanLiteralType(BooleanLiteralType { value }) => Ok((quote! { bool }, quote! {})),
     }
 }
 
@@ -589,7 +593,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let meta_model: MetaModel = serde_json::from_reader(file)
     .expect("file should be proper JSON");
 
-    // most important part is json.requests
+    let mut random = ChaCha20Rng::seed_from_u64(42);
 
     let mut structures_err = Ok(());
     let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.structures.iter().map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
@@ -598,7 +602,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         let mut extends_err = Ok(());
         let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#_{}", i);
-            let (converted_type, rest) = handle_type(_type)?;
+            let (converted_type, rest) = handle_type(&mut random, _type)?;
             Ok((quote! {
                 #name: #converted_type,
             }, rest))
@@ -609,7 +613,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         let mut properties_err = Ok(());
         let (properties, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", property.name);
-            let (converted_type, rest) = handle_type(&property._type)?;
+            let (converted_type, rest) = handle_type(&mut random, &property._type)?;
 
             // TODO FIXME optional
 
@@ -680,11 +684,16 @@ fn handle_magic() -> syn::Result<TokenStream> {
     let mut type_aliases_err = Ok(());
     let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
         let name = format_ident!("r#{}", type_alias.name);
-        let (converted_type, rest) = handle_type(&type_alias._type)?;
+        let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
         Ok((quote! {
             type #name = #converted_type;
         }, rest))
     }).scan(&mut type_aliases_err, until_err).unzip();
+
+
+    let requests = meta_model.requests.iter().map(|request| {
+        
+    });
 
     let return_value = Ok(quote! {
         #(#structures)*
