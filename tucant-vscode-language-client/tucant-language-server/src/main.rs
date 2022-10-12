@@ -49,8 +49,17 @@ async fn main() -> io::Result<()> {
         let request: Requests = serde_json::from_slice(&buf)?;
 
         match request {
-            Requests::InitializeRequest(initialize_request) => {
-                println!("got an initialize {:#?}", initialize_request);
+            Requests::InitializeRequest(request) => {
+                println!("got an initialize {:#?}", request);
+
+                let result = InitializeResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    error: None,
+                    result: InitializeResult {
+
+                    }
+                };
             }
             _ => panic!("unknown request")
         }
