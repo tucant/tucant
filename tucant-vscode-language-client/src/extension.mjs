@@ -37,12 +37,12 @@ export function activate(/** @type {ExtensionContext} */ context) {
   commands.registerCommand("tucant.restart-language-server", () => {
     window.withProgress(
       {
-        title: "TUCaN't: Restarting language server...",
+        title: "TUCaN't: Stopping language server...",
         location: ProgressLocation.Notification,
         cancellable: false,
       },
       async (progress, token) => {
-        await client.restart();
+        await client.stop();
       }
     );
   });

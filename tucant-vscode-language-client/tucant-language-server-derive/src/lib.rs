@@ -571,6 +571,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let return_value = (quote! {
                 #name
             }, quote! {
+                #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 struct #name {
                     #(#properties)*
@@ -655,6 +656,7 @@ fn handle_magic() -> syn::Result<TokenStream> {
         }).scan(&mut properties_err, until_err).unzip();
 
         let return_value = (quote! {
+            #[::serde_with::skip_serializing_none]
             #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
             #documentation
             struct #name {
@@ -739,11 +741,11 @@ fn handle_magic() -> syn::Result<TokenStream> {
     }).scan(&mut type_aliases_err, until_err).unzip();
 
     let mut requests_err = Ok(());
-    let (requests, requests_rest, request_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream)> {
+    let (requests, requests_rest, request_enum, response_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
         let documentation = request.documentation.as_ref().map(|string| quote! {
             #[doc = #string]
         });
-        let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction {
+        let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both  = request.message_direction {
             let method = &request.method;
             let name = format_ident!("r#{}Request", request.method.replace('_', " ").to_upper_camel_case());
             let (params, rest) = match &request.params {
@@ -762,9 +764,11 @@ fn handle_magic() -> syn::Result<TokenStream> {
                 None => (quote! { () }, quote! {}),
             };
             (quote! {
+                #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
                 struct #name {
+                    jsonrpc: String,
                     id: StringOrNumber,
                     params: #params
                 }
@@ -775,26 +779,43 @@ fn handle_magic() -> syn::Result<TokenStream> {
         } else {
             (quote! {}, quote! {}, quote! {})
         };
-        let server_to_client = if let MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
+        // TODO FIXME we now always generate this because the tagging doesn't work how I thought it would
+        let (server_to_client, server_to_client_rest, response_enum) = if let MessageDirection::ClientToServer | MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
+            let method = &request.method;
             let name = format_ident!("r#{}Response", request.method.replace('_', " ").to_upper_camel_case());
-            quote! {
+            let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
+            let (error_type, error_type_rest) = request.error_data.as_ref().map(|e| -> syn::Result<(TokenStream, TokenStream)> {
+                let (error_type, rest) = handle_type(&mut random, &e)?;
+                Ok((quote! {
+                    error: Option<#error_type>
+                }, rest))
+            }).transpose()?.map_or((None, None), |o| (Some(o.0), Some(o.1)));
+            (quote! {
+                #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
                 struct #name {
-
+                    jsonrpc: String,
+                    id: StringOrNumber,
+                    result: Option<#result_type>,
+                    #error_type
                 }
-            }
+            }, quote! { #result_type_rest #error_type_rest }, quote! {
+                #[serde(rename = #method)]
+                #name(#name),
+            })
         } else {
-            quote! {}
+            (quote! {}, quote! {}, quote! {})
         };
         Ok((quote! {
             #client_to_server
             #server_to_client
         }, quote! {
             #client_to_server_rest
+            #server_to_client_rest
         }, quote! {
             #request_enum
-        }))
+        }, response_enum))
     }).scan(&mut requests_err, until_err).multiunzip();
 
     let return_value = Ok(quote! {
@@ -817,6 +838,12 @@ fn handle_magic() -> syn::Result<TokenStream> {
         #[serde(tag = "method")]
         enum Requests {
             #(#request_enum)*
+        }
+
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[serde(tag = "method")]
+        enum Responses {
+            #(#response_enum)*
         }
     });
     structures_err?;
