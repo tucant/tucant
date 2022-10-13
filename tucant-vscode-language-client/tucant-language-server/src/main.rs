@@ -1,7 +1,9 @@
 
+use std::pin::Pin;
+
 use clap::Parser;
 use itertools::Itertools;
-use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt}, net::UnixStream};
+use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::UnixStream};
 use tucant_language_server_derive::magic;
 
 magic!();
@@ -9,20 +11,50 @@ magic!();
 #[derive(Parser)]
 struct Args {
     #[arg(long)]
-    pipe: String
+    pipe: Option<String>,
+
+    #[arg(long)]
+    stdin: bool,
+}
+
+pub struct StdinoutStream<'a> {
+    stdin: Pin<&'a mut Stdin>,
+    stdout: Pin<&'a mut Stdout>,
+}
+
+impl AsyncRead for StdinoutStream<'_> {
+    fn poll_read(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        self.stdin.poll_read(cx, buf)
+    }
+}
+
+impl AsyncWrite for StdinoutStream<'_> {
+    fn poll_write(
+        self: Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &[u8],
+    ) -> std::task::Poll<Result<usize, std::io::Error>> {
+        self.stdout.poll_write(cx, buf)
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
+        self.stdout.poll_flush(cx)
+    }
+
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
+        self.stdout.poll_shutdown(cx)
+    }
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
-// cargo doc --document-private-items --open
-#[tokio::main]
-async fn main() -> io::Result<()> {
-    let args = Args::parse();
 
-    println!("Pipe: {}", args.pipe);
-
-    let pipe = UnixStream::connect(args.pipe).await?;
-    let mut pipe = BufStream::new(pipe);
+async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite: T) -> io::Result<()> {
+    let mut pipe = BufStream::new(readwrite);
 
     let mut buf = Vec::new();
     loop {
@@ -121,4 +153,28 @@ async fn main() -> io::Result<()> {
     }
 
     Ok(())
+}
+
+// cargo doc --document-private-items --open
+#[tokio::main]
+async fn main() -> io::Result<()> {
+    let args = Args::parse();
+
+    match args {
+        Args { pipe: Some(pipe), stdin: false } => {
+            main_internal(UnixStream::connect(pipe).await?).await
+        }
+        Args { pipe: None, stdin: true } => {
+            main_internal(StdinoutStream {
+                stdin: Box::pin(tokio::io::stdin()).as_mut(),
+                stdout: Box::pin(tokio::io::stdout()).as_mut(),
+            }).await
+        }
+        Args { pipe: Some(_), stdin: true } => {
+            panic!("can't enable stdin and pipe mode at the same time")
+        }
+        Args { pipe: None, stdin: false } => {
+            panic!("choose either pipe mode or stdin mode")
+        }
+    }
 }
