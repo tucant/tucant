@@ -1,5 +1,5 @@
 
-use std::pin::Pin;
+use std::{pin::Pin, cell::RefCell, ops::DerefMut};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -17,36 +17,36 @@ struct Args {
     stdin: bool,
 }
 
-pub struct StdinoutStream<'a> {
-    stdin: Pin<&'a mut Stdin>,
-    stdout: Pin<&'a mut Stdout>,
+pub struct StdinoutStream {
+    stdin: Pin<Box<Stdin>>,
+    stdout: Pin<Box<Stdout>>,
 }
 
-impl AsyncRead for StdinoutStream<'_> {
+impl AsyncRead for StdinoutStream {
     fn poll_read(
-        self: std::pin::Pin<&mut Self>,
+        mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
         buf: &mut io::ReadBuf<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
-        self.stdin.poll_read(cx, buf)
+        self.stdin.as_mut().poll_read(cx, buf)
     }
 }
 
-impl AsyncWrite for StdinoutStream<'_> {
+impl AsyncWrite for StdinoutStream {
     fn poll_write(
-        self: Pin<&mut Self>,
+        mut self: Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
         buf: &[u8],
     ) -> std::task::Poll<Result<usize, std::io::Error>> {
-        self.stdout.poll_write(cx, buf)
+        self.stdout.as_mut().poll_write(cx, buf)
     }
 
-    fn poll_flush(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
-        self.stdout.poll_flush(cx)
+    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
+        self.stdout.as_mut().poll_flush(cx)
     }
 
-    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
-        self.stdout.poll_shutdown(cx)
+    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), std::io::Error>> {
+        self.stdout.as_mut().poll_shutdown(cx)
     }
 }
 
@@ -166,8 +166,8 @@ async fn main() -> io::Result<()> {
         }
         Args { pipe: None, stdin: true } => {
             main_internal(StdinoutStream {
-                stdin: Box::pin(tokio::io::stdin()).as_mut(),
-                stdout: Box::pin(tokio::io::stdout()).as_mut(),
+                stdin: Box::pin(tokio::io::stdin()),
+                stdout: Box::pin(tokio::io::stdout()),
             }).await
         }
         Args { pipe: Some(_), stdin: true } => {
