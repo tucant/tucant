@@ -94,7 +94,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                         capabilities: Box::new(ServerCapabilities {
                             position_encoding: None,
                             text_document_sync: Some(H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(Box::new(TextDocumentSyncOptions {
-                                open_close: Some(true),
+                                open_close: None,//Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
                                 change: None, // TODO FIXME
@@ -148,7 +148,28 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
 
                 pipe.flush().await?;
 
-                println!("wrote response 6!");
+                println!("wrote initialize response!");
+            }
+            Requests::InitializedNotification(notification) => {
+                let notification = Responses::WindowShowMessageNotification(WindowShowMessageNotification {
+                    jsonrpc: "2.0".to_string(),
+                    params: Box::new(ShowMessageParams {
+                        r#type: Box::new(MessageType::Error),
+                        message: "This is a test error".to_string(),
+                    }),
+                });
+
+                let result = serde_json::to_string(&notification)?;
+
+                println!("{}", result);
+
+                pipe.write_all(format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes()).await?;
+
+                pipe.write_all(result.as_bytes()).await?;
+
+                pipe.flush().await?;
+
+                println!("wrote notification!");
             }
             _ => panic!("unknown request")
         }

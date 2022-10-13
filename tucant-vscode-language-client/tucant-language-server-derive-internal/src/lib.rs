@@ -1094,6 +1094,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             #(#request_enum)*
             #(#client_to_server_enum)*
         }
+
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[serde(tag = "method")]
+        enum Responses {
+            #(#server_to_client_notification)*
+        }
     });
     structures_err?;
     enumerations_err?;
