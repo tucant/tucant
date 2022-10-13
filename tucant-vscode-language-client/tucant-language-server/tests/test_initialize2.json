@@ -1,0 +1,157 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "trace": "off",
+    "rootUri": null,
+    "workspaceFolders": null,
+    "rootPath": null,
+    "processId": 43090,
+    "clientInfo": {
+      "version": "0.8.0",
+      "name": "Neovim"
+    },
+    "capabilities": {
+      "callHierarchy": {
+        "dynamicRegistration": false
+      },
+      "workspace": {
+        "configuration": true,
+        "applyEdit": true,
+        "workspaceEdit": {
+          "resourceOperations": ["rename", "create", "delete"]
+        },
+        "symbol": {
+          "dynamicRegistration": false,
+          "symbolKind": {
+            "valueSet": [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 21, 22, 23, 24, 25, 26
+            ]
+          },
+          "hierarchicalWorkspaceSymbolSupport": true
+        },
+        "workspaceFolders": true
+      },
+      "textDocument": {
+        "signatureHelp": {
+          "dynamicRegistration": false,
+          "signatureInformation": {
+            "parameterInformation": {
+              "labelOffsetSupport": true
+            },
+            "activeParameterSupport": true,
+            "documentationFormat": ["markdown", "plaintext"]
+          }
+        },
+        "completion": {
+          "dynamicRegistration": false,
+          "contextSupport": false,
+          "completionItem": {
+            "snippetSupport": false,
+            "commitCharactersSupport": false,
+            "preselectSupport": false,
+            "deprecatedSupport": false,
+            "documentationFormat": ["markdown", "plaintext"]
+          },
+          "completionItemKind": {
+            "valueSet": [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 21, 22, 23, 24, 25
+            ]
+          }
+        },
+        "synchronization": {
+          "dynamicRegistration": false,
+          "willSave": false,
+          "willSaveWaitUntil": false,
+          "didSave": true
+        },
+        "references": {
+          "dynamicRegistration": false
+        },
+        "documentHighlight": {
+          "dynamicRegistration": false
+        },
+        "hover": {
+          "dynamicRegistration": false,
+          "contentFormat": ["markdown", "plaintext"]
+        },
+        "codeAction": {
+          "codeActionLiteralSupport": {
+            "codeActionKind": {
+              "valueSet": [
+                "",
+                "Empty",
+                "QuickFix",
+                "Refactor",
+                "RefactorExtract",
+                "RefactorInline",
+                "RefactorRewrite",
+                "Source",
+                "SourceOrganizeImports",
+                "quickfix",
+                "refactor",
+                "refactor.extract",
+                "refactor.inline",
+                "refactor.rewrite",
+                "source",
+                "source.organizeImports"
+              ]
+            }
+          },
+          "dynamicRegistration": false,
+          "isPreferredSupport": true,
+          "dataSupport": true,
+          "resolveSupport": {
+            "properties": ["edit"]
+          }
+        },
+        "rename": {
+          "dynamicRegistration": false,
+          "prepareSupport": true
+        },
+        "declaration": {
+          "linkSupport": true
+        },
+        "publishDiagnostics": {
+          "relatedInformation": true,
+          "tagSupport": {
+            "valueSet": [1, 2]
+          }
+        },
+        "definition": {
+          "linkSupport": true
+        },
+        "implementation": {
+          "linkSupport": true
+        },
+        "typeDefinition": {
+          "linkSupport": true
+        },
+        "documentSymbol": {
+          "dynamicRegistration": false,
+          "hierarchicalDocumentSymbolSupport": true,
+          "symbolKind": {
+            "valueSet": [
+              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+              20, 21, 22, 23, 24, 25, 26
+            ]
+          }
+        }
+      },
+      "window": {
+        "showDocument": {
+          "support": false
+        },
+        "workDoneProgress": true,
+        "showMessage": {
+          "messageActionItem": {
+            "additionalPropertiesSupport": false
+          }
+        }
+      }
+    }
+  }
+}

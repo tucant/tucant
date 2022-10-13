@@ -1,4 +1,4 @@
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, commands, window, ProgressLocation } from "vscode";
 
 import {
   LanguageClient,
@@ -33,6 +33,19 @@ export function activate(/** @type {ExtensionContext} */ context) {
   );
 
   client.start();
+
+  commands.registerCommand("tucant.restart-language-server", () => {
+    window.withProgress(
+      {
+        title: "TUCaN't: Stopping language server...",
+        location: ProgressLocation.Notification,
+        cancellable: false,
+      },
+      async (progress, token) => {
+        await client.stop();
+      }
+    );
+  });
 }
 
 export function deactivate() {
