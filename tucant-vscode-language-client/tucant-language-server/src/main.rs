@@ -164,7 +164,7 @@ async fn main() -> io::Result<()> {
         Args { pipe: Some(pipe), stdin: false } => {
             main_internal(UnixStream::connect(pipe).await?).await
         }
-        Args { pipe: None, stdin: true } => {
+        Args { pipe: None, .. } => {
             main_internal(StdinoutStream {
                 stdin: Box::pin(tokio::io::stdin()),
                 stdout: Box::pin(tokio::io::stdout()),
@@ -172,9 +172,6 @@ async fn main() -> io::Result<()> {
         }
         Args { pipe: Some(_), stdin: true } => {
             panic!("can't enable stdin and pipe mode at the same time")
-        }
-        Args { pipe: None, stdin: false } => {
-            panic!("choose either pipe mode or stdin mode")
         }
     }
 }
