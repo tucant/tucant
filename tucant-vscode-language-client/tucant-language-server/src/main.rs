@@ -86,7 +86,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
             Requests::InitializeRequest(request) => {
                 println!("got an initialize {:#?}", request);
 
-                let result = Responses::InitializeResponse(InitializeResponse {
+                let result = InitializeResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
                     error: None,
@@ -136,7 +136,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                         }),
                         server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 { name: "TUCaN't".to_string(), version: Some("0.0.1".to_string()) })
                     }))
-                });
+                };
 
                 let result = serde_json::to_string(&result)?;
 
@@ -145,6 +145,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                 pipe.write_all(format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes()).await?;
 
                 pipe.write_all(result.as_bytes()).await?;
+
+                pipe.flush().await?;
 
                 println!("wrote response 6!");
             }

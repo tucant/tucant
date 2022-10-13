@@ -1013,12 +1013,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         enum Requests {
             #(#request_enum)*
         }
-
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-        #[serde(tag = "method")]
-        enum Responses {
-            #(#response_enum)*
-        }
     });
     structures_err?;
     enumerations_err?;
