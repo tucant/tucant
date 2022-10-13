@@ -1,8 +1,6 @@
 use std::{fs::File, io::{BufReader, Result}};
 
-use tucant_language_server_derive::magic;
-
-magic!();
+include!(concat!(env!("OUT_DIR"), "/lsp.rs"));
 
 #[test]
 pub fn test_initialize() -> Result<()> {

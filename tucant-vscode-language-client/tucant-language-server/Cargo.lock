@@ -824,11 +824,11 @@ dependencies = [
  "serde_repr",
  "serde_with",
  "tokio",
- "tucant_language_server_derive",
+ "tucant_language_server_derive_internal",
 ]
 
 [[package]]
-name = "tucant_language_server_derive"
+name = "tucant_language_server_derive_internal"
 version = "0.1.0"
 dependencies = [
  "derive_more",

@@ -13363,6 +13363,11 @@
           "documentation": "Empty kind."
         },
         {
+          "name": "Empty2",
+          "value": "Empty",
+          "documentation": "Empty kind."
+        },
+        {
           "name": "QuickFix",
           "value": "quickfix",
           "documentation": "Base kind for quickfix actions: 'quickfix'"

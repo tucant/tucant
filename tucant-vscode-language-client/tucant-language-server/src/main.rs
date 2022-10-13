@@ -4,9 +4,8 @@ use std::{pin::Pin, cell::RefCell, ops::DerefMut};
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::{UnixStream, TcpStream, TcpListener}};
-use tucant_language_server_derive::magic;
 
-magic!();
+include!(concat!(env!("OUT_DIR"), "/lsp.rs"));
 
 #[derive(Parser)]
 struct Args {
@@ -79,7 +78,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
 
         pipe.read_exact(&mut buf).await?;       
         
-        // println!("read: {}", std::str::from_utf8(&buf).unwrap());
+        println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
 
