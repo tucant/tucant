@@ -3,7 +3,7 @@ use std::{pin::Pin, cell::RefCell, ops::DerefMut};
 
 use clap::Parser;
 use itertools::Itertools;
-use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::UnixStream};
+use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::{UnixStream, TcpStream, TcpListener}};
 use tucant_language_server_derive::magic;
 
 magic!();
@@ -12,6 +12,9 @@ magic!();
 struct Args {
     #[arg(long)]
     pipe: Option<String>,
+
+    #[arg(long)]
+    port: Option<u16>,
 
     #[arg(long)]
     stdin: bool,
@@ -156,13 +159,17 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
 }
 
 // cargo doc --document-private-items --open
+// cargo run -- --port 6008
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let args = Args::parse();
 
     match args {
-        Args { pipe: Some(pipe), stdin: false } => {
+        Args { pipe: Some(pipe), stdin: false, port: None } => {
             main_internal(UnixStream::connect(pipe).await?).await
+        }
+        Args { port: Some(port), pipe: None, stdin: false } => {
+            main_internal(TcpListener::bind(("127.0.0.1", port)).await?.accept().await?.0).await
         }
         Args { pipe: None, .. } => {
             main_internal(StdinoutStream {
@@ -170,8 +177,8 @@ async fn main() -> io::Result<()> {
                 stdout: Box::pin(tokio::io::stdout()),
             }).await
         }
-        Args { pipe: Some(_), stdin: true } => {
-            panic!("can't enable stdin and pipe mode at the same time")
+        _ => {
+            panic!("can't enable multiple modes at the same time")
         }
     }
 }
