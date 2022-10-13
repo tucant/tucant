@@ -992,6 +992,84 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         .scan(&mut requests_err, until_err)
         .multiunzip();
 
+        let (notifications, notifications_rest, client_to_server_enum, server_to_client_notification): (
+            Vec<TokenStream>,
+            Vec<TokenStream>,
+            Vec<TokenStream>,
+            Vec<TokenStream>,
+        ) = meta_model
+            .notifications
+            .iter()
+            .map(
+                |notification| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
+                    let documentation = notification.documentation.as_ref().map(|string| {
+                        quote! {
+                            #[doc = #string]
+                        }
+                    });
+                    let method = &notification.method;
+                    let name = format_ident!(
+                        "r#{}Notification",
+                        notification.method.replace('_', " ").to_upper_camel_case()
+                    );
+                    let (params, rest) = match &notification.params {
+                        Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                        Some(TypeOrVecType::VecType(vec_type)) => {
+                            let mut params_err = Ok(());
+                            let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
+                                .iter()
+                                .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
+                                    handle_type(&mut random, _type)
+                                })
+                                .scan(&mut params_err, until_err)
+                                .unzip();
+                            let return_value = (
+                                quote! {
+                                    (#(#types)*)
+                                },
+                                quote! { #(#rest)* },
+                            );
+                            params_err?;
+                            return_value
+                        }
+                        None => (quote! { () }, quote! {}),
+                    };
+                    let client_to_server_notification = if let MessageDirection::ClientToServer | MessageDirection::Both = notification.message_direction {
+                        quote! {
+                            #[serde(rename = #method)]
+                            #name(#name),
+                        }
+                    } else {
+                        quote! {}
+                    };
+                    let server_to_client_notification = if let MessageDirection::ServerToClient | MessageDirection::Both = notification.message_direction {
+                        quote! {
+                            #[serde(rename = #method)]
+                            #name(#name),
+                        }
+                    } else {
+                        quote! {}
+                    };
+                    Ok((
+                        quote! {
+                            #[::serde_with::skip_serializing_none]
+                            #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                            #documentation
+                            struct #name {
+                                jsonrpc: String,
+                                params: #params
+                            }
+                        },
+                        rest,
+                        client_to_server_notification,
+                        server_to_client_notification
+                    ))
+                },
+            )
+            .scan(&mut requests_err, until_err)
+            .multiunzip();
+    
+
     let return_value = Ok(quote! {
         #(#structures)*
         #(#enumerations)*
@@ -1000,6 +1078,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #(#rest_type_aliases)*
         #(#requests)*
         #(#requests_rest)*
+        #(#notifications)*
+        #(#notifications_rest)*
 
         #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
         #[serde(untagged)]
@@ -1012,6 +1092,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #[serde(tag = "method")]
         enum Requests {
             #(#request_enum)*
+            #(#client_to_server_enum)*
         }
     });
     structures_err?;
