@@ -10,3 +10,12 @@ pub fn test_initialize() -> Result<()> {
     println!("{:#?}", requests);
     Ok(())
 }
+
+#[test]
+pub fn test_initialize2() -> Result<()> {
+    let file = File::open("tests/test_initialize2.json")?;
+    let reader = BufReader::new(file);
+    let requests: Requests = serde_json::from_reader(reader)?;
+    println!("{:#?}", requests);
+    Ok(())
+}

@@ -1,11 +1,11 @@
 use std::fs;
 
 use derive_more::TryInto;
-use heck::{ToUpperCamelCase, ToSnakeCase};
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use itertools::Itertools;
-use proc_macro2::{TokenStream, Span};
-use quote::{quote, format_ident};
-use rand::{SeedableRng, Rng};
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, quote};
+use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
 
@@ -41,7 +41,7 @@ struct ArrayType {
 /// Represents a base type like `string` or `DocumentUri`.
 /// kind = "base"
 struct BaseType {
-    name: BaseTypes
+    name: BaseTypes,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -63,7 +63,7 @@ enum BaseTypes {
     #[serde(rename = "boolean")]
     Boolean,
     #[serde(rename = "null")]
-    Null
+    Null,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -72,7 +72,7 @@ enum BaseTypes {
 /// Represents a boolean literal type (e.g. `kind: true`).
 /// kind = "booleanLiteral"
 struct BooleanLiteralType {
-    value: bool
+    value: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -122,7 +122,7 @@ struct EnumerationEntry {
     /// Since when (release number) this enumeration entry is available. Is undefined if not known.
     since: Option<String>,
     /// The value.
-    value: StringOrNumber
+    value: StringOrNumber,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -132,14 +132,16 @@ enum StringOrIntegerOrUnsignedIntegerLiteral {
     #[serde(rename = "integer")]
     Integer,
     #[serde(rename = "uinteger")]
-    UnsignedInteger
+    UnsignedInteger,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "kind")]
 enum EnumerationType {
     #[serde(rename = "base")]
-    Base { name: StringOrIntegerOrUnsignedIntegerLiteral }
+    Base {
+        name: StringOrIntegerOrUnsignedIntegerLiteral,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -148,7 +150,7 @@ enum EnumerationType {
 /// Represents an integer literal type (e.g. `kind: 1`).
 /// kind = "integerLiteral"
 struct IntegerLiteralType {
-    value: i64
+    value: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -193,7 +195,7 @@ enum MessageDirection {
     #[serde(rename = "serverToClient")]
     ServerToClient,
     #[serde(rename = "both")]
-    Both
+    Both,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -201,7 +203,7 @@ enum MessageDirection {
 #[serde(deny_unknown_fields)]
 struct MetaData {
     /// The protocol version.
-    version: String
+    version: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -220,7 +222,7 @@ struct MetaModel {
     /// The structures.
     structures: Vec<Structure>,
     /// The type aliases.
-    type_aliases: Vec<TypeAlias>
+    type_aliases: Vec<TypeAlias>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -251,9 +253,8 @@ struct Notification {
     /// Optional registration options if the notification supports dynamic registration.
     registration_options: Option<Type>,
     /// Since when (release number) this notification is available. Is undefined if not known.
-    since: Option<String>
+    since: Option<String>,
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -263,7 +264,6 @@ struct Notification {
 struct OrType {
     items: Vec<Type>,
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -284,7 +284,7 @@ struct Property {
     since: Option<String>,
     /// The type of the property
     #[serde(rename = "type")]
-    _type: Type
+    _type: Type,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -293,7 +293,7 @@ struct Property {
 /// Represents a reference to another type (e.g. `TextDocument`). This is either a `Structure`, a `Enumeration` or a `TypeAlias` in the same meta model.
 /// kind = "reference"
 struct ReferenceType {
-    name: String
+    name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -323,7 +323,7 @@ struct Request {
     /// The result type.
     result: Type,
     /// Since when (release number) this request is available. Is undefined if not known.
-    since: Option<String>
+    since: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -332,7 +332,7 @@ struct Request {
 /// Represents a string literal type (e.g. `kind: 'rename'`).
 /// kind = "stringLiteral"
 struct StringLiteralType {
-    value: String
+    value: String,
 }
 
 /// Defines the structure of an object literal.
@@ -481,29 +481,41 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
         },
         Type::Reference(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name.to_upper_camel_case());
-             Ok((quote! { Box<#name> }, quote! {})) 
-        },
+            Ok((quote! { Box<#name> }, quote! {}))
+        }
         Type::Array(ArrayType { element }) => {
             let (element, rest) = handle_type(random, element)?;
             Ok((quote! { Vec<#element> }, quote! { #rest }))
-        },
+        }
         Type::Map(MapType { key, value }) => {
             let (value_type, value_rest) = handle_type(random, value)?;
             let key_type = match key {
-                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Uri } => quote! { String },
-                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::DocumentUri } => quote! { String },
-                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::String } => quote! { String },
-                MapKeyType::Base { name: UriOrDocumentUriOrStringOrInteger::Integer } => quote! { i64 },
+                MapKeyType::Base {
+                    name: UriOrDocumentUriOrStringOrInteger::Uri,
+                } => quote! { String },
+                MapKeyType::Base {
+                    name: UriOrDocumentUriOrStringOrInteger::DocumentUri,
+                } => quote! { String },
+                MapKeyType::Base {
+                    name: UriOrDocumentUriOrStringOrInteger::String,
+                } => quote! { String },
+                MapKeyType::Base {
+                    name: UriOrDocumentUriOrStringOrInteger::Integer,
+                } => quote! { i64 },
                 MapKeyType::Reference(ReferenceType { name }) => {
                     let name = format_ident!("r#{}", name.to_upper_camel_case());
                     quote! { Box<#name> }
-                },
+                }
             };
-            Ok((quote! { ::std::collections::HashMap<#key_type, #value_type> }, quote! { #value_rest }))
-        },
-        Type::And(AndType { items: _ }) => {
-            Err(Error::new(Span::call_site(), r#"we don't support and types yet"#))
-        },
+            Ok((
+                quote! { ::std::collections::HashMap<#key_type, #value_type> },
+                quote! { #value_rest },
+            ))
+        }
+        Type::And(AndType { items: _ }) => Err(Error::new(
+            Span::call_site(),
+            r#"we don't support and types yet"#,
+        )),
         Type::Or(OrType { items }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", items));
@@ -513,37 +525,55 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let name = format_ident!("H{}", result);
 
             let mut err = Ok(());
-            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().enumerate().map(|(i, item)| -> syn::Result<(TokenStream, TokenStream)> {
-                let (item_type, item_rest) = handle_type(random, item)?;
-                let name = format_ident!("Variant{}", i);
-                Ok((quote! {
-                    #name(#item_type),
-                }, quote! { #item_rest }))
-            }).scan(&mut err, until_err).unzip();
-            let return_value = Ok((quote! {
-                #name
-            }, quote! {
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                #[serde(untagged)]
-                enum #name {
-                    #(#items)*
-                }
-                #(#rests)*
-            }));
+            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items
+                .iter()
+                .enumerate()
+                .map(|(i, item)| -> syn::Result<(TokenStream, TokenStream)> {
+                    let (item_type, item_rest) = handle_type(random, item)?;
+                    let name = format_ident!("Variant{}", i);
+                    Ok((
+                        quote! {
+                            #name(#item_type),
+                        },
+                        quote! { #item_rest },
+                    ))
+                })
+                .scan(&mut err, until_err)
+                .unzip();
+            let return_value = Ok((
+                quote! {
+                    #name
+                },
+                quote! {
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #[serde(untagged)]
+                    enum #name {
+                        #(#items)*
+                    }
+                    #(#rests)*
+                },
+            ));
             err?;
             return_value
-        },
+        }
         Type::Tuple(TupleType { items }) => {
             let mut err = Ok(());
-            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items.iter().map(|v| handle_type(random, v)).scan(&mut err, until_err).unzip();
-            let return_value = Ok((quote! {
-                (#(#items),*)
-            }, quote! {
-                #(#rests)*
-            }));
+            let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items
+                .iter()
+                .map(|v| handle_type(random, v))
+                .scan(&mut err, until_err)
+                .unzip();
+            let return_value = Ok((
+                quote! {
+                    (#(#items),*)
+                },
+                quote! {
+                    #(#rests)*
+                },
+            ));
             err?;
             return_value
-        },
+        }
         Type::StructureLiteral(StructureLiteralType { value }) => {
             let mut hasher = Sha3_224::new();
             hasher.update(format!("{:?}", value));
@@ -553,34 +583,45 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
             let name = format_ident!("H{}", result);
 
             let mut properties_err = Ok(());
-            let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
-                let name_text = &property.name;
-                let name = format_ident!("r#{}", property.name.to_snake_case());
-                let (mut converted_type, rest) = handle_type(random, &property._type)?;
+            let (properties, rest): (Vec<TokenStream>, Vec<TokenStream>) = value
+                .properties
+                .iter()
+                .map(|property| -> syn::Result<(TokenStream, TokenStream)> {
+                    let name_text = &property.name;
+                    let name = format_ident!("r#{}", property.name.to_snake_case());
+                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
 
-                if property.optional {
-                    converted_type = quote! { Option<#converted_type> }
-                }
+                    if property.optional {
+                        converted_type = quote! { Option<#converted_type> }
+                    }
 
-                Ok((quote! {
-                    #[serde(rename = #name_text)]
-                    #name: #converted_type,
-                }, rest))
-            }).scan(&mut properties_err, until_err).unzip();
+                    Ok((
+                        quote! {
+                            #[serde(rename = #name_text)]
+                            #name: #converted_type,
+                        },
+                        rest,
+                    ))
+                })
+                .scan(&mut properties_err, until_err)
+                .unzip();
 
-            let return_value = (quote! {
-                #name
-            }, quote! {
-                #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                struct #name {
-                    #(#properties)*
-                }
-                #(#rest)*
-            });
+            let return_value = (
+                quote! {
+                    #name
+                },
+                quote! {
+                    #[::serde_with::skip_serializing_none]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    struct #name {
+                        #(#properties)*
+                    }
+                    #(#rest)*
+                },
+            );
             properties_err?;
             Ok(return_value)
-        },
+        }
         Type::StringLiteral(StringLiteralType { value: _ }) => Ok((quote! { String }, quote! {})),
         Type::IntegerLiteral(IntegerLiteralType { value: _ }) => Ok((quote! { i64 }, quote! {})),
         Type::BooleanLiteral(BooleanLiteralType { value: _ }) => Ok((quote! { bool }, quote! {})),
@@ -599,224 +640,357 @@ fn until_err<T, E>(err: &mut &mut Result<(), E>, item: Result<T, E>) -> Option<T
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
 pub fn handle_magic() -> syn::Result<TokenStream> {
-    let file = fs::File::open("src/metaModel.json")
-    .expect("file should open read only");
-    let meta_model: MetaModel = serde_json::from_reader(file)
-    .expect("file should be proper JSON");
+    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
+    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
 
     let mut random = ChaCha20Rng::seed_from_u64(42);
 
     let mut structures_err = Ok(());
-    let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.structures.iter().map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
-        let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
-        let documentation = structure.documentation.as_ref().map(|string| quote! {
-            #[doc = #string]
-        });
-
-        let mut extends_err = Ok(());
-        let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure.extends.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
-            // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
-            let name = format_ident!("r#variant{}", i);
-            let (converted_type, rest) = handle_type(&mut random, _type)?;
-            Ok((quote! {
-                #[serde(flatten)]
-                #name: #converted_type,
-            }, rest))
-        }).scan(&mut extends_err, until_err).unzip();
-
-        let mut mixins_err = Ok(());
-        let (mixins, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure.mixins.iter().enumerate().map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
-            // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
-            let name = format_ident!("r#variant{}", structure.extends.len() + i);
-            let (converted_type, rest) = handle_type(&mut random, _type)?;
-            Ok((quote! {
-                #[serde(flatten)]
-                #name: #converted_type,
-            }, rest))
-        }).scan(&mut mixins_err, until_err).unzip();
-
-        let mut properties_err = Ok(());
-        let (properties, rest3): (Vec<TokenStream>, Vec<TokenStream>) = structure.properties.iter().map(|property| -> syn::Result<(TokenStream, TokenStream)> {
-            let name_text = &property.name;
-            let name = format_ident!("r#{}", property.name.to_snake_case());
-            let documentation = property.documentation.as_ref().map(|string| quote! {
-                #[doc = #string]
+    let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
+        .structures
+        .iter()
+        .map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
+            let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
+            let documentation = structure.documentation.as_ref().map(|string| {
+                quote! {
+                    #[doc = #string]
+                }
             });
-            let (mut converted_type, rest) = handle_type(&mut random, &property._type)?;
 
-            if property.optional {
-                converted_type = quote! { Option<#converted_type> }
-            }
+            let mut extends_err = Ok(());
+            let (extends, rest1): (Vec<TokenStream>, Vec<TokenStream>) = structure
+                .extends
+                .iter()
+                .enumerate()
+                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                    // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
+                    let name = format_ident!("r#variant{}", i);
+                    let (converted_type, rest) = handle_type(&mut random, _type)?;
+                    Ok((
+                        quote! {
+                            #[serde(flatten)]
+                            #name: #converted_type,
+                        },
+                        rest,
+                    ))
+                })
+                .scan(&mut extends_err, until_err)
+                .unzip();
 
-            Ok((quote! {
-                #documentation
-                #[serde(rename = #name_text)]
-                #name: #converted_type,
-            }, rest))
-        }).scan(&mut properties_err, until_err).unzip();
+            let mut mixins_err = Ok(());
+            let (mixins, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure
+                .mixins
+                .iter()
+                .enumerate()
+                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                    // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
+                    let name = format_ident!("r#variant{}", structure.extends.len() + i);
+                    let (converted_type, rest) = handle_type(&mut random, _type)?;
+                    Ok((
+                        quote! {
+                            #[serde(flatten)]
+                            #name: #converted_type,
+                        },
+                        rest,
+                    ))
+                })
+                .scan(&mut mixins_err, until_err)
+                .unzip();
 
-        let return_value = (quote! {
-            #[::serde_with::skip_serializing_none]
-            #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-            #documentation
-            struct #name {
-                #(#extends)*
-                #(#mixins)*
-                #(#properties)*
-            }
-        }, quote! { #(#rest1)*  #(#rest2)* #(#rest3)* });
-        extends_err?;
-        properties_err?;
-        Ok(return_value)
-    }).scan(&mut structures_err, until_err).unzip();
+            let mut properties_err = Ok(());
+            let (properties, rest3): (Vec<TokenStream>, Vec<TokenStream>) = structure
+                .properties
+                .iter()
+                .map(|property| -> syn::Result<(TokenStream, TokenStream)> {
+                    let name_text = &property.name;
+                    let name = format_ident!("r#{}", property.name.to_snake_case());
+                    let documentation = property.documentation.as_ref().map(|string| {
+                        quote! {
+                            #[doc = #string]
+                        }
+                    });
+                    let (mut converted_type, rest) = handle_type(&mut random, &property._type)?;
+
+                    if property.optional {
+                        converted_type = quote! { Option<#converted_type> }
+                    }
+
+                    Ok((
+                        quote! {
+                            #documentation
+                            #[serde(rename = #name_text)]
+                            #name: #converted_type,
+                        },
+                        rest,
+                    ))
+                })
+                .scan(&mut properties_err, until_err)
+                .unzip();
+
+            let return_value = (
+                quote! {
+                    #[::serde_with::skip_serializing_none]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #documentation
+                    struct #name {
+                        #(#extends)*
+                        #(#mixins)*
+                        #(#properties)*
+                    }
+                },
+                quote! { #(#rest1)*  #(#rest2)* #(#rest3)* },
+            );
+            extends_err?;
+            properties_err?;
+            Ok(return_value)
+        })
+        .scan(&mut structures_err, until_err)
+        .unzip();
 
     let mut enumerations_err = Ok(());
-    let enumerations = meta_model.enumerations.iter().map(|enumeration| -> syn::Result<TokenStream> {
-        let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
-        let documentation = enumeration.documentation.as_ref().map(|string| quote! {
-            #[doc = #string]
-        });
-        // TODO supports_custom_values
-        match enumeration._type {
-            EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::Integer | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger } => {
-                let mut values_err = Ok(());
-                let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("r#{}", value.name.to_upper_camel_case());
-                    let value: &i64 = (&value.value).try_into().unwrap();
-                    Ok(quote! {
-                        #name = #value,
-                    })
-                }).scan(&mut values_err, until_err);
-        
-                let return_value = quote! {     
-                    #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
-                    #[repr(i64)]
-                    #documentation
-                    enum #name {
-                        #(#values)*
-                    }
-                };
-                values_err?;
-                Ok(return_value)
-            },
-            EnumerationType::Base { name: StringOrIntegerOrUnsignedIntegerLiteral::String } => {
-                let mut values_err = Ok(());
-                let values = enumeration.values.iter().map(|value| -> syn::Result<TokenStream> {
-                    let name = format_ident!("r#{}", value.name.to_upper_camel_case());
-                    let documentation = value.documentation.as_ref().map(|string| quote! {
-                        #[doc = #string]
-                    });
-                    let value: &String = (&value.value).try_into().unwrap();
-                    Ok(quote! {
-                        #[serde(rename = #value)]
+    let enumerations = meta_model
+        .enumerations
+        .iter()
+        .map(|enumeration| -> syn::Result<TokenStream> {
+            let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
+            let documentation = enumeration.documentation.as_ref().map(|string| {
+                quote! {
+                    #[doc = #string]
+                }
+            });
+            match enumeration._type {
+                EnumerationType::Base {
+                    name:
+                        StringOrIntegerOrUnsignedIntegerLiteral::Integer
+                        | StringOrIntegerOrUnsignedIntegerLiteral::UnsignedInteger,
+                } => {
+                    let mut values_err = Ok(());
+                    let values = enumeration
+                        .values
+                        .iter()
+                        .map(|value| -> syn::Result<TokenStream> {
+                            let name = format_ident!("r#{}", value.name.to_upper_camel_case());
+                            let value: &i64 = (&value.value).try_into().unwrap();
+                            Ok(quote! {
+                                #name = #value,
+                            })
+                        })
+                        .scan(&mut values_err, until_err);
+
+                    let return_value = quote! {
+                        #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
+                        #[repr(i64)]
                         #documentation
-                        #name,
-                    })
-                }).scan(&mut values_err, until_err);
-        
-                let return_value = quote! {
-                    #[derive(serde::Serialize, serde::Deserialize, Debug)]
-                    #documentation
-                    enum #name {
-                        #(#values)*
-                    }
-                };
-                values_err?;
-                Ok(return_value)
-            },
-        }
-    }).scan(&mut enumerations_err, until_err);
+                        enum #name {
+                            #(#values)*
+                        }
+                    };
+                    values_err?;
+                    Ok(return_value)
+                }
+                EnumerationType::Base {
+                    name: StringOrIntegerOrUnsignedIntegerLiteral::String,
+                } => {
+                    let mut values_err = Ok(());
+                    let values = enumeration
+                        .values
+                        .iter()
+                        .map(|value| -> syn::Result<TokenStream> {
+                            let name = format_ident!("r#{}", value.name.to_upper_camel_case());
+                            let documentation = value.documentation.as_ref().map(|string| {
+                                quote! {
+                                    #[doc = #string]
+                                }
+                            });
+                            let value: &String = (&value.value).try_into().unwrap();
+                            Ok(quote! {
+                                #[serde(rename = #value)]
+                                #documentation
+                                #name,
+                            })
+                        })
+                        .scan(&mut values_err, until_err);
+
+                    let supports_custom_value = if enumeration.supports_custom_values {
+                        Some(quote! {
+                            #[serde(other)]
+                            Other,
+                        })
+                    } else {
+                        None
+                    };
+
+                    let return_value = quote! {
+                        #[derive(serde::Serialize, serde::Deserialize, Debug)]
+                        #documentation
+                        enum #name {
+                            #(#values)*
+                            #supports_custom_value
+                        }
+                    };
+                    values_err?;
+                    Ok(return_value)
+                }
+            }
+        })
+        .scan(&mut enumerations_err, until_err);
 
     let mut type_aliases_err = Ok(());
-    let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model.type_aliases.iter().map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
-        let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
-        let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
-        let documentation = type_alias.documentation.as_ref().map(|string| quote! {
-            #[doc = #string]
-        });
-        Ok((quote! {
-            #documentation
-            type #name = #converted_type;
-        }, rest))
-    }).scan(&mut type_aliases_err, until_err).unzip();
+    let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
+        .type_aliases
+        .iter()
+        .map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
+            let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
+            let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
+            let documentation = type_alias.documentation.as_ref().map(|string| {
+                quote! {
+                    #[doc = #string]
+                }
+            });
+            Ok((
+                quote! {
+                    #documentation
+                    type #name = #converted_type;
+                },
+                rest,
+            ))
+        })
+        .scan(&mut type_aliases_err, until_err)
+        .unzip();
 
     let mut requests_err = Ok(());
-    let (requests, requests_rest, request_enum, response_enum): (Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>, Vec<TokenStream>) = meta_model.requests.iter().map(|request| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
-        let documentation = request.documentation.as_ref().map(|string| quote! {
-            #[doc = #string]
-        });
-        let (client_to_server, client_to_server_rest, request_enum) = if let MessageDirection::ClientToServer | MessageDirection::Both  = request.message_direction {
-            let method = &request.method;
-            let name = format_ident!("r#{}Request", request.method.replace('_', " ").to_upper_camel_case());
-            let (params, rest) = match &request.params {
-                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
-                Some(TypeOrVecType::VecType(vec_type)) => {
-                    let mut params_err = Ok(());
-                    let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type.iter().map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                        handle_type(&mut random, _type)
-                    }).scan(&mut params_err, until_err).unzip();
-                    let return_value = (quote! {
-                        (#(#types)*)
-                    }, quote! { #(#rest)* });
-                    params_err?;
-                    return_value
-                },
-                None => (quote! { () }, quote! {}),
-            };
-            (quote! {
-                #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                #documentation
-                struct #name {
-                    jsonrpc: String,
-                    id: StringOrNumber,
-                    params: #params
-                }
-            }, rest, quote! {
-                #[serde(rename = #method)]
-                #name(#name),
-            })
-        } else {
-            (quote! {}, quote! {}, quote! {})
-        };
-        // TODO FIXME we now always generate this because the tagging doesn't work how I thought it would
-        let (server_to_client, server_to_client_rest, response_enum) = if let MessageDirection::ClientToServer | MessageDirection::ServerToClient | MessageDirection::Both = request.message_direction {
-            let method = &request.method;
-            let name = format_ident!("r#{}Response", request.method.replace('_', " ").to_upper_camel_case());
-            let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
-            let (error_type, error_type_rest) = request.error_data.as_ref().map(|e| -> syn::Result<(TokenStream, TokenStream)> {
-                let (error_type, rest) = handle_type(&mut random, &e)?;
-                Ok((quote! {
-                    error: Option<#error_type>
-                }, rest))
-            }).transpose()?.map_or((None, None), |o| (Some(o.0), Some(o.1)));
-            (quote! {
-                #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                #documentation
-                struct #name {
-                    jsonrpc: String,
-                    id: StringOrNumber,
-                    result: Option<#result_type>,
-                    #error_type
-                }
-            }, quote! { #result_type_rest #error_type_rest }, quote! {
-                #[serde(rename = #method)]
-                #name(#name),
-            })
-        } else {
-            (quote! {}, quote! {}, quote! {})
-        };
-        Ok((quote! {
-            #client_to_server
-            #server_to_client
-        }, quote! {
-            #client_to_server_rest
-            #server_to_client_rest
-        }, quote! {
-            #request_enum
-        }, response_enum))
-    }).scan(&mut requests_err, until_err).multiunzip();
+    let (requests, requests_rest, request_enum, response_enum): (
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+    ) = meta_model
+        .requests
+        .iter()
+        .map(
+            |request| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
+                let documentation = request.documentation.as_ref().map(|string| {
+                    quote! {
+                        #[doc = #string]
+                    }
+                });
+                let (client_to_server, client_to_server_rest, request_enum) =
+                    if let MessageDirection::ClientToServer | MessageDirection::Both =
+                        request.message_direction
+                    {
+                        let method = &request.method;
+                        let name = format_ident!(
+                            "r#{}Request",
+                            request.method.replace('_', " ").to_upper_camel_case()
+                        );
+                        let (params, rest) = match &request.params {
+                            Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                            Some(TypeOrVecType::VecType(vec_type)) => {
+                                let mut params_err = Ok(());
+                                let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
+                                    .iter()
+                                    .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
+                                        handle_type(&mut random, _type)
+                                    })
+                                    .scan(&mut params_err, until_err)
+                                    .unzip();
+                                let return_value = (
+                                    quote! {
+                                        (#(#types)*)
+                                    },
+                                    quote! { #(#rest)* },
+                                );
+                                params_err?;
+                                return_value
+                            }
+                            None => (quote! { () }, quote! {}),
+                        };
+                        (
+                            quote! {
+                                #[::serde_with::skip_serializing_none]
+                                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                                #documentation
+                                struct #name {
+                                    jsonrpc: String,
+                                    id: StringOrNumber,
+                                    params: #params
+                                }
+                            },
+                            rest,
+                            quote! {
+                                #[serde(rename = #method)]
+                                #name(#name),
+                            },
+                        )
+                    } else {
+                        (quote! {}, quote! {}, quote! {})
+                    };
+                // TODO FIXME we now always generate this because the tagging doesn't work how I thought it would
+                let (server_to_client, server_to_client_rest, response_enum) =
+                    if let MessageDirection::ClientToServer
+                    | MessageDirection::ServerToClient
+                    | MessageDirection::Both = request.message_direction
+                    {
+                        let method = &request.method;
+                        let name = format_ident!(
+                            "r#{}Response",
+                            request.method.replace('_', " ").to_upper_camel_case()
+                        );
+                        let (result_type, result_type_rest) =
+                            handle_type(&mut random, &request.result)?;
+                        let (error_type, error_type_rest) = request
+                            .error_data
+                            .as_ref()
+                            .map(|e| -> syn::Result<(TokenStream, TokenStream)> {
+                                let (error_type, rest) = handle_type(&mut random, &e)?;
+                                Ok((
+                                    quote! {
+                                        error: Option<#error_type>
+                                    },
+                                    rest,
+                                ))
+                            })
+                            .transpose()?
+                            .map_or((None, None), |o| (Some(o.0), Some(o.1)));
+                        (
+                            quote! {
+                                #[::serde_with::skip_serializing_none]
+                                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                                #documentation
+                                struct #name {
+                                    jsonrpc: String,
+                                    id: StringOrNumber,
+                                    result: Option<#result_type>,
+                                    #error_type
+                                }
+                            },
+                            quote! { #result_type_rest #error_type_rest },
+                            quote! {
+                                #[serde(rename = #method)]
+                                #name(#name),
+                            },
+                        )
+                    } else {
+                        (quote! {}, quote! {}, quote! {})
+                    };
+                Ok((
+                    quote! {
+                        #client_to_server
+                        #server_to_client
+                    },
+                    quote! {
+                        #client_to_server_rest
+                        #server_to_client_rest
+                    },
+                    quote! {
+                        #request_enum
+                    },
+                    response_enum,
+                ))
+            },
+        )
+        .scan(&mut requests_err, until_err)
+        .multiunzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
@@ -826,7 +1000,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #(#rest_type_aliases)*
         #(#requests)*
         #(#requests_rest)*
-                
+
         #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
         #[serde(untagged)]
         enum StringOrNumber {
