@@ -884,7 +884,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                             request.method.replace('_', " ").to_upper_camel_case()
                         );
                         let (params, rest) = match &request.params {
-                            Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                            Some(TypeOrVecType::Type(_type)) => {
+                                let (the_type, rest) = handle_type(&mut random, _type)?;
+                                (quote! {
+                                    pub params: #the_type
+                                }, rest) 
+                            }
                             Some(TypeOrVecType::VecType(vec_type)) => {
                                 let mut params_err = Ok(());
                                 let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
@@ -896,14 +901,14 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                                     .unzip();
                                 let return_value = (
                                     quote! {
-                                        (#(#types)*)
+                                        pub params: (#(#types)*)
                                     },
                                     quote! { #(#rest)* },
                                 );
                                 params_err?;
                                 return_value
                             }
-                            None => (quote! { () }, quote! {}),
+                            None => (quote! { }, quote! {}),
                         };
                         (
                             quote! {
@@ -913,7 +918,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                                 pub struct #name {
                                     pub jsonrpc: String,
                                     pub id: StringOrNumber,
-                                    pub params: #params
+                                    #params
                                 }
                             },
                             rest,

@@ -1,10 +1,10 @@
 
-use std::{pin::Pin, cell::RefCell, ops::DerefMut};
+use std::{pin::Pin, cell::RefCell, ops::DerefMut, vec};
 
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::{UnixStream, TcpStream, TcpListener}};
-use tucant_language_server_derive_output::{Requests, InitializeResponse, InitializeResult, ServerCapabilities, H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41, WindowShowMessageNotification, Responses, ShowMessageParams, MessageType, TextDocumentSyncOptions};
+use tucant_language_server_derive_output::{Requests, InitializeResponse, InitializeResult, ServerCapabilities, H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41, WindowShowMessageNotification, Responses, ShowMessageParams, MessageType, TextDocumentSyncOptions, Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552, SemanticTokensRegistrationOptions, SemanticTokensOptions, SemanticTokensLegend, WorkDoneProgressOptions, H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222, H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e};
 
 #[derive(Parser)]
 struct Args {
@@ -124,7 +124,17 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                             execute_command_provider: None,
                             call_hierarchy_provider: None,
                             linked_editing_range_provider: None,
-                            semantic_tokens_provider: None,
+                            semantic_tokens_provider: Some(Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552::Variant0(Box::new(SemanticTokensOptions {
+                                legend: Box::new(SemanticTokensLegend {
+                                    token_types: vec!["string".to_string(), "comment".to_string()],
+                                    token_modifiers: vec![],
+                                }),
+                                variant0: Box::new(WorkDoneProgressOptions {
+                                    work_done_progress: None,
+                                }),
+                                range: Some(H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e::Variant0(false)),
+                                full: Some(H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222::Variant0(false)),
+                            }))),
                             moniker_provider: None,
                             type_hierarchy_provider: None,
                             inline_value_provider: None,
@@ -170,7 +180,14 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
 
                 println!("wrote notification!");
             }
-            _ => panic!("unknown request")
+            Requests::TextDocumentDidOpenNotification(notification) => {
+                println!("{}", notification.params.text_document.text);
+            }
+            Requests::ShutdownRequest(request) => {
+                
+                
+            }
+            other => panic!("{:?}", other)
         }
 
         buf.clear();

@@ -38,7 +38,7 @@ export function activate(/** @type {ExtensionContext} */ context) {
     clientOptions
   );
 
-  client.setTrace(Trace.Verbose);
+  //await client.setTrace(Trace.Verbose);
   client.start();
 
   commands.registerCommand("tucant.restart-language-server", () => {
@@ -49,7 +49,17 @@ export function activate(/** @type {ExtensionContext} */ context) {
         cancellable: false,
       },
       async (progress, token) => {
-        await client.restart();
+        try {
+          await client.stop();
+        } finally {
+          client = new LanguageClient(
+            "tucantLanguageServer",
+            "TUCaN't Language Server",
+            serverOptions,
+            clientOptions
+          );
+          client.start();
+        }
       }
     );
   });
