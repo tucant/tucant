@@ -4,8 +4,7 @@ use std::{pin::Pin, cell::RefCell, ops::DerefMut};
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::{UnixStream, TcpStream, TcpListener}};
-
-include!(concat!(env!("OUT_DIR"), "/lsp.rs"));
+use tucant_language_server_derive_output::{Requests, InitializeResponse, InitializeResult, ServerCapabilities, H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41, WindowShowMessageNotification, Responses, ShowMessageParams, MessageType, TextDocumentSyncOptions};
 
 #[derive(Parser)]
 struct Args {
@@ -94,7 +93,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                         capabilities: Box::new(ServerCapabilities {
                             position_encoding: None,
                             text_document_sync: Some(H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(Box::new(TextDocumentSyncOptions {
-                                open_close: None,//Some(true),
+                                open_close: Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
                                 change: None, // TODO FIXME
@@ -182,6 +181,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
 
 // cargo doc --document-private-items --open
 // cargo run -- --port 6008
+// cargo watch -x 'run -- --port 6008'
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let args = Args::parse();

@@ -17,7 +17,7 @@ export function activate(/** @type {ExtensionContext} */ context) {
   /** @type {ServerOptions} */
   const serverOptions = () => {
     // Connect to language server via socket
-    let socket = net.createConnection();
+    let socket = net.createConnection(6008);
     /** @type {StreamInfo} */
     let result = {
       writer: socket,
