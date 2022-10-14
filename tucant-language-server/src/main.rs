@@ -4,7 +4,7 @@ use std::{pin::Pin, cell::RefCell, ops::DerefMut, vec};
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{io::{self, BufStream, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, Stdin, Stdout, AsyncRead, AsyncWrite}, net::{UnixStream, TcpStream, TcpListener}};
-use tucant_language_server_derive_output::{Requests, InitializeResponse, InitializeResult, ServerCapabilities, H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41, WindowShowMessageNotification, Responses, ShowMessageParams, MessageType, TextDocumentSyncOptions, Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552, SemanticTokensRegistrationOptions, SemanticTokensOptions, SemanticTokensLegend, WorkDoneProgressOptions, H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222, H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e, ShutdownResponse};
+use tucant_language_server_derive_output::{Requests, InitializeResponse, InitializeResult, ServerCapabilities, H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41, WindowShowMessageNotification, Responses, ShowMessageParams, MessageType, TextDocumentSyncOptions, Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552, SemanticTokensRegistrationOptions, SemanticTokensOptions, SemanticTokensLegend, WorkDoneProgressOptions, H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222, H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e, ShutdownResponse, TextDocumentSemanticTokensFullResponse, He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4, SemanticTokens};
 
 #[derive(Parser)]
 struct Args {
@@ -184,11 +184,11 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
                 println!("{}", notification.params.text_document.text);
             }
             Requests::ShutdownRequest(request) => {
-                let response = Responses::ShutdownResponse(ShutdownResponse {
+                let response = ShutdownResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
                     result: Some(()),
-                });
+                };
 
                 let response = serde_json::to_string(&response)?;
 
@@ -205,6 +205,30 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(readwrite
             Requests::ExitNotification(notification) => {
                 println!("exited!");
                 break;
+            }
+            Requests::TextDocumentSemanticTokensFullRequest(request) => {
+                // request.params.text_document.uri
+
+                let response = TextDocumentSemanticTokensFullResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id, 
+                    result: Some(He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(Box::new(SemanticTokens {
+                        result_id: None,
+                        data: vec![ 3,5,3,0,3,  0,5,4,1,0,  3,2,7,0,0 ],
+                    })))
+                };
+
+                let response = serde_json::to_string(&response)?;
+
+                println!("{}", response);
+
+                pipe.write_all(format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes()).await?;
+
+                pipe.write_all(response.as_bytes()).await?;
+
+                pipe.flush().await?;
+
+                println!("wrote semantic tokens response!");
             }
             other => panic!("{:?}", other)
         }

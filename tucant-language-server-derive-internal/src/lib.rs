@@ -1104,7 +1104,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #[serde(tag = "method")]
         pub enum Responses {
             #(#server_to_client_notification)*
-            #(#response_enum)*
+            // #(#response_enum)* - don't do this here as we need to send them without the method json tag
         }
     });
     structures_err?;
