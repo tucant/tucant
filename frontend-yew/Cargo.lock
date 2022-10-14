@@ -483,9 +483,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.134"
+version = "0.2.135"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "329c933548736bc49fd575ee68c89e8be4d260064184389a5b77517cddd99ffb"
+checksum = "68783febc7782c6c5cb401fbda4de5a9898be1762314da0bb2c10ced61f18b0c"
 
 [[package]]
 name = "link-cplusplus"
@@ -688,9 +688,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.85"
+version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e55a28e3aaef9d5ce0506d0a14dbba8054ddc7e499ef522dd8b26859ec9d4a44"
+checksum = "41feea4228a6f1cd09ec7a3593a682276702cd67b5273544757dae23c096f074"
 dependencies = [
  "itoa",
  "ryu",
@@ -781,9 +781,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-stream"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6edf2d6bc038a43d31353570e27270603f4648d18f5ed10c0e179abe43255af"
+checksum = "d660770404473ccd7bc9f8b28494a811bc18542b915c0855c51e8f419d5223ce"
 dependencies = [
  "futures-core",
  "pin-project-lite",
@@ -844,9 +844,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.4"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcc811dc4066ac62f84f11307873c4850cb653bfa9b1719cee2bd2204a4bc5dd"
+checksum = "6ceab39d59e4c9499d4e5a8ee0e2735b891bb7308ac83dfb4e80cad195c9f6f3"
 
 [[package]]
 name = "unicode-width"
@@ -978,7 +978,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 [[package]]
 name = "yew"
 version = "0.19.3"
-source = "git+https://github.com/yewstack/yew/#7ada3447bbf49fd1f7e1fce9c93619f8573fa98b"
+source = "git+https://github.com/yewstack/yew/#fb264c9487372a35a73b9bd13a832c0fefc71d42"
 dependencies = [
  "console_error_panic_hook",
  "futures",
@@ -1004,7 +1004,7 @@ dependencies = [
 [[package]]
 name = "yew-macro"
 version = "0.19.3"
-source = "git+https://github.com/yewstack/yew/#7ada3447bbf49fd1f7e1fce9c93619f8573fa98b"
+source = "git+https://github.com/yewstack/yew/#fb264c9487372a35a73b9bd13a832c0fefc71d42"
 dependencies = [
  "boolinator",
  "once_cell",
@@ -1018,7 +1018,7 @@ dependencies = [
 [[package]]
 name = "yew-router"
 version = "0.16.0"
-source = "git+https://github.com/yewstack/yew/#7ada3447bbf49fd1f7e1fce9c93619f8573fa98b"
+source = "git+https://github.com/yewstack/yew/#fb264c9487372a35a73b9bd13a832c0fefc71d42"
 dependencies = [
  "gloo",
  "js-sys",
@@ -1035,7 +1035,7 @@ dependencies = [
 [[package]]
 name = "yew-router-macro"
 version = "0.16.0"
-source = "git+https://github.com/yewstack/yew/#7ada3447bbf49fd1f7e1fce9c93619f8573fa98b"
+source = "git+https://github.com/yewstack/yew/#fb264c9487372a35a73b9bd13a832c0fefc71d42"
 dependencies = [
  "proc-macro2",
  "quote",
