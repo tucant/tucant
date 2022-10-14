@@ -1104,6 +1104,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #[serde(tag = "method")]
         pub enum Responses {
             #(#server_to_client_notification)*
+            #(#response_enum)*
         }
     });
     structures_err?;

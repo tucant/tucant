@@ -1,7 +1,13 @@
 "use strict";
 
 import * as net from "net";
-import { ExtensionContext, commands, window, ProgressLocation } from "vscode";
+import {
+  ExtensionContext,
+  commands,
+  window,
+  ProgressLocation,
+  languages,
+} from "vscode";
 import {
   LanguageClient,
   LanguageClientOptions,
