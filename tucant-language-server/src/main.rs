@@ -1,4 +1,6 @@
 
+mod parsing;
+
 use std::{pin::Pin, cell::RefCell, ops::DerefMut, vec};
 
 use clap::Parser;

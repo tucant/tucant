@@ -14,3 +14,4 @@ serde = { version = "1", features = ["derive"] }
 serde_repr = "0.1"
 serde_with = "2"
 tucant_language_server_derive_output = { path = "../tucant-language-server-derive-output" }
+nom = "7.1.1"
