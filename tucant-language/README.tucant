@@ -1,0 +1,27 @@
+(veranstaltung "id")
+
+(modul "id")
+
+(nutzer "")
+
+(time (veranstaltung "id" "group"))
+
+(datetimerange "startdatetime" "enddatetime")
+
+(matches (veranstaltung "id") (datetimerange "startdatetime" "enddatetime")) (comment "will internally do this for every group in course")
+
+
+(comment "we need to generate a linear maximization problem:")
+
+
+
+(comment "core variables to use in factors:")
+
+(nutzer-in-veranstaltung (nutzer "id") (veranstaltung "id" "gruppe"))
+
+
+
+(comment "derived variables")
+
+(comment "sum of all nutzer-in-veranstaltung variables for this module")
+(nutzer-in-modul (nutzer "") (modul "id"))
