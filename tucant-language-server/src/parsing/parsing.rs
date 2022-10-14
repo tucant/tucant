@@ -1,61 +1,52 @@
-use std::{marker::PhantomData, ops::RangeFrom, iter::{Enumerate, Copied}, slice::Iter};
+use std::{marker::PhantomData, ops::{RangeFrom, RangeBounds, Range}, iter::{Enumerate, Copied}, slice::Iter};
 
 use nom::{IResult, error::ParseError, Slice, InputIter, Needed, AsChar, combinator::{map_res, recognize}, sequence::{preceded, terminated}, multi::{many1, many0}, character::{complete::{one_of, self}, is_digit}, bytes::complete::tag, InputTake, InputLength, Compare};
 
 #[derive(Clone, Copy)]
 pub struct Span<T> {
-    line: u32,
-    column: u32,
     inner: T,
+    start: usize,
+    line_start: usize,
+    column_start: usize,
+    end: usize,
+    line_end: usize,
+    column_end: usize,
 }
 
-pub struct MyInput<'a> {
-    input: &'a [u8],
-}
-
-impl<'a> Slice<RangeFrom<usize>> for MyInput<'a> {
+impl<'a> Slice<RangeFrom<usize>> for Span<&'a str> {
     fn slice(&self, range: RangeFrom<usize>) -> Self {
-        Self {
-            input: &self.input[range]
-        }
+        todo!()
     }
 }
 
-impl<'a> InputIter for MyInput<'a> {
-    type Item = Span<u8>;
+impl<'a> InputIter for Span<&'a str> {
+    type Item = Span<char>;
 
     type Iter = Enumerate<Self::IterElem>;
 
-    type IterElem = Copied<Iter<'a, Span<u8>>>;
+    type IterElem = Copied<Iter<'a, Span<char>>>;
 
     fn iter_indices(&self) -> Self::Iter {
-        self.input.iter_elements().enumerate();
         todo!()
     }
 
     fn iter_elements(&self) -> Self::IterElem {
-        self.input.iter().copied();
         todo!()
     }
 
     fn position<P>(&self, predicate: P) -> Option<usize>
   where
     P: Fn(Self::Item) -> bool {
-        //self.input.iter().position(|b| predicate(*b));
         todo!()
     }
 
     fn slice_index(&self, count: usize) -> Result<usize, nom::Needed> {
-        if self.input.len() >= count {
-            Ok(count)
-          } else {
-            Err(Needed::new(count - self.input.len()))
-          }
+        todo!()
     }
 }
 
 
-impl<'a> InputTake for MyInput<'a> {
+impl<'a> InputTake for Span<&'a str> {
     fn take(&self, count: usize) -> Self {
         todo!()
     }
@@ -65,13 +56,13 @@ impl<'a> InputTake for MyInput<'a> {
     }
 }
 
-impl<'a> InputLength for MyInput<'a> {
+impl<'a> InputLength for Span<&'a str> {
     fn input_len(&self) -> usize {
         todo!()
     }
 }
 
-impl<'a> Compare<&'a str> for MyInput<'a> {
+impl<'a> Compare<&'a str> for Span<&'a str> {
     fn compare(&self, t: &'a str) -> nom::CompareResult {
         todo!()
     }
@@ -111,21 +102,17 @@ impl AsChar for Span<u8> {
     }
 }
 
-pub struct MyError<I> {
-    data: PhantomData<I>
+pub struct MyError {
+
 }
 
-impl<I> ParseError<I> for MyError<I> {
-    fn from_error_kind(input: I, kind: nom::error::ErrorKind) -> Self {
-        Self {
-            data: PhantomData,
-        }
+impl ParseError<Span<&str>> for MyError {
+    fn from_error_kind(input: Span<&str>, kind: nom::error::ErrorKind) -> Self {
+        todo!()
     }
 
-    fn append(input: I, kind: nom::error::ErrorKind, other: Self) -> Self {
-        Self {
-            data: PhantomData,
-        }
+    fn append(input: Span<&str>, kind: nom::error::ErrorKind, other: Self) -> Self {
+        todo!()
     }
 }
 
@@ -136,7 +123,7 @@ impl<I> ParseError<I> for MyError<I> {
 // https://github.com/Geal/nom/blob/main/doc/error_management.md
 // https://github.com/Geal/nom/blob/main/doc/custom_input_types.md
 // https://github.com/Geal/nom/blob/main/examples/s_expression.rs
-fn parse_number(input: MyInput) -> IResult<MyInput, MyInput> {
+fn parse_number(input: Span<&str>) -> IResult<Span<&str>, Span<&str>> {
     tag("test")(input)
 }
 
