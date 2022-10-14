@@ -2,7 +2,7 @@ use std::{marker::PhantomData, ops::{RangeFrom, RangeBounds, Range}, iter::{Enum
 
 use nom::{IResult, error::ParseError, Slice, InputIter, Needed, AsChar, combinator::{map_res, recognize}, sequence::{preceded, terminated}, multi::{many1, many0}, character::{complete::{one_of, self}, is_digit}, bytes::complete::tag, InputTake, InputLength, Compare};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Span<T> {
     inner: T,
     start: usize,
@@ -11,6 +11,23 @@ pub struct Span<T> {
     end: usize,
     line_end: usize,
     column_end: usize,
+}
+
+impl<'a> Span<&'a str> {
+    fn new(input: &'a str) -> Self {
+        let last_line_pos = input.lines().enumerate().last().map_or((0, 0), |(index, last_line)| {
+            (index, last_line.len())
+        });
+        Self {
+            inner: input,
+            start: 0,
+            line_start: 0,
+            column_start: 0,
+            end: input.len(),
+            line_end: last_line_pos.0,
+            column_end: last_line_pos.1,
+        }
+    }
 }
 
 impl<'a> Slice<RangeFrom<usize>> for Span<&'a str> {
@@ -127,10 +144,13 @@ fn parse_number(input: Span<&str>) -> IResult<Span<&str>, Span<&str>> {
     tag("test")(input)
 }
 
-pub struct Parser {
+#[test]
+fn test_parse_number() {
+    let span = Span::new(r#"
+(this is an (epic awesome great) "test" 5)
+"#);
 
-}
+    let result = parse_number(span);
 
-impl Parser {
-
+    println!("{:?}", result);
 }
