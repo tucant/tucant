@@ -28,7 +28,12 @@ fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usi
 
 pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
     let the_line = string.lines().skip(line).next().unwrap();
-    let line_offset = the_line.char_indices().skip(column).next().map(|(offset, _)| offset).unwrap_or(the_line.len());
+    let line_offset = the_line
+        .char_indices()
+        .skip(column)
+        .next()
+        .map(|(offset, _)| offset)
+        .unwrap_or(the_line.len());
     the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
 }
 

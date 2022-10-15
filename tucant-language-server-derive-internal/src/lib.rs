@@ -879,7 +879,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     "r#{}Request",
                     request.method.replace('_', " ").to_upper_camel_case()
                 );
-                let (params, rest) = match &request.params {
+                let (params, request_rest) = match &request.params {
                     Some(TypeOrVecType::Type(_type)) => {
                         let (the_type, rest) = handle_type(&mut random, _type)?;
                         (quote! {
@@ -916,22 +916,28 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #params
                     }
                 };
-                let (client_to_server, client_to_server_rest, request_enum) =
-                if let MessageDirection::ClientToServer | MessageDirection::Both =
-                    request.message_direction
+                let request_enum =
+                if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction
                 {
-                    (
-                        request_struct,
-                        rest,
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
+                let response_enum_1 =
+                    if let
+                    | MessageDirection::ServerToClient
+                    | MessageDirection::Both = request.message_direction
+                    {
                         quote! {
                             #[serde(rename = #method)]
                             #name(#name),
-                        },
-                    )
-                } else {
-                    (request_struct, rest, quote! {})
-                };
-                let method = &request.method;
+                        }
+                    } else {
+                        quote! {}
+                    };
                 let name = format_ident!(
                     "r#{}Response",
                     request.method.replace('_', " ").to_upper_camel_case()
@@ -963,35 +969,33 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #error_type
                     }
                 };
-                let (server_to_client, server_to_client_rest, response_enum) =
+                let response_enum_2 =
                     if let
                     | MessageDirection::ServerToClient
                     | MessageDirection::Both = request.message_direction
                     {
-                        (
-                            response_struct,
-                            quote! { #result_type_rest #error_type_rest },
-                            quote! {
-                                #[serde(rename = #method)]
-                                #name(#name),
-                            },
-                        )
+                        quote! {
+                            #[serde(rename = #method)]
+                            #name(#name),
+                        }
                     } else {
-                        (response_struct, quote! { #result_type_rest #error_type_rest }, quote! {})
+                        quote! {}
                     };
                 Ok((
                     quote! {
-                        #client_to_server
-                        #server_to_client
+                        #request_struct
+                        #response_struct
                     },
                     quote! {
-                        #client_to_server_rest
-                        #server_to_client_rest
+                        #request_rest
+                        #result_type_rest
+                        #error_type_rest
                     },
+                    request_enum,
                     quote! {
-                        #request_enum
+                        #response_enum_1
+                        #response_enum_2
                     },
-                    response_enum,
                 ))
             },
         )
