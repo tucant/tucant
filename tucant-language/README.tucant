@@ -21,7 +21,5 @@
 
     (this is weird "hi")
 
-    "dslfsdhfdlfihwef" "fdsfldshsdlfidslfsdf""dhfl" 32r23 4234 24 243 242 fl"lihlifhsd"
-
     (comment "sum of all nutzer-in-veranstaltung variables for this module")
     (nutzer-in-modul (nutzer "") (modul "id")))

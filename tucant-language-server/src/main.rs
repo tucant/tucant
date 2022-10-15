@@ -30,7 +30,7 @@ use tucant_language_server_derive_output::{
     TextDocumentCompletionResponse, TextDocumentOnTypeFormattingResponse,
     TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullResponse,
     TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, WindowShowMessageNotification,
-    WorkDoneProgressOptions, H36210c437dfe0bb71287da572bebdf99422da7ddbe46bea738738f9f,
+    WorkDoneProgressOptions, H36210c437dfe0bb71287da572bebdf99422da7ddbe46bea738738f9f, WorkspaceApplyEditResponse, ApplyWorkspaceEditResult, WorkspaceApplyEditRequest,
 };
 
 use crate::parser::{parse_root, visitor, Error, Span, line_column_to_offset};
@@ -291,8 +291,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
             Requests::TextDocumentDidChangeNotification(notification) => {
                 let mut document = documents.get(&notification.params.text_document.variant0.uri).unwrap().clone();
 
-                for change in notification.params.content_changes {
-                    match *change {
+                for change in notification.params.content_changes.iter() {
+                    match &**change {
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
                             let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
                             let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
@@ -307,8 +307,27 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 documents.insert(
                     notification.params.text_document.variant0.uri.clone(),
-                    document,
+                    document.clone(),
                 );
+
+                if notification.params.content_changes.len() == 1 {
+                    match &**&(notification.params.content_changes[0]) {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
+                            let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                            let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+
+                            
+                            
+
+                            let response = Responses::WorkspaceApplyEditResponse(WorkspaceApplyEditRequest {
+                                jsonrpc: todo!(),
+                                id: todo!(),
+                                params: todo!(),
+                            });
+                        },
+                        _ => {}
+                    }
+                }
 
                 recalculate_diagnostics(
                     &mut pipe,
