@@ -168,7 +168,7 @@ fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>)
 fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
     let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
-        .take_while(|(_, character, _)| character.is_ascii_alphabetic())
+        .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
         .map(|(_, _, end)| end)
         .last()
         .ok_or_else(|| Error {

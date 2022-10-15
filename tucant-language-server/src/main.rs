@@ -22,7 +22,7 @@ use tucant_language_server_derive_output::{
     SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities, ShowMessageParams,
     ShutdownResponse, TextDocumentPublishDiagnosticsNotification,
     TextDocumentSemanticTokensFullResponse, TextDocumentSyncOptions, WindowShowMessageNotification,
-    WorkDoneProgressOptions, DiagnosticSeverity, Range, Position,
+    WorkDoneProgressOptions, DiagnosticSeverity, Range, Position, TextDocumentSyncKind,
 };
 
 use crate::parser::{Span, visitor, parse_root};
@@ -80,6 +80,62 @@ impl AsyncWrite for StdinoutStream {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
+pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Unpin>(pipe: &mut BufStream<T>, content: &str, uri: String, version: i64) -> io::Result<()> {
+    let span = Span::new(content);
+    let value = parse_root(span);
+    println!("{:?}", value);
+
+    let diagnostics = if let Err(error) = value {
+        let start_pos = error.location.start_line_column();
+        let end_pos = error.location.end_line_column();
+
+        vec![Box::new(Diagnostic {
+            range: Box::new(Range { 
+                start: Box::new(Position { line: start_pos.0.try_into().unwrap(), character: start_pos.1.try_into().unwrap() }),
+                end: Box::new(Position { line: end_pos.0.try_into().unwrap(), character: end_pos.1.try_into().unwrap() }),
+            }),
+            severity: Some(Box::new(DiagnosticSeverity::Error)),
+            code: None,
+            code_description: None,
+            source: Some("tucant".to_string()),
+            message: error.reason.to_string(),
+            tags: None,
+            related_information: None,
+            data: None,
+        })]
+    } else {
+        vec![]
+    };
+
+    let response = Responses::TextDocumentPublishDiagnosticsNotification(
+        TextDocumentPublishDiagnosticsNotification {
+            jsonrpc: "2.0".to_string(),
+            params: Box::new(PublishDiagnosticsParams {
+                uri,
+                version: Some(version),
+                diagnostics,
+            }),
+        },
+    );
+
+    let response = serde_json::to_string(&response)?;
+
+    println!("{}", response);
+
+    pipe.write_all(
+        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+    )
+    .await?;
+
+    pipe.write_all(response.as_bytes()).await?;
+
+    pipe.flush().await?;
+
+    println!("wrote diagnostics response!");
+
+    Ok(())
+}
+
 async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     readwrite: T,
 ) -> io::Result<()> {
@@ -130,7 +186,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 open_close: Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
-                                change: None, // TODO FIXME
+                                change: Some(Box::new(TextDocumentSyncKind::Full)),
                                 save: None, // TODO FIXME
                             }))),
                             notebook_document_sync: None,
@@ -221,55 +277,24 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 println!("wrote notification!");
             }
+            Requests::TextDocumentDidChangeNotification(notification) => {
+                println!("{:?}", notification.params.content_changes);
+
+                for change in notification.params.content_changes {
+                    match *change {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(_) => todo!(),
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
+                            documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
+                        },
+                    }
+                }
+
+                recalculate_diagnostics(&mut pipe, documents.get(&notification.params.text_document.variant0.uri).unwrap(), notification.params.text_document.variant0.uri, notification.params.text_document.version).await?;
+            },
             Requests::TextDocumentDidOpenNotification(notification) => {
                 documents.insert(notification.params.text_document.uri.clone(), notification.params.text_document.text.clone());
 
-                let span = Span::new(&notification.params.text_document.text);
-                let value = parse_root(span);
-                println!("{:?}", value);
-
-                if let Err(error) = value {
-                    let start_pos = error.location.start_line_column();
-                    let end_pos = error.location.end_line_column();
-                    let response = Responses::TextDocumentPublishDiagnosticsNotification(
-                        TextDocumentPublishDiagnosticsNotification {
-                            jsonrpc: "2.0".to_string(),
-                            params: Box::new(PublishDiagnosticsParams {
-                                uri: notification.params.text_document.uri,
-                                version: Some(notification.params.text_document.version),
-                                diagnostics: vec![Box::new(Diagnostic {
-                                    range: Box::new(Range { 
-                                        start: Box::new(Position { line: start_pos.0.try_into().unwrap(), character: start_pos.1.try_into().unwrap() }),
-                                        end: Box::new(Position { line: end_pos.0.try_into().unwrap(), character: end_pos.1.try_into().unwrap() }),
-                                    }),
-                                    severity: Some(Box::new(DiagnosticSeverity::Error)),
-                                    code: None,
-                                    code_description: None,
-                                    source: Some("tucant".to_string()),
-                                    message: error.reason.to_string(),
-                                    tags: None,
-                                    related_information: None,
-                                    data: None,
-                                })],
-                            }),
-                        },
-                    );
-
-                    let response = serde_json::to_string(&response)?;
-
-                    println!("{}", response);
-    
-                    pipe.write_all(
-                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                    )
-                    .await?;
-    
-                    pipe.write_all(response.as_bytes()).await?;
-    
-                    pipe.flush().await?;
-    
-                    println!("wrote diagnostics response!");
-                }
+                recalculate_diagnostics(&mut pipe, &notification.params.text_document.text, notification.params.text_document.uri, notification.params.text_document.version).await?;
             }
             Requests::ShutdownRequest(request) => {
                 let response = ShutdownResponse {
@@ -347,7 +372,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                     let response = TextDocumentSemanticTokensFullResponse {
                         jsonrpc: "2.0".to_string(),
                         id: request.id,
-                        result: None,
+                        result: Some(He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant1(())),
                     };
 
                     let response = serde_json::to_string(&response)?;
