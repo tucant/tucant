@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{pin::Pin, vec, collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, pin::Pin, vec};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -12,20 +12,20 @@ use tokio::{
     net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
-    Diagnostic, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    Diagnostic, DiagnosticSeverity, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
     H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4, InitializeResponse,
-    InitializeResult, MessageType, PublishDiagnosticsParams, Requests, Responses, SemanticTokens,
-    SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities, ShowMessageParams,
-    ShutdownResponse, TextDocumentPublishDiagnosticsNotification,
-    TextDocumentSemanticTokensFullResponse, TextDocumentSyncOptions, WindowShowMessageNotification,
-    WorkDoneProgressOptions, DiagnosticSeverity, Range, Position, TextDocumentSyncKind,
+    InitializeResult, MessageType, Position, PublishDiagnosticsParams, Range, Requests, Responses,
+    SemanticTokens, SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities,
+    ShowMessageParams, ShutdownResponse, TextDocumentPublishDiagnosticsNotification,
+    TextDocumentSemanticTokensFullResponse, TextDocumentSyncKind, TextDocumentSyncOptions,
+    WindowShowMessageNotification, WorkDoneProgressOptions,
 };
 
-use crate::parser::{Span, visitor, parse_root};
+use crate::parser::{parse_root, visitor, Error, Span};
 
 #[derive(Parser)]
 struct Args {
@@ -80,7 +80,12 @@ impl AsyncWrite for StdinoutStream {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
-pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Unpin>(pipe: &mut BufStream<T>, content: &str, uri: String, version: i64) -> io::Result<()> {
+pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
+    pipe: &mut BufStream<T>,
+    content: &str,
+    uri: String,
+    version: i64,
+) -> io::Result<()> {
     let span = Span::new(content);
     let value = parse_root(span);
     println!("{:?}", value);
@@ -90,9 +95,15 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
         let end_pos = error.location.end_line_column();
 
         vec![Box::new(Diagnostic {
-            range: Box::new(Range { 
-                start: Box::new(Position { line: start_pos.0.try_into().unwrap(), character: start_pos.1.try_into().unwrap() }),
-                end: Box::new(Position { line: end_pos.0.try_into().unwrap(), character: end_pos.1.try_into().unwrap() }),
+            range: Box::new(Range {
+                start: Box::new(Position {
+                    line: start_pos.0.try_into().unwrap(),
+                    character: start_pos.1.try_into().unwrap(),
+                }),
+                end: Box::new(Position {
+                    line: end_pos.0.try_into().unwrap(),
+                    character: end_pos.1.try_into().unwrap(),
+                }),
             }),
             severity: Some(Box::new(DiagnosticSeverity::Error)),
             code: None,
@@ -122,10 +133,8 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
 
     println!("{}", response);
 
-    pipe.write_all(
-        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-    )
-    .await?;
+    pipe.write_all(format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes())
+        .await?;
 
     pipe.write_all(response.as_bytes()).await?;
 
@@ -151,7 +160,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
             break;
         }
 
-        println!("read: {}", std::str::from_utf8(&buf).unwrap());        
+        println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
@@ -289,12 +298,29 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                     }
                 }
 
-                recalculate_diagnostics(&mut pipe, documents.get(&notification.params.text_document.variant0.uri).unwrap(), notification.params.text_document.variant0.uri, notification.params.text_document.version).await?;
-            },
+                recalculate_diagnostics(
+                    &mut pipe,
+                    documents
+                        .get(&notification.params.text_document.variant0.uri)
+                        .unwrap(),
+                    notification.params.text_document.variant0.uri,
+                    notification.params.text_document.version,
+                )
+                .await?;
+            }
             Requests::TextDocumentDidOpenNotification(notification) => {
-                documents.insert(notification.params.text_document.uri.clone(), notification.params.text_document.text.clone());
+                documents.insert(
+                    notification.params.text_document.uri.clone(),
+                    notification.params.text_document.text.clone(),
+                );
 
-                recalculate_diagnostics(&mut pipe, &notification.params.text_document.text, notification.params.text_document.uri, notification.params.text_document.version).await?;
+                recalculate_diagnostics(
+                    &mut pipe,
+                    &notification.params.text_document.text,
+                    notification.params.text_document.uri,
+                    notification.params.text_document.version,
+                )
+                .await?;
             }
             Requests::ShutdownRequest(request) => {
                 let response = ShutdownResponse {
@@ -331,65 +357,59 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 };
 
                 let span = Span::new(&document);
-                let value = parse_root(span);
+                let value = match parse_root(span) {
+                    Ok((value, _)) => value,
+                    Err(Error { partial_parse, .. }) => partial_parse,
+                };
 
-                if let Ok((value, _)) = value {
-                    println!("{:?}", value);
+                println!("{:?}", value);
 
-                    let paired_iterator = std::iter::once((0, 0, 0, 0, 0)).chain(visitor(&value)).zip(visitor(&value));
-                    let result = paired_iterator.flat_map(|(last, this)| {
-                        vec![this.0-last.0, if this.0 == last.0 { this.1-last.1 } else { this.1 }, this.2, this.3, this.4]
-                    }).collect::<Vec<_>>();
+                let paired_iterator = std::iter::once((0, 0, 0, 0, 0))
+                    .chain(visitor(&value))
+                    .zip(visitor(&value));
+                let result = paired_iterator
+                    .flat_map(|(last, this)| {
+                        vec![
+                            this.0 - last.0,
+                            if this.0 == last.0 {
+                                this.1 - last.1
+                            } else {
+                                this.1
+                            },
+                            this.2,
+                            this.3,
+                            this.4,
+                        ]
+                    })
+                    .collect::<Vec<_>>();
 
-                    let response = TextDocumentSemanticTokensFullResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: Some(
-                            He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                                Box::new(SemanticTokens {
-                                    result_id: None,
-                                    data: result,
-                                }),
-                            ),
+                let response = TextDocumentSemanticTokensFullResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(
+                        He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
+                            Box::new(SemanticTokens {
+                                result_id: None,
+                                data: result,
+                            }),
                         ),
-                    };
+                    ),
+                };
 
-                    let response = serde_json::to_string(&response)?;
+                let response = serde_json::to_string(&response)?;
 
-                    println!("{}", response);
+                println!("{}", response);
 
-                    pipe.write_all(
-                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                    )
-                    .await?;
+                pipe.write_all(
+                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                )
+                .await?;
 
-                    pipe.write_all(response.as_bytes()).await?;
+                pipe.write_all(response.as_bytes()).await?;
 
-                    pipe.flush().await?;
+                pipe.flush().await?;
 
-                    println!("wrote semantic tokens response!");
-                } else {
-                    let response = TextDocumentSemanticTokensFullResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: Some(He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant1(())),
-                    };
-
-                    let response = serde_json::to_string(&response)?;
-
-                    println!("{}", response);
-
-                    pipe.write_all(
-                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                    )
-                    .await?;
-
-                    pipe.write_all(response.as_bytes()).await?;
-
-                    pipe.flush().await?;
-
-                    println!("wrote semantic tokens response!");
-                }
+                println!("wrote semantic tokens response!");
             }
             Requests::SetTraceNotification(_) => {}
             Requests::TextDocumentDidCloseNotification(notification) => {

@@ -16,7 +16,7 @@
     (comment "core variables to use in factors:")
 
     (nutzer-in-veranstaltung (nutzer "id") (veranstaltung "id" "gruppe"))
-
+    
     (comment "derived variables")
 
     (this is weird "hi")
