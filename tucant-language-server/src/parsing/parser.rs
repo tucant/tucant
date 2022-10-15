@@ -1,5 +1,6 @@
-use std::{fmt::Debug, str::CharIndices};
+use std::{fmt::Debug, str::CharIndices, ops::Index};
 
+use itertools::Itertools;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -136,8 +137,7 @@ fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>)
 }
 
 fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
-    // https://github.com/rust-lang/rust/issues/62208
-    let input_str: &'a str = input.into();
+    let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
         .take_while(|(_, character, _)| character.is_ascii_alphabetic())
         .map(|(_, _, end)| end)
@@ -161,11 +161,48 @@ fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<
     }))
 }
 
-/*/
-fn parse_list<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
-
+fn parse_whitespace<'a>(input: Span<'a, ()>) -> Result<(Span<'a, ()>, Span<'a, ()>), Error> {
+    let input_str = Into::<&'a str>::into(input);
+    let pos = input_str.char_indices().find_or_last(|(offset, character)| !character.is_whitespace()).map(|(offset, _)| offset).unwrap_or(0);
+    let (whitespace_str, rest_str) = input_str.split_at(pos);
+    Ok((Span {
+        inner: (),
+        full_string: input.full_string,
+        string: whitespace_str,
+    }, Span {
+        inner: (),
+        full_string: input.full_string,
+        string: rest_str,
+    }))
 }
-*/
+
+fn parse_list<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error> {
+    let input_str = Into::<&'a str>::into(input);
+    let mut it = my_char_indices(input_str);
+    match it.next() {
+        Some((_, '(', _)) => {}
+        Some((_, character, _)) => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input_str[0..character.len_utf8()],
+            },
+            reason: r#"Expected a `(`"#,
+        })?,
+        None => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input_str[0..0],
+            },
+            reason: r#"Unexpected end of code. Expected a `(`"#,
+        })?,
+    };
+    input = parse_whitespace(input)?.1;
+    // loop while no )
+
+    todo!()
+}
 
 #[derive(Debug)]
 pub enum AST<'a> {
@@ -347,4 +384,27 @@ fn test_parse_identifier() {
     assert_eq!(string.0.inner, "anidentifier");
     assert_eq!(string.0.string, "anidentifier");
     assert_eq!(string.1.string, "    jlih");
+}
+
+#[test]
+fn test_parse_whitespace() {
+    init();
+
+    let span = Span::new(r#""#);
+    let string = parse_whitespace(span).unwrap();
+    println!("{:?}", string);
+    assert_eq!(string.0.string, "");
+    assert_eq!(string.1.string, "");
+
+    let span = Span::new(r#"  f  fwwe wef"#);
+    let string = parse_whitespace(span).unwrap();
+    println!("{:?}", string);
+    assert_eq!(string.0.string, "  ");
+    assert_eq!(string.1.string, "f  fwwe wef");
+
+    let span = Span::new(r#"dsfsdf dsf  "#);
+    let string = parse_whitespace(span).unwrap();
+    println!("{:?}", string);
+    assert_eq!(string.0.string, "");
+    assert_eq!(string.1.string, "dsfsdf dsf  ");
 }
