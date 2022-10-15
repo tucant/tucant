@@ -226,40 +226,64 @@ fn test_parse_number() {
     (this is an (epic awesome great) "test" 5)
     "#);*/
     let span = Span::new(r#"notanumber"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
+    assert_eq!(number.reason, "Failed to parse number");
+    assert_eq!(number.location.string, "");
 
     let span = Span::new(r#"3notendingwithanumber"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 3);
+    assert_eq!(number.0.string, "3");
+    assert_eq!(number.1.string, "notendingwithanumber");
 
     let span = Span::new(r#"3"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 3);
+    assert_eq!(number.0.string, "3");
+    assert_eq!(number.1.string, "");
 
     let span = Span::new(r#"3z9"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 3);
+    assert_eq!(number.0.string, "3");
+    assert_eq!(number.1.string, "z9");
 
     let span = Span::new(r#"3546z945"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 3546);
+    assert_eq!(number.0.string, "3546");
+    assert_eq!(number.1.string, "z945");
 
     let span = Span::new(r#"345345"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 345345);
+    assert_eq!(number.0.string, "345345");
+    assert_eq!(number.1.string, "");
 
     let span = Span::new(r#"345345sdfasd"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap();
     println!("{:?}", number);
+    assert_eq!(number.0.inner, 345345);
+    assert_eq!(number.0.string, "345345");
+    assert_eq!(number.1.string, "sdfasd");
 
     let span = Span::new(r#"n32otanumber"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
+    assert_eq!(number.reason, "Failed to parse number");
+    assert_eq!(number.location.string, "");
 
     let span = Span::new(r#"70708777897986976707598759785978698752otanumber"#);
-    let number = parse_number(span);
+    let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
+    assert_eq!(number.reason, "Failed to parse number");
+    assert_eq!(number.location.string, "70708777897986976707598759785978698752");
 }
 
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_string'
