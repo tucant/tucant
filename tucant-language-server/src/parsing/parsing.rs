@@ -7,16 +7,15 @@ use std::{
 
 use log::trace;
 use nom::{
-    bytes::complete::tag,
     character::{
         complete::{self, one_of},
         is_digit,
     },
     combinator::{map_res, recognize},
-    error::ParseError,
+    error::{ContextError, ParseError, context},
     multi::{many0, many1},
     sequence::{preceded, terminated},
-    AsChar, Compare, IResult, InputIter, InputLength, InputTake, Needed, Slice,
+    AsChar, Compare, IResult, InputIter, InputLength, InputTake, Needed, Slice, bytes::complete::is_a, InputTakeAtPosition,
 };
 use std::fmt::Debug;
 
@@ -33,7 +32,15 @@ pub struct Span<T: Debug> {
 
 impl<'a> Debug for Span<&'a str> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "location:{}:{} - location:{}:{}\n{}", self.line_start, self.column_start, self.line_end, self.column_end, &self.inner[self.start..self.end])
+        write!(
+            f,
+            "location:{}:{} - location:{}:{}\n{}",
+            self.line_start,
+            self.column_start,
+            self.line_end,
+            self.column_end,
+            &self.inner[self.start..self.end]
+        )
     }
 }
 
@@ -139,6 +146,45 @@ impl<'a> Compare<&'a str> for Span<&'a str> {
     }
 }
 
+impl<'a> InputTakeAtPosition for Span<&'a str> {
+    type Item = char;
+
+    fn split_at_position<P, E: ParseError<Self>>(&self, predicate: P) -> IResult<Self, Self, E>
+  where
+    P: Fn(Self::Item) -> bool {
+        todo!()
+    }
+
+    fn split_at_position1<P, E: ParseError<Self>>(
+    &self,
+    predicate: P,
+    e: nom::error::ErrorKind,
+  ) -> IResult<Self, Self, E>
+  where
+    P: Fn(Self::Item) -> bool {
+        todo!()
+    }
+
+    fn split_at_position_complete<P, E: ParseError<Self>>(
+    &self,
+    predicate: P,
+  ) -> IResult<Self, Self, E>
+  where
+    P: Fn(Self::Item) -> bool {
+        todo!()
+    }
+
+    fn split_at_position1_complete<P, E: ParseError<Self>>(
+    &self,
+    predicate: P,
+    e: nom::error::ErrorKind,
+  ) -> IResult<Self, Self, E>
+  where
+    P: Fn(Self::Item) -> bool {
+        todo!()
+    }
+}
+
 impl AsChar for Span<u8> {
     fn as_char(self) -> char {
         self.inner.as_char()
@@ -169,15 +215,40 @@ impl AsChar for Span<u8> {
     }
 }
 
-pub struct MyError {}
+#[derive(Debug)]
+pub struct MyError<'a> {
+    location: Span<&'a str>,
+    kind: nom::error::ErrorKind,
+    context: &'a str,
+}
 
-impl ParseError<Span<&str>> for MyError {
-    fn from_error_kind(input: Span<&str>, kind: nom::error::ErrorKind) -> Self {
-        todo!()
+impl<'a> ParseError<Span<&'a str>> for MyError<'a> {
+    fn from_error_kind(input: Span<&'a str>, kind: nom::error::ErrorKind) -> Self {
+        Self {
+            location: input,
+            kind,
+            context: ""
+        }
     }
 
     fn append(input: Span<&str>, kind: nom::error::ErrorKind, other: Self) -> Self {
         todo!()
+    }
+
+    fn from_char(input: Span<&'a str>, _: char) -> Self {
+        todo!()
+    }
+
+    fn or(self, other: Self) -> Self {
+        todo!()
+    }
+}
+
+impl<'a> ContextError<Span<&'a str>> for MyError<'a> {
+    fn add_context(input: Span<&'a str>, ctx: &'static str, other: Self) -> Self {
+        Self {
+            location: input, kind: other.kind, context: ctx
+        }
     }
 }
 
@@ -188,15 +259,15 @@ impl ParseError<Span<&str>> for MyError {
 // https://github.com/Geal/nom/blob/main/doc/error_management.md
 // https://github.com/Geal/nom/blob/main/doc/custom_input_types.md
 // https://github.com/Geal/nom/blob/main/examples/s_expression.rs
-fn parse_number(input: Span<&str>) -> IResult<Span<&str>, Span<&str>> {
-    tag("test")(input)
+fn parse_number(input: Span<&str>) -> IResult<Span<&str>, Span<&str>, MyError> {
+    context(r#"expected "test""#, tag("test"))(input)
 }
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-// RUST_LOG=trace cargo watch -x 'test -- --nocapture'
+// RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
     init();
@@ -204,6 +275,12 @@ fn test_parse_number() {
     (this is an (epic awesome great) "test" 5)
     "#);*/
     let span = Span::new(r#"test fdsf"#);
+
+    let result = parse_number(span);
+
+    println!("{:?}", result);
+
+    let span = Span::new(r#"notest fdsf"#);
 
     let result = parse_number(span);
 
