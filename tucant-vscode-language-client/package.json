@@ -38,7 +38,8 @@
     ],
     "configurationDefaults": {
       "[tucant]": {
-        "editor.semanticHighlighting.enabled": true
+        "editor.semanticHighlighting.enabled": true,
+        "editor.formatOnType": true
       }
     }
   },

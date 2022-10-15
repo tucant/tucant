@@ -21,5 +21,7 @@
 
     (this is weird "hi")
 
+    ()
+
     (comment "sum of all nutzer-in-veranstaltung variables for this module")
     (nutzer-in-modul (nutzer "") (modul "id")))
