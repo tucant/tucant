@@ -353,6 +353,18 @@ pub fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span
     }
 }
 
+pub fn parse_root<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error> {
+    let (ast, rest) = parse_ast(input)?;
+    if !rest.string.is_empty() {
+        Err(Error {
+            location: rest,
+            reason: "Expected end of file.",
+        })
+    } else {
+        Ok((ast, rest))
+    }
+}
+
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }

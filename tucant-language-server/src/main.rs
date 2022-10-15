@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{pin::Pin, vec, collections::HashMap};
+use std::{pin::Pin, vec, collections::HashMap, path::Path};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -25,7 +25,7 @@ use tucant_language_server_derive_output::{
     WorkDoneProgressOptions, DiagnosticSeverity, Range, Position,
 };
 
-use crate::parser::{parse_ast, Span, visitor};
+use crate::parser::{Span, visitor, parse_root};
 
 #[derive(Parser)]
 struct Args {
@@ -225,7 +225,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 documents.insert(notification.params.text_document.uri.clone(), notification.params.text_document.text.clone());
 
                 let span = Span::new(&notification.params.text_document.text);
-                let value = parse_ast(span);
+                let value = parse_root(span);
                 println!("{:?}", value);
 
                 if let Err(error) = value {
@@ -299,10 +299,23 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
             }
             Requests::TextDocumentSemanticTokensFullRequest(request) => {
                 let document = documents.get(&request.params.text_document.uri);
-
                 let document = if let Some(document) = document {
-                    document
+                    document.clone()
                 } else {
+                    tokio::fs::read_to_string(request.params.text_document.uri).await?
+                };
+
+                let span = Span::new(&document);
+                let value = parse_root(span);
+
+                if let Ok((value, _)) = value {
+                    println!("{:?}", value);
+
+                    let paired_iterator = std::iter::once((0, 0, 0, 0, 0)).chain(visitor(&value)).zip(visitor(&value));
+                    let result = paired_iterator.flat_map(|(last, this)| {
+                        vec![this.0-last.0, if this.0 == last.0 { this.1-last.1 } else { this.1 }, this.2, this.3, this.4]
+                    }).collect::<Vec<_>>();
+
                     let response = TextDocumentSemanticTokensFullResponse {
                         jsonrpc: "2.0".to_string(),
                         id: request.id,
@@ -310,64 +323,48 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                             He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
                                 Box::new(SemanticTokens {
                                     result_id: None,
-                                    data: vec![],
+                                    data: result,
                                 }),
                             ),
                         ),
                     };
-    
+
                     let response = serde_json::to_string(&response)?;
-    
+
                     println!("{}", response);
-    
+
                     pipe.write_all(
                         format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
                     )
                     .await?;
-    
+
                     pipe.write_all(response.as_bytes()).await?;
-    
+
                     pipe.flush().await?;
-    
-                    continue;
-                };
 
-                let span = Span::new(document);
-                let value = parse_ast(span).unwrap().0;
-                println!("{:?}", value);
+                    println!("wrote semantic tokens response!");
+                } else {
+                    let response = TextDocumentSemanticTokensFullResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: None,
+                    };
 
-                let paired_iterator = std::iter::once((0, 0, 0, 0, 0)).chain(visitor(&value)).zip(visitor(&value));
-                let result = paired_iterator.flat_map(|(last, this)| {
-                    vec![this.0-last.0, if this.0 == last.0 { this.1-last.1 } else { this.1 }, this.2, this.3, this.4]
-                }).collect::<Vec<_>>();
+                    let response = serde_json::to_string(&response)?;
 
-                let response = TextDocumentSemanticTokensFullResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(
-                        He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                            Box::new(SemanticTokens {
-                                result_id: None,
-                                data: result,
-                            }),
-                        ),
-                    ),
-                };
+                    println!("{}", response);
 
-                let response = serde_json::to_string(&response)?;
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
 
-                println!("{}", response);
+                    pipe.write_all(response.as_bytes()).await?;
 
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                )
-                .await?;
+                    pipe.flush().await?;
 
-                pipe.write_all(response.as_bytes()).await?;
-
-                pipe.flush().await?;
-
-                println!("wrote semantic tokens response!");
+                    println!("wrote semantic tokens response!");
+                }
             }
             Requests::SetTraceNotification(_) => {}
             Requests::TextDocumentDidCloseNotification(notification) => {
