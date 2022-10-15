@@ -317,7 +317,7 @@ pub fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span
         Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).and_then(|v| {
             Ok((
                 Span {
-                    inner: AST::String(v.0.inner),
+                    inner: AST::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
