@@ -202,7 +202,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                             notebook_document_sync: None,
                             completion_provider: Some(Box::new(CompletionOptions {
                                 variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
-                                trigger_characters: None,
+                                trigger_characters: Some(vec![r#"""#.to_string()]),
                                 all_commit_characters: Some(vec![r#"""#.to_string()]),
                                 resolve_provider: None,
                                 completion_item: None,
@@ -405,6 +405,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 documents.remove(&notification.params.text_document.uri);
             }
             /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
+                // can't move the cursor - we could probably replace test after to cheat
                 // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
                 // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
                 let text_edits = if request.params.ch == r#"""# {
@@ -444,7 +445,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 println!("wrote formatting response!");
             }*/
-            Requests::TextDocumentCompletionRequest(request) => {
+            /*Requests::TextDocumentCompletionRequest(request) => {
+                // doesn't work both on keypress and using manual autocomplete to my knowledge
                 let response = TextDocumentCompletionResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
@@ -468,10 +470,10 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                     insert_text_format: Some(Box::new(InsertTextFormat::Snippet)),
                                     insert_text_mode: None,
                                     text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit { 
-                                        new_text: r#"start$0end"#.to_string(),
+                                        new_text: r#"$0""#.to_string(),
                                         insert: Box::new(Range {
                                             start: Box::new(Position {
-                                                character: request.params.variant0.position.character,
+                                                character: request.params.variant0.position.character - 1,
                                                 line: request.params.variant0.position.line
                                             }),
                                             end: Box::new(Position {
@@ -481,7 +483,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                         }), 
                                         replace: Box::new(Range {
                                             start: Box::new(Position {
-                                                character: request.params.variant0.position.character,
+                                                character: request.params.variant0.position.character - 1,
                                                 line: request.params.variant0.position.line
                                             }),
                                             end: Box::new(Position {
@@ -511,7 +513,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.write_all(response.as_bytes()).await?;
 
                 pipe.flush().await?;
-            }
+            }*/
             other => panic!("{:?}", other),
         }
     }
