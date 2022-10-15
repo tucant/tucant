@@ -180,7 +180,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
         pipe.read_exact(&mut buf).await?;
 
-        //println!("read: {}", std::str::from_utf8(&buf).unwrap());
+        println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
 
@@ -318,6 +318,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                     document.clone(),
                 );
 
+                println!("change notification");
+
                 if notification.params.content_changes.len() == 1 {
                     match &**&(notification.params.content_changes[0]) {
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
@@ -340,7 +342,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                                 edits: vec![
                                                     Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(Box::new(TextEdit {
                                                         range: Box::new(Range { start: Box::new(Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }), end: Box::new(Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }) }),
-                                                        new_text: "".to_string()
+                                                        new_text: r#"""#.to_string()
                                                     }))
                                                 ]
                                             }))
@@ -350,7 +352,9 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 }),
                             });
 
-                            let result = serde_json::to_string(&notification)?;
+                            let result = serde_json::to_string(&response)?;
+
+                            println!("{}", result);
 
                             pipe.write_all(
                                 format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
