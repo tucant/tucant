@@ -1,11 +1,3 @@
-use std::{
-    iter::{Copied, Enumerate},
-    marker::PhantomData,
-    ops::{Range, RangeBounds, RangeFrom},
-    slice::Iter,
-};
-
-use log::trace;
 use std::fmt::Debug;
 
 #[derive(Clone, Copy)]
@@ -63,7 +55,7 @@ fn test_parse_number() {
     /*let span = Span::new(r#"
     (this is an (epic awesome great) "test" 5)
     "#);*/
-    let span = Span::new(r#"test fdsf"#);
+    let _span = Span::new(r#"test fdsf"#);
 
-    let span = Span::new(r#"notest fdsf"#);
+    let _span = Span::new(r#"notest fdsf"#);
 }

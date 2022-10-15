@@ -1,6 +1,6 @@
 mod parsing;
 
-use std::{cell::RefCell, ops::DerefMut, pin::Pin, vec};
+use std::{pin::Pin, vec};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -9,7 +9,7 @@ use tokio::{
         self, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufStream,
         Stdin, Stdout,
     },
-    net::{TcpListener, TcpStream, UnixStream},
+    net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
     H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
@@ -19,9 +19,9 @@ use tucant_language_server_derive_output::{
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4, InitializeResponse,
     InitializeResult, MessageType, Requests, Responses, SemanticTokens, SemanticTokensLegend,
-    SemanticTokensOptions, SemanticTokensRegistrationOptions, ServerCapabilities,
-    ShowMessageParams, ShutdownResponse, TextDocumentSemanticTokensFullResponse,
-    TextDocumentSyncOptions, WindowShowMessageNotification, WorkDoneProgressOptions,
+    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
+    TextDocumentSemanticTokensFullResponse, TextDocumentSyncOptions, WindowShowMessageNotification,
+    WorkDoneProgressOptions,
 };
 
 #[derive(Parser)]
@@ -187,7 +187,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 println!("wrote initialize response!");
             }
-            Requests::InitializedNotification(notification) => {
+            Requests::InitializedNotification(_notification) => {
                 let notification =
                     Responses::WindowShowMessageNotification(WindowShowMessageNotification {
                         jsonrpc: "2.0".to_string(),
@@ -237,7 +237,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 println!("wrote shutdown response!");
             }
-            Requests::ExitNotification(notification) => {
+            Requests::ExitNotification(_notification) => {
                 println!("exited!");
                 break;
             }
