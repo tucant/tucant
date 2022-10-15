@@ -200,13 +200,13 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 save: None, // TODO FIXME
                             }))),
                             notebook_document_sync: None,
-                            completion_provider: Some(Box::new(CompletionOptions {
+                            completion_provider: None,/*Some(Box::new(CompletionOptions {
                                 variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
                                 trigger_characters: Some(vec![r#"""#.to_string()]),
                                 all_commit_characters: Some(vec![r#"""#.to_string()]),
                                 resolve_provider: None,
                                 completion_item: None,
-                            })),
+                            })),*/
                             hover_provider: None,
                             signature_help_provider: None,
                             declaration_provider: None,
@@ -469,7 +469,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                     insert_text: None,
                                     insert_text_format: Some(Box::new(InsertTextFormat::Snippet)),
                                     insert_text_mode: None,
-                                    text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit { 
+                                    text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit {
                                         new_text: r#"$0""#.to_string(),
                                         insert: Box::new(Range {
                                             start: Box::new(Position {
@@ -480,7 +480,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                                 character: request.params.variant0.position.character,
                                                 line: request.params.variant0.position.line
                                             })
-                                        }), 
+                                        }),
                                         replace: Box::new(Range {
                                             start: Box::new(Position {
                                                 character: request.params.variant0.position.character - 1,
