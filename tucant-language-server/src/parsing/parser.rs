@@ -63,10 +63,10 @@ fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usi
 
 fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
     let input_str = Into::<&'a str>::into(input);
-    let mut it = input_str.char_indices();
+    let mut it = my_char_indices(input_str);
     match it.next() {
-        Some((_, '"')) => {}
-        Some((_, character)) => Err(Error {
+        Some((_, '"', _)) => {}
+        Some((_, character, _)) => Err(Error {
             location: Span {
                 inner: (),
                 full_string: input.full_string,
@@ -84,9 +84,8 @@ fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, 
         })?,
     };
     match it
-        .skip_while(|(_, character)| *character != '"')
-        .skip(1)
-        .map(|(offset, _)| offset)
+        .skip_while(|(_, character, _)| *character != '"')
+        .map(|(_, _, end)| end)
         .next()
     {
         Some(offset) => {
