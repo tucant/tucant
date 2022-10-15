@@ -292,21 +292,30 @@ fn test_parse_string() {
     init();
 
     let span = Span::new(r#"notastring"#);
-    let string = parse_string(span);
+    let string = parse_string(span).unwrap_err();
     println!("{:?}", string);
+    assert_eq!(string.reason, r#"Expected a `"`"#);
+    assert_eq!(string.location.string, "n");
 
     let span = Span::new(r#""unterminated"#);
-    let string = parse_string(span);
+    let string = parse_string(span).unwrap_err();
     println!("{:?}", string);
+    assert_eq!(string.reason, r#"Unterminated string literal"#);
+    assert_eq!(string.location.string, r#""unterminated"#);
 
     let span = Span::new(r#""astring"jojo"#);
-    let string = parse_string(span);
+    let string = parse_string(span).unwrap();
     println!("{:?}", string);
+    assert_eq!(string.0.inner, "astring");
+    assert_eq!(string.0.string, r#""astring""#);
+    assert_eq!(string.1.string, "jojo");
 
-    // TODO FIXME
     let span = Span::new(r#""astring""#);
-    let string = parse_string(span);
+    let string = parse_string(span).unwrap();
     println!("{:?}", string);
+    assert_eq!(string.0.inner, "astring");
+    assert_eq!(string.0.string, r#""astring""#);
+    assert_eq!(string.1.string, "");
 }
 
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_identifier'
