@@ -1,4 +1,7 @@
-use std::{fs::File, io::{BufReader, Result}};
+use std::{
+    fs::File,
+    io::{BufReader, Result},
+};
 
 use tucant_language_server_derive_output::Requests;
 

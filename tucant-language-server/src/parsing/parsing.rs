@@ -1,9 +1,27 @@
-use std::{marker::PhantomData, ops::{RangeFrom, RangeBounds, Range}, iter::{Enumerate, Copied}, slice::Iter};
+use std::{
+    iter::{Copied, Enumerate},
+    marker::PhantomData,
+    ops::{Range, RangeBounds, RangeFrom},
+    slice::Iter,
+};
 
-use nom::{IResult, error::ParseError, Slice, InputIter, Needed, AsChar, combinator::{map_res, recognize}, sequence::{preceded, terminated}, multi::{many1, many0}, character::{complete::{one_of, self}, is_digit}, bytes::complete::tag, InputTake, InputLength, Compare};
+use log::trace;
+use nom::{
+    bytes::complete::tag,
+    character::{
+        complete::{self, one_of},
+        is_digit,
+    },
+    combinator::{map_res, recognize},
+    error::ParseError,
+    multi::{many0, many1},
+    sequence::{preceded, terminated},
+    AsChar, Compare, IResult, InputIter, InputLength, InputTake, Needed, Slice,
+};
+use std::fmt::Debug;
 
-#[derive(Clone, Copy, Debug)]
-pub struct Span<T> {
+#[derive(Clone, Copy)]
+pub struct Span<T: Debug> {
     inner: T,
     start: usize,
     line_start: usize,
@@ -13,11 +31,19 @@ pub struct Span<T> {
     column_end: usize,
 }
 
+impl<'a> Debug for Span<&'a str> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "location:{}:{} - location:{}:{}\n{}", self.line_start, self.column_start, self.line_end, self.column_end, &self.inner[self.start..self.end])
+    }
+}
+
 impl<'a> Span<&'a str> {
     fn new(input: &'a str) -> Self {
-        let last_line_pos = input.lines().enumerate().last().map_or((0, 0), |(index, last_line)| {
-            (index, last_line.len())
-        });
+        let last_line_pos = input
+            .lines()
+            .enumerate()
+            .last()
+            .map_or((0, 0), |(index, last_line)| (index, last_line.len()));
         Self {
             inner: input,
             start: 0,
@@ -52,8 +78,9 @@ impl<'a> InputIter for Span<&'a str> {
     }
 
     fn position<P>(&self, predicate: P) -> Option<usize>
-  where
-    P: Fn(Self::Item) -> bool {
+    where
+        P: Fn(Self::Item) -> bool,
+    {
         todo!()
     }
 
@@ -62,14 +89,32 @@ impl<'a> InputIter for Span<&'a str> {
     }
 }
 
-
 impl<'a> InputTake for Span<&'a str> {
     fn take(&self, count: usize) -> Self {
         todo!()
     }
 
     fn take_split(&self, count: usize) -> (Self, Self) {
-        todo!()
+        (
+            Self {
+                inner: self.inner,
+                start: self.start,
+                line_start: self.line_start,
+                column_start: self.column_start,
+                end: self.start + count,
+                line_end: usize::MAX,
+                column_end: usize::MAX,
+            },
+            Self {
+                inner: self.inner,
+                start: self.start + count,
+                line_start: usize::MAX,
+                column_start: usize::MAX,
+                end: self.end,
+                line_end: self.line_end,
+                column_end: self.column_end,
+            },
+        )
     }
 }
 
@@ -81,7 +126,12 @@ impl<'a> InputLength for Span<&'a str> {
 
 impl<'a> Compare<&'a str> for Span<&'a str> {
     fn compare(&self, t: &'a str) -> nom::CompareResult {
-        todo!()
+        trace!("compare {:?} {:?}", self, t);
+        if self.inner[self.start..self.end].starts_with(t) {
+            nom::CompareResult::Ok
+        } else {
+            nom::CompareResult::Error
+        }
     }
 
     fn compare_no_case(&self, t: &'a str) -> nom::CompareResult {
@@ -119,9 +169,7 @@ impl AsChar for Span<u8> {
     }
 }
 
-pub struct MyError {
-
-}
+pub struct MyError {}
 
 impl ParseError<Span<&str>> for MyError {
     fn from_error_kind(input: Span<&str>, kind: nom::error::ErrorKind) -> Self {
@@ -144,11 +192,18 @@ fn parse_number(input: Span<&str>) -> IResult<Span<&str>, Span<&str>> {
     tag("test")(input)
 }
 
+fn init() {
+    let _ = env_logger::builder().is_test(true).try_init();
+}
+
+// RUST_LOG=trace cargo watch -x 'test -- --nocapture'
 #[test]
 fn test_parse_number() {
-    let span = Span::new(r#"
-(this is an (epic awesome great) "test" 5)
-"#);
+    init();
+    /*let span = Span::new(r#"
+    (this is an (epic awesome great) "test" 5)
+    "#);*/
+    let span = Span::new(r#"test fdsf"#);
 
     let result = parse_number(span);
 
