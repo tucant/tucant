@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{pin::Pin, vec, collections::HashMap};
+use std::{collections::HashMap, path::Path, pin::Pin, vec};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -12,20 +12,28 @@ use tokio::{
     net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
-    Diagnostic, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    CompletionItem, CompletionItemKind, CompletionList, CompletionOptions, Diagnostic,
+    DiagnosticSeverity, DocumentOnTypeFormattingOptions,
+    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    H1afd22fb3d4fde50a3d4d6f52f9c56f977bac8ae5eb87e24a1c00362,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
+    H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
     H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
+    Hb171fb170d077239f0de20d058cbdc49f406f509504a400c97ceb78a,
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
-    He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4, InitializeResponse,
-    InitializeResult, MessageType, PublishDiagnosticsParams, Requests, Responses, SemanticTokens,
-    SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities, ShowMessageParams,
-    ShutdownResponse, TextDocumentPublishDiagnosticsNotification,
-    TextDocumentSemanticTokensFullResponse, TextDocumentSyncOptions, WindowShowMessageNotification,
-    WorkDoneProgressOptions, DiagnosticSeverity, Range, Position,
+    He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
+    Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728, InitializeResponse,
+    InitializeResult, InsertReplaceEdit, InsertTextFormat, MessageType, Position,
+    PublishDiagnosticsParams, Range, Requests, Responses, SemanticTokens, SemanticTokensLegend,
+    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
+    TextDocumentCompletionResponse, TextDocumentOnTypeFormattingResponse,
+    TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullResponse,
+    TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, WindowShowMessageNotification,
+    WorkDoneProgressOptions,
 };
 
-use crate::parser::{parse_ast, Span, visitor};
+use crate::parser::{parse_root, visitor, Error, Span};
 
 #[derive(Parser)]
 struct Args {
@@ -80,6 +88,66 @@ impl AsyncWrite for StdinoutStream {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
+pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
+    pipe: &mut BufStream<T>,
+    content: &str,
+    uri: String,
+    version: i64,
+) -> io::Result<()> {
+    let span = Span::new(content);
+    let value = parse_root(span);
+
+    let diagnostics = if let Err(error) = value {
+        let start_pos = error.location.start_line_column();
+        let end_pos = error.location.end_line_column();
+
+        vec![Box::new(Diagnostic {
+            range: Box::new(Range {
+                start: Box::new(Position {
+                    line: start_pos.0.try_into().unwrap(),
+                    character: start_pos.1.try_into().unwrap(),
+                }),
+                end: Box::new(Position {
+                    line: end_pos.0.try_into().unwrap(),
+                    character: end_pos.1.try_into().unwrap(),
+                }),
+            }),
+            severity: Some(Box::new(DiagnosticSeverity::Error)),
+            code: None,
+            code_description: None,
+            source: Some("tucant".to_string()),
+            message: error.reason.to_string(),
+            tags: None,
+            related_information: None,
+            data: None,
+        })]
+    } else {
+        vec![]
+    };
+
+    let response = Responses::TextDocumentPublishDiagnosticsNotification(
+        TextDocumentPublishDiagnosticsNotification {
+            jsonrpc: "2.0".to_string(),
+            params: Box::new(PublishDiagnosticsParams {
+                uri,
+                version: Some(version),
+                diagnostics,
+            }),
+        },
+    );
+
+    let response = serde_json::to_string(&response)?;
+
+    pipe.write_all(format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes())
+        .await?;
+
+    pipe.write_all(response.as_bytes()).await?;
+
+    pipe.flush().await?;
+
+    Ok(())
+}
+
 async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     readwrite: T,
 ) -> io::Result<()> {
@@ -95,8 +163,6 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
             break;
         }
 
-        println!("read: {}", std::str::from_utf8(&buf).unwrap());        
-
         let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
         assert!(key == b"Content-Length");
@@ -109,7 +175,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
         pipe.read_exact(&mut buf).await?;
 
-        println!("read: {}", std::str::from_utf8(&buf).unwrap());
+        //println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
 
@@ -117,7 +183,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
         match request {
             Requests::InitializeRequest(request) => {
-                println!("got an initialize {:#?}", request);
+                println!("{:#?}", request.params);
 
                 let result = InitializeResponse {
                     jsonrpc: "2.0".to_string(),
@@ -130,11 +196,17 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 open_close: Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
-                                change: None, // TODO FIXME
+                                change: Some(Box::new(TextDocumentSyncKind::Full)),
                                 save: None, // TODO FIXME
                             }))),
                             notebook_document_sync: None,
-                            completion_provider: None,
+                            completion_provider: None,/*Some(Box::new(CompletionOptions {
+                                variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
+                                trigger_characters: Some(vec![r#"""#.to_string()]),
+                                all_commit_characters: Some(vec![r#"""#.to_string()]),
+                                resolve_provider: None,
+                                completion_item: None,
+                            })),*/
                             hover_provider: None,
                             signature_help_provider: None,
                             declaration_provider: None,
@@ -151,7 +223,10 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                             workspace_symbol_provider: None,
                             document_formatting_provider: None,
                             document_range_formatting_provider: None,
-                            document_on_type_formatting_provider: None,
+                            document_on_type_formatting_provider: None, /*Some(Box::new(DocumentOnTypeFormattingOptions {
+                                first_trigger_character: r#"""#.to_string(),
+                                more_trigger_character: None,
+                            })),*/
                             rename_provider: None,
                             folding_range_provider: None,
                             selection_range_provider: None,
@@ -183,8 +258,6 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 let result = serde_json::to_string(&result)?;
 
-                println!("{}", result);
-
                 pipe.write_all(
                     format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
                 )
@@ -193,8 +266,6 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.write_all(result.as_bytes()).await?;
 
                 pipe.flush().await?;
-
-                println!("wrote initialize response!");
             }
             Requests::InitializedNotification(_notification) => {
                 let notification =
@@ -208,8 +279,6 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 let result = serde_json::to_string(&notification)?;
 
-                println!("{}", result);
-
                 pipe.write_all(
                     format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
                 )
@@ -218,58 +287,40 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.write_all(result.as_bytes()).await?;
 
                 pipe.flush().await?;
+            }
+            Requests::TextDocumentDidChangeNotification(notification) => {
+                for change in notification.params.content_changes {
+                    match *change {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(_) => todo!(),
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
+                            documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
+                        },
+                    }
+                }
 
-                println!("wrote notification!");
+                recalculate_diagnostics(
+                    &mut pipe,
+                    documents
+                        .get(&notification.params.text_document.variant0.uri)
+                        .unwrap(),
+                    notification.params.text_document.variant0.uri,
+                    notification.params.text_document.version,
+                )
+                .await?;
             }
             Requests::TextDocumentDidOpenNotification(notification) => {
-                documents.insert(notification.params.text_document.uri.clone(), notification.params.text_document.text.clone());
+                documents.insert(
+                    notification.params.text_document.uri.clone(),
+                    notification.params.text_document.text.clone(),
+                );
 
-                let span = Span::new(&notification.params.text_document.text);
-                let value = parse_ast(span);
-                println!("{:?}", value);
-
-                if let Err(error) = value {
-                    let start_pos = error.location.start_line_column();
-                    let end_pos = error.location.end_line_column();
-                    let response = Responses::TextDocumentPublishDiagnosticsNotification(
-                        TextDocumentPublishDiagnosticsNotification {
-                            jsonrpc: "2.0".to_string(),
-                            params: Box::new(PublishDiagnosticsParams {
-                                uri: notification.params.text_document.uri,
-                                version: Some(notification.params.text_document.version),
-                                diagnostics: vec![Box::new(Diagnostic {
-                                    range: Box::new(Range { 
-                                        start: Box::new(Position { line: start_pos.0.try_into().unwrap(), character: start_pos.1.try_into().unwrap() }),
-                                        end: Box::new(Position { line: end_pos.0.try_into().unwrap(), character: end_pos.1.try_into().unwrap() }),
-                                    }),
-                                    severity: Some(Box::new(DiagnosticSeverity::Error)),
-                                    code: None,
-                                    code_description: None,
-                                    source: Some("tucant".to_string()),
-                                    message: error.reason.to_string(),
-                                    tags: None,
-                                    related_information: None,
-                                    data: None,
-                                })],
-                            }),
-                        },
-                    );
-
-                    let response = serde_json::to_string(&response)?;
-
-                    println!("{}", response);
-    
-                    pipe.write_all(
-                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                    )
-                    .await?;
-    
-                    pipe.write_all(response.as_bytes()).await?;
-    
-                    pipe.flush().await?;
-    
-                    println!("wrote diagnostics response!");
-                }
+                recalculate_diagnostics(
+                    &mut pipe,
+                    &notification.params.text_document.text,
+                    notification.params.text_document.uri,
+                    notification.params.text_document.version,
+                )
+                .await?;
             }
             Requests::ShutdownRequest(request) => {
                 let response = ShutdownResponse {
@@ -280,8 +331,6 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 let response = serde_json::to_string(&response)?;
 
-                println!("{}", response);
-
                 pipe.write_all(
                     format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
                 )
@@ -290,56 +339,42 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.write_all(response.as_bytes()).await?;
 
                 pipe.flush().await?;
-
-                println!("wrote shutdown response!");
             }
             Requests::ExitNotification(_notification) => {
-                println!("exited!");
                 break;
             }
             Requests::TextDocumentSemanticTokensFullRequest(request) => {
                 let document = documents.get(&request.params.text_document.uri);
-
                 let document = if let Some(document) = document {
-                    document
+                    document.clone()
                 } else {
-                    let response = TextDocumentSemanticTokensFullResponse {
-                        jsonrpc: "2.0".to_string(),
-                        id: request.id,
-                        result: Some(
-                            He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                                Box::new(SemanticTokens {
-                                    result_id: None,
-                                    data: vec![],
-                                }),
-                            ),
-                        ),
-                    };
-    
-                    let response = serde_json::to_string(&response)?;
-    
-                    println!("{}", response);
-    
-                    pipe.write_all(
-                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                    )
-                    .await?;
-    
-                    pipe.write_all(response.as_bytes()).await?;
-    
-                    pipe.flush().await?;
-    
-                    continue;
+                    tokio::fs::read_to_string(request.params.text_document.uri).await?
                 };
 
-                let span = Span::new(document);
-                let value = parse_ast(span).unwrap().0;
-                println!("{:?}", value);
+                let span = Span::new(&document);
+                let value = match parse_root(span) {
+                    Ok((value, _)) => value,
+                    Err(Error { partial_parse, .. }) => partial_parse,
+                };
 
-                let paired_iterator = std::iter::once((0, 0, 0, 0, 0)).chain(visitor(&value)).zip(visitor(&value));
-                let result = paired_iterator.flat_map(|(last, this)| {
-                    vec![this.0-last.0, if this.0 == last.0 { this.1-last.1 } else { this.1 }, this.2, this.3, this.4]
-                }).collect::<Vec<_>>();
+                let paired_iterator = std::iter::once((0, 0, 0, 0, 0))
+                    .chain(visitor(&value))
+                    .zip(visitor(&value));
+                let result = paired_iterator
+                    .flat_map(|(last, this)| {
+                        vec![
+                            this.0 - last.0,
+                            if this.0 == last.0 {
+                                this.1 - last.1
+                            } else {
+                                this.1
+                            },
+                            this.2,
+                            this.3,
+                            this.4,
+                        ]
+                    })
+                    .collect::<Vec<_>>();
 
                 let response = TextDocumentSemanticTokensFullResponse {
                     jsonrpc: "2.0".to_string(),
@@ -356,6 +391,47 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 let response = serde_json::to_string(&response)?;
 
+                pipe.write_all(
+                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                )
+                .await?;
+
+                pipe.write_all(response.as_bytes()).await?;
+
+                pipe.flush().await?;
+            }
+            Requests::SetTraceNotification(_) => {}
+            Requests::TextDocumentDidCloseNotification(notification) => {
+                documents.remove(&notification.params.text_document.uri);
+            }
+            /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
+                // can't move the cursor - we could probably replace test after to cheat
+                // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
+                // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
+                let text_edits = if request.params.ch == r#"""# {
+                    let position = request.params.position;
+                    vec![Box::new(TextEdit { range: Box::new(Range {
+                        start: Box::new(Position {
+                            line: position.line,
+                            character: position.character + 1
+                        }),
+                        end: Box::new(Position {
+                            line: position.line,
+                            character: position.character + 1
+                        })
+                    }), new_text: r#""thisisatest"#.to_string() })]
+                } else {
+                    vec![]
+                };
+
+                let response = TextDocumentOnTypeFormattingResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(H1afd22fb3d4fde50a3d4d6f52f9c56f977bac8ae5eb87e24a1c00362::Variant0(text_edits)),
+                };
+
+                let response = serde_json::to_string(&response)?;
+
                 println!("{}", response);
 
                 pipe.write_all(
@@ -367,12 +443,77 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
                 pipe.flush().await?;
 
-                println!("wrote semantic tokens response!");
-            }
-            Requests::SetTraceNotification(_) => {}
-            Requests::TextDocumentDidCloseNotification(notification) => {
-                documents.remove(&notification.params.text_document.uri);
-            }
+                println!("wrote formatting response!");
+            }*/
+            /*Requests::TextDocumentCompletionRequest(request) => {
+                // doesn't work both on keypress and using manual autocomplete to my knowledge
+                let response = TextDocumentCompletionResponse {
+                    jsonrpc: "2.0".to_string(),
+                    id: request.id,
+                    result: Some(
+                        H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c::Variant1(
+                            Box::new(CompletionList {
+                                is_incomplete: false,
+                                item_defaults: None,
+                                items: vec![Box::new(CompletionItem {
+                                    label: "string literal".to_string(),
+                                    label_details: None,
+                                    kind: Some(Box::new(CompletionItemKind::Snippet)),
+                                    tags: None,
+                                    detail: None,
+                                    documentation: None,
+                                    deprecated: None,
+                                    preselect: Some(true),
+                                    sort_text: None,
+                                    filter_text: Some(r#"""#.to_string()),
+                                    insert_text: None,
+                                    insert_text_format: Some(Box::new(InsertTextFormat::Snippet)),
+                                    insert_text_mode: None,
+                                    text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit {
+                                        new_text: r#"$0""#.to_string(),
+                                        insert: Box::new(Range {
+                                            start: Box::new(Position {
+                                                character: request.params.variant0.position.character - 1,
+                                                line: request.params.variant0.position.line
+                                            }),
+                                            end: Box::new(Position {
+                                                character: request.params.variant0.position.character,
+                                                line: request.params.variant0.position.line
+                                            })
+                                        }),
+                                        replace: Box::new(Range {
+                                            start: Box::new(Position {
+                                                character: request.params.variant0.position.character - 1,
+                                                line: request.params.variant0.position.line
+                                            }),
+                                            end: Box::new(Position {
+                                                character: request.params.variant0.position.character,
+                                                line: request.params.variant0.position.line
+                                            })
+                                        }),
+                                    }))),
+                                    text_edit_text: None,
+                                    additional_text_edits: None,
+                                    commit_characters: Some(vec![r#"""#.to_string()]),
+                                    command: None,
+                                    data: None,
+                                })],
+                            }),
+                        ),
+                    ),
+                };
+
+                let response = serde_json::to_string(&response)?;
+
+                pipe.write_all(
+                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                )
+                .await?;
+
+                pipe.write_all(response.as_bytes()).await?;
+
+                pipe.flush().await?;
+            }*/
             other => panic!("{:?}", other),
         }
     }

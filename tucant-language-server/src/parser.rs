@@ -12,9 +12,10 @@ pub struct Span<'a, T: Debug> {
 }
 
 #[derive(Debug)]
-pub struct Error<'a> {
+pub struct Error<'a, T: Debug> {
     pub location: Span<'a, ()>,
     pub reason: &'static str,
+    pub partial_parse: T,
 }
 
 fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usize, usize) {
@@ -85,7 +86,9 @@ fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usi
         .map(|(offset, character)| (offset, character, offset + character.len_utf8()))
 }
 
-fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
+fn parse_string<'a>(
+    input: Span<'a, ()>,
+) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
@@ -97,6 +100,11 @@ fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, 
                 string: &input_str[0..character.len_utf8()],
             },
             reason: r#"Expected a `"`"#,
+            partial_parse: Span {
+                inner: AST::String(""),
+                full_string: input.full_string,
+                string: &input_str[0..character.len_utf8()],
+            },
         })?,
         None => Err(Error {
             location: Span {
@@ -105,6 +113,11 @@ fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, 
                 string: &input_str[0..0],
             },
             reason: r#"Unexpected end of code. Expected a `"`"#,
+            partial_parse: Span {
+                inner: AST::String(""),
+                full_string: input.full_string,
+                string: &input_str[0..0],
+            },
         })?,
     };
     match it
@@ -130,12 +143,19 @@ fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, 
         None => Err(Error {
             location: input,
             reason: r#"Unterminated string literal"#,
+            partial_parse: Span {
+                inner: AST::String(&input.string[1..]),
+                full_string: input.full_string,
+                string: input.string,
+            },
         })?,
     }
 }
 
 // https://doc.rust-lang.org/book/ch08-02-strings.html
-fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
+fn parse_number<'a>(
+    input: Span<'a, ()>,
+) -> Result<(Span<'a, i64>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let input_str: &'a str = input.into();
     let end_of_numbers = input_str
         .char_indices()
@@ -153,6 +173,11 @@ fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>)
                     string: number_str,
                 },
                 reason: r#"Failed to parse number"#,
+                partial_parse: Span {
+                    inner: AST::Number(1337),
+                    full_string: input.full_string,
+                    string: number_str,
+                },
             })?,
             full_string: input.full_string,
             string: number_str,
@@ -165,10 +190,12 @@ fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>)
     ))
 }
 
-fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
+fn parse_identifier<'a>(
+    input: Span<'a, ()>,
+) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
-        .take_while(|(_, character, _)| character.is_ascii_alphabetic())
+        .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
         .map(|(_, _, end)| end)
         .last()
         .ok_or_else(|| Error {
@@ -178,6 +205,11 @@ fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<
                 string: &input.string[0..0],
             },
             reason: "Expected an identifier",
+            partial_parse: Span {
+                inner: AST::Identifier(""),
+                full_string: input.full_string,
+                string: &input.string[0..0],
+            },
         })?;
     let (str_str, rest_str) = input_str.split_at(end);
     Ok((
@@ -194,7 +226,9 @@ fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<
     ))
 }
 
-fn parse_whitespace<'a>(input: Span<'a, ()>) -> Result<(Span<'a, ()>, Span<'a, ()>), Error> {
+fn parse_whitespace<'a>(
+    input: Span<'a, ()>,
+) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let pos = input_str
         .char_indices()
@@ -218,7 +252,7 @@ fn parse_whitespace<'a>(input: Span<'a, ()>) -> Result<(Span<'a, ()>, Span<'a, (
 
 fn parse_list<'a>(
     full_input: Span<'a, ()>,
-) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error> {
+) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let mut input = full_input;
     let input_str = Into::<&'a str>::into(input);
     if !input_str.starts_with('(') {
@@ -229,6 +263,11 @@ fn parse_list<'a>(
                 string: &input_str[0..0],
             },
             reason: r#"Expected a `(`"#,
+            partial_parse: Span {
+                inner: AST::List(vec![]),
+                full_string: full_input.full_string,
+                string: &input_str[0..0],
+            },
         });
     }
     input = Span {
@@ -238,7 +277,18 @@ fn parse_list<'a>(
     };
     let mut result = Vec::new();
     loop {
-        input = parse_whitespace(input)?.1;
+        let result_ref = &result;
+        input = parse_whitespace(input)
+            .map_err(|err| Error {
+                location: err.location,
+                reason: err.reason,
+                partial_parse: Span {
+                    inner: AST::List(result_ref.clone()),
+                    full_string: full_input.full_string,
+                    string: &input_str[0..0], // TODO FIXME
+                },
+            })?
+            .1;
         let input_str = Into::<&'a str>::into(input);
         if input_str.starts_with(')') {
             let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
@@ -256,32 +306,61 @@ fn parse_list<'a>(
             ));
         }
         let element;
-        (element, input) = parse_ast(input)?;
+        (element, input) = match parse_ast(input) {
+            Ok(value) => value,
+            Err(value) => Err(Error {
+                location: value.location,
+                reason: value.reason,
+                partial_parse: Span {
+                    inner: AST::List(result_ref.clone()),
+                    full_string: full_input.full_string,
+                    string: &input_str[0..0], // TODO FIXME
+                },
+            })?,
+        };
         result.push(element);
     }
 }
 
-pub fn visitor<'a>(element: &'a Span<'a, AST<'a>>) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
+pub fn visitor<'a>(
+    element: &'a Span<'a, AST<'a>>,
+) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
     match &element.inner {
         AST::Identifier(_) => {
             let pos = element.start_line_column();
-            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 2, 0)))
-        },
+            Box::new(std::iter::once((
+                pos.0.try_into().unwrap(),
+                pos.1.try_into().unwrap(),
+                element.string.len().try_into().unwrap(),
+                2,
+                0,
+            )))
+        }
         AST::Number(_) => {
             let pos = element.start_line_column();
-            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 1, 0)))
-        },
+            Box::new(std::iter::once((
+                pos.0.try_into().unwrap(),
+                pos.1.try_into().unwrap(),
+                element.string.len().try_into().unwrap(),
+                1,
+                0,
+            )))
+        }
         AST::String(_) => {
             let pos = element.start_line_column();
-            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 0, 0)))
-        },
-        AST::List(list) => Box::new(list.iter().flat_map(|elem| {
-            visitor(elem)
-        })),
+            Box::new(std::iter::once((
+                pos.0.try_into().unwrap(),
+                pos.1.try_into().unwrap(),
+                element.string.len().try_into().unwrap(),
+                0,
+                0,
+            )))
+        }
+        AST::List(list) => Box::new(list.iter().flat_map(|elem| visitor(elem))),
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AST<'a> {
     Number(i64),
     String(&'a str),
@@ -289,7 +368,9 @@ pub enum AST<'a> {
     List(Vec<Span<'a, AST<'a>>>),
 }
 
-pub fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error> {
+pub fn parse_ast<'a>(
+    mut input: Span<'a, ()>,
+) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     input = parse_whitespace(input)?.1;
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
@@ -341,6 +422,11 @@ pub fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span
                 string: &input.string[start..end],
             },
             reason: r#"Unexpected character. Expected `"`, 0-9, a-z, A-Z or `(`."#,
+            partial_parse: Span {
+                inner: AST::List(vec![]),
+                full_string: input.full_string,
+                string: &input.string[start..end],
+            },
         }),
         None => Err(Error {
             location: Span {
@@ -349,7 +435,27 @@ pub fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span
                 string: &input.string[0..0],
             },
             reason: "Unexpected end of input",
+            partial_parse: Span {
+                inner: AST::List(vec![]),
+                full_string: input.full_string,
+                string: &input.string[0..0],
+            },
         }),
+    }
+}
+
+pub fn parse_root<'a>(
+    mut input: Span<'a, ()>,
+) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+    let (ast, rest) = parse_ast(input)?;
+    if !rest.string.is_empty() {
+        Err(Error {
+            location: rest,
+            reason: "Expected end of file.",
+            partial_parse: ast,
+        })
+    } else {
+        Ok((ast, rest))
     }
 }
 
