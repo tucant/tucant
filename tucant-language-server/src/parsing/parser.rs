@@ -52,8 +52,18 @@ impl<'a> Into<&'a str> for Span<'a, ()> {
     }
 }
 
-fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<&'a str>, Span<'a, ()>), Error> {
+// alternative: yield start and end of character?
+fn old_my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, Option<char>)> + 'a {
+    input.char_indices().map(|(offset, character)| (offset, Some(character))).chain(std::iter::once((input.len(), None)))
+}
+
+fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usize)> + 'a {
+    input.char_indices().map(|(offset, character)| (offset, character, offset + character.len_utf8()))
+}
+
+fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
     let input_str = Into::<&'a str>::into(input);
+    // TODO FIXME I think we could simplify most implementations if they return a last element with (end_index, None) and all others return (index, Some(character))
     let mut it = input_str.char_indices();
     match it.next() {
         Some((_, '"')) => {}
@@ -100,7 +110,7 @@ fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<&'a str>, Span<'a, ()>)
 }
 
 // https://doc.rust-lang.org/book/ch08-02-strings.html
-fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<i64>, Span<'a, ()>), Error> {
+fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
     let input_str: &'a str = input.into();
     let end_of_numbers = input_str
         .char_indices()
@@ -127,7 +137,46 @@ fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<i64>, Span<'a, ()>), Er
     }))
 }
 
-fn parse_atom<'a>(input: Span<&'a str>) {}
+fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
+    // https://github.com/rust-lang/rust/issues/62208
+    let input_str: &'a str = input.into();
+    let end = my_char_indices(input_str)
+        .take_while(|(_, character, _)| character.is_ascii_alphabetic())
+        .map(|(_, _, end)| end)
+        .last().ok_or_else(|| Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input.string[0..0],
+            },
+            reason: "Expected an identifier",
+        })?;
+    let (str_str, rest_str) = input_str.split_at(end);
+    Ok((Span {
+        inner: str_str,
+        full_string: input.full_string,
+        string: str_str,
+    }, Span {
+        inner: (),
+        full_string: input.full_string,
+        string: rest_str,
+    }))
+}
+
+/*
+fn parse_list<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
+
+}
+
+fn parse_root<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
+    // (
+
+    // number
+
+    // "
+
+    // symbol
+}*/
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
@@ -194,7 +243,30 @@ fn test_parse_string() {
     let string = parse_string(span);
     println!("{:?}", string);
 
+    // TODO FIXME
     let span = Span::new(r#""astring""#);
     let string = parse_string(span);
+    println!("{:?}", string);
+}
+
+// RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_identifier'
+#[test]
+fn test_parse_identifier() {
+    init();
+
+    let span = Span::new(r#"7notanidentifier"#);
+    let string = parse_identifier(span);
+    println!("{:?}", string);
+
+    let span = Span::new(r#""notanidentifier"#);
+    let string = parse_identifier(span);
+    println!("{:?}", string);
+
+    let span = Span::new(r#"anidentifier"#);
+    let string = parse_identifier(span);
+    println!("{:?}", string);
+
+    let span = Span::new(r#"anidentifier    jlih"#);
+    let string = parse_identifier(span);
     println!("{:?}", string);
 }
