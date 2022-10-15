@@ -16,3 +16,5 @@ serde_with = "2"
 tucant_language_server_derive_output = { path = "../tucant-language-server-derive-output" }
 log = "0.4"
 env_logger = "0.9"
+regex = "1"
+once_cell = "1"
