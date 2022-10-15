@@ -63,7 +63,6 @@ fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usi
 
 fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error> {
     let input_str = Into::<&'a str>::into(input);
-    // TODO FIXME I think we could simplify most implementations if they return a last element with (end_index, None) and all others return (index, Some(character))
     let mut it = input_str.char_indices();
     match it.next() {
         Some((_, '"')) => {}
@@ -163,20 +162,57 @@ fn parse_identifier<'a>(input: Span<'a, ()>) -> Result<(Span<'a, &'a str>, Span<
     }))
 }
 
-/*
+/*/
 fn parse_list<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
 
 }
+*/
 
-fn parse_root<'a>(input: Span<'a, ()>) -> Result<(Span<'a, i64>, Span<'a, ()>), Error> {
-    // (
+#[derive(Debug)]
+pub enum AST<'a> {
+    Number(i64),
+    String(&'a str),
+    Identifier(&'a str),
+    List(Vec<Span<'a, AST<'a>>>),
+}
 
-    // number
-
-    // "
-
-    // symbol
-}*/
+fn parse_root<'a>(input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error> {
+    let input_str = Into::<&'a str>::into(input);
+    let mut it = my_char_indices(input_str);
+    match it.next() {
+        Some((_, '"', _)) => parse_string(input).and_then(|v| {
+            Ok((Span {
+                inner: AST::String(v.0.inner),
+                full_string: v.0.full_string,
+                string: v.0.string,
+            }, v.1))
+        }),
+        Some((_, '0' ..= '9', _)) => parse_number(input).and_then(|v| {
+            Ok((Span {
+                inner: AST::Number(v.0.inner),
+                full_string: v.0.full_string,
+                string: v.0.string,
+            }, v.1))
+        }),
+        Some((_, 'a' ..= 'z' | 'A' ..= 'Z', _)) => parse_identifier(input).and_then(|v| {
+            Ok((Span {
+                inner: AST::String(v.0.inner),
+                full_string: v.0.full_string,
+                string: v.0.string,
+            }, v.1))
+        }),
+        Some((_, '(', _)) => todo!(),
+        Some((start, _, end)) => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input.string[start..end],
+            },
+            reason: "Expected an identifier",
+        }),
+        None => todo!(),
+    }
+}
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
