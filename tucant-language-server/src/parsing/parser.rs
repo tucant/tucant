@@ -47,11 +47,17 @@ impl<'a> Span<'a, ()> {
     }
 }
 
+// TODO FIXME remove this as it just makes it less transparent
 impl<'a> Into<&'a str> for Span<'a, ()> {
     fn into(self) -> &'a str {
         &self.string
     }
 }
+
+// TODO FIXME completely different approach would be a peeking parser
+// I think actually do this, e.g. in the list parsing code getting the outmost span is annoying
+// alternatively do less with mixing iterators and other code?
+// or use more concepts from nom
 
 // alternative: yield start and end of character?
 fn old_my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, Option<char>)> + 'a {
@@ -176,32 +182,44 @@ fn parse_whitespace<'a>(input: Span<'a, ()>) -> Result<(Span<'a, ()>, Span<'a, (
     }))
 }
 
-fn parse_list<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error> {
+fn parse_list<'a>(full_input: Span<'a, ()>) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error> {
+    let mut input = full_input;
     let input_str = Into::<&'a str>::into(input);
-    let mut it = my_char_indices(input_str);
-    match it.next() {
-        Some((_, '(', _)) => {}
-        Some((_, character, _)) => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..character.len_utf8()],
-            },
-            reason: r#"Expected a `(`"#,
-        })?,
-        None => Err(Error {
+    if !input_str.starts_with('(') {
+        return Err(Error {
             location: Span {
                 inner: (),
                 full_string: input.full_string,
                 string: &input_str[0..0],
             },
-            reason: r#"Unexpected end of code. Expected a `(`"#,
-        })?,
+            reason: r#"Expected a `(`"#,
+        })
+    }
+    input = Span {
+        inner: (),
+        full_string: input.full_string,
+        string: &input_str[1..],
     };
-    input = parse_whitespace(input)?.1;
-    // loop while no )
-
-    todo!()
+    let mut result = Vec::new();
+    loop {
+        input = parse_whitespace(input)?.1;
+        let input_str = Into::<&'a str>::into(input);
+        if input_str.starts_with(')') {
+            let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
+            break Ok((Span {
+                inner: result,
+                full_string: input.full_string,
+                string: &full_input.string[..offset],
+            }, Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input_str[1..],
+            }))
+        }
+        let element;
+        (element, input) = parse_ast(input)?;
+        result.push(element);
+    }
 }
 
 #[derive(Debug)]
@@ -212,7 +230,8 @@ pub enum AST<'a> {
     List(Vec<Span<'a, AST<'a>>>),
 }
 
-fn parse_root<'a>(input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error> {
+fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error> {
+    input = parse_whitespace(input)?.1;
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
@@ -407,4 +426,29 @@ fn test_parse_whitespace() {
     println!("{:?}", string);
     assert_eq!(string.0.string, "");
     assert_eq!(string.1.string, "dsfsdf dsf  ");
+}
+
+#[test]
+fn test_parse_list() {
+    init();
+
+    let span = Span::new(r#"()"#);
+    let value = parse_list(span).unwrap();
+    println!("{:?}", value);
+    assert_eq!(value.0.string, "()");
+    assert_eq!(value.1.string, "");
+    assert!(value.0.inner.is_empty());
+
+    let span = Span::new(r#"(  1    2   3    )"#);
+    let value = parse_list(span).unwrap();
+    println!("{:?}", value);
+    assert_eq!(value.0.string, "(  1    2   3    )");
+    assert_eq!(value.1.string, "");
+    assert_eq!(value.0.inner.len(), 3);
+    assert!(matches!(value.0.inner[0].inner, AST::Number(1)));
+    assert_eq!(value.0.inner[0].string, "1");
+    assert!(matches!(value.0.inner[1].inner, AST::Number(2)));
+    assert_eq!(value.0.inner[1].string, "2");
+    assert!(matches!(value.0.inner[2].inner, AST::Number(3)));
+    assert_eq!(value.0.inner[2].string, "3");
 }
