@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{pin::Pin, vec};
+use std::{pin::Pin, vec, collections::HashMap};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -25,7 +25,7 @@ use tucant_language_server_derive_output::{
     WorkDoneProgressOptions, DiagnosticSeverity, Range, Position,
 };
 
-use crate::parser::{parse_ast, Span};
+use crate::parser::{parse_ast, Span, visitor};
 
 #[derive(Parser)]
 struct Args {
@@ -83,6 +83,8 @@ impl AsyncWrite for StdinoutStream {
 async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     readwrite: T,
 ) -> io::Result<()> {
+    let mut documents = HashMap::new();
+
     let mut pipe = BufStream::new(readwrite);
 
     let mut buf = Vec::new();
@@ -92,6 +94,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
         if buf == [13, 10] {
             break;
         }
+
+        println!("read: {}", std::str::from_utf8(&buf).unwrap());        
 
         let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
@@ -108,6 +112,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
         println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
+
+        buf.clear();
 
         match request {
             Requests::InitializeRequest(request) => {
@@ -154,7 +160,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                             linked_editing_range_provider: None,
                             semantic_tokens_provider: Some(Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552::Variant0(Box::new(SemanticTokensOptions {
                                 legend: Box::new(SemanticTokensLegend {
-                                    token_types: vec!["string".to_string(), "comment".to_string()],
+                                    token_types: vec!["string".to_string(), "number".to_string(), "type".to_string()],
                                     token_modifiers: vec![],
                                 }),
                                 variant0: Box::new(WorkDoneProgressOptions {
@@ -216,6 +222,8 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 println!("wrote notification!");
             }
             Requests::TextDocumentDidOpenNotification(notification) => {
+                documents.insert(notification.params.text_document.uri.clone(), notification.params.text_document.text.clone());
+
                 let span = Span::new(&notification.params.text_document.text);
                 let value = parse_ast(span);
                 println!("{:?}", value);
@@ -260,7 +268,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     
                     pipe.flush().await?;
     
-                    println!("wrote shutdown response!");
+                    println!("wrote diagnostics response!");
                 }
             }
             Requests::ShutdownRequest(request) => {
@@ -290,7 +298,48 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 break;
             }
             Requests::TextDocumentSemanticTokensFullRequest(request) => {
-                // request.params.text_document.uri
+                let document = documents.get(&request.params.text_document.uri);
+
+                let document = if let Some(document) = document {
+                    document
+                } else {
+                    let response = TextDocumentSemanticTokensFullResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(
+                            He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
+                                Box::new(SemanticTokens {
+                                    result_id: None,
+                                    data: vec![],
+                                }),
+                            ),
+                        ),
+                    };
+    
+                    let response = serde_json::to_string(&response)?;
+    
+                    println!("{}", response);
+    
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
+    
+                    pipe.write_all(response.as_bytes()).await?;
+    
+                    pipe.flush().await?;
+    
+                    continue;
+                };
+
+                let span = Span::new(document);
+                let value = parse_ast(span).unwrap().0;
+                println!("{:?}", value);
+
+                let paired_iterator = std::iter::once((0, 0, 0, 0, 0)).chain(visitor(&value)).zip(visitor(&value));
+                let result = paired_iterator.flat_map(|(last, this)| {
+                    vec![this.0-last.0, if this.0 == last.0 { this.1-last.1 } else { this.1 }, this.2, this.3, this.4]
+                }).collect::<Vec<_>>();
 
                 let response = TextDocumentSemanticTokensFullResponse {
                     jsonrpc: "2.0".to_string(),
@@ -299,7 +348,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                         He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
                             Box::new(SemanticTokens {
                                 result_id: None,
-                                data: vec![3, 5, 3, 0, 3, 0, 5, 4, 1, 0, 3, 2, 7, 0, 0],
+                                data: result,
                             }),
                         ),
                     ),
@@ -322,12 +371,10 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
             }
             Requests::SetTraceNotification(_) => {}
             Requests::TextDocumentDidCloseNotification(notification) => {
-                
+                documents.remove(&notification.params.text_document.uri);
             }
             other => panic!("{:?}", other),
         }
-
-        buf.clear();
     }
 
     Ok(())

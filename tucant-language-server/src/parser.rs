@@ -45,7 +45,9 @@ impl<'a> Span<'a, ()> {
             string: input,
         }
     }
+}
 
+impl<'a, T: Debug> Span<'a, T> {
     pub fn start_line_column(&self) -> (usize, usize) {
         let start_pos = offset_to_line_column(self, self.string);
         (start_pos.0, start_pos.1)
@@ -256,6 +258,26 @@ fn parse_list<'a>(
         let element;
         (element, input) = parse_ast(input)?;
         result.push(element);
+    }
+}
+
+pub fn visitor<'a>(element: &'a Span<'a, AST<'a>>) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
+    match &element.inner {
+        AST::Identifier(_) => {
+            let pos = element.start_line_column();
+            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 2, 0)))
+        },
+        AST::Number(_) => {
+            let pos = element.start_line_column();
+            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 1, 0)))
+        },
+        AST::String(_) => {
+            let pos = element.start_line_column();
+            Box::new(std::iter::once((pos.0.try_into().unwrap(), pos.1.try_into().unwrap(), element.string.len().try_into().unwrap(), 0, 0)))
+        },
+        AST::List(list) => Box::new(list.iter().flat_map(|elem| {
+            visitor(elem)
+        })),
     }
 }
 

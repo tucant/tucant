@@ -1,5 +1,5 @@
 (root
-    (veranstaltung "id")
+    (veranstaltung "id" 1 5 7)
 
     (modul "id")
 
@@ -14,9 +14,9 @@
 
     (comment "we need to generate a linear maximization problem:")
 
-
-
     (comment "core variables to use in factors:")
+
+    )
 
     (nutzer-in-veranstaltung (nutzer "id") (veranstaltung "id" "gruppe"))
 
