@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, str::CharIndices};
 
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -17,7 +17,7 @@ pub struct Error<'a> {
 }
 
 fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usize, usize) {
-    span.full_string[..(string.as_ptr() as usize-span.full_string.as_ptr() as usize)]
+    span.full_string[..(string.as_ptr() as usize - span.full_string.as_ptr() as usize)]
         .lines()
         .enumerate()
         .last()
@@ -31,11 +31,7 @@ impl<'a> Debug for Span<'a, ()> {
         write!(
             f,
             "location:{}:{} - location:{}:{}\n{}",
-            start_pos.0,
-            start_pos.1,
-            end_pos.0,
-            end_pos.1,
-            &self.string
+            start_pos.0, start_pos.1, end_pos.0, end_pos.1, &self.string
         )
     }
 }
@@ -56,33 +52,66 @@ impl<'a> Into<&'a str> for Span<'a, ()> {
     }
 }
 
-// only support raw strings
-fn parse_string<'a>(input: Span<&'a str>) {
-
+fn parse_string<'a>(input: Span<'a, ()>) -> Result<(Span<&'a str>, Span<'a, ()>), Error> {
+    let input_str = Into::<&'a str>::into(input);
+    let mut it = input_str.char_indices();
+    match it.next() {
+        Some((_, '"')) => {}
+        Some((_, character)) => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input_str[0..character.len_utf8()],
+            },
+            reason: r#"Expected a `"`"#,
+        })?,
+        None => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input_str[0..0],
+            },
+            reason: r#"Unexpected end of code. Expected a `"`"#,
+        })?,
+    };
+    match it
+        .skip_while(|(_, character)| *character != '"')
+        .map(|(offset, _)| offset)
+        .next()
+    {
+        Some(_) => todo!(),
+        None => Err(Error {
+            location: input,
+            reason: r#"Unterminated string literal"#,
+        })?,
+    }
 }
 
 // https://doc.rust-lang.org/book/ch08-02-strings.html
-fn parse_number<'a>(input: Span<'a, ()>) -> Result<i64, Error> {
-   let input_str: &'a str = input.into();
-   let end_of_numbers = input_str.char_indices().skip_while(|(_, character)| {
-    character.is_ascii_digit()
-   }).map(|(offset, _)| offset).next().unwrap_or(input_str.len());
-   let number_str = &input_str[0..end_of_numbers];
-   number_str.parse::<i64>().map_err(|_| {
-    Error {
-        location: Span {
-            inner: (),
-            full_string: input.full_string,
-            string: number_str
-        },
-        reason: "Failed to parse as number",
-    }
-   })
+fn parse_number<'a>(input: Span<'a, ()>) -> Result<(Span<i64>, Span<'a, ()>), Error> {
+    let input_str: &'a str = input.into();
+    let end_of_numbers = input_str
+        .char_indices()
+        .skip_while(|(_, character)| character.is_ascii_digit())
+        .map(|(offset, _)| offset)
+        .next()
+        .unwrap_or(input_str.len()); // TODO FIXME different error message
+    let number_str = &input_str[0..end_of_numbers];
+    Ok(Span {
+        inner: number_str.parse::<i64>().map_err(|_| Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: number_str,
+            },
+            reason: r#"Failed to parse number"#,
+        })?,
+        full_string: input.full_string,
+        string: number_str,
+    })
 }
 
-fn parse_atom<'a>(input: Span<&'a str>) {
-
-}
+fn parse_atom<'a>(input: Span<&'a str>) {}
 
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
