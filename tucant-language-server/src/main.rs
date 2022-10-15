@@ -30,10 +30,10 @@ use tucant_language_server_derive_output::{
     TextDocumentCompletionResponse, TextDocumentOnTypeFormattingResponse,
     TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullResponse,
     TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, WindowShowMessageNotification,
-    WorkDoneProgressOptions,
+    WorkDoneProgressOptions, H36210c437dfe0bb71287da572bebdf99422da7ddbe46bea738738f9f,
 };
 
-use crate::parser::{parse_root, visitor, Error, Span};
+use crate::parser::{parse_root, visitor, Error, Span, line_column_to_offset};
 
 #[derive(Parser)]
 struct Args {
@@ -151,7 +151,7 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
 async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     readwrite: T,
 ) -> io::Result<()> {
-    let mut documents = HashMap::new();
+    let mut documents = HashMap::<String, String>::new();
 
     let mut pipe = BufStream::new(readwrite);
 
@@ -196,7 +196,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 open_close: Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
-                                change: Some(Box::new(TextDocumentSyncKind::Full)),
+                                change: Some(Box::new(TextDocumentSyncKind::Incremental)),
                                 save: None, // TODO FIXME
                             }))),
                             notebook_document_sync: None,
@@ -289,14 +289,26 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.flush().await?;
             }
             Requests::TextDocumentDidChangeNotification(notification) => {
+                let mut document = documents.get(&notification.params.text_document.variant0.uri).unwrap().clone();
+
                 for change in notification.params.content_changes {
                     match *change {
-                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(_) => todo!(),
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
+                            let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                            let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+
+                            document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
+                        },
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
                             documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                         },
                     }
                 }
+
+                documents.insert(
+                    notification.params.text_document.variant0.uri.clone(),
+                    document,
+                );
 
                 recalculate_diagnostics(
                     &mut pipe,
