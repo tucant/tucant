@@ -1,4 +1,4 @@
-mod parsing;
+mod parser;
 
 use std::{pin::Pin, vec};
 
@@ -12,17 +12,20 @@ use tokio::{
     net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
-    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    Diagnostic, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
     H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4, InitializeResponse,
-    InitializeResult, MessageType, Requests, Responses, SemanticTokens, SemanticTokensLegend,
-    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
+    InitializeResult, MessageType, PublishDiagnosticsParams, Requests, Responses, SemanticTokens,
+    SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities, ShowMessageParams,
+    ShutdownResponse, TextDocumentPublishDiagnosticsNotification,
     TextDocumentSemanticTokensFullResponse, TextDocumentSyncOptions, WindowShowMessageNotification,
-    WorkDoneProgressOptions,
+    WorkDoneProgressOptions, DiagnosticSeverity, Range, Position,
 };
+
+use crate::parser::{parse_ast, Span};
 
 #[derive(Parser)]
 struct Args {
@@ -213,7 +216,52 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 println!("wrote notification!");
             }
             Requests::TextDocumentDidOpenNotification(notification) => {
-                println!("{}", notification.params.text_document.text);
+                let span = Span::new(&notification.params.text_document.text);
+                let value = parse_ast(span);
+                println!("{:?}", value);
+
+                if let Err(error) = value {
+                    let start_pos = error.location.start_line_column();
+                    let end_pos = error.location.end_line_column();
+                    let response = Responses::TextDocumentPublishDiagnosticsNotification(
+                        TextDocumentPublishDiagnosticsNotification {
+                            jsonrpc: "2.0".to_string(),
+                            params: Box::new(PublishDiagnosticsParams {
+                                uri: notification.params.text_document.uri,
+                                version: Some(notification.params.text_document.version),
+                                diagnostics: vec![Box::new(Diagnostic {
+                                    range: Box::new(Range { 
+                                        start: Box::new(Position { line: start_pos.0.try_into().unwrap(), character: start_pos.1.try_into().unwrap() }),
+                                        end: Box::new(Position { line: end_pos.0.try_into().unwrap(), character: end_pos.1.try_into().unwrap() }),
+                                    }),
+                                    severity: Some(Box::new(DiagnosticSeverity::Error)),
+                                    code: None,
+                                    code_description: None,
+                                    source: Some("tucant".to_string()),
+                                    message: error.reason.to_string(),
+                                    tags: None,
+                                    related_information: None,
+                                    data: None,
+                                })],
+                            }),
+                        },
+                    );
+
+                    let response = serde_json::to_string(&response)?;
+
+                    println!("{}", response);
+    
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
+    
+                    pipe.write_all(response.as_bytes()).await?;
+    
+                    pipe.flush().await?;
+    
+                    println!("wrote shutdown response!");
+                }
             }
             Requests::ShutdownRequest(request) => {
                 let response = ShutdownResponse {
@@ -271,6 +319,10 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.flush().await?;
 
                 println!("wrote semantic tokens response!");
+            }
+            Requests::SetTraceNotification(_) => {}
+            Requests::TextDocumentDidCloseNotification(notification) => {
+                
             }
             other => panic!("{:?}", other),
         }
