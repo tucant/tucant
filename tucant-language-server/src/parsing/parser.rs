@@ -256,16 +256,29 @@ fn parse_ast<'a>(mut input: Span<'a, ()>) -> Result<(Span<'a, AST<'a>>, Span<'a,
                 string: v.0.string,
             }, v.1))
         }),
-        Some((_, '(', _)) => todo!(),
+        Some((_, '(', _)) => parse_list(input).and_then(|v| {
+            Ok((Span {
+                inner: AST::List(v.0.inner),
+                full_string: v.0.full_string,
+                string: v.0.string,
+            }, v.1))
+        }),
         Some((start, _, end)) => Err(Error {
             location: Span {
                 inner: (),
                 full_string: input.full_string,
                 string: &input.string[start..end],
             },
-            reason: "Expected an identifier",
+            reason: r#"Unexpected character. Expected `"`, 0-9, a-z, A-Z or `(`."#,
         }),
-        None => todo!(),
+        None => Err(Error {
+            location: Span {
+                inner: (),
+                full_string: input.full_string,
+                string: &input.string[0..0],
+            },
+            reason: "Unexpected end of input",
+        }),
     }
 }
 
@@ -451,4 +464,38 @@ fn test_parse_list() {
     assert_eq!(value.0.inner[1].string, "2");
     assert!(matches!(value.0.inner[2].inner, AST::Number(3)));
     assert_eq!(value.0.inner[2].string, "3");
+}
+
+
+#[test]
+fn test_parse_ast() {
+    init();
+
+    let span = Span::new(r#"   ()"#);
+    let value = parse_ast(span).unwrap();
+    println!("{:?}", value);
+    assert_eq!(value.0.string, "()");
+    assert_eq!(value.1.string, "");
+    let value = match value {
+        (Span { inner: AST::List(list), .. }, _) => list,
+        _ => panic!("Expected AST list")
+    };
+    assert!(value.is_empty());
+
+    let span = Span::new(r#"  (  1    2   3    )"#);
+    let value = parse_ast(span).unwrap();
+    println!("{:?}", value);
+    assert_eq!(value.0.string, "(  1    2   3    )");
+    assert_eq!(value.1.string, "");
+    let value = match value {
+        (Span { inner: AST::List(list), .. }, _) => list,
+        _ => panic!("Expected AST list")
+    };
+    assert_eq!(value.len(), 3);
+    assert!(matches!(value[0].inner, AST::Number(1)));
+    assert_eq!(value[0].string, "1");
+    assert!(matches!(value[1].inner, AST::Number(2)));
+    assert_eq!(value[1].string, "2");
+    assert!(matches!(value[2].inner, AST::Number(3)));
+    assert_eq!(value[2].string, "3");
 }
