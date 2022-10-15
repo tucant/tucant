@@ -1,6 +1,9 @@
-use std::{fs::File, io::{BufReader, Result}};
+use std::{
+    fs::File,
+    io::{BufReader, Result},
+};
 
-include!(concat!(env!("OUT_DIR"), "/lsp.rs"));
+use tucant_language_server_derive_output::Requests;
 
 #[test]
 pub fn test_initialize() -> Result<()> {

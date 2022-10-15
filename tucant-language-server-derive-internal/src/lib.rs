@@ -547,7 +547,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                 quote! {
                     #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                     #[serde(untagged)]
-                    enum #name {
+                    pub enum #name {
                         #(#items)*
                     }
                     #(#rests)*
@@ -598,7 +598,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                     Ok((
                         quote! {
                             #[serde(rename = #name_text)]
-                            #name: #converted_type,
+                            pub #name: #converted_type,
                         },
                         rest,
                     ))
@@ -613,7 +613,7 @@ fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStre
                 quote! {
                     #[::serde_with::skip_serializing_none]
                     #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                    struct #name {
+                    pub struct #name {
                         #(#properties)*
                     }
                     #(#rest)*
@@ -669,7 +669,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     Ok((
                         quote! {
                             #[serde(flatten)]
-                            #name: #converted_type,
+                            pub #name: #converted_type,
                         },
                         rest,
                     ))
@@ -689,7 +689,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     Ok((
                         quote! {
                             #[serde(flatten)]
-                            #name: #converted_type,
+                            pub #name: #converted_type,
                         },
                         rest,
                     ))
@@ -719,7 +719,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         quote! {
                             #documentation
                             #[serde(rename = #name_text)]
-                            #name: #converted_type,
+                            pub #name: #converted_type,
                         },
                         rest,
                     ))
@@ -732,7 +732,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     #[::serde_with::skip_serializing_none]
                     #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                     #documentation
-                    struct #name {
+                    pub struct #name {
                         #(#extends)*
                         #(#mixins)*
                         #(#properties)*
@@ -781,7 +781,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
                         #[repr(i64)]
                         #documentation
-                        enum #name {
+                        pub enum #name {
                             #(#values)*
                         }
                     };
@@ -823,7 +823,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     let return_value = quote! {
                         #[derive(serde::Serialize, serde::Deserialize, Debug)]
                         #documentation
-                        enum #name {
+                        pub enum #name {
                             #(#values)*
                             #supports_custom_value
                         }
@@ -884,7 +884,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                             request.method.replace('_', " ").to_upper_camel_case()
                         );
                         let (params, rest) = match &request.params {
-                            Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                            Some(TypeOrVecType::Type(_type)) => {
+                                let (the_type, rest) = handle_type(&mut random, _type)?;
+                                (quote! {
+                                    pub params: #the_type
+                                }, rest) 
+                            }
                             Some(TypeOrVecType::VecType(vec_type)) => {
                                 let mut params_err = Ok(());
                                 let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
@@ -896,24 +901,24 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                                     .unzip();
                                 let return_value = (
                                     quote! {
-                                        (#(#types)*)
+                                        pub params: (#(#types)*)
                                     },
                                     quote! { #(#rest)* },
                                 );
                                 params_err?;
                                 return_value
                             }
-                            None => (quote! { () }, quote! {}),
+                            None => (quote! { }, quote! {}),
                         };
                         (
                             quote! {
                                 #[::serde_with::skip_serializing_none]
                                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                                 #documentation
-                                struct #name {
-                                    jsonrpc: String,
-                                    id: StringOrNumber,
-                                    params: #params
+                                pub struct #name {
+                                    pub jsonrpc: String,
+                                    pub id: StringOrNumber,
+                                    #params
                                 }
                             },
                             rest,
@@ -945,7 +950,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                                 let (error_type, rest) = handle_type(&mut random, &e)?;
                                 Ok((
                                     quote! {
-                                        error: Option<#error_type>
+                                        pub error: Option<#error_type>
                                     },
                                     rest,
                                 ))
@@ -957,10 +962,10 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                                 #[::serde_with::skip_serializing_none]
                                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                                 #documentation
-                                struct #name {
-                                    jsonrpc: String,
-                                    id: StringOrNumber,
-                                    result: Option<#result_type>,
+                                pub struct #name {
+                                    pub jsonrpc: String,
+                                    pub id: StringOrNumber,
+                                    pub result: Option<#result_type>,
                                     #error_type
                                 }
                             },
@@ -1055,9 +1060,9 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                             #[::serde_with::skip_serializing_none]
                             #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                             #documentation
-                            struct #name {
-                                jsonrpc: String,
-                                params: #params
+                            pub struct #name {
+                                pub jsonrpc: String,
+                                pub params: #params
                             }
                         },
                         rest,
@@ -1083,22 +1088,23 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
         #[serde(untagged)]
-        enum StringOrNumber {
+        pub enum StringOrNumber {
             String(String),
             Number(i64),
         }
 
         #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
         #[serde(tag = "method")]
-        enum Requests {
+        pub enum Requests {
             #(#request_enum)*
             #(#client_to_server_enum)*
         }
 
         #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
         #[serde(tag = "method")]
-        enum Responses {
+        pub enum Responses {
             #(#server_to_client_notification)*
+            // #(#response_enum)* - don't do this here as we need to send them without the method json tag
         }
     });
     structures_err?;

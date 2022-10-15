@@ -35,7 +35,12 @@
         "command": "tucant.restart-language-server",
         "title": "TUCaN't: Restart language server"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "[tucant]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    }
   },
   "type": "commonjs",
   "main": "./out/main.js",
