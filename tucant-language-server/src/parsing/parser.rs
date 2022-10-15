@@ -323,18 +323,28 @@ fn test_parse_identifier() {
     init();
 
     let span = Span::new(r#"7notanidentifier"#);
-    let string = parse_identifier(span);
+    let string = parse_identifier(span).unwrap_err();
     println!("{:?}", string);
+    assert_eq!(string.reason, r#"Expected an identifier"#);
+    assert_eq!(string.location.string, "");
 
     let span = Span::new(r#""notanidentifier"#);
-    let string = parse_identifier(span);
+    let string = parse_identifier(span).unwrap_err();
     println!("{:?}", string);
+    assert_eq!(string.reason, r#"Expected an identifier"#);
+    assert_eq!(string.location.string, "");
 
     let span = Span::new(r#"anidentifier"#);
-    let string = parse_identifier(span);
+    let string = parse_identifier(span).unwrap();
     println!("{:?}", string);
+    assert_eq!(string.0.inner, "anidentifier");
+    assert_eq!(string.0.string, "anidentifier");
+    assert_eq!(string.1.string, "");
 
     let span = Span::new(r#"anidentifier    jlih"#);
-    let string = parse_identifier(span);
+    let string = parse_identifier(span).unwrap();
     println!("{:?}", string);
+    assert_eq!(string.0.inner, "anidentifier");
+    assert_eq!(string.0.string, "anidentifier");
+    assert_eq!(string.1.string, "    jlih");
 }
