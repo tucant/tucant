@@ -348,8 +348,9 @@ impl Server {
         }
 
         let contents = documents
-        .get(&notification.params.text_document.variant0.uri)
-        .unwrap().clone();
+            .get(&notification.params.text_document.variant0.uri)
+            .unwrap()
+            .clone();
 
         drop(documents);
 
@@ -479,10 +480,10 @@ async fn main() -> io::Result<()> {
             stdin: false,
         } => {
             let stream = TcpListener::bind(("127.0.0.1", port))
-            .await?
-            .accept()
-            .await?
-            .0;
+                .await?
+                .accept()
+                .await?
+                .0;
             let (read, write) = stream.into_split();
             Server::main_internal(BufReader::new(read), write).await
         }
