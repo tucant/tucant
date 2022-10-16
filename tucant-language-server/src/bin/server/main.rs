@@ -5,13 +5,14 @@ use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec};
 
 use clap::Parser;
 use itertools::Itertools;
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use tokio::{
     io::{
         self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt,
         BufReader, BufStream, ReadHalf, Stdin, Stdout, WriteHalf,
     },
     net::{TcpListener, UnixStream},
-    sync::{oneshot, RwLock},
+    sync::{mpsc, oneshot, RwLock},
 };
 use tucant_language_server_derive_output::*;
 
@@ -70,7 +71,7 @@ impl AsyncWrite for StdinoutStream {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Request<Req, Res> {
@@ -80,14 +81,12 @@ pub struct Request<Req, Res> {
 }
 
 impl<Req, Res> Request<Req, Res> {
-    pub async fn respond(&self, handler: Arc<Server>, value: Res) {
-
-    }
+    pub async fn respond(&self, handler: Arc<Server>, value: Res) {}
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Notification<T> {
-    pub params: T
+    pub params: T,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -95,13 +94,21 @@ pub struct Notification<T> {
 pub enum ReceivedSomething {
     RequestType1(Request<i32, String>),
     RequestType2(Request<String, i32>),
-    NotificationType1(Notification<i32>)
+    NotificationType1(Notification<i32>),
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "method")]
+pub enum SendSomething {
+    RequestType1(Request<i32, String>),
+    RequestType2(Request<String, i32>),
+    NotificationType1(Notification<i32>),
+}
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
     pending: HashMap<String, oneshot::Sender<String>>,
+    tx: mpsc::Sender<String>,
 }
 
 impl Server {
@@ -136,32 +143,67 @@ impl Server {
             buf.clear();
 
             let cloned_self = self.clone();
-            tokio::spawn(async move {
-                match request {
-                    ReceivedSomething::RequestType1(request) => cloned_self.handle_RequestType1(request).await.unwrap(),
-                    ReceivedSomething::RequestType2(_) => todo!(),
-                    ReceivedSomething::NotificationType1(_) => todo!(),
+
+            // currently most of these are really not safe to run concurrently
+            //tokio::spawn(async move {
+            match request {
+                ReceivedSomething::RequestType1(request) => {
+                    cloned_self.handle_RequestType1(request).await.unwrap()
                 }
-            });
+                ReceivedSomething::RequestType2(_) => todo!(),
+                ReceivedSomething::NotificationType1(_) => todo!(),
+            }
+            //});
         }
 
         Ok(())
     }
 
-    async fn handle_RequestType1(
-        self: Arc<Self>,
-        request: Request<i32, String>,
-    ) -> io::Result<()> {
-        request.respond(self, format!("hello {}", request.params).to_string()).await;
+    async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> io::Result<()> {
+        request
+            .respond(self, format!("hello {}", request.params).to_string())
+            .await;
+
+        Ok(())
+    }
+
+    async fn send_something(self: Arc<Self>, something: SendSomething) -> io::Result<()>  {
+        let rand_string: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+        /*
+        match something {
+            SendSomething::RequestType1(_) => todo!(),
+            SendSomething::RequestType2(_) => todo!(),
+            SendSomething::NotificationType1(_) => todo!(),
+        }
+        */
+
+        let result = serde_json::to_string(&something)?;
+
+        self.tx.send(result).await;
 
         Ok(())
     }
 
     async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
         self: Arc<Self>,
-        sender: W,
+        mut sender: W,
+        mut rx: mpsc::Receiver<String>,
     ) -> io::Result<()> {
-        
+        while let Some(result) = rx.recv().await {
+            sender
+                .write_all(
+                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                )
+                .await?;
+
+            sender.write_all(result.as_bytes()).await?;
+
+            sender.flush().await?;
+        }
 
         Ok(())
     }
@@ -173,6 +215,8 @@ impl Server {
         read: R,
         write: W,
     ) -> io::Result<()> {
+        let (tx, rx) = mpsc::channel::<String>(3);
+
         let arc_self = Arc::new(Self {
             documents: RwLock::new(HashMap::new()),
             pending: HashMap::new(),
@@ -332,6 +376,7 @@ impl Server {
         Ok(())
     }
 
+    // TODO FIXME these and quite some others need to respect some order
     async fn handle_TextDocumentDidChangeNotification(
         self: Arc<Self>,
         notification: TextDocumentDidChangeNotification,
