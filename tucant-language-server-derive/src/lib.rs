@@ -19,5 +19,6 @@ pub fn magic_include(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     quote::quote! {
         #[path = #path]
         pub mod lsp;
+        pub use lsp::*;
     }.into()
 }
