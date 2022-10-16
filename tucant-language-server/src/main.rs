@@ -207,7 +207,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentSemanticTokensFullRequest(self: Arc<Self>, request: TextDocumentSemanticTokensFullRequest) {
+    async fn handle_TextDocumentSemanticTokensFullRequest(self: Arc<Self>, request: TextDocumentSemanticTokensFullRequest) -> io::Result<()> {
         let document = documents.get(&request.params.text_document.uri);
         let document = if let Some(document) = document {
             document.clone()
@@ -252,17 +252,21 @@ impl Server {
                 ),
             ),
         };
+
+        Ok(())
     }
 
-    async fn handle_ShutdownRequest(self: Arc<Self>, request: ShutdownRequest) {
+    async fn handle_ShutdownRequest(self: Arc<Self>, request: ShutdownRequest) -> io::Result<()> {
         let response = ShutdownResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
             result: Some(()),
         };
+
+        Ok(())
     }
 
-    async fn handle_TextDocumentDidOpenNotification(self: Arc<Self>, notification: TextDocumentDidOpenNotification) {
+    async fn handle_TextDocumentDidOpenNotification(self: Arc<Self>, notification: TextDocumentDidOpenNotification)-> io::Result<()> {
         documents.insert(
             notification.params.text_document.uri.clone(),
             notification.params.text_document.text.clone(),
@@ -275,14 +279,17 @@ impl Server {
             notification.params.text_document.version,
         )
         .await?;
+
+        Ok(())
     }
 
-    async fn handle_TextDocumentDidCloseNotification(self: Arc<Self>, notification: TextDocumentDidCloseNotification) {
+    async fn handle_TextDocumentDidCloseNotification(self: Arc<Self>, notification: TextDocumentDidCloseNotification) -> io::Result<()>{
         documents.remove(&notification.params.text_document.uri);
 
+        Ok(())
     }
 
-    async fn handle_TextDocumentDidChangeNotification(self: Arc<Self>, notification: TextDocumentDidChangeNotification) {
+    async fn handle_TextDocumentDidChangeNotification(self: Arc<Self>, notification: TextDocumentDidChangeNotification) -> io::Result<()>{
         let mut document = documents
         .get(&notification.params.text_document.variant0.uri)
         .unwrap()
@@ -355,9 +362,11 @@ impl Server {
         notification.params.text_document.version,
     )
     .await?;
+
+    Ok(())
     }
 
-    async fn handle_initialized_notification(self: Arc<Self>, notification: InitializedNotification) {
+    async fn handle_initialized_notification(self: Arc<Self>, notification: InitializedNotification) -> io::Result<()>{
         let notification = Responses::WindowShowMessageNotification(WindowShowMessageNotification {
             jsonrpc: "2.0".to_string(),
             params: Box::new(ShowMessageParams {
@@ -366,9 +375,10 @@ impl Server {
             }),
         });
 
+        Ok(())
     }
 
-    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) { // TODO FIXME respond method on the request?
+    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> io::Result<()> { // TODO FIXME respond method on the request?
         let result = InitializeResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
@@ -439,6 +449,8 @@ impl Server {
                 server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 { name: "TUCaN't".to_string(), version: Some("0.0.1".to_string()) })
             }))
         };
+
+        Ok(())
     }
 }
 
