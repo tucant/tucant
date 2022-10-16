@@ -46,8 +46,10 @@ impl Handler {
                     .map(char::from)
                     .collect();
                 pending_requests.insert(rand_string, res);
-            } else {
 
+                // TODO actually send
+            } else {
+                // TODO actually send (also while sending we should be able to receive)
             }
         }
 
@@ -76,7 +78,7 @@ impl Handler {
     pub async fn send_cat_request(&self, request: CatRequest) -> CatResponse {
         // this will be implemented automatically
         let (tx, rx) = oneshot::channel::<CatResponse>();
-        self.tx.send((CatRequest, tx)).await.unwrap();
+        self.tx.send((CatRequest, Some(tx))).await.unwrap();
         rx.await.unwrap()
     }
 
