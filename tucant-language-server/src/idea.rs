@@ -1,7 +1,7 @@
-use std::{sync::Arc, collections::HashMap};
+use std::{collections::HashMap, sync::Arc};
 
-use rand::{thread_rng, distributions::Alphanumeric, Rng};
-use tokio::{sync::{oneshot, mpsc}};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use tokio::sync::{mpsc, oneshot};
 
 #[derive(Debug)]
 pub struct ElephantRequest;
@@ -18,66 +18,44 @@ pub struct DogRequest;
 #[derive(Debug)]
 pub struct DogResponse;
 
-#[derive(Debug)]
-pub enum Receiving {
-    CatNotification(CatNotification),
-    DogRequest(DogRequest),
-}
-
-#[derive(Debug)]
-pub enum Sending {
-    SendingElephantRequest((ElephantRequest, oneshot::Sender<ElephantResponse>)),
-    SendingCatNotification(CatNotification), // cat has no response
-    SendingDogRequest((DogRequest, oneshot::Sender<DogResponse>)),
-}
-
-#[derive(Debug)]
-pub enum SendingReceiveEnd {
-    SendingReceiveEndElephantRequest(oneshot::Sender<ElephantResponse>),
-    SendingReceiveEndDogRequest(oneshot::Sender<DogResponse>),
-}
-
 // may store e.g. the open documents
 #[derive(Clone)]
 pub struct Handler {
-    tx: mpsc::Sender<Sending>
-}
-
-fn handle_sending_generic<Response>(res: Response) -> (String, Response) {
-    let rand_string: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(30)
-        .map(char::from)
-        .collect();
-    // TODO actually send
-    println!("Handle sending end");
-    (rand_string, res)
+    tx: mpsc::Sender<(String, Option<oneshot::Sender<String>>)>,
 }
 
 // concurrent by default
 impl Handler {
-    async fn handle_sending(mut rx: mpsc::Receiver<Sending>) -> (mpsc::Receiver<Sending>, Option<(String, SendingReceiveEnd)>) {
+    async fn handle_sending(
+        mut rx: mpsc::Receiver<(String, Option<oneshot::Sender<String>>)>,
+    ) -> (
+        mpsc::Receiver<(String, Option<oneshot::Sender<String>>)>,
+        Option<(String, oneshot::Sender<String>)>,
+    ) {
         println!("Handle sending start");
         match rx.recv().await {
-            Some(Sending::SendingCatNotification(_req)) => {
+            Some((request, None)) => {
                 // TODO FIXMe actually send
                 (rx, None)
-            },
-            Some(Sending::SendingDogRequest((_req, res))) => {
-                (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndDogRequest(res))))
-            },
-            Some(Sending::SendingElephantRequest((_req, res))) => {
-                (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndElephantRequest(res))))
-            },
+            }
+            Some((request, Some(response))) => {
+                let rand_string: String = thread_rng()
+                    .sample_iter(&Alphanumeric)
+                    .take(30)
+                    .map(char::from)
+                    .collect();
+                // TODO actually send
+                println!("Handle sending end");
+                (rx, Some((rand_string, response)))
+            }
             None => {
-                // TODO FIXME
-                println!("DONE!!!!");
+                // TODO FIXMe exit
                 (rx, None)
-            },
+            }
         }
     }
 
-    async fn handle_receiving(self: Arc<Self>) -> (String, Receiving) {
+    async fn handle_receiving(self: Arc<Self>) -> (String, String) {
         println!("handle receiving start");
         let request = self.clone().retrieve_next().await;
         let id = "1337".to_string();
@@ -104,12 +82,10 @@ impl Handler {
         // TODO FIXME send the json strings instead so we don't need so many enum stuff
         let (tx, rx) = mpsc::channel(3);
 
-        let the_self = Self {
-            tx
-        };
+        let the_self = Self { tx };
         let self_arc = Arc::new(the_self);
 
-        let mut pending_requests: HashMap<String, SendingReceiveEnd> = HashMap::new();
+        let mut pending_requests: HashMap<String, oneshot::Sender<String>> = HashMap::new();
 
         // I think this still does not work when they're cancelled?
         let receive_handler = self_arc.clone().handle_receiving();
@@ -133,7 +109,8 @@ impl Handler {
         }
     }
 
-    pub async fn handle(&self, _request: Receiving) {
+    // TODO generate this for every request type
+    pub async fn handle(&self, _request: String) {
         self.send_dog_request(DogRequest).await;
 
         //request.send_response(DogResponse);
@@ -145,14 +122,15 @@ impl Handler {
         todo!()
     }
 
+    // TODO generate this for every request type
     pub async fn send_dog_request(&self, request: DogRequest) -> DogResponse {
         // this will be implemented automatically
         let (tx, rx) = oneshot::channel();
-        self.tx.send(Sending::SendingDogRequest((request, tx))).await.unwrap();
+        //self.tx.send((request, tx)).await.unwrap();
         rx.await.unwrap()
     }
 
-    pub async fn retrieve_next(&self) -> Receiving {
+    pub async fn retrieve_next(&self) -> String {
         todo!()
     }
 }

@@ -1,8 +1,6 @@
-use std::{fmt::Debug};
+use std::fmt::Debug;
 
 use itertools::Itertools;
-
-
 
 #[derive(Clone, Copy)]
 pub struct Span<'a, T: Debug> {
@@ -29,7 +27,8 @@ fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usi
 pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
     let the_line = string.lines().nth(line).unwrap();
     let line_offset = the_line
-        .char_indices().nth(column)
+        .char_indices()
+        .nth(column)
         .map(|(offset, _)| offset)
         .unwrap_or(the_line.len());
     the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
@@ -384,38 +383,46 @@ pub fn parse_ast<'a>(
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
-        Some((_, '"', _)) => parse_string(input).map(|v| (
+        Some((_, '"', _)) => parse_string(input).map(|v| {
+            (
                 Span {
                     inner: AST::String(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            )),
-        Some((_, '0'..='9', _)) => parse_number(input).map(|v| (
+            )
+        }),
+        Some((_, '0'..='9', _)) => parse_number(input).map(|v| {
+            (
                 Span {
                     inner: AST::Number(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            )),
-        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| (
+            )
+        }),
+        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
+            (
                 Span {
                     inner: AST::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            )),
-        Some((_, '(', _)) => parse_list(input).map(|v| (
+            )
+        }),
+        Some((_, '(', _)) => parse_list(input).map(|v| {
+            (
                 Span {
                     inner: AST::List(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            )),
+            )
+        }),
         Some((start, _, end)) => Err(Error {
             location: Span {
                 inner: (),

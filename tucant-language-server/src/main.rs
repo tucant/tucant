@@ -1,5 +1,5 @@
-mod parser;
 mod idea;
+mod parser;
 
 use std::{collections::HashMap, pin::Pin, vec};
 
@@ -13,7 +13,8 @@ use tokio::{
     net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
-    ApplyWorkspaceEditParams, Diagnostic, DiagnosticSeverity, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    ApplyWorkspaceEditParams, Diagnostic, DiagnosticSeverity,
+    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
     H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
@@ -22,14 +23,13 @@ use tucant_language_server_derive_output::{
     Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
     Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec, InitializeResponse,
-    InitializeResult, MessageType,
-    OptionalVersionedTextDocumentIdentifier, Position, PublishDiagnosticsParams, Range, Requests,
-    Responses, SemanticTokens, SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities,
-    ShowMessageParams, ShutdownResponse, TextDocumentEdit,
-    TextDocumentIdentifier,
-    TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullResponse,
-    TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, WindowShowMessageNotification,
-    WorkDoneProgressOptions, WorkspaceApplyEditRequest, WorkspaceEdit,
+    InitializeResult, MessageType, OptionalVersionedTextDocumentIdentifier, Position,
+    PublishDiagnosticsParams, Range, Requests, Responses, SemanticTokens, SemanticTokensLegend,
+    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
+    TextDocumentEdit, TextDocumentIdentifier, TextDocumentPublishDiagnosticsNotification,
+    TextDocumentSemanticTokensFullResponse, TextDocumentSyncKind, TextDocumentSyncOptions,
+    TextEdit, WindowShowMessageNotification, WorkDoneProgressOptions, WorkspaceApplyEditRequest,
+    WorkspaceEdit,
 };
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
@@ -147,44 +147,48 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
     Ok(())
 }
 
-async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
-    readwrite: T,
-) -> io::Result<()> {
-    let mut documents = HashMap::<String, String>::new();
+pub struct Server {}
 
-    let mut pipe = BufStream::new(readwrite);
+impl Server {
+    async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
+        &self,
+        readwrite: T,
+    ) -> io::Result<()> {
+        let mut documents = HashMap::<String, String>::new();
 
-    let mut buf = Vec::new();
-    loop {
-        pipe.read_until(b'\n', &mut buf).await?;
+        let mut pipe = BufStream::new(readwrite);
 
-        if buf == [13, 10] {
-            break;
-        }
+        let mut buf = Vec::new();
+        loop {
+            pipe.read_until(b'\n', &mut buf).await?;
 
-        let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
+            if buf == [13, 10] {
+                break;
+            }
 
-        assert!(key == b"Content-Length");
+            let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
-        let length_string = std::str::from_utf8(value).unwrap().trim();
+            assert!(key == b"Content-Length");
 
-        let length = length_string.parse::<usize>().unwrap() + 2;
+            let length_string = std::str::from_utf8(value).unwrap().trim();
 
-        buf.resize(length, 0);
+            let length = length_string.parse::<usize>().unwrap() + 2;
 
-        pipe.read_exact(&mut buf).await?;
+            buf.resize(length, 0);
 
-        println!("read: {}", std::str::from_utf8(&buf).unwrap());
+            pipe.read_exact(&mut buf).await?;
 
-        let request: Requests = serde_json::from_slice(&buf)?;
+            println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
-        buf.clear();
+            let request: Requests = serde_json::from_slice(&buf)?;
 
-        match request {
-            Requests::InitializeRequest(request) => {
-                println!("{:#?}", request.params);
+            buf.clear();
 
-                let result = InitializeResponse {
+            match request {
+                Requests::InitializeRequest(request) => {
+                    println!("{:#?}", request.params);
+
+                    let result = InitializeResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
                     error: None,
@@ -255,46 +259,46 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                     }))
                 };
 
-                let result = serde_json::to_string(&result)?;
+                    let result = serde_json::to_string(&result)?;
 
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
-                )
-                .await?;
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
 
-                pipe.write_all(result.as_bytes()).await?;
+                    pipe.write_all(result.as_bytes()).await?;
 
-                pipe.flush().await?;
-            }
-            Requests::InitializedNotification(_notification) => {
-                let notification =
-                    Responses::WindowShowMessageNotification(WindowShowMessageNotification {
-                        jsonrpc: "2.0".to_string(),
-                        params: Box::new(ShowMessageParams {
-                            r#type: Box::new(MessageType::Error),
-                            message: "This is a test error".to_string(),
-                        }),
-                    });
+                    pipe.flush().await?;
+                }
+                Requests::InitializedNotification(_notification) => {
+                    let notification =
+                        Responses::WindowShowMessageNotification(WindowShowMessageNotification {
+                            jsonrpc: "2.0".to_string(),
+                            params: Box::new(ShowMessageParams {
+                                r#type: Box::new(MessageType::Error),
+                                message: "This is a test error".to_string(),
+                            }),
+                        });
 
-                let result = serde_json::to_string(&notification)?;
+                    let result = serde_json::to_string(&notification)?;
 
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
-                )
-                .await?;
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
 
-                pipe.write_all(result.as_bytes()).await?;
+                    pipe.write_all(result.as_bytes()).await?;
 
-                pipe.flush().await?;
-            }
-            Requests::TextDocumentDidChangeNotification(notification) => {
-                let mut document = documents
-                    .get(&notification.params.text_document.variant0.uri)
-                    .unwrap()
-                    .clone();
+                    pipe.flush().await?;
+                }
+                Requests::TextDocumentDidChangeNotification(notification) => {
+                    let mut document = documents
+                        .get(&notification.params.text_document.variant0.uri)
+                        .unwrap()
+                        .clone();
 
-                for change in notification.params.content_changes.iter() {
-                    match &**change {
+                    for change in notification.params.content_changes.iter() {
+                        match &**change {
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
                             let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
                             let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
@@ -305,17 +309,17 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                             documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                         },
                     }
-                }
+                    }
 
-                documents.insert(
-                    notification.params.text_document.variant0.uri.clone(),
-                    document.clone(),
-                );
+                    documents.insert(
+                        notification.params.text_document.variant0.uri.clone(),
+                        document.clone(),
+                    );
 
-                println!("change notification");
+                    println!("change notification");
 
-                if notification.params.content_changes.len() == 1 {
-                    match &*(notification.params.content_changes[0]) {
+                    if notification.params.content_changes.len() == 1 {
+                        match &*(notification.params.content_changes[0]) {
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
                             let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
                             let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
@@ -361,229 +365,230 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                         },
                         _ => {}
                     }
+                    }
+
+                    recalculate_diagnostics(
+                        &mut pipe,
+                        documents
+                            .get(&notification.params.text_document.variant0.uri)
+                            .unwrap(),
+                        notification.params.text_document.variant0.uri,
+                        notification.params.text_document.version,
+                    )
+                    .await?;
                 }
+                Requests::TextDocumentDidOpenNotification(notification) => {
+                    documents.insert(
+                        notification.params.text_document.uri.clone(),
+                        notification.params.text_document.text.clone(),
+                    );
 
-                recalculate_diagnostics(
-                    &mut pipe,
-                    documents
-                        .get(&notification.params.text_document.variant0.uri)
-                        .unwrap(),
-                    notification.params.text_document.variant0.uri,
-                    notification.params.text_document.version,
-                )
-                .await?;
-            }
-            Requests::TextDocumentDidOpenNotification(notification) => {
-                documents.insert(
-                    notification.params.text_document.uri.clone(),
-                    notification.params.text_document.text.clone(),
-                );
+                    recalculate_diagnostics(
+                        &mut pipe,
+                        &notification.params.text_document.text,
+                        notification.params.text_document.uri,
+                        notification.params.text_document.version,
+                    )
+                    .await?;
+                }
+                Requests::ShutdownRequest(request) => {
+                    let response = ShutdownResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(()),
+                    };
 
-                recalculate_diagnostics(
-                    &mut pipe,
-                    &notification.params.text_document.text,
-                    notification.params.text_document.uri,
-                    notification.params.text_document.version,
-                )
-                .await?;
-            }
-            Requests::ShutdownRequest(request) => {
-                let response = ShutdownResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(()),
-                };
+                    let response = serde_json::to_string(&response)?;
 
-                let response = serde_json::to_string(&response)?;
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
 
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                )
-                .await?;
+                    pipe.write_all(response.as_bytes()).await?;
 
-                pipe.write_all(response.as_bytes()).await?;
+                    pipe.flush().await?;
+                }
+                Requests::ExitNotification(_notification) => {
+                    break;
+                }
+                Requests::TextDocumentSemanticTokensFullRequest(request) => {
+                    let document = documents.get(&request.params.text_document.uri);
+                    let document = if let Some(document) = document {
+                        document.clone()
+                    } else {
+                        tokio::fs::read_to_string(request.params.text_document.uri).await?
+                    };
 
-                pipe.flush().await?;
-            }
-            Requests::ExitNotification(_notification) => {
-                break;
-            }
-            Requests::TextDocumentSemanticTokensFullRequest(request) => {
-                let document = documents.get(&request.params.text_document.uri);
-                let document = if let Some(document) = document {
-                    document.clone()
-                } else {
-                    tokio::fs::read_to_string(request.params.text_document.uri).await?
-                };
+                    let span = Span::new(&document);
+                    let value = match parse_root(span) {
+                        Ok((value, _)) => value,
+                        Err(Error { partial_parse, .. }) => partial_parse,
+                    };
 
-                let span = Span::new(&document);
-                let value = match parse_root(span) {
-                    Ok((value, _)) => value,
-                    Err(Error { partial_parse, .. }) => partial_parse,
-                };
-
-                let paired_iterator = std::iter::once((0, 0, 0, 0, 0))
-                    .chain(visitor(&value))
-                    .zip(visitor(&value));
-                let result = paired_iterator
-                    .flat_map(|(last, this)| {
-                        vec![
-                            this.0 - last.0,
-                            if this.0 == last.0 {
-                                this.1 - last.1
-                            } else {
-                                this.1
-                            },
-                            this.2,
-                            this.3,
-                            this.4,
-                        ]
-                    })
-                    .collect::<Vec<_>>();
-
-                let response = TextDocumentSemanticTokensFullResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(
-                        He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                            Box::new(SemanticTokens {
-                                result_id: None,
-                                data: result,
-                            }),
-                        ),
-                    ),
-                };
-
-                let response = serde_json::to_string(&response)?;
-
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                )
-                .await?;
-
-                pipe.write_all(response.as_bytes()).await?;
-
-                pipe.flush().await?;
-            }
-            Requests::SetTraceNotification(_) => {}
-            Requests::TextDocumentDidCloseNotification(notification) => {
-                documents.remove(&notification.params.text_document.uri);
-            }
-            /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
-                // can't move the cursor - we could probably replace text after to cheat
-                // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
-                // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
-                let text_edits = if request.params.ch == r#"""# {
-                    let position = request.params.position;
-                    vec![Box::new(TextEdit { range: Box::new(Range {
-                        start: Box::new(Position {
-                            line: position.line,
-                            character: position.character + 1
-                        }),
-                        end: Box::new(Position {
-                            line: position.line,
-                            character: position.character + 1
+                    let paired_iterator = std::iter::once((0, 0, 0, 0, 0))
+                        .chain(visitor(&value))
+                        .zip(visitor(&value));
+                    let result = paired_iterator
+                        .flat_map(|(last, this)| {
+                            vec![
+                                this.0 - last.0,
+                                if this.0 == last.0 {
+                                    this.1 - last.1
+                                } else {
+                                    this.1
+                                },
+                                this.2,
+                                this.3,
+                                this.4,
+                            ]
                         })
-                    }), new_text: r#""thisisatest"#.to_string() })]
-                } else {
-                    vec![]
-                };
+                        .collect::<Vec<_>>();
 
-                let response = TextDocumentOnTypeFormattingResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(H1afd22fb3d4fde50a3d4d6f52f9c56f977bac8ae5eb87e24a1c00362::Variant0(text_edits)),
-                };
-
-                let response = serde_json::to_string(&response)?;
-
-                println!("{}", response);
-
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                )
-                .await?;
-
-                pipe.write_all(response.as_bytes()).await?;
-
-                pipe.flush().await?;
-
-                println!("wrote formatting response!");
-            }*/
-            /*Requests::TextDocumentCompletionRequest(request) => {
-                // doesn't work both on keypress and using manual autocomplete to my knowledge
-                let response = TextDocumentCompletionResponse {
-                    jsonrpc: "2.0".to_string(),
-                    id: request.id,
-                    result: Some(
-                        H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c::Variant1(
-                            Box::new(CompletionList {
-                                is_incomplete: false,
-                                item_defaults: None,
-                                items: vec![Box::new(CompletionItem {
-                                    label: "string literal".to_string(),
-                                    label_details: None,
-                                    kind: Some(Box::new(CompletionItemKind::Snippet)),
-                                    tags: None,
-                                    detail: None,
-                                    documentation: None,
-                                    deprecated: None,
-                                    preselect: Some(true),
-                                    sort_text: None,
-                                    filter_text: Some(r#"""#.to_string()),
-                                    insert_text: None,
-                                    insert_text_format: Some(Box::new(InsertTextFormat::Snippet)),
-                                    insert_text_mode: None,
-                                    text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit {
-                                        new_text: r#"$0""#.to_string(),
-                                        insert: Box::new(Range {
-                                            start: Box::new(Position {
-                                                character: request.params.variant0.position.character - 1,
-                                                line: request.params.variant0.position.line
-                                            }),
-                                            end: Box::new(Position {
-                                                character: request.params.variant0.position.character,
-                                                line: request.params.variant0.position.line
-                                            })
-                                        }),
-                                        replace: Box::new(Range {
-                                            start: Box::new(Position {
-                                                character: request.params.variant0.position.character - 1,
-                                                line: request.params.variant0.position.line
-                                            }),
-                                            end: Box::new(Position {
-                                                character: request.params.variant0.position.character,
-                                                line: request.params.variant0.position.line
-                                            })
-                                        }),
-                                    }))),
-                                    text_edit_text: None,
-                                    additional_text_edits: None,
-                                    commit_characters: Some(vec![r#"""#.to_string()]),
-                                    command: None,
-                                    data: None,
-                                })],
-                            }),
+                    let response = TextDocumentSemanticTokensFullResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(
+                            He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
+                                Box::new(SemanticTokens {
+                                    result_id: None,
+                                    data: result,
+                                }),
+                            ),
                         ),
-                    ),
-                };
+                    };
 
-                let response = serde_json::to_string(&response)?;
+                    let response = serde_json::to_string(&response)?;
 
-                pipe.write_all(
-                    format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
-                )
-                .await?;
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
 
-                pipe.write_all(response.as_bytes()).await?;
+                    pipe.write_all(response.as_bytes()).await?;
 
-                pipe.flush().await?;
-            }*/
-            other => panic!("{:?}", other),
+                    pipe.flush().await?;
+                }
+                Requests::SetTraceNotification(_) => {}
+                Requests::TextDocumentDidCloseNotification(notification) => {
+                    documents.remove(&notification.params.text_document.uri);
+                }
+                /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
+                    // can't move the cursor - we could probably replace text after to cheat
+                    // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
+                    // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
+                    let text_edits = if request.params.ch == r#"""# {
+                        let position = request.params.position;
+                        vec![Box::new(TextEdit { range: Box::new(Range {
+                            start: Box::new(Position {
+                                line: position.line,
+                                character: position.character + 1
+                            }),
+                            end: Box::new(Position {
+                                line: position.line,
+                                character: position.character + 1
+                            })
+                        }), new_text: r#""thisisatest"#.to_string() })]
+                    } else {
+                        vec![]
+                    };
+
+                    let response = TextDocumentOnTypeFormattingResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(H1afd22fb3d4fde50a3d4d6f52f9c56f977bac8ae5eb87e24a1c00362::Variant0(text_edits)),
+                    };
+
+                    let response = serde_json::to_string(&response)?;
+
+                    println!("{}", response);
+
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
+
+                    pipe.write_all(response.as_bytes()).await?;
+
+                    pipe.flush().await?;
+
+                    println!("wrote formatting response!");
+                }*/
+                /*Requests::TextDocumentCompletionRequest(request) => {
+                    // doesn't work both on keypress and using manual autocomplete to my knowledge
+                    let response = TextDocumentCompletionResponse {
+                        jsonrpc: "2.0".to_string(),
+                        id: request.id,
+                        result: Some(
+                            H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c::Variant1(
+                                Box::new(CompletionList {
+                                    is_incomplete: false,
+                                    item_defaults: None,
+                                    items: vec![Box::new(CompletionItem {
+                                        label: "string literal".to_string(),
+                                        label_details: None,
+                                        kind: Some(Box::new(CompletionItemKind::Snippet)),
+                                        tags: None,
+                                        detail: None,
+                                        documentation: None,
+                                        deprecated: None,
+                                        preselect: Some(true),
+                                        sort_text: None,
+                                        filter_text: Some(r#"""#.to_string()),
+                                        insert_text: None,
+                                        insert_text_format: Some(Box::new(InsertTextFormat::Snippet)),
+                                        insert_text_mode: None,
+                                        text_edit: Some(Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728::Variant1(Box::new(InsertReplaceEdit {
+                                            new_text: r#"$0""#.to_string(),
+                                            insert: Box::new(Range {
+                                                start: Box::new(Position {
+                                                    character: request.params.variant0.position.character - 1,
+                                                    line: request.params.variant0.position.line
+                                                }),
+                                                end: Box::new(Position {
+                                                    character: request.params.variant0.position.character,
+                                                    line: request.params.variant0.position.line
+                                                })
+                                            }),
+                                            replace: Box::new(Range {
+                                                start: Box::new(Position {
+                                                    character: request.params.variant0.position.character - 1,
+                                                    line: request.params.variant0.position.line
+                                                }),
+                                                end: Box::new(Position {
+                                                    character: request.params.variant0.position.character,
+                                                    line: request.params.variant0.position.line
+                                                })
+                                            }),
+                                        }))),
+                                        text_edit_text: None,
+                                        additional_text_edits: None,
+                                        commit_characters: Some(vec![r#"""#.to_string()]),
+                                        command: None,
+                                        data: None,
+                                    })],
+                                }),
+                            ),
+                        ),
+                    };
+
+                    let response = serde_json::to_string(&response)?;
+
+                    pipe.write_all(
+                        format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes(),
+                    )
+                    .await?;
+
+                    pipe.write_all(response.as_bytes()).await?;
+
+                    pipe.flush().await?;
+                }*/
+                other => panic!("{:?}", other),
+            }
         }
-    }
 
-    Ok(())
+        Ok(())
+    }
 }
 
 // cargo doc --document-private-items --open
@@ -598,27 +603,33 @@ async fn main() -> io::Result<()> {
             pipe: Some(pipe),
             stdin: false,
             port: None,
-        } => main_internal(UnixStream::connect(pipe).await?).await,
+        } => {
+            Server {}
+                .main_internal(UnixStream::connect(pipe).await?)
+                .await
+        }
         Args {
             port: Some(port),
             pipe: None,
             stdin: false,
         } => {
-            main_internal(
-                TcpListener::bind(("127.0.0.1", port))
-                    .await?
-                    .accept()
-                    .await?
-                    .0,
-            )
-            .await
+            Server {}
+                .main_internal(
+                    TcpListener::bind(("127.0.0.1", port))
+                        .await?
+                        .accept()
+                        .await?
+                        .0,
+                )
+                .await
         }
         Args { pipe: None, .. } => {
-            main_internal(StdinoutStream {
-                stdin: Box::pin(tokio::io::stdin()),
-                stdout: Box::pin(tokio::io::stdout()),
-            })
-            .await
+            Server {}
+                .main_internal(StdinoutStream {
+                    stdin: Box::pin(tokio::io::stdin()),
+                    stdout: Box::pin(tokio::io::stdout()),
+                })
+                .await
         }
         _ => {
             panic!("can't enable multiple modes at the same time")
