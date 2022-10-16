@@ -29,7 +29,8 @@ pub struct Handler {
 
 // concurrent by default
 impl Handler {
-    async fn handle_sending(mut rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) {
+    async fn handle_sending(mut rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) -> mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)> {
+        println!("Handle sending start");
         if let Some((req, res)) = rx.recv().await {
             if let Some(res) = res {
                 let rand_string: String = thread_rng()
@@ -44,9 +45,12 @@ impl Handler {
                 // TODO actually send (also while sending we should be able to receive)
             }
         }
+        println!("Handle sending end");
+        rx
     }
 
     async fn handle_receiving(self: Arc<Self>) {
+        println!("handle receiving start");
         let request = self.clone().retrieve_next().await;
         let id = "1337".to_string();
 
@@ -56,6 +60,7 @@ impl Handler {
         });
 
         //pending_requests.remove(&id).unwrap().send(request).unwrap();
+        println!("handle receiving end");
     }
 
     // https://smallcultfollowing.com/babysteps/blog/2022/06/13/async-cancellation-a-case-study-of-pub-sub-in-mini-redis/
@@ -86,8 +91,8 @@ impl Handler {
                 res = &mut receive_handler => {
                     receive_handler.set(self_arc.clone().handle_receiving());
                 }
-                res = &mut send_handler => {
-
+                rx = &mut send_handler => {
+                    send_handler.set(Handler::handle_sending(rx));
                 }
             }
         }
