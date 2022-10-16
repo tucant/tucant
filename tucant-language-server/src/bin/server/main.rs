@@ -1,7 +1,7 @@
 mod idea;
 mod parser;
 
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec, marker::PhantomData};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -75,18 +75,39 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Request<Req, Res> {
-    id: i64,
+    id: String,
     pub params: Req,
-    phantom_data: Res,
+    phantom_data: PhantomData<Res>,
 }
 
 impl<Req, Res> Request<Req, Res> {
+    pub fn new(value: Req) -> Self {
+        let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
+        Self {
+            id: rand_string,
+            params: value,
+            phantom_data: PhantomData,
+        }
+    }
+
     pub async fn respond(&self, handler: Arc<Server>, value: Res) {}
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Notification<T> {
     pub params: T,
+}
+
+impl<T> Notification<T> {
+    pub fn new(value: T) -> Self {
+        Self {
+            params: value
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -164,15 +185,13 @@ impl Server {
             .respond(self, format!("hello {}", request.params).to_string())
             .await;
 
+        self.send_something(SendSomething::NotificationType1(Notification::new(5))).await?;
+
         Ok(())
     }
 
+    // TODO FIXME response type
     async fn send_something(self: Arc<Self>, something: SendSomething) -> io::Result<()>  {
-        let rand_string: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(30)
-            .map(char::from)
-            .collect();
         /*
         match something {
             SendSomething::RequestType1(_) => todo!(),
@@ -220,6 +239,7 @@ impl Server {
         let arc_self = Arc::new(Self {
             documents: RwLock::new(HashMap::new()),
             pending: HashMap::new(),
+            tx,
         });
 
         let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
