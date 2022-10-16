@@ -1,17 +1,20 @@
 mod idea;
 mod parser;
 
-use std::{collections::HashMap, pin::Pin, vec, future::Future, sync::Arc};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec};
 
 use clap::Parser;
 use itertools::Itertools;
 use tokio::{
     io::{
-        self, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufStream,
-        Stdin, Stdout, ReadHalf, WriteHalf, AsyncBufRead, BufReader,
+        self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt,
+        BufReader, BufStream, ReadHalf, Stdin, Stdout, WriteHalf,
     },
-    net::{TcpListener, UnixStream}, sync::{RwLock, oneshot},
+    net::{TcpListener, UnixStream},
+    sync::{oneshot, RwLock},
 };
+use tucant_language_server_derive_output::InitializeRequest;
+use tucant_language_server_derive_output::InitializedNotification;
 use tucant_language_server_derive_output::{
     ApplyWorkspaceEditParams, Diagnostic, DiagnosticSeverity,
     H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
@@ -31,8 +34,6 @@ use tucant_language_server_derive_output::{
     TextEdit, WindowShowMessageNotification, WorkDoneProgressOptions, WorkspaceApplyEditRequest,
     WorkspaceEdit,
 };
-use tucant_language_server_derive_output::InitializeRequest;
-use tucant_language_server_derive_output::InitializedNotification;
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
 
@@ -151,12 +152,14 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
-    pending: HashMap<String, oneshot::Sender<String>>
+    pending: HashMap<String, oneshot::Sender<String>>,
 }
 
 impl Server {
-
-    async fn handle_receiving<R: AsyncBufRead + std::marker::Unpin>(self: Arc<Self>, mut reader: R) -> io::Result<()> {
+    async fn handle_receiving<R: AsyncBufRead + std::marker::Unpin>(
+        self: Arc<Self>,
+        mut reader: R,
+    ) -> io::Result<()> {
         let mut buf = Vec::new();
         loop {
             reader.read_until(b'\n', &mut buf).await?;
@@ -182,18 +185,22 @@ impl Server {
             let request: Requests = serde_json::from_slice(&buf)?;
 
             buf.clear();
-
-
         }
 
         Ok(())
     }
 
-    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(self: Arc<Self>, sender: W) -> io::Result<()> {
+    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
+        self: Arc<Self>,
+        sender: W,
+    ) -> io::Result<()> {
         todo!()
     }
 
-    async fn main_internal<R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static, W: AsyncWrite + std::marker::Unpin>(
+    async fn main_internal<
+        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
+        W: AsyncWrite + std::marker::Unpin,
+    >(
         read: R,
         write: W,
     ) -> io::Result<()> {
@@ -207,7 +214,10 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentSemanticTokensFullRequest(self: Arc<Self>, request: TextDocumentSemanticTokensFullRequest) -> io::Result<()> {
+    async fn handle_TextDocumentSemanticTokensFullRequest(
+        self: Arc<Self>,
+        request: TextDocumentSemanticTokensFullRequest,
+    ) -> io::Result<()> {
         let document = documents.get(&request.params.text_document.uri);
         let document = if let Some(document) = document {
             document.clone()
@@ -244,12 +254,12 @@ impl Server {
             jsonrpc: "2.0".to_string(),
             id: request.id,
             result: Some(
-                He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                    Box::new(SemanticTokens {
+                He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(Box::new(
+                    SemanticTokens {
                         result_id: None,
                         data: result,
-                    }),
-                ),
+                    },
+                )),
             ),
         };
 
@@ -266,7 +276,10 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentDidOpenNotification(self: Arc<Self>, notification: TextDocumentDidOpenNotification)-> io::Result<()> {
+    async fn handle_TextDocumentDidOpenNotification(
+        self: Arc<Self>,
+        notification: TextDocumentDidOpenNotification,
+    ) -> io::Result<()> {
         documents.insert(
             notification.params.text_document.uri.clone(),
             notification.params.text_document.text.clone(),
@@ -283,20 +296,26 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentDidCloseNotification(self: Arc<Self>, notification: TextDocumentDidCloseNotification) -> io::Result<()>{
+    async fn handle_TextDocumentDidCloseNotification(
+        self: Arc<Self>,
+        notification: TextDocumentDidCloseNotification,
+    ) -> io::Result<()> {
         documents.remove(&notification.params.text_document.uri);
 
         Ok(())
     }
 
-    async fn handle_TextDocumentDidChangeNotification(self: Arc<Self>, notification: TextDocumentDidChangeNotification) -> io::Result<()>{
+    async fn handle_TextDocumentDidChangeNotification(
+        self: Arc<Self>,
+        notification: TextDocumentDidChangeNotification,
+    ) -> io::Result<()> {
         let mut document = documents
-        .get(&notification.params.text_document.variant0.uri)
-        .unwrap()
-        .clone();
+            .get(&notification.params.text_document.variant0.uri)
+            .unwrap()
+            .clone();
 
-    for change in notification.params.content_changes.iter() {
-        match &**change {
+        for change in notification.params.content_changes.iter() {
+            match &**change {
         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
             let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
             let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
@@ -307,17 +326,17 @@ impl Server {
             documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
         },
     }
-    }
+        }
 
-    documents.insert(
-        notification.params.text_document.variant0.uri.clone(),
-        document.clone(),
-    );
+        documents.insert(
+            notification.params.text_document.variant0.uri.clone(),
+            document.clone(),
+        );
 
-    println!("change notification");
+        println!("change notification");
 
-    if notification.params.content_changes.len() == 1 {
-        match &*(notification.params.content_changes[0]) {
+        if notification.params.content_changes.len() == 1 {
+            match &*(notification.params.content_changes[0]) {
         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
             let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
             let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
@@ -351,34 +370,39 @@ impl Server {
         },
         _ => {}
     }
-    }
+        }
 
-    recalculate_diagnostics(
-        &mut pipe,
-        documents
-            .get(&notification.params.text_document.variant0.uri)
-            .unwrap(),
-        notification.params.text_document.variant0.uri,
-        notification.params.text_document.version,
-    )
-    .await?;
-
-    Ok(())
-    }
-
-    async fn handle_initialized_notification(self: Arc<Self>, notification: InitializedNotification) -> io::Result<()>{
-        let notification = Responses::WindowShowMessageNotification(WindowShowMessageNotification {
-            jsonrpc: "2.0".to_string(),
-            params: Box::new(ShowMessageParams {
-                r#type: Box::new(MessageType::Error),
-                message: "This is a test error".to_string(),
-            }),
-        });
+        recalculate_diagnostics(
+            &mut pipe,
+            documents
+                .get(&notification.params.text_document.variant0.uri)
+                .unwrap(),
+            notification.params.text_document.variant0.uri,
+            notification.params.text_document.version,
+        )
+        .await?;
 
         Ok(())
     }
 
-    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> io::Result<()> { // TODO FIXME respond method on the request?
+    async fn handle_initialized_notification(
+        self: Arc<Self>,
+        notification: InitializedNotification,
+    ) -> io::Result<()> {
+        let notification =
+            Responses::WindowShowMessageNotification(WindowShowMessageNotification {
+                jsonrpc: "2.0".to_string(),
+                params: Box::new(ShowMessageParams {
+                    r#type: Box::new(MessageType::Error),
+                    message: "This is a test error".to_string(),
+                }),
+            });
+
+        Ok(())
+    }
+
+    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> io::Result<()> {
+        // TODO FIXME respond method on the request?
         let result = InitializeResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
@@ -468,8 +492,7 @@ async fn main() -> io::Result<()> {
             port: None,
         } => {
             let (read, write) = UnixStream::connect(pipe).await?.split();
-            Server::main_internal(BufReader::new(read), write)
-                .await
+            Server::main_internal(BufReader::new(read), write).await
         }
         Args {
             port: Some(port),
@@ -477,18 +500,15 @@ async fn main() -> io::Result<()> {
             stdin: false,
         } => {
             let (read, write) = TcpListener::bind(("127.0.0.1", port))
-            .await?
-            .accept()
-            .await?
-            .0.split();
-            Server::main_internal(
-                    BufReader::new(read), write
-                )
-                .await
+                .await?
+                .accept()
+                .await?
+                .0
+                .split();
+            Server::main_internal(BufReader::new(read), write).await
         }
         Args { pipe: None, .. } => {
-            Server::main_internal(BufReader::new(tokio::io::stdin()), tokio::io::stdout())
-                .await
+            Server::main_internal(BufReader::new(tokio::io::stdin()), tokio::io::stdout()).await
         }
         _ => {
             panic!("can't enable multiple modes at the same time")
