@@ -29,16 +29,8 @@ pub struct Handler {
 
 // concurrent by default
 impl Handler {
-    pub async fn new() -> Self {
-        let (tx, mut rx) = mpsc::channel(3);
-
-        let the_self = Self {
-            tx
-        };
-
-        let mut pending_requests: HashMap<String, oneshot::Sender<CatResponse>> = HashMap::new();
-
-        while let Some((req, res)) = rx.recv().await {
+    async fn handle_sending(rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) {
+        if let Some((req, res)) = rx.recv().await {
             if let Some(res) = res {
                 let rand_string: String = thread_rng()
                     .sample_iter(&Alphanumeric)
@@ -52,17 +44,45 @@ impl Handler {
                 // TODO actually send (also while sending we should be able to receive)
             }
         }
+    }
+
+    async fn handle_receiving(self: Arc<Self>) {
+        let request = self.clone().retrieve_next().await;
+        let id = "1337".to_string();
+
+        let cloned_self = self.clone();
+        spawn(async move {
+            cloned_self.handle_dog(DogRequest).await;
+        });
+
+        pending_requests.remove(&id).unwrap().send(request).unwrap();
+    }
+
+    // https://smallcultfollowing.com/babysteps/blog/2022/06/13/async-cancellation-a-case-study-of-pub-sub-in-mini-redis/
+    // "For example, I think it’d be cool if we could share one &mut across two async fn that are running concurrently, so long as that &mut is not borrowed across an await point. I have thoughts on that but…not for this post."
+    // https://blog.yoshuawuyts.com/async-cancellation-1/
+    // https://blog.yoshuawuyts.com/futures-concurrency-2/
+
+    // https://tokio.rs/tokio/tutorial/select
+    // se there section Loops -> "Resuming an async operation" and "Modifying a branch"
+    pub async fn run() {
+        let (tx, mut rx) = mpsc::channel(3);
+
+        let the_self = Self {
+            tx
+        };
+        let self_arc = Arc::new(the_self);
+
+        let mut pending_requests: HashMap<String, oneshot::Sender<CatResponse>> = HashMap::new();
+
+        // I think this still does not work when they're cancelled?
+        let mut receive_handler = self_arc.handle_receiving();
+        let mut send_handler = Handler::handle_sending(rx);
 
         loop {
-            let request = the_self.clone().retrieve_next().await;
-            let id = "1337".to_string();
+            tokio::select! {
 
-            let cloned_self = the_self.clone();
-            spawn(async move {
-                cloned_self.handle_dog(DogRequest).await;
-            });
-
-            pending_requests.remove(&id).unwrap().send(request).unwrap();
+            }
         }
     }
 
