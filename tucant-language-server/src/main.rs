@@ -476,7 +476,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 documents.remove(&notification.params.text_document.uri);
             }
             /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
-                // can't move the cursor - we could probably replace test after to cheat
+                // can't move the cursor - we could probably replace text after to cheat
                 // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
                 // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
                 let text_edits = if request.params.ch == r#"""# {
