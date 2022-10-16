@@ -1,4 +1,5 @@
 mod parser;
+mod idea;
 
 use std::{collections::HashMap, path::Path, pin::Pin, vec};
 
