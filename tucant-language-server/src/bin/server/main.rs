@@ -166,7 +166,7 @@ impl Server {
 
     async fn main_internal<
         R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
-        W: AsyncWrite + std::marker::Unpin,
+        W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
     >(
         read: R,
         write: W,
@@ -176,7 +176,8 @@ impl Server {
             pending: HashMap::new(),
         });
 
-        let join_handle = tokio::spawn(arc_self.handle_receiving(read));
+        tokio::spawn(arc_self.clone().handle_receiving(read));
+        tokio::spawn(arc_self.handle_sending(write));
 
         Ok(())
     }
