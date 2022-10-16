@@ -80,7 +80,7 @@ pub struct Request<Req, Res> {
 }
 
 impl<Req, Res> Request<Req, Res> {
-    pub async fn respond(&self, handler: Arc<()>, value: Res) {
+    pub async fn respond(&self, handler: Arc<Server>, value: Res) {
 
     }
 }
@@ -135,11 +135,14 @@ impl Server {
 
             buf.clear();
 
-            match request {
-                ReceivedSomething::RequestType1(req) => todo!(),
-                ReceivedSomething::RequestType2(_) => todo!(),
-                ReceivedSomething::NotificationType1(_) => todo!(),
-            }
+            let cloned_self = self.clone();
+            tokio::spawn(async move {
+                match request {
+                    ReceivedSomething::RequestType1(request) => cloned_self.handle_RequestType1(request).await.unwrap(),
+                    ReceivedSomething::RequestType2(_) => todo!(),
+                    ReceivedSomething::NotificationType1(_) => todo!(),
+                }
+            });
         }
 
         Ok(())
