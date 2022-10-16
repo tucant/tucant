@@ -13,6 +13,7 @@ use tokio::{
     net::{TcpListener, UnixStream},
     sync::{oneshot, RwLock},
 };
+use tucant_language_server::{ReceivedSomething, Request};
 use tucant_language_server_derive_output::*;
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
@@ -102,10 +103,25 @@ impl Server {
 
             println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
-            let request: Requests = serde_json::from_slice(&buf)?;
+            let request: ReceivedSomething = serde_json::from_slice(&buf)?;
 
             buf.clear();
+
+            match request {
+                ReceivedSomething::RequestType1(req) => todo!(),
+                ReceivedSomething::RequestType2(_) => todo!(),
+                ReceivedSomething::NotificationType1(_) => todo!(),
+            }
         }
+
+        Ok(())
+    }
+
+    async fn handle_RequestType1(
+        self: Arc<Self>,
+        request: Request<i32, String>,
+    ) -> io::Result<()> {
+        request.respond(self, format!("hello {}", request.params).to_string()).await;
 
         Ok(())
     }
