@@ -1,4 +1,3 @@
-mod idea;
 mod parser;
 
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec, marker::PhantomData};
@@ -28,45 +27,6 @@ struct Args {
 
     #[arg(long)]
     stdin: bool,
-}
-
-pub struct StdinoutStream {
-    stdin: Pin<Box<Stdin>>,
-    stdout: Pin<Box<Stdout>>,
-}
-
-impl AsyncRead for StdinoutStream {
-    fn poll_read(
-        mut self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &mut io::ReadBuf<'_>,
-    ) -> std::task::Poll<std::io::Result<()>> {
-        self.stdin.as_mut().poll_read(cx, buf)
-    }
-}
-
-impl AsyncWrite for StdinoutStream {
-    fn poll_write(
-        mut self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &[u8],
-    ) -> std::task::Poll<Result<usize, std::io::Error>> {
-        self.stdout.as_mut().poll_write(cx, buf)
-    }
-
-    fn poll_flush(
-        mut self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), std::io::Error>> {
-        self.stdout.as_mut().poll_flush(cx)
-    }
-
-    fn poll_shutdown(
-        mut self: Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), std::io::Error>> {
-        self.stdout.as_mut().poll_shutdown(cx)
-    }
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
@@ -136,7 +96,7 @@ impl Server {
     async fn handle_receiving<R: AsyncBufRead + std::marker::Unpin>(
         self: Arc<Self>,
         mut reader: R,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let mut buf = Vec::new();
         loop {
             reader.read_until(b'\n', &mut buf).await?;
@@ -180,7 +140,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> io::Result<()> {
+    async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> anyhow::Result<()> {
         request
             .respond(self.clone(), format!("hello {}", request.params).to_string())
             .await;
@@ -191,12 +151,12 @@ impl Server {
     }
 
     // TODO FIXME create such a method for every type and don't use the enum then (at least not for the caller).
-    async fn send_something(self: Arc<Self>, something: SendSomething) -> io::Result<String> {
+    async fn send_something(self: Arc<Self>, something: SendSomething) -> anyhow::Result<String> {
         let (tx, rx) = oneshot::channel();
         match something {
-            SendSomething::RequestType1(request) => {
+            SendSomething::RequestType1(ref request) => {
                 let mut pending = self.pending.write().await;
-                pending.insert(request.id, tx);
+                pending.insert(request.id.clone(), tx);
             },
             SendSomething::RequestType2(_) => todo!(),
             SendSomething::NotificationType1(_) => todo!(),
@@ -213,7 +173,7 @@ impl Server {
         self: Arc<Self>,
         mut sender: W,
         mut rx: mpsc::Receiver<String>,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         while let Some(result) = rx.recv().await {
             sender
                 .write_all(
@@ -235,12 +195,12 @@ impl Server {
     >(
         read: R,
         write: W,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let (tx, rx) = mpsc::channel::<String>(3);
 
         let arc_self = Arc::new(Self {
             documents: RwLock::new(HashMap::new()),
-            pending: HashMap::new(),
+            pending: RwLock::new(HashMap::new()),
             tx,
         });
 
@@ -258,7 +218,7 @@ impl Server {
         content: &str,
         uri: String,
         version: i64,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let span = Span::new(content);
         let value = parse_root(span);
 
@@ -306,7 +266,7 @@ impl Server {
     async fn handle_TextDocumentSemanticTokensFullRequest(
         self: Arc<Self>,
         request: TextDocumentSemanticTokensFullRequest,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let documents = self.documents.read().await;
         let document = documents.get(&request.params.text_document.uri);
         let document = if let Some(document) = document {
@@ -356,7 +316,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_ShutdownRequest(self: Arc<Self>, request: ShutdownRequest) -> io::Result<()> {
+    async fn handle_ShutdownRequest(self: Arc<Self>, request: ShutdownRequest) -> anyhow::Result<()> {
         let response = ShutdownResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
@@ -369,7 +329,7 @@ impl Server {
     async fn handle_TextDocumentDidOpenNotification(
         self: Arc<Self>,
         notification: TextDocumentDidOpenNotification,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let mut documents = self.documents.write().await;
         documents.insert(
             notification.params.text_document.uri.clone(),
@@ -391,7 +351,7 @@ impl Server {
     async fn handle_TextDocumentDidCloseNotification(
         self: Arc<Self>,
         notification: TextDocumentDidCloseNotification,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let mut documents = self.documents.write().await;
         documents.remove(&notification.params.text_document.uri);
 
@@ -402,7 +362,7 @@ impl Server {
     async fn handle_TextDocumentDidChangeNotification(
         self: Arc<Self>,
         notification: TextDocumentDidChangeNotification,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let mut documents = self.documents.write().await;
         let mut document = documents
             .get(&notification.params.text_document.variant0.uri)
@@ -487,7 +447,7 @@ impl Server {
     async fn handle_initialized_notification(
         self: Arc<Self>,
         notification: InitializedNotification,
-    ) -> io::Result<()> {
+    ) -> anyhow::Result<()> {
         let notification =
             Responses::WindowShowMessageNotification(WindowShowMessageNotification {
                 jsonrpc: "2.0".to_string(),
@@ -500,7 +460,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> io::Result<()> {
+    async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         // TODO FIXME respond method on the request?
         let result = InitializeResponse {
             jsonrpc: "2.0".to_string(),
@@ -581,7 +541,7 @@ impl Server {
 // cargo run -- --port 6008
 // cargo watch -x 'run -- --port 6008'
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args {
