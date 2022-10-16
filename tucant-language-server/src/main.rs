@@ -13,27 +13,7 @@ use tokio::{
     net::{TcpListener, UnixStream},
     sync::{oneshot, RwLock},
 };
-use tucant_language_server_derive_output::InitializeRequest;
-use tucant_language_server_derive_output::InitializedNotification;
-use tucant_language_server_derive_output::{
-    ApplyWorkspaceEditParams, Diagnostic, DiagnosticSeverity,
-    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
-    H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf,
-    H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
-    H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
-    H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
-    Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
-    Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05,
-    He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
-    Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec, InitializeResponse,
-    InitializeResult, MessageType, OptionalVersionedTextDocumentIdentifier, Position,
-    PublishDiagnosticsParams, Range, Requests, Responses, SemanticTokens, SemanticTokensLegend,
-    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
-    TextDocumentEdit, TextDocumentIdentifier, TextDocumentPublishDiagnosticsNotification,
-    TextDocumentSemanticTokensFullResponse, TextDocumentSyncKind, TextDocumentSyncOptions,
-    TextEdit, WindowShowMessageNotification, WorkDoneProgressOptions, WorkspaceApplyEditRequest,
-    WorkspaceEdit,
-};
+use tucant_language_server_derive_output::*;
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
 
@@ -218,6 +198,7 @@ impl Server {
         self: Arc<Self>,
         request: TextDocumentSemanticTokensFullRequest,
     ) -> io::Result<()> {
+        let documents = self.documents.read().await;
         let document = documents.get(&request.params.text_document.uri);
         let document = if let Some(document) = document {
             document.clone()
@@ -280,6 +261,7 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidOpenNotification,
     ) -> io::Result<()> {
+        let documents = self.documents.write().await;
         documents.insert(
             notification.params.text_document.uri.clone(),
             notification.params.text_document.text.clone(),
@@ -300,6 +282,7 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidCloseNotification,
     ) -> io::Result<()> {
+        let mut documents = self.documents.write().await;
         documents.remove(&notification.params.text_document.uri);
 
         Ok(())
@@ -309,6 +292,7 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidChangeNotification,
     ) -> io::Result<()> {
+        let documents = self.documents.read().await;
         let mut document = documents
             .get(&notification.params.text_document.variant0.uri)
             .unwrap()
