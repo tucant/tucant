@@ -13,7 +13,6 @@ use tokio::{
     net::{TcpListener, UnixStream},
     sync::{oneshot, RwLock},
 };
-use tucant_language_server::{ReceivedSomething, Request};
 use tucant_language_server_derive_output::*;
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
@@ -70,6 +69,35 @@ impl AsyncWrite for StdinoutStream {
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
+
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Request<Req, Res> {
+    id: i64,
+    pub params: Req,
+    phantom_data: Res,
+}
+
+impl<Req, Res> Request<Req, Res> {
+    pub async fn respond(&self, handler: Arc<()>, value: Res) {
+
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Notification<T> {
+    pub params: T
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "method")]
+pub enum ReceivedSomething {
+    RequestType1(Request<i32, String>),
+    RequestType2(Request<String, i32>),
+    NotificationType1(Notification<i32>)
+}
+
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
