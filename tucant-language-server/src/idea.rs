@@ -10,10 +10,7 @@ pub struct ElephantRequest;
 pub struct ElephantResponse;
 
 #[derive(Debug)]
-pub struct CatRequest;
-
-#[derive(Debug)]
-pub struct CatResponse;
+pub struct CatNotification;
 
 #[derive(Debug)]
 pub struct DogRequest;
@@ -21,61 +18,76 @@ pub struct DogRequest;
 #[derive(Debug)]
 pub struct DogResponse;
 
-// may store e.g. the open documents
-#[derive(Clone)]
-pub struct Handler {
-    tx: mpsc::Sender<(CatRequest, Option<oneshot::Sender<CatResponse>>)>
-}
-
 #[derive(Debug)]
-pub enum Requests {
-    ElephantRequest(ElephantRequest),
-    CatRequest(CatRequest),
+pub enum Receiving {
+    CatNotification(CatNotification),
     DogRequest(DogRequest),
 }
 
 #[derive(Debug)]
-pub enum Responses {
-    ElephantResponse(ElephantResponse),
-    CatResponse(CatResponse),
-    DogResponse(DogResponse),
+pub enum Sending {
+    SendingElephantRequest((ElephantRequest, oneshot::Sender<ElephantResponse>)),
+    SendingCatNotification(CatNotification), // cat has no response
+    SendingDogRequest((DogRequest, oneshot::Sender<DogResponse>)),
+}
+
+#[derive(Debug)]
+pub enum SendingReceiveEnd {
+    SendingReceiveEndElephantRequest(oneshot::Sender<ElephantResponse>),
+    SendingReceiveEndDogRequest(oneshot::Sender<DogResponse>),
+}
+
+// may store e.g. the open documents
+#[derive(Clone)]
+pub struct Handler {
+    tx: mpsc::Sender<Sending>
+}
+
+fn handle_sending_generic<Response>(res: Response) -> (String, Response) {
+    let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
+    // TODO actually send
+    println!("Handle sending end");
+    (rand_string, res)
 }
 
 // concurrent by default
 impl Handler {
-    async fn handle_sending(mut rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) -> (mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>, Option<(String, oneshot::Sender<CatResponse>)>) {
+    async fn handle_sending(mut rx: mpsc::Receiver<Sending>) -> (mpsc::Receiver<Sending>, Option<(String, SendingReceiveEnd)>) {
         println!("Handle sending start");
-        if let Some((req, res)) = rx.recv().await {
-            if let Some(res) = res {
-                let rand_string: String = thread_rng()
-                    .sample_iter(&Alphanumeric)
-                    .take(30)
-                    .map(char::from)
-                    .collect();
-                // TODO actually send
-                println!("Handle sending end");
-                (rx, Some((rand_string, res)))
-            } else {
-                // TODO actually send (also while sending we should be able to receive)
-                println!("Handle sending end");
+        match rx.recv().await {
+            Some(Sending::SendingCatNotification(req)) => {
+                // TODO FIXMe actually send
                 (rx, None)
-            }
-        } else {
-            // TODO FIXME
-            println!("DONE!!!!");
-            (rx, None)
+            },
+            Some(Sending::SendingDogRequest((req, res))) => {
+                (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndDogRequest(res))))
+            },
+            Some(Sending::SendingElephantRequest((req, res))) => {
+                (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndElephantRequest(res))))
+            },
+            None => {
+                // TODO FIXME
+                println!("DONE!!!!");
+                (rx, None)
+            },
         }
     }
 
-    async fn handle_receiving(self: Arc<Self>) -> (String, Requests) {
+    async fn handle_receiving(self: Arc<Self>) -> (String, Receiving) {
         println!("handle receiving start");
         let request = self.clone().retrieve_next().await;
         let id = "1337".to_string();
 
+        /*
         let cloned_self = self.clone();
         spawn(async move {
-            cloned_self.handle(Requests::DogRequest(DogRequest)).await;
+            cloned_self.handle(request).await;
         });
+        */
 
         println!("handle receiving end");
         (id, request)
@@ -96,7 +108,7 @@ impl Handler {
         };
         let self_arc = Arc::new(the_self);
 
-        let mut pending_requests: HashMap<String, oneshot::Sender<Requests>> = HashMap::new();
+        let mut pending_requests: HashMap<String, SendingReceiveEnd> = HashMap::new();
 
         // I think this still does not work when they're cancelled?
         let mut receive_handler = self_arc.clone().handle_receiving();
@@ -120,8 +132,8 @@ impl Handler {
         }
     }
 
-    pub async fn handle(&self, request: Requests) {
-        self.send_cat_request(CatRequest).await;
+    pub async fn handle(&self, request: Receiving) {
+        self.send_dog_request(DogRequest).await;
 
         //request.send_response(DogResponse);
         /*
@@ -132,14 +144,14 @@ impl Handler {
         todo!()
     }
 
-    pub async fn send_cat_request(&self, request: CatRequest) -> CatResponse {
+    pub async fn send_dog_request(&self, request: DogRequest) -> DogResponse {
         // this will be implemented automatically
-        let (tx, rx) = oneshot::channel::<CatResponse>();
-        self.tx.send((CatRequest, Some(tx))).await.unwrap();
+        let (tx, rx) = oneshot::channel();
+        self.tx.send(Sending::SendingDogRequest((request, tx))).await.unwrap();
         rx.await.unwrap()
     }
 
-    pub async fn retrieve_next(&self) -> Requests {
+    pub async fn retrieve_next(&self) -> Receiving {
         todo!()
     }
 }
