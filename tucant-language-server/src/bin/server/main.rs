@@ -161,7 +161,9 @@ impl Server {
         self: Arc<Self>,
         sender: W,
     ) -> io::Result<()> {
-        todo!()
+        
+
+        Ok(())
     }
 
     async fn main_internal<
@@ -176,8 +178,11 @@ impl Server {
             pending: HashMap::new(),
         });
 
-        tokio::spawn(arc_self.clone().handle_receiving(read));
-        tokio::spawn(arc_self.handle_sending(write));
+        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
+        let handle2 = tokio::spawn(arc_self.handle_sending(write));
+
+        handle1.await??;
+        handle2.await??;
 
         Ok(())
     }
