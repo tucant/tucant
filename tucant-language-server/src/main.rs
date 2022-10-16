@@ -70,66 +70,6 @@ impl AsyncWrite for StdinoutStream {
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
 
-pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
-    pipe: &mut BufStream<T>,
-    content: &str,
-    uri: String,
-    version: i64,
-) -> io::Result<()> {
-    let span = Span::new(content);
-    let value = parse_root(span);
-
-    let diagnostics = if let Err(error) = value {
-        let start_pos = error.location.start_line_column();
-        let end_pos = error.location.end_line_column();
-
-        vec![Box::new(Diagnostic {
-            range: Box::new(Range {
-                start: Box::new(Position {
-                    line: start_pos.0.try_into().unwrap(),
-                    character: start_pos.1.try_into().unwrap(),
-                }),
-                end: Box::new(Position {
-                    line: end_pos.0.try_into().unwrap(),
-                    character: end_pos.1.try_into().unwrap(),
-                }),
-            }),
-            severity: Some(Box::new(DiagnosticSeverity::Error)),
-            code: None,
-            code_description: None,
-            source: Some("tucant".to_string()),
-            message: error.reason.to_string(),
-            tags: None,
-            related_information: None,
-            data: None,
-        })]
-    } else {
-        vec![]
-    };
-
-    let response = Responses::TextDocumentPublishDiagnosticsNotification(
-        TextDocumentPublishDiagnosticsNotification {
-            jsonrpc: "2.0".to_string(),
-            params: Box::new(PublishDiagnosticsParams {
-                uri,
-                version: Some(version),
-                diagnostics,
-            }),
-        },
-    );
-
-    let response = serde_json::to_string(&response)?;
-
-    pipe.write_all(format!("Content-Length: {}\r\n\r\n", response.as_bytes().len()).as_bytes())
-        .await?;
-
-    pipe.write_all(response.as_bytes()).await?;
-
-    pipe.flush().await?;
-
-    Ok(())
-}
-
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
     pending: HashMap<String, oneshot::Sender<String>>,
@@ -191,6 +131,56 @@ impl Server {
 
         let join_handle = tokio::spawn(arc_self.handle_receiving(read));
 
+        Ok(())
+    }
+
+    pub async fn recalculate_diagnostics(
+        self: Arc<Self>,
+        content: &str,
+        uri: String,
+        version: i64,
+    ) -> io::Result<()> {
+        let span = Span::new(content);
+        let value = parse_root(span);
+
+        let diagnostics = if let Err(error) = value {
+            let start_pos = error.location.start_line_column();
+            let end_pos = error.location.end_line_column();
+
+            vec![Box::new(Diagnostic {
+                range: Box::new(Range {
+                    start: Box::new(Position {
+                        line: start_pos.0.try_into().unwrap(),
+                        character: start_pos.1.try_into().unwrap(),
+                    }),
+                    end: Box::new(Position {
+                        line: end_pos.0.try_into().unwrap(),
+                        character: end_pos.1.try_into().unwrap(),
+                    }),
+                }),
+                severity: Some(Box::new(DiagnosticSeverity::Error)),
+                code: None,
+                code_description: None,
+                source: Some("tucant".to_string()),
+                message: error.reason.to_string(),
+                tags: None,
+                related_information: None,
+                data: None,
+            })]
+        } else {
+            vec![]
+        };
+
+        let response = Responses::TextDocumentPublishDiagnosticsNotification(
+            TextDocumentPublishDiagnosticsNotification {
+                jsonrpc: "2.0".to_string(),
+                params: Box::new(PublishDiagnosticsParams {
+                    uri,
+                    version: Some(version),
+                    diagnostics,
+                }),
+            },
+        );
         Ok(())
     }
 
@@ -261,14 +251,15 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidOpenNotification,
     ) -> io::Result<()> {
-        let documents = self.documents.write().await;
+        let mut documents = self.documents.write().await;
         documents.insert(
             notification.params.text_document.uri.clone(),
             notification.params.text_document.text.clone(),
         );
 
-        recalculate_diagnostics(
-            &mut pipe,
+        drop(documents);
+
+        self.recalculate_diagnostics(
             &notification.params.text_document.text,
             notification.params.text_document.uri,
             notification.params.text_document.version,
@@ -292,7 +283,7 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidChangeNotification,
     ) -> io::Result<()> {
-        let documents = self.documents.read().await;
+        let mut documents = self.documents.write().await;
         let mut document = documents
             .get(&notification.params.text_document.variant0.uri)
             .unwrap()
@@ -356,11 +347,14 @@ impl Server {
     }
         }
 
-        recalculate_diagnostics(
-            &mut pipe,
-            documents
-                .get(&notification.params.text_document.variant0.uri)
-                .unwrap(),
+        let contents = documents
+        .get(&notification.params.text_document.variant0.uri)
+        .unwrap().clone();
+
+        drop(documents);
+
+        self.recalculate_diagnostics(
+            &contents,
             notification.params.text_document.variant0.uri,
             notification.params.text_document.version,
         )
