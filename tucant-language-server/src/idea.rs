@@ -1,7 +1,7 @@
 use std::{sync::Arc, collections::HashMap};
 
 use rand::{thread_rng, distributions::Alphanumeric, Rng};
-use tokio::{task::spawn_local, spawn, sync::{oneshot, mpsc}};
+use tokio::{sync::{oneshot, mpsc}};
 
 #[derive(Debug)]
 pub struct ElephantRequest;
@@ -59,14 +59,14 @@ impl Handler {
     async fn handle_sending(mut rx: mpsc::Receiver<Sending>) -> (mpsc::Receiver<Sending>, Option<(String, SendingReceiveEnd)>) {
         println!("Handle sending start");
         match rx.recv().await {
-            Some(Sending::SendingCatNotification(req)) => {
+            Some(Sending::SendingCatNotification(_req)) => {
                 // TODO FIXMe actually send
                 (rx, None)
             },
-            Some(Sending::SendingDogRequest((req, res))) => {
+            Some(Sending::SendingDogRequest((_req, res))) => {
                 (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndDogRequest(res))))
             },
-            Some(Sending::SendingElephantRequest((req, res))) => {
+            Some(Sending::SendingElephantRequest((_req, res))) => {
                 (rx, Some(handle_sending_generic(SendingReceiveEnd::SendingReceiveEndElephantRequest(res))))
             },
             None => {
@@ -102,7 +102,7 @@ impl Handler {
     // se there section Loops -> "Resuming an async operation" and "Modifying a branch"
     pub async fn run() {
         // TODO FIXME send the json strings instead so we don't need so many enum stuff
-        let (tx, mut rx) = mpsc::channel(3);
+        let (tx, rx) = mpsc::channel(3);
 
         let the_self = Self {
             tx
@@ -112,15 +112,15 @@ impl Handler {
         let mut pending_requests: HashMap<String, SendingReceiveEnd> = HashMap::new();
 
         // I think this still does not work when they're cancelled?
-        let mut receive_handler = self_arc.clone().handle_receiving();
-        let mut send_handler = Handler::handle_sending(rx);
+        let receive_handler = self_arc.clone().handle_receiving();
+        let send_handler = Handler::handle_sending(rx);
         tokio::pin!(receive_handler);
         tokio::pin!(send_handler);
 
         loop {
             tokio::select! {
-                (id, request) = &mut receive_handler => {
-                    pending_requests.remove(&id).unwrap().send(request).unwrap();
+                (_id, _request) = &mut receive_handler => {
+                    //pending_requests.remove(&id).unwrap().send(request).unwrap();
                     receive_handler.set(self_arc.clone().handle_receiving());
                 }
                 (rx, hashmap_insert) = &mut send_handler => {
@@ -133,7 +133,7 @@ impl Handler {
         }
     }
 
-    pub async fn handle(&self, request: Receiving) {
+    pub async fn handle(&self, _request: Receiving) {
         self.send_dog_request(DogRequest).await;
 
         //request.send_response(DogResponse);
