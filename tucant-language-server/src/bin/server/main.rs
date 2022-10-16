@@ -128,7 +128,7 @@ pub enum SendSomething {
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
-    pending: HashMap<String, oneshot::Sender<String>>,
+    pending: RwLock<HashMap<String, oneshot::Sender<String>>>,
     tx: mpsc::Sender<String>,
 }
 
@@ -182,7 +182,7 @@ impl Server {
 
     async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> io::Result<()> {
         request
-            .respond(self, format!("hello {}", request.params).to_string())
+            .respond(self.clone(), format!("hello {}", request.params).to_string())
             .await;
 
         self.send_something(SendSomething::NotificationType1(Notification::new(5))).await?;
@@ -190,21 +190,23 @@ impl Server {
         Ok(())
     }
 
-    // TODO FIXME response type
-    async fn send_something(self: Arc<Self>, something: SendSomething) -> io::Result<()>  {
-        /*
+    // TODO FIXME create such a method for every type and don't use the enum then (at least not for the caller).
+    async fn send_something(self: Arc<Self>, something: SendSomething) -> io::Result<String> {
+        let (tx, rx) = oneshot::channel();
         match something {
-            SendSomething::RequestType1(_) => todo!(),
+            SendSomething::RequestType1(request) => {
+                let mut pending = self.pending.write().await;
+                pending.insert(request.id, tx);
+            },
             SendSomething::RequestType2(_) => todo!(),
             SendSomething::NotificationType1(_) => todo!(),
         }
-        */
-
+        
         let result = serde_json::to_string(&something)?;
 
         self.tx.send(result).await;
 
-        Ok(())
+        Ok(rx.await?)
     }
 
     async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
@@ -243,7 +245,7 @@ impl Server {
         });
 
         let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
-        let handle2 = tokio::spawn(arc_self.handle_sending(write));
+        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
 
         handle1.await??;
         handle2.await??;
