@@ -101,6 +101,7 @@ impl Handler {
     // https://tokio.rs/tokio/tutorial/select
     // se there section Loops -> "Resuming an async operation" and "Modifying a branch"
     pub async fn run() {
+        // TODO FIXME send the json strings instead so we don't need so many enum stuff
         let (tx, mut rx) = mpsc::channel(3);
 
         let the_self = Self {
