@@ -29,7 +29,7 @@ pub struct Handler {
 
 // concurrent by default
 impl Handler {
-    async fn handle_sending(rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) {
+    async fn handle_sending(mut rx: mpsc::Receiver<(CatRequest, Option<oneshot::Sender<CatResponse>>)>) {
         if let Some((req, res)) = rx.recv().await {
             if let Some(res) = res {
                 let rand_string: String = thread_rng()
@@ -37,7 +37,7 @@ impl Handler {
                     .take(30)
                     .map(char::from)
                     .collect();
-                pending_requests.insert(rand_string, res);
+                //pending_requests.insert(rand_string, res);
 
                 // TODO actually send
             } else {
@@ -55,7 +55,7 @@ impl Handler {
             cloned_self.handle_dog(DogRequest).await;
         });
 
-        pending_requests.remove(&id).unwrap().send(request).unwrap();
+        //pending_requests.remove(&id).unwrap().send(request).unwrap();
     }
 
     // https://smallcultfollowing.com/babysteps/blog/2022/06/13/async-cancellation-a-case-study-of-pub-sub-in-mini-redis/
@@ -76,12 +76,19 @@ impl Handler {
         let mut pending_requests: HashMap<String, oneshot::Sender<CatResponse>> = HashMap::new();
 
         // I think this still does not work when they're cancelled?
-        let mut receive_handler = self_arc.handle_receiving();
+        let mut receive_handler = self_arc.clone().handle_receiving();
         let mut send_handler = Handler::handle_sending(rx);
+        tokio::pin!(receive_handler);
+        tokio::pin!(send_handler);
 
         loop {
             tokio::select! {
+                res = &mut receive_handler => {
+                    receive_handler.set(self_arc.clone().handle_receiving());
+                }
+                res = &mut send_handler => {
 
+                }
             }
         }
     }
