@@ -469,7 +469,8 @@ async fn main() -> io::Result<()> {
             stdin: false,
             port: None,
         } => {
-            let (read, write) = UnixStream::connect(pipe).await?.split();
+            let stream = UnixStream::connect(pipe).await?;
+            let (read, write) = stream.into_split();
             Server::main_internal(BufReader::new(read), write).await
         }
         Args {
@@ -477,12 +478,12 @@ async fn main() -> io::Result<()> {
             pipe: None,
             stdin: false,
         } => {
-            let (read, write) = TcpListener::bind(("127.0.0.1", port))
-                .await?
-                .accept()
-                .await?
-                .0
-                .split();
+            let stream = TcpListener::bind(("127.0.0.1", port))
+            .await?
+            .accept()
+            .await?
+            .0;
+            let (read, write) = stream.into_split();
             Server::main_internal(BufReader::new(read), write).await
         }
         Args { pipe: None, .. } => {
