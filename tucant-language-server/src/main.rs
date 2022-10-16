@@ -1,4 +1,5 @@
 mod parser;
+mod idea;
 
 use std::{collections::HashMap, path::Path, pin::Pin, vec};
 
@@ -12,28 +13,33 @@ use tokio::{
     net::{TcpListener, UnixStream},
 };
 use tucant_language_server_derive_output::{
-    CompletionItem, CompletionItemKind, CompletionList, CompletionOptions, Diagnostic,
-    DiagnosticSeverity, DocumentOnTypeFormattingOptions,
-    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    ApplyWorkspaceEditParams, ApplyWorkspaceEditResult, CompletionItem, CompletionItemKind,
+    CompletionList, CompletionOptions, Diagnostic, DiagnosticSeverity,
+    DocumentOnTypeFormattingOptions, H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf,
     H1afd22fb3d4fde50a3d4d6f52f9c56f977bac8ae5eb87e24a1c00362,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
+    H36210c437dfe0bb71287da572bebdf99422da7ddbe46bea738738f9f,
     H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
     Hb171fb170d077239f0de20d058cbdc49f406f509504a400c97ceb78a,
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
+    Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
+    Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec,
     Hfc2f50e2c19a9216f1e39220e695b4fabbbf73fd1cfa4311bd921728, InitializeResponse,
-    InitializeResult, InsertReplaceEdit, InsertTextFormat, MessageType, Position,
-    PublishDiagnosticsParams, Range, Requests, Responses, SemanticTokens, SemanticTokensLegend,
-    SemanticTokensOptions, ServerCapabilities, ShowMessageParams, ShutdownResponse,
-    TextDocumentCompletionResponse, TextDocumentOnTypeFormattingResponse,
+    InitializeResult, InsertReplaceEdit, InsertTextFormat, MessageType,
+    OptionalVersionedTextDocumentIdentifier, Position, PublishDiagnosticsParams, Range, Requests,
+    Responses, SemanticTokens, SemanticTokensLegend, SemanticTokensOptions, ServerCapabilities,
+    ShowMessageParams, ShutdownResponse, TextDocumentCompletionResponse, TextDocumentEdit,
+    TextDocumentIdentifier, TextDocumentOnTypeFormattingResponse,
     TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullResponse,
     TextDocumentSyncKind, TextDocumentSyncOptions, TextEdit, WindowShowMessageNotification,
-    WorkDoneProgressOptions,
+    WorkDoneProgressOptions, WorkspaceApplyEditRequest, WorkspaceApplyEditResponse, WorkspaceEdit,
 };
 
-use crate::parser::{parse_root, visitor, Error, Span};
+use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
 
 #[derive(Parser)]
 struct Args {
@@ -151,7 +157,7 @@ pub async fn recalculate_diagnostics<T: AsyncRead + AsyncWrite + std::marker::Un
 async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
     readwrite: T,
 ) -> io::Result<()> {
-    let mut documents = HashMap::new();
+    let mut documents = HashMap::<String, String>::new();
 
     let mut pipe = BufStream::new(readwrite);
 
@@ -175,7 +181,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
 
         pipe.read_exact(&mut buf).await?;
 
-        //println!("read: {}", std::str::from_utf8(&buf).unwrap());
+        println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
         let request: Requests = serde_json::from_slice(&buf)?;
 
@@ -196,7 +202,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                                 open_close: Some(true),
                                 will_save: None,
                                 will_save_wait_until: None,
-                                change: Some(Box::new(TextDocumentSyncKind::Full)),
+                                change: Some(Box::new(TextDocumentSyncKind::Incremental)),
                                 save: None, // TODO FIXME
                             }))),
                             notebook_document_sync: None,
@@ -289,12 +295,78 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 pipe.flush().await?;
             }
             Requests::TextDocumentDidChangeNotification(notification) => {
-                for change in notification.params.content_changes {
-                    match *change {
-                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(_) => todo!(),
+                let mut document = documents
+                    .get(&notification.params.text_document.variant0.uri)
+                    .unwrap()
+                    .clone();
+
+                for change in notification.params.content_changes.iter() {
+                    match &**change {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
+                            let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                            let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+
+                            document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
+                        },
                         tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
                             documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                         },
+                    }
+                }
+
+                documents.insert(
+                    notification.params.text_document.variant0.uri.clone(),
+                    document.clone(),
+                );
+
+                println!("change notification");
+
+                if notification.params.content_changes.len() == 1 {
+                    match &**&(notification.params.content_changes[0]) {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
+                            let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                            let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+
+                            let response = Responses::WorkspaceApplyEditRequest(WorkspaceApplyEditRequest {
+                                jsonrpc: "2.0".to_string(),
+                                id: tucant_language_server_derive_output::StringOrNumber::String("1337".to_string()), // TODO FIXME
+                                params: Box::new(ApplyWorkspaceEditParams {
+                                    label: Some("insert matching paren".to_string()),
+                                    edit: Box::new(WorkspaceEdit {
+                                        changes: None,
+                                        document_changes: Some(vec![
+                                            H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf::Variant0(Box::new(TextDocumentEdit {
+                                                text_document: Box::new(OptionalVersionedTextDocumentIdentifier {
+                                                    variant0: Box::new(TextDocumentIdentifier { uri: notification.params.text_document.variant0.uri.clone() }),
+                                                    version: Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec::Variant0(notification.params.text_document.version)
+                                                }),
+                                                edits: vec![
+                                                    Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(Box::new(TextEdit {
+                                                        range: Box::new(Range { start: Box::new(Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }), end: Box::new(Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }) }),
+                                                        new_text: r#"""#.to_string()
+                                                    }))
+                                                ]
+                                            }))
+                                        ]),
+                                        change_annotations: None,
+                                    }),
+                                }),
+                            });
+
+                            let result = serde_json::to_string(&response)?;
+
+                            println!("{}", result);
+
+                            pipe.write_all(
+                                format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                            )
+                            .await?;
+
+                            pipe.write_all(result.as_bytes()).await?;
+
+                            pipe.flush().await?;
+                        },
+                        _ => {}
                     }
                 }
 
@@ -405,7 +477,7 @@ async fn main_internal<T: AsyncRead + AsyncWrite + std::marker::Unpin>(
                 documents.remove(&notification.params.text_document.uri);
             }
             /*Requests::TextDocumentOnTypeFormattingRequest(request) => {
-                // can't move the cursor - we could probably replace test after to cheat
+                // can't move the cursor - we could probably replace text after to cheat
                 // the docs say this position is not accurate so maybe do this using workspaceedit and the default diff instead?
                 // or maybe using autocompletion by always showing it in the autocomplete and commit on typing "
                 let text_edits = if request.params.ch == r#"""# {

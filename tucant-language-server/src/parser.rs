@@ -26,6 +26,17 @@ fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usi
         .map_or((0, 0), |(index, last_line)| (index, last_line.len()))
 }
 
+pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
+    let the_line = string.lines().skip(line).next().unwrap();
+    let line_offset = the_line
+        .char_indices()
+        .skip(column)
+        .next()
+        .map(|(offset, _)| offset)
+        .unwrap_or(the_line.len());
+    the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
+}
+
 impl<'a, T: Debug> Debug for Span<'a, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start_pos = offset_to_line_column(self, self.string);
