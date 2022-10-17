@@ -482,44 +482,46 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         })
         .multiunzip();
 
-    let (notifications, notifications_rest) = parse_notifications(&mut random, &meta_model.notifications)?;
+    let (notifications, notifications_rest) =
+        parse_notifications(&mut random, &meta_model.notifications)?;
 
     let (client_to_server_enum, server_to_client_notification): (
-            Vec<TokenStream>,
-            Vec<TokenStream>,
-        ) = meta_model
-            .notifications
-            .iter()
-            .map(
-                |notification| -> (TokenStream, TokenStream) {
-                    let method = &notification.method;
-                    let name = format_ident!(
-                        "r#{}Notification",
-                        notification.method.replace('_', " ").to_upper_camel_case()
-                    );
-                    let client_to_server_notification = if let MessageDirection::ClientToServer | MessageDirection::Both = notification.message_direction {
-                        quote! {
-                            #[serde(rename = #method)]
-                            #name(#name),
-                        }
-                    } else {
-                        quote! {}
-                    };
-                    let server_to_client_notification = if let MessageDirection::ServerToClient | MessageDirection::Both = notification.message_direction {
-                        quote! {
-                            #[serde(rename = #method)]
-                            #name(#name),
-                        }
-                    } else {
-                        quote! {}
-                    };
-                    ( 
-                        client_to_server_notification,
-                        server_to_client_notification
-                    )
-                },
-            )
-            .unzip();
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+    ) = meta_model
+        .notifications
+        .iter()
+        .map(|notification| -> (TokenStream, TokenStream) {
+            let method = &notification.method;
+            let name = format_ident!(
+                "r#{}Notification",
+                notification.method.replace('_', " ").to_upper_camel_case()
+            );
+            let client_to_server_notification = if let MessageDirection::ClientToServer
+            | MessageDirection::Both =
+                notification.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #name(#name),
+                }
+            } else {
+                quote! {}
+            };
+            let server_to_client_notification = if let MessageDirection::ServerToClient
+            | MessageDirection::Both =
+                notification.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #name(#name),
+                }
+            } else {
+                quote! {}
+            };
+            (client_to_server_notification, server_to_client_notification)
+        })
+        .unzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
