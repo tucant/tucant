@@ -11,23 +11,14 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
     EnumerationType, MessageDirection, MetaModel, StringOrIntegerOrUnsignedIntegerLiteral,
-    TypeOrVecType,
+    TypeOrVecType, Structure,
 };
-
-use sha3::Digest;
 
 use type_converter::{handle_type, until_err};
 
-// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
-pub fn handle_magic() -> syn::Result<TokenStream> {
-    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
-    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
-
-    let mut random = ChaCha20Rng::seed_from_u64(42);
-
+pub fn parse_structures(mut random: &mut ChaCha20Rng, structures: Vec<Structure>) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut structures_err = Ok(());
-    let (structures, rest_structures): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
-        .structures
+    let return_type: (Vec<TokenStream>, Vec<TokenStream>) = structures
         .iter()
         .map(|structure| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
@@ -126,6 +117,18 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         })
         .scan(&mut structures_err, until_err)
         .unzip();
+    structures_err?;
+    Ok(return_type)
+}
+
+// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
+pub fn handle_magic() -> syn::Result<TokenStream> {
+    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
+    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
+
+    let mut random = ChaCha20Rng::seed_from_u64(42);
+
+    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
 
     let mut enumerations_err = Ok(());
     let enumerations = meta_model
@@ -494,7 +497,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         }
     });
-    structures_err?;
     enumerations_err?;
     type_aliases_err?;
     requests_err?;
