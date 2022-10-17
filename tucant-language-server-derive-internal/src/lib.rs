@@ -3,19 +3,20 @@ mod type_converter;
 
 use std::fs;
 
-use derive_more::TryInto;
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use itertools::Itertools;
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
-use schema::{MetaModel, BaseType, Type, BaseTypes, UriOrDocumentUriOrStringOrInteger, MapKeyType, ReferenceType, StructureLiteralType, StringOrIntegerOrUnsignedIntegerLiteral, EnumerationType, TypeOrVecType, MessageDirection, TupleType, ArrayType, MapType, AndType, OrType, IntegerLiteralType, StringLiteralType, BooleanLiteralType};
-use serde::{Deserialize, Serialize};
+use schema::{
+    EnumerationType, MessageDirection, MetaModel, StringOrIntegerOrUnsignedIntegerLiteral,
+    TypeOrVecType,
+};
 
-use sha3::{Digest, Sha3_224};
-use syn::{parse::Nothing, parse_macro_input, Error};
-use type_converter::{until_err, handle_type};
+use sha3::Digest;
+
+use type_converter::{handle_type, until_err};
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
 pub fn handle_magic() -> syn::Result<TokenStream> {
@@ -261,9 +262,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 let (params, request_rest) = match &request.params {
                     Some(TypeOrVecType::Type(_type)) => {
                         let (the_type, rest) = handle_type(&mut random, _type)?;
-                        (quote! {
-                            pub params: #the_type
-                        }, rest) 
+                        (
+                            quote! {
+                                pub params: #the_type
+                            },
+                            rest,
+                        )
                     }
                     Some(TypeOrVecType::VecType(vec_type)) => {
                         let mut params_err = Ok(());
@@ -283,7 +287,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         params_err?;
                         return_value
                     }
-                    None => (quote! { }, quote! {}),
+                    None => (quote! {}, quote! {}),
                 };
                 let request_struct = quote! {
                     #[::serde_with::skip_serializing_none]
@@ -295,8 +299,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #params
                     }
                 };
-                let request_enum =
-                if let MessageDirection::ClientToServer | MessageDirection::Both = request.message_direction
+                let request_enum = if let MessageDirection::ClientToServer
+                | MessageDirection::Both = request.message_direction
                 {
                     quote! {
                         #[serde(rename = #method)]
@@ -305,29 +309,26 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 } else {
                     quote! {}
                 };
-                let response_enum_1 =
-                    if let
-                    | MessageDirection::ServerToClient
-                    | MessageDirection::Both = request.message_direction
-                    {
-                        quote! {
-                            #[serde(rename = #method)]
-                            #name(#name),
-                        }
-                    } else {
-                        quote! {}
-                    };
+                let response_enum_1 = if let MessageDirection::ServerToClient
+                | MessageDirection::Both = request.message_direction
+                {
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
                 let name = format_ident!(
                     "r#{}Response",
                     request.method.replace('_', " ").to_upper_camel_case()
                 );
-                let (result_type, result_type_rest) =
-                    handle_type(&mut random, &request.result)?;
+                let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
                 let (error_type, error_type_rest) = request
                     .error_data
                     .as_ref()
                     .map(|e| -> syn::Result<(TokenStream, TokenStream)> {
-                        let (error_type, rest) = handle_type(&mut random, &e)?;
+                        let (error_type, rest) = handle_type(&mut random, e)?;
                         Ok((
                             quote! {
                                 pub error: Option<#error_type>
@@ -348,18 +349,16 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #error_type
                     }
                 };
-                let response_enum_2 =
-                    if let
-                    | MessageDirection::ServerToClient
-                    | MessageDirection::Both = request.message_direction
-                    {
-                        quote! {
-                            #[serde(rename = #method)]
-                            #name(#name),
-                        }
-                    } else {
-                        quote! {}
-                    };
+                let response_enum_2 = if let MessageDirection::ServerToClient
+                | MessageDirection::Both = request.message_direction
+                {
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
                 Ok((
                     quote! {
                         #request_struct
@@ -381,7 +380,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         .scan(&mut requests_err, until_err)
         .multiunzip();
 
-        let (notifications, notifications_rest, client_to_server_enum, server_to_client_notification): (
+    let (notifications, notifications_rest, client_to_server_enum, server_to_client_notification): (
             Vec<TokenStream>,
             Vec<TokenStream>,
             Vec<TokenStream>,
@@ -457,7 +456,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             )
             .scan(&mut requests_err, until_err)
             .multiunzip();
-    
 
     let return_value = Ok(quote! {
         #(#structures)*

@@ -1,14 +1,20 @@
-use heck::{ToUpperCamelCase, ToSnakeCase};
+use crate::schema::{
+    AndType, ArrayType, BaseType, BaseTypes, BooleanLiteralType, IntegerLiteralType, MapKeyType,
+    MapType, OrType, ReferenceType, StringLiteralType, StructureLiteralType, TupleType, Type,
+    UriOrDocumentUriOrStringOrInteger,
+};
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
 use rand::Rng;
 use rand_chacha::ChaCha20Rng;
-use sha3::Sha3_224;
-use quote::{format_ident, quote};
-use crate::schema::{Type, IntegerLiteralType, BooleanLiteralType, StringLiteralType, BaseType, BaseTypes, ReferenceType, ArrayType, MapType, MapKeyType, UriOrDocumentUriOrStringOrInteger, AndType, OrType, TupleType, StructureLiteralType};
 use sha3::Digest;
+use sha3::Sha3_224;
 
-
-pub fn handle_type(random: &mut ChaCha20Rng, _type: &Type) -> syn::Result<(TokenStream, TokenStream)> {
+pub fn handle_type(
+    random: &mut ChaCha20Rng,
+    _type: &Type,
+) -> syn::Result<(TokenStream, TokenStream)> {
     match _type {
         Type::Base(BaseType { name }) => match name {
             BaseTypes::Uri => Ok((quote! { String }, quote! {})),
