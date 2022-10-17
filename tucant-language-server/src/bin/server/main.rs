@@ -164,7 +164,7 @@ impl Server {
         
         let result = serde_json::to_string(&something)?;
 
-        self.tx.send(result).await;
+        self.tx.send(result).await?;
 
         Ok(rx.await?)
     }
