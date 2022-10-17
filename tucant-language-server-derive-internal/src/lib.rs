@@ -10,8 +10,8 @@ use quote::{format_ident, quote};
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
-    Enumeration, EnumerationType, MessageDirection, MetaModel,
-    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType, Request,
+    Enumeration, EnumerationType, MessageDirection, MetaModel, Notification, Request,
+    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType,
 };
 
 use type_converter::{handle_type, until_err};
@@ -254,110 +254,163 @@ pub fn parse_requests(
     requests: &Vec<Request>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
-    let return_value: (
-        Vec<TokenStream>,
-        Vec<TokenStream>,
-    ) = requests
+    let return_value: (Vec<TokenStream>, Vec<TokenStream>) = requests
         .iter()
-        .map(
-            |request| -> syn::Result<(TokenStream, TokenStream)> {
-                let documentation = request.documentation.as_ref().map(|string| {
-                    quote! {
-                        #[doc = #string]
-                    }
-                });
-                let method = &request.method;
-                let name = format_ident!(
-                    "r#{}Request",
-                    request.method.replace('_', " ").to_upper_camel_case()
-                );
-                let (params, request_rest) = match &request.params {
-                    Some(TypeOrVecType::Type(_type)) => {
-                        let (the_type, rest) = handle_type(&mut random, _type)?;
-                        (
-                            quote! {
-                                pub params: #the_type
-                            },
-                            rest,
-                        )
-                    }
-                    Some(TypeOrVecType::VecType(vec_type)) => {
-                        let mut params_err = Ok(());
-                        let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
-                            .iter()
-                            .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                                handle_type(&mut random, _type)
-                            })
-                            .scan(&mut params_err, until_err)
-                            .unzip();
-                        let return_value = (
-                            quote! {
-                                pub params: (#(#types)*)
-                            },
-                            quote! { #(#rest)* },
-                        );
-                        params_err?;
-                        return_value
-                    }
-                    None => (quote! {}, quote! {}),
-                };
-                let request_struct = quote! {
-                    #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                    #documentation
-                    pub struct #name {
-                        pub jsonrpc: String,
-                        pub id: StringOrNumber,
-                        #params
-                    }
-                };
-                let name = format_ident!(
-                    "r#{}Response",
-                    request.method.replace('_', " ").to_upper_camel_case()
-                );
-                let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
-                let (error_type, error_type_rest) = request
-                    .error_data
-                    .as_ref()
-                    .map(|e| -> syn::Result<(TokenStream, TokenStream)> {
-                        let (error_type, rest) = handle_type(&mut random, e)?;
-                        Ok((
-                            quote! {
-                                pub error: Option<#error_type>
-                            },
-                            rest,
-                        ))
-                    })
-                    .transpose()?
-                    .map_or((None, None), |o| (Some(o.0), Some(o.1)));
-                let response_struct = quote! {
-                    #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                    #documentation
-                    pub struct #name {
-                        pub jsonrpc: String,
-                        pub id: StringOrNumber,
-                        pub result: Option<#result_type>,
-                        #error_type
-                    }
-                };
-                Ok((
-                    quote! {
-                        #request_struct
-                        #response_struct
-                    },
-                    quote! {
-                        #request_rest
-                        #result_type_rest
-                        #error_type_rest
-                    },
-                ))
-            },
-        )
+        .map(|request| -> syn::Result<(TokenStream, TokenStream)> {
+            let documentation = request.documentation.as_ref().map(|string| {
+                quote! {
+                    #[doc = #string]
+                }
+            });
+            let method = &request.method;
+            let name = format_ident!(
+                "r#{}Request",
+                request.method.replace('_', " ").to_upper_camel_case()
+            );
+            let (params, request_rest) = match &request.params {
+                Some(TypeOrVecType::Type(_type)) => {
+                    let (the_type, rest) = handle_type(&mut random, _type)?;
+                    (
+                        quote! {
+                            pub params: #the_type
+                        },
+                        rest,
+                    )
+                }
+                Some(TypeOrVecType::VecType(vec_type)) => {
+                    let mut params_err = Ok(());
+                    let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
+                        .iter()
+                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(&mut random, _type)
+                        })
+                        .scan(&mut params_err, until_err)
+                        .unzip();
+                    let return_value = (
+                        quote! {
+                            pub params: (#(#types)*)
+                        },
+                        quote! { #(#rest)* },
+                    );
+                    params_err?;
+                    return_value
+                }
+                None => (quote! {}, quote! {}),
+            };
+            let request_struct = quote! {
+                #[::serde_with::skip_serializing_none]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #documentation
+                pub struct #name {
+                    pub jsonrpc: String,
+                    pub id: StringOrNumber,
+                    #params
+                }
+            };
+            let name = format_ident!(
+                "r#{}Response",
+                request.method.replace('_', " ").to_upper_camel_case()
+            );
+            let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
+            let (error_type, error_type_rest) = request
+                .error_data
+                .as_ref()
+                .map(|e| -> syn::Result<(TokenStream, TokenStream)> {
+                    let (error_type, rest) = handle_type(&mut random, e)?;
+                    Ok((
+                        quote! {
+                            pub error: Option<#error_type>
+                        },
+                        rest,
+                    ))
+                })
+                .transpose()?
+                .map_or((None, None), |o| (Some(o.0), Some(o.1)));
+            let response_struct = quote! {
+                #[::serde_with::skip_serializing_none]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #documentation
+                pub struct #name {
+                    pub jsonrpc: String,
+                    pub id: StringOrNumber,
+                    pub result: Option<#result_type>,
+                    #error_type
+                }
+            };
+            Ok((
+                quote! {
+                    #request_struct
+                    #response_struct
+                },
+                quote! {
+                    #request_rest
+                    #result_type_rest
+                    #error_type_rest
+                },
+            ))
+        })
         .scan(&mut requests_err, until_err)
         .unzip();
     requests_err?;
-        Ok(return_value)
+    Ok(return_value)
+}
+
+pub fn parse_notifications(
+    mut random: &mut ChaCha20Rng,
+    notifications: &Vec<Notification>,
+) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
+    let mut requests_err = Ok(());
+    let return_type: (Vec<TokenStream>, Vec<TokenStream>) = notifications
+        .iter()
+        .map(|notification| -> syn::Result<(TokenStream, TokenStream)> {
+            let documentation = notification.documentation.as_ref().map(|string| {
+                quote! {
+                    #[doc = #string]
+                }
+            });
+            let method = &notification.method;
+            let name = format_ident!(
+                "r#{}Notification",
+                notification.method.replace('_', " ").to_upper_camel_case()
+            );
+            let (params, rest) = match &notification.params {
+                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                Some(TypeOrVecType::VecType(vec_type)) => {
+                    let mut params_err = Ok(());
+                    let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
+                        .iter()
+                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(&mut random, _type)
+                        })
+                        .scan(&mut params_err, until_err)
+                        .unzip();
+                    let return_value = (
+                        quote! {
+                            (#(#types)*)
+                        },
+                        quote! { #(#rest)* },
+                    );
+                    params_err?;
+                    return_value
+                }
+                None => (quote! { () }, quote! {}),
+            };
+            Ok((
+                quote! {
+                    #[::serde_with::skip_serializing_none]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #documentation
+                    pub struct #name {
+                        pub jsonrpc: String,
+                        pub params: #params
+                    }
+                },
+                rest,
+            ))
+        })
+        .scan(&mut requests_err, until_err)
+        .multiunzip();
+    Ok(return_type)
 }
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
@@ -376,107 +429,74 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     let (requests, requests_rest) = parse_requests(&mut random, &meta_model.requests)?;
 
-    let (request_enum, response_enum): (
-        Vec<TokenStream>,
-        Vec<TokenStream>,
-    ) = meta_model
+    let (request_enum, response_enum): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
         .requests
         .iter()
-        .map(
-            |request| -> (TokenStream, TokenStream) {
-                let method = &request.method;
-                let name = format_ident!(
-                    "r#{}Request",
-                    request.method.replace('_', " ").to_upper_camel_case()
-                );
-                let request_enum = if let MessageDirection::ClientToServer
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
-                let name = format_ident!(
-                    "r#{}Response",
-                    request.method.replace('_', " ").to_upper_camel_case()
-                );
-                let response_enum_1 = if let MessageDirection::ServerToClient
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
-                let response_enum_2 = if let MessageDirection::ServerToClient
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
-                (
-                    request_enum,
-                    quote! {
-                        #response_enum_1
-                        #response_enum_2
-                    },
-                )
-            },
-        )
+        .map(|request| -> (TokenStream, TokenStream) {
+            let method = &request.method;
+            let request_name = format_ident!(
+                "r#{}Request",
+                request.method.replace('_', " ").to_upper_camel_case()
+            );
+            let request_enum = if let MessageDirection::ClientToServer | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #request_name(#request_name),
+                }
+            } else {
+                quote! {}
+            };
+            let response_name = format_ident!(
+                "r#{}Response",
+                request.method.replace('_', " ").to_upper_camel_case()
+            );
+            let response_enum_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #response_name(#response_name),
+                }
+            } else {
+                quote! {}
+            };
+            let response_enum_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #response_name(#response_name),
+                }
+            } else {
+                quote! {}
+            };
+            (
+                request_enum,
+                quote! {
+                    #response_enum_1
+                    #response_enum_2
+                },
+            )
+        })
         .multiunzip();
 
-    let mut requests_err = Ok(());
-    let (notifications, notifications_rest, client_to_server_enum, server_to_client_notification): (
-            Vec<TokenStream>,
-            Vec<TokenStream>,
+    let (notifications, notifications_rest) = parse_notifications(&mut random, &meta_model.notifications)?;
+
+    let (client_to_server_enum, server_to_client_notification): (
             Vec<TokenStream>,
             Vec<TokenStream>,
         ) = meta_model
             .notifications
             .iter()
             .map(
-                |notification| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
-                    let documentation = notification.documentation.as_ref().map(|string| {
-                        quote! {
-                            #[doc = #string]
-                        }
-                    });
+                |notification| -> (TokenStream, TokenStream) {
                     let method = &notification.method;
                     let name = format_ident!(
                         "r#{}Notification",
                         notification.method.replace('_', " ").to_upper_camel_case()
                     );
-                    let (params, rest) = match &notification.params {
-                        Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
-                        Some(TypeOrVecType::VecType(vec_type)) => {
-                            let mut params_err = Ok(());
-                            let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
-                                .iter()
-                                .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                                    handle_type(&mut random, _type)
-                                })
-                                .scan(&mut params_err, until_err)
-                                .unzip();
-                            let return_value = (
-                                quote! {
-                                    (#(#types)*)
-                                },
-                                quote! { #(#rest)* },
-                            );
-                            params_err?;
-                            return_value
-                        }
-                        None => (quote! { () }, quote! {}),
-                    };
                     let client_to_server_notification = if let MessageDirection::ClientToServer | MessageDirection::Both = notification.message_direction {
                         quote! {
                             #[serde(rename = #method)]
@@ -493,24 +513,13 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                     } else {
                         quote! {}
                     };
-                    Ok((
-                        quote! {
-                            #[::serde_with::skip_serializing_none]
-                            #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                            #documentation
-                            pub struct #name {
-                                pub jsonrpc: String,
-                                pub params: #params
-                            }
-                        },
-                        rest,
+                    ( 
                         client_to_server_notification,
                         server_to_client_notification
-                    ))
+                    )
                 },
             )
-            .scan(&mut requests_err, until_err)
-            .multiunzip();
+            .unzip();
 
     let return_value = Ok(quote! {
         #(#structures)*
