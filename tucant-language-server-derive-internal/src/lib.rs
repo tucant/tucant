@@ -11,7 +11,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
     Enumeration, EnumerationType, MessageDirection, MetaModel,
-    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeOrVecType, TypeAlias,
+    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType,
 };
 
 use type_converter::{handle_type, until_err};
@@ -220,7 +220,8 @@ pub fn parse_enumerations(
     Ok(enumerations)
 }
 
-pub fn parse_type_aliases( mut random: &mut ChaCha20Rng,
+pub fn parse_type_aliases(
+    mut random: &mut ChaCha20Rng,
     type_aliases: Vec<TypeAlias>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut type_aliases_err = Ok(());
@@ -244,8 +245,8 @@ pub fn parse_type_aliases( mut random: &mut ChaCha20Rng,
         })
         .scan(&mut type_aliases_err, until_err)
         .unzip();
-        type_aliases_err?;
-        Ok(return_value)
+    type_aliases_err?;
+    Ok(return_value)
 }
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
@@ -259,7 +260,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
 
-    let (type_aliases, rest_type_aliases) = parse_type_aliases(&mut random, meta_model.type_aliases)?;
+    let (type_aliases, rest_type_aliases) =
+        parse_type_aliases(&mut random, meta_model.type_aliases)?;
 
     let mut requests_err = Ok(());
     let (requests, requests_rest, request_enum, response_enum): (
