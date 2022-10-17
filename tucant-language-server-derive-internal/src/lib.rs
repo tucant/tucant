@@ -11,7 +11,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
     Enumeration, EnumerationType, MessageDirection, MetaModel,
-    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType,
+    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType, Request,
 };
 
 use type_converter::{handle_type, until_err};
@@ -249,31 +249,18 @@ pub fn parse_type_aliases(
     Ok(return_value)
 }
 
-// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
-pub fn handle_magic() -> syn::Result<TokenStream> {
-    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
-    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
-
-    let mut random = ChaCha20Rng::seed_from_u64(42);
-
-    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
-
-    let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
-
-    let (type_aliases, rest_type_aliases) =
-        parse_type_aliases(&mut random, meta_model.type_aliases)?;
-
+pub fn parse_requests(
+    mut random: &mut ChaCha20Rng,
+    requests: &Vec<Request>,
+) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
-    let (requests, requests_rest, request_enum, response_enum): (
+    let return_value: (
         Vec<TokenStream>,
         Vec<TokenStream>,
-        Vec<TokenStream>,
-        Vec<TokenStream>,
-    ) = meta_model
-        .requests
+    ) = requests
         .iter()
         .map(
-            |request| -> syn::Result<(TokenStream, TokenStream, TokenStream, TokenStream)> {
+            |request| -> syn::Result<(TokenStream, TokenStream)> {
                 let documentation = request.documentation.as_ref().map(|string| {
                     quote! {
                         #[doc = #string]
@@ -324,26 +311,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #params
                     }
                 };
-                let request_enum = if let MessageDirection::ClientToServer
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
-                let response_enum_1 = if let MessageDirection::ServerToClient
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
                 let name = format_ident!(
                     "r#{}Response",
                     request.method.replace('_', " ").to_upper_camel_case()
@@ -374,16 +341,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #error_type
                     }
                 };
-                let response_enum_2 = if let MessageDirection::ServerToClient
-                | MessageDirection::Both = request.message_direction
-                {
-                    quote! {
-                        #[serde(rename = #method)]
-                        #name(#name),
-                    }
-                } else {
-                    quote! {}
-                };
                 Ok((
                     quote! {
                         #request_struct
@@ -394,17 +351,90 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                         #result_type_rest
                         #error_type_rest
                     },
+                ))
+            },
+        )
+        .scan(&mut requests_err, until_err)
+        .unzip();
+    requests_err?;
+        Ok(return_value)
+}
+
+// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
+pub fn handle_magic() -> syn::Result<TokenStream> {
+    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
+    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
+
+    let mut random = ChaCha20Rng::seed_from_u64(42);
+
+    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
+
+    let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
+
+    let (type_aliases, rest_type_aliases) =
+        parse_type_aliases(&mut random, meta_model.type_aliases)?;
+
+    let (requests, requests_rest) = parse_requests(&mut random, &meta_model.requests)?;
+
+    let (request_enum, response_enum): (
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+    ) = meta_model
+        .requests
+        .iter()
+        .map(
+            |request| -> (TokenStream, TokenStream) {
+                let method = &request.method;
+                let name = format_ident!(
+                    "r#{}Request",
+                    request.method.replace('_', " ").to_upper_camel_case()
+                );
+                let request_enum = if let MessageDirection::ClientToServer
+                | MessageDirection::Both = request.message_direction
+                {
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
+                let name = format_ident!(
+                    "r#{}Response",
+                    request.method.replace('_', " ").to_upper_camel_case()
+                );
+                let response_enum_1 = if let MessageDirection::ServerToClient
+                | MessageDirection::Both = request.message_direction
+                {
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
+                let response_enum_2 = if let MessageDirection::ServerToClient
+                | MessageDirection::Both = request.message_direction
+                {
+                    quote! {
+                        #[serde(rename = #method)]
+                        #name(#name),
+                    }
+                } else {
+                    quote! {}
+                };
+                (
                     request_enum,
                     quote! {
                         #response_enum_1
                         #response_enum_2
                     },
-                ))
+                )
             },
         )
-        .scan(&mut requests_err, until_err)
         .multiunzip();
 
+    let mut requests_err = Ok(());
     let (notifications, notifications_rest, client_to_server_enum, server_to_client_notification): (
             Vec<TokenStream>,
             Vec<TokenStream>,
@@ -519,6 +549,5 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         }
     });
-    requests_err?;
     return_value
 }
