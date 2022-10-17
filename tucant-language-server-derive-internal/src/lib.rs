@@ -262,7 +262,6 @@ pub fn parse_requests(
                     #[doc = #string]
                 }
             });
-            let method = &request.method;
             let name = format_ident!(
                 "r#{}Request",
                 request.method.replace('_', " ").to_upper_camel_case()
@@ -368,7 +367,6 @@ pub fn parse_notifications(
                     #[doc = #string]
                 }
             });
-            let method = &notification.method;
             let name = format_ident!(
                 "r#{}Notification",
                 notification.method.replace('_', " ").to_upper_camel_case()
@@ -457,7 +455,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             {
                 quote! {
                     #[serde(rename = #method)]
-                    #response_name(#response_name),
+                    #request_name(#request_name),
                 }
             } else {
                 quote! {}
