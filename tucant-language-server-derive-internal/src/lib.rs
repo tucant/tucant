@@ -10,13 +10,16 @@ use quote::{format_ident, quote};
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
-    EnumerationType, MessageDirection, MetaModel, StringOrIntegerOrUnsignedIntegerLiteral,
-    TypeOrVecType, Structure,
+    Enumeration, EnumerationType, MessageDirection, MetaModel,
+    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeOrVecType,
 };
 
 use type_converter::{handle_type, until_err};
 
-pub fn parse_structures(mut random: &mut ChaCha20Rng, structures: Vec<Structure>) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
+pub fn parse_structures(
+    mut random: &mut ChaCha20Rng,
+    structures: Vec<Structure>,
+) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut structures_err = Ok(());
     let return_type: (Vec<TokenStream>, Vec<TokenStream>) = structures
         .iter()
@@ -48,6 +51,7 @@ pub fn parse_structures(mut random: &mut ChaCha20Rng, structures: Vec<Structure>
                 .scan(&mut extends_err, until_err)
                 .unzip();
 
+            // TODO FIXME merge this with above?
             let mut mixins_err = Ok(());
             let (mixins, rest2): (Vec<TokenStream>, Vec<TokenStream>) = structure
                 .mixins
@@ -121,18 +125,12 @@ pub fn parse_structures(mut random: &mut ChaCha20Rng, structures: Vec<Structure>
     Ok(return_type)
 }
 
-// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
-pub fn handle_magic() -> syn::Result<TokenStream> {
-    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
-    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
-
-    let mut random = ChaCha20Rng::seed_from_u64(42);
-
-    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
-
+pub fn parse_enumerations(
+    mut random: &mut ChaCha20Rng,
+    enumerations: Vec<Enumeration>,
+) -> syn::Result<Vec<TokenStream>> {
     let mut enumerations_err = Ok(());
-    let enumerations = meta_model
-        .enumerations
+    let enumerations = enumerations
         .iter()
         .map(|enumeration| -> syn::Result<TokenStream> {
             let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
@@ -216,7 +214,22 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 }
             }
         })
-        .scan(&mut enumerations_err, until_err);
+        .scan(&mut enumerations_err, until_err)
+        .collect();
+    enumerations_err?;
+    Ok(enumerations)
+}
+
+// a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
+pub fn handle_magic() -> syn::Result<TokenStream> {
+    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
+    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
+
+    let mut random = ChaCha20Rng::seed_from_u64(42);
+
+    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
+
+    let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
 
     let mut type_aliases_err = Ok(());
     let (type_aliases, rest_type_aliases): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
@@ -497,7 +510,6 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         }
     });
-    enumerations_err?;
     type_aliases_err?;
     requests_err?;
     return_value
