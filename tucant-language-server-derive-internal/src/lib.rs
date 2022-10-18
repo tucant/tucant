@@ -257,6 +257,7 @@ pub fn parse_requests(
     let return_value: (Vec<TokenStream>, Vec<TokenStream>) = requests
         .iter()
         .map(|request| -> syn::Result<(TokenStream, TokenStream)> {
+            let method = request.method;
             let documentation = request.documentation.as_ref().map(|string| {
                 quote! {
                     #[doc = #string]
@@ -264,7 +265,7 @@ pub fn parse_requests(
             });
             let name = format_ident!(
                 "r#{}Request",
-                request.method.replace('_', " ").to_upper_camel_case()
+                method.replace('_', " ").to_upper_camel_case()
             );
             let (params, request_rest) = match &request.params {
                 Some(TypeOrVecType::Type(_type)) => {
@@ -298,6 +299,17 @@ pub fn parse_requests(
                     ()
                 }, quote! {}),
             };
+
+            let response_enum_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #request_name(#request_name),
+                }
+            } else {
+                quote! {}
+            };
             let request_struct = quote! {
                 #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
@@ -318,9 +330,9 @@ pub fn parse_requests(
                     }
                 }
             };
-            let name = format_ident!(
+            let response_name = format_ident!(
                 "r#{}Response",
-                request.method.replace('_', " ").to_upper_camel_case()
+                method.replace('_', " ").to_upper_camel_case()
             );
             let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
             let (error_type, error_type_rest) = request
@@ -341,12 +353,22 @@ pub fn parse_requests(
                 #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
-                pub struct #name {
+                pub struct #response_name {
                     pub jsonrpc: String,
                     pub id: StringOrNumber,
                     pub result: Option<#result_type>,
                     #error_type
                 }
+            };
+            let response_enum_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    #[serde(rename = #method)]
+                    #response_name(#response_name),
+                }
+            } else {
+                quote! {}
             };
             Ok((
                 quote! {
@@ -405,6 +427,11 @@ pub fn parse_notifications(
                 }
                 None => (quote! { () }, quote! {}),
             };
+            if let MessageDirection::ServerToClient
+            | MessageDirection::Both =
+                notification.message_direction {
+                // sendable
+            }
             Ok((
                 quote! {
                     #[::serde_with::skip_serializing_none]
@@ -439,10 +466,10 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     let (requests, requests_rest) = parse_requests(&mut random, &meta_model.requests)?;
 
-    let (request_enum, response_enum): (Vec<TokenStream>, Vec<TokenStream>) = meta_model
+    let request_enum: Vec<TokenStream> = meta_model
         .requests
         .iter()
-        .map(|request| -> (TokenStream, TokenStream) {
+        .map(|request| -> TokenStream {
             let method = &request.method;
             let request_name = format_ident!(
                 "r#{}Request",
@@ -462,46 +489,20 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 "r#{}Response",
                 request.method.replace('_', " ").to_upper_camel_case()
             );
-            let response_enum_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
-                request.message_direction
-            {
-                quote! {
-                    #[serde(rename = #method)]
-                    #request_name(#request_name),
-                }
-            } else {
-                quote! {}
-            };
-            let response_enum_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
-                request.message_direction
-            {
-                quote! {
-                    #[serde(rename = #method)]
-                    #response_name(#response_name),
-                }
-            } else {
-                quote! {}
-            };
-            (
-                request_enum,
-                quote! {
-                    #response_enum_1
-                    #response_enum_2
-                },
-            )
-        })
-        .multiunzip();
+            
+                request_enum
+              
+        }).collect();
 
     let (notifications, notifications_rest) =
         parse_notifications(&mut random, &meta_model.notifications)?;
 
-    let (client_to_server_enum, server_to_client_notification): (
-        Vec<TokenStream>,
-        Vec<TokenStream>,
-    ) = meta_model
+    let client_to_server_enum: 
+        Vec<TokenStream>
+     = meta_model
         .notifications
         .iter()
-        .map(|notification| -> (TokenStream, TokenStream) {
+        .map(|notification| -> TokenStream {
             let method = &notification.method;
             let name = format_ident!(
                 "r#{}Notification",
@@ -518,20 +519,9 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             } else {
                 quote! {}
             };
-            let server_to_client_notification = if let MessageDirection::ServerToClient
-            | MessageDirection::Both =
-                notification.message_direction
-            {
-                quote! {
-                    #[serde(rename = #method)]
-                    #name(#name),
-                }
-            } else {
-                quote! {}
-            };
-            (client_to_server_notification, server_to_client_notification)
+            client_to_server_notification
         })
-        .unzip();
+        .collect();
 
     let return_value = Ok(quote! {
         #(#structures)*
@@ -558,16 +548,9 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             #(#client_to_server_enum)*
         }
 
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-        #[serde(tag = "method")]
-        pub enum OutgoingStuff {
-            #(#server_to_client_notification)*
-            #(#response_enum)*
-        }
-
         use serde::{Deserialize, Serialize};
                 
-        pub trait Requestable {
+        pub trait Sendable {
             type Request: ::serde::Serialize;
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + 'static;
 

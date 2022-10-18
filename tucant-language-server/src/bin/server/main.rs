@@ -193,6 +193,9 @@ impl Server {
                     diagnostics,
                 }),
             };
+
+        self.send_something::<TextDocumentPublishDiagnosticsNotification>(response).await;
+
         Ok(())
     }
 
