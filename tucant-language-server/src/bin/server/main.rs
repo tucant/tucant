@@ -184,7 +184,7 @@ impl Server {
             vec![]
         };
 
-        let response = Responses::TextDocumentPublishDiagnosticsNotification(
+        let response = 
             TextDocumentPublishDiagnosticsNotification {
                 jsonrpc: "2.0".to_string(),
                 params: Box::new(PublishDiagnosticsParams {
@@ -192,8 +192,7 @@ impl Server {
                     version: Some(version),
                     diagnostics,
                 }),
-            },
-        );
+            };
         Ok(())
     }
 
@@ -330,7 +329,7 @@ impl Server {
             let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
             let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
 
-            let response = Responses::WorkspaceApplyEditRequest(WorkspaceApplyEditRequest {
+            let response = WorkspaceApplyEditRequest {
                 jsonrpc: "2.0".to_string(),
                 id: tucant_language_server_derive_output::StringOrNumber::String("1337".to_string()), // TODO FIXME
                 params: Box::new(ApplyWorkspaceEditParams {
@@ -354,7 +353,7 @@ impl Server {
                         change_annotations: None,
                     }),
                 }),
-            });
+            };
 
         },
         _ => {}
@@ -383,13 +382,13 @@ impl Server {
         notification: InitializedNotification,
     ) -> anyhow::Result<()> {
         let notification =
-            Responses::WindowShowMessageNotification(WindowShowMessageNotification {
+            WindowShowMessageNotification {
                 jsonrpc: "2.0".to_string(),
                 params: Box::new(ShowMessageParams {
                     r#type: Box::new(MessageType::Error),
                     message: "This is a test error".to_string(),
                 }),
-            });
+            };
 
         Ok(())
     }
