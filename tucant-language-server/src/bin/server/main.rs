@@ -84,7 +84,7 @@ impl Server {
         Ok(())
     }
 
-    async fn send_something<R: Requestable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
+    async fn send_something<R: Sendable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
         let (tx, rx) = oneshot::channel::<Box<dyn Any + Send + Sync>>();
         
         let id: String = thread_rng()

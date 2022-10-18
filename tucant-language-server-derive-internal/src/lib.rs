@@ -257,13 +257,13 @@ pub fn parse_requests(
     let return_value: (Vec<TokenStream>, Vec<TokenStream>) = requests
         .iter()
         .map(|request| -> syn::Result<(TokenStream, TokenStream)> {
-            let method = request.method;
+            let method = &request.method;
             let documentation = request.documentation.as_ref().map(|string| {
                 quote! {
                     #[doc = #string]
                 }
             });
-            let name = format_ident!(
+            let request_name = format_ident!(
                 "r#{}Request",
                 method.replace('_', " ").to_upper_camel_case()
             );
@@ -299,13 +299,19 @@ pub fn parse_requests(
                     ()
                 }, quote! {}),
             };
-
-            let response_enum_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+            let sendable_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
                 request.message_direction
             {
                 quote! {
-                    #[serde(rename = #method)]
-                    #request_name(#request_name),
+                    impl Sendable for #request_name {
+                        type Request = #params;
+
+                        type Response = ();
+
+                        fn get_request_data(self) -> Self::Request {
+                            self.params
+                        }
+                    }
                 }
             } else {
                 quote! {}
@@ -314,21 +320,13 @@ pub fn parse_requests(
                 #[::serde_with::skip_serializing_none]
                 #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
                 #documentation
-                pub struct #name {
+                pub struct #request_name {
                     pub jsonrpc: String,
                     pub id: StringOrNumber,
                     pub params: #params
                 }
 
-                impl Requestable for #name {
-                    type Request = #params;
-
-                    type Response = ();
-
-                    fn get_request_data(self) -> Self::Request {
-                        self.params
-                    }
-                }
+                #sendable_1
             };
             let response_name = format_ident!(
                 "r#{}Response",
@@ -427,11 +425,23 @@ pub fn parse_notifications(
                 }
                 None => (quote! { () }, quote! {}),
             };
-            if let MessageDirection::ServerToClient
+            let sendable_2 = if let MessageDirection::ServerToClient
             | MessageDirection::Both =
                 notification.message_direction {
-                // sendable
-            }
+                quote! {
+                    impl Sendable for #name {
+                        type Request = #params;
+
+                        type Response = ();
+
+                        fn get_request_data(self) -> Self::Request {
+                            self.params
+                        }
+                    }
+                }
+            } else {
+                quote! {}
+            };
             Ok((
                 quote! {
                     #[::serde_with::skip_serializing_none]
@@ -441,6 +451,8 @@ pub fn parse_notifications(
                         pub jsonrpc: String,
                         pub params: #params
                     }
+
+                    #sendable_2
                 },
                 rest,
             ))
