@@ -64,7 +64,7 @@ impl Server {
 
             println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
-            let request: ReceivedSomething = serde_json::from_slice(&buf)?;
+            let request: IncomingStuff = serde_json::from_slice(&buf)?;
 
             buf.clear();
 
@@ -73,11 +73,10 @@ impl Server {
             // currently most of these are really not safe to run concurrently
             //tokio::spawn(async move {
             match request {
-                ReceivedSomething::RequestType1(request) => {
-                    cloned_self.handle_RequestType1(request).await.unwrap()
+                IncomingStuff::TextDocumentSemanticTokensFullRequest(request) => {
+                    cloned_self.handle_TextDocumentSemanticTokensFullRequest(request).await.unwrap()
                 }
-                ReceivedSomething::RequestType2(_) => todo!(),
-                ReceivedSomething::NotificationType1(_) => todo!(),
+                _ => todo!()
             }
             //});
         }
@@ -95,21 +94,19 @@ impl Server {
         Ok(())
     }
 
-    // TODO siehe "Documents/rust-testing"
-
-    // TODO FIXME create such a method for every type and don't use the enum then (at least not for the caller).
-    async fn send_something(self: Arc<Self>, something: SendSomething) -> anyhow::Result<String> {
-        let (tx, rx) = oneshot::channel();
-        match something {
-            SendSomething::RequestType1(ref request) => {
-                let mut pending = self.pending.write().await;
-                pending.insert(request.id.clone(), tx);
-            },
-            SendSomething::RequestType2(_) => todo!(),
-            SendSomething::NotificationType1(_) => todo!(),
-        }
+    async fn send_something<R: Requestable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
+        let (tx, rx) = oneshot::channel::<R::Response>();
         
-        let result = serde_json::to_string(&something)?;
+        let id: String = thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(30)
+                .map(char::from)
+                .collect();
+        
+        let mut pending = self.pending.write().await;
+        pending.insert(id.clone(), tx);
+        
+        let result = serde_json::to_string(&request)?; // TODO FIXME write id in here etc
 
         self.tx.send(result).await?;
 

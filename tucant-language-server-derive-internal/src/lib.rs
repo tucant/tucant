@@ -555,20 +555,17 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         use serde::{Deserialize, Serialize};
 
-        #[derive(Serialize, Deserialize, Debug)]
-        pub struct Request<Req, Res> {
-            id: String,
-            pub params: Req,
-            phantom_data: ::core::marker::PhantomData<Res>,
+        pub trait Requestable {
+            type Request: ::serde::Serialize;
+            type Response: ::serde::Serialize;
+        
+            fn get_request_data(self) -> Self::Request;
         }
 
+        /*
         impl<Req, Res> Request<Req, Res> {
             pub fn new(value: Req) -> Self {
-                let rand_string: String = thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(30)
-                .map(char::from)
-                .collect();
+                
                 Self {
                     id: rand_string,
                     params: value,
@@ -576,10 +573,11 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 }
             }
 
-            /*pub async fn respond(&self, handler: ::std::sync::Arc<Server>, value: Res) {
+            pub async fn respond(&self, handler: ::std::sync::Arc<Server>, value: Res) {
                 
-            }*/
+            }
         }
+        */
 
         #[derive(Serialize, Deserialize, Debug)]
         pub struct Notification<T> {
