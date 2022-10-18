@@ -1,6 +1,8 @@
 mod parser;
 
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec, marker::PhantomData, any::Any};
+use std::{
+    any::Any, collections::HashMap, future::Future, marker::PhantomData, pin::Pin, sync::Arc, vec,
+};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -73,10 +75,11 @@ impl Server {
             // currently most of these are really not safe to run concurrently
             //tokio::spawn(async move {
             match request {
-                IncomingStuff::TextDocumentSemanticTokensFullRequest(request) => {
-                    cloned_self.handle_TextDocumentSemanticTokensFullRequest(request).await.unwrap()
-                }
-                _ => todo!()
+                IncomingStuff::TextDocumentSemanticTokensFullRequest(request) => cloned_self
+                    .handle_TextDocumentSemanticTokensFullRequest(request)
+                    .await
+                    .unwrap(),
+                _ => todo!(),
             }
             //});
         }
@@ -84,18 +87,21 @@ impl Server {
         Ok(())
     }
 
-    async fn send_something<R: Sendable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
+    async fn send_something<R: Sendable>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<R::Response> {
         let (tx, rx) = oneshot::channel::<Box<dyn Any + Send + Sync>>();
-        
+
         let id: String = thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(30)
-                .map(char::from)
-                .collect();
-        
+            .sample_iter(&Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+
         let mut pending = self.pending.write().await;
         pending.insert(id.clone(), tx);
-        
+
         let result = serde_json::to_string(&request)?; // TODO FIXME write id in here etc
 
         self.tx.send(result).await?;
@@ -185,12 +191,13 @@ impl Server {
         };
 
         let response = PublishDiagnosticsParams {
-                    uri,
-                    version: Some(version),
-                    diagnostics,
+            uri,
+            version: Some(version),
+            diagnostics,
         };
 
-        self.send_something::<TextDocumentPublishDiagnosticsNotification>(response).await?;
+        self.send_something::<TextDocumentPublishDiagnosticsNotification>(response)
+            .await?;
 
         Ok(())
     }
@@ -248,7 +255,10 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_ShutdownRequest(self: Arc<Self>, request: ShutdownRequest) -> anyhow::Result<()> {
+    async fn handle_ShutdownRequest(
+        self: Arc<Self>,
+        request: ShutdownRequest,
+    ) -> anyhow::Result<()> {
         let response = ShutdownResponse {
             jsonrpc: "2.0".to_string(),
             id: request.id,
@@ -380,14 +390,13 @@ impl Server {
         self: Arc<Self>,
         notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        let notification =
-            WindowShowMessageNotification {
-                jsonrpc: "2.0".to_string(),
-                params: ShowMessageParams {
-                    r#type: MessageType::Error,
-                    message: "This is a test error".to_string(),
-                },
-            };
+        let notification = WindowShowMessageNotification {
+            jsonrpc: "2.0".to_string(),
+            params: ShowMessageParams {
+                r#type: MessageType::Error,
+                message: "This is a test error".to_string(),
+            },
+        };
 
         Ok(())
     }
