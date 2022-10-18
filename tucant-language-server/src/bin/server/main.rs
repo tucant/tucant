@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec, marker::PhantomData};
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc, vec, marker::PhantomData, any::Any};
 
 use clap::Parser;
 use itertools::Itertools;
@@ -33,7 +33,7 @@ struct Args {
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
-    pending: RwLock<HashMap<String, oneshot::Sender<String>>>,
+    pending: RwLock<HashMap<String, oneshot::Sender<Box<dyn Any>>>>,
     tx: mpsc::Sender<String>,
 }
 
@@ -95,7 +95,7 @@ impl Server {
     }
 
     async fn send_something<R: Requestable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<R::Response>();
+        let (tx, rx) = oneshot::channel::<Box<R::Response>>();
         
         let id: String = thread_rng()
                 .sample_iter(&Alphanumeric)

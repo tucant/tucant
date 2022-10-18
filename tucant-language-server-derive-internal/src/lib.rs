@@ -554,11 +554,11 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         use serde::{Deserialize, Serialize};
-
+                
         pub trait Requestable {
             type Request: ::serde::Serialize;
-            type Response: ::serde::Serialize;
-        
+            type Response: Any + ::serde::Serialize + 'static;
+
             fn get_request_data(self) -> Self::Request;
         }
 
