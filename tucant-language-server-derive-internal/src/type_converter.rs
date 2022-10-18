@@ -29,7 +29,12 @@ pub fn handle_type(
         },
         Type::Reference(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name.to_upper_camel_case());
-            Ok((quote! { Box<#name> }, quote! {}))
+            // TODO FIXME decide Boxed - this is still not optimal, only the parent place needs to me non-recursive
+            if name.to_string() == "r#SelectionRange" {
+                Ok((quote! { Box<#name> }, quote! {}))
+            } else {
+                Ok((quote! { #name }, quote! {}))
+            }
         }
         Type::Array(ArrayType { element }) => {
             let (element, rest) = handle_type(random, element)?;
@@ -52,7 +57,8 @@ pub fn handle_type(
                 } => quote! { i64 },
                 MapKeyType::Reference(ReferenceType { name }) => {
                     let name = format_ident!("r#{}", name.to_upper_camel_case());
-                    quote! { Box<#name> }
+                    // TODO FIXME decide boxed
+                    quote! { #name }
                 }
             };
             Ok((
