@@ -271,7 +271,7 @@ pub fn parse_requests(
                     let (the_type, rest) = handle_type(&mut random, _type)?;
                     (
                         quote! {
-                            pub params: #the_type
+                            #the_type
                         },
                         rest,
                     )
@@ -287,14 +287,16 @@ pub fn parse_requests(
                         .unzip();
                     let return_value = (
                         quote! {
-                            pub params: (#(#types)*)
+                            (#(#types)*)
                         },
                         quote! { #(#rest)* },
                     );
                     params_err?;
                     return_value
                 }
-                None => (quote! {}, quote! {}),
+                None => (quote! {
+                    ()
+                }, quote! {}),
             };
             let request_struct = quote! {
                 #[::serde_with::skip_serializing_none]
@@ -303,7 +305,17 @@ pub fn parse_requests(
                 pub struct #name {
                     pub jsonrpc: String,
                     pub id: StringOrNumber,
-                    #params
+                    pub params: #params
+                }
+
+                impl Requestable for #name {
+                    type Request = #params;
+
+                    type Response = ();
+
+                    fn get_request_data(self) -> Self::Request {
+                        self.params
+                    }
                 }
             };
             let name = format_ident!(
@@ -557,7 +569,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 
         pub trait Requestable {
             type Request: ::serde::Serialize;
-            type Response: ::core::any::Any + ::serde::Serialize + 'static;
+            type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + 'static;
 
             fn get_request_data(self) -> Self::Request;
         }

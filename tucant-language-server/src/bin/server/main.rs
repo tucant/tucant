@@ -33,7 +33,7 @@ struct Args {
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
-    pending: RwLock<HashMap<String, oneshot::Sender<Box<dyn Any>>>>,
+    pending: RwLock<HashMap<String, oneshot::Sender<Box<dyn Any + Send + Sync>>>>,
     tx: mpsc::Sender<String>,
 }
 
@@ -84,18 +84,8 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> anyhow::Result<()> {
-        request
-            .respond(self.clone(), format!("hello {}", request.params).to_string())
-            .await;
-
-        self.send_something(SendSomething::NotificationType1(Notification::new(5))).await?;
-
-        Ok(())
-    }
-
     async fn send_something<R: Requestable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Box<dyn Any>>();
+        let (tx, rx) = oneshot::channel::<Box<dyn Any + Send + Sync>>();
         
         let id: String = thread_rng()
                 .sample_iter(&Alphanumeric)
