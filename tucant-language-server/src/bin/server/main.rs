@@ -38,6 +38,128 @@ pub struct Server {
 }
 
 impl Server {
+    async fn handle_receiving<R: AsyncBufRead + std::marker::Unpin>(
+        self: Arc<Self>,
+        mut reader: R,
+    ) -> anyhow::Result<()> {
+        let mut buf = Vec::new();
+        loop {
+            reader.read_until(b'\n', &mut buf).await?;
+
+            if buf == [13, 10] {
+                break;
+            }
+
+            let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
+
+            assert!(key == b"Content-Length");
+
+            let length_string = std::str::from_utf8(value).unwrap().trim();
+
+            let length = length_string.parse::<usize>().unwrap() + 2;
+
+            buf.resize(length, 0);
+
+            reader.read_exact(&mut buf).await?;
+
+            println!("read: {}", std::str::from_utf8(&buf).unwrap());
+
+            let request: ReceivedSomething = serde_json::from_slice(&buf)?;
+
+            buf.clear();
+
+            let cloned_self = self.clone();
+
+            // currently most of these are really not safe to run concurrently
+            //tokio::spawn(async move {
+            match request {
+                ReceivedSomething::RequestType1(request) => {
+                    cloned_self.handle_RequestType1(request).await.unwrap()
+                }
+                ReceivedSomething::RequestType2(_) => todo!(),
+                ReceivedSomething::NotificationType1(_) => todo!(),
+            }
+            //});
+        }
+
+        Ok(())
+    }
+
+    async fn handle_RequestType1(self: Arc<Self>, request: Request<i32, String>) -> anyhow::Result<()> {
+        request
+            .respond(self.clone(), format!("hello {}", request.params).to_string())
+            .await;
+
+        self.send_something(SendSomething::NotificationType1(Notification::new(5))).await?;
+
+        Ok(())
+    }
+
+    // TODO siehe "Documents/rust-testing"
+
+    // TODO FIXME create such a method for every type and don't use the enum then (at least not for the caller).
+    async fn send_something(self: Arc<Self>, something: SendSomething) -> anyhow::Result<String> {
+        let (tx, rx) = oneshot::channel();
+        match something {
+            SendSomething::RequestType1(ref request) => {
+                let mut pending = self.pending.write().await;
+                pending.insert(request.id.clone(), tx);
+            },
+            SendSomething::RequestType2(_) => todo!(),
+            SendSomething::NotificationType1(_) => todo!(),
+        }
+        
+        let result = serde_json::to_string(&something)?;
+
+        self.tx.send(result).await?;
+
+        Ok(rx.await?)
+    }
+
+    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
+        self: Arc<Self>,
+        mut sender: W,
+        mut rx: mpsc::Receiver<String>,
+    ) -> anyhow::Result<()> {
+        while let Some(result) = rx.recv().await {
+            sender
+                .write_all(
+                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                )
+                .await?;
+
+            sender.write_all(result.as_bytes()).await?;
+
+            sender.flush().await?;
+        }
+
+        Ok(())
+    }
+
+    async fn main_internal<
+        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
+        W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
+    >(
+        read: R,
+        write: W,
+    ) -> anyhow::Result<()> {
+        let (tx, rx) = mpsc::channel::<String>(3);
+
+        let arc_self = Arc::new(Self {
+            documents: RwLock::new(HashMap::new()),
+            pending: RwLock::new(HashMap::new()),
+            tx,
+        });
+
+        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
+        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
+
+        handle1.await??;
+        handle2.await??;
+
+        Ok(())
+    }
+
     pub async fn recalculate_diagnostics(
         self: Arc<Self>,
         content: &str,
