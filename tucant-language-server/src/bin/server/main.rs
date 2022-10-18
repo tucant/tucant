@@ -95,7 +95,7 @@ impl Server {
     }
 
     async fn send_something<R: Requestable>(self: Arc<Self>, request: R::Request) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Box<R::Response>>();
+        let (tx, rx) = oneshot::channel::<Box<dyn Any>>();
         
         let id: String = thread_rng()
                 .sample_iter(&Alphanumeric)
@@ -110,7 +110,7 @@ impl Server {
 
         self.tx.send(result).await?;
 
-        Ok(rx.await?)
+        Ok(*rx.await?.downcast().unwrap())
     }
 
     async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
