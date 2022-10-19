@@ -1,8 +1,6 @@
-use std::{fmt::Debug, ops::Index, str::CharIndices};
+use std::fmt::Debug;
 
 use itertools::Itertools;
-use once_cell::sync::Lazy;
-use regex::Regex;
 
 #[derive(Clone, Copy)]
 pub struct Span<'a, T: Debug> {
@@ -27,11 +25,10 @@ fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usi
 }
 
 pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
-    let the_line = string.lines().skip(line).next().unwrap();
+    let the_line = string.lines().nth(line).unwrap();
     let line_offset = the_line
         .char_indices()
-        .skip(column)
-        .next()
+        .nth(column)
         .map(|(offset, _)| offset)
         .unwrap_or(the_line.len());
     the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
@@ -74,7 +71,7 @@ impl<'a, T: Debug> Span<'a, T> {
 // TODO FIXME remove this as it just makes it less transparent
 impl<'a> Into<&'a str> for Span<'a, ()> {
     fn into(self) -> &'a str {
-        &self.string
+        self.string
     }
 }
 
@@ -243,7 +240,7 @@ fn parse_whitespace<'a>(
     let input_str = Into::<&'a str>::into(input);
     let pos = input_str
         .char_indices()
-        .find_or_last(|(offset, character)| !character.is_whitespace())
+        .find_or_last(|(_offset, character)| !character.is_whitespace())
         .map(|(offset, _)| offset)
         .unwrap_or(0);
     let (whitespace_str, rest_str) = input_str.split_at(pos);
@@ -367,7 +364,7 @@ pub fn visitor<'a>(
                 0,
             )))
         }
-        AST::List(list) => Box::new(list.iter().flat_map(|elem| visitor(elem))),
+        AST::List(list) => Box::new(list.iter().flat_map(visitor)),
     }
 }
 
@@ -386,45 +383,45 @@ pub fn parse_ast<'a>(
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
-        Some((_, '"', _)) => parse_string(input).and_then(|v| {
-            Ok((
+        Some((_, '"', _)) => parse_string(input).map(|v| {
+            (
                 Span {
                     inner: AST::String(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            ))
+            )
         }),
-        Some((_, '0'..='9', _)) => parse_number(input).and_then(|v| {
-            Ok((
+        Some((_, '0'..='9', _)) => parse_number(input).map(|v| {
+            (
                 Span {
                     inner: AST::Number(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            ))
+            )
         }),
-        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).and_then(|v| {
-            Ok((
+        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
+            (
                 Span {
                     inner: AST::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            ))
+            )
         }),
-        Some((_, '(', _)) => parse_list(input).and_then(|v| {
-            Ok((
+        Some((_, '(', _)) => parse_list(input).map(|v| {
+            (
                 Span {
                     inner: AST::List(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
                 v.1,
-            ))
+            )
         }),
         Some((start, _, end)) => Err(Error {
             location: Span {
@@ -456,7 +453,7 @@ pub fn parse_ast<'a>(
 }
 
 pub fn parse_root<'a>(
-    mut input: Span<'a, ()>,
+    input: Span<'a, ()>,
 ) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
     let (ast, rest) = parse_ast(input)?;
     if !rest.string.is_empty() {
