@@ -295,9 +295,12 @@ pub fn parse_requests(
                     params_err?;
                     return_value
                 }
-                None => (quote! {
-                    ()
-                }, quote! {}),
+                None => (
+                    quote! {
+                        ()
+                    },
+                    quote! {},
+                ),
             };
             let sendable_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
                 request.message_direction
@@ -425,9 +428,9 @@ pub fn parse_notifications(
                 }
                 None => (quote! { () }, quote! {}),
             };
-            let sendable_2 = if let MessageDirection::ServerToClient
-            | MessageDirection::Both =
-                notification.message_direction {
+            let sendable_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+                notification.message_direction
+            {
                 quote! {
                     impl Sendable for #name {
                         type Request = #params;
@@ -501,17 +504,15 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 "r#{}Response",
                 request.method.replace('_', " ").to_upper_camel_case()
             );
-            
-                request_enum
-              
-        }).collect();
+
+            request_enum
+        })
+        .collect();
 
     let (notifications, notifications_rest) =
         parse_notifications(&mut random, &meta_model.notifications)?;
 
-    let client_to_server_enum: 
-        Vec<TokenStream>
-     = meta_model
+    let client_to_server_enum: Vec<TokenStream> = meta_model
         .notifications
         .iter()
         .map(|notification| -> TokenStream {
@@ -561,30 +562,13 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         use serde::{Deserialize, Serialize};
-                
+
         pub trait Sendable {
             type Request: ::serde::Serialize;
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + 'static;
 
             fn get_request_data(self) -> Self::Request;
         }
-
-        /*
-        impl<Req, Res> Request<Req, Res> {
-            pub fn new(value: Req) -> Self {
-                
-                Self {
-                    id: rand_string,
-                    params: value,
-                    phantom_data: ::core::marker::PhantomData,
-                }
-            }
-
-            pub async fn respond(&self, handler: ::std::sync::Arc<Server>, value: Res) {
-                
-            }
-        }
-        */
 
         #[derive(Serialize, Deserialize, Debug)]
         pub struct Notification<T> {
