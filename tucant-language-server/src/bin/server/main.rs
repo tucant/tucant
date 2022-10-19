@@ -136,8 +136,6 @@ impl Server {
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<()> {
-        let (tx, rx) = oneshot::channel::<Value>();
-
         #[derive(Serialize, Debug)]
         struct TestNotification<T: Serialize> {
             jsonrpc: String,
@@ -155,7 +153,7 @@ impl Server {
 
         self.tx.send(result).await?;
 
-        Ok(serde_json::from_value(rx.await?).unwrap())
+        Ok(())
     }
 
     async fn send_response<R: Receivable>(
@@ -287,8 +285,9 @@ impl Server {
         let document = if let Some(document) = document {
             document.clone()
         } else {
-            tokio::fs::read_to_string(request.params.text_document.uri).await?
+            tokio::fs::read_to_string(&request.params.text_document.uri).await?
         };
+        drop(documents);
 
         let span = Span::new(&document);
         let value = match parse_root(span) {
@@ -315,18 +314,15 @@ impl Server {
             })
             .collect::<Vec<_>>();
 
-        let response = TextDocumentSemanticTokensFullResponse {
-            jsonrpc: "2.0".to_string(),
-            id: request.id,
-            result: Some(
+        let response = 
                 He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
                     SemanticTokens {
                         result_id: None,
                         data: result,
                     },
-                ),
-            ),
-        };
+                );
+
+        self.send_response(request, response).await.unwrap();
 
         Ok(())
     }
@@ -335,11 +331,7 @@ impl Server {
         self: Arc<Self>,
         request: ShutdownRequest,
     ) -> anyhow::Result<()> {
-        let response = ShutdownResponse {
-            jsonrpc: "2.0".to_string(),
-            id: request.id,
-            result: Some(()),
-        };
+        self.send_response(request, ()).await.unwrap();
 
         Ok(())
     }
@@ -406,51 +398,48 @@ impl Server {
             document.clone(),
         );
 
-        println!("change notification");
-
-        if notification.params.content_changes.len() == 1 {
-            match notification.params.content_changes[0] {
-        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
-            let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
-            let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
-
-            let response = WorkspaceApplyEditRequest {
-                jsonrpc: "2.0".to_string(),
-                id: tucant_language_server_derive_output::StringOrNumber::String("1337".to_string()), // TODO FIXME
-                params: ApplyWorkspaceEditParams {
-                    label: Some("insert matching paren".to_string()),
-                    edit: WorkspaceEdit {
-                        changes: None,
-                        document_changes: Some(vec![
-                            H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf::Variant0(TextDocumentEdit {
-                                text_document: OptionalVersionedTextDocumentIdentifier {
-                                    variant0: TextDocumentIdentifier { uri: notification.params.text_document.variant0.uri.clone() },
-                                    version: Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec::Variant0(notification.params.text_document.version)
-                                },
-                                edits: vec![
-                                    Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(TextEdit {
-                                        range: Range { start: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }, end: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character } },
-                                        new_text: r#"""#.to_string()
-                                    })
-                                ]
-                            })
-                        ]),
-                        change_annotations: None,
-                    },
-                },
-            };
-
-        },
-        _ => {}
-    }
-        }
-
         let contents = documents
             .get(&notification.params.text_document.variant0.uri)
             .unwrap()
             .clone();
 
         drop(documents);
+
+        println!("change notification");
+
+        if notification.params.content_changes.len() == 1 {
+            match notification.params.content_changes[0] {
+                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
+                    let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                    let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+
+                    let response = ApplyWorkspaceEditParams {
+                        label: Some("insert matching paren".to_string()),
+                        edit: WorkspaceEdit {
+                            changes: None,
+                            document_changes: Some(vec![
+                                H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf::Variant0(TextDocumentEdit {
+                                    text_document: OptionalVersionedTextDocumentIdentifier {
+                                        variant0: TextDocumentIdentifier { uri: notification.params.text_document.variant0.uri.clone() },
+                                        version: Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec::Variant0(notification.params.text_document.version)
+                                    },
+                                    edits: vec![
+                                        Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(TextEdit {
+                                            range: Range { start: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }, end: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character } },
+                                            new_text: r#"""#.to_string()
+                                        })
+                                    ]
+                                })
+                            ]),
+                            change_annotations: None,
+                        }
+                    };
+
+                    self.clone().send_request::<WorkspaceApplyEditRequest>(response);
+                },
+                _ => {}
+            }
+        }
 
         self.recalculate_diagnostics(
             &contents,
@@ -478,7 +467,6 @@ impl Server {
     }
 
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
-        // TODO FIXME respond method on the request?
         let result = InitializeResult {
             capabilities: ServerCapabilities {
                 position_encoding: None,
