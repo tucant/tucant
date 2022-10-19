@@ -81,12 +81,28 @@ impl Server {
                     .handle_text_document_semantic_tokens_full_request(request)
                     .await
                     .unwrap(),
-                IncomingStuff::ShutdownRequest(request) => cloned_self.handle_shutdown_request(request).await.unwrap(),
-                IncomingStuff::TextDocumentDidOpenNotification(notification) => cloned_self.handle_text_document_did_open_notification(notification).await.unwrap(),
-                IncomingStuff::TextDocumentDidCloseNotification(notification) => cloned_self.handle_text_document_did_close_notification(notification).await.unwrap(),
-                IncomingStuff::TextDocumentDidChangeNotification(notification) => cloned_self.handle_text_document_did_change_notification(notification).await.unwrap(),
-                IncomingStuff::InitializeRequest(request) => cloned_self.handle_initialize(request).await.unwrap(),
-                IncomingStuff::InitializedNotification(notification) => cloned_self.handle_initialized_notification(notification).await.unwrap(),
+                IncomingStuff::ShutdownRequest(request) => {
+                    cloned_self.handle_shutdown_request(request).await.unwrap()
+                }
+                IncomingStuff::TextDocumentDidOpenNotification(notification) => cloned_self
+                    .handle_text_document_did_open_notification(notification)
+                    .await
+                    .unwrap(),
+                IncomingStuff::TextDocumentDidCloseNotification(notification) => cloned_self
+                    .handle_text_document_did_close_notification(notification)
+                    .await
+                    .unwrap(),
+                IncomingStuff::TextDocumentDidChangeNotification(notification) => cloned_self
+                    .handle_text_document_did_change_notification(notification)
+                    .await
+                    .unwrap(),
+                IncomingStuff::InitializeRequest(request) => {
+                    cloned_self.handle_initialize(request).await.unwrap()
+                }
+                IncomingStuff::InitializedNotification(notification) => cloned_self
+                    .handle_initialized_notification(notification)
+                    .await
+                    .unwrap(),
                 _ => todo!(),
             }
             //});
@@ -112,7 +128,7 @@ impl Server {
             jsonrpc: String,
             id: String,
             method: String,
-            params: T
+            params: T,
         }
 
         let request = TestRequest::<R::Request> {
@@ -140,7 +156,7 @@ impl Server {
         struct TestNotification<T: Serialize> {
             jsonrpc: String,
             method: String,
-            params: T
+            params: T,
         }
 
         let request = TestNotification::<R::Request> {
@@ -166,7 +182,7 @@ impl Server {
             jsonrpc: String,
             id: StringOrNumber,
             method: String,
-            result: T
+            result: T,
         }
 
         let request = TestResponse::<R::Response> {
@@ -296,8 +312,8 @@ impl Server {
         };
 
         let result = std::iter::once((0, 0, 0, 0, 0))
-        .chain(visitor(&value))
-        .zip(visitor(&value))
+            .chain(visitor(&value))
+            .zip(visitor(&value))
             .flat_map(|(last, this)| {
                 vec![
                     this.0 - last.0,
@@ -313,14 +329,11 @@ impl Server {
             })
             .collect::<Vec<_>>();
 
-        let response = 
-                He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(
-                    SemanticTokens {
-                        result_id: None,
-                        data: result,
-                    },
-                );
-            
+        let response =
+            He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4::Variant0(SemanticTokens {
+                result_id: None,
+                data: result,
+            });
 
         self.send_response(request, response).await.unwrap();
 
