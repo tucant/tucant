@@ -350,7 +350,7 @@ pub fn parse_requests(
                         }
 
                         fn id(&self) -> &StringOrNumber {
-                            self.id
+                            &self.id
                         }
                     }
                 }
@@ -375,7 +375,7 @@ pub fn parse_requests(
                         }
 
                         fn id(&self) -> &StringOrNumber {
-                            self.id
+                            &self.id
                         }
                     }
                 }
@@ -457,10 +457,8 @@ pub fn parse_notifications(
                 notification.message_direction
             {
                 quote! {
-                    impl Sendable for #name {
+                    impl SendableAndForget for #name {
                         type Request = #params;
-
-                        type Response = ();
 
                         fn get_request_data(self) -> Self::Request {
                             self.params
@@ -468,10 +466,6 @@ pub fn parse_notifications(
 
                         fn name() -> String {
                             #method.to_string()
-                        }
-
-                        fn id(&self) -> &StringOrNumber {
-                            self.id
                         }
                     }
                 }
@@ -580,7 +574,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #(#notifications)*
         #(#notifications_rest)*
 
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
         #[serde(untagged)]
         pub enum StringOrNumber {
             String(String),
@@ -605,6 +599,14 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             fn name() -> String; // TODO 'static str
 
             fn id(&self) -> &StringOrNumber;
+        }
+
+        pub trait SendableAndForget {
+            type Request: ::serde::Serialize;
+
+            fn get_request_data(self) -> Self::Request;
+
+            fn name() -> String; // TODO 'static str
         }
 
         pub trait Receivable {

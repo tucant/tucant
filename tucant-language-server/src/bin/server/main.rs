@@ -89,7 +89,7 @@ impl Server {
         Ok(())
     }
 
-    async fn send_something<R: Sendable>(
+    async fn send_request<R: Sendable>(
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {
@@ -126,6 +126,32 @@ impl Server {
         Ok(serde_json::from_value(rx.await?).unwrap())
     }
 
+    async fn send_notification<R: SendableAndForget>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<()> {
+        let (tx, rx) = oneshot::channel::<Value>();
+
+        #[derive(Serialize, Debug)]
+        struct TestNotification<T: Serialize> {
+            jsonrpc: String,
+            method: String,
+            params: T
+        }
+
+        let request = TestNotification::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            method: R::name(),
+            params: request,
+        };
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(serde_json::from_value(rx.await?).unwrap())
+    }
+
     async fn send_response<R: Receivable>(
         self: Arc<Self>,
         request: R,
@@ -134,14 +160,14 @@ impl Server {
         #[derive(Serialize, Debug)]
         struct TestResponse<T: Serialize> {
             jsonrpc: String,
-            id: String,
+            id: StringOrNumber,
             method: String,
             result: T
         }
 
         let request = TestResponse::<R::Response> {
             jsonrpc: "2.0".to_string(),
-            id: request.id(),
+            id: request.id().clone(),
             method: R::name(),
             result: response,
         };
@@ -240,7 +266,7 @@ impl Server {
             diagnostics,
         };
 
-        self.send_something::<TextDocumentPublishDiagnosticsNotification>(response)
+        self.send_notification::<TextDocumentPublishDiagnosticsNotification>(response)
             .await?;
 
         Ok(())
@@ -439,7 +465,7 @@ impl Server {
             message: "This is a test error".to_string(),
         };
 
-        self.send_something::<WindowShowMessageNotification>(notification)
+        self.send_notification::<WindowShowMessageNotification>(notification)
             .await?;
 
         Ok(())
