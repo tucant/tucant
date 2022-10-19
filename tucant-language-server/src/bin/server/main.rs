@@ -326,16 +326,16 @@ impl Server {
 
         for change in notification.params.content_changes.iter() {
             match change {
-        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
-            let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
-            let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
+                    let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                    let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
 
-            document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
-        },
-        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
-            documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
-        },
-    }
+                    document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
+                },
+                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
+                    documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
+                },
+            }
         }
 
         documents.insert(
@@ -403,13 +403,13 @@ impl Server {
         self: Arc<Self>,
         notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        let notification = WindowShowMessageNotification {
-            jsonrpc: "2.0".to_string(),
-            params: ShowMessageParams {
-                r#type: MessageType::Error,
-                message: "This is a test error".to_string(),
-            },
+        let notification = ShowMessageParams {
+            r#type: MessageType::Error,
+            message: "This is a test error".to_string(),
         };
+
+        self.send_something::<WindowShowMessageNotification>(notification)
+            .await?;
 
         Ok(())
     }
@@ -417,69 +417,92 @@ impl Server {
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         // TODO FIXME respond method on the request?
         let result = InitializeResult {
-                capabilities: ServerCapabilities {
-                    position_encoding: None,
-                    text_document_sync: Some(H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(TextDocumentSyncOptions {
-                        open_close: Some(true),
-                        will_save: None,
-                        will_save_wait_until: None,
-                        change: Some(TextDocumentSyncKind::Incremental),
-                        save: None, // TODO FIXME
-                    })),
-                    notebook_document_sync: None,
-                    completion_provider: None,/*Some(Box::new(CompletionOptions {
-                        variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
-                        trigger_characters: Some(vec![r#"""#.to_string()]),
-                        all_commit_characters: Some(vec![r#"""#.to_string()]),
-                        resolve_provider: None,
-                        completion_item: None,
-                    })),*/
-                    hover_provider: None,
-                    signature_help_provider: None,
-                    declaration_provider: None,
-                    definition_provider: None,
-                    type_definition_provider: None,
-                    implementation_provider: None,
-                    references_provider: None,
-                    document_highlight_provider: None,
-                    document_symbol_provider: None,
-                    code_action_provider: None,
-                    code_lens_provider: None,
-                    document_link_provider: None,
-                    color_provider: None,
-                    workspace_symbol_provider: None,
-                    document_formatting_provider: None,
-                    document_range_formatting_provider: None,
-                    document_on_type_formatting_provider: None, /*Some(Box::new(DocumentOnTypeFormattingOptions {
-                        first_trigger_character: r#"""#.to_string(),
-                        more_trigger_character: None,
-                    })),*/
-                    rename_provider: None,
-                    folding_range_provider: None,
-                    selection_range_provider: None,
-                    execute_command_provider: None,
-                    call_hierarchy_provider: None,
-                    linked_editing_range_provider: None,
-                    semantic_tokens_provider: Some(Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552::Variant0(SemanticTokensOptions {
-                        legend: SemanticTokensLegend {
-                            token_types: vec!["string".to_string(), "number".to_string(), "type".to_string()],
-                            token_modifiers: vec![],
+            capabilities: ServerCapabilities {
+                position_encoding: None,
+                text_document_sync: Some(
+                    H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(
+                        TextDocumentSyncOptions {
+                            open_close: Some(true),
+                            will_save: None,
+                            will_save_wait_until: None,
+                            change: Some(TextDocumentSyncKind::Incremental),
+                            save: None, // TODO FIXME
                         },
-                        variant0: WorkDoneProgressOptions {
-                            work_done_progress: None,
+                    ),
+                ),
+                notebook_document_sync: None,
+                completion_provider: None, /*Some(Box::new(CompletionOptions {
+                                               variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
+                                               trigger_characters: Some(vec![r#"""#.to_string()]),
+                                               all_commit_characters: Some(vec![r#"""#.to_string()]),
+                                               resolve_provider: None,
+                                               completion_item: None,
+                                           })),*/
+                hover_provider: None,
+                signature_help_provider: None,
+                declaration_provider: None,
+                definition_provider: None,
+                type_definition_provider: None,
+                implementation_provider: None,
+                references_provider: None,
+                document_highlight_provider: None,
+                document_symbol_provider: None,
+                code_action_provider: None,
+                code_lens_provider: None,
+                document_link_provider: None,
+                color_provider: None,
+                workspace_symbol_provider: None,
+                document_formatting_provider: None,
+                document_range_formatting_provider: None,
+                document_on_type_formatting_provider: None, /*Some(Box::new(DocumentOnTypeFormattingOptions {
+                                                                first_trigger_character: r#"""#.to_string(),
+                                                                more_trigger_character: None,
+                                                            })),*/
+                rename_provider: None,
+                folding_range_provider: None,
+                selection_range_provider: None,
+                execute_command_provider: None,
+                call_hierarchy_provider: None,
+                linked_editing_range_provider: None,
+                semantic_tokens_provider: Some(
+                    Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552::Variant0(
+                        SemanticTokensOptions {
+                            legend: SemanticTokensLegend {
+                                token_types: vec![
+                                    "string".to_string(),
+                                    "number".to_string(),
+                                    "type".to_string(),
+                                ],
+                                token_modifiers: vec![],
+                            },
+                            variant0: WorkDoneProgressOptions {
+                                work_done_progress: None,
+                            },
+                            range: Some(
+                                H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e::Variant0(
+                                    false,
+                                ),
+                            ),
+                            full: Some(
+                                H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222::Variant0(
+                                    true,
+                                ),
+                            ),
                         },
-                        range: Some(H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e::Variant0(false)),
-                        full: Some(H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222::Variant0(true)),
-                    })),
-                    moniker_provider: None,
-                    type_hierarchy_provider: None,
-                    inline_value_provider: None,
-                    inlay_hint_provider: None,
-                    diagnostic_provider: None,
-                    workspace: None,
-                    experimental: None
-                },
-                server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 { name: "TUCaN't".to_string(), version: Some("0.0.1".to_string()) })
+                    ),
+                ),
+                moniker_provider: None,
+                type_hierarchy_provider: None,
+                inline_value_provider: None,
+                inlay_hint_provider: None,
+                diagnostic_provider: None,
+                workspace: None,
+                experimental: None,
+            },
+            server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 {
+                name: "TUCaN't".to_string(),
+                version: Some("0.0.1".to_string()),
+            }),
         };
 
         self.send_response(request, result).await?;
