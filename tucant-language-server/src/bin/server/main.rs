@@ -7,6 +7,7 @@ use std::{
 use clap::Parser;
 use itertools::Itertools;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use serde::Serialize;
 use serde_json::Value;
 use tokio::{
     io::{
@@ -99,6 +100,21 @@ impl Server {
             .take(30)
             .map(char::from)
             .collect();
+
+        #[derive(Serialize, Debug)]
+        struct TestRequest<T: Serialize> {
+            jsonrpc: String,
+            id: String,
+            method: String,
+            params: T
+        }
+
+        let request = TestRequest::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            id: id.clone(),
+            method: R::name(),
+            params: request,
+        };
 
         let mut pending = self.pending.write().await;
         pending.insert(id.clone(), tx);

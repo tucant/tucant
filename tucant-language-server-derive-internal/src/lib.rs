@@ -344,6 +344,10 @@ pub fn parse_requests(
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
+
+                        fn name() -> String {
+                            #method.to_string()
+                        }
                     }
                 }
             } else {
@@ -360,6 +364,10 @@ pub fn parse_requests(
 
                         fn get_request_data(self) -> Self::Request {
                             self.params
+                        }
+
+                        fn name() -> String {
+                            #method.to_string()
                         }
                     }
                 }
@@ -410,9 +418,10 @@ pub fn parse_notifications(
                     #[doc = #string]
                 }
             });
+            let method = &notification.method;
             let name = format_ident!(
                 "r#{}Notification",
-                notification.method.replace('_', " ").to_upper_camel_case()
+                method.replace('_', " ").to_upper_camel_case()
             );
             let (params, rest) = match &notification.params {
                 Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
@@ -447,6 +456,10 @@ pub fn parse_notifications(
 
                         fn get_request_data(self) -> Self::Request {
                             self.params
+                        }
+
+                        fn name() -> String {
+                            #method.to_string()
                         }
                     }
                 }
@@ -576,6 +589,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
 
             fn get_request_data(self) -> Self::Request;
+
+            fn name() -> String;
         }
 
         pub trait Receivable {
@@ -583,6 +598,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
 
             fn get_request_data(self) -> Self::Request;
+
+            fn name() -> String;
         }
 
         #[derive(Serialize, Deserialize, Debug)]

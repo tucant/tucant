@@ -6,12 +6,12 @@ use tucant_language_server_derive_internal::handle_magic;
 fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("lsp.rs");
-    let token_stream = handle_magic().unwrap();
-    let file = syn::parse2::<syn::File>(token_stream).unwrap();
-    let formatted = prettyplease::unparse(&file);
+    let output = handle_magic().unwrap();
+    //let output = syn::parse2::<syn::File>(output).unwrap();
+    //let output = prettyplease::unparse(&output);
     fs::write(
         &dest_path,
-        formatted
+        output.to_string()
     ).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
 }
