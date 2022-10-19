@@ -417,7 +417,7 @@ impl Server {
             .clone();
 
         drop(documents);
-
+/*
         if notification.params.content_changes.len() == 1 {
             match notification.params.content_changes[0] {
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
@@ -451,7 +451,7 @@ impl Server {
                 _ => {}
             }
         }
-
+*/
         self.recalculate_diagnostics(
             &contents,
             notification.params.text_document.variant0.uri,
