@@ -181,14 +181,12 @@ impl Server {
         struct TestResponse<T: Serialize> {
             jsonrpc: String,
             id: StringOrNumber,
-            method: String,
             result: T,
         }
 
         let request = TestResponse::<R::Response> {
             jsonrpc: "2.0".to_string(),
             id: request.id().clone(),
-            method: R::name(),
             result: response,
         };
 
@@ -210,6 +208,8 @@ impl Server {
                     format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
                 )
                 .await?;
+
+            println!("send: {}", result);
 
             sender.write_all(result.as_bytes()).await?;
 
@@ -417,8 +417,6 @@ impl Server {
             .clone();
 
         drop(documents);
-
-        println!("change notification");
 
         if notification.params.content_changes.len() == 1 {
             match notification.params.content_changes[0] {
