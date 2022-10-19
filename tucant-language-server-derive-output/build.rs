@@ -7,8 +7,8 @@ fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("lsp.rs");
     let output = handle_magic().unwrap();
-    //let output = syn::parse2::<syn::File>(output).unwrap();
-    //let output = prettyplease::unparse(&output);
+    let output = syn::parse2::<syn::File>(output).unwrap();
+    let output = prettyplease::unparse(&output);
     fs::write(
         &dest_path,
         output.to_string()

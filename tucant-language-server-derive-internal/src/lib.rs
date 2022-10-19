@@ -348,6 +348,10 @@ pub fn parse_requests(
                         fn name() -> String {
                             #method.to_string()
                         }
+
+                        fn id(&self) -> &StringOrNumber {
+                            self.id
+                        }
                     }
                 }
             } else {
@@ -368,6 +372,10 @@ pub fn parse_requests(
 
                         fn name() -> String {
                             #method.to_string()
+                        }
+
+                        fn id(&self) -> &StringOrNumber {
+                            self.id
                         }
                     }
                 }
@@ -460,6 +468,10 @@ pub fn parse_notifications(
 
                         fn name() -> String {
                             #method.to_string()
+                        }
+
+                        fn id(&self) -> &StringOrNumber {
+                            self.id
                         }
                     }
                 }
@@ -590,7 +602,9 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
             fn get_request_data(self) -> Self::Request;
 
-            fn name() -> String;
+            fn name() -> String; // TODO 'static str
+
+            fn id(&self) -> &StringOrNumber;
         }
 
         pub trait Receivable {
@@ -600,6 +614,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             fn get_request_data(self) -> Self::Request;
 
             fn name() -> String;
+
+            fn id(&self) -> &StringOrNumber;
         }
 
         #[derive(Serialize, Deserialize, Debug)]

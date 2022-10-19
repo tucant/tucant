@@ -119,7 +119,7 @@ impl Server {
         let mut pending = self.pending.write().await;
         pending.insert(id.clone(), tx);
 
-        let result = serde_json::to_string(&request)?; // TODO FIXME write id in here etc
+        let result = serde_json::to_string(&request)?;
 
         self.tx.send(result).await?;
 
@@ -131,7 +131,22 @@ impl Server {
         request: R,
         response: R::Response,
     ) -> anyhow::Result<()> {
-        let result = serde_json::to_string(&request.get_request_data())?; // TODO FIXME write id in here etc
+        #[derive(Serialize, Debug)]
+        struct TestResponse<T: Serialize> {
+            jsonrpc: String,
+            id: String,
+            method: String,
+            result: T
+        }
+
+        let request = TestResponse::<R::Response> {
+            jsonrpc: "2.0".to_string(),
+            id: request.id(),
+            method: R::name(),
+            result: response,
+        };
+
+        let result = serde_json::to_string(&request)?;
 
         self.tx.send(result).await?;
 
