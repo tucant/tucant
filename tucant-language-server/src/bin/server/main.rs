@@ -295,10 +295,9 @@ impl Server {
             Err(Error { partial_parse, .. }) => partial_parse,
         };
 
-        let paired_iterator = std::iter::once((0, 0, 0, 0, 0))
-            .chain(visitor(&value))
-            .zip(visitor(&value));
-        let result = paired_iterator
+        let result = std::iter::once((0, 0, 0, 0, 0))
+        .chain(visitor(&value))
+        .zip(visitor(&value))
             .flat_map(|(last, this)| {
                 vec![
                     this.0 - last.0,
@@ -321,6 +320,7 @@ impl Server {
                         data: result,
                     },
                 );
+            
 
         self.send_response(request, response).await.unwrap();
 
@@ -435,7 +435,7 @@ impl Server {
                         }
                     };
 
-                    self.clone().send_request::<WorkspaceApplyEditRequest>(response);
+                    self.clone().send_request::<WorkspaceApplyEditRequest>(response).await?;
                 },
                 _ => {}
             }
