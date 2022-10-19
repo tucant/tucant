@@ -81,6 +81,12 @@ impl Server {
                     .handle_text_document_semantic_tokens_full_request(request)
                     .await
                     .unwrap(),
+                IncomingStuff::ShutdownRequest(request) => cloned_self.handle_shutdown_request(request).await.unwrap(),
+                IncomingStuff::TextDocumentDidOpenNotification(notification) => cloned_self.handle_text_document_did_open_notification(notification).await.unwrap(),
+                IncomingStuff::TextDocumentDidCloseNotification(notification) => cloned_self.handle_text_document_did_close_notification(notification).await.unwrap(),
+                IncomingStuff::TextDocumentDidChangeNotification(notification) => cloned_self.handle_text_document_did_change_notification(notification).await.unwrap(),
+                IncomingStuff::InitializeRequest(request) => cloned_self.handle_initialize(request).await.unwrap(),
+                IncomingStuff::InitializedNotification(notification) => cloned_self.handle_initialized_notification(notification).await.unwrap(),
                 _ => todo!(),
             }
             //});
