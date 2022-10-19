@@ -7,6 +7,7 @@ use std::{
 use clap::Parser;
 use itertools::Itertools;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use serde_json::Value;
 use tokio::{
     io::{
         self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt,
@@ -35,7 +36,7 @@ struct Args {
 
 pub struct Server {
     documents: RwLock<HashMap<String, String>>,
-    pending: RwLock<HashMap<String, oneshot::Sender<Box<dyn Any + Send + Sync>>>>,
+    pending: RwLock<HashMap<String, oneshot::Sender<Value>>>,
     tx: mpsc::Sender<String>,
 }
 
@@ -76,7 +77,7 @@ impl Server {
             //tokio::spawn(async move {
             match request {
                 IncomingStuff::TextDocumentSemanticTokensFullRequest(request) => cloned_self
-                    .handle_TextDocumentSemanticTokensFullRequest(request)
+                    .handle_text_document_semantic_tokens_full_request(request)
                     .await
                     .unwrap(),
                 _ => todo!(),
@@ -91,7 +92,7 @@ impl Server {
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Box<dyn Any + Send + Sync>>();
+        let (tx, rx) = oneshot::channel::<Value>();
 
         let id: String = thread_rng()
             .sample_iter(&Alphanumeric)
@@ -106,7 +107,19 @@ impl Server {
 
         self.tx.send(result).await?;
 
-        Ok(*rx.await?.downcast().unwrap())
+        Ok(serde_json::from_value(rx.await?).unwrap())
+    }
+
+    async fn send_response<R: Receivable>(
+        self: Arc<Self>,
+        request: R,
+        response: R::Response,
+    ) -> anyhow::Result<()> {
+        let result = serde_json::to_string(&request.get_request_data())?; // TODO FIXME write id in here etc
+
+        self.tx.send(result).await?;
+
+        Ok(())
     }
 
     async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
@@ -202,7 +215,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentSemanticTokensFullRequest(
+    async fn handle_text_document_semantic_tokens_full_request(
         self: Arc<Self>,
         request: TextDocumentSemanticTokensFullRequest,
     ) -> anyhow::Result<()> {
@@ -255,7 +268,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_ShutdownRequest(
+    async fn handle_shutdown_request(
         self: Arc<Self>,
         request: ShutdownRequest,
     ) -> anyhow::Result<()> {
@@ -268,7 +281,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentDidOpenNotification(
+    async fn handle_text_document_did_open_notification(
         self: Arc<Self>,
         notification: TextDocumentDidOpenNotification,
     ) -> anyhow::Result<()> {
@@ -290,7 +303,7 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_TextDocumentDidCloseNotification(
+    async fn handle_text_document_did_close_notification(
         self: Arc<Self>,
         notification: TextDocumentDidCloseNotification,
     ) -> anyhow::Result<()> {
@@ -301,7 +314,7 @@ impl Server {
     }
 
     // TODO FIXME these and quite some others need to respect some order
-    async fn handle_TextDocumentDidChangeNotification(
+    async fn handle_text_document_did_change_notification(
         self: Arc<Self>,
         notification: TextDocumentDidChangeNotification,
     ) -> anyhow::Result<()> {
@@ -403,11 +416,7 @@ impl Server {
 
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         // TODO FIXME respond method on the request?
-        let result = InitializeResponse {
-            jsonrpc: "2.0".to_string(),
-            id: request.id,
-            error: None,
-            result: Some(InitializeResult {
+        let result = InitializeResult {
                 capabilities: ServerCapabilities {
                     position_encoding: None,
                     text_document_sync: Some(H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(TextDocumentSyncOptions {
@@ -471,8 +480,9 @@ impl Server {
                     experimental: None
                 },
                 server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 { name: "TUCaN't".to_string(), version: Some("0.0.1".to_string()) })
-            })
         };
+
+        self.send_response(request, result).await?;
 
         Ok(())
     }

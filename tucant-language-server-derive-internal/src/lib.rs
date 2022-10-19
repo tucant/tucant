@@ -302,35 +302,6 @@ pub fn parse_requests(
                     quote! {},
                 ),
             };
-            let sendable_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
-                request.message_direction
-            {
-                quote! {
-                    impl Sendable for #request_name {
-                        type Request = #params;
-
-                        type Response = ();
-
-                        fn get_request_data(self) -> Self::Request {
-                            self.params
-                        }
-                    }
-                }
-            } else {
-                quote! {}
-            };
-            let request_struct = quote! {
-                #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
-                #documentation
-                pub struct #request_name {
-                    pub jsonrpc: String,
-                    pub id: StringOrNumber,
-                    pub params: #params
-                }
-
-                #sendable_1
-            };
             let response_name = format_ident!(
                 "r#{}Response",
                 method.replace('_', " ").to_upper_camel_case()
@@ -361,15 +332,52 @@ pub fn parse_requests(
                     #error_type
                 }
             };
-            let response_enum_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
+            let sendable_1 = if let MessageDirection::ServerToClient | MessageDirection::Both =
                 request.message_direction
             {
                 quote! {
-                    #[serde(rename = #method)]
-                    #response_name(#response_name),
+                    impl Sendable for #request_name {
+                        type Request = #params;
+
+                        type Response = #result_type;
+
+                        fn get_request_data(self) -> Self::Request {
+                            self.params
+                        }
+                    }
                 }
             } else {
                 quote! {}
+            };
+            let receivable_1 = if let MessageDirection::ClientToServer | MessageDirection::Both =
+                request.message_direction
+            {
+                quote! {
+                    impl Receivable for #request_name {
+                        type Request = #params;
+
+                        type Response = #result_type;
+
+                        fn get_request_data(self) -> Self::Request {
+                            self.params
+                        }
+                    }
+                }
+            } else {
+                quote! {}
+            };
+            let request_struct = quote! {
+                #[::serde_with::skip_serializing_none]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #documentation
+                pub struct #request_name {
+                    pub jsonrpc: String,
+                    pub id: StringOrNumber,
+                    pub params: #params
+                }
+
+                #sendable_1
+                #receivable_1
             };
             Ok((
                 quote! {
@@ -565,7 +573,14 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
         pub trait Sendable {
             type Request: ::serde::Serialize;
-            type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + 'static;
+            type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
+
+            fn get_request_data(self) -> Self::Request;
+        }
+
+        pub trait Receivable {
+            type Request: ::serde::Serialize;
+            type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
 
             fn get_request_data(self) -> Self::Request;
         }
