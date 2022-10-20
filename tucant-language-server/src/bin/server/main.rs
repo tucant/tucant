@@ -6,6 +6,7 @@ use std::{
 
 use clap::Parser;
 use itertools::Itertools;
+use parser::list_visitor;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -103,6 +104,7 @@ impl Server {
                     .handle_initialized_notification(notification)
                     .await
                     .unwrap(),
+                IncomingStuff::TextDocumentFoldingRangeRequest(request) => cloned_self.handle_text_document_folding_range_request(request).await.unwrap(),
                 _ => todo!(),
             }
             //});
@@ -111,134 +113,27 @@ impl Server {
         Ok(())
     }
 
-    async fn send_request<R: Sendable>(
-        self: Arc<Self>,
-        request: R::Request,
-    ) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Value>();
+    async fn handle_text_document_folding_range_request(self: Arc<Self>,
+        request: TextDocumentFoldingRangeRequest,
+    ) -> anyhow::Result<()> {
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.text_document.uri).await?
+        };
+        drop(documents);
 
-        let id: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(30)
-            .map(char::from)
-            .collect();
-
-        #[derive(Serialize, Debug)]
-        struct TestRequest<T: Serialize> {
-            jsonrpc: String,
-            id: String,
-            method: String,
-            params: T,
-        }
-
-        let request = TestRequest::<R::Request> {
-            jsonrpc: "2.0".to_string(),
-            id: id.clone(),
-            method: R::name(),
-            params: request,
+        let span = Span::new(&document);
+        let value = match parse_root(span) {
+            Ok((value, _)) => value,
+            Err(Error { partial_parse, .. }) => partial_parse,
         };
 
-        let mut pending = self.pending.write().await;
-        pending.insert(id.clone(), tx);
+        let response = H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7::Variant0(list_visitor(&value).collect());
 
-        let result = serde_json::to_string(&request)?;
-
-        self.tx.send(result).await?;
-
-        Ok(serde_json::from_value(rx.await?).unwrap())
-    }
-
-    async fn send_notification<R: SendableAndForget>(
-        self: Arc<Self>,
-        request: R::Request,
-    ) -> anyhow::Result<()> {
-        #[derive(Serialize, Debug)]
-        struct TestNotification<T: Serialize> {
-            jsonrpc: String,
-            method: String,
-            params: T,
-        }
-
-        let request = TestNotification::<R::Request> {
-            jsonrpc: "2.0".to_string(),
-            method: R::name(),
-            params: request,
-        };
-
-        let result = serde_json::to_string(&request)?;
-
-        self.tx.send(result).await?;
-
-        Ok(())
-    }
-
-    async fn send_response<R: Receivable>(
-        self: Arc<Self>,
-        request: R,
-        response: R::Response,
-    ) -> anyhow::Result<()> {
-        #[derive(Serialize, Debug)]
-        struct TestResponse<T: Serialize> {
-            jsonrpc: String,
-            id: StringOrNumber,
-            result: T,
-        }
-
-        let request = TestResponse::<R::Response> {
-            jsonrpc: "2.0".to_string(),
-            id: request.id().clone(),
-            result: response,
-        };
-
-        let result = serde_json::to_string(&request)?;
-
-        self.tx.send(result).await?;
-
-        Ok(())
-    }
-
-    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
-        self: Arc<Self>,
-        mut sender: W,
-        mut rx: mpsc::Receiver<String>,
-    ) -> anyhow::Result<()> {
-        while let Some(result) = rx.recv().await {
-            sender
-                .write_all(
-                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
-                )
-                .await?;
-
-            println!("send: {}", result);
-
-            sender.write_all(result.as_bytes()).await?;
-
-            sender.flush().await?;
-        }
-
-        Ok(())
-    }
-
-    async fn main_internal<
-        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
-        W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
-    >(
-        read: R,
-        write: W,
-    ) -> anyhow::Result<()> {
-        let (tx, rx) = mpsc::channel::<String>(3);
-
-        let arc_self = Arc::new(Self {
-            documents: RwLock::new(HashMap::new()),
-            pending: RwLock::new(HashMap::new()),
-            tx,
-        });
-
-        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
-        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
-
-        handle1.await??;
-        handle2.await??;
+        self.send_response(request, response).await?;
 
         Ok(())
     }
@@ -521,7 +416,7 @@ impl Server {
                                                                 more_trigger_character: None,
                                                             })),*/
                 rename_provider: None,
-                folding_range_provider: None,
+                folding_range_provider: Some(H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc::Variant0(true)),
                 selection_range_provider: None,
                 execute_command_provider: None,
                 call_hierarchy_provider: None,
@@ -568,6 +463,138 @@ impl Server {
         };
 
         self.send_response(request, result).await?;
+
+        Ok(())
+    }
+
+    async fn send_request<R: Sendable>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<R::Response> {
+        let (tx, rx) = oneshot::channel::<Value>();
+
+        let id: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+
+        #[derive(Serialize, Debug)]
+        struct TestRequest<T: Serialize> {
+            jsonrpc: String,
+            id: String,
+            method: String,
+            params: T,
+        }
+
+        let request = TestRequest::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            id: id.clone(),
+            method: R::name(),
+            params: request,
+        };
+
+        let mut pending = self.pending.write().await;
+        pending.insert(id.clone(), tx);
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(serde_json::from_value(rx.await?).unwrap())
+    }
+
+    async fn send_notification<R: SendableAndForget>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<()> {
+        #[derive(Serialize, Debug)]
+        struct TestNotification<T: Serialize> {
+            jsonrpc: String,
+            method: String,
+            params: T,
+        }
+
+        let request = TestNotification::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            method: R::name(),
+            params: request,
+        };
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(())
+    }
+
+    async fn send_response<R: Receivable>(
+        self: Arc<Self>,
+        request: R,
+        response: R::Response,
+    ) -> anyhow::Result<()> {
+        #[derive(Serialize, Debug)]
+        struct TestResponse<T: Serialize> {
+            jsonrpc: String,
+            id: StringOrNumber,
+            result: T,
+        }
+
+        let request = TestResponse::<R::Response> {
+            jsonrpc: "2.0".to_string(),
+            id: request.id().clone(),
+            result: response,
+        };
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(())
+    }
+
+    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
+        self: Arc<Self>,
+        mut sender: W,
+        mut rx: mpsc::Receiver<String>,
+    ) -> anyhow::Result<()> {
+        while let Some(result) = rx.recv().await {
+            sender
+                .write_all(
+                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
+                )
+                .await?;
+
+            println!("send: {}", result);
+
+            sender.write_all(result.as_bytes()).await?;
+
+            sender.flush().await?;
+        }
+
+        Ok(())
+    }
+
+    async fn main_internal<
+        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
+        W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
+    >(
+        read: R,
+        write: W,
+    ) -> anyhow::Result<()> {
+        let (tx, rx) = mpsc::channel::<String>(3);
+
+        let arc_self = Arc::new(Self {
+            documents: RwLock::new(HashMap::new()),
+            pending: RwLock::new(HashMap::new()),
+            tx,
+        });
+
+        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
+        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
+
+        handle1.await??;
+        handle2.await??;
 
         Ok(())
     }
