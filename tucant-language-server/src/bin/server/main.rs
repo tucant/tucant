@@ -55,6 +55,11 @@ impl Server {
                 break;
             }
 
+            println!("read: {}", std::str::from_utf8(&buf).unwrap());
+
+            // TODO FIXMe seems like the websocket editor doesn't send the content-length so it may be hard for us to split the packets at the proper place
+            // potentially we need to implement a websocket mode in rust
+
             let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
             assert!(key == b"Content-Length");
@@ -66,8 +71,6 @@ impl Server {
             buf.resize(length, 0);
 
             reader.read_exact(&mut buf).await?;
-
-            println!("read: {}", std::str::from_utf8(&buf).unwrap());
 
             let request: IncomingStuff = serde_json::from_slice(&buf)?;
 
