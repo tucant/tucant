@@ -53,7 +53,10 @@ https://projects.eclipse.org/projects/technology.lsp4e
 127.0.0.1 6008
 - Preferences -> Language Servers -> Add
 - omg this actually works (if you reopen the open file it works!!!)
+- no semantic tokens support it seems
 
 ## Gnome Builder
 
 https://gitlab.gnome.org/GNOME/gnome-builder/-/tree/main/src/libide/lsp
+
+probably needs an extension
