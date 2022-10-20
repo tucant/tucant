@@ -297,7 +297,7 @@ pub fn parse_requests(
                 }
                 None => (
                     quote! {
-                        ()
+                        ()  // TODO FIXME this needs to be "nothing"
                     },
                     quote! {},
                 ),
@@ -451,7 +451,7 @@ pub fn parse_notifications(
                     params_err?;
                     return_value
                 }
-                None => (quote! { () }, quote! {}),
+                None => (quote! { () }, quote! {}), // TODO FIXME this needs to be "nothing"
             };
             let sendable_2 = if let MessageDirection::ServerToClient | MessageDirection::Both =
                 notification.message_direction

@@ -105,10 +105,23 @@ impl Server {
                     .await
                     .unwrap(),
                 IncomingStuff::TextDocumentFoldingRangeRequest(request) => cloned_self.handle_text_document_folding_range_request(request).await.unwrap(),
+                IncomingStuff::TextDocumentDocumentHighlightRequest(request) => cloned_self.handle_document_highlight_request(request).await.unwrap(),
                 _ => todo!(),
             }
             //});
         }
+
+        Ok(())
+    }
+
+    async fn handle_document_highlight_request(self: Arc<Self>,
+        request: TextDocumentDocumentHighlightRequest,
+    ) -> anyhow::Result<()> {
+        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(vec![
+            DocumentHighlight { range: Range { start: Position { line: 0, character: 0 }, end: Position { line: 0, character: 1 } }, kind: Some(DocumentHighlightKind::Text) }
+        ]);
+
+        self.send_response(request, response).await?;
 
         Ok(())
     }
@@ -361,13 +374,13 @@ impl Server {
         self: Arc<Self>,
         notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        let notification = ShowMessageParams {
+        /*let notification = ShowMessageParams {
             r#type: MessageType::Error,
             message: "This is a test error".to_string(),
         };
 
         self.send_notification::<WindowShowMessageNotification>(notification)
-            .await?;
+            .await?;*/
 
         Ok(())
     }
@@ -402,7 +415,7 @@ impl Server {
                 type_definition_provider: None,
                 implementation_provider: None,
                 references_provider: None,
-                document_highlight_provider: None,
+                document_highlight_provider: Some(Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2::Variant0(true)),
                 document_symbol_provider: None,
                 code_action_provider: None,
                 code_lens_provider: None,
