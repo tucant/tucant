@@ -1,9 +1,10 @@
 mod parser;
 
 use std::{
-    any::Any, collections::HashMap, future::Future, marker::PhantomData, pin::Pin, sync::Arc, vec,
+    any::Any, collections::HashMap, future::Future, marker::PhantomData, pin::Pin, sync::Arc, vec, io::BufWriter,
 };
 
+use bytes::BytesMut;
 use clap::Parser;
 use itertools::Itertools;
 use parser::list_visitor;
@@ -18,7 +19,9 @@ use tokio::{
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
 };
+use tokio_util::codec::Encoder;
 use tucant_language_server_derive_output::*;
+use futures_util::{StreamExt, TryStreamExt, Stream, Sink, SinkExt};
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
 
@@ -32,6 +35,9 @@ struct Args {
 
     #[arg(long)]
     stdin: bool,
+
+    #[arg(long)]
+    websocket: Option<u16>,
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
@@ -576,7 +582,7 @@ impl Server {
     ) -> anyhow::Result<()> {
         while let Some(result) = rx.recv().await {
             sender
-                .write_all(
+                .send_all(
                     format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
                 )
                 .await?;
@@ -592,7 +598,7 @@ impl Server {
     }
 
     async fn main_internal<
-        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
+        R: AsyncRead + std::marker::Unpin + std::marker::Send + 'static,
         W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
     >(
         read: R,
@@ -616,6 +622,37 @@ impl Server {
     }
 }
 
+struct MyStringEncoder {}
+
+const MAX: usize = 8 * 1024 * 1024;
+
+impl Encoder<String> for MyStringEncoder {
+    type Error = std::io::Error;
+
+    fn encode(&mut self, item: String, dst: &mut BytesMut) -> Result<(), Self::Error> {
+        // Don't send a string if it is longer than the other end will
+        // accept.
+        if item.len() > MAX {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Frame of length {} is too large.", item.len())
+            ));
+        }
+
+        // Convert the length into a byte array.
+        // The cast to u32 cannot overflow due to the length check above.
+        let len_slice = u32::to_le_bytes(item.len() as u32);
+
+        // Reserve space in the buffer.
+        dst.reserve(4 + item.len());
+
+        // Write the length and string to the buffer.
+        dst.extend_from_slice(&len_slice);
+        dst.extend_from_slice(item.as_bytes());
+        Ok(())
+    }
+}
+
 // cargo doc --document-private-items --open
 // cargo run -- --port 6008
 // cargo watch -x 'run -- --port 6008'
@@ -628,15 +665,17 @@ async fn main() -> anyhow::Result<()> {
             pipe: Some(pipe),
             stdin: false,
             port: None,
+            websocket: None,
         } => {
             let stream = UnixStream::connect(pipe).await?;
-            let (read, write) = stream.into_split();
-            Server::main_internal(BufReader::new(read), write).await
+            let (read, write) = stream.split();
+            Server::main_internal(read, write).await
         }
         Args {
             port: Some(port),
             pipe: None,
             stdin: false,
+            websocket: None,
         } => {
             let stream = TcpListener::bind(("127.0.0.1", port))
                 .await?
@@ -644,7 +683,23 @@ async fn main() -> anyhow::Result<()> {
                 .await?
                 .0;
             let (read, write) = stream.into_split();
+            tokio_util::codec::FramedWrite::new(write, )
             Server::main_internal(BufReader::new(read), write).await
+        }
+        Args {
+            websocket: Some(port),
+            pipe: None,
+            stdin: false,
+            port: None
+        } => {
+            let stream = TcpListener::bind(("127.0.0.1", port))
+                .await?
+                .accept()
+                .await?
+                .0;
+            let ws_stream = tokio_tungstenite::accept_async(stream).await?;
+            let (write, read) = ws_stream.split();
+            Server::main_internal(read, write).await
         }
         Args { pipe: None, .. } => {
             Server::main_internal(BufReader::new(tokio::io::stdin()), tokio::io::stdout()).await
