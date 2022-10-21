@@ -489,6 +489,7 @@ pub fn parse_root<'a>(
     }
 }
 
+#[cfg(test)]
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }

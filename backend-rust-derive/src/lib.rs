@@ -139,21 +139,18 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     } else {
                         if let Some(serde_attr) = serde_attr {
                             let serde_attr = serde_attr.parse_meta()?;
-                            match serde_attr {
-                                Meta::List(meta) => {
-                                    if let Some(meta) = meta.nested.iter().find(|meta| {
-                                        match meta {
-                                            NestedMeta::Meta(Meta::NameValue(meta)) => {
-                                                meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
-                                                || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
-                                            },
-                                            _ => false,
-                                        }
-                                    }) {
-                                        return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
+                            if let Meta::List(meta) = serde_attr {
+                                if let Some(meta) = meta.nested.iter().find(|meta| {
+                                    match meta {
+                                        NestedMeta::Meta(Meta::NameValue(meta)) => {
+                                            meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
+                                            || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
+                                        },
+                                        _ => false,
                                     }
+                                }) {
+                                    return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
                                 }
-                                _ => {}
                             }
                         }
 

@@ -4,7 +4,7 @@ use std::{collections::HashMap, io::BufRead, sync::Arc, vec};
 
 use bytes::{Buf, BytesMut};
 use clap::Parser;
-use futures_util::{Sink, SinkExt, Stream, StreamExt, TryStreamExt};
+use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
 use parser::list_visitor;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
@@ -97,8 +97,6 @@ impl Server {
             }
             //});
         }
-
-        Ok(())
     }
 
     async fn handle_document_highlight_request(
@@ -669,7 +667,7 @@ impl Decoder for MyStringDecoder {
             println!("{}", return_value);
             return Ok(Some(return_value));
 
-            start = position;
+            //start = position;
             //}
         }
         Ok(None)

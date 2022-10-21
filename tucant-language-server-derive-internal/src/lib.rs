@@ -251,7 +251,7 @@ pub fn parse_type_aliases(
 
 pub fn parse_requests(
     random: &mut ChaCha20Rng,
-    requests: &Vec<Request>,
+    requests: &[Request],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
     let return_value: (Vec<TokenStream>, Vec<TokenStream>) = requests
@@ -415,7 +415,7 @@ pub fn parse_requests(
 
 pub fn parse_notifications(
     random: &mut ChaCha20Rng,
-    notifications: &Vec<Notification>,
+    notifications: &[Notification],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
     let return_type: (Vec<TokenStream>, Vec<TokenStream>) = notifications
