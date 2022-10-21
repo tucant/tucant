@@ -9,7 +9,7 @@ on:
 jobs:
   backend-rust:
     runs-on: ubuntu-latest
-    build:
-      uses: ./.github/workflows/rust.yml
-      with:
-        path: backend-rust
+    steps:
+      - uses: ./.github/workflows/rust.yml
+        with:
+          path: backend-rust

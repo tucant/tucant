@@ -9,7 +9,7 @@ on:
 jobs:
   tucant-language-server-derive:
     runs-on: ubuntu-latest
-    build:
-      uses: ./.github/workflows/rust.yml
-      with:
-        path: tucant-language-server-derive
+    steps:
+      - uses: ./.github/workflows/rust.yml
+        with:
+          path: tucant-language-server-derive
