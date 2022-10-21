@@ -7,7 +7,8 @@ on:
     branches: ["main"]
 
 jobs:
-  rust:
+  backend-rust-derive:
+    runs-on: ubuntu-latest
     build:
       uses: ./.github/workflows/rust.yml
       with:

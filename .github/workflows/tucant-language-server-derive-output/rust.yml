@@ -7,7 +7,8 @@ on:
     branches: ["main"]
 
 jobs:
-  rust:
+  tucant-language-server-derive-output:
+    runs-on: ubuntu-latest
     build:
       uses: ./.github/workflows/rust.yml
       with:
