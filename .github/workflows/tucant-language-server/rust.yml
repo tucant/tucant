@@ -1,0 +1,15 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  tucant-language-server:
+    runs-on: ubuntu-latest
+    build:
+      uses: ./.github/workflows/rust.yml
+      with:
+        path: tucant-language-server

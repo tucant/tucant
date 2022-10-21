@@ -13,6 +13,7 @@ https://langserver.org/
 - install neovim-git
 
 - TODO switch to https://github.com/wbthomason/packer.nvim because then you can use lua only
+
 ```
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 
@@ -30,6 +31,9 @@ call plug#end()
 
 
 nano ~/.config/nvim/zinit.lua
+
+vim.lsp.start({ name = 'TUCaNt Language Server', cmd = vim.lsp.rpc.connect('127.0.0.1', 6008), on_attach = on_attach })
+
 ```
 
 - currently it doesn't support semantic tokens (https://github.com/theHamsta/nvim-semantic-tokens)
@@ -39,23 +43,25 @@ nano ~/.config/nvim/zinit.lua
 
 - I failed to make it work
 - https://docs.kde.org/stable5/en/kate/kate/kate-application-plugin-lspclient.html
-- Settings -> Configure Kate -> LSP Client -> 
+- Settings -> Configure Kate -> LSP Client ->
+
 ```json
 {
-    "servers": {
-        "tucant": {
-            "command": ["/usr/bin/nc", "127.0.0.1", "6008"],
-            "url": "https://github.com/mohe2015/tucant",
-            "highlightingModeRegex": "^tucant$" // maybe just try for all text files
-        }
+  "servers": {
+    "tucant": {
+      "command": ["/usr/bin/nc", "127.0.0.1", "6008"],
+      "url": "https://github.com/mohe2015/tucant",
+      "highlightingModeRegex": "^tucant$" // maybe just try for all text files
     }
+  }
 }
 ```
+
 - Settings -> Configure Kate -> Open/Save -> Modes & Filetypes -> New
-Name: tucant
-File extensions: *.tucant
-Section: sources
-Priority: 15
+  Name: tucant
+  File extensions: \*.tucant
+  Section: sources
+  Priority: 15
 
 ## Jupyterlab
 
@@ -72,11 +78,11 @@ https://github.com/qualified/lsps#readme
 https://projects.eclipse.org/projects/technology.lsp4e
 
 - Install it
-- Preferences -> General -> Content Types -> Add child to "Text" -> tucant, File associations -> *.tucant, Editor -> Generic Text Editor, Encoding utf-8
+- Preferences -> General -> Content Types -> Add child to "Text" -> tucant, File associations -> \*.tucant, Editor -> Generic Text Editor, Encoding utf-8
 
 - Run -> External tools configuration
-/usr/bin/nc
-127.0.0.1 6008
+  /usr/bin/nc
+  127.0.0.1 6008
 - Preferences -> Language Servers -> Add
 - omg this actually works (if you reopen the open file it works)
 - no semantic tokens support it seems
@@ -102,21 +108,22 @@ https://lsp.sublimetext.io/guides/client_configuration/
 ```json
 // Settings in here override those in "LSP/LSP.sublime-settings"
 {
-	"semantic_highlighting": true,
-	"show_inlay_hints": true,
-	"clients": {
-		"tucant": {
-			"enabled": true,
-			"command": ["nc", "127.0.0.1", "6008"],
-			  "selector": "source.tucant",
-		}
-	}
+  "semantic_highlighting": true,
+  "show_inlay_hints": true,
+  "clients": {
+    "tucant": {
+      "enabled": true,
+      "command": ["nc", "127.0.0.1", "6008"],
+      "selector": "source.tucant"
+    }
+  }
 }
 ```
 
 http://www.sublimetext.com/docs/syntax.html
 
 Tools -> Developer -> New Syntax
+
 ```yaml
 %YAML 1.2
 ---

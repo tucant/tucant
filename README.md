@@ -22,19 +22,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 <h1 align="center">
   TUCaN't
 
-  [![GitHub license](https://img.shields.io/github/license/mohe2015/tucant.svg)](https://github.com/mohe2015/tucant/blob/main/LICENSE)
-  [![GitHub commits](https://badgen.net/github/commits/mohe2015/tucant/main)](https://GitHub.com/mohe2015/tucant/commit/)
-  [![Github stars](https://img.shields.io/github/stars/mohe2015/tucant.svg)](https://GitHub.com/mohe2015/tucant/stargazers/)
-  [![CodeQL](https://img.shields.io/github/workflow/status/mohe2015/tucant/CodeQL?label=CodeQL)](https://github.com/mohe2015/tucant/actions/workflows/CodeQL.yml)
-  [![Node.js CI](https://img.shields.io/github/workflow/status/mohe2015/tucant/Node.js%20CI?label=Node.js%20CI)](https://github.com/mohe2015/tucant/actions/workflows/node.js.yml)
-  [![Rust](https://img.shields.io/github/workflow/status/mohe2015/tucant/Rust?label=Rust)](https://github.com/mohe2015/tucant/actions/workflows/rust.yml)
+[![GitHub license](https://img.shields.io/github/license/mohe2015/tucant.svg)](https://github.com/mohe2015/tucant/blob/main/LICENSE)
+[![GitHub commits](https://badgen.net/github/commits/mohe2015/tucant/main)](https://GitHub.com/mohe2015/tucant/commit/)
+[![Github stars](https://img.shields.io/github/stars/mohe2015/tucant.svg)](https://GitHub.com/mohe2015/tucant/stargazers/)
+[![CodeQL](https://img.shields.io/github/workflow/status/mohe2015/tucant/CodeQL?label=CodeQL)](https://github.com/mohe2015/tucant/actions/workflows/CodeQL.yml)
+[![Node.js CI](https://img.shields.io/github/workflow/status/mohe2015/tucant/Node.js%20CI?label=Node.js%20CI)](https://github.com/mohe2015/tucant/actions/workflows/node.js.yml)
+[![Rust](https://img.shields.io/github/workflow/status/mohe2015/tucant/Rust?label=Rust)](https://github.com/mohe2015/tucant/actions/workflows/rust.yml)
+
 </h1>
 
 A **nicer**, **faster** and more **featureful** frontend to <a href="https://www.tucan.tu-darmstadt.de/" target="_blank">TUCaN</a>.
 
 ## How it works
 
-TUCaN't consists of three components: a fontend, a backend and a database. The frontend only communicates with the backend, which in turn communicates with the database. 
+TUCaN't consists of three components: a fontend, a backend and a database. The frontend only communicates with the backend, which in turn communicates with the database.
 
 ### Frontend
 
@@ -59,6 +60,7 @@ The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used
 - [libpq-dev[_el_]](https://www.postgresql.org/docs/current/libpq.html) (might be called differently on other distributions)
 
 ### Database
+
 ```bash
 cd backend-rust
 
@@ -94,11 +96,13 @@ npm run dev
 ## Development Notes
 
 If you want automatic formatting and linting on commit
+
 ```bash
 ln -srf pre-commit.sh .git/hooks/pre-commit
 ```
 
 If you want the backend to automatically restart on file change
+
 ```bash
 cargo install cargo-watch
 cargo watch -x check -s 'touch .trigger'
@@ -106,25 +110,29 @@ cargo watch --no-gitignore -w .trigger -x run
 ```
 
 To test the backend
+
 ```bash
 cd backend-rust
 RUST_BACKTRACE=1 cargo test -- -Z unstable-options --nocapture --report-time
 ```
 
 To get a nice GUI of the database on Linux
+
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub io.dbeaver.DBeaverCommunity
 ```
 
 To access the database from using a CLI on Linux  
-`posgresql` needs to be installed on the host system 
+`posgresql` needs to be installed on the host system
+
 ```bash
 psql postgres://postgres:password@localhost:5432/tucant
 ```
 
 Add license headers  
 `reuse` needs to be installed on the host system
+
 ```bash
 reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-later --exclude-year --recursive --skip-unrecognised .
 ```
