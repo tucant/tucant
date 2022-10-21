@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream, Span};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
@@ -90,7 +90,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                     let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
-    return await genericFetch("http://localhost:8080"# + #url_path + r#"", input) as "# + &#typescriptable_return_type_name +
+        return await genericFetch("http://localhost:8080"# + #url_path + r#"", input) as "# + &#typescriptable_return_type_name +
         "\n}"]);
                     result.extend(#typescriptable_arg_type_code);
                     result.extend(#typescriptable_return_type_code);
@@ -139,21 +139,18 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     } else {
                         if let Some(serde_attr) = serde_attr {
                             let serde_attr = serde_attr.parse_meta()?;
-                            match serde_attr {
-                                Meta::List(meta) => {
-                                    if let Some(meta) = meta.nested.iter().find(|meta| {
-                                        match meta {
-                                            NestedMeta::Meta(Meta::NameValue(meta)) => {
-                                                meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
-                                                || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
-                                            },
-                                            _ => false,
-                                        }
-                                    }) {
-                                        return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
+                            if let Meta::List(meta) = serde_attr {
+                                if let Some(meta) = meta.nested.iter().find(|meta| {
+                                    match meta {
+                                        NestedMeta::Meta(Meta::NameValue(meta)) => {
+                                            meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
+                                            || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
+                                        },
+                                        _ => false,
                                     }
+                                }) {
+                                    return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
                                 }
-                                _ => {}
                             }
                         }
 

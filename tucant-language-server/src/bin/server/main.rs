@@ -1,29 +1,16 @@
 mod parser;
 
-use std::{
-    any::Any,
-    collections::HashMap,
-    future::Future,
-    io::{BufRead, BufWriter},
-    marker::PhantomData,
-    pin::Pin,
-    sync::Arc,
-    vec,
-};
+use std::{collections::HashMap, sync::Arc, vec};
 
 use bytes::{Buf, BytesMut};
 use clap::Parser;
-use futures_util::{stream, Sink, SinkExt, Stream, StreamExt, TryStreamExt};
+use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
 use parser::list_visitor;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
 use tokio::{
-    io::{
-        self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt,
-        BufReader, BufStream, ReadHalf, Stdin, Stdout, WriteHalf,
-    },
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
 };
@@ -109,8 +96,6 @@ impl Server {
             }
             //});
         }
-
-        Ok(())
     }
 
     async fn handle_document_highlight_request(
@@ -387,7 +372,7 @@ impl Server {
 
     async fn handle_initialized_notification(
         self: Arc<Self>,
-        notification: InitializedNotification,
+        _notification: InitializedNotification,
     ) -> anyhow::Result<()> {
         /*let notification = ShowMessageParams {
             r#type: MessageType::Error,
@@ -499,7 +484,7 @@ impl Server {
         Ok(())
     }
 
-    async fn send_request<R: Sendable>(
+    pub async fn send_request<R: Sendable>(
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {
@@ -650,9 +635,10 @@ impl Decoder for MyStringDecoder {
         let mut it = buf
             .iter()
             .enumerate()
-            .filter(|(position, byte)| **byte == b'\n');
-        let mut start = 0;
-        while let Some((position, _)) = it.next() {
+            .filter(|(_position, byte)| **byte == b'\n');
+        let start = 0;
+        if let Some((position, _)) = it.next() {
+            //for (position, _) in it {
             let part = &buf[start..position];
 
             println!("Part {}", std::str::from_utf8(part).unwrap());
@@ -680,7 +666,8 @@ impl Decoder for MyStringDecoder {
             println!("{}", return_value);
             return Ok(Some(return_value));
 
-            start = position;
+            //start = position;
+            //}
         }
         Ok(None)
     }

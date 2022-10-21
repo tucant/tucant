@@ -70,26 +70,13 @@ impl<'a, T: Debug> Span<'a, T> {
 }
 
 // TODO FIXME remove this as it just makes it less transparent
-impl<'a> Into<&'a str> for Span<'a, ()> {
-    fn into(self) -> &'a str {
-        self.string
+impl<'a> From<Span<'a, ()>> for &'a str {
+    fn from(value: Span<'a, ()>) -> Self {
+        value.string
     }
 }
 
-// TODO FIXME completely different approach would be a peeking parser
-// I think actually do this, e.g. in the list parsing code getting the outmost span is annoying
-// alternatively do less with mixing iterators and other code?
-// or use more concepts from nom
-
-// alternative: yield start and end of character?
-fn old_my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, Option<char>)> + 'a {
-    input
-        .char_indices()
-        .map(|(offset, character)| (offset, Some(character)))
-        .chain(std::iter::once((input.len(), None)))
-}
-
-fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usize)> + 'a {
+fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + '_ {
     input
         .char_indices()
         .map(|(offset, character)| (offset, character, offset + character.len_utf8()))
@@ -97,7 +84,7 @@ fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usi
 
 fn parse_string<'a>(
     input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
@@ -110,7 +97,7 @@ fn parse_string<'a>(
             },
             reason: r#"Expected a `"`"#,
             partial_parse: Span {
-                inner: AST::String(""),
+                inner: Ast::String(""),
                 full_string: input.full_string,
                 string: &input_str[0..character.len_utf8()],
             },
@@ -123,7 +110,7 @@ fn parse_string<'a>(
             },
             reason: r#"Unexpected end of code. Expected a `"`"#,
             partial_parse: Span {
-                inner: AST::String(""),
+                inner: Ast::String(""),
                 full_string: input.full_string,
                 string: &input_str[0..0],
             },
@@ -153,7 +140,7 @@ fn parse_string<'a>(
             location: input,
             reason: r#"Unterminated string literal"#,
             partial_parse: Span {
-                inner: AST::String(&input.string[1..]),
+                inner: Ast::String(&input.string[1..]),
                 full_string: input.full_string,
                 string: input.string,
             },
@@ -164,7 +151,7 @@ fn parse_string<'a>(
 // https://doc.rust-lang.org/book/ch08-02-strings.html
 fn parse_number<'a>(
     input: Span<'a, ()>,
-) -> Result<(Span<'a, i64>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, i64>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str: &'a str = input.into();
     let end_of_numbers = input_str
         .char_indices()
@@ -183,7 +170,7 @@ fn parse_number<'a>(
                 },
                 reason: r#"Failed to parse number"#,
                 partial_parse: Span {
-                    inner: AST::Number(1337),
+                    inner: Ast::Number(1337),
                     full_string: input.full_string,
                     string: number_str,
                 },
@@ -201,7 +188,7 @@ fn parse_number<'a>(
 
 fn parse_identifier<'a>(
     input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
         .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
@@ -215,7 +202,7 @@ fn parse_identifier<'a>(
             },
             reason: "Expected an identifier",
             partial_parse: Span {
-                inner: AST::Identifier(""),
+                inner: Ast::Identifier(""),
                 full_string: input.full_string,
                 string: &input.string[0..0],
             },
@@ -237,7 +224,7 @@ fn parse_identifier<'a>(
 
 fn parse_whitespace<'a>(
     input: Span<'a, ()>,
-) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
     let pos = input_str
         .char_indices()
@@ -261,7 +248,7 @@ fn parse_whitespace<'a>(
 
 fn parse_list<'a>(
     full_input: Span<'a, ()>,
-) -> Result<(Span<'a, Vec<Span<'a, AST<'a>>>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, Vec<Span<'a, Ast<'a>>>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let mut input = full_input;
     let input_str = Into::<&'a str>::into(input);
     if !input_str.starts_with('(') {
@@ -273,7 +260,7 @@ fn parse_list<'a>(
             },
             reason: r#"Expected a `(`"#,
             partial_parse: Span {
-                inner: AST::List(vec![]),
+                inner: Ast::List(vec![]),
                 full_string: full_input.full_string,
                 string: &input_str[0..0],
             },
@@ -292,14 +279,14 @@ fn parse_list<'a>(
                 location: err.location,
                 reason: err.reason,
                 partial_parse: Span {
-                    inner: AST::List(result_ref.clone()),
+                    inner: Ast::List(result_ref.clone()),
                     full_string: full_input.full_string,
                     string: &input_str[0..0], // TODO FIXME
                 },
             })?
             .1;
         let input_str = Into::<&'a str>::into(input);
-        if input_str.starts_with(')') {
+        if let Some(rest) = input_str.strip_prefix(')') {
             let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
             break Ok((
                 Span {
@@ -310,7 +297,7 @@ fn parse_list<'a>(
                 Span {
                     inner: (),
                     full_string: input.full_string,
-                    string: &input_str[1..],
+                    string: rest,
                 },
             ));
         }
@@ -321,7 +308,7 @@ fn parse_list<'a>(
                 location: value.location,
                 reason: value.reason,
                 partial_parse: Span {
-                    inner: AST::List(result_ref.clone()),
+                    inner: Ast::List(result_ref.clone()),
                     full_string: full_input.full_string,
                     string: &input_str[0..0], // TODO FIXME
                 },
@@ -332,10 +319,10 @@ fn parse_list<'a>(
 }
 
 pub fn visitor<'a>(
-    element: &'a Span<'a, AST<'a>>,
+    element: &'a Span<'a, Ast<'a>>,
 ) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
     match &element.inner {
-        AST::Identifier(_) => {
+        Ast::Identifier(_) => {
             let pos = element.start_line_column();
             Box::new(std::iter::once((
                 pos.0.try_into().unwrap(),
@@ -345,7 +332,7 @@ pub fn visitor<'a>(
                 0,
             )))
         }
-        AST::Number(_) => {
+        Ast::Number(_) => {
             let pos = element.start_line_column();
             Box::new(std::iter::once((
                 pos.0.try_into().unwrap(),
@@ -355,7 +342,7 @@ pub fn visitor<'a>(
                 0,
             )))
         }
-        AST::String(_) => {
+        Ast::String(_) => {
             let pos = element.start_line_column();
             Box::new(std::iter::once((
                 pos.0.try_into().unwrap(),
@@ -365,18 +352,18 @@ pub fn visitor<'a>(
                 0,
             )))
         }
-        AST::List(list) => Box::new(list.iter().flat_map(visitor)),
+        Ast::List(list) => Box::new(list.iter().flat_map(visitor)),
     }
 }
 
 pub fn list_visitor<'a>(
-    element: &'a Span<'a, AST<'a>>,
+    element: &'a Span<'a, Ast<'a>>,
 ) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
     match &element.inner {
-        AST::Identifier(_) => Box::new(std::iter::empty()),
-        AST::Number(_) => Box::new(std::iter::empty()),
-        AST::String(_) => Box::new(std::iter::empty()),
-        AST::List(list) => Box::new(
+        Ast::Identifier(_) => Box::new(std::iter::empty()),
+        Ast::Number(_) => Box::new(std::iter::empty()),
+        Ast::String(_) => Box::new(std::iter::empty()),
+        Ast::List(list) => Box::new(
             std::iter::once(FoldingRange {
                 start_line: element.start_line_column().0.try_into().unwrap(),
                 start_character: Some(element.start_line_column().1.try_into().unwrap()),
@@ -391,16 +378,16 @@ pub fn list_visitor<'a>(
 }
 
 #[derive(Debug, Clone)]
-pub enum AST<'a> {
+pub enum Ast<'a> {
     Number(i64),
     String(&'a str),
     Identifier(&'a str),
-    List(Vec<Span<'a, AST<'a>>>),
+    List(Vec<Span<'a, Ast<'a>>>),
 }
 
 pub fn parse_ast<'a>(
     mut input: Span<'a, ()>,
-) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+) -> Result<(Span<'a, Ast<'a>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     input = parse_whitespace(input)?.1;
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
@@ -408,7 +395,7 @@ pub fn parse_ast<'a>(
         Some((_, '"', _)) => parse_string(input).map(|v| {
             (
                 Span {
-                    inner: AST::String(v.0.inner),
+                    inner: Ast::String(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
@@ -418,7 +405,7 @@ pub fn parse_ast<'a>(
         Some((_, '0'..='9', _)) => parse_number(input).map(|v| {
             (
                 Span {
-                    inner: AST::Number(v.0.inner),
+                    inner: Ast::Number(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
@@ -428,7 +415,7 @@ pub fn parse_ast<'a>(
         Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
             (
                 Span {
-                    inner: AST::Identifier(v.0.inner),
+                    inner: Ast::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
@@ -438,7 +425,7 @@ pub fn parse_ast<'a>(
         Some((_, '(', _)) => parse_list(input).map(|v| {
             (
                 Span {
-                    inner: AST::List(v.0.inner),
+                    inner: Ast::List(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
                 },
@@ -453,7 +440,7 @@ pub fn parse_ast<'a>(
             },
             reason: r#"Unexpected character. Expected `"`, 0-9, a-z, A-Z or `(`."#,
             partial_parse: Span {
-                inner: AST::List(vec![]),
+                inner: Ast::List(vec![]),
                 full_string: input.full_string,
                 string: &input.string[start..end],
             },
@@ -466,7 +453,7 @@ pub fn parse_ast<'a>(
             },
             reason: "Unexpected end of input",
             partial_parse: Span {
-                inner: AST::List(vec![]),
+                inner: Ast::List(vec![]),
                 full_string: input.full_string,
                 string: &input.string[0..0],
             },
@@ -474,9 +461,7 @@ pub fn parse_ast<'a>(
     }
 }
 
-pub fn parse_root<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, AST<'a>>, Span<'a, ()>), Error<'a, Span<'_, AST<'_>>>> {
+pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
     let (ast, rest) = parse_ast(input)?;
     if !rest.string.is_empty() {
         Err(Error {
@@ -489,6 +474,7 @@ pub fn parse_root<'a>(
     }
 }
 
+#[cfg(test)]
 fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
@@ -668,11 +654,11 @@ fn test_parse_list() {
     assert_eq!(value.0.string, "(  1    2   3    )");
     assert_eq!(value.1.string, "");
     assert_eq!(value.0.inner.len(), 3);
-    assert!(matches!(value.0.inner[0].inner, AST::Number(1)));
+    assert!(matches!(value.0.inner[0].inner, Ast::Number(1)));
     assert_eq!(value.0.inner[0].string, "1");
-    assert!(matches!(value.0.inner[1].inner, AST::Number(2)));
+    assert!(matches!(value.0.inner[1].inner, Ast::Number(2)));
     assert_eq!(value.0.inner[1].string, "2");
-    assert!(matches!(value.0.inner[2].inner, AST::Number(3)));
+    assert!(matches!(value.0.inner[2].inner, Ast::Number(3)));
     assert_eq!(value.0.inner[2].string, "3");
 }
 
@@ -688,7 +674,7 @@ fn test_parse_ast() {
     let value = match value {
         (
             Span {
-                inner: AST::List(list),
+                inner: Ast::List(list),
                 ..
             },
             _,
@@ -705,7 +691,7 @@ fn test_parse_ast() {
     let value = match value {
         (
             Span {
-                inner: AST::List(list),
+                inner: Ast::List(list),
                 ..
             },
             _,
@@ -713,10 +699,10 @@ fn test_parse_ast() {
         _ => panic!("Expected AST list"),
     };
     assert_eq!(value.len(), 3);
-    assert!(matches!(value[0].inner, AST::Number(1)));
+    assert!(matches!(value[0].inner, Ast::Number(1)));
     assert_eq!(value[0].string, "1");
-    assert!(matches!(value[1].inner, AST::Number(2)));
+    assert!(matches!(value[1].inner, Ast::Number(2)));
     assert_eq!(value[1].string, "2");
-    assert!(matches!(value[2].inner, AST::Number(3)));
+    assert!(matches!(value[2].inner, Ast::Number(3)));
     assert_eq!(value[2].string, "3");
 }

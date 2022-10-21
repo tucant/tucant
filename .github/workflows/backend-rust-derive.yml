@@ -1,0 +1,13 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend-rust-derive:
+    uses: ./.github/workflows/rust.yml
+    with:
+      path: backend-rust-derive

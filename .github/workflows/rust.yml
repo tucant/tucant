@@ -5,21 +5,22 @@
 name: Rust
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  rust:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: backend-rust
+        working-directory: ${{ inputs.path }}
 
     steps:
       - uses: actions/checkout@v3
@@ -30,17 +31,13 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            backend-rust/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ${{ inputs.path }}/target/
+          key: cargo
       - name: Formatting
         run: cargo fmt --check
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --all-targets --all-features -- --allow clippy::type_complexity --allow clippy::large-enum-variant -D warnings
       - name: Build
         run: cargo build
       - name: Run tests
         run: cargo test
-      - name: Audit
-        run: |
-          cargo install cargo-audit
-          cargo audit --ignore RUSTSEC-2020-0071

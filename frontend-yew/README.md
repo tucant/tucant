@@ -76,6 +76,6 @@ Finally, you should update this very `README` file to be about your app.
 The template ships with both the Apache and MIT license.
 If you don't want to have your app dual licensed, just remove one (or both) of the files and update the `license` field in `Cargo.toml`.
 
-There are two empty spaces in the MIT license you need to fill out: `` and `Moritz Hedtke <Moritz.Hedtke@t-online.de>`.
+There are two empty spaces in the MIT license you need to fill out: ``and`Moritz Hedtke <Moritz.Hedtke@t-online.de>`.
 
 [trunk]: https://github.com/thedodd/trunk

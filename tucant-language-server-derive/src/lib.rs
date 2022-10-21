@@ -1,6 +1,6 @@
 use std::{env, path::Path};
 
-use syn::{Error, parse_macro_input, parse::Nothing};
+use syn::{parse::Nothing, parse_macro_input, Error};
 use tucant_language_server_derive_internal::handle_magic;
 
 // cargo expand --test meta_model
@@ -12,7 +12,7 @@ pub fn magic(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 
 #[proc_macro]
-pub fn magic_include(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn magic_include(_item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let out_dir = env::var_os("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("lsp.rs");
     let path = dest_path.to_string_lossy();
@@ -20,5 +20,6 @@ pub fn magic_include(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #[path = #path]
         pub mod lsp;
         pub use lsp::*;
-    }.into()
+    }
+    .into()
 }

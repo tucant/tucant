@@ -8,15 +8,10 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH"
 
-FILES=$(git diff  --name-only --cached --diff-filter=ACMR | sed 's| |\\ |g')
-[ -z "$FILES" ] && exit 0
+./frontend-react/node_modules/.bin/prettier --ignore-unknown --write .
+./frontend-react/node_modules/.bin/eslint --fix frontend-react
 
-# Prettify all selected files
-echo "$FILES" | xargs ./frontend-react/node_modules/.bin/prettier --ignore-unknown --write
-
-./frontend-react/node_modules/.bin/eslint --cache --fix frontend-react
-
-# Add back the modified/prettified files to staging
+FILES=$(git diff --name-only --cached)
 echo "$FILES" | xargs git add
 
 exit 0

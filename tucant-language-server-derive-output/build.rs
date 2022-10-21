@@ -9,9 +9,6 @@ fn main() {
     let output = handle_magic().unwrap();
     let output = syn::parse2::<syn::File>(output).unwrap();
     let output = prettyplease::unparse(&output);
-    fs::write(
-        &dest_path,
-        output.to_string()
-    ).unwrap();
+    fs::write(&dest_path, &output).unwrap();
     println!("cargo:rerun-if-changed=build.rs");
 }
