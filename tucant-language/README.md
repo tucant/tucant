@@ -42,6 +42,8 @@ https://github.com/krassowski/jupyterlab-lsp
 
 https://github.com/furqansoftware/codemirror-languageserver
 
+https://github.com/qualified/lsps#readme
+
 ## Eclipse
 
 https://projects.eclipse.org/projects/technology.lsp4e

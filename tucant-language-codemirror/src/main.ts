@@ -25,8 +25,7 @@ var ls = languageServer({
 
 // https://codemirror.net/docs/guide/
 
-// websocat
-// websocat --binary ws-l:127.0.0.1:6009 tcp:127.0.0.1:6008
+// cargo watch -x 'run -- --websocket 6009'
 var view = new EditorView({
 	state: EditorState.create({
     doc: `(hi "hello world")`,

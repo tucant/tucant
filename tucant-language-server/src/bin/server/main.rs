@@ -322,17 +322,17 @@ impl Server {
                     let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
+
+                    documents.insert(
+                        notification.params.text_document.variant0.uri.clone(),
+                        document.clone(),
+                    );
                 },
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
                     documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                 },
             }
         }
-
-        documents.insert(
-            notification.params.text_document.variant0.uri.clone(),
-            document.clone(),
-        );
 
         let contents = documents
             .get(&notification.params.text_document.variant0.uri)
