@@ -1,0 +1,115 @@
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "initialize",
+  "params": {
+    "processId": 48259,
+    "rootPath": "/home/moritz/workspace/Test/",
+    "rootUri": "file:///home/moritz/workspace/Test/",
+    "capabilities": {
+      "workspace": {
+        "applyEdit": true,
+        "workspaceEdit": {
+          "documentChanges": true,
+          "resourceOperations": ["create", "delete", "rename"],
+          "failureHandling": "undo"
+        },
+        "symbol": {
+          "dynamicRegistration": true
+        },
+        "executeCommand": {
+          "dynamicRegistration": true
+        },
+        "workspaceFolders": true,
+        "configuration": true
+      },
+      "textDocument": {
+        "synchronization": {
+          "willSave": true,
+          "willSaveWaitUntil": true,
+          "didSave": true
+        },
+        "completion": {
+          "completionItem": {
+            "snippetSupport": true,
+            "documentationFormat": ["markdown", "plaintext"],
+            "insertTextModeSupport": {
+              "valueSet": [1, 2]
+            }
+          }
+        },
+        "hover": {
+          "contentFormat": ["markdown", "plaintext"]
+        },
+        "signatureHelp": {},
+        "references": {},
+        "documentHighlight": {},
+        "documentSymbol": {
+          "symbolKind": {
+            "valueSet": [
+              18, 17, 5, 14, 9, 10, 22, 24, 8, 1, 12, 11, 20, 6, 2, 3, 21, 16,
+              19, 25, 4, 7, 15, 23, 26, 13
+            ]
+          },
+          "hierarchicalDocumentSymbolSupport": true
+        },
+        "formatting": {
+          "dynamicRegistration": true
+        },
+        "rangeFormatting": {},
+        "definition": {
+          "linkSupport": true
+        },
+        "typeDefinition": {
+          "linkSupport": true
+        },
+        "codeAction": {
+          "codeActionLiteralSupport": {
+            "codeActionKind": {
+              "valueSet": [
+                "quickfix",
+                "refactor",
+                "refactor.extract",
+                "refactor.inline",
+                "refactor.rewrite",
+                "source",
+                "source.organizeImports"
+              ]
+            }
+          },
+          "dataSupport": true,
+          "resolveSupport": {
+            "properties": ["edit"]
+          },
+          "dynamicRegistration": true
+        },
+        "codeLens": {},
+        "documentLink": {},
+        "colorProvider": {},
+        "rename": {
+          "prepareSupport": true
+        },
+        "foldingRange": {},
+        "inlayHint": {}
+      },
+      "window": {
+        "workDoneProgress": true,
+        "showMessage": {},
+        "showDocument": {
+          "support": true
+        }
+      }
+    },
+    "clientInfo": {
+      "name": "Eclipse Platform",
+      "version": "0.15.0.202210191413"
+    },
+    "trace": "off",
+    "workspaceFolders": [
+      {
+        "uri": "file:///home/moritz/workspace/Test/",
+        "name": "Test"
+      }
+    ]
+  }
+}

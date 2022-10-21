@@ -1,11 +1,21 @@
 mod parser;
 
 use std::{
-    any::Any, collections::HashMap, future::Future, marker::PhantomData, pin::Pin, sync::Arc, vec,
+    any::Any,
+    collections::HashMap,
+    future::Future,
+    io::{BufRead, BufWriter},
+    marker::PhantomData,
+    pin::Pin,
+    sync::Arc,
+    vec,
 };
 
+use bytes::{Buf, BytesMut};
 use clap::Parser;
+use futures_util::{stream, Sink, SinkExt, Stream, StreamExt, TryStreamExt};
 use itertools::Itertools;
+use parser::list_visitor;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -17,6 +27,8 @@ use tokio::{
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
 };
+use tokio_tungstenite::tungstenite::Message;
+use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
 use tucant_language_server_derive_output::*;
 
 use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
@@ -31,6 +43,9 @@ struct Args {
 
     #[arg(long)]
     stdin: bool,
+
+    #[arg(long)]
+    websocket: Option<u16>,
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
@@ -42,35 +57,14 @@ pub struct Server {
 }
 
 impl Server {
-    async fn handle_receiving<R: AsyncBufRead + std::marker::Unpin>(
+    async fn handle_receiving<
+        R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Unpin,
+    >(
         self: Arc<Self>,
         mut reader: R,
     ) -> anyhow::Result<()> {
-        let mut buf = Vec::new();
         loop {
-            reader.read_until(b'\n', &mut buf).await?;
-
-            if buf == [13, 10] {
-                break;
-            }
-
-            let (key, value) = buf.split(|b| *b == b':').tuples().exactly_one().unwrap();
-
-            assert!(key == b"Content-Length");
-
-            let length_string = std::str::from_utf8(value).unwrap().trim();
-
-            let length = length_string.parse::<usize>().unwrap() + 2;
-
-            buf.resize(length, 0);
-
-            reader.read_exact(&mut buf).await?;
-
-            println!("read: {}", std::str::from_utf8(&buf).unwrap());
-
-            let request: IncomingStuff = serde_json::from_slice(&buf)?;
-
-            buf.clear();
+            let request: IncomingStuff = serde_json::from_str(&reader.next().await.unwrap()?)?;
 
             let cloned_self = self.clone();
 
@@ -103,6 +97,14 @@ impl Server {
                     .handle_initialized_notification(notification)
                     .await
                     .unwrap(),
+                IncomingStuff::TextDocumentFoldingRangeRequest(request) => cloned_self
+                    .handle_text_document_folding_range_request(request)
+                    .await
+                    .unwrap(),
+                IncomingStuff::TextDocumentDocumentHighlightRequest(request) => cloned_self
+                    .handle_document_highlight_request(request)
+                    .await
+                    .unwrap(),
                 _ => todo!(),
             }
             //});
@@ -111,134 +113,55 @@ impl Server {
         Ok(())
     }
 
-    async fn send_request<R: Sendable>(
+    async fn handle_document_highlight_request(
         self: Arc<Self>,
-        request: R::Request,
-    ) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Value>();
-
-        let id: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(30)
-            .map(char::from)
-            .collect();
-
-        #[derive(Serialize, Debug)]
-        struct TestRequest<T: Serialize> {
-            jsonrpc: String,
-            id: String,
-            method: String,
-            params: T,
-        }
-
-        let request = TestRequest::<R::Request> {
-            jsonrpc: "2.0".to_string(),
-            id: id.clone(),
-            method: R::name(),
-            params: request,
-        };
-
-        let mut pending = self.pending.write().await;
-        pending.insert(id.clone(), tx);
-
-        let result = serde_json::to_string(&request)?;
-
-        self.tx.send(result).await?;
-
-        Ok(serde_json::from_value(rx.await?).unwrap())
-    }
-
-    async fn send_notification<R: SendableAndForget>(
-        self: Arc<Self>,
-        request: R::Request,
+        request: TextDocumentDocumentHighlightRequest,
     ) -> anyhow::Result<()> {
-        #[derive(Serialize, Debug)]
-        struct TestNotification<T: Serialize> {
-            jsonrpc: String,
-            method: String,
-            params: T,
-        }
+        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(vec![
+            DocumentHighlight {
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 1,
+                    },
+                },
+                kind: Some(DocumentHighlightKind::Text),
+            },
+        ]);
 
-        let request = TestNotification::<R::Request> {
-            jsonrpc: "2.0".to_string(),
-            method: R::name(),
-            params: request,
-        };
-
-        let result = serde_json::to_string(&request)?;
-
-        self.tx.send(result).await?;
+        self.send_response(request, response).await?;
 
         Ok(())
     }
 
-    async fn send_response<R: Receivable>(
+    async fn handle_text_document_folding_range_request(
         self: Arc<Self>,
-        request: R,
-        response: R::Response,
+        request: TextDocumentFoldingRangeRequest,
     ) -> anyhow::Result<()> {
-        #[derive(Serialize, Debug)]
-        struct TestResponse<T: Serialize> {
-            jsonrpc: String,
-            id: StringOrNumber,
-            result: T,
-        }
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.text_document.uri).await?
+        };
+        drop(documents);
 
-        let request = TestResponse::<R::Response> {
-            jsonrpc: "2.0".to_string(),
-            id: request.id().clone(),
-            result: response,
+        let span = Span::new(&document);
+        let value = match parse_root(span) {
+            Ok((value, _)) => value,
+            Err(Error { partial_parse, .. }) => partial_parse,
         };
 
-        let result = serde_json::to_string(&request)?;
+        let response = H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7::Variant0(
+            list_visitor(&value).collect(),
+        );
 
-        self.tx.send(result).await?;
-
-        Ok(())
-    }
-
-    async fn handle_sending<W: AsyncWrite + std::marker::Unpin>(
-        self: Arc<Self>,
-        mut sender: W,
-        mut rx: mpsc::Receiver<String>,
-    ) -> anyhow::Result<()> {
-        while let Some(result) = rx.recv().await {
-            sender
-                .write_all(
-                    format!("Content-Length: {}\r\n\r\n", result.as_bytes().len()).as_bytes(),
-                )
-                .await?;
-
-            println!("send: {}", result);
-
-            sender.write_all(result.as_bytes()).await?;
-
-            sender.flush().await?;
-        }
-
-        Ok(())
-    }
-
-    async fn main_internal<
-        R: AsyncBufRead + std::marker::Unpin + std::marker::Send + 'static,
-        W: AsyncWrite + std::marker::Unpin + std::marker::Send + 'static,
-    >(
-        read: R,
-        write: W,
-    ) -> anyhow::Result<()> {
-        let (tx, rx) = mpsc::channel::<String>(3);
-
-        let arc_self = Arc::new(Self {
-            documents: RwLock::new(HashMap::new()),
-            pending: RwLock::new(HashMap::new()),
-            tx,
-        });
-
-        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
-        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
-
-        handle1.await??;
-        handle2.await??;
+        self.send_response(request, response).await?;
 
         Ok(())
     }
@@ -399,6 +322,11 @@ impl Server {
                     let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
+
+                    documents.insert(
+                        notification.params.text_document.variant0.uri.clone(),
+                        document.clone(),
+                    );
                 },
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
                     documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
@@ -406,52 +334,47 @@ impl Server {
             }
         }
 
-        documents.insert(
-            notification.params.text_document.variant0.uri.clone(),
-            document.clone(),
-        );
-
         let contents = documents
             .get(&notification.params.text_document.variant0.uri)
             .unwrap()
             .clone();
 
         drop(documents);
-/*
-        if notification.params.content_changes.len() == 1 {
-            match notification.params.content_changes[0] {
-                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
-                    let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
-                    let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+        /*
+                if notification.params.content_changes.len() == 1 {
+                    match notification.params.content_changes[0] {
+                        tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(ref incremental_changes) => {
+                            let _start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
+                            let _end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
 
-                    let response = ApplyWorkspaceEditParams {
-                        label: Some("insert matching paren".to_string()),
-                        edit: WorkspaceEdit {
-                            changes: None,
-                            document_changes: Some(vec![
-                                H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf::Variant0(TextDocumentEdit {
-                                    text_document: OptionalVersionedTextDocumentIdentifier {
-                                        variant0: TextDocumentIdentifier { uri: notification.params.text_document.variant0.uri.clone() },
-                                        version: Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec::Variant0(notification.params.text_document.version)
-                                    },
-                                    edits: vec![
-                                        Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(TextEdit {
-                                            range: Range { start: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }, end: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character } },
-                                            new_text: r#"""#.to_string()
+                            let response = ApplyWorkspaceEditParams {
+                                label: Some("insert matching paren".to_string()),
+                                edit: WorkspaceEdit {
+                                    changes: None,
+                                    document_changes: Some(vec![
+                                        H1332ceed95c3cca3c02eed7277ac86fcb37ac84398216e85560c37bf::Variant0(TextDocumentEdit {
+                                            text_document: OptionalVersionedTextDocumentIdentifier {
+                                                variant0: TextDocumentIdentifier { uri: notification.params.text_document.variant0.uri.clone() },
+                                                version: Hf7dce6b26d9e110d906dc3150d7d569f6983091049d0e763bb4a5cec::Variant0(notification.params.text_document.version)
+                                            },
+                                            edits: vec![
+                                                Hbc05edec65fcb6ecb06a32c6c6bd742b6b3682f1da78657cd86b8f05::Variant0(TextEdit {
+                                                    range: Range { start: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character }, end: Position { line: incremental_changes.range.end.line, character: incremental_changes.range.end.character } },
+                                                    new_text: r#"""#.to_string()
+                                                })
+                                            ]
                                         })
-                                    ]
-                                })
-                            ]),
-                            change_annotations: None,
-                        }
-                    };
+                                    ]),
+                                    change_annotations: None,
+                                }
+                            };
 
-                    self.clone().send_request::<WorkspaceApplyEditRequest>(response).await?;
-                },
-                _ => {}
-            }
-        }
-*/
+                            self.clone().send_request::<WorkspaceApplyEditRequest>(response).await?;
+                        },
+                        _ => {}
+                    }
+                }
+        */
         self.recalculate_diagnostics(
             &contents,
             notification.params.text_document.variant0.uri,
@@ -466,13 +389,13 @@ impl Server {
         self: Arc<Self>,
         notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        let notification = ShowMessageParams {
+        /*let notification = ShowMessageParams {
             r#type: MessageType::Error,
             message: "This is a test error".to_string(),
         };
 
         self.send_notification::<WindowShowMessageNotification>(notification)
-            .await?;
+            .await?;*/
 
         Ok(())
     }
@@ -507,7 +430,9 @@ impl Server {
                 type_definition_provider: None,
                 implementation_provider: None,
                 references_provider: None,
-                document_highlight_provider: None,
+                document_highlight_provider: Some(
+                    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2::Variant0(true),
+                ),
                 document_symbol_provider: None,
                 code_action_provider: None,
                 code_lens_provider: None,
@@ -521,7 +446,9 @@ impl Server {
                                                                 more_trigger_character: None,
                                                             })),*/
                 rename_provider: None,
-                folding_range_provider: None,
+                folding_range_provider: Some(
+                    H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc::Variant0(true),
+                ),
                 selection_range_provider: None,
                 execute_command_provider: None,
                 call_hierarchy_provider: None,
@@ -571,6 +498,192 @@ impl Server {
 
         Ok(())
     }
+
+    async fn send_request<R: Sendable>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<R::Response> {
+        let (tx, rx) = oneshot::channel::<Value>();
+
+        let id: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
+
+        #[derive(Serialize, Debug)]
+        struct TestRequest<T: Serialize> {
+            jsonrpc: String,
+            id: String,
+            method: String,
+            params: T,
+        }
+
+        let request = TestRequest::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            id: id.clone(),
+            method: R::name(),
+            params: request,
+        };
+
+        let mut pending = self.pending.write().await;
+        pending.insert(id.clone(), tx);
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(serde_json::from_value(rx.await?).unwrap())
+    }
+
+    async fn send_notification<R: SendableAndForget>(
+        self: Arc<Self>,
+        request: R::Request,
+    ) -> anyhow::Result<()> {
+        #[derive(Serialize, Debug)]
+        struct TestNotification<T: Serialize> {
+            jsonrpc: String,
+            method: String,
+            params: T,
+        }
+
+        let request = TestNotification::<R::Request> {
+            jsonrpc: "2.0".to_string(),
+            method: R::name(),
+            params: request,
+        };
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(())
+    }
+
+    async fn send_response<R: Receivable>(
+        self: Arc<Self>,
+        request: R,
+        response: R::Response,
+    ) -> anyhow::Result<()> {
+        #[derive(Serialize, Debug)]
+        struct TestResponse<T: Serialize> {
+            jsonrpc: String,
+            id: StringOrNumber,
+            result: T,
+        }
+
+        let request = TestResponse::<R::Response> {
+            jsonrpc: "2.0".to_string(),
+            id: request.id().clone(),
+            result: response,
+        };
+
+        let result = serde_json::to_string(&request)?;
+
+        self.tx.send(result).await?;
+
+        Ok(())
+    }
+
+    async fn handle_sending<W: Sink<String, Error = anyhow::Error> + std::marker::Unpin>(
+        self: Arc<Self>,
+        mut sender: W,
+        mut rx: mpsc::Receiver<String>,
+    ) -> anyhow::Result<()> {
+        while let Some(result) = rx.recv().await {
+            sender.send(result).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn main_internal<
+        R: Stream<Item = Result<String, anyhow::Error>>
+            + std::marker::Unpin
+            + std::marker::Send
+            + 'static,
+        W: Sink<String, Error = anyhow::Error> + std::marker::Unpin + std::marker::Send + 'static,
+    >(
+        read: R,
+        write: W,
+    ) -> anyhow::Result<()> {
+        let (tx, rx) = mpsc::channel::<String>(3);
+
+        let arc_self = Arc::new(Self {
+            documents: RwLock::new(HashMap::new()),
+            pending: RwLock::new(HashMap::new()),
+            tx,
+        });
+
+        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
+        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
+
+        handle1.await??;
+        handle2.await??;
+
+        Ok(())
+    }
+}
+
+struct MyStringEncoder;
+
+impl Encoder<String> for MyStringEncoder {
+    type Error = anyhow::Error;
+
+    fn encode(&mut self, item: String, dst: &mut BytesMut) -> Result<(), Self::Error> {
+        dst.extend_from_slice(
+            format!("Content-Length: {}\r\n\r\n", item.as_bytes().len()).as_bytes(),
+        );
+        dst.extend_from_slice(item.as_bytes());
+        Ok(())
+    }
+}
+
+struct MyStringDecoder;
+
+impl Decoder for MyStringDecoder {
+    type Item = String;
+    type Error = anyhow::Error;
+
+    fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        // position, iter, split
+        let mut it = buf
+            .iter()
+            .enumerate()
+            .filter(|(position, byte)| **byte == b'\n');
+        let mut start = 0;
+        while let Some((position, _)) = it.next() {
+            let part = &buf[start..position];
+
+            println!("Part {}", std::str::from_utf8(part).unwrap());
+
+            let (key, value) = part.split(|b| *b == b':').tuples().exactly_one().unwrap();
+
+            assert!(key == b"Content-Length");
+            let length_string = std::str::from_utf8(value).unwrap().trim();
+            let length = length_string.parse::<usize>().unwrap() + 2;
+
+            println!(
+                "len: {}, pos: {}, end: {}",
+                buf.len(),
+                position,
+                position + length + 1
+            );
+            if position + length + 1 > buf.len() {
+                return Ok(None);
+            }
+            let contents = &buf[position..position + length + 1];
+
+            let return_value = std::str::from_utf8(contents).unwrap().to_string();
+            buf.advance(position + length + 1);
+
+            println!("{}", return_value);
+            return Ok(Some(return_value));
+
+            start = position;
+        }
+        Ok(None)
+    }
 }
 
 // cargo doc --document-private-items --open
@@ -585,15 +698,21 @@ async fn main() -> anyhow::Result<()> {
             pipe: Some(pipe),
             stdin: false,
             port: None,
+            websocket: None,
         } => {
             let stream = UnixStream::connect(pipe).await?;
             let (read, write) = stream.into_split();
-            Server::main_internal(BufReader::new(read), write).await
+            Server::main_internal(
+                FramedRead::new(read, MyStringDecoder),
+                FramedWrite::new(write, MyStringEncoder),
+            )
+            .await
         }
         Args {
             port: Some(port),
             pipe: None,
             stdin: false,
+            websocket: None,
         } => {
             let stream = TcpListener::bind(("127.0.0.1", port))
                 .await?
@@ -601,10 +720,44 @@ async fn main() -> anyhow::Result<()> {
                 .await?
                 .0;
             let (read, write) = stream.into_split();
-            Server::main_internal(BufReader::new(read), write).await
+            Server::main_internal(
+                FramedRead::new(read, MyStringDecoder),
+                FramedWrite::new(write, MyStringEncoder),
+            )
+            .await
+        }
+        Args {
+            websocket: Some(port),
+            pipe: None,
+            stdin: false,
+            port: None,
+        } => {
+            let stream = TcpListener::bind(("127.0.0.1", port))
+                .await?
+                .accept()
+                .await?
+                .0;
+            let ws_stream = tokio_tungstenite::accept_async(stream).await?;
+            let (write, read) = ws_stream.split();
+            Server::main_internal(
+                read.filter_map(|item| {
+                    Box::pin(async {
+                        match item {
+                            Ok(Message::Text(string)) => Some(Ok(string)),
+                            _ => None,
+                        }
+                    })
+                }),
+                write.with(|v| Box::pin(async { Ok(Message::Text(v)) })),
+            )
+            .await
         }
         Args { pipe: None, .. } => {
-            Server::main_internal(BufReader::new(tokio::io::stdin()), tokio::io::stdout()).await
+            Server::main_internal(
+                FramedRead::new(tokio::io::stdin(), MyStringDecoder),
+                FramedWrite::new(tokio::io::stdout(), MyStringEncoder),
+            )
+            .await
         }
         _ => {
             panic!("can't enable multiple modes at the same time")

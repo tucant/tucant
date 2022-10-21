@@ -9,7 +9,12 @@
 
     (datetimerange "startdatetime" "enddatetime")
 
-    (matches (veranstaltung "id") (datetimerange "startdatetime" "enddatetime")) (comment "will internally do this for every group in course")
+    (matches
+        (veranstaltung "id")
+        (datetimerange "startdatetime" "enddatetime"))
+        
+    (comment
+        "will internally do this for every group in course")
 
     (comment "we need to generate a linear maximization problem:")
 
@@ -19,8 +24,7 @@
     
     (comment "derived variables")
 
-    (this is weird "hi")""
-    
+    (this is weird "hi")
 
     (comment "sum of all nutzer-in-veranstaltung variables for this module")
     (nutzer-in-modul (nutzer "") (modul "id")))
