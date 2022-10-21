@@ -1,5 +1,7 @@
 # Supported Editors
 
+https://langserver.org/
+
 <!-- https://microsoft.github.io/debug-adapter-protocol/specification -->
 
 ## VSCode
@@ -8,7 +10,28 @@
 
 ## Neovim
 
-- if you are able to set it up go for it
+- install neovim-git
+
+- TODO switch to https://github.com/wbthomason/packer.nvim because then you can use lua only
+```
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+mkdir ~/.config/nvim
+nano ~/.config/nvim/init.vim
+
+" Plugins will be downloaded under the specified directory.
+call plug#begin(has('nvim') ? stdpath('data') . '/plugged' : '~/.vim/plugged')
+
+" Declare the list of plugins.
+Plug 'https://github.com/theHamsta/nvim-semantic-tokens.git'
+
+" List ends here. Plugins become visible to Vim after this call.
+call plug#end()
+
+
+nano ~/.config/nvim/zinit.lua
+```
+
 - currently it doesn't support semantic tokens (https://github.com/theHamsta/nvim-semantic-tokens)
 - https://github.com/neovim/nvim-lspconfig
 
