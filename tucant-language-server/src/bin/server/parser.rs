@@ -286,7 +286,7 @@ fn parse_list<'a>(
             })?
             .1;
         let input_str = Into::<&'a str>::into(input);
-        if let Some(rest) = input_str.strip_prefix(')'){
+        if let Some(rest) = input_str.strip_prefix(')') {
             let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
             break Ok((
                 Span {
@@ -461,9 +461,7 @@ pub fn parse_ast<'a>(
     }
 }
 
-pub fn parse_root(
-    input: Span<()>,
-) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
+pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
     let (ast, rest) = parse_ast(input)?;
     if !rest.string.is_empty() {
         Err(Error {
