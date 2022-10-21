@@ -27,7 +27,7 @@
     }
 }
 ```
-- Seettings -> Configure Kate -> Open/Save -> Modes & Filetypes -> New
+- Settings -> Configure Kate -> Open/Save -> Modes & Filetypes -> New
 Name: tucant
 File extensions: *.tucant
 Section: sources
@@ -60,3 +60,43 @@ https://projects.eclipse.org/projects/technology.lsp4e
 https://gitlab.gnome.org/GNOME/gnome-builder/-/tree/main/src/libide/lsp
 
 probably needs an extension
+
+## Sublime Text 4
+
+https://github.com/sublimelsp/LSP
+
+Command Palette
+Package Control: Install Package
+LSP
+
+https://lsp.sublimetext.io/guides/client_configuration/
+
+```json
+// Settings in here override those in "LSP/LSP.sublime-settings"
+{
+	"semantic_highlighting": true,
+	"show_inlay_hints": true,
+	"clients": {
+		"tucant": {
+			"enabled": true,
+			"command": ["nc", "127.0.0.1", "6008"],
+			  "selector": "source.tucant",
+		}
+	}
+}
+```
+
+http://www.sublimetext.com/docs/syntax.html
+
+Tools -> Developer -> New Syntax
+```yaml
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/syntax.html
+name: tucant
+file_extensions:
+  - tucant
+scope: source.tucant
+contexts:
+  main: []
+```
