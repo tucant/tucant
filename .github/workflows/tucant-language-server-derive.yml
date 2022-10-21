@@ -10,6 +10,7 @@ jobs:
   tucant-language-server-derive:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/workflows/rust.yml
         with:
           path: tucant-language-server-derive
