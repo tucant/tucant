@@ -8,9 +8,6 @@ on:
 
 jobs:
   backend-rust-derive:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/rust/
-        with:
-          path: backend-rust-derive
+    uses: ./.github/workflows/rust.yml
+    with:
+      path: backend-rust-derive

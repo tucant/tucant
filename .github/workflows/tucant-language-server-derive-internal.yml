@@ -8,9 +8,6 @@ on:
 
 jobs:
   tucant-language-server-derive-internal:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/workflows/rust/
-        with:
-          path: tucant-language-server-derive-internal
+    uses: ./.github/workflows/rust.yml
+    with:
+      path: tucant-language-server-derive-internal
