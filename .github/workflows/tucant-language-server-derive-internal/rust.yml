@@ -1,0 +1,14 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  rust:
+    build:
+      uses: ./.github/workflows/rust.yml
+      with:
+        path: tucant-language-server-derive-internal

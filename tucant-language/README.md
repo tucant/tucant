@@ -31,6 +31,9 @@ call plug#end()
 
 
 nano ~/.config/nvim/zinit.lua
+
+vim.lsp.start({ name = 'TUCaNt Language Server', cmd = vim.lsp.rpc.connect('127.0.0.1', 6008), on_attach = on_attach })
+
 ```
 
 - currently it doesn't support semantic tokens (https://github.com/theHamsta/nvim-semantic-tokens)
