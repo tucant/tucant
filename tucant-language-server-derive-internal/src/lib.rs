@@ -562,7 +562,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         })
         .collect();
 
-    let return_value = Ok(quote! {
+    Ok(quote! {
         #(#structures)*
         #(#enumerations)*
         #(#type_aliases)*
@@ -631,6 +631,5 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 }
             }
         }
-    });
-    return_value
+    })
 }
