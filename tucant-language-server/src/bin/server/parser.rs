@@ -373,25 +373,20 @@ pub fn list_visitor<'a>(
     element: &'a Span<'a, AST<'a>>,
 ) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
     match &element.inner {
-        AST::Identifier(_) => {
-            Box::new(std::iter::empty())
-        }
-        AST::Number(_) => {
-            Box::new(std::iter::empty())
-        }
-        AST::String(_) => {
-            Box::new(std::iter::empty())
-        }
-        AST::List(list) => {
-            Box::new(std::iter::once(FoldingRange {
+        AST::Identifier(_) => Box::new(std::iter::empty()),
+        AST::Number(_) => Box::new(std::iter::empty()),
+        AST::String(_) => Box::new(std::iter::empty()),
+        AST::List(list) => Box::new(
+            std::iter::once(FoldingRange {
                 start_line: element.start_line_column().0.try_into().unwrap(),
                 start_character: Some(element.start_line_column().1.try_into().unwrap()),
                 end_line: element.end_line_column().0.try_into().unwrap(),
                 end_character: Some(element.end_line_column().1.try_into().unwrap()),
                 kind: Some(tucant_language_server_derive_output::FoldingRangeKind::Region),
                 collapsed_text: None,
-            }).chain(list.iter().flat_map(list_visitor)))
-        },
+            })
+            .chain(list.iter().flat_map(list_visitor)),
+        ),
     }
 }
 
