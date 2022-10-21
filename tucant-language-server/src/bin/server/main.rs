@@ -1,19 +1,15 @@
 mod parser;
 
 use std::{
-    any::Any,
     collections::HashMap,
-    future::Future,
-    io::{BufRead, BufWriter},
-    marker::PhantomData,
-    pin::Pin,
+    io::{BufRead},
     sync::Arc,
     vec,
 };
 
 use bytes::{Buf, BytesMut};
 use clap::Parser;
-use futures_util::{stream, Sink, SinkExt, Stream, StreamExt, TryStreamExt};
+use futures_util::{Sink, SinkExt, Stream, StreamExt, TryStreamExt};
 use itertools::Itertools;
 use parser::list_visitor;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
@@ -21,8 +17,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::{
     io::{
-        self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt,
-        BufReader, BufStream, ReadHalf, Stdin, Stdout, WriteHalf,
+        AsyncBufReadExt, AsyncReadExt, AsyncWriteExt,
     },
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
@@ -387,7 +382,7 @@ impl Server {
 
     async fn handle_initialized_notification(
         self: Arc<Self>,
-        notification: InitializedNotification,
+        _notification: InitializedNotification,
     ) -> anyhow::Result<()> {
         /*let notification = ShowMessageParams {
             r#type: MessageType::Error,
@@ -647,12 +642,12 @@ impl Decoder for MyStringDecoder {
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         // position, iter, split
-        let mut it = buf
+        let it = buf
             .iter()
             .enumerate()
-            .filter(|(position, byte)| **byte == b'\n');
-        let mut start = 0;
-        while let Some((position, _)) = it.next() {
+            .filter(|(_position, byte)| **byte == b'\n');
+        let start = 0;
+        for (position, _) in it {
             let part = &buf[start..position];
 
             println!("Part {}", std::str::from_utf8(part).unwrap());

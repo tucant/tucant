@@ -17,7 +17,7 @@ use schema::{
 use type_converter::{handle_type, until_err};
 
 pub fn parse_structures(
-    mut random: &mut ChaCha20Rng,
+    random: &mut ChaCha20Rng,
     structures: Vec<Structure>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut structures_err = Ok(());
@@ -39,7 +39,7 @@ pub fn parse_structures(
                 .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", i);
-                    let (converted_type, rest) = handle_type(&mut random, _type)?;
+                    let (converted_type, rest) = handle_type(random, _type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -60,7 +60,7 @@ pub fn parse_structures(
                 .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", structure.extends.len() + i);
-                    let (converted_type, rest) = handle_type(&mut random, _type)?;
+                    let (converted_type, rest) = handle_type(random, _type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -84,7 +84,7 @@ pub fn parse_structures(
                             #[doc = #string]
                         }
                     });
-                    let (mut converted_type, rest) = handle_type(&mut random, &property._type)?;
+                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
 
                     if property.optional {
                         converted_type = quote! { Option<#converted_type> }
@@ -126,7 +126,7 @@ pub fn parse_structures(
 }
 
 pub fn parse_enumerations(
-    mut random: &mut ChaCha20Rng,
+    _random: &mut ChaCha20Rng,
     enumerations: Vec<Enumeration>,
 ) -> syn::Result<Vec<TokenStream>> {
     let mut enumerations_err = Ok(());
@@ -221,7 +221,7 @@ pub fn parse_enumerations(
 }
 
 pub fn parse_type_aliases(
-    mut random: &mut ChaCha20Rng,
+    random: &mut ChaCha20Rng,
     type_aliases: Vec<TypeAlias>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut type_aliases_err = Ok(());
@@ -229,7 +229,7 @@ pub fn parse_type_aliases(
         .iter()
         .map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
-            let (converted_type, rest) = handle_type(&mut random, &type_alias._type)?;
+            let (converted_type, rest) = handle_type(random, &type_alias._type)?;
             let documentation = type_alias.documentation.as_ref().map(|string| {
                 quote! {
                     #[doc = #string]
@@ -250,7 +250,7 @@ pub fn parse_type_aliases(
 }
 
 pub fn parse_requests(
-    mut random: &mut ChaCha20Rng,
+    random: &mut ChaCha20Rng,
     requests: &Vec<Request>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
@@ -269,7 +269,7 @@ pub fn parse_requests(
             );
             let (params, request_rest) = match &request.params {
                 Some(TypeOrVecType::Type(_type)) => {
-                    let (the_type, rest) = handle_type(&mut random, _type)?;
+                    let (the_type, rest) = handle_type(random, _type)?;
                     (
                         quote! {
                             #the_type
@@ -282,7 +282,7 @@ pub fn parse_requests(
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
                         .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(&mut random, _type)
+                            handle_type(random, _type)
                         })
                         .scan(&mut params_err, until_err)
                         .unzip();
@@ -306,12 +306,12 @@ pub fn parse_requests(
                 "r#{}Response",
                 method.replace('_', " ").to_upper_camel_case()
             );
-            let (result_type, result_type_rest) = handle_type(&mut random, &request.result)?;
+            let (result_type, result_type_rest) = handle_type(random, &request.result)?;
             let (error_type, error_type_rest) = request
                 .error_data
                 .as_ref()
                 .map(|e| -> syn::Result<(TokenStream, TokenStream)> {
-                    let (error_type, rest) = handle_type(&mut random, e)?;
+                    let (error_type, rest) = handle_type(random, e)?;
                     Ok((
                         quote! {
                             pub error: Option<#error_type>
@@ -414,7 +414,7 @@ pub fn parse_requests(
 }
 
 pub fn parse_notifications(
-    mut random: &mut ChaCha20Rng,
+    random: &mut ChaCha20Rng,
     notifications: &Vec<Notification>,
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut requests_err = Ok(());
@@ -432,13 +432,13 @@ pub fn parse_notifications(
                 method.replace('_', " ").to_upper_camel_case()
             );
             let (params, rest) = match &notification.params {
-                Some(TypeOrVecType::Type(_type)) => handle_type(&mut random, _type)?,
+                Some(TypeOrVecType::Type(_type)) => handle_type(random, _type)?,
                 Some(TypeOrVecType::VecType(vec_type)) => {
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
                         .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(&mut random, _type)
+                            handle_type(random, _type)
                         })
                         .scan(&mut params_err, until_err)
                         .unzip();
@@ -527,7 +527,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             } else {
                 quote! {}
             };
-            let response_name = format_ident!(
+            let _response_name = format_ident!(
                 "r#{}Response",
                 request.method.replace('_', " ").to_upper_camel_case()
             );
@@ -548,7 +548,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 "r#{}Notification",
                 notification.method.replace('_', " ").to_upper_camel_case()
             );
-            let client_to_server_notification = if let MessageDirection::ClientToServer
+            
+            if let MessageDirection::ClientToServer
             | MessageDirection::Both =
                 notification.message_direction
             {
@@ -558,8 +559,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 }
             } else {
                 quote! {}
-            };
-            client_to_server_notification
+            }
         })
         .collect();
 

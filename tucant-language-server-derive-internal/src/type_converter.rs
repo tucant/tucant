@@ -30,7 +30,7 @@ pub fn handle_type(
         Type::Reference(ReferenceType { name }) => {
             let name = format_ident!("r#{}", name.to_upper_camel_case());
             // TODO FIXME decide Boxed - this is still not optimal, only the parent place needs to me non-recursive
-            if name.to_string() == "r#SelectionRange" {
+            if name == "r#SelectionRange" {
                 Ok((quote! { Box<#name> }, quote! {}))
             } else {
                 Ok((quote! { #name }, quote! {}))
