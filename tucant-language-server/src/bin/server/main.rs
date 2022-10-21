@@ -1,6 +1,6 @@
 mod parser;
 
-use std::{collections::HashMap, io::BufRead, sync::Arc, vec};
+use std::{collections::HashMap, sync::Arc, vec};
 
 use bytes::{Buf, BytesMut};
 use clap::Parser;
@@ -11,7 +11,6 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
 };
@@ -485,7 +484,7 @@ impl Server {
         Ok(())
     }
 
-    async fn send_request<R: Sendable>(
+    pub async fn send_request<R: Sendable>(
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {

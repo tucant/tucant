@@ -70,23 +70,10 @@ impl<'a, T: Debug> Span<'a, T> {
 }
 
 // TODO FIXME remove this as it just makes it less transparent
-impl<'a> Into<&'a str> for Span<'a, ()> {
-    fn into(self) -> &'a str {
-        self.string
+impl<'a> From<Span<'a, ()>> for &'a str {
+    fn from(value: Span<'a, ()>) -> Self {
+        value.string
     }
-}
-
-// TODO FIXME completely different approach would be a peeking parser
-// I think actually do this, e.g. in the list parsing code getting the outmost span is annoying
-// alternatively do less with mixing iterators and other code?
-// or use more concepts from nom
-
-// alternative: yield start and end of character?
-fn old_my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, Option<char>)> + 'a {
-    input
-        .char_indices()
-        .map(|(offset, character)| (offset, Some(character)))
-        .chain(std::iter::once((input.len(), None)))
 }
 
 fn my_char_indices<'a>(input: &'a str) -> impl Iterator<Item = (usize, char, usize)> + 'a {
