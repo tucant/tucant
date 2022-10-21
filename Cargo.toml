@@ -1,0 +1,5 @@
+[workspace]
+members = ["backend-rust", "backend-rust-derive", "tucant-language-server", "tucant-language-server-derive", "tucant-language-server-derive-internal", "tucant-language-server-derive-output"]
+
+[patch.crates-io]
+diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-type" }

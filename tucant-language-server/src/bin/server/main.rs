@@ -1,11 +1,6 @@
 mod parser;
 
-use std::{
-    collections::HashMap,
-    io::{BufRead},
-    sync::Arc,
-    vec,
-};
+use std::{collections::HashMap, io::BufRead, sync::Arc, vec};
 
 use bytes::{Buf, BytesMut};
 use clap::Parser;
@@ -16,9 +11,7 @@ use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
 use tokio::{
-    io::{
-        AsyncBufReadExt, AsyncReadExt, AsyncWriteExt,
-    },
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, UnixStream},
     sync::{mpsc, oneshot, RwLock},
 };
@@ -642,12 +635,13 @@ impl Decoder for MyStringDecoder {
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         // position, iter, split
-        let it = buf
+        let mut it = buf
             .iter()
             .enumerate()
             .filter(|(_position, byte)| **byte == b'\n');
         let start = 0;
-        for (position, _) in it {
+        if let Some((position, _)) = it.next() {
+            //for (position, _) in it {
             let part = &buf[start..position];
 
             println!("Part {}", std::str::from_utf8(part).unwrap());
@@ -676,6 +670,7 @@ impl Decoder for MyStringDecoder {
             return Ok(Some(return_value));
 
             start = position;
+            //}
         }
         Ok(None)
     }

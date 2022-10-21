@@ -45,9 +45,6 @@ base64 = { version = "0.13" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
 file-lock = { version = "2.1.6", optional = true }
 
-[patch.crates-io]
-diesel = { git = "https://github.com/mohe2015/diesel.git", branch = "add-c-char-type" }
-
 [features]
 default = ["server"]
 server = ["reqwest",

@@ -548,9 +548,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
                 "r#{}Notification",
                 notification.method.replace('_', " ").to_upper_camel_case()
             );
-            
-            if let MessageDirection::ClientToServer
-            | MessageDirection::Both =
+
+            if let MessageDirection::ClientToServer | MessageDirection::Both =
                 notification.message_direction
             {
                 quote! {
