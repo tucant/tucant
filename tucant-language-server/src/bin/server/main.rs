@@ -1,4 +1,5 @@
 mod parser;
+mod evaluate;
 
 use std::{collections::HashMap, sync::Arc, vec};
 
@@ -92,10 +93,24 @@ impl Server {
                     .handle_document_highlight_request(request)
                     .await
                     .unwrap(),
+                IncomingStuff::SetTraceNotification(notification) => {}
+                IncomingStuff::TextDocumentCompletionRequest(request) => cloned_self.handle_text_document_completion_request(request).await.unwrap(),
                 _ => todo!(),
             }
             //});
         }
+    }
+
+    async fn handle_text_document_completion_request(
+        self: Arc<Self>,
+        request: TextDocumentCompletionRequest,
+    ) -> anyhow::Result<()> {
+        // request.params.variant0.position
+        // TODO FIXMe find the location
+
+        self.send_response(request, H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c::Variant2(())).await?;
+
+        Ok(())
     }
 
     async fn handle_document_highlight_request(
@@ -401,13 +416,15 @@ impl Server {
                     ),
                 ),
                 notebook_document_sync: None,
-                completion_provider: None, /*Some(Box::new(CompletionOptions {
-                                               variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
-                                               trigger_characters: Some(vec![r#"""#.to_string()]),
-                                               all_commit_characters: Some(vec![r#"""#.to_string()]),
-                                               resolve_provider: None,
-                                               completion_item: None,
-                                           })),*/
+                completion_provider: Some(CompletionOptions {
+                    variant0: WorkDoneProgressOptions {
+                        work_done_progress: None,
+                    },
+                    trigger_characters: Some(vec![r#"""#.to_string()]),
+                    all_commit_characters: Some(vec![r#"""#.to_string()]),
+                    resolve_provider: None,
+                    completion_item: None,
+                }),
                 hover_provider: None,
                 signature_help_provider: None,
                 declaration_provider: None,
