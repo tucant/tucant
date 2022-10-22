@@ -10,6 +10,17 @@ pub struct Span<'a, T: Debug> {
     pub string: &'a str,
 }
 
+impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
+    fn from(ast: Ast<'a>) -> Self {
+        let fake: &'static str = "fake";
+        Self {
+            full_string: fake,
+            string: fake,
+            inner: ast
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Error<'a, T: Debug> {
     pub location: Span<'a, ()>,
