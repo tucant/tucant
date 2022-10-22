@@ -4,7 +4,7 @@ use crate::parser::{Span, Ast, parse_root};
 use anyhow::anyhow;
 
 pub trait Object: Debug {
-    fn call(&self, args: &[Span<Ast>]) -> anyhow::Result<Rc<dyn Object>> {
+    fn call<'a>(&self, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Object + 'a>> {
         Err(anyhow!("not yet implemented"))
     }
 }
@@ -36,31 +36,31 @@ impl<'a> Object for Lambda<'a> {
 pub struct DefineLambda;
 
 impl Object for DefineLambda {
-    fn call(&self, args: &[Span<Ast>]) -> anyhow::Result<Rc<dyn Object>> {
-        let [variable, body]: &[Span<Ast>; 2] = args.try_into()?;
+    fn call<'a>(&self, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Object + 'a>> {
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
             _ => Err(anyhow!("expected argument identifier"))?
         };
-        Ok(Rc::new(Lambda {
+        Ok(Rc::new(Lambda::<'_> {
             variable: variable.to_string(),
             body: body.clone(),
         }))
     }
 }
 
-pub fn evaluate(value: Span<Ast>) -> anyhow::Result<Rc<dyn Object>> {
+pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Object + 'a>> {
     let context: Vec<(String, Rc<dyn Object>)> = vec![
         ("lambda".to_string(), Rc::new(DefineLambda))
     ];
     evaluate_with_context(context, value)
 }
 
-fn resolve_identifier(context: Vec<(String, Rc<dyn Object>)>, identifier: &str) -> anyhow::Result<Rc<dyn Object>> {
+fn resolve_identifier<'a>(context: Vec<(String, Rc<dyn Object + 'a>)>, identifier: &str) -> anyhow::Result<Rc<dyn Object + 'a>> {
     context.iter().rev().find(|(ident, _)| identifier == ident).map(|(ident, value)| value).ok_or(anyhow!("could not find identifier {}", identifier)).cloned()
 }
 
-pub fn evaluate_with_context(context: Vec<(String, Rc<dyn Object>)>, value: Span<Ast>) -> anyhow::Result<Rc<dyn Object>> {
+pub fn evaluate_with_context<'a>(context: Vec<(String, Rc<dyn Object + 'a>)>, value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Object + 'a>> {
     match value.inner {
         Ast::Number(number) => Ok(Rc::new(IntegerType(number))),
         Ast::String(string) => Ok(Rc::new(StringType(string.to_string()))),
