@@ -237,11 +237,10 @@ fn parse_whitespace<'a>(
     input: Span<'a, ()>,
 ) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
-    let pos = input_str
-        .char_indices()
-        .find_or_last(|(_offset, character)| !character.is_whitespace())
-        .map(|(offset, _)| offset)
-        .unwrap_or(0);
+    let pos = my_char_indices(input_str)
+        .find(|(_offset, character, _)| !character.is_whitespace())
+        .map(|(offset, _, _)| offset)
+        .unwrap_or(input_str.len());
     let (whitespace_str, rest_str) = input_str.split_at(pos);
     Ok((
         Span {
@@ -473,7 +472,8 @@ pub fn parse_ast<'a>(
 }
 
 pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
-    let (ast, rest) = parse_ast(input)?;
+    let (ast, mut rest) = parse_ast(input)?;
+    rest = parse_whitespace(rest.into())?.1;
     if !rest.string.is_empty() {
         Err(Error {
             location: rest,
