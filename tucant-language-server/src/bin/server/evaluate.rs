@@ -5,7 +5,7 @@ use anyhow::anyhow;
 
 pub trait Object: Debug {
     fn call(&self, args: &[Span<Ast>]) -> anyhow::Result<Rc<dyn Object>> {
-        unimplemented!()
+        Err(anyhow!("not yet implemented"))
     }
 }
 
@@ -23,11 +23,29 @@ impl Object for StringType {
 }
 
 #[derive(Debug)]
+pub struct Lambda<'a> {
+    variable: String,
+    body: Span<'a, Ast<'a>>
+}
+
+impl<'a> Object for Lambda<'a> {
+    
+}
+
+#[derive(Debug)]
 pub struct DefineLambda;
 
 impl Object for DefineLambda {
     fn call(&self, args: &[Span<Ast>]) -> anyhow::Result<Rc<dyn Object>> {
-        Err(anyhow!("not yet implemented"))
+        let [variable, body]: &[Span<Ast>; 2] = args.try_into()?;
+        let variable = match variable.inner {
+            Ast::Identifier(identifier) => identifier,
+            _ => Err(anyhow!("expected argument identifier"))?
+        };
+        Ok(Rc::new(Lambda {
+            variable: variable.to_string(),
+            body: body.clone(),
+        }))
     }
 }
 
@@ -85,4 +103,8 @@ fn test_primitives() {
     "#)).unwrap().0);
     println!("{:?}", result);
 
+    let result = evaluate(parse_root(Span::new(r#"
+        (lambda 1 v)
+    "#)).unwrap().0);
+    println!("{:?}", result);
 }
