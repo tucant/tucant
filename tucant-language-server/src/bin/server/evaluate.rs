@@ -58,17 +58,34 @@ impl<'a> Value<'a> for Add {
 }
 
 #[derive(Debug)]
-pub struct Lambda<'a> {
+pub struct LambdaValue<'a> {
     variable: String,
     body: Span<'a, Ast<'a>>
 }
 
-impl<'a> Value<'a> for Lambda<'a> {
+impl<'a> Value<'a> for LambdaValue<'a> {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
         let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into()?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
         let return_value = evaluate_with_context(context, self.body.clone());
+        context.pop();
+        return_value
+    }
+}
+
+#[derive(Debug)]
+pub struct LambdaType<'a> {
+    variable: String,
+    body: Span<'a, Ast<'a>>
+}
+
+impl<'a> Type<'a> for LambdaType<'a> {
+    fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into()?;
+        let arg_value = typecheck_with_context(context, variable_value.clone())?;
+        context.push((self.variable.clone(), arg_value));
+        let return_value = typecheck_with_context(context, self.body.clone());
         context.pop();
         return_value
     }
@@ -84,7 +101,7 @@ impl<'a> Value<'a> for DefineLambdaValue {
             Ast::Identifier(identifier) => identifier,
             _ => Err(anyhow!("expected argument identifier"))?
         };
-        Ok(Rc::new(Lambda::<'_> {
+        Ok(Rc::new(LambdaValue::<'_> {
             variable: variable.to_string(),
             body: body.clone(),
         }))
