@@ -3,15 +3,23 @@ use std::fmt::Debug;
 use crate::parser::{Span, Ast, parse_root};
 use anyhow::anyhow;
 
-pub trait Value<'a>: Debug + Any {
+pub trait Value<'a>: Debug {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
         Err(anyhow!("not yet implemented"))
     }
+
+    fn downcast_integer_value(&self) -> Option<&IntegerValue> {
+        None
+    }
 }
 
-pub trait Type<'a>: Debug + Any {
+pub trait Type<'a>: Debug {
     fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
         Err(anyhow!("not yet implemented"))
+    }
+
+    fn downcast_integer_type(&self) -> Option<&IntegerType> {
+        None
     }
 }
 
@@ -19,7 +27,9 @@ pub trait Type<'a>: Debug + Any {
 pub struct IntegerValue(i64);
 
 impl<'a> Value<'a> for IntegerValue {
-   
+    fn downcast_integer_value(&self) -> Option<&IntegerValue> {
+        Some(self)
+    }
 }
 
 
@@ -27,6 +37,9 @@ impl<'a> Value<'a> for IntegerValue {
 pub struct IntegerType(Option<i64>);
 
 impl<'a> Type<'a> for IntegerType {
+    fn downcast_integer_type(&self) -> Option<&IntegerType> {
+        Some(self)
+    }
 }
 
 #[derive(Debug)]
@@ -44,17 +57,33 @@ impl<'a> Type<'a> for StringType {
 
 
 #[derive(Debug)]
-pub struct Add;
+pub struct AddLambdaValue;
 
-impl<'a> Value<'a> for Add {
+impl<'a> Value<'a> for AddLambdaValue {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
-        let left_value = left_value.downcast::<IntegerValue>();
-        
+        let left_value = left_value.downcast_integer_value().unwrap();
+        let right_value = right_value.downcast_integer_value().unwrap();
+        Ok(Rc::new(IntegerValue(left_value.0.checked_add(right_value.0).unwrap())))
     }
 
+}
+
+
+#[derive(Debug)]
+pub struct AddLambdaType;
+
+impl<'a> Type<'a> for AddLambdaType {
+    fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
+        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
+        let left_value = typecheck_with_context(context, left.clone())?;
+        let right_value = typecheck_with_context(context, right.clone())?;
+        let left_value = left_value.downcast_integer_type().unwrap();
+        let right_value = right_value.downcast_integer_type().unwrap();
+        Ok(Rc::new(IntegerType(left_value.0.map(|l| right_value.0.and_then(|r| l.checked_add(r)).unwrap()))))
+    }
 }
 
 #[derive(Debug)]
