@@ -1,15 +1,15 @@
-use std::rc::Rc;
+use std::{rc::Rc, any::Any};
 use std::fmt::Debug;
 use crate::parser::{Span, Ast, parse_root};
 use anyhow::anyhow;
 
-pub trait Value<'a>: Debug {
+pub trait Value<'a>: Debug + Any {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
         Err(anyhow!("not yet implemented"))
     }
 }
 
-pub trait Type<'a>: Debug {
+pub trait Type<'a>: Debug + Any {
     fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
         Err(anyhow!("not yet implemented"))
     }
@@ -51,8 +51,8 @@ impl<'a> Value<'a> for Add {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
-        let return_value = evaluate_with_context(context, self.body.clone());
-        return_value
+        let left_value = left_value.downcast::<IntegerValue>();
+        
     }
 
 }
@@ -118,7 +118,7 @@ impl<'a> Type<'a> for DefineLambdaType {
             Ast::Identifier(identifier) => identifier,
             _ => Err(anyhow!("expected argument identifier"))?
         };
-        Ok(Rc::new(Lambda::<'_> {
+        Ok(Rc::new(LambdaType::<'_> {
             variable: variable.to_string(),
             body: body.clone(),
         }))
@@ -139,7 +139,7 @@ pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Type<'a>
     typecheck_with_context(&mut context, value)
 }
 
-fn resolve_identifier<'a, T>(context: &mut Vec<(String, T)>, identifier: &str) -> anyhow::Result<T> {
+fn resolve_identifier<'a, T: Clone>(context: &mut Vec<(String, T)>, identifier: &str) -> anyhow::Result<T> {
     context.iter().rev().find(|(ident, _)| identifier == ident).map(|(ident, value)| value).ok_or(anyhow!("could not find identifier {}", identifier)).cloned()
 }
 
