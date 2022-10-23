@@ -75,10 +75,27 @@ impl<'a> Value<'a> for Lambda<'a> {
 }
 
 #[derive(Debug)]
-pub struct DefineLambda;
+pub struct DefineLambdaValue;
 
-impl<'a> Value<'a> for DefineLambda {
+impl<'a> Value<'a> for DefineLambdaValue {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
+        let variable = match variable.inner {
+            Ast::Identifier(identifier) => identifier,
+            _ => Err(anyhow!("expected argument identifier"))?
+        };
+        Ok(Rc::new(Lambda::<'_> {
+            variable: variable.to_string(),
+            body: body.clone(),
+        }))
+    }
+}
+
+#[derive(Debug)]
+pub struct DefineLambdaType;
+
+impl<'a> Type<'a> for DefineLambdaType {
+    fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
         let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
@@ -93,19 +110,19 @@ impl<'a> Value<'a> for DefineLambda {
 
 pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
     let mut context: Vec<(String, Rc<dyn Value>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambda))
+        ("lambda".to_string(), Rc::new(DefineLambdaValue))
     ];
     evaluate_with_context(&mut context, value)
 }
 
-pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
-    let mut context: Vec<(String, Rc<dyn Value>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambda))
+pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
+    let mut context: Vec<(String, Rc<dyn Type>)> = vec![
+        ("lambda".to_string(), Rc::new(DefineLambdaType))
     ];
-    evaluate_with_context(&mut context, value)
+    typecheck_with_context(&mut context, value)
 }
 
-fn resolve_identifier<'a>(context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, identifier: &str) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
+fn resolve_identifier<'a, T>(context: &mut Vec<(String, T)>, identifier: &str) -> anyhow::Result<T> {
     context.iter().rev().find(|(ident, _)| identifier == ident).map(|(ident, value)| value).ok_or(anyhow!("could not find identifier {}", identifier)).cloned()
 }
 
@@ -121,7 +138,7 @@ pub fn typecheck_with_context<'a>(context: &mut Vec<(String, Rc<dyn Type<'a> + '
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
                 _ => Err(anyhow!("can't call a string or number")),
             };
-            callable?.call(context, args)
+            callable?.typecheck_call(context, args)
         },
     }
 }
@@ -138,7 +155,7 @@ pub fn evaluate_with_context<'a>(context: &mut Vec<(String, Rc<dyn Value<'a> + '
                 Ast::List(_) => evaluate_with_context(context, callable.clone()),
                 _ => Err(anyhow!("can't call a string or number")),
             };
-            callable?.call(context, args)
+            callable?.evaluate_call(context, args)
         },
     }
 }
