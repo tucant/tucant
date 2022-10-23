@@ -119,4 +119,14 @@ fn test_primitives() {
         ((lambda v v) 1)
     "#)).unwrap().0);
     println!("{:?}", result);
+
+    let result = evaluate(parse_root(Span::new(r#"
+        (add 1 (add 1 1))
+    "#)).unwrap().0);
+    println!("{:?}", result);
+
+    let result = evaluate(parse_root(Span::new(r#"
+        (add 1 (add 1 ""))
+    "#)).unwrap().0);
+    println!("{:?}", result);
 }
