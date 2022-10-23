@@ -64,11 +64,10 @@ impl<'a> Value<'a> for AddLambdaValue {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
-        let left_value = left_value.downcast_integer_value().unwrap();
-        let right_value = right_value.downcast_integer_value().unwrap();
-        Ok(Rc::new(IntegerValue(left_value.0.checked_add(right_value.0).unwrap())))
+        let left_value = left_value.downcast_integer_value().ok_or(anyhow!("expected integer type, got {:?}", left_value))?;
+        let right_value = right_value.downcast_integer_value().ok_or(anyhow!("expected integer type, got {:?}", right_value))?;
+        Ok(Rc::new(IntegerValue(left_value.0.checked_add(right_value.0).ok_or(anyhow!("integer overflow, adding {:?} and {:?}", left_value, right_value))?)))
     }
-
 }
 
 
@@ -156,14 +155,16 @@ impl<'a> Type<'a> for DefineLambdaType {
 
 pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Value<'a> + 'a>> {
     let mut context: Vec<(String, Rc<dyn Value>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambdaValue))
+        ("lambda".to_string(), Rc::new(DefineLambdaValue)),
+        ("add".to_string(), Rc::new(AddLambdaValue)),
     ];
     evaluate_with_context(&mut context, value)
 }
 
 pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> anyhow::Result<Rc<dyn Type<'a> + 'a>> {
     let mut context: Vec<(String, Rc<dyn Type>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambdaType))
+        ("lambda".to_string(), Rc::new(DefineLambdaType)),
+        ("add".to_string(), Rc::new(AddLambdaType)),
     ];
     typecheck_with_context(&mut context, value)
 }
