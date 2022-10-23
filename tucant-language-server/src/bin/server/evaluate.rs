@@ -85,7 +85,7 @@ pub struct AddLambdaType;
 
 impl<'a> Type<'a> for AddLambdaType {
     fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.or(Err(EvaluateError { location: None, reason: format!("expected exactly two arguments").into() }))?;
+        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError { location: None, reason: format!("expected exactly two arguments").into() }))?;
         let left_value = typecheck_with_context(context, left.clone())?;
         let right_value = typecheck_with_context(context, right.clone())?;
         let left_value = left_value.downcast_integer_type().ok_or(EvaluateError { location: None, reason: format!("expected integer type, got {:?}", left_value).into()})?;
@@ -102,7 +102,7 @@ pub struct LambdaValue<'a> {
 
 impl<'a> Value<'a> for LambdaValue<'a> {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into()?;
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or(Err(EvaluateError { location: None, reason: format!("expected exactly one argument").into() }))?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
         let return_value = evaluate_with_context(context, self.body.clone());
@@ -119,7 +119,7 @@ pub struct LambdaType<'a> {
 
 impl<'a> Type<'a> for LambdaType<'a> {
     fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into()?;
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or(Err(EvaluateError { location: None, reason: format!("expected exactly one argument").into() }))?;
         let arg_value = typecheck_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
         let return_value = typecheck_with_context(context, self.body.clone());
@@ -133,10 +133,10 @@ pub struct DefineLambdaValue;
 
 impl<'a> Value<'a> for DefineLambdaValue {
     fn evaluate_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError { location: None, reason: format!("expected exactly two arguments").into() }))?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
-            _ => Err(anyhow!("expected argument identifier"))?
+            _ => Err(EvaluateError { location: None, reason: format!("expected argument identifier").into() })?
         };
         Ok(Rc::new(LambdaValue::<'_> {
             variable: variable.to_string(),
@@ -150,10 +150,10 @@ pub struct DefineLambdaType;
 
 impl<'a> Type<'a> for DefineLambdaType {
     fn typecheck_call(self: Rc<Self>, context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, args: &[Span<'a, Ast<'a>>]) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError { location: None, reason: format!("expected exactly two arguments").into() }))?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
-            _ => Err(anyhow!("expected argument identifier"))?
+            _ => Err(EvaluateError { location: None, reason: format!("expected argument identifier").into() })?
         };
         Ok(Rc::new(LambdaType::<'_> {
             variable: variable.to_string(),
@@ -179,7 +179,7 @@ pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type
 }
 
 fn resolve_identifier<'a, T: Clone>(context: &mut Vec<(String, T)>, identifier: &str) -> EvaluateResult<'a, T> {
-    context.iter().rev().find(|(ident, _)| identifier == ident).map(|(ident, value)| value).ok_or(anyhow!("could not find identifier {}", identifier)).cloned()
+    context.iter().rev().find(|(ident, _)| identifier == ident).map(|(ident, value)| value).ok_or(EvaluateError { location: None, reason: format!("could not find identfier {}", identifier).into() }).cloned()
 }
 
 pub fn typecheck_with_context<'a>(context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>, _type: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
@@ -188,11 +188,11 @@ pub fn typecheck_with_context<'a>(context: &mut Vec<(String, Rc<dyn Type<'a> + '
         Ast::String(string) => Ok(Rc::new(StringType(Some(string.to_string())))),
         Ast::Identifier(identifier) => resolve_identifier(context, identifier),
         Ast::List(elements) => {
-            let (callable, args) = elements.split_first().ok_or(anyhow!("can't call empty list"))?;
+            let (callable, args) = elements.split_first().ok_or(EvaluateError { location: None, reason: format!("can't call an empty list").into() })?;
             let callable = match callable.inner {
                 Ast::Identifier(identifier) => resolve_identifier(context, identifier),
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
-                _ => Err(anyhow!("can't call a string or number")),
+                _ => Err(EvaluateError { location: None, reason: format!("can't call a string or number").into() })?
             };
             callable?.typecheck_call(context, args)
         },
@@ -205,11 +205,11 @@ pub fn evaluate_with_context<'a>(context: &mut Vec<(String, Rc<dyn Value<'a> + '
         Ast::String(string) => Ok(Rc::new(StringValue(string.to_string()))),
         Ast::Identifier(identifier) => resolve_identifier(context, identifier),
         Ast::List(elements) => {
-            let (callable, args) = elements.split_first().ok_or(anyhow!("can't call empty list"))?;
+            let (callable, args) = elements.split_first().ok_or(EvaluateError { location: None, reason: format!("can't call an empty list").into() })?;
             let callable = match callable.inner {
                 Ast::Identifier(identifier) => resolve_identifier(context, identifier),
                 Ast::List(_) => evaluate_with_context(context, callable.clone()),
-                _ => Err(anyhow!("can't call a string or number")),
+                _ => Err(EvaluateError { location: None, reason: format!("can't call a string or number").into() })?,
             };
             callable?.evaluate_call(context, args)
         },
