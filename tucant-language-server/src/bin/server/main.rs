@@ -19,7 +19,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
 use tucant_language_server_derive_output::*;
 
-use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
+use crate::{parser::{line_column_to_offset, parse_root, visitor, Error, Span}, evaluate::typecheck};
 
 #[derive(Parser)]
 struct Args {
@@ -172,14 +172,16 @@ impl Server {
         uri: String,
         version: i64,
     ) -> anyhow::Result<()> {
+
+        let vec =  {
         let span = Span::new(content);
         let value = parse_root(span);
 
-        let diagnostics = if let Err(error) = value {
+        let diagnostics: Box<dyn Iterator<Item=Diagnostic>> = if let Err(ref error) = value {
             let start_pos = error.location.start_line_column();
             let end_pos = error.location.end_line_column();
 
-            vec![Diagnostic {
+            Box::new(std::iter::once(Diagnostic {
                 range: Range {
                     start: Position {
                         line: start_pos.0.try_into().unwrap(),
@@ -198,15 +200,48 @@ impl Server {
                 tags: None,
                 related_information: None,
                 data: None,
-            }]
+            }))
         } else {
-            vec![]
+            Box::new(std::iter::empty())
         };
+
+
+        let typecheck_result = typecheck(value.unwrap().0); // TODO use match, see above
+        println!("{:?}", typecheck_result);
+        let typecheck_diagnostics: Box<dyn Iterator<Item=Diagnostic>> = if let Err(ref error) = typecheck_result {
+            let start_pos = error.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
+            let end_pos = error.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
+
+            Box::new(std::iter::once(Diagnostic {
+                range: Range {
+                    start: Position {
+                        line: start_pos.0.try_into().unwrap(),
+                        character: start_pos.1.try_into().unwrap(),
+                    },
+                    end: Position {
+                        line: end_pos.0.try_into().unwrap(),
+                        character: end_pos.1.try_into().unwrap(),
+                    },
+                },
+                severity: Some(DiagnosticSeverity::Error),
+                code: None,
+                code_description: None,
+                source: Some("tucant".to_string()),
+                message: error.reason.to_string(),
+                tags: None,
+                related_information: None,
+                data: None,
+            }))
+        } else {
+            Box::new(std::iter::empty())
+        };
+        diagnostics.chain(typecheck_diagnostics).collect_vec()
+    };
 
         let response = PublishDiagnosticsParams {
             uri,
             version: Some(version),
-            diagnostics,
+            diagnostics: vec,
         };
 
         self.send_notification::<TextDocumentPublishDiagnosticsNotification>(response)
