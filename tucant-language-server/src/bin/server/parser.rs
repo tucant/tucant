@@ -1,4 +1,4 @@
-use std::{fmt::Debug, borrow::Cow};
+use std::{borrow::Cow, fmt::Debug};
 
 use itertools::Itertools;
 use tucant_language_server_derive_output::FoldingRange;
@@ -16,7 +16,7 @@ impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
         Self {
             full_string: fake,
             string: fake,
-            inner: ast
+            inner: ast,
         }
     }
 }
@@ -448,7 +448,10 @@ pub fn parse_ast<'a>(
                 full_string: input.full_string,
                 string: &input.string[start..end],
             },
-            reason: Cow::from(format!(r#"Unexpected character `{}`. Expected `"`, 0-9, a-z, A-Z or `(`."#, character)),
+            reason: Cow::from(format!(
+                r#"Unexpected character `{}`. Expected `"`, 0-9, a-z, A-Z or `(`."#,
+                character
+            )),
             partial_parse: Span {
                 inner: Ast::List(vec![]),
                 full_string: input.full_string,
