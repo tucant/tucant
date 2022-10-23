@@ -79,9 +79,9 @@ impl<'a> Type<'a> for AddLambdaType {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into()?;
         let left_value = typecheck_with_context(context, left.clone())?;
         let right_value = typecheck_with_context(context, right.clone())?;
-        let left_value = left_value.downcast_integer_type().unwrap();
-        let right_value = right_value.downcast_integer_type().unwrap();
-        Ok(Rc::new(IntegerType(left_value.0.map(|l| right_value.0.and_then(|r| l.checked_add(r)).unwrap()))))
+        let left_value = left_value.downcast_integer_type().ok_or(anyhow!("expected integer type, got {:?}", left_value))?;
+        let right_value = right_value.downcast_integer_type().ok_or(anyhow!("expected integer type, got {:?}", right_value))?;
+        Ok(Rc::new(IntegerType(left_value.0.and_then(|l| right_value.0.map(|r| l.checked_add(r).ok_or(anyhow!("integer overflow, adding {:?} and {:?}", left_value, right_value)))).transpose()?)))
     }
 }
 
