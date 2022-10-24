@@ -287,17 +287,29 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly one argument".to_string().into(),
-            })?;
-        let arg_value = typecheck_with_context(context, variable_value.clone())?;
-        context.push((self.inner.variable.clone(), arg_value));
-        let return_value = typecheck_with_context(context, self.inner.body.clone());
-        context.pop();
-        return_value
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+    ) {
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = match args.try_into() {
+            Ok(v) => v,
+            Err(_) => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected exactly one argument".to_string().into(),
+                });
+                return (err, Box::new(std::iter::once(err)));
+            },
+        };
+        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
+        if let Ok(arg_value) = arg_value {
+            context.push((self.inner.variable.clone(), arg_value));
+            let return_value = typecheck_with_context(context, self.inner.body.clone());
+            context.pop();
+            return_value
+        } else {
+            return (arg_value, arg_value_trace);
+        }
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -357,7 +369,10 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+    ) {
         let [variable, body]: &[Span<'a, Ast<'a>>; 2] =
             args.try_into().map_err(|_| EvaluateError {
                 location: None,
