@@ -24,6 +24,8 @@ pub trait Value<'a>: Debug {
         }) // TODO FIXME add span information
     }
 
+    fn span(&self) -> Span<'a, ()>;
+
     fn downcast_integer_value(&self) -> Option<&IntegerValue> {
         None
     }
@@ -41,6 +43,8 @@ pub trait Type<'a>: Debug {
         })
     }
 
+    fn span(&self) -> Span<'a, ()>;
+
     fn downcast_integer_type(&self) -> Option<&IntegerType> {
         None
     }
@@ -51,7 +55,15 @@ pub struct IntegerValue(i64);
 
 impl<'a> Value<'a> for Span<'a, IntegerValue> {
     fn downcast_integer_value(&self) -> Option<&IntegerValue> {
-        Some(self)
+        Some(&self.inner)
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 
@@ -60,19 +72,43 @@ pub struct IntegerType(Option<i64>);
 
 impl<'a> Type<'a> for Span<'a, IntegerType> {
     fn downcast_integer_type(&self) -> Option<&IntegerType> {
-        Some(self)
+        Some(&self.inner)
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 
 #[derive(Debug)]
 pub struct StringValue(String);
 
-impl<'a> Value<'a> for Span<'a, StringValue> {}
+impl<'a> Value<'a> for Span<'a, StringValue> {
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct StringType(Option<String>);
 
-impl<'a> Type<'a> for Span<'a, StringType> {}
+impl<'a> Type<'a> for Span<'a, StringType> {
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
@@ -92,11 +128,11 @@ impl<'a> Value<'a> for Span<'a, AddLambdaValue> {
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
         let left_value = left_value.downcast_integer_value().ok_or(EvaluateError {
-            location: None,
+            location: Some(left_value.span()),
             reason: format!("expected integer type, got {:?}", left_value).into(),
         })?;
         let right_value = right_value.downcast_integer_value().ok_or(EvaluateError {
-            location: None,
+            location: Some(right_value.span()),
             reason: format!("expected integer type, got {:?}", right_value).into(),
         })?;
         Ok(Rc::new(Span {
@@ -116,6 +152,14 @@ impl<'a> Value<'a> for Span<'a, AddLambdaValue> {
             full_string: "", // TODO FIXME join two spans
             string: "",
         }))
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 
@@ -137,11 +181,11 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
         let left_value = typecheck_with_context(context, left.clone())?;
         let right_value = typecheck_with_context(context, right.clone())?;
         let left_value = left_value.downcast_integer_type().ok_or(EvaluateError {
-            location: None,
+            location: Some(left_value.span()),
             reason: format!("expected integer type, got {:?}", left_value).into(),
         })?;
         let right_value = right_value.downcast_integer_type().ok_or(EvaluateError {
-            location: None,
+            location: Some(right_value.span()),
             reason: format!("expected integer type, got {:?}", right_value).into(),
         })?;
         Ok(Rc::new(Span {
@@ -166,6 +210,14 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
             string: "",
         }))
     }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -187,10 +239,18 @@ impl<'a> Value<'a> for Span<'a, LambdaValue<'a>> {
             })
         })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
-        context.push((self.variable.clone(), arg_value));
-        let return_value = evaluate_with_context(context, self.body.clone());
+        context.push((self.inner.variable.clone(), arg_value));
+        let return_value = evaluate_with_context(context, self.inner.body.clone());
         context.pop();
         return_value
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 
@@ -213,10 +273,18 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
             })
         })?;
         let arg_value = typecheck_with_context(context, variable_value.clone())?;
-        context.push((self.variable.clone(), arg_value));
-        let return_value = typecheck_with_context(context, self.body.clone());
+        context.push((self.inner.variable.clone(), arg_value));
+        let return_value = typecheck_with_context(context, self.inner.body.clone());
         context.pop();
         return_value
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 
@@ -251,6 +319,14 @@ impl<'a> Value<'a> for Span<'a, DefineLambdaValue> {
             string: "",
         }))
     }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -280,9 +356,17 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
                 variable: variable.to_string(),
                 body: body.clone(),
             },
-            full_string: todo!(),
-            string: todo!(),
+            full_string: "lambda", // TODO FIXME fix span info to whole list?
+            string: "lambda",
         }))
+    }
+
+    fn span(&self) -> Span<'a, ()> {
+        Span {
+            inner: (),
+            full_string: self.full_string,
+            string: self.string,
+        }
     }
 }
 

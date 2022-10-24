@@ -9,14 +9,6 @@ pub struct Span<'a, T: Debug> {
     pub string: &'a str,
 }
 
-impl<'a, T: Debug> Deref for Span<'a, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
 impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
     fn from(ast: Ast<'a>) -> Self {
         let fake: &'static str = "fake";
