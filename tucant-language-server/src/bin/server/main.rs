@@ -1,4 +1,4 @@
-mod evaluate;
+pub mod evaluate;
 mod parser;
 
 use std::{collections::HashMap, sync::Arc, vec};

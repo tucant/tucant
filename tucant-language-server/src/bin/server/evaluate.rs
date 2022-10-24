@@ -528,6 +528,8 @@ pub fn evaluate_with_context<'a>(
 // cargo test -- --show-output evaluate
 #[test]
 fn test_primitives() {
+    use crate::parser::parse_root;
+
     let span = Ast::Number(5);
     println!("{:?}", evaluate(span.into()));
 
