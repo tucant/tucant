@@ -373,26 +373,35 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
         EvaluateResult<'a, RcType<'a>>,
         Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
     ) {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly two arguments".to_string().into(),
-            })?;
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
+            Ok(val) => val,
+            Err(_) => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected exactly two arguments".to_string().into(),
+                });
+                return (err, Box::new(std::iter::once(err)));
+            },
+        };
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
-            _ => Err(EvaluateError {
-                location: None,
-                reason: "expected argument identifier".to_string().into(),
-            })?,
+            _ => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected argument identifier".to_string().into(),
+                });
+                return (err, Box::new(std::iter::once(err)));
+            },
         };
-        Ok(Rc::new(Span {
+        let val: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
             inner: LambdaType::<'_> {
                 variable: variable.to_string(),
                 body: body.clone(),
             },
             full_string: "lambda", // TODO FIXME fix span info to whole list?
             string: "lambda",
-        }))
+        }));
+        return (val, Box::new(std::iter::once(val)));
     }
 
     fn span(&self) -> Span<'a, ()> {
