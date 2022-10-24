@@ -190,48 +190,64 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                 return (val, Box::new(std::iter::once(val)));
             }
         };
-        let left_value = typecheck_with_context(context, left.clone());
-        let right_value = typecheck_with_context(context, right.clone());
-        let left_value = match left_value.clone().last().unwrap() {
+        let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
+        let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
+        let left_value = match left_value {
             Ok(v) => match v.downcast_integer_type() {
-                Some(v) => {
-                    let _: () = v;
-                    v
-                }
+                Some(v) => v,
                 None => {
-                    return Box::new(std::iter::once(Err(EvaluateError {
+                    let val = Err(EvaluateError {
                         location: Some(v.span()),
                         reason: format!("expected integer type, got {:?}", v).into(),
-                    })))
+                    });
+                    return (val, Box::new(std::iter::once(val)))
                 }
             },
-            Err(e) => return Box::new(right_value.chain(left_value)),
+            Err(e) => return (left_value, Box::new(left_value_trace.chain(right_value_trace))),
         };
-        let right_value = right_value.downcast_integer_type().ok_or(EvaluateError {
-            location: Some(right_value.span()),
-            reason: format!("expected integer type, got {:?}", right_value).into(),
-        })?;
-        Box::new(std::iter::once(Ok(Rc::new(Span {
-            inner: IntegerType(
-                left_value
-                    .0
-                    .and_then(|l| {
-                        right_value.0.map(|r| {
-                            l.checked_add(r).ok_or(EvaluateError {
-                                location: None,
-                                reason: format!(
-                                    "integer overflow, adding {:?} and {:?}",
-                                    left_value, right_value
-                                )
-                                .into(),
-                            })
-                        })
-                    })
-                    .transpose()?,
-            ),
-            full_string: "",
-            string: "",
-        }))))
+        let right_value = match right_value {
+            Ok(v) => match v.downcast_integer_type() {
+                Some(v) => v,
+                None => {
+                    let val = Err(EvaluateError {
+                        location: Some(v.span()),
+                        reason: format!("expected integer type, got {:?}", v).into(),
+                    });
+                    return (val, Box::new(std::iter::once(val)))
+                }
+            },
+            Err(e) => return (right_value, Box::new(left_value_trace.chain(right_value_trace))),
+        };
+        let val = left_value
+        .0
+        .and_then(|l| {
+            right_value.0.map(|r| {
+                l.checked_add(r).ok_or(EvaluateError {
+                    location: None,
+                    reason: format!(
+                        "integer overflow, adding {:?} and {:?}",
+                        left_value, right_value
+                    )
+                    .into(),
+                })
+            })
+        }).transpose();
+        match val {
+            Ok(val) => {
+                let return_value: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
+                    inner: IntegerType(
+                        val
+                    ),
+                    full_string: "",
+                    string: "",
+                }));
+                (return_value, Box::new(std::iter::once(return_value)))
+            },
+            Err(err) => {
+                let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
+                (return_value, Box::new(std::iter::once(return_value)))
+            },
+        }
     }
 
     fn span(&self) -> Span<'a, ()> {
