@@ -4,6 +4,63 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// remove the lifetimes everywhere and do more 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #[derive(Debug, Clone)]
 pub struct EvaluateError<'a> {
     pub location: Option<Span<'a, ()>>,

@@ -431,6 +431,24 @@ pub fn hover_visitor<'a>(
     }
 }
 
+/*
+pub enum Ast {
+    Number(i64),
+    String(String),
+    Identifier(String),
+    Callable(Ast, Vec<Ast>),
+}
+*/
+
+/*
+pub enum Ast {
+    Number(i64, Position),
+    String(String, Position),
+    Identifier(String, Position),
+    Callable(Ast, Position, Vec<Ast>),
+}
+*/
+
 #[derive(Debug, Clone)]
 pub enum Ast<'a> {
     Number(i64),
