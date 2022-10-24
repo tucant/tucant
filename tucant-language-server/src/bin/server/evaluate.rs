@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EvaluateError<'a> {
     pub location: Option<Span<'a, ()>>,
     pub reason: Cow<'static, str>,
@@ -40,13 +40,13 @@ pub trait Type<'a>: Debug {
         _args: &[Span<'a, Ast<'a>>],
     ) -> (
         EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
     ) {
         let val = Err(EvaluateError {
             location: Some(self.span()),
             reason: "not yet implemented".to_string().into(),
         });
-        (val, Box::new(std::iter::once(val)))
+        (val.clone(), Box::new(std::iter::once(val)))
     }
 
     fn span(&self) -> Span<'a, ()>;
@@ -178,7 +178,7 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
         args: &[Span<'a, Ast<'a>>],
     ) -> (
         EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
     ) {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
             Ok(v) => v,
@@ -187,7 +187,7 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                     location: None,
                     reason: "expected exactly two arguments".to_string().into(),
                 });
-                return (val, Box::new(std::iter::once(val)));
+                return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
@@ -314,7 +314,7 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
         args: &[Span<'a, Ast<'a>>],
     ) -> (
         EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
     ) {
         let [variable_value]: &[Span<'a, Ast<'a>>; 1] = match args.try_into() {
             Ok(v) => v,
@@ -396,7 +396,7 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
         args: &[Span<'a, Ast<'a>>],
     ) -> (
         EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
     ) {
         let [variable, body]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
             Ok(val) => val,
@@ -464,7 +464,7 @@ pub fn typecheck<'a>(
     value: Span<'a, Ast<'a>>,
 ) -> (
     EvaluateResult<'a, RcType<'a>>,
-    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
 ) {
     let mut context: Vec<(String, Rc<dyn Type>)> = vec![
         (
@@ -512,7 +512,7 @@ pub fn typecheck_with_context<'a>(
     _type: Span<'a, Ast<'a>>,
 ) -> (
     EvaluateResult<'a, RcType<'a>>,
-    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
 ) {
     match _type.inner {
         Ast::Number(number) => {
