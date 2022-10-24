@@ -1,3 +1,4 @@
+pub mod evaluate;
 mod parser;
 
 use std::{collections::HashMap, sync::Arc, vec};
@@ -18,7 +19,10 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
 use tucant_language_server_derive_output::*;
 
-use crate::parser::{line_column_to_offset, parse_root, visitor, Error, Span};
+use crate::{
+    evaluate::typecheck,
+    parser::{line_column_to_offset, parse_root, visitor, Error, Span},
+};
 
 #[derive(Parser)]
 struct Args {
@@ -92,10 +96,32 @@ impl Server {
                     .handle_document_highlight_request(request)
                     .await
                     .unwrap(),
+                IncomingStuff::SetTraceNotification(_notification) => {}
+                IncomingStuff::CancelRequestNotification(_notification) => {}
+                IncomingStuff::TextDocumentCompletionRequest(request) => cloned_self
+                    .handle_text_document_completion_request(request)
+                    .await
+                    .unwrap(),
                 _ => todo!(),
             }
             //});
         }
+    }
+
+    async fn handle_text_document_completion_request(
+        self: Arc<Self>,
+        request: TextDocumentCompletionRequest,
+    ) -> anyhow::Result<()> {
+        // request.params.variant0.position
+        // TODO FIXMe find the location
+
+        self.send_response(
+            request,
+            H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c::Variant2(()),
+        )
+        .await?;
+
+        Ok(())
     }
 
     async fn handle_document_highlight_request(
@@ -157,41 +183,79 @@ impl Server {
         uri: String,
         version: i64,
     ) -> anyhow::Result<()> {
-        let span = Span::new(content);
-        let value = parse_root(span);
+        let vec = {
+            let span = Span::new(content);
+            let value = parse_root(span);
 
-        let diagnostics = if let Err(error) = value {
-            let start_pos = error.location.start_line_column();
-            let end_pos = error.location.end_line_column();
+            let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
+                let start_pos = error.location.start_line_column();
+                let end_pos = error.location.end_line_column();
 
-            vec![Diagnostic {
-                range: Range {
-                    start: Position {
-                        line: start_pos.0.try_into().unwrap(),
-                        character: start_pos.1.try_into().unwrap(),
+                Box::new(std::iter::once(Diagnostic {
+                    range: Range {
+                        start: Position {
+                            line: start_pos.0.try_into().unwrap(),
+                            character: start_pos.1.try_into().unwrap(),
+                        },
+                        end: Position {
+                            line: end_pos.0.try_into().unwrap(),
+                            character: end_pos.1.try_into().unwrap(),
+                        },
                     },
-                    end: Position {
-                        line: end_pos.0.try_into().unwrap(),
-                        character: end_pos.1.try_into().unwrap(),
-                    },
-                },
-                severity: Some(DiagnosticSeverity::Error),
-                code: None,
-                code_description: None,
-                source: Some("tucant".to_string()),
-                message: error.reason.to_string(),
-                tags: None,
-                related_information: None,
-                data: None,
-            }]
-        } else {
-            vec![]
+                    severity: Some(DiagnosticSeverity::Error),
+                    code: None,
+                    code_description: None,
+                    source: Some("tucant".to_string()),
+                    message: error.reason.to_string(),
+                    tags: None,
+                    related_information: None,
+                    data: None,
+                }))
+            } else {
+                let typecheck_result = typecheck(value.unwrap().0); // TODO use match, see above
+                println!("{:?}", typecheck_result);
+                if let Err(ref error) = typecheck_result {
+                    let start_pos = error
+                        .location
+                        .map(|l| l.start_line_column())
+                        .unwrap_or((0, 0));
+                    let end_pos = error
+                        .location
+                        .map(|l| l.end_line_column())
+                        .unwrap_or((0, 0));
+
+                    Box::new(std::iter::once(Diagnostic {
+                        range: Range {
+                            start: Position {
+                                line: start_pos.0.try_into().unwrap(),
+                                character: start_pos.1.try_into().unwrap(),
+                            },
+                            end: Position {
+                                line: end_pos.0.try_into().unwrap(),
+                                character: end_pos.1.try_into().unwrap(),
+                            },
+                        },
+                        severity: Some(DiagnosticSeverity::Error),
+                        code: None,
+                        code_description: None,
+                        source: Some("tucant".to_string()),
+                        message: error.reason.to_string(),
+                        tags: None,
+                        related_information: None,
+                        data: None,
+                    }))
+                } else {
+                    Box::new(std::iter::empty())
+                }
+            };
+
+            diagnostics.collect_vec()
         };
 
         let response = PublishDiagnosticsParams {
             uri,
             version: Some(version),
-            diagnostics,
+            diagnostics: vec,
         };
 
         self.send_notification::<TextDocumentPublishDiagnosticsNotification>(response)
@@ -401,13 +465,15 @@ impl Server {
                     ),
                 ),
                 notebook_document_sync: None,
-                completion_provider: None, /*Some(Box::new(CompletionOptions {
-                                               variant0: Box::new(WorkDoneProgressOptions { work_done_progress: None }),
-                                               trigger_characters: Some(vec![r#"""#.to_string()]),
-                                               all_commit_characters: Some(vec![r#"""#.to_string()]),
-                                               resolve_provider: None,
-                                               completion_item: None,
-                                           })),*/
+                completion_provider: Some(CompletionOptions {
+                    variant0: WorkDoneProgressOptions {
+                        work_done_progress: None,
+                    },
+                    trigger_characters: Some(vec![r#"""#.to_string()]),
+                    all_commit_characters: Some(vec![r#"""#.to_string()]),
+                    resolve_provider: None,
+                    completion_item: None,
+                }),
                 hover_provider: None,
                 signature_help_provider: None,
                 declaration_provider: None,

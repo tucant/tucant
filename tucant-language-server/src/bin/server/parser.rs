@@ -1,6 +1,5 @@
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
-use itertools::Itertools;
 use tucant_language_server_derive_output::FoldingRange;
 
 #[derive(Clone, Copy)]
@@ -10,10 +9,21 @@ pub struct Span<'a, T: Debug> {
     pub string: &'a str,
 }
 
+impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
+    fn from(ast: Ast<'a>) -> Self {
+        let fake: &'static str = "fake";
+        Self {
+            full_string: fake,
+            string: fake,
+            inner: ast,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Error<'a, T: Debug> {
     pub location: Span<'a, ()>,
-    pub reason: &'static str,
+    pub reason: Cow<'static, str>,
     pub partial_parse: T,
 }
 
@@ -95,7 +105,7 @@ fn parse_string<'a>(
                 full_string: input.full_string,
                 string: &input_str[0..character.len_utf8()],
             },
-            reason: r#"Expected a `"`"#,
+            reason: Cow::from(r#"Expected a `"`"#),
             partial_parse: Span {
                 inner: Ast::String(""),
                 full_string: input.full_string,
@@ -108,7 +118,7 @@ fn parse_string<'a>(
                 full_string: input.full_string,
                 string: &input_str[0..0],
             },
-            reason: r#"Unexpected end of code. Expected a `"`"#,
+            reason: Cow::from(r#"Unexpected end of code. Expected a `"`"#),
             partial_parse: Span {
                 inner: Ast::String(""),
                 full_string: input.full_string,
@@ -138,7 +148,7 @@ fn parse_string<'a>(
         }
         None => Err(Error {
             location: input,
-            reason: r#"Unterminated string literal"#,
+            reason: Cow::from(r#"Unterminated string literal"#),
             partial_parse: Span {
                 inner: Ast::String(&input.string[1..]),
                 full_string: input.full_string,
@@ -168,7 +178,7 @@ fn parse_number<'a>(
                     full_string: input.full_string,
                     string: number_str,
                 },
-                reason: r#"Failed to parse number"#,
+                reason: Cow::from(r#"Failed to parse number"#),
                 partial_parse: Span {
                     inner: Ast::Number(1337),
                     full_string: input.full_string,
@@ -200,7 +210,7 @@ fn parse_identifier<'a>(
                 full_string: input.full_string,
                 string: &input.string[0..0],
             },
-            reason: "Expected an identifier",
+            reason: Cow::from("Expected an identifier"),
             partial_parse: Span {
                 inner: Ast::Identifier(""),
                 full_string: input.full_string,
@@ -226,11 +236,10 @@ fn parse_whitespace<'a>(
     input: Span<'a, ()>,
 ) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
     let input_str = Into::<&'a str>::into(input);
-    let pos = input_str
-        .char_indices()
-        .find_or_last(|(_offset, character)| !character.is_whitespace())
-        .map(|(offset, _)| offset)
-        .unwrap_or(0);
+    let pos = my_char_indices(input_str)
+        .find(|(_offset, character, _)| !character.is_whitespace())
+        .map(|(offset, _, _)| offset)
+        .unwrap_or(input_str.len());
     let (whitespace_str, rest_str) = input_str.split_at(pos);
     Ok((
         Span {
@@ -258,7 +267,7 @@ fn parse_list<'a>(
                 full_string: input.full_string,
                 string: &input_str[0..0],
             },
-            reason: r#"Expected a `(`"#,
+            reason: Cow::from(r#"Expected a `(`"#),
             partial_parse: Span {
                 inner: Ast::List(vec![]),
                 full_string: full_input.full_string,
@@ -415,6 +424,7 @@ pub fn parse_ast<'a>(
         Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
             (
                 Span {
+                    //
                     inner: Ast::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
@@ -432,13 +442,16 @@ pub fn parse_ast<'a>(
                 v.1,
             )
         }),
-        Some((start, _, end)) => Err(Error {
+        Some((start, character, end)) => Err(Error {
             location: Span {
                 inner: (),
                 full_string: input.full_string,
                 string: &input.string[start..end],
             },
-            reason: r#"Unexpected character. Expected `"`, 0-9, a-z, A-Z or `(`."#,
+            reason: Cow::from(format!(
+                r#"Unexpected character `{}`. Expected `"`, 0-9, a-z, A-Z or `(`."#,
+                character
+            )),
             partial_parse: Span {
                 inner: Ast::List(vec![]),
                 full_string: input.full_string,
@@ -451,7 +464,7 @@ pub fn parse_ast<'a>(
                 full_string: input.full_string,
                 string: &input.string[0..0],
             },
-            reason: "Unexpected end of input",
+            reason: Cow::from("Unexpected end of input"),
             partial_parse: Span {
                 inner: Ast::List(vec![]),
                 full_string: input.full_string,
@@ -462,11 +475,12 @@ pub fn parse_ast<'a>(
 }
 
 pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
-    let (ast, rest) = parse_ast(input)?;
+    let (ast, mut rest) = parse_ast(input)?;
+    rest = parse_whitespace(rest)?.1;
     if !rest.string.is_empty() {
         Err(Error {
             location: rest,
-            reason: "Expected end of file.",
+            reason: Cow::from("Expected end of file."),
             partial_parse: ast,
         })
     } else {

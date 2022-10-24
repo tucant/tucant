@@ -1,4 +1,4 @@
-(file
+(list
     (veranstaltung "id" 1 5 7)
 
     (modul "id")
