@@ -271,37 +271,32 @@ pub fn main() {}
                     data: None,
                 }))
             } else {
-                let typecheck_result = typecheck(value.unwrap().0); // TODO use match, see above
+                let (typecheck_result, typecheck_trace) = typecheck(value.unwrap().0); // TODO use match, see above
                 println!("{:?}", typecheck_result);
-                if let Err(ref error) = typecheck_result {
-                    let start_pos = error
-                        .location
-                        .map(|l| l.start_line_column())
-                        .unwrap_or((0, 0));
-                    let end_pos = error
-                        .location
-                        .map(|l| l.end_line_column())
-                        .unwrap_or((0, 0));
-
-                    Box::new(std::iter::once(Diagnostic {
-                        range: Range {
-                            start: Position {
-                                line: start_pos.0.try_into().unwrap(),
-                                character: start_pos.1.try_into().unwrap(),
+                if let Err(_) = typecheck_result {
+                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
+                        let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
+                        let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
+                        (Diagnostic {
+                            range: Range {
+                                start: Position {
+                                    line: start_pos.0.try_into().unwrap(),
+                                    character: start_pos.1.try_into().unwrap(),
+                                },
+                                end: Position {
+                                    line: end_pos.0.try_into().unwrap(),
+                                    character: end_pos.1.try_into().unwrap(),
+                                },
                             },
-                            end: Position {
-                                line: end_pos.0.try_into().unwrap(),
-                                character: end_pos.1.try_into().unwrap(),
-                            },
-                        },
-                        severity: Some(DiagnosticSeverity::Error),
-                        code: None,
-                        code_description: None,
-                        source: Some("tucant".to_string()),
-                        message: error.reason.to_string(),
-                        tags: None,
-                        related_information: None,
-                        data: None,
+                            severity: Some(DiagnosticSeverity::Error),
+                            code: None,
+                            code_description: None,
+                            source: Some("tucant".to_string()),
+                            message: e.reason.to_string(),
+                            tags: None,
+                            related_information: None,
+                            data: None,
+                        })
                     }))
                 } else {
                     Box::new(std::iter::empty())
