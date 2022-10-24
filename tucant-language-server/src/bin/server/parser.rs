@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt::Debug};
+use std::{borrow::Cow, fmt::Debug, ops::Deref};
 
 use tucant_language_server_derive_output::FoldingRange;
 
@@ -7,6 +7,14 @@ pub struct Span<'a, T: Debug> {
     pub inner: T,
     pub full_string: &'a str, // TODO this could become a ref to a struct for the whole file with name info etc
     pub string: &'a str,
+}
+
+impl<'a, T: Debug> Deref for Span<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {

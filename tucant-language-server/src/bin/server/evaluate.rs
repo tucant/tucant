@@ -49,7 +49,7 @@ pub trait Type<'a>: Debug {
 #[derive(Debug)]
 pub struct IntegerValue(i64);
 
-impl<'a> Value<'a> for IntegerValue {
+impl<'a> Value<'a> for Span<'a, IntegerValue> {
     fn downcast_integer_value(&self) -> Option<&IntegerValue> {
         Some(self)
     }
@@ -58,7 +58,7 @@ impl<'a> Value<'a> for IntegerValue {
 #[derive(Debug)]
 pub struct IntegerType(Option<i64>);
 
-impl<'a> Type<'a> for IntegerType {
+impl<'a> Type<'a> for Span<'a, IntegerType> {
     fn downcast_integer_type(&self) -> Option<&IntegerType> {
         Some(self)
     }
@@ -67,17 +67,17 @@ impl<'a> Type<'a> for IntegerType {
 #[derive(Debug)]
 pub struct StringValue(String);
 
-impl<'a> Value<'a> for StringValue {}
+impl<'a> Value<'a> for Span<'a, StringValue> {}
 
 #[derive(Debug)]
 pub struct StringType(Option<String>);
 
-impl<'a> Type<'a> for StringType {}
+impl<'a> Type<'a> for Span<'a, StringType> {}
 
 #[derive(Debug)]
-pub struct AddLambdaValue;
+pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
 
-impl<'a> Value<'a> for AddLambdaValue {
+impl<'a> Value<'a> for Span<'a, AddLambdaValue> {
     fn evaluate_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
@@ -99,26 +99,30 @@ impl<'a> Value<'a> for AddLambdaValue {
             location: None,
             reason: format!("expected integer type, got {:?}", right_value).into(),
         })?;
-        Ok(Rc::new(IntegerValue(
-            left_value
-                .0
-                .checked_add(right_value.0)
-                .ok_or(EvaluateError {
-                    location: None,
-                    reason: format!(
-                        "integer overflow, adding {:?} and {:?}",
-                        left_value, right_value
-                    )
-                    .into(),
-                })?,
-        )))
+        Ok(Rc::new(Span {
+            inner: IntegerValue(
+                left_value
+                    .0
+                    .checked_add(right_value.0)
+                    .ok_or(EvaluateError {
+                        location: None,
+                        reason: format!(
+                            "integer overflow, adding {:?} and {:?}",
+                            left_value, right_value
+                        )
+                        .into(),
+                    })?,
+            ),
+            full_string: "", // TODO FIXME join two spans
+            string: "",
+        }))
     }
 }
 
 #[derive(Debug)]
 pub struct AddLambdaType;
 
-impl<'a> Type<'a> for AddLambdaType {
+impl<'a> Type<'a> for Span<'a, AddLambdaType> {
     fn typecheck_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
@@ -140,23 +144,27 @@ impl<'a> Type<'a> for AddLambdaType {
             location: None,
             reason: format!("expected integer type, got {:?}", right_value).into(),
         })?;
-        Ok(Rc::new(IntegerType(
-            left_value
-                .0
-                .and_then(|l| {
-                    right_value.0.map(|r| {
-                        l.checked_add(r).ok_or(EvaluateError {
-                            location: None,
-                            reason: format!(
-                                "integer overflow, adding {:?} and {:?}",
-                                left_value, right_value
-                            )
-                            .into(),
+        Ok(Rc::new(Span {
+            inner: IntegerType(
+                left_value
+                    .0
+                    .and_then(|l| {
+                        right_value.0.map(|r| {
+                            l.checked_add(r).ok_or(EvaluateError {
+                                location: None,
+                                reason: format!(
+                                    "integer overflow, adding {:?} and {:?}",
+                                    left_value, right_value
+                                )
+                                .into(),
+                            })
                         })
                     })
-                })
-                .transpose()?,
-        )))
+                    .transpose()?,
+            ),
+            full_string: "",
+            string: "",
+        }))
     }
 }
 
@@ -166,7 +174,7 @@ pub struct LambdaValue<'a> {
     body: Span<'a, Ast<'a>>,
 }
 
-impl<'a> Value<'a> for LambdaValue<'a> {
+impl<'a> Value<'a> for Span<'a, LambdaValue<'a>> {
     fn evaluate_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
@@ -192,7 +200,7 @@ pub struct LambdaType<'a> {
     body: Span<'a, Ast<'a>>,
 }
 
-impl<'a> Type<'a> for LambdaType<'a> {
+impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
     fn typecheck_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
@@ -215,7 +223,7 @@ impl<'a> Type<'a> for LambdaType<'a> {
 #[derive(Debug)]
 pub struct DefineLambdaValue;
 
-impl<'a> Value<'a> for DefineLambdaValue {
+impl<'a> Value<'a> for Span<'a, DefineLambdaValue> {
     fn evaluate_call(
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
@@ -234,9 +242,13 @@ impl<'a> Value<'a> for DefineLambdaValue {
                 reason: "expected argument identifier".to_string().into(),
             })?,
         };
-        Ok(Rc::new(LambdaValue::<'_> {
-            variable: variable.to_string(),
-            body: body.clone(),
+        Ok(Rc::new(Span {
+            inner: LambdaValue::<'_> {
+                variable: variable.to_string(),
+                body: body.clone(),
+            },
+            full_string: "",
+            string: "",
         }))
     }
 }
@@ -244,7 +256,7 @@ impl<'a> Value<'a> for DefineLambdaValue {
 #[derive(Debug)]
 pub struct DefineLambdaType;
 
-impl<'a> Type<'a> for DefineLambdaType {
+impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
     fn typecheck_call(
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
@@ -263,25 +275,57 @@ impl<'a> Type<'a> for DefineLambdaType {
                 reason: "expected argument identifier".to_string().into(),
             })?,
         };
-        Ok(Rc::new(LambdaType::<'_> {
-            variable: variable.to_string(),
-            body: body.clone(),
+        Ok(Rc::new(Span {
+            inner: LambdaType::<'_> {
+                variable: variable.to_string(),
+                body: body.clone(),
+            },
+            full_string: todo!(),
+            string: todo!(),
         }))
     }
 }
 
 pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
     let mut context: Vec<(String, Rc<dyn Value>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambdaValue)),
-        ("add".to_string(), Rc::new(AddLambdaValue)),
+        (
+            "lambda".to_string(),
+            Rc::new(Span {
+                inner: DefineLambdaValue,
+                full_string: "lambda",
+                string: "lambda",
+            }),
+        ),
+        (
+            "add".to_string(),
+            Rc::new(Span {
+                inner: AddLambdaValue,
+                full_string: "add",
+                string: "add",
+            }),
+        ),
     ];
     evaluate_with_context(&mut context, value)
 }
 
 pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
     let mut context: Vec<(String, Rc<dyn Type>)> = vec![
-        ("lambda".to_string(), Rc::new(DefineLambdaType)),
-        ("add".to_string(), Rc::new(AddLambdaType)),
+        (
+            "lambda".to_string(),
+            Rc::new(Span {
+                inner: DefineLambdaType,
+                full_string: "lambda",
+                string: "lambda",
+            }),
+        ),
+        (
+            "add".to_string(),
+            Rc::new(Span {
+                inner: AddLambdaType,
+                full_string: "add",
+                string: "add",
+            }),
+        ),
     ];
     typecheck_with_context(&mut context, value)
 }
@@ -311,8 +355,16 @@ pub fn typecheck_with_context<'a>(
     _type: Span<'a, Ast<'a>>,
 ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
     match _type.inner {
-        Ast::Number(number) => Ok(Rc::new(IntegerType(Some(number)))),
-        Ast::String(string) => Ok(Rc::new(StringType(Some(string.to_string())))),
+        Ast::Number(number) => Ok(Rc::new(Span {
+            inner: IntegerType(Some(number)),
+            full_string: _type.full_string,
+            string: _type.string,
+        })),
+        Ast::String(string) => Ok(Rc::new(Span {
+            inner: StringType(Some(string.to_string())),
+            full_string: _type.full_string,
+            string: _type.string,
+        })),
         Ast::Identifier(identifier) => resolve_identifier(
             context,
             Span {
@@ -341,6 +393,7 @@ pub fn typecheck_with_context<'a>(
                     reason: "can't call a string or number".to_string().into(),
                 })?,
             };
+            // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
             callable?.typecheck_call(context, args)
         }
     }
@@ -351,8 +404,16 @@ pub fn evaluate_with_context<'a>(
     value: Span<'a, Ast<'a>>,
 ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
     match value.inner {
-        Ast::Number(number) => Ok(Rc::new(IntegerValue(number))),
-        Ast::String(string) => Ok(Rc::new(StringValue(string.to_string()))),
+        Ast::Number(number) => Ok(Rc::new(Span {
+            inner: IntegerValue(number),
+            full_string: value.full_string,
+            string: value.string,
+        })),
+        Ast::String(string) => Ok(Rc::new(Span {
+            inner: StringValue(string.to_string()),
+            full_string: value.full_string,
+            string: value.string,
+        })),
         Ast::Identifier(identifier) => resolve_identifier(
             context,
             Span {
