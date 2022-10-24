@@ -102,10 +102,40 @@ impl Server {
                     .handle_text_document_completion_request(request)
                     .await
                     .unwrap(),
+                IncomingStuff::TextDocumentHoverRequest(request) => cloned_self
+                    .handle_text_document_hover_request(request)
+                    .await
+                    .unwrap(),
                 _ => todo!(),
             }
             //});
         }
+    }
+
+    async fn handle_text_document_hover_request(
+        self: Arc<Self>,
+        request: TextDocumentHoverRequest,
+    ) -> anyhow::Result<()> {
+        self.send_response(
+            request,
+            H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
+                contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
+                    MarkupContent {
+                        kind: MarkupKind::Markdown,
+                        value: r#"# hello world
+this is nice
+```rust
+pub fn main() {}
+```"#
+                            .to_string(),
+                    },
+                ),
+                range: None,
+            }),
+        )
+        .await?;
+
+        Ok(())
     }
 
     async fn handle_text_document_completion_request(
@@ -474,7 +504,15 @@ impl Server {
                     resolve_provider: None,
                     completion_item: None,
                 }),
-                hover_provider: None,
+                hover_provider: Some(
+                    Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483::Variant1(
+                        HoverOptions {
+                            variant0: WorkDoneProgressOptions {
+                                work_done_progress: None,
+                            },
+                        },
+                    ),
+                ),
                 signature_help_provider: None,
                 declaration_provider: None,
                 definition_provider: None,
