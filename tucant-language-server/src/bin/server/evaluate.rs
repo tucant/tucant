@@ -36,11 +36,11 @@ pub trait Type<'a>: Debug {
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         _args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        Err(EvaluateError {
+    ) -> Box<dyn Iterator<Item=EvaluateResult<'a, Rc<dyn Type<'a> + 'a>>>> {
+        Box::new(std::iter::once(Err(EvaluateError {
             location: None,
             reason: "not yet implemented".to_string().into(),
-        })
+        })))
     }
 
     fn span(&self) -> Span<'a, ()>;
@@ -431,48 +431,63 @@ fn resolve_identifier<'a, T: Clone>(
 pub fn typecheck_with_context<'a>(
     context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
     _type: Span<'a, Ast<'a>>,
-) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
+) -> Box<dyn Iterator<Item=EvaluateResult<'a, Rc<dyn Type<'a> + 'a>>>> {
     match _type.inner {
-        Ast::Number(number) => Ok(Rc::new(Span {
-            inner: IntegerType(Some(number)),
-            full_string: _type.full_string,
-            string: _type.string,
-        })),
-        Ast::String(string) => Ok(Rc::new(Span {
-            inner: StringType(Some(string.to_string())),
-            full_string: _type.full_string,
-            string: _type.string,
-        })),
-        Ast::Identifier(identifier) => resolve_identifier(
-            context,
-            Span {
+        Ast::Number(number) => {
+            let rc: Rc<(dyn Type<'a> + 'a)> = Rc::new(Span {
+                inner: IntegerType(Some(number)),
                 full_string: _type.full_string,
                 string: _type.string,
-                inner: identifier,
-            },
-        ),
+            });
+            Box::new(std::iter::once(Ok(rc)))
+        },
+        Ast::String(string) => {
+            let rc: Rc<(dyn Type<'a> + 'a)> = Rc::new(Span {
+                inner: StringType(Some(string.to_string())),
+                full_string: _type.full_string,
+                string: _type.string,
+            });
+            Box::new(std::iter::once(Ok(rc)))
+        },
+        Ast::Identifier(identifier) => {
+            let rc = resolve_identifier(
+                context,
+                Span {
+                    full_string: _type.full_string,
+                    string: _type.string,
+                    inner: identifier,
+                },
+            );
+            Box::new(std::iter::once(rc))
+        },
         Ast::List(elements) => {
-            let (callable, args) = elements.split_first().ok_or(EvaluateError {
-                location: None,
-                reason: "can't call an empty list".to_string().into(),
-            })?;
+            let (callable, args) = match elements.split_first() {
+                Some(v) => v,
+                None => return Box::new(std::iter::once(Err(EvaluateError {
+                    location: None,
+                    reason: "can't call an empty list".to_string().into(),
+                }))),
+            };
             let callable = match callable.inner {
-                Ast::Identifier(identifier) => resolve_identifier(
+                Ast::Identifier(identifier) => Box::new(std::iter::once(resolve_identifier(
                     context,
                     Span {
                         full_string: callable.full_string,
                         string: callable.string,
                         inner: identifier,
                     },
-                ),
+                ))),
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
-                _ => Err(EvaluateError {
+                _ => return Box::new(std::iter::once(Err(EvaluateError {
                     location: None,
                     reason: "can't call a string or number".to_string().into(),
-                })?,
+                }))),
             };
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
-            callable?.typecheck_call(context, args)
+            match callable.last().unwrap() {
+                Ok(v) => v.typecheck_call(context, args),
+                Err(e) => Box::new(std::iter::once(e)),
+            }
         }
     }
 }
