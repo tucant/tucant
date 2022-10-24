@@ -83,10 +83,12 @@ impl<'a> Value<'a> for AddLambdaValue {
         context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly two arguments".to_string().into(),
-        }))?;
+        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly two arguments".to_string().into(),
+            })
+        })?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
         let left_value = left_value.downcast_integer_value().ok_or(EvaluateError {
@@ -122,10 +124,12 @@ impl<'a> Type<'a> for AddLambdaType {
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly two arguments".to_string().into(),
-        }))?;
+        let [left, right]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly two arguments".to_string().into(),
+            })
+        })?;
         let left_value = typecheck_with_context(context, left.clone())?;
         let right_value = typecheck_with_context(context, right.clone())?;
         let left_value = left_value.downcast_integer_type().ok_or(EvaluateError {
@@ -168,10 +172,12 @@ impl<'a> Value<'a> for LambdaValue<'a> {
         context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly one argument".to_string().into(),
-        }))?;
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly one argument".to_string().into(),
+            })
+        })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
         let return_value = evaluate_with_context(context, self.body.clone());
@@ -192,10 +198,12 @@ impl<'a> Type<'a> for LambdaType<'a> {
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly one argument".to_string().into(),
-        }))?;
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly one argument".to_string().into(),
+            })
+        })?;
         let arg_value = typecheck_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
         let return_value = typecheck_with_context(context, self.body.clone());
@@ -213,10 +221,12 @@ impl<'a> Value<'a> for DefineLambdaValue {
         _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly two arguments".to_string().into(),
-        }))?;
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly two arguments".to_string().into(),
+            })
+        })?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
@@ -240,10 +250,12 @@ impl<'a> Type<'a> for DefineLambdaType {
         _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
     ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or(Err(EvaluateError {
-            location: None,
-            reason: "expected exactly two arguments".to_string().into(),
-        }))?;
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = args.try_into().or_else(|_| {
+            Err(EvaluateError {
+                location: None,
+                reason: "expected exactly two arguments".to_string().into(),
+            })
+        })?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
@@ -275,7 +287,7 @@ pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type
 }
 
 fn resolve_identifier<'a, T: Clone>(
-    context: &mut Vec<(String, T)>,
+    context: &mut [(String, T)],
     identifier: &str,
 ) -> EvaluateResult<'a, T> {
     context
