@@ -1,4 +1,4 @@
-use crate::parser::{Ast, Span};
+use crate::parser::{parse_root, Ast, Span};
 
 use std::borrow::Cow;
 use std::fmt::Debug;
@@ -288,16 +288,20 @@ pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type
 
 fn resolve_identifier<'a, T: Clone>(
     context: &mut [(String, T)],
-    identifier: &str,
+    identifier: Span<'a, &'a str>,
 ) -> EvaluateResult<'a, T> {
     context
         .iter()
         .rev()
-        .find(|(ident, _)| identifier == ident)
+        .find(|(ident, _)| identifier.inner == ident)
         .map(|(_ident, value)| value)
         .ok_or(EvaluateError {
-            location: None,
-            reason: format!("could not find identfier {}", identifier).into(),
+            location: Some(Span {
+                full_string: identifier.full_string,
+                string: identifier.string,
+                inner: (),
+            }),
+            reason: format!("could not find identfier {}", identifier.string).into(),
         })
         .cloned()
 }
@@ -309,14 +313,28 @@ pub fn typecheck_with_context<'a>(
     match _type.inner {
         Ast::Number(number) => Ok(Rc::new(IntegerType(Some(number)))),
         Ast::String(string) => Ok(Rc::new(StringType(Some(string.to_string())))),
-        Ast::Identifier(identifier) => resolve_identifier(context, identifier),
+        Ast::Identifier(identifier) => resolve_identifier(
+            context,
+            Span {
+                full_string: _type.full_string,
+                string: _type.string,
+                inner: identifier,
+            },
+        ),
         Ast::List(elements) => {
             let (callable, args) = elements.split_first().ok_or(EvaluateError {
                 location: None,
                 reason: "can't call an empty list".to_string().into(),
             })?;
             let callable = match callable.inner {
-                Ast::Identifier(identifier) => resolve_identifier(context, identifier),
+                Ast::Identifier(identifier) => resolve_identifier(
+                    context,
+                    Span {
+                        full_string: callable.full_string,
+                        string: callable.string,
+                        inner: identifier,
+                    },
+                ),
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
                 _ => Err(EvaluateError {
                     location: None,
@@ -335,14 +353,28 @@ pub fn evaluate_with_context<'a>(
     match value.inner {
         Ast::Number(number) => Ok(Rc::new(IntegerValue(number))),
         Ast::String(string) => Ok(Rc::new(StringValue(string.to_string()))),
-        Ast::Identifier(identifier) => resolve_identifier(context, identifier),
+        Ast::Identifier(identifier) => resolve_identifier(
+            context,
+            Span {
+                full_string: value.full_string,
+                string: value.string,
+                inner: identifier,
+            },
+        ),
         Ast::List(elements) => {
             let (callable, args) = elements.split_first().ok_or(EvaluateError {
                 location: None,
                 reason: "can't call an empty list".to_string().into(),
             })?;
             let callable = match callable.inner {
-                Ast::Identifier(identifier) => resolve_identifier(context, identifier),
+                Ast::Identifier(identifier) => resolve_identifier(
+                    context,
+                    Span {
+                        full_string: callable.full_string,
+                        string: callable.string,
+                        inner: identifier,
+                    },
+                ),
                 Ast::List(_) => evaluate_with_context(context, callable.clone()),
                 _ => Err(EvaluateError {
                     location: None,

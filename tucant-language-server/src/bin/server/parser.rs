@@ -424,6 +424,7 @@ pub fn parse_ast<'a>(
         Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
             (
                 Span {
+                    //
                     inner: Ast::Identifier(v.0.inner),
                     full_string: v.0.full_string,
                     string: v.0.string,
