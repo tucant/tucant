@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt::Debug, ops::Deref};
+use std::{borrow::Cow, fmt::Debug};
 
 use tucant_language_server_derive_output::FoldingRange;
 
