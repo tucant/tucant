@@ -96,8 +96,8 @@ impl Server {
                     .handle_document_highlight_request(request)
                     .await
                     .unwrap(),
-                IncomingStuff::SetTraceNotification(notification) => {}
-                IncomingStuff::CancelRequestNotification(notification) => {}
+                IncomingStuff::SetTraceNotification(_notification) => {}
+                IncomingStuff::CancelRequestNotification(_notification) => {}
                 IncomingStuff::TextDocumentCompletionRequest(request) => cloned_self
                     .handle_text_document_completion_request(request)
                     .await

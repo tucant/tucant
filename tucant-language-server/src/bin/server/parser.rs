@@ -1,6 +1,5 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use itertools::Itertools;
 use tucant_language_server_derive_output::FoldingRange;
 
 #[derive(Clone, Copy)]
@@ -476,7 +475,7 @@ pub fn parse_ast<'a>(
 
 pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
     let (ast, mut rest) = parse_ast(input)?;
-    rest = parse_whitespace(rest.into())?.1;
+    rest = parse_whitespace(rest)?.1;
     if !rest.string.is_empty() {
         Err(Error {
             location: rest,
