@@ -7,7 +7,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::list_visitor;
+use parser::{hover_visitor, list_visitor};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -116,6 +116,26 @@ impl Server {
         self: Arc<Self>,
         request: TextDocumentHoverRequest,
     ) -> anyhow::Result<()> {
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.variant0.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.variant0.text_document.uri).await?
+        };
+        drop(documents);
+
+        let span = Span::new(&document);
+        let value = match parse_root(span) {
+            Ok((value, _)) => value,
+            Err(Error { partial_parse, .. }) => partial_parse,
+        };
+
+        // TODO FIXME bug whitespace before a list belongs to that list?
+        let found_element = hover_visitor(&value, &request.params.variant0.position);
+
+        // TODO FIXME filter all types from typecheck for that found span
+
         self.send_response(
             request,
             H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
@@ -130,7 +150,16 @@ pub fn main() {}
                             .to_string(),
                     },
                 ),
-                range: None,
+                range: found_element.map(|element| Range {
+                    start: Position {
+                        line: element.start_line_column().0.try_into().unwrap(),
+                        character: element.start_line_column().1.try_into().unwrap(),
+                    },
+                    end: Position {
+                        line: element.end_line_column().0.try_into().unwrap(),
+                        character: element.end_line_column().1.try_into().unwrap(),
+                    },
+                }),
             }),
         )
         .await?;

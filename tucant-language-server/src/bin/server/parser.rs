@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use tucant_language_server_derive_output::FoldingRange;
+use tucant_language_server_derive_output::{FoldingRange, Position};
 
 #[derive(Clone, Copy)]
 pub struct Span<'a, T: Debug> {
@@ -383,6 +383,49 @@ pub fn list_visitor<'a>(
             })
             .chain(list.iter().flat_map(list_visitor)),
         ),
+    }
+}
+
+pub fn hover_visitor<'a>(
+    element: &'a Span<'a, Ast<'a>>,
+    position: &Position,
+) -> Option<&'a Span<'a, Ast<'a>>> {
+    match &element.inner {
+        Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
+            if element.start_line_column()
+                <= (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                )
+                && (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                ) <= element.end_line_column()
+            {
+                Some(element)
+            } else {
+                None
+            }
+        }
+        Ast::List(list) => {
+            if element.start_line_column()
+                == (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                )
+                || (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                ) == element.end_line_column()
+            {
+                Some(element)
+            } else {
+                list.iter()
+                    .map(|l| hover_visitor(l, position))
+                    .filter_map(|x| x)
+                    .next()
+            }
+        }
     }
 }
 
