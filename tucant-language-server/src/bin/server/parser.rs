@@ -2,6 +2,8 @@ use std::{borrow::Cow, fmt::Debug};
 
 use tucant_language_server_derive_output::{FoldingRange, Position};
 
+// TODO FIXME tokenization in extra stage
+
 #[derive(Clone, Copy)]
 pub struct Span<'a, T: Debug> {
     pub inner: T,
