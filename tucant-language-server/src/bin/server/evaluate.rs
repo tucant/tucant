@@ -124,7 +124,7 @@ impl<'a> Type<'a> for Span<'a, WidenInteger> {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (value, value_trace) = typecheck_with_context(context, &value);
+        let (_value, value_trace) = typecheck_with_context(context, value);
         let return_value: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
             inner: IntegerType(None),
             full_string: "",
@@ -261,8 +261,8 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (left_value, left_value_trace) = typecheck_with_context(context, &left);
-        let (right_value, right_value_trace) = typecheck_with_context(context, &right);
+        let (left_value, left_value_trace) = typecheck_with_context(context, left);
+        let (right_value, right_value_trace) = typecheck_with_context(context, right);
         let (left_value, right_value) = match (&left_value, &right_value) {
             (Ok(ref vl), Ok(ref vr)) => {
                 match (vl.downcast_integer_type(), vr.downcast_integer_type()) {
@@ -736,11 +736,12 @@ pub fn typecheck_with_context<'a>(
     }
 }
 
+#[allow(clippy::all)]
 pub fn evaluate_with_context<'a>(
-    context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
-    value: Span<'a, Ast<'a>>,
+    _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
+    _value: Span<'a, Ast<'a>>,
 ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
-    todo!();
+    todo!()
     /*
     match value.inner {
         Ast::Number(number) => Ok(Rc::new(Span {

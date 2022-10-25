@@ -137,7 +137,7 @@ impl Server {
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
             // TODO FIXME filter all types from typecheck for that found span
-            let (typecheck_result, typecheck_trace) = typecheck(&value);
+            let (_typecheck_result, typecheck_trace) = typecheck(&value);
             let found_type = typecheck_trace
                 .map(|e| {
                     println!("debug {:?}", e);
@@ -152,7 +152,7 @@ impl Server {
                     contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
                         MarkupContent {
                             kind: MarkupKind::Markdown,
-                            value: format!("{:?}", found_type).to_string(),
+                            value: format!("{:?}", found_type),
                         },
                     ),
                     range: Some(Range {
