@@ -184,7 +184,7 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
     ) {
         let [left, right]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
             Ok(v) => v,
-            Err(e) => {
+            Err(_e) => {
                 let val = Err(EvaluateError {
                     location: None,
                     reason: "expected exactly two arguments".to_string().into(),
@@ -209,41 +209,41 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                         });
                         let val = Err(EvaluateError {
                             location: Some(self.span()),
-                            reason: format!("some parameters are not integers").into(),
+                            reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
                     }
-                    (Some(vl), None) => {
+                    (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
                             location: Some(vr.span()),
                             reason: format!("expected integer type, got {:?}", vr).into(),
                         });
                         let val = Err(EvaluateError {
                             location: Some(self.span()),
-                            reason: format!("some parameters are not integers").into(),
+                            reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, valr].into_iter()));
                     }
-                    (None, Some(vr)) => {
+                    (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
                             location: Some(vl.span()),
                             reason: format!("expected integer type, got {:?}", vl).into(),
                         });
                         let val = Err(EvaluateError {
                             location: Some(self.span()),
-                            reason: format!("some parameters are not integers").into(),
+                            reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, vall].into_iter()));
                     }
                 }
             }
-            (Err(ref e), _) => {
+            (Err(ref _e), _) => {
                 return (
                     left_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
                 )
             }
-            (_, Err(ref e)) => {
+            (_, Err(ref _e)) => {
                 return (
                     right_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
@@ -361,7 +361,7 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
             context.pop();
             return_value
         } else {
-            return (arg_value, arg_value_trace);
+            (arg_value, arg_value_trace)
         }
     }
 
@@ -454,7 +454,7 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
             full_string: "lambda", // TODO FIXME fix span info to whole list?
             string: "lambda",
         }));
-        return (val.clone(), Box::new(std::iter::once(val)));
+        (val.clone(), Box::new(std::iter::once(val)))
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -581,7 +581,7 @@ pub fn typecheck_with_context<'a>(
                     return (err.clone(), Box::new(std::iter::once(err)));
                 }
             };
-            let (callable, callable_trace) = match callable.inner {
+            let (callable, _callable_trace) = match callable.inner {
                 Ast::Identifier(identifier) => {
                     let val = resolve_identifier(
                         context,

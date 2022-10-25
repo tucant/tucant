@@ -277,7 +277,7 @@ pub fn main() {}
                     Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
                         let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
                         let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
-                        (Diagnostic {
+                        Diagnostic {
                             range: Range {
                                 start: Position {
                                     line: start_pos.0.try_into().unwrap(),
@@ -296,7 +296,7 @@ pub fn main() {}
                             tags: None,
                             related_information: None,
                             data: None,
-                        })
+                        }
                     }))
                 } else {
                     Box::new(std::iter::empty())

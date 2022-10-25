@@ -423,8 +423,7 @@ pub fn hover_visitor<'a>(
                 Some(element)
             } else {
                 list.iter()
-                    .map(|l| hover_visitor(l, position))
-                    .filter_map(|x| x)
+                    .filter_map(|l| hover_visitor(l, position))
                     .next()
             }
         }
