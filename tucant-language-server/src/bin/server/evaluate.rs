@@ -274,14 +274,14 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                 }));
                 (
                     return_value.clone(),
-                    Box::new(std::iter::once(return_value)),
+                    Box::new(left_value_trace.chain(right_value_trace).chain(std::iter::once(return_value))),
                 )
             }
             Err(err) => {
                 let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
                 (
                     return_value.clone(),
-                    Box::new(std::iter::once(return_value)),
+                    Box::new(left_value_trace.chain(right_value_trace).chain(std::iter::once(return_value))),
                 )
             }
         }

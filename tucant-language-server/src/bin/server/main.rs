@@ -135,13 +135,19 @@ impl Server {
         let found_element = hover_visitor(&value, &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
+            println!("found element {:?}", found_element);
             // TODO FIXME filter all types from typecheck for that found span
             let (typecheck_result, typecheck_trace) = typecheck(&value);
             let found_type = typecheck_trace
+                .map(|e| {
+                    println!("debug {:?}", e);
+                    e
+                })
                 .filter_map(|t| t.ok())
                 .find(|t| t.span().start_line_column() == found_element.start_line_column());
 
             found_type.map(|found_type| {
+                println!("found type {:?}", found_type);
                 H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
                     contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
                         MarkupContent {
