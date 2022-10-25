@@ -1,24 +1,13 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use tucant_language_server_derive_output::{FoldingRange, Position};
+use tucant_language_server_derive_output::{FoldingRange, Position, Range};
 
-// TODO FIXME tokenization in extra stage
+// write idiomatic code first, optimize later
 
-// TODO FIXME rewrite parser
-// also write tokenizer
-
-#[derive(Clone)]
-pub struct Pos {
-    pub line_offset: u16,
-    pub column_offset: u16,
-}
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Span {
-    // reason for not including inner is that now you can more easily move the span to different objects
     pub filename: String,
-    pub start: Position,
-    pub end: Position,
+    pub range: Range
 }
 
 #[derive(Debug)]
@@ -28,54 +17,19 @@ pub struct Error<T: Debug> {
     pub partial_parse: T,
 }
 
-fn offset_to_line_column(span: &Span, string: &str) -> (usize, usize) {
-    span.full_string[..(string.as_ptr() as usize - span.full_string.as_ptr() as usize)]
-        .lines()
-        .enumerate()
-        .last()
-        .map_or((0, 0), |(index, last_line)| (index, last_line.len()))
+pub enum Token {
+    ParenOpen,
+    ParenClose,
+    String(String),
+    Identifier(String),
+    Number(i64),
 }
 
-pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
-    let the_line = string.lines().nth(line).unwrap();
-    let line_offset = the_line
-        .char_indices()
-        .nth(column)
-        .map(|(offset, _)| offset)
-        .unwrap_or(the_line.len());
-    the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
+pub fn tokenize(input: impl Iterator<Item=char>) -> impl Iterator<Item=Token> {
+    input.
 }
 
-impl Debug for Span {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let start_pos = offset_to_line_column(self, self.string);
-        let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
-        write!(
-            f,
-            "location:{}:{} - location:{}:{}\n{}\n",
-            start_pos.0, start_pos.1, end_pos.0, end_pos.1, &self.string
-        )
-    }
-}
-
-impl Span {
-    pub fn start_line_column(&self) -> (usize, usize) {
-        let start_pos = offset_to_line_column(self, self.string);
-        (start_pos.0, start_pos.1)
-    }
-
-    pub fn end_line_column(&self) -> (usize, usize) {
-        let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
-        (end_pos.0, end_pos.1)
-    }
-}
-
-fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + '_ {
-    input
-        .char_indices()
-        .map(|(offset, character)| (offset, character, offset + character.len_utf8()))
-}
-
+/*
 pub fn visitor<'a>(
     element: (Ast, Span),
 ) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
@@ -175,7 +129,7 @@ pub fn hover_visitor<'a>(
             }
         }
     }
-}
+}*/
 
 #[derive(Debug, Clone)]
 pub enum Ast {
