@@ -4,62 +4,7 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// remove the lifetimes everywhere and do more 
-
-
-
-
-
-
-
-
-
-
-
-
-
+// remove the lifetimes everywhere and do more
 
 #[derive(Debug, Clone)]
 pub struct EvaluateError<'a> {
@@ -249,36 +194,56 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
-        let left_value = match left_value {
-            Ok(ref v) => match v.downcast_integer_type() {
-                Some(v) => v,
-                None => {
-                    let val = Err(EvaluateError {
-                        location: Some(v.span()),
-                        reason: format!("expected integer type, got {:?}", v).into(),
-                    });
-                    return (val.clone(), Box::new(std::iter::once(val)));
+        let (left_value, right_value) = match (&left_value, &right_value) {
+            (Ok(ref vl), Ok(ref vr)) => {
+                match (vl.downcast_integer_type(), vr.downcast_integer_type()) {
+                    (Some(vl), Some(vr)) => (vl, vr),
+                    (None, None) => {
+                        let vall = Err(EvaluateError {
+                            location: Some(vl.span()),
+                            reason: format!("expected integer type, got {:?}", vl).into(),
+                        });
+                        let valr = Err(EvaluateError {
+                            location: Some(vr.span()),
+                            reason: format!("expected integer type, got {:?}", vr).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: format!("some parameters are not integers").into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
+                    }
+                    (Some(vl), None) => {
+                        let valr = Err(EvaluateError {
+                            location: Some(vr.span()),
+                            reason: format!("expected integer type, got {:?}", vr).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: format!("some parameters are not integers").into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, valr].into_iter()));
+                    }
+                    (None, Some(vr)) => {
+                        let vall = Err(EvaluateError {
+                            location: Some(vl.span()),
+                            reason: format!("expected integer type, got {:?}", vl).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: format!("some parameters are not integers").into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, vall].into_iter()));
+                    }
                 }
-            },
-            Err(ref e) => {
+            }
+            (Err(ref e), _) => {
                 return (
                     left_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
                 )
             }
-        };
-        let right_value = match right_value {
-            Ok(ref v) => match v.downcast_integer_type() {
-                Some(v) => v,
-                None => {
-                    let val = Err(EvaluateError {
-                        location: Some(v.span()),
-                        reason: format!("expected integer type, got {:?}", v).into(),
-                    });
-                    return (val.clone(), Box::new(std::iter::once(val)));
-                }
-            },
-            Err(ref e) => {
+            (_, Err(ref e)) => {
                 return (
                     right_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
@@ -307,11 +272,17 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                     full_string: "",
                     string: "",
                 }));
-                (return_value.clone(), Box::new(std::iter::once(return_value)))
+                (
+                    return_value.clone(),
+                    Box::new(std::iter::once(return_value)),
+                )
             }
             Err(err) => {
                 let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
-                (return_value.clone(), Box::new(std::iter::once(return_value)))
+                (
+                    return_value.clone(),
+                    Box::new(std::iter::once(return_value)),
+                )
             }
         }
     }
