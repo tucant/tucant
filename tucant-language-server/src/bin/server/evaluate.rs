@@ -192,8 +192,8 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
-        let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
+        let (left_value, left_value_trace) = typecheck_with_context(context, &left);
+        let (right_value, right_value_trace) = typecheck_with_context(context, &right);
         let (left_value, right_value) = match (&left_value, &right_value) {
             (Ok(ref vl), Ok(ref vr)) => {
                 match (vl.downcast_integer_type(), vr.downcast_integer_type()) {
@@ -354,10 +354,10 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
+        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value);
         if let Ok(arg_value) = arg_value {
             context.push((self.inner.variable.clone(), arg_value));
-            let return_value = typecheck_with_context(context, self.inner.body.clone());
+            let return_value = typecheck_with_context(context, &self.inner.body);
             context.pop();
             return_value
         } else {
@@ -489,7 +489,7 @@ pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Value
 }
 
 pub fn typecheck<'a>(
-    value: Span<'a, Ast<'a>>,
+    value: &Span<'a, Ast<'a>>,
 ) -> (
     EvaluateResult<'a, RcType<'a>>,
     Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
@@ -537,15 +537,15 @@ fn resolve_identifier<'a, T: Clone>(
 
 pub fn typecheck_with_context<'a>(
     context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
-    _type: Span<'a, Ast<'a>>,
+    _type: &Span<'a, Ast<'a>>,
 ) -> (
     EvaluateResult<'a, RcType<'a>>,
     Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
 ) {
-    match _type.inner {
+    match &_type.inner {
         Ast::Number(number) => {
             let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
-                inner: IntegerType(Some(number)),
+                inner: IntegerType(Some(*number)),
                 full_string: _type.full_string,
                 string: _type.string,
             }));
@@ -597,7 +597,7 @@ pub fn typecheck_with_context<'a>(
                     ) = (val.clone(), Box::new(std::iter::once(val)));
                     val
                 }
-                Ast::List(_) => typecheck_with_context(context, callable.clone()),
+                Ast::List(_) => typecheck_with_context(context, callable),
                 _ => {
                     let val = Err(EvaluateError {
                         location: None,
