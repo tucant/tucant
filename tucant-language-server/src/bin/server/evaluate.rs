@@ -56,6 +56,8 @@ pub trait Type<'a>: Debug {
     fn downcast_integer_type(&self) -> Option<&IntegerType> {
         None
     }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a>;
 }
 
 #[derive(Debug)]
@@ -75,7 +77,7 @@ impl<'a> Value<'a> for Span<'a, IntegerValue> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IntegerType(Option<i64>);
 
 impl<'a> Type<'a> for Span<'a, IntegerType> {
@@ -90,9 +92,17 @@ impl<'a> Type<'a> for Span<'a, IntegerType> {
             string: self.string,
         }
     }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WidenInteger;
 
 impl<'a> Type<'a> for Span<'a, WidenInteger> {
@@ -120,9 +130,12 @@ impl<'a> Type<'a> for Span<'a, WidenInteger> {
             full_string: "",
             string: "",
         }));
-        (return_value.clone(), Box::new(value_trace.chain(std::iter::once(return_value))))
+        (
+            return_value.clone(),
+            Box::new(value_trace.chain(std::iter::once(return_value))),
+        )
     }
-    
+
     fn span(&self) -> Span<'a, ()> {
         Span {
             inner: (),
@@ -130,8 +143,15 @@ impl<'a> Type<'a> for Span<'a, WidenInteger> {
             string: self.string,
         }
     }
-}
 
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
+    }
+}
 
 #[derive(Debug)]
 pub struct StringValue(String);
@@ -146,7 +166,7 @@ impl<'a> Value<'a> for Span<'a, StringValue> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StringType(Option<String>);
 
 impl<'a> Type<'a> for Span<'a, StringType> {
@@ -156,6 +176,14 @@ impl<'a> Type<'a> for Span<'a, StringType> {
             full_string: self.full_string,
             string: self.string,
         }
+    }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
     }
 }
 
@@ -211,7 +239,7 @@ impl<'a> Value<'a> for Span<'a, AddLambdaValue> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AddLambdaType;
 
 impl<'a> Type<'a> for Span<'a, AddLambdaType> {
@@ -315,14 +343,22 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                 }));
                 (
                     return_value.clone(),
-                    Box::new(left_value_trace.chain(right_value_trace).chain(std::iter::once(return_value))),
+                    Box::new(
+                        left_value_trace
+                            .chain(right_value_trace)
+                            .chain(std::iter::once(return_value)),
+                    ),
                 )
             }
             Err(err) => {
                 let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
                 (
                     return_value.clone(),
-                    Box::new(left_value_trace.chain(right_value_trace).chain(std::iter::once(return_value))),
+                    Box::new(
+                        left_value_trace
+                            .chain(right_value_trace)
+                            .chain(std::iter::once(return_value)),
+                    ),
                 )
             }
         }
@@ -334,6 +370,14 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
             full_string: self.full_string,
             string: self.string,
         }
+    }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
     }
 }
 
@@ -370,7 +414,7 @@ impl<'a> Value<'a> for Span<'a, LambdaValue<'a>> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LambdaType<'a> {
     variable: String,
     body: Span<'a, Ast<'a>>,
@@ -412,6 +456,14 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
             full_string: self.full_string,
             string: self.string,
         }
+    }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
     }
 }
 
@@ -455,7 +507,7 @@ impl<'a> Value<'a> for Span<'a, DefineLambdaValue> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DefineLambdaType;
 
 impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
@@ -504,6 +556,14 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
             full_string: self.full_string,
             string: self.string,
         }
+    }
+
+    fn with_span(self: Rc<Self>, span: Span<'a, ()>) -> RcType<'a> {
+        Rc::new(Span {
+            inner: self.inner.clone(),
+            full_string: span.full_string,
+            string: span.string,
+        })
     }
 }
 
@@ -558,8 +618,8 @@ pub fn typecheck<'a>(
                 inner: WidenInteger,
                 full_string: "widen-integer",
                 string: "widen-integer",
-            })
-        )
+            }),
+        ),
     ];
     typecheck_with_context(&mut context, value)
 }
@@ -569,14 +629,15 @@ fn resolve_identifier_type<'a>(
     identifier: Span<'a, &'a str>,
 ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
     match context
-    .iter()
-    .rev()
-    .find(|(ident, _)| identifier.inner == ident)
-    .map(|(_ident, value)| value) {
-        Some(value) => Ok(Rc::new(Span {
-            inner: value,
-            full_string: value.span().full_string,
-            string: value.span.string(),
+        .iter()
+        .rev()
+        .find(|(ident, _)| identifier.inner == ident)
+        .map(|(_ident, value)| value)
+    {
+        Some(value) => Ok(value.clone().with_span(Span {
+            inner: (),
+            full_string: identifier.full_string,
+            string: identifier.string,
         })),
         None => Err(EvaluateError {
             location: Some(Span {
@@ -637,7 +698,7 @@ pub fn typecheck_with_context<'a>(
             };
             let (callable, callable_trace) = match callable.inner {
                 Ast::Identifier(identifier) => {
-                    let val = resolve_identifier(
+                    let val = resolve_identifier_type(
                         context,
                         Span {
                             full_string: callable.full_string,
@@ -663,10 +724,13 @@ pub fn typecheck_with_context<'a>(
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
             match callable {
                 Ok(v) => {
-                   let (res, res_trace) = v.typecheck_call(context, args);
-                   (res, Box::new(callable_trace.chain(res_trace)))
-                },
-                e => (e.clone(), Box::new(callable_trace.chain(std::iter::once(e)))),
+                    let (res, res_trace) = v.typecheck_call(context, args);
+                    (res, Box::new(callable_trace.chain(res_trace)))
+                }
+                e => (
+                    e.clone(),
+                    Box::new(callable_trace.chain(std::iter::once(e))),
+                ),
             }
         }
     }
@@ -676,6 +740,8 @@ pub fn evaluate_with_context<'a>(
     context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
     value: Span<'a, Ast<'a>>,
 ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+    todo!();
+    /*
     match value.inner {
         Ast::Number(number) => Ok(Rc::new(Span {
             inner: IntegerValue(number),
@@ -718,6 +784,7 @@ pub fn evaluate_with_context<'a>(
             callable?.evaluate_call(context, args)
         }
     }
+    */
 }
 
 // cargo test -- --show-output evaluate
