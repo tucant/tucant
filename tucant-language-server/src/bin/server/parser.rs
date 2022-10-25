@@ -4,34 +4,31 @@ use tucant_language_server_derive_output::{FoldingRange, Position};
 
 // TODO FIXME tokenization in extra stage
 
-#[derive(Clone, Copy)]
-pub struct Span<T: Debug> {
-    pub inner: T,
-    pub filename: String,
-    pub line_offset: i64,
-    pub column_offset: i64,
+// TODO FIXME rewrite parser
+// also write tokenizer
+
+#[derive(Clone)]
+pub struct Pos {
+    pub line_offset: u16,
+    pub column_offset: u16,
 }
 
-impl<'a> From<Ast> for Span<Ast> {
-    fn from(ast: Ast) -> Self {
-        let fake: &'static str = "fake";
-        Self {
-            inner: ast,
-            filename: "fakefile".to_string(),
-            line_offset: 0,
-            column_offset: 0
-        }
-    }
+#[derive(Clone)]
+pub struct Span {
+    // reason for not including inner is that now you can more easily move the span to different objects
+    pub filename: String,
+    pub start: Position,
+    pub end: Position,
 }
 
 #[derive(Debug)]
 pub struct Error<T: Debug> {
-    pub location: Span<()>,
-    pub reason: Cow<'static, str>,
+    pub location: Span,
+    pub reason: String,
     pub partial_parse: T,
 }
 
-fn offset_to_line_column<'a, T: Debug>(span: &Span<T>, string: &str) -> (usize, usize) {
+fn offset_to_line_column(span: &Span, string: &str) -> (usize, usize) {
     span.full_string[..(string.as_ptr() as usize - span.full_string.as_ptr() as usize)]
         .lines()
         .enumerate()
@@ -49,29 +46,19 @@ pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize 
     the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
 }
 
-impl<'a, T: Debug> Debug for Span<T> {
+impl Debug for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start_pos = offset_to_line_column(self, self.string);
         let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
         write!(
             f,
-            "location:{}:{} - location:{}:{}\n{}\nvalue:{:?}",
-            start_pos.0, start_pos.1, end_pos.0, end_pos.1, &self.string, self.inner
+            "location:{}:{} - location:{}:{}\n{}\n",
+            start_pos.0, start_pos.1, end_pos.0, end_pos.1, &self.string
         )
     }
 }
 
-impl<'a> Span<()> {
-    pub fn new(input: &'a str) -> Self {
-        Self {
-            inner: (),
-            full_string: input,
-            string: input,
-        }
-    }
-}
-
-impl<'a, T: Debug> Span<T> {
+impl Span {
     pub fn start_line_column(&self) -> (usize, usize) {
         let start_pos = offset_to_line_column(self, self.string);
         (start_pos.0, start_pos.1)
@@ -83,256 +70,14 @@ impl<'a, T: Debug> Span<T> {
     }
 }
 
-// TODO FIXME remove this as it just makes it less transparent
-impl<'a> From<Span<()>> for &'a str {
-    fn from(value: Span<()>) -> Self {
-        value.string
-    }
-}
-
 fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + '_ {
     input
         .char_indices()
         .map(|(offset, character)| (offset, character, offset + character.len_utf8()))
 }
 
-fn parse_string<'a>(
-    input: Span<()>,
-) -> Result<(Span<&'a str>, Span<()>), Error<Span<'_, Ast>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let mut it = my_char_indices(input_str);
-    match it.next() {
-        Some((_, '"', _)) => {}
-        Some((_, character, _)) => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..character.len_utf8()],
-            },
-            reason: Cow::from(r#"Expected a `"`"#),
-            partial_parse: Span {
-                inner: Ast::String(""),
-                full_string: input.full_string,
-                string: &input_str[0..character.len_utf8()],
-            },
-        })?,
-        None => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-            reason: Cow::from(r#"Unexpected end of code. Expected a `"`"#),
-            partial_parse: Span {
-                inner: Ast::String(""),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-        })?,
-    };
-    match it
-        .skip_while(|(_, character, _)| *character != '"')
-        .map(|(_, _, end)| end)
-        .next()
-    {
-        Some(offset) => {
-            let (str_str, rest_str) = input_str.split_at(offset);
-            Ok((
-                Span {
-                    inner: str_str.trim_matches('"'),
-                    full_string: input.full_string,
-                    string: str_str,
-                },
-                Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: rest_str,
-                },
-            ))
-        }
-        None => Err(Error {
-            location: input,
-            reason: Cow::from(r#"Unterminated string literal"#),
-            partial_parse: Span {
-                inner: Ast::String(&input.string[1..]),
-                full_string: input.full_string,
-                string: input.string,
-            },
-        })?,
-    }
-}
-
-// https://doc.rust-lang.org/book/ch08-02-strings.html
-fn parse_number<'a>(
-    input: Span<()>,
-) -> Result<(Span<i64>, Span<()>), Error<Span<'_, Ast>>> {
-    let input_str: &'a str = input.into();
-    let end_of_numbers = input_str
-        .char_indices()
-        .skip_while(|(_, character)| character.is_ascii_digit())
-        .map(|(offset, _)| offset)
-        .next()
-        .unwrap_or(input_str.len()); // TODO FIXME different error message
-    let (number_str, rest_str) = input_str.split_at(end_of_numbers);
-    Ok((
-        Span {
-            inner: number_str.parse::<i64>().map_err(|_| Error {
-                location: Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: number_str,
-                },
-                reason: Cow::from(r#"Failed to parse number"#),
-                partial_parse: Span {
-                    inner: Ast::Number(1337),
-                    full_string: input.full_string,
-                    string: number_str,
-                },
-            })?,
-            full_string: input.full_string,
-            string: number_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
-}
-
-fn parse_identifier<'a>(
-    input: Span<()>,
-) -> Result<(Span<&'a str>, Span<()>), Error<Span<'_, Ast>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let end = my_char_indices(input_str)
-        .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
-        .map(|(_, _, end)| end)
-        .last()
-        .ok_or_else(|| Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-            reason: Cow::from("Expected an identifier"),
-            partial_parse: Span {
-                inner: Ast::Identifier(""),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-        })?;
-    let (str_str, rest_str) = input_str.split_at(end);
-    Ok((
-        Span {
-            inner: str_str,
-            full_string: input.full_string,
-            string: str_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
-}
-
-fn parse_whitespace<'a>(
-    input: Span<()>,
-) -> Result<(Span<()>, Span<()>), Error<Span<'_, Ast>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let pos = my_char_indices(input_str)
-        .find(|(_offset, character, _)| !character.is_whitespace())
-        .map(|(offset, _, _)| offset)
-        .unwrap_or(input_str.len());
-    let (whitespace_str, rest_str) = input_str.split_at(pos);
-    Ok((
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: whitespace_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
-}
-
-fn parse_list<'a>(
-    full_input: Span<()>,
-) -> Result<(Span<Vec<Span<Ast>>>, Span<()>), Error<Span<'_, Ast>>> {
-    let mut input = full_input;
-    let input_str = Into::<&'a str>::into(input);
-    if !input_str.starts_with('(') {
-        return Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-            reason: Cow::from(r#"Expected a `(`"#),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: full_input.full_string,
-                string: &input_str[0..0],
-            },
-        });
-    }
-    input = Span {
-        inner: (),
-        full_string: input.full_string,
-        string: &input_str[1..],
-    };
-    let mut result = Vec::new();
-    loop {
-        let result_ref = &result;
-        input = parse_whitespace(input)
-            .map_err(|err| Error {
-                location: err.location,
-                reason: err.reason,
-                partial_parse: Span {
-                    inner: Ast::List(result_ref.clone()),
-                    full_string: full_input.full_string,
-                    string: &input_str[0..0], // TODO FIXME
-                },
-            })?
-            .1;
-        let input_str = Into::<&'a str>::into(input);
-        if let Some(rest) = input_str.strip_prefix(')') {
-            let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
-            break Ok((
-                Span {
-                    inner: result,
-                    full_string: input.full_string,
-                    string: &full_input.string[..offset],
-                },
-                Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: rest,
-                },
-            ));
-        }
-        let element;
-        (element, input) = match parse_ast(input) {
-            Ok(value) => value,
-            Err(value) => Err(Error {
-                location: value.location,
-                reason: value.reason,
-                partial_parse: Span {
-                    inner: Ast::List(result_ref.clone()),
-                    full_string: full_input.full_string,
-                    string: &input_str[0..0], // TODO FIXME
-                },
-            })?,
-        };
-        result.push(element);
-    }
-}
-
 pub fn visitor<'a>(
-    element: &'a Span<Ast>,
+    element: (Ast, Span),
 ) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
     match &element.inner {
         Ast::Identifier(_) => {
@@ -370,7 +115,7 @@ pub fn visitor<'a>(
 }
 
 pub fn list_visitor<'a>(
-    element: &'a Span<Ast>,
+    element: (Ast, Span),
 ) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
     match &element.inner {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
@@ -391,9 +136,9 @@ pub fn list_visitor<'a>(
 }
 
 pub fn hover_visitor<'a>(
-    element: &'a Span<Ast>,
+    element: (Ast, Span),
     position: &Position,
-) -> Option<&'a Span<Ast>> {
+) -> Option<(Ast, Span)> {
     match &element.inner {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if element.start_line_column()
@@ -432,115 +177,12 @@ pub fn hover_visitor<'a>(
     }
 }
 
-/*
-pub enum Ast {
-    Number(i64, Position),
-    String(String, Position),
-    Identifier(String, Position),
-    Callable(Ast, Position, Vec<Ast>),
-}
-*/
-
 #[derive(Debug, Clone)]
 pub enum Ast {
     Number(i64),
     String(String),
     Identifier(String),
-    List(Vec<Span<Ast>>),
-}
-
-pub fn parse_Ast(
-    mut input: Span<()>,
-) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
-    input = parse_whitespace(input)?.1;
-    let input_str = Into::<&'a str>::into(input);
-    let mut it = my_char_indices(input_str);
-    match it.next() {
-        Some((_, '"', _)) => parse_string(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::String(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, '0'..='9', _)) => parse_number(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::Number(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
-            (
-                Span {
-                    //
-                    inner: Ast::Identifier(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, '(', _)) => parse_list(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::List(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((start, character, end)) => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[start..end],
-            },
-            reason: Cow::from(format!(
-                r#"Unexpected character `{}`. Expected `"`, 0-9, a-z, A-Z or `(`."#,
-                character
-            )),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: input.full_string,
-                string: &input.string[start..end],
-            },
-        }),
-        None => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-            reason: Cow::from("Unexpected end of input"),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-        }),
-    }
-}
-
-pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
-    let (ast, mut rest) = parse_ast(input)?;
-    rest = parse_whitespace(rest)?.1;
-    if !rest.string.is_empty() {
-        Err(Error {
-            location: rest,
-            reason: Cow::from("Expected end of file."),
-            partial_parse: ast,
-        })
-    } else {
-        Ok((ast, rest))
-    }
+    List(Vec<(Ast, Span)>),
 }
 
 #[cfg(test)]
@@ -548,6 +190,7 @@ fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
+/* 
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
@@ -775,3 +418,5 @@ fn test_parse_ast() {
     assert!(matches!(value[2].inner, Ast::Number(3)));
     assert_eq!(value[2].string, "3");
 }
+
+*/
