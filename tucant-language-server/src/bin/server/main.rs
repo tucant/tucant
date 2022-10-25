@@ -7,7 +7,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::list_visitor;
+use parser::{hover_visitor, list_visitor};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -102,10 +102,69 @@ impl Server {
                     .handle_text_document_completion_request(request)
                     .await
                     .unwrap(),
+                IncomingStuff::TextDocumentHoverRequest(request) => cloned_self
+                    .handle_text_document_hover_request(request)
+                    .await
+                    .unwrap(),
                 _ => todo!(),
             }
             //});
         }
+    }
+
+    async fn handle_text_document_hover_request(
+        self: Arc<Self>,
+        request: TextDocumentHoverRequest,
+    ) -> anyhow::Result<()> {
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.variant0.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.variant0.text_document.uri).await?
+        };
+        drop(documents);
+
+        let span = Span::new(&document);
+        let value = match parse_root(span) {
+            Ok((value, _)) => value,
+            Err(Error { partial_parse, .. }) => partial_parse,
+        };
+
+        // TODO FIXME bug whitespace before a list belongs to that list?
+        let found_element = hover_visitor(&value, &request.params.variant0.position);
+
+        // TODO FIXME filter all types from typecheck for that found span
+
+        self.send_response(
+            request,
+            H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
+                contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
+                    MarkupContent {
+                        kind: MarkupKind::Markdown,
+                        value: r#"# hello world
+this is nice
+```rust
+pub fn main() {}
+```"#
+                            .to_string(),
+                    },
+                ),
+                range: found_element.map(|element| Range {
+                    start: Position {
+                        line: element.start_line_column().0.try_into().unwrap(),
+                        character: element.start_line_column().1.try_into().unwrap(),
+                    },
+                    end: Position {
+                        line: element.end_line_column().0.try_into().unwrap(),
+                        character: element.end_line_column().1.try_into().unwrap(),
+                    },
+                }),
+            }),
+        )
+        .await?;
+
+        Ok(())
     }
 
     async fn handle_text_document_completion_request(
@@ -212,37 +271,32 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let typecheck_result = typecheck(value.unwrap().0); // TODO use match, see above
+                let (typecheck_result, typecheck_trace) = typecheck(value.unwrap().0); // TODO use match, see above
                 println!("{:?}", typecheck_result);
-                if let Err(ref error) = typecheck_result {
-                    let start_pos = error
-                        .location
-                        .map(|l| l.start_line_column())
-                        .unwrap_or((0, 0));
-                    let end_pos = error
-                        .location
-                        .map(|l| l.end_line_column())
-                        .unwrap_or((0, 0));
-
-                    Box::new(std::iter::once(Diagnostic {
-                        range: Range {
-                            start: Position {
-                                line: start_pos.0.try_into().unwrap(),
-                                character: start_pos.1.try_into().unwrap(),
+                if typecheck_result.is_err() {
+                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
+                        let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
+                        let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
+                        Diagnostic {
+                            range: Range {
+                                start: Position {
+                                    line: start_pos.0.try_into().unwrap(),
+                                    character: start_pos.1.try_into().unwrap(),
+                                },
+                                end: Position {
+                                    line: end_pos.0.try_into().unwrap(),
+                                    character: end_pos.1.try_into().unwrap(),
+                                },
                             },
-                            end: Position {
-                                line: end_pos.0.try_into().unwrap(),
-                                character: end_pos.1.try_into().unwrap(),
-                            },
-                        },
-                        severity: Some(DiagnosticSeverity::Error),
-                        code: None,
-                        code_description: None,
-                        source: Some("tucant".to_string()),
-                        message: error.reason.to_string(),
-                        tags: None,
-                        related_information: None,
-                        data: None,
+                            severity: Some(DiagnosticSeverity::Error),
+                            code: None,
+                            code_description: None,
+                            source: Some("tucant".to_string()),
+                            message: e.reason.to_string(),
+                            tags: None,
+                            related_information: None,
+                            data: None,
+                        }
                     }))
                 } else {
                     Box::new(std::iter::empty())
@@ -474,7 +528,15 @@ impl Server {
                     resolve_provider: None,
                     completion_item: None,
                 }),
-                hover_provider: None,
+                hover_provider: Some(
+                    Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483::Variant1(
+                        HoverOptions {
+                            variant0: WorkDoneProgressOptions {
+                                work_done_progress: None,
+                            },
+                        },
+                    ),
+                ),
                 signature_help_provider: None,
                 declaration_provider: None,
                 definition_provider: None,

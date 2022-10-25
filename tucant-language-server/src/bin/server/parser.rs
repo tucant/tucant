@@ -1,6 +1,8 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use tucant_language_server_derive_output::FoldingRange;
+use tucant_language_server_derive_output::{FoldingRange, Position};
+
+// TODO FIXME tokenization in extra stage
 
 #[derive(Clone, Copy)]
 pub struct Span<'a, T: Debug> {
@@ -385,6 +387,66 @@ pub fn list_visitor<'a>(
         ),
     }
 }
+
+pub fn hover_visitor<'a>(
+    element: &'a Span<'a, Ast<'a>>,
+    position: &Position,
+) -> Option<&'a Span<'a, Ast<'a>>> {
+    match &element.inner {
+        Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
+            if element.start_line_column()
+                <= (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                )
+                && (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                ) <= element.end_line_column()
+            {
+                Some(element)
+            } else {
+                None
+            }
+        }
+        Ast::List(list) => {
+            if element.start_line_column()
+                == (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                )
+                || (
+                    position.line.try_into().unwrap(),
+                    position.character.try_into().unwrap(),
+                ) == element.end_line_column()
+            {
+                Some(element)
+            } else {
+                list.iter()
+                    .filter_map(|l| hover_visitor(l, position))
+                    .next()
+            }
+        }
+    }
+}
+
+/*
+pub enum Ast {
+    Number(i64),
+    String(String),
+    Identifier(String),
+    Callable(Ast, Vec<Ast>),
+}
+*/
+
+/*
+pub enum Ast {
+    Number(i64, Position),
+    String(String, Position),
+    Identifier(String, Position),
+    Callable(Ast, Position, Vec<Ast>),
+}
+*/
 
 #[derive(Debug, Clone)]
 pub enum Ast<'a> {

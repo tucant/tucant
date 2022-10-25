@@ -4,13 +4,17 @@ use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-#[derive(Debug)]
+// remove the lifetimes everywhere and do more
+
+#[derive(Debug, Clone)]
 pub struct EvaluateError<'a> {
     pub location: Option<Span<'a, ()>>,
     pub reason: Cow<'static, str>,
 }
 
-pub type EvaluateResult<'a, V> = Result<V, EvaluateError<'a>>;
+pub type EvaluateResult<'a, V> = Result<V, EvaluateError<'a>>; // TODO FIXME maybe put the span to the outside?
+pub type RcValue<'a> = Rc<dyn Value<'a> + 'a>;
+pub type RcType<'a> = Rc<dyn Type<'a> + 'a>;
 
 pub trait Value<'a>: Debug {
     fn evaluate_call(
@@ -34,13 +38,17 @@ pub trait Value<'a>: Debug {
 pub trait Type<'a>: Debug {
     fn typecheck_call(
         self: Rc<Self>,
-        _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
+        _context: &mut Vec<(String, RcType<'a>)>,
         _args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        Err(EvaluateError {
-            location: None,
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    ) {
+        let val = Err(EvaluateError {
+            location: Some(self.span()),
             reason: "not yet implemented".to_string().into(),
-        })
+        });
+        (val.clone(), Box::new(std::iter::once(val)))
     }
 
     fn span(&self) -> Span<'a, ()>;
@@ -170,43 +178,113 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [left, right]: &[Span<'a, Ast<'a>>; 2] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly two arguments".to_string().into(),
-            })?;
-        let left_value = typecheck_with_context(context, left.clone())?;
-        let right_value = typecheck_with_context(context, right.clone())?;
-        let left_value = left_value.downcast_integer_type().ok_or(EvaluateError {
-            location: Some(left_value.span()),
-            reason: format!("expected integer type, got {:?}", left_value).into(),
-        })?;
-        let right_value = right_value.downcast_integer_type().ok_or(EvaluateError {
-            location: Some(right_value.span()),
-            reason: format!("expected integer type, got {:?}", right_value).into(),
-        })?;
-        Ok(Rc::new(Span {
-            inner: IntegerType(
-                left_value
-                    .0
-                    .and_then(|l| {
-                        right_value.0.map(|r| {
-                            l.checked_add(r).ok_or(EvaluateError {
-                                location: None,
-                                reason: format!(
-                                    "integer overflow, adding {:?} and {:?}",
-                                    left_value, right_value
-                                )
-                                .into(),
-                            })
-                        })
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    ) {
+        let [left, right]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
+            Ok(v) => v,
+            Err(_e) => {
+                let val = Err(EvaluateError {
+                    location: None,
+                    reason: "expected exactly two arguments".to_string().into(),
+                });
+                return (val.clone(), Box::new(std::iter::once(val)));
+            }
+        };
+        let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
+        let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
+        let (left_value, right_value) = match (&left_value, &right_value) {
+            (Ok(ref vl), Ok(ref vr)) => {
+                match (vl.downcast_integer_type(), vr.downcast_integer_type()) {
+                    (Some(vl), Some(vr)) => (vl, vr),
+                    (None, None) => {
+                        let vall = Err(EvaluateError {
+                            location: Some(vl.span()),
+                            reason: format!("expected integer type, got {:?}", vl).into(),
+                        });
+                        let valr = Err(EvaluateError {
+                            location: Some(vr.span()),
+                            reason: format!("expected integer type, got {:?}", vr).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: "some parameters are not integers".to_string().into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
+                    }
+                    (Some(_vl), None) => {
+                        let valr = Err(EvaluateError {
+                            location: Some(vr.span()),
+                            reason: format!("expected integer type, got {:?}", vr).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: "some parameters are not integers".to_string().into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, valr].into_iter()));
+                    }
+                    (None, Some(_vr)) => {
+                        let vall = Err(EvaluateError {
+                            location: Some(vl.span()),
+                            reason: format!("expected integer type, got {:?}", vl).into(),
+                        });
+                        let val = Err(EvaluateError {
+                            location: Some(self.span()),
+                            reason: "some parameters are not integers".to_string().into(),
+                        });
+                        return (val.clone(), Box::new(vec![val, vall].into_iter()));
+                    }
+                }
+            }
+            (Err(ref _e), _) => {
+                return (
+                    left_value,
+                    Box::new(left_value_trace.chain(right_value_trace)),
+                )
+            }
+            (_, Err(ref _e)) => {
+                return (
+                    right_value,
+                    Box::new(left_value_trace.chain(right_value_trace)),
+                )
+            }
+        };
+        let val = left_value
+            .0
+            .and_then(|l| {
+                right_value.0.map(|r| {
+                    l.checked_add(r).ok_or(EvaluateError {
+                        location: None,
+                        reason: format!(
+                            "integer overflow, adding {:?} and {:?}",
+                            left_value, right_value
+                        )
+                        .into(),
                     })
-                    .transpose()?,
-            ),
-            full_string: "",
-            string: "",
-        }))
+                })
+            })
+            .transpose();
+        match val {
+            Ok(val) => {
+                let return_value: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
+                    inner: IntegerType(val),
+                    full_string: "",
+                    string: "",
+                }));
+                (
+                    return_value.clone(),
+                    Box::new(std::iter::once(return_value)),
+                )
+            }
+            Err(err) => {
+                let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
+                (
+                    return_value.clone(),
+                    Box::new(std::iter::once(return_value)),
+                )
+            }
+        }
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -262,17 +340,29 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable_value]: &[Span<'a, Ast<'a>>; 1] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly one argument".to_string().into(),
-            })?;
-        let arg_value = typecheck_with_context(context, variable_value.clone())?;
-        context.push((self.inner.variable.clone(), arg_value));
-        let return_value = typecheck_with_context(context, self.inner.body.clone());
-        context.pop();
-        return_value
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    ) {
+        let [variable_value]: &[Span<'a, Ast<'a>>; 1] = match args.try_into() {
+            Ok(v) => v,
+            Err(_) => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected exactly one argument".to_string().into(),
+                });
+                return (err.clone(), Box::new(std::iter::once(err)));
+            }
+        };
+        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
+        if let Ok(arg_value) = arg_value {
+            context.push((self.inner.variable.clone(), arg_value));
+            let return_value = typecheck_with_context(context, self.inner.body.clone());
+            context.pop();
+            return_value
+        } else {
+            (arg_value, arg_value_trace)
+        }
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -332,27 +422,39 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
         args: &[Span<'a, Ast<'a>>],
-    ) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
-        let [variable, body]: &[Span<'a, Ast<'a>>; 2] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly two arguments".to_string().into(),
-            })?;
+    ) -> (
+        EvaluateResult<'a, RcType<'a>>,
+        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    ) {
+        let [variable, body]: &[Span<'a, Ast<'a>>; 2] = match args.try_into() {
+            Ok(val) => val,
+            Err(_) => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected exactly two arguments".to_string().into(),
+                });
+                return (err.clone(), Box::new(std::iter::once(err)));
+            }
+        };
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
-            _ => Err(EvaluateError {
-                location: None,
-                reason: "expected argument identifier".to_string().into(),
-            })?,
+            _ => {
+                let err = Err(EvaluateError {
+                    location: None,
+                    reason: "expected argument identifier".to_string().into(),
+                });
+                return (err.clone(), Box::new(std::iter::once(err)));
+            }
         };
-        Ok(Rc::new(Span {
+        let val: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
             inner: LambdaType::<'_> {
                 variable: variable.to_string(),
                 body: body.clone(),
             },
             full_string: "lambda", // TODO FIXME fix span info to whole list?
             string: "lambda",
-        }))
+        }));
+        (val.clone(), Box::new(std::iter::once(val)))
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -386,7 +488,12 @@ pub fn evaluate<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Value
     evaluate_with_context(&mut context, value)
 }
 
-pub fn typecheck<'a>(value: Span<'a, Ast<'a>>) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
+pub fn typecheck<'a>(
+    value: Span<'a, Ast<'a>>,
+) -> (
+    EvaluateResult<'a, RcType<'a>>,
+    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+) {
     let mut context: Vec<(String, Rc<dyn Type>)> = vec![
         (
             "lambda".to_string(),
@@ -431,48 +538,79 @@ fn resolve_identifier<'a, T: Clone>(
 pub fn typecheck_with_context<'a>(
     context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
     _type: Span<'a, Ast<'a>>,
-) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
+) -> (
+    EvaluateResult<'a, RcType<'a>>,
+    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+) {
     match _type.inner {
-        Ast::Number(number) => Ok(Rc::new(Span {
-            inner: IntegerType(Some(number)),
-            full_string: _type.full_string,
-            string: _type.string,
-        })),
-        Ast::String(string) => Ok(Rc::new(Span {
-            inner: StringType(Some(string.to_string())),
-            full_string: _type.full_string,
-            string: _type.string,
-        })),
-        Ast::Identifier(identifier) => resolve_identifier(
-            context,
-            Span {
+        Ast::Number(number) => {
+            let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
+                inner: IntegerType(Some(number)),
                 full_string: _type.full_string,
                 string: _type.string,
-                inner: identifier,
-            },
-        ),
+            }));
+            (rc.clone(), Box::new(std::iter::once(rc)))
+        }
+        Ast::String(string) => {
+            let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
+                inner: StringType(Some(string.to_string())),
+                full_string: _type.full_string,
+                string: _type.string,
+            }));
+            (rc.clone(), Box::new(std::iter::once(rc)))
+        }
+        Ast::Identifier(identifier) => {
+            let rc = resolve_identifier(
+                context,
+                Span {
+                    full_string: _type.full_string,
+                    string: _type.string,
+                    inner: identifier,
+                },
+            );
+            (rc.clone(), Box::new(std::iter::once(rc)))
+        }
         Ast::List(elements) => {
-            let (callable, args) = elements.split_first().ok_or(EvaluateError {
-                location: None,
-                reason: "can't call an empty list".to_string().into(),
-            })?;
-            let callable = match callable.inner {
-                Ast::Identifier(identifier) => resolve_identifier(
-                    context,
-                    Span {
-                        full_string: callable.full_string,
-                        string: callable.string,
-                        inner: identifier,
-                    },
-                ),
+            let (callable, args) = match elements.split_first() {
+                Some(v) => v,
+                None => {
+                    let err = Err(EvaluateError {
+                        location: None,
+                        reason: "can't call an empty list".to_string().into(),
+                    });
+                    return (err.clone(), Box::new(std::iter::once(err)));
+                }
+            };
+            let (callable, _callable_trace) = match callable.inner {
+                Ast::Identifier(identifier) => {
+                    let val = resolve_identifier(
+                        context,
+                        Span {
+                            full_string: callable.full_string,
+                            string: callable.string,
+                            inner: identifier,
+                        },
+                    );
+                    let val: (
+                        EvaluateResult<'a, RcType<'a>>,
+                        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+                    ) = (val.clone(), Box::new(std::iter::once(val)));
+                    val
+                }
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
-                _ => Err(EvaluateError {
-                    location: None,
-                    reason: "can't call a string or number".to_string().into(),
-                })?,
+                _ => {
+                    let val = Err(EvaluateError {
+                        location: None,
+                        reason: "can't call a string or number".to_string().into(),
+                    });
+                    return (val.clone(), Box::new(std::iter::once(val)));
+                }
             };
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
-            callable?.typecheck_call(context, args)
+            match callable {
+                Ok(v) => v.typecheck_call(context, args),
+                e => (e.clone(), Box::new(std::iter::once(e))),
+            }
         }
     }
 }
