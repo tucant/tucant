@@ -25,7 +25,7 @@ impl<'a> From<Ast> for Span<Ast> {
 }
 
 #[derive(Debug)]
-pub struct Error<'a, T: Debug> {
+pub struct Error<T: Debug> {
     pub location: Span<()>,
     pub reason: Cow<'static, str>,
     pub partial_parse: T,
@@ -98,7 +98,7 @@ fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + 
 
 fn parse_string<'a>(
     input: Span<()>,
-) -> Result<(Span<&'a str>, Span<()>), Error<'a, Span<'_, Ast>>> {
+) -> Result<(Span<&'a str>, Span<()>), Error<Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
@@ -165,7 +165,7 @@ fn parse_string<'a>(
 // https://doc.rust-lang.org/book/ch08-02-strings.html
 fn parse_number<'a>(
     input: Span<()>,
-) -> Result<(Span<i64>, Span<()>), Error<'a, Span<'_, Ast>>> {
+) -> Result<(Span<i64>, Span<()>), Error<Span<'_, Ast>>> {
     let input_str: &'a str = input.into();
     let end_of_numbers = input_str
         .char_indices()
@@ -202,7 +202,7 @@ fn parse_number<'a>(
 
 fn parse_identifier<'a>(
     input: Span<()>,
-) -> Result<(Span<&'a str>, Span<()>), Error<'a, Span<'_, Ast>>> {
+) -> Result<(Span<&'a str>, Span<()>), Error<Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
         .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
@@ -238,7 +238,7 @@ fn parse_identifier<'a>(
 
 fn parse_whitespace<'a>(
     input: Span<()>,
-) -> Result<(Span<()>, Span<()>), Error<'a, Span<'_, Ast>>> {
+) -> Result<(Span<()>, Span<()>), Error<Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let pos = my_char_indices(input_str)
         .find(|(_offset, character, _)| !character.is_whitespace())
@@ -261,7 +261,7 @@ fn parse_whitespace<'a>(
 
 fn parse_list<'a>(
     full_input: Span<()>,
-) -> Result<(Span<Vec<Span<Ast>>>, Span<()>), Error<'a, Span<'_, Ast>>> {
+) -> Result<(Span<Vec<Span<Ast>>>, Span<()>), Error<Span<'_, Ast>>> {
     let mut input = full_input;
     let input_str = Into::<&'a str>::into(input);
     if !input_str.starts_with('(') {
@@ -451,7 +451,7 @@ pub enum Ast {
 
 pub fn parse_Ast(
     mut input: Span<()>,
-) -> Result<(Span<Ast>, Span<()>), Error<'a, Span<Ast>>> {
+) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
     input = parse_whitespace(input)?.1;
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
