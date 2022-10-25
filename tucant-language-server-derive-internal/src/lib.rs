@@ -105,7 +105,7 @@ pub fn parse_structures(
             let return_value = (
                 quote! {
                     #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
                     #documentation
                     pub struct #name {
                         #(#extends)*
@@ -159,7 +159,7 @@ pub fn parse_enumerations(
                         .scan(&mut values_err, until_err);
 
                     let return_value = quote! {
-                        #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
+                        #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug, Clone)]
                         #[repr(i64)]
                         #documentation
                         pub enum #name {
@@ -202,7 +202,7 @@ pub fn parse_enumerations(
                     };
 
                     let return_value = quote! {
-                        #[derive(serde::Serialize, serde::Deserialize, Debug)]
+                        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
                         #documentation
                         pub enum #name {
                             #(#values)*
@@ -323,7 +323,7 @@ pub fn parse_requests(
                 .map_or((None, None), |o| (Some(o.0), Some(o.1)));
             let response_struct = quote! {
                 #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
                 #documentation
                 pub struct #response_name {
                     pub jsonrpc: String,
@@ -384,7 +384,7 @@ pub fn parse_requests(
             };
             let request_struct = quote! {
                 #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
                 #documentation
                 pub struct #request_name {
                     pub jsonrpc: String,
@@ -475,7 +475,7 @@ pub fn parse_notifications(
             Ok((
                 quote! {
                     #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
                     #documentation
                     pub struct #name {
                         pub jsonrpc: String,
@@ -580,7 +580,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             Number(i64),
         }
 
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
         #[serde(tag = "method")]
         pub enum IncomingStuff {
             #(#request_enum)*
@@ -619,7 +619,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             fn id(&self) -> &StringOrNumber;
         }
 
-        #[derive(Serialize, Deserialize, Debug)]
+        #[derive(Serialize, Deserialize, Debug, Clone)]
         pub struct Notification<T> {
             pub params: T,
         }
