@@ -273,7 +273,7 @@ pub fn main() {}
             } else {
                 let (typecheck_result, typecheck_trace) = typecheck(value.unwrap().0); // TODO use match, see above
                 println!("{:?}", typecheck_result);
-                if let Err(_) = typecheck_result {
+                if typecheck_result.is_err() {
                     Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
                         let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
                         let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
