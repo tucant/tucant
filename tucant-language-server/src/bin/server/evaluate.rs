@@ -250,17 +250,17 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
         let left_value = match left_value {
-            Ok(v) => match v.downcast_integer_type() {
+            Ok(ref v) => match v.downcast_integer_type() {
                 Some(v) => v,
                 None => {
                     let val = Err(EvaluateError {
                         location: Some(v.span()),
                         reason: format!("expected integer type, got {:?}", v).into(),
                     });
-                    return (val, Box::new(std::iter::once(val)));
+                    return (val.clone(), Box::new(std::iter::once(val)));
                 }
             },
-            Err(e) => {
+            Err(ref e) => {
                 return (
                     left_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
@@ -268,17 +268,17 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
             }
         };
         let right_value = match right_value {
-            Ok(v) => match v.downcast_integer_type() {
+            Ok(ref v) => match v.downcast_integer_type() {
                 Some(v) => v,
                 None => {
                     let val = Err(EvaluateError {
                         location: Some(v.span()),
                         reason: format!("expected integer type, got {:?}", v).into(),
                     });
-                    return (val, Box::new(std::iter::once(val)));
+                    return (val.clone(), Box::new(std::iter::once(val)));
                 }
             },
-            Err(e) => {
+            Err(ref e) => {
                 return (
                     right_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
@@ -307,11 +307,11 @@ impl<'a> Type<'a> for Span<'a, AddLambdaType> {
                     full_string: "",
                     string: "",
                 }));
-                (return_value, Box::new(std::iter::once(return_value)))
+                (return_value.clone(), Box::new(std::iter::once(return_value)))
             }
             Err(err) => {
                 let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
-                (return_value, Box::new(std::iter::once(return_value)))
+                (return_value.clone(), Box::new(std::iter::once(return_value)))
             }
         }
     }
@@ -380,7 +380,7 @@ impl<'a> Type<'a> for Span<'a, LambdaType<'a>> {
                     location: None,
                     reason: "expected exactly one argument".to_string().into(),
                 });
-                return (err, Box::new(std::iter::once(err)));
+                return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
         let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
@@ -462,7 +462,7 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
                     location: None,
                     reason: "expected exactly two arguments".to_string().into(),
                 });
-                return (err, Box::new(std::iter::once(err)));
+                return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
         let variable = match variable.inner {
@@ -472,7 +472,7 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
                     location: None,
                     reason: "expected argument identifier".to_string().into(),
                 });
-                return (err, Box::new(std::iter::once(err)));
+                return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
         let val: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
@@ -483,7 +483,7 @@ impl<'a> Type<'a> for Span<'a, DefineLambdaType> {
             full_string: "lambda", // TODO FIXME fix span info to whole list?
             string: "lambda",
         }));
-        return (val, Box::new(std::iter::once(val)));
+        return (val.clone(), Box::new(std::iter::once(val)));
     }
 
     fn span(&self) -> Span<'a, ()> {
@@ -578,7 +578,7 @@ pub fn typecheck_with_context<'a>(
                 full_string: _type.full_string,
                 string: _type.string,
             }));
-            (rc, Box::new(std::iter::once(rc)))
+            (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::String(string) => {
             let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
@@ -586,7 +586,7 @@ pub fn typecheck_with_context<'a>(
                 full_string: _type.full_string,
                 string: _type.string,
             }));
-            (rc, Box::new(std::iter::once(rc)))
+            (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::Identifier(identifier) => {
             let rc = resolve_identifier(
@@ -597,7 +597,7 @@ pub fn typecheck_with_context<'a>(
                     inner: identifier,
                 },
             );
-            (rc, Box::new(std::iter::once(rc)))
+            (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::List(elements) => {
             let (callable, args) = match elements.split_first() {
@@ -607,7 +607,7 @@ pub fn typecheck_with_context<'a>(
                         location: None,
                         reason: "can't call an empty list".to_string().into(),
                     });
-                    return (err, Box::new(std::iter::once(err)));
+                    return (err.clone(), Box::new(std::iter::once(err)));
                 }
             };
             let (callable, callable_trace) = match callable.inner {
@@ -623,7 +623,7 @@ pub fn typecheck_with_context<'a>(
                     let val: (
                         EvaluateResult<'a, RcType<'a>>,
                         Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
-                    ) = (val, Box::new(std::iter::once(val)));
+                    ) = (val.clone(), Box::new(std::iter::once(val)));
                     val
                 }
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
@@ -632,13 +632,13 @@ pub fn typecheck_with_context<'a>(
                         location: None,
                         reason: "can't call a string or number".to_string().into(),
                     });
-                    return (val, Box::new(std::iter::once(val)));
+                    return (val.clone(), Box::new(std::iter::once(val)));
                 }
             };
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
             match callable {
                 Ok(v) => v.typecheck_call(context, args),
-                e => (e, Box::new(std::iter::once(e))),
+                e => (e.clone(), Box::new(std::iter::once(e))),
             }
         }
     }
