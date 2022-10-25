@@ -25,8 +25,48 @@ pub enum Token {
     Number(i64),
 }
 
-pub fn tokenize(input: impl Iterator<Item=char>) -> impl Iterator<Item=Token> {
-    input.
+pub struct LineColumnIterator<I: Iterator<Item=char>> {
+    iterator: I,
+    position: Position,
+}
+
+impl<I: Iterator<Item=char>> Iterator for LineColumnIterator<I> {
+    type Item = (char, Position);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.iterator.next() {
+            Some(character) => {
+                match character {
+                    '\n' => {
+                        self.position.line += 1;
+                        self.position.character = 0;
+                    }
+                    '\r' => {},
+                    _ => {
+                        self.position.character += 1;
+                    }
+                }
+                Some((character, self.position.clone()))
+            },
+            None => None,
+        }
+    }
+}
+
+pub struct Tokenizer<I: Iterator<Item=char>> {
+    iterator: LineColumnIterator<I>,
+}
+
+
+impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.iterator.next() {
+            Some(_) => todo!(),
+            None => todo!(),
+        }
+    }
 }
 
 /*
