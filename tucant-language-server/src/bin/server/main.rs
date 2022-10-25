@@ -134,35 +134,50 @@ impl Server {
         // TODO FIXME bug whitespace before a list belongs to that list?
         let found_element = hover_visitor(&value, &request.params.variant0.position);
 
-        // TODO FIXME filter all types from typecheck for that found span
+        let response = found_element.and_then(|found_element| {
+            println!("found element {:?}", found_element);
+            // TODO FIXME filter all types from typecheck for that found span
+            let (_typecheck_result, typecheck_trace) = typecheck(&value);
+            let found_type = typecheck_trace
+                .map(|e| {
+                    println!("debug {:?}", e);
+                    e
+                })
+                .filter_map(|t| t.ok())
+                .find(|t| t.span().start_line_column() == found_element.start_line_column());
 
-        self.send_response(
-            request,
-            H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
-                contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
-                    MarkupContent {
-                        kind: MarkupKind::Markdown,
-                        value: r#"# hello world
-this is nice
-```rust
-pub fn main() {}
-```"#
-                            .to_string(),
-                    },
-                ),
-                range: found_element.map(|element| Range {
-                    start: Position {
-                        line: element.start_line_column().0.try_into().unwrap(),
-                        character: element.start_line_column().1.try_into().unwrap(),
-                    },
-                    end: Position {
-                        line: element.end_line_column().0.try_into().unwrap(),
-                        character: element.end_line_column().1.try_into().unwrap(),
-                    },
-                }),
-            }),
-        )
-        .await?;
+            found_type.map(|found_type| {
+                println!("found type {:?}", found_type);
+                H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
+                    contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
+                        MarkupContent {
+                            kind: MarkupKind::Markdown,
+                            value: format!("{:?}", found_type),
+                        },
+                    ),
+                    range: Some(Range {
+                        start: Position {
+                            line: found_type.span().start_line_column().0.try_into().unwrap(),
+                            character: found_type.span().start_line_column().1.try_into().unwrap(),
+                        },
+                        end: Position {
+                            line: found_type.span().end_line_column().0.try_into().unwrap(),
+                            character: found_type.span().end_line_column().1.try_into().unwrap(),
+                        },
+                    }),
+                })
+            })
+        });
+
+        if let Some(response) = response {
+            self.send_response(request, response).await?;
+        } else {
+            self.send_response(
+                request,
+                H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant1(()),
+            )
+            .await?
+        }
 
         Ok(())
     }
@@ -271,7 +286,7 @@ pub fn main() {}
                     data: None,
                 }))
             } else {
-                let (typecheck_result, typecheck_trace) = typecheck(value.unwrap().0); // TODO use match, see above
+                let (typecheck_result, typecheck_trace) = typecheck(&value.unwrap().0); // TODO use match, see above
                 println!("{:?}", typecheck_result);
                 if typecheck_result.is_err() {
                     Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
