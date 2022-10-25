@@ -5,31 +5,33 @@ use tucant_language_server_derive_output::{FoldingRange, Position};
 // TODO FIXME tokenization in extra stage
 
 #[derive(Clone, Copy)]
-pub struct Span<'a, T: Debug> {
+pub struct Span<T: Debug> {
     pub inner: T,
-    pub full_string: &'a str, // TODO this could become a ref to a struct for the whole file with name info etc
-    pub string: &'a str,
+    pub filename: String,
+    pub line_offset: i64,
+    pub column_offset: i64,
 }
 
-impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
-    fn from(ast: Ast<'a>) -> Self {
+impl<'a> From<Ast> for Span<Ast> {
+    fn from(ast: Ast) -> Self {
         let fake: &'static str = "fake";
         Self {
-            full_string: fake,
-            string: fake,
             inner: ast,
+            filename: "fakefile".to_string(),
+            line_offset: 0,
+            column_offset: 0
         }
     }
 }
 
 #[derive(Debug)]
 pub struct Error<'a, T: Debug> {
-    pub location: Span<'a, ()>,
+    pub location: Span<()>,
     pub reason: Cow<'static, str>,
     pub partial_parse: T,
 }
 
-fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usize, usize) {
+fn offset_to_line_column<'a, T: Debug>(span: &Span<T>, string: &str) -> (usize, usize) {
     span.full_string[..(string.as_ptr() as usize - span.full_string.as_ptr() as usize)]
         .lines()
         .enumerate()
@@ -47,7 +49,7 @@ pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize 
     the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
 }
 
-impl<'a, T: Debug> Debug for Span<'a, T> {
+impl<'a, T: Debug> Debug for Span<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start_pos = offset_to_line_column(self, self.string);
         let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
@@ -59,7 +61,7 @@ impl<'a, T: Debug> Debug for Span<'a, T> {
     }
 }
 
-impl<'a> Span<'a, ()> {
+impl<'a> Span<()> {
     pub fn new(input: &'a str) -> Self {
         Self {
             inner: (),
@@ -69,7 +71,7 @@ impl<'a> Span<'a, ()> {
     }
 }
 
-impl<'a, T: Debug> Span<'a, T> {
+impl<'a, T: Debug> Span<T> {
     pub fn start_line_column(&self) -> (usize, usize) {
         let start_pos = offset_to_line_column(self, self.string);
         (start_pos.0, start_pos.1)
@@ -82,8 +84,8 @@ impl<'a, T: Debug> Span<'a, T> {
 }
 
 // TODO FIXME remove this as it just makes it less transparent
-impl<'a> From<Span<'a, ()>> for &'a str {
-    fn from(value: Span<'a, ()>) -> Self {
+impl<'a> From<Span<()>> for &'a str {
+    fn from(value: Span<()>) -> Self {
         value.string
     }
 }
@@ -95,8 +97,8 @@ fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + 
 }
 
 fn parse_string<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+    input: Span<()>,
+) -> Result<(Span<&'a str>, Span<()>), Error<'a, Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
     match it.next() {
@@ -162,8 +164,8 @@ fn parse_string<'a>(
 
 // https://doc.rust-lang.org/book/ch08-02-strings.html
 fn parse_number<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, i64>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+    input: Span<()>,
+) -> Result<(Span<i64>, Span<()>), Error<'a, Span<'_, Ast>>> {
     let input_str: &'a str = input.into();
     let end_of_numbers = input_str
         .char_indices()
@@ -199,8 +201,8 @@ fn parse_number<'a>(
 }
 
 fn parse_identifier<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+    input: Span<()>,
+) -> Result<(Span<&'a str>, Span<()>), Error<'a, Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let end = my_char_indices(input_str)
         .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
@@ -235,8 +237,8 @@ fn parse_identifier<'a>(
 }
 
 fn parse_whitespace<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+    input: Span<()>,
+) -> Result<(Span<()>, Span<()>), Error<'a, Span<'_, Ast>>> {
     let input_str = Into::<&'a str>::into(input);
     let pos = my_char_indices(input_str)
         .find(|(_offset, character, _)| !character.is_whitespace())
@@ -258,8 +260,8 @@ fn parse_whitespace<'a>(
 }
 
 fn parse_list<'a>(
-    full_input: Span<'a, ()>,
-) -> Result<(Span<'a, Vec<Span<'a, Ast<'a>>>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+    full_input: Span<()>,
+) -> Result<(Span<Vec<Span<Ast>>>, Span<()>), Error<'a, Span<'_, Ast>>> {
     let mut input = full_input;
     let input_str = Into::<&'a str>::into(input);
     if !input_str.starts_with('(') {
@@ -330,7 +332,7 @@ fn parse_list<'a>(
 }
 
 pub fn visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
+    element: &'a Span<Ast>,
 ) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
     match &element.inner {
         Ast::Identifier(_) => {
@@ -368,7 +370,7 @@ pub fn visitor<'a>(
 }
 
 pub fn list_visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
+    element: &'a Span<Ast>,
 ) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
     match &element.inner {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
@@ -389,9 +391,9 @@ pub fn list_visitor<'a>(
 }
 
 pub fn hover_visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
+    element: &'a Span<Ast>,
     position: &Position,
-) -> Option<&'a Span<'a, Ast<'a>>> {
+) -> Option<&'a Span<Ast>> {
     match &element.inner {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if element.start_line_column()
@@ -432,15 +434,6 @@ pub fn hover_visitor<'a>(
 
 /*
 pub enum Ast {
-    Number(i64),
-    String(String),
-    Identifier(String),
-    Callable(Ast, Vec<Ast>),
-}
-*/
-
-/*
-pub enum Ast {
     Number(i64, Position),
     String(String, Position),
     Identifier(String, Position),
@@ -449,16 +442,16 @@ pub enum Ast {
 */
 
 #[derive(Debug, Clone)]
-pub enum Ast<'a> {
+pub enum Ast {
     Number(i64),
-    String(&'a str),
-    Identifier(&'a str),
-    List(Vec<Span<'a, Ast<'a>>>),
+    String(String),
+    Identifier(String),
+    List(Vec<Span<Ast>>),
 }
 
-pub fn parse_ast<'a>(
-    mut input: Span<'a, ()>,
-) -> Result<(Span<'a, Ast<'a>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
+pub fn parse_Ast(
+    mut input: Span<()>,
+) -> Result<(Span<Ast>, Span<()>), Error<'a, Span<Ast>>> {
     input = parse_whitespace(input)?.1;
     let input_str = Into::<&'a str>::into(input);
     let mut it = my_char_indices(input_str);
