@@ -1,5 +1,6 @@
-use std::{borrow::Cow, fmt::Debug};
+use std::{borrow::Cow, fmt::Debug, iter::Peekable};
 
+use itertools::Itertools;
 use tucant_language_server_derive_output::{FoldingRange, Position, Range};
 
 // write idiomatic code first, optimize later
@@ -17,6 +18,7 @@ pub struct Error<T: Debug> {
     pub partial_parse: T,
 }
 
+#[derive(Debug)]
 pub enum Token {
     ParenOpen,
     ParenClose,
@@ -28,6 +30,15 @@ pub enum Token {
 pub struct LineColumnIterator<I: Iterator<Item=char>> {
     iterator: I,
     position: Position,
+}
+
+impl<I: Iterator<Item=char>> LineColumnIterator<I> {
+    pub fn new(iterator: I) -> Self {
+        Self {
+            iterator,
+            position: Position { line: 0, character: 0 },
+        }
+    }
 }
 
 impl<I: Iterator<Item=char>> Iterator for LineColumnIterator<I> {
@@ -54,19 +65,76 @@ impl<I: Iterator<Item=char>> Iterator for LineColumnIterator<I> {
 }
 
 pub struct Tokenizer<I: Iterator<Item=char>> {
-    iterator: LineColumnIterator<I>,
+    iterator: Peekable<LineColumnIterator<I>>,
 }
 
+impl<I: Iterator<Item=char>> Tokenizer<I> {
+    pub fn new(iterator: I) -> Self {
+        Self {
+            iterator: LineColumnIterator::new(iterator).peekable(),
+        }
+    }
+}
+
+pub struct TokenizerBuilder;
+
+impl TokenizerBuilder {
+    pub fn from_string(string: String) -> Tokenizer<std::vec::IntoIter<char>> {
+        Tokenizer::new(string.chars().collect::<Vec<_>>().into_iter())
+    }
+}
 
 impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.iterator.next() {
-            Some(_) => todo!(),
-            None => todo!(),
+        match self.iterator.peek() {
+            Some(('(', _)) => {
+                self.iterator.next();
+                Some(Token::ParenOpen)
+            },
+            Some((')', _)) => {
+                self.iterator.next();
+                Some(Token::ParenClose)
+            },
+            Some(('"', _)) => {
+                self.iterator.next();
+                let end: String = self.iterator.peeking_take_while(|(char, pos)| *char != '"').map(|(char, pos)| char).collect();
+                if let Some(('"', _end)) = self.iterator.next() {
+                    Some(Token::String(end))
+                } else {
+                    // unterminated string literal
+                    None // TODO FIXME error
+                }
+            },
+            Some(('0' ..= '9', _)) => {
+                let end: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
+                Some(Token::Number(end.parse().unwrap()))
+            },
+            Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', _)) => {
+                let end: String = self.iterator.peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| char).collect();
+                Some(Token::Identifier(end))
+            }
+            Some((' ' | '\t' | '\n' | '\r', _)) => {
+                self.iterator.next();
+                // whitespace
+                self.next()
+            }
+            Some(_) => {
+                self.iterator.next();
+                // unexpected character
+                // TODO FIXME error
+                None
+            }
+            None => None,
         }
     }
+}
+
+// cargo test parser -- --show-output
+#[test]
+pub fn test_tokenize() {
+    println!("{:?}", TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec());
 }
 
 /*
