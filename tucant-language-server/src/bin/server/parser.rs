@@ -85,23 +85,47 @@ impl TokenizerBuilder {
 }
 
 impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
-    type Item = Token;
+    type Item = (Token, Span);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
-            Some(('(', _)) => {
+            Some(('(', position)) => {
                 self.iterator.next();
-                Some(Token::ParenOpen)
+                Some((Token::ParenOpen, Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: position.clone(),
+                        end: Position {
+                            line: position.line,
+                            character: position.character + 1,
+                        },
+                    }
+                }))
             },
-            Some((')', _)) => {
+            Some((')', position)) => {
                 self.iterator.next();
-                Some(Token::ParenClose)
+                Some((Token::ParenClose, Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: position.clone(),
+                        end: Position {
+                            line: position.line,
+                            character: position.character + 1,
+                        },
+                    }
+                }))
             },
-            Some(('"', _)) => {
+            Some(('"', start_pos)) => {
                 self.iterator.next();
                 let end: String = self.iterator.peeking_take_while(|(char, pos)| *char != '"').map(|(char, pos)| char).collect();
-                if let Some(('"', _end)) = self.iterator.next() {
-                    Some(Token::String(end))
+                if let Some(('"', end_pos)) = self.iterator.next() {
+                    Some((Token::String(end), Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: start_pos.clone(),
+                            end: end_pos,
+                        },
+                    }))
                 } else {
                     // unterminated string literal
                     None // TODO FIXME error
@@ -131,7 +155,7 @@ impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
     }
 }
 
-// cargo test parser -- --show-output
+// cargo test --target x86_64-unknown-linux-gnu parser -- --show-output
 #[test]
 pub fn test_tokenize() {
     println!("{:?}", TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec());
