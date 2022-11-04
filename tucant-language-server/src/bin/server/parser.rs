@@ -99,14 +99,14 @@ impl TokenizerBuilder {
 }
 
 impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
-    type Item = (Token, Span);
+    type Item = Result<(Token, Span), Error<()>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
             Some(('(', position)) => {
                 let position = position.clone();
                 self.iterator.next();
-                Some((
+                Some(Ok((
                     Token::ParenOpen,
                     Span {
                         filename: "<stdin>".to_string(),
@@ -118,12 +118,12 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                             },
                         },
                     },
-                ))
+                )))
             }
             Some((')', position)) => {
                 let position = position.clone();
                 self.iterator.next();
-                Some((
+                Some(Ok((
                     Token::ParenClose,
                     Span {
                         filename: "<stdin>".to_string(),
@@ -135,7 +135,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                             },
                         },
                     },
-                ))
+                )))
             }
             Some(('"', start_pos)) => {
                 let start_pos = start_pos.clone();
@@ -146,7 +146,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                     .map(|(char, pos)| char)
                     .collect();
                 if let Some(('"', end_pos)) = self.iterator.next() {
-                    Some((
+                    Some(Ok((
                         Token::String(end),
                         Span {
                             filename: "<stdin>".to_string(),
@@ -155,7 +155,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                                 end: end_pos,
                             },
                         },
-                    ))
+                    )))
                 } else {
                     // unterminated string literal
                     None // TODO FIXME error
@@ -176,7 +176,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                     .map(|(char, pos)| char)
                     .collect();
 
-                Some((
+                Some(Ok((
                     Token::Number(number.parse().unwrap()),
                     Span {
                         filename: "<stdin>".to_string(),
@@ -185,7 +185,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                             end: end_pos,
                         },
                     },
-                ))
+                )))
             }
             Some(('a'..='z' | 'A'..='Z' | '_', start_pos)) => {
                 let start_pos = start_pos.clone();
@@ -202,7 +202,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                     .map(|(char, pos)| char)
                     .collect();
 
-                Some((
+                Some(Ok((
                     Token::Identifier(number),
                     Span {
                         filename: "<stdin>".to_string(),
@@ -211,7 +211,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
                             end: end_pos,
                         },
                     },
-                ))
+                )))
             }
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
@@ -231,8 +231,8 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
 
 pub fn parse<I: Iterator<Item = char> + Clone>(
     tokenizer: &mut Peekable<Tokenizer<I>>,
-) -> anyhow::Result<(AST, Span)> {
-    match tokenizer.next() {
+) -> Result<(AST, Span), Error<()>> {
+    match tokenizer.next().transpose()? {
         Some((Token::Identifier(ident), span)) => Ok((AST::Identifier(ident), span)),
         Some((Token::Number(ident), span)) => Ok((AST::Number(ident), span)),
         Some((Token::String(ident), span)) => Ok((AST::String(ident), span)),
@@ -244,7 +244,11 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
             Ok((AST::List(list), span))
         }
         Some((Token::ParenClose, span)) => {
-            Err(anyhow::anyhow!("unmatched closing paren at {:?}", span))
+            Err(Error {
+                location: span,
+                reason: "unmatched closing paren at".to_string(),
+                partial_parse: (),
+            })
         }
         None => panic!(),
     }
