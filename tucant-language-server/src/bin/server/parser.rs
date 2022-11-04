@@ -1,8 +1,8 @@
-use std::{borrow::Cow, fmt::Debug, iter::Peekable, assert_matches};
+use std::{assert_matches, borrow::Cow, fmt::Debug, iter::Peekable};
 
+use core::assert_matches::assert_matches;
 use itertools::Itertools;
 use tucant_language_server_derive_output::{FoldingRange, Position, Range};
-use core::assert_matches::assert_matches;
 
 // write idiomatic code first, optimize later
 
@@ -99,28 +99,43 @@ impl TokenizerBuilder {
     }
 }
 
+fn parse_paren_open<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('(', position) => Some(Ok((
+            Token::ParenOpen,
+            Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: Position {
+                        line: position.line,
+                        character: position.character + 1,
+                    },
+                },
+            },
+        ))),
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
 impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
     type Item = Result<(Token, Span), Error<()>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
-            Some(('(', position)) => {
-                let position = position.clone();
-                self.iterator.next();
-                Some(Ok((
-                    Token::ParenOpen,
-                    Span {
-                        filename: "<stdin>".to_string(),
-                        range: Range {
-                            start: position.clone(),
-                            end: Position {
-                                line: position.line,
-                                character: position.character + 1,
-                            },
-                        },
-                    },
-                )))
-            }
+            Some(('(', position)) => parse_paren_open(&mut self.iterator),
             Some((')', position)) => {
                 let position = position.clone();
                 self.iterator.next();
@@ -244,13 +259,11 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
             }
             Ok((Ast::List(list), span))
         }
-        Some((Token::ParenClose, span)) => {
-            Err(Error {
-                location: span,
-                reason: "unmatched closing paren at".to_string(),
-                partial_parse: (),
-            })
-        }
+        Some((Token::ParenClose, span)) => Err(Error {
+            location: span,
+            reason: "unmatched closing paren at".to_string(),
+            partial_parse: (),
+        }),
         None => panic!(),
     }
 }
@@ -377,61 +390,63 @@ fn test_parse_number() {
     init();
 
     let span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap_err();
+    let number = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
     let span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(3));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "notendingwithanumber");
 
     let span = TokenizerBuilder::from_string(r#"3"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(3));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "");
 
     let span = TokenizerBuilder::from_string(r#"3z9"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(3));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "z9");
 
     let span = TokenizerBuilder::from_string(r#"3546z945"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(3546));
     //assert_eq!(number.0.string, "3546");
     //assert_eq!(number.1.string, "z945");
 
     let span = TokenizerBuilder::from_string(r#"345345"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(345345));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "");
 
     let span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap();
+    let number = parse(&mut span.peekable()).unwrap();
     println!("{:?}", number);
     assert_matches!(number.0, Ast::Number(345345));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "sdfasd");
 
     let span = TokenizerBuilder::from_string(r#"n32otanumber"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap_err();
+    let number = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
-    let span = TokenizerBuilder::from_string(r#"70708777897986976707598759785978698752otanumber"#.to_string());
-    let number = parse( &mut span.peekable()).unwrap_err();
+    let span = TokenizerBuilder::from_string(
+        r#"70708777897986976707598759785978698752otanumber"#.to_string(),
+    );
+    let number = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
     /*assert_eq!(
@@ -446,26 +461,26 @@ fn test_parse_string() {
     init();
 
     let span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap_err();
+    let string = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected a `"`"#);
     //assert_eq!(string.location.string, "n");
 
     let span = TokenizerBuilder::from_string(r#""unterminated"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap_err();
+    let string = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Unterminated string literal"#);
     //assert_eq!(string.location.string, r#""unterminated"#);
 
     let span = TokenizerBuilder::from_string(r#""astring"jojo"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     assert_matches!(string.0, Ast::String(v) if v == "astring");
     //assert_eq!(string.0.string, r#""astring""#);
     //assert_eq!(string.1.string, "jojo");
 
     let span = TokenizerBuilder::from_string(r#""astring""#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     assert_matches!(string.0, Ast::String(v) if v == "astring");
     //assert_eq!(string.0.string, r#""astring""#);
@@ -478,26 +493,26 @@ fn test_parse_identifier() {
     init();
 
     let span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap_err();
+    let string = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
     let span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap_err();
+    let string = parse(&mut span.peekable()).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
     let span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     assert_matches!(string.0, Ast::Identifier(v) if v == "anidentifier");
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "");
 
     let span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     assert_matches!(string.0, Ast::Identifier(v) if v == "anidentifier");
     //assert_eq!(string.0.string, "anidentifier");
@@ -509,19 +524,19 @@ fn test_parse_whitespace() {
     init();
 
     let span = TokenizerBuilder::from_string(r#""#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "");
 
     let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     //assert_eq!(string.0.string, "  ");
     //assert_eq!(string.1.string, "f  fwwe wef");
 
     let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#.to_string());
-    let string = parse( &mut span.peekable()).unwrap();
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "dsfsdf dsf  ");
@@ -532,14 +547,14 @@ fn test_parse_list() {
     init();
 
     let span = TokenizerBuilder::from_string(r#"()"#.to_string());
-    let value = parse( &mut span.peekable()).unwrap();
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), []); true });
 
     let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#.to_string());
-    let value = parse( &mut span.peekable()).unwrap();
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
     //assert_eq!(value.0.string, "(  1    2   3    )");
     //assert_eq!(value.1.string, "");
@@ -551,14 +566,14 @@ fn test_parse_ast() {
     init();
 
     let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());
-    let value = parse( &mut span.peekable()).unwrap();
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), []); true });
 
     let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#.to_string());
-    let value = parse( &mut span.peekable()).unwrap();
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
     //assert_eq!(value.0.string, "(  1    2   3    )");
     //assert_eq!(value.1.string, "");
