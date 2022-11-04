@@ -92,6 +92,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
             Some(('(', position)) => {
+                let position = position.clone();
                 self.iterator.next();
                 Some((Token::ParenOpen, Span {
                     filename: "<stdin>".to_string(),
@@ -105,6 +106,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
                 }))
             },
             Some((')', position)) => {
+                let position = position.clone();
                 self.iterator.next();
                 Some((Token::ParenClose, Span {
                     filename: "<stdin>".to_string(),
@@ -118,6 +120,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
                 }))
             },
             Some(('"', start_pos)) => {
+                let start_pos = start_pos.clone();
                 self.iterator.next();
                 let end: String = self.iterator.peeking_take_while(|(char, pos)| *char != '"').map(|(char, pos)| char).collect();
                 if let Some(('"', end_pos)) = self.iterator.next() {
@@ -134,6 +137,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
                 }
             },
             Some(('0' ..= '9', start_pos)) => {
+                let start_pos = start_pos.clone();
                 let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| pos).last().unwrap();
                 let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
 
@@ -146,6 +150,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
                 }))
             },
             Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', start_pos)) => {
+                let start_pos = start_pos.clone();
                 let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| pos).last().unwrap();
                 let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
 
