@@ -48,6 +48,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for LineColumnIterator<I> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.next() {
             Some(character) => {
+                let old_position = self.position.clone();
                 match character {
                     '\n' => {
                         self.position.line += 1;
@@ -58,7 +59,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for LineColumnIterator<I> {
                         self.position.character += 1;
                     }
                 }
-                Some((character, self.position.clone()))
+                Some((character, old_position))
             },
             None => None,
         }
@@ -152,7 +153,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
             Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', start_pos)) => {
                 let start_pos = start_pos.clone();
                 let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| pos).last().unwrap();
-                let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
+                let number: String = self.iterator.peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| char).collect();
 
                 Some((Token::Identifier(number), Span {
                     filename: "<stdin>".to_string(),
@@ -181,7 +182,7 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
 // cargo test --target x86_64-unknown-linux-gnu parser -- --show-output
 #[test]
 pub fn test_tokenize() {
-    println!("{:?}", TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec());
+    println!("{:#?}", TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec());
 }
 
 /*
