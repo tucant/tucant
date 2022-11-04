@@ -1,5 +1,3 @@
 pub mod parser;
 
-pub fn main() {
-    
-}
+pub fn main() {}

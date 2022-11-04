@@ -8,7 +8,7 @@ use tucant_language_server_derive_output::{FoldingRange, Position, Range};
 #[derive(Debug, Clone)]
 pub struct Span {
     pub filename: String,
-    pub range: Range
+    pub range: Range,
 }
 
 #[derive(Debug)]
@@ -31,25 +31,28 @@ pub enum AST {
     String(String),
     Identifier(String),
     Number(i64),
-    List(Vec<(AST, Span)>)
+    List(Vec<(AST, Span)>),
 }
 
 #[derive(Clone)]
-pub struct LineColumnIterator<I: Iterator<Item=char> + Clone> {
+pub struct LineColumnIterator<I: Iterator<Item = char> + Clone> {
     iterator: I,
     position: Position,
 }
 
-impl<I: Iterator<Item=char> + Clone> LineColumnIterator<I> {
+impl<I: Iterator<Item = char> + Clone> LineColumnIterator<I> {
     pub fn new(iterator: I) -> Self {
         Self {
             iterator,
-            position: Position { line: 0, character: 0 },
+            position: Position {
+                line: 0,
+                character: 0,
+            },
         }
     }
 }
 
-impl<I: Iterator<Item=char> + Clone> Iterator for LineColumnIterator<I> {
+impl<I: Iterator<Item = char> + Clone> Iterator for LineColumnIterator<I> {
     type Item = (char, Position);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -61,24 +64,24 @@ impl<I: Iterator<Item=char> + Clone> Iterator for LineColumnIterator<I> {
                         self.position.line += 1;
                         self.position.character = 0;
                     }
-                    '\r' => {},
+                    '\r' => {}
                     _ => {
                         self.position.character += 1;
                     }
                 }
                 Some((character, old_position))
-            },
+            }
             None => None,
         }
     }
 }
 
 #[derive(Clone)]
-pub struct Tokenizer<I: Iterator<Item=char> + Clone> {
+pub struct Tokenizer<I: Iterator<Item = char> + Clone> {
     iterator: Peekable<LineColumnIterator<I>>,
 }
 
-impl<I: Iterator<Item=char> + Clone> Tokenizer<I> {
+impl<I: Iterator<Item = char> + Clone> Tokenizer<I> {
     pub fn new(iterator: I) -> Self {
         Self {
             iterator: LineColumnIterator::new(iterator).peekable(),
@@ -94,7 +97,7 @@ impl TokenizerBuilder {
     }
 }
 
-impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
+impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
     type Item = (Token, Span);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -102,73 +105,112 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
             Some(('(', position)) => {
                 let position = position.clone();
                 self.iterator.next();
-                Some((Token::ParenOpen, Span {
-                    filename: "<stdin>".to_string(),
-                    range: Range {
-                        start: position.clone(),
-                        end: Position {
-                            line: position.line,
-                            character: position.character + 1,
+                Some((
+                    Token::ParenOpen,
+                    Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: position.clone(),
+                            end: Position {
+                                line: position.line,
+                                character: position.character + 1,
+                            },
                         },
-                    }
-                }))
-            },
+                    },
+                ))
+            }
             Some((')', position)) => {
                 let position = position.clone();
                 self.iterator.next();
-                Some((Token::ParenClose, Span {
-                    filename: "<stdin>".to_string(),
-                    range: Range {
-                        start: position.clone(),
-                        end: Position {
-                            line: position.line,
-                            character: position.character + 1,
+                Some((
+                    Token::ParenClose,
+                    Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: position.clone(),
+                            end: Position {
+                                line: position.line,
+                                character: position.character + 1,
+                            },
                         },
-                    }
-                }))
-            },
+                    },
+                ))
+            }
             Some(('"', start_pos)) => {
                 let start_pos = start_pos.clone();
                 self.iterator.next();
-                let end: String = self.iterator.peeking_take_while(|(char, pos)| *char != '"').map(|(char, pos)| char).collect();
+                let end: String = self
+                    .iterator
+                    .peeking_take_while(|(char, pos)| *char != '"')
+                    .map(|(char, pos)| char)
+                    .collect();
                 if let Some(('"', end_pos)) = self.iterator.next() {
-                    Some((Token::String(end), Span {
+                    Some((
+                        Token::String(end),
+                        Span {
+                            filename: "<stdin>".to_string(),
+                            range: Range {
+                                start: start_pos.clone(),
+                                end: end_pos,
+                            },
+                        },
+                    ))
+                } else {
+                    // unterminated string literal
+                    None // TODO FIXME error
+                }
+            }
+            Some(('0'..='9', start_pos)) => {
+                let start_pos = start_pos.clone();
+                let end_pos = self
+                    .iterator
+                    .clone()
+                    .peeking_take_while(|(char, pos)| char.is_ascii_digit())
+                    .map(|(char, pos)| pos)
+                    .last()
+                    .unwrap();
+                let number: String = self
+                    .iterator
+                    .peeking_take_while(|(char, pos)| char.is_ascii_digit())
+                    .map(|(char, pos)| char)
+                    .collect();
+
+                Some((
+                    Token::Number(number.parse().unwrap()),
+                    Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
                             start: start_pos.clone(),
                             end: end_pos,
                         },
-                    }))
-                } else {
-                    // unterminated string literal
-                    None // TODO FIXME error
-                }
-            },
-            Some(('0' ..= '9', start_pos)) => {
-                let start_pos = start_pos.clone();
-                let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| pos).last().unwrap();
-                let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
-
-                Some((Token::Number(number.parse().unwrap()), Span {
-                    filename: "<stdin>".to_string(),
-                    range: Range {
-                        start: start_pos.clone(),
-                        end: end_pos,
                     },
-                }))
-            },
-            Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', start_pos)) => {
+                ))
+            }
+            Some(('a'..='z' | 'A'..='Z' | '_', start_pos)) => {
                 let start_pos = start_pos.clone();
-                let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| pos).last().unwrap();
-                let number: String = self.iterator.peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| char).collect();
+                let end_pos = self
+                    .iterator
+                    .clone()
+                    .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
+                    .map(|(char, pos)| pos)
+                    .last()
+                    .unwrap();
+                let number: String = self
+                    .iterator
+                    .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
+                    .map(|(char, pos)| char)
+                    .collect();
 
-                Some((Token::Identifier(number), Span {
-                    filename: "<stdin>".to_string(),
-                    range: Range {
-                        start: start_pos.clone(),
-                        end: end_pos,
+                Some((
+                    Token::Identifier(number),
+                    Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: start_pos.clone(),
+                            end: end_pos,
+                        },
                     },
-                }))
+                ))
             }
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
@@ -186,25 +228,20 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
     }
 }
 
-pub fn parse<I: Iterator<Item=char> + Clone>(tokenizer: &mut Peekable<Tokenizer<I>>) -> (AST, Span) {
+pub fn parse<I: Iterator<Item = char> + Clone>(
+    tokenizer: &mut Peekable<Tokenizer<I>>,
+) -> (AST, Span) {
     match tokenizer.next() {
-        Some((Token::Identifier(ident),span)) => {
-            (AST::Identifier(ident), span)
-        },
-        Some((Token::Number(ident),span)) => {
-            (AST::Number(ident), span)
-        },
-        Some((Token::String(ident),span)) => {
-            (AST::String(ident), span)
-        },
+        Some((Token::Identifier(ident), span)) => (AST::Identifier(ident), span),
+        Some((Token::Number(ident), span)) => (AST::Number(ident), span),
+        Some((Token::String(ident), span)) => (AST::String(ident), span),
         Some((Token::ParenOpen, span)) => {
-            let mut 
-            list = Vec::new();
+            let mut list = Vec::new();
             while let Some(_) = tokenizer.peek() {
                 list.push(parse(tokenizer));
             }
             (AST::List(list), span)
-        },
+        }
         Some((Token::ParenClose, span)) => {
             panic!("unmatched closing paren at {:?}", span);
         }
@@ -215,7 +252,10 @@ pub fn parse<I: Iterator<Item=char> + Clone>(tokenizer: &mut Peekable<Tokenizer<
 // cargo test --target x86_64-unknown-linux-gnu parser -- --show-output
 #[test]
 pub fn test_tokenize() {
-    println!("{:#?}", TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec());
+    println!(
+        "{:#?}",
+        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec()
+    );
 }
 
 /*
@@ -333,7 +373,7 @@ fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-/* 
+/*
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
