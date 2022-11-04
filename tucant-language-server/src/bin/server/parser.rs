@@ -220,16 +220,24 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 .map(|(char, pos)| char)
                 .collect();
 
-            Some(Ok((
-                Token::Number(number.parse().unwrap()),
-                Span {
-                    filename: "<stdin>".to_string(),
-                    range: Range {
-                        start: start_pos.clone(),
-                        end: end_pos,
-                    },
+            let span = Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: start_pos.clone(),
+                    end: end_pos,
                 },
-            )))
+            };
+            match number.parse() {
+                Ok(n) => Some(Ok((
+                    Token::Number(n),
+                    span,
+                ))),
+                Err(err) => Some(Err(Error {
+                    location: span,
+                    reason: "Failed to parse number".to_string(),
+                    partial_parse: (),
+                })),
+            }
         }
         (_, position) => Some(Err(Error {
             location: Span {
