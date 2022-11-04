@@ -27,12 +27,13 @@ pub enum Token {
     Number(i64),
 }
 
-pub struct LineColumnIterator<I: Iterator<Item=char>> {
+#[derive(Clone)]
+pub struct LineColumnIterator<I: Iterator<Item=char> + Clone> {
     iterator: I,
     position: Position,
 }
 
-impl<I: Iterator<Item=char>> LineColumnIterator<I> {
+impl<I: Iterator<Item=char> + Clone> LineColumnIterator<I> {
     pub fn new(iterator: I) -> Self {
         Self {
             iterator,
@@ -41,7 +42,7 @@ impl<I: Iterator<Item=char>> LineColumnIterator<I> {
     }
 }
 
-impl<I: Iterator<Item=char>> Iterator for LineColumnIterator<I> {
+impl<I: Iterator<Item=char> + Clone> Iterator for LineColumnIterator<I> {
     type Item = (char, Position);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -64,11 +65,12 @@ impl<I: Iterator<Item=char>> Iterator for LineColumnIterator<I> {
     }
 }
 
-pub struct Tokenizer<I: Iterator<Item=char>> {
+#[derive(Clone)]
+pub struct Tokenizer<I: Iterator<Item=char> + Clone> {
     iterator: Peekable<LineColumnIterator<I>>,
 }
 
-impl<I: Iterator<Item=char>> Tokenizer<I> {
+impl<I: Iterator<Item=char> + Clone> Tokenizer<I> {
     pub fn new(iterator: I) -> Self {
         Self {
             iterator: LineColumnIterator::new(iterator).peekable(),
@@ -84,7 +86,7 @@ impl TokenizerBuilder {
     }
 }
 
-impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
+impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
     type Item = (Token, Span);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -131,13 +133,29 @@ impl<I: Iterator<Item=char>> Iterator for Tokenizer<I> {
                     None // TODO FIXME error
                 }
             },
-            Some(('0' ..= '9', _)) => {
-                let end: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
-                Some(Token::Number(end.parse().unwrap()))
+            Some(('0' ..= '9', start_pos)) => {
+                let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| pos).last().unwrap();
+                let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
+
+                Some((Token::Number(number.parse().unwrap()), Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: start_pos.clone(),
+                        end: end_pos,
+                    },
+                }))
             },
-            Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', _)) => {
-                let end: String = self.iterator.peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| char).collect();
-                Some(Token::Identifier(end))
+            Some(('a' ..= 'z' | 'A' ..= 'Z' | '_', start_pos)) => {
+                let end_pos = self.iterator.clone().peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')').map(|(char, pos)| pos).last().unwrap();
+                let number: String = self.iterator.peeking_take_while(|(char, pos)| char.is_ascii_digit()).map(|(char, pos)| char).collect();
+
+                Some((Token::Identifier(number), Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: start_pos.clone(),
+                        end: end_pos,
+                    },
+                }))
             }
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
