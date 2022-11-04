@@ -27,6 +27,13 @@ pub enum Token {
     Number(i64),
 }
 
+pub enum AST {
+    String(String),
+    Identifier(String),
+    Number(i64),
+    List(Vec<(AST, Span)>)
+}
+
 #[derive(Clone)]
 pub struct LineColumnIterator<I: Iterator<Item=char> + Clone> {
     iterator: I,
@@ -176,6 +183,32 @@ impl<I: Iterator<Item=char> + Clone> Iterator for Tokenizer<I> {
             }
             None => None,
         }
+    }
+}
+
+pub fn parse<I: Iterator<Item=char> + Clone>(tokenizer: &mut Peekable<Tokenizer<I>>) -> (AST, Span) {
+    match tokenizer.next() {
+        Some((Token::Identifier(ident),span)) => {
+            (AST::Identifier(ident), span)
+        },
+        Some((Token::Number(ident),span)) => {
+            (AST::Number(ident), span)
+        },
+        Some((Token::String(ident),span)) => {
+            (AST::String(ident), span)
+        },
+        Some((Token::ParenOpen, span)) => {
+            let mut 
+            list = Vec::new();
+            while let Some(_) = tokenizer.peek() {
+                list.push(parse(tokenizer));
+            }
+            (AST::List(list), span)
+        },
+        Some((Token::ParenClose, span)) => {
+            panic!("unmatched closing paren at {:?}", span);
+        }
+        None => panic!(),
     }
 }
 
