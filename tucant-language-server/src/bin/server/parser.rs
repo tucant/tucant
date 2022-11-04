@@ -103,7 +103,8 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
 ) -> Option<Result<(Token, Span), Error<()>>> {
     match iterator.next().unwrap() {
-        ('(', position) => Some(Ok(( // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
+        ('(', position) => Some(Ok((
+            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenOpen,
             Span {
                 filename: "<stdin>".to_string(),
@@ -135,7 +136,8 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
 ) -> Option<Result<(Token, Span), Error<()>>> {
     // TODO FIXME duplication
     match iterator.next().unwrap() {
-        (')', position) => Some(Ok(( // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
+        (')', position) => Some(Ok((
+            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenClose,
             Span {
                 filename: "<stdin>".to_string(),
@@ -188,7 +190,91 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                 // unterminated string literal
                 None // TODO FIXME error
             }
-        },
+        }
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+pub fn parse_number<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('0'..='9', start_pos) => {
+            let start_pos = start_pos.clone();
+            let end_pos = iterator
+                .clone()
+                .peeking_take_while(|(char, pos)| char.is_ascii_digit())
+                .map(|(char, pos)| pos)
+                .last()
+                .unwrap();
+            let number: String = iterator
+                .peeking_take_while(|(char, pos)| char.is_ascii_digit())
+                .map(|(char, pos)| char)
+                .collect();
+
+            Some(Ok((
+                Token::Number(number.parse().unwrap()),
+                Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: start_pos.clone(),
+                        end: end_pos,
+                    },
+                },
+            )))
+        }
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+fn parse_identifier<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('a'..='z' | 'A'..='Z' | '_', start_pos) => {
+            let start_pos = start_pos.clone();
+            let end_pos = iterator
+                .clone()
+                .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
+                .map(|(char, pos)| pos)
+                .last()
+                .unwrap();
+            let number: String = iterator
+                .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
+                .map(|(char, pos)| char)
+                .collect();
+
+            Some(Ok((
+                Token::Identifier(number),
+                Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: start_pos.clone(),
+                        end: end_pos,
+                    },
+                },
+            )))
+        }
         (_, position) => Some(Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
@@ -211,58 +297,8 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
             Some(('(', position)) => parse_paren_open(&mut self.iterator),
             Some((')', position)) => parse_paren_close(&mut self.iterator),
             Some(('"', start_pos)) => parse_string(&mut self.iterator),
-            Some(('0'..='9', start_pos)) => {
-                let start_pos = start_pos.clone();
-                let end_pos = self
-                    .iterator
-                    .clone()
-                    .peeking_take_while(|(char, pos)| char.is_ascii_digit())
-                    .map(|(char, pos)| pos)
-                    .last()
-                    .unwrap();
-                let number: String = self
-                    .iterator
-                    .peeking_take_while(|(char, pos)| char.is_ascii_digit())
-                    .map(|(char, pos)| char)
-                    .collect();
-
-                Some(Ok((
-                    Token::Number(number.parse().unwrap()),
-                    Span {
-                        filename: "<stdin>".to_string(),
-                        range: Range {
-                            start: start_pos.clone(),
-                            end: end_pos,
-                        },
-                    },
-                )))
-            }
-            Some(('a'..='z' | 'A'..='Z' | '_', start_pos)) => {
-                let start_pos = start_pos.clone();
-                let end_pos = self
-                    .iterator
-                    .clone()
-                    .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
-                    .map(|(char, pos)| pos)
-                    .last()
-                    .unwrap();
-                let number: String = self
-                    .iterator
-                    .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
-                    .map(|(char, pos)| char)
-                    .collect();
-
-                Some(Ok((
-                    Token::Identifier(number),
-                    Span {
-                        filename: "<stdin>".to_string(),
-                        range: Range {
-                            start: start_pos.clone(),
-                            end: end_pos,
-                        },
-                    },
-                )))
-            }
+            Some(('0'..='9', start_pos)) => parse_number(&mut self.iterator),
+            Some(('a'..='z' | 'A'..='Z' | '_', start_pos)) => parse_identifier(&mut self.iterator),
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
                 // whitespace
