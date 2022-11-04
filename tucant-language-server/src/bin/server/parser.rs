@@ -27,6 +27,7 @@ pub enum Token {
     Number(i64),
 }
 
+#[derive(Debug)]
 pub enum AST {
     String(String),
     Identifier(String),
@@ -230,20 +231,20 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
 
 pub fn parse<I: Iterator<Item = char> + Clone>(
     tokenizer: &mut Peekable<Tokenizer<I>>,
-) -> (AST, Span) {
+) -> anyhow::Result<(AST, Span)> {
     match tokenizer.next() {
-        Some((Token::Identifier(ident), span)) => (AST::Identifier(ident), span),
-        Some((Token::Number(ident), span)) => (AST::Number(ident), span),
-        Some((Token::String(ident), span)) => (AST::String(ident), span),
+        Some((Token::Identifier(ident), span)) => Ok((AST::Identifier(ident), span)),
+        Some((Token::Number(ident), span)) => Ok((AST::Number(ident), span)),
+        Some((Token::String(ident), span)) => Ok((AST::String(ident), span)),
         Some((Token::ParenOpen, span)) => {
             let mut list = Vec::new();
             while let Some(_) = tokenizer.peek() {
-                list.push(parse(tokenizer));
+                list.push(parse(tokenizer)?);
             }
-            (AST::List(list), span)
+            Ok((AST::List(list), span))
         }
         Some((Token::ParenClose, span)) => {
-            panic!("unmatched closing paren at {:?}", span);
+            Err(anyhow::anyhow!("unmatched closing paren at {:?}", span))
         }
         None => panic!(),
     }
