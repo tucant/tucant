@@ -373,69 +373,68 @@ fn init() {
     let _ = env_logger::builder().is_test(true).try_init();
 }
 
-/*
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
     init();
-    /*let span = Span::new(r#"
+    /*let span = TokenizerBuilder::from_string(r#"
     (this is an (epic awesome great) "test" 5)
     "#);*/
-    let span = Span::new(r#"notanumber"#);
+    let span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
     let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
     assert_eq!(number.location.string, "");
 
-    let span = Span::new(r#"3notendingwithanumber"#);
+    let span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 3);
     assert_eq!(number.0.string, "3");
     assert_eq!(number.1.string, "notendingwithanumber");
 
-    let span = Span::new(r#"3"#);
+    let span = TokenizerBuilder::from_string(r#"3"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 3);
     assert_eq!(number.0.string, "3");
     assert_eq!(number.1.string, "");
 
-    let span = Span::new(r#"3z9"#);
+    let span = TokenizerBuilder::from_string(r#"3z9"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 3);
     assert_eq!(number.0.string, "3");
     assert_eq!(number.1.string, "z9");
 
-    let span = Span::new(r#"3546z945"#);
+    let span = TokenizerBuilder::from_string(r#"3546z945"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 3546);
     assert_eq!(number.0.string, "3546");
     assert_eq!(number.1.string, "z945");
 
-    let span = Span::new(r#"345345"#);
+    let span = TokenizerBuilder::from_string(r#"345345"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 345345);
     assert_eq!(number.0.string, "345345");
     assert_eq!(number.1.string, "");
 
-    let span = Span::new(r#"345345sdfasd"#);
+    let span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
     let number = parse_number(span).unwrap();
     println!("{:?}", number);
     assert_eq!(number.0.inner, 345345);
     assert_eq!(number.0.string, "345345");
     assert_eq!(number.1.string, "sdfasd");
 
-    let span = Span::new(r#"n32otanumber"#);
+    let span = TokenizerBuilder::from_string(r#"n32otanumber"#.to_string());
     let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
     assert_eq!(number.location.string, "");
 
-    let span = Span::new(r#"70708777897986976707598759785978698752otanumber"#);
+    let span = TokenizerBuilder::from_string(r#"70708777897986976707598759785978698752otanumber"#.to_string());
     let number = parse_number(span).unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
@@ -450,26 +449,26 @@ fn test_parse_number() {
 fn test_parse_string() {
     init();
 
-    let span = Span::new(r#"notastring"#);
+    let span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
     let string = parse_string(span).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected a `"`"#);
     assert_eq!(string.location.string, "n");
 
-    let span = Span::new(r#""unterminated"#);
+    let span = TokenizerBuilder::from_string(r#""unterminated"#.to_string());
     let string = parse_string(span).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Unterminated string literal"#);
     assert_eq!(string.location.string, r#""unterminated"#);
 
-    let span = Span::new(r#""astring"jojo"#);
+    let span = TokenizerBuilder::from_string(r#""astring"jojo"#.to_string());
     let string = parse_string(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.inner, "astring");
     assert_eq!(string.0.string, r#""astring""#);
     assert_eq!(string.1.string, "jojo");
 
-    let span = Span::new(r#""astring""#);
+    let span = TokenizerBuilder::from_string(r#""astring""#.to_string());
     let string = parse_string(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.inner, "astring");
@@ -482,26 +481,26 @@ fn test_parse_string() {
 fn test_parse_identifier() {
     init();
 
-    let span = Span::new(r#"7notanidentifier"#);
+    let span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
     let string = parse_identifier(span).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     assert_eq!(string.location.string, "");
 
-    let span = Span::new(r#""notanidentifier"#);
+    let span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
     let string = parse_identifier(span).unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     assert_eq!(string.location.string, "");
 
-    let span = Span::new(r#"anidentifier"#);
+    let span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
     let string = parse_identifier(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.inner, "anidentifier");
     assert_eq!(string.0.string, "anidentifier");
     assert_eq!(string.1.string, "");
 
-    let span = Span::new(r#"anidentifier    jlih"#);
+    let span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
     let string = parse_identifier(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.inner, "anidentifier");
@@ -513,19 +512,19 @@ fn test_parse_identifier() {
 fn test_parse_whitespace() {
     init();
 
-    let span = Span::new(r#""#);
+    let span = TokenizerBuilder::from_string(r#""#.to_string());
     let string = parse_whitespace(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.string, "");
     assert_eq!(string.1.string, "");
 
-    let span = Span::new(r#"  f  fwwe wef"#);
+    let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#.to_string());
     let string = parse_whitespace(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.string, "  ");
     assert_eq!(string.1.string, "f  fwwe wef");
 
-    let span = Span::new(r#"dsfsdf dsf  "#);
+    let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#.to_string());
     let string = parse_whitespace(span).unwrap();
     println!("{:?}", string);
     assert_eq!(string.0.string, "");
@@ -536,14 +535,14 @@ fn test_parse_whitespace() {
 fn test_parse_list() {
     init();
 
-    let span = Span::new(r#"()"#);
+    let span = TokenizerBuilder::from_string(r#"()"#.to_string());
     let value = parse_list(span).unwrap();
     println!("{:?}", value);
     assert_eq!(value.0.string, "()");
     assert_eq!(value.1.string, "");
     assert!(value.0.inner.is_empty());
 
-    let span = Span::new(r#"(  1    2   3    )"#);
+    let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#.to_string());
     let value = parse_list(span).unwrap();
     println!("{:?}", value);
     assert_eq!(value.0.string, "(  1    2   3    )");
@@ -561,7 +560,7 @@ fn test_parse_list() {
 fn test_parse_ast() {
     init();
 
-    let span = Span::new(r#"   ()"#);
+    let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());
     let value = parse_ast(span).unwrap();
     println!("{:?}", value);
     assert_eq!(value.0.string, "()");
@@ -578,7 +577,7 @@ fn test_parse_ast() {
     };
     assert!(value.is_empty());
 
-    let span = Span::new(r#"  (  1    2   3    )"#);
+    let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#.to_string());
     let value = parse_ast(span).unwrap();
     println!("{:?}", value);
     assert_eq!(value.0.string, "(  1    2   3    )");
@@ -601,5 +600,3 @@ fn test_parse_ast() {
     assert!(matches!(value[2].inner, Ast::Number(3)));
     assert_eq!(value[2].string, "3");
 }
-
-*/
