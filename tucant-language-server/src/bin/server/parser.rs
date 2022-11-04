@@ -103,7 +103,7 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
 ) -> Option<Result<(Token, Span), Error<()>>> {
     match iterator.next().unwrap() {
-        ('(', position) => Some(Ok((
+        ('(', position) => Some(Ok(( // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenOpen,
             Span {
                 filename: "<stdin>".to_string(),
@@ -130,53 +130,87 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
     }
 }
 
+fn parse_paren_close<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    // TODO FIXME duplication
+    match iterator.next().unwrap() {
+        (')', position) => Some(Ok(( // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
+            Token::ParenClose,
+            Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: Position {
+                        line: position.line,
+                        character: position.character + 1,
+                    },
+                },
+            },
+        ))),
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+pub fn parse_string<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('"', start_pos) => {
+            let start_pos = start_pos.clone();
+            iterator.next();
+            let end: String = iterator
+                .peeking_take_while(|(char, pos)| *char != '"')
+                .map(|(char, pos)| char)
+                .collect();
+            if let Some(('"', end_pos)) = iterator.next() {
+                Some(Ok((
+                    Token::String(end),
+                    Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: start_pos.clone(),
+                            end: end_pos,
+                        },
+                    },
+                )))
+            } else {
+                // unterminated string literal
+                None // TODO FIXME error
+            }
+        },
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
 impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
     type Item = Result<(Token, Span), Error<()>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
             Some(('(', position)) => parse_paren_open(&mut self.iterator),
-            Some((')', position)) => {
-                let position = position.clone();
-                self.iterator.next();
-                Some(Ok((
-                    Token::ParenClose,
-                    Span {
-                        filename: "<stdin>".to_string(),
-                        range: Range {
-                            start: position.clone(),
-                            end: Position {
-                                line: position.line,
-                                character: position.character + 1,
-                            },
-                        },
-                    },
-                )))
-            }
-            Some(('"', start_pos)) => {
-                let start_pos = start_pos.clone();
-                self.iterator.next();
-                let end: String = self
-                    .iterator
-                    .peeking_take_while(|(char, pos)| *char != '"')
-                    .map(|(char, pos)| char)
-                    .collect();
-                if let Some(('"', end_pos)) = self.iterator.next() {
-                    Some(Ok((
-                        Token::String(end),
-                        Span {
-                            filename: "<stdin>".to_string(),
-                            range: Range {
-                                start: start_pos.clone(),
-                                end: end_pos,
-                            },
-                        },
-                    )))
-                } else {
-                    // unterminated string literal
-                    None // TODO FIXME error
-                }
-            }
+            Some((')', position)) => parse_paren_close(&mut self.iterator),
+            Some(('"', start_pos)) => parse_string(&mut self.iterator),
             Some(('0'..='9', start_pos)) => {
                 let start_pos = start_pos.clone();
                 let end_pos = self
