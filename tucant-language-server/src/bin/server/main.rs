@@ -8,7 +8,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::{hover_visitor, list_visitor};
+use parser::{hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -126,26 +126,25 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         // TODO FIXME bug whitespace before a list belongs to that list?
-        let found_element = hover_visitor(&value, &request.params.variant0.position);
+        let found_element = hover_visitor(value, &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
             // TODO FIXME filter all types from typecheck for that found span
-            let (_typecheck_result, typecheck_trace) = typecheck(&value);
+            let (_typecheck_result, typecheck_trace) = typecheck(value);
             let found_type = typecheck_trace
                 .map(|e| {
                     println!("debug {:?}", e);
                     e
                 })
                 .filter_map(|t| t.ok())
-                .find(|t| t.span().start_line_column() == found_element.start_line_column());
+                .find(|t| t.1.range.start == found_element.1.range.start);
 
             found_type.map(|found_type| {
                 println!("found type {:?}", found_type);
@@ -237,14 +236,13 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME,
         };
 
         let response = H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7::Variant0(
-            list_visitor(&value).collect(),
+            list_visitor(value).collect(),
         );
 
         self.send_response(request, response).await?;
@@ -354,8 +352,8 @@ impl Server {
         };
 
         let result = std::iter::once((0, 0, 0, 0, 0))
-            .chain(visitor(&value))
-            .zip(visitor(&value))
+            .chain(visitor(value))
+            .zip(visitor(value))
             .flat_map(|(last, this)| {
                 vec![
                     this.0 - last.0,

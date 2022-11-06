@@ -12,6 +12,20 @@ pub struct Span {
     pub range: Range,
 }
 
+pub const FAKE_SPAN: Span = Span {
+    filename: "<fake>".to_string(),
+    range: Range {
+        start: Position {
+            line: 0,
+            character: 0,
+        },
+        end: Position {
+            line: 0,
+            character: 0,
+        },
+    },
+};
+
 #[derive(Debug)]
 pub struct Error<T: Debug> {
     pub location: Span,
