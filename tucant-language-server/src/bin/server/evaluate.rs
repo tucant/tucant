@@ -543,29 +543,17 @@ pub fn typecheck_with_context(
 ) {
     match &_type.0 {
         Ast::Number(number) => {
-            let rc: EvaluateResult<Rc<(dyn Type)>> = Ok(Rc::new(Span {
-                inner: IntegerType(Some(*number)),
-                full_string: _type.full_string,
-                string: _type.string,
-            }));
+            let rc: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(Some(*number))), _type.1));
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::String(string) => {
-            let rc: EvaluateResult<Rc<(dyn Type)>> = Ok(Rc::new(Span {
-                inner: StringType(Some(string.to_string())),
-                full_string: _type.full_string,
-                string: _type.string,
-            }));
+            let rc: EvaluateResult<(RcType, Span)> = Ok((Rc::new(StringType(Some(string.to_string()))), _type.1));
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::Identifier(identifier) => {
             let rc = resolve_identifier_type(
                 context,
-                Span {
-                    full_string: _type.full_string,
-                    string: _type.string,
-                    inner: identifier,
-                },
+                (identifier.to_string(), _type.1),
             );
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
@@ -574,32 +562,28 @@ pub fn typecheck_with_context(
                 Some(v) => v,
                 None => {
                     let err = Err(EvaluateError {
-                        location: None,
+                        location: _type.1,
                         reason: "can't call an empty list".to_string().into(),
                     });
                     return (err.clone(), Box::new(std::iter::once(err)));
                 }
             };
-            let (callable, callable_trace) = match callable.inner {
+            let (callable, callable_trace) = match callable.0 {
                 Ast::Identifier(identifier) => {
                     let val = resolve_identifier_type(
                         context,
-                        Span {
-                            full_string: callable.full_string,
-                            string: callable.string,
-                            inner: identifier,
-                        },
+                        (identifier, callable.1),
                     );
                     let val: (
-                        EvaluateResult<RcType>,
-                        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
+                        EvaluateResult<(RcType, Span)>,
+                        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
                     ) = (val.clone(), Box::new(std::iter::once(val)));
                     val
                 }
-                Ast::List(_) => typecheck_with_context(context, callable),
+                Ast::List(_) => typecheck_with_context(context, callable.clone()),
                 _ => {
                     let val = Err(EvaluateError {
-                        location: None,
+                        location: _type.1,
                         reason: "can't call a string or number".to_string().into(),
                     });
                     return (val.clone(), Box::new(std::iter::once(val)));
