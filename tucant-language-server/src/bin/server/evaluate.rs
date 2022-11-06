@@ -114,7 +114,7 @@ impl Value for AddLambdaValue {
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         let [left, right]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
-            location: span,
+            location: span.clone(),
             reason: "expected exactly two arguments".to_string().into(),
         })?;
         let left_value = evaluate_with_context(context, left.clone())?;
@@ -128,7 +128,7 @@ impl Value for AddLambdaValue {
         let right_value = (&right_value.0 as &dyn Any)
             .downcast_ref::<IntegerValue>()
             .ok_or(EvaluateError {
-                location: right_value.1,
+                location: right_value.1.clone(),
                 reason: format!("expected integer type, got {:?}", right_value).into(),
             })?;
         Ok((
@@ -175,9 +175,10 @@ impl Type for AddLambdaType {
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
-        let (left_value, right_value) = match (&left_value, &right_value) {
-            (Ok(ref vl), Ok(ref vr)) => {
-                match (
+        let pair = (left_value, right_value);
+        match pair {
+            (Ok(vl), Ok(vr)) => {
+                let (left_value_i, right_value_i) = match (
                     (&vl as &dyn Any).downcast_ref::<IntegerType>(),
                     (&vr as &dyn Any).downcast_ref::<IntegerType>(),
                 ) {
@@ -219,25 +220,11 @@ impl Type for AddLambdaType {
                         });
                         return (val.clone(), Box::new(vec![val, vall].into_iter()));
                     }
-                }
-            }
-            (Err(ref _e), _) => {
-                return (
-                    left_value,
-                    Box::new(left_value_trace.chain(right_value_trace)),
-                )
-            }
-            (_, Err(ref _e)) => {
-                return (
-                    right_value,
-                    Box::new(left_value_trace.chain(right_value_trace)),
-                )
-            }
-        };
-        let val = left_value
+                };
+                let val = left_value_i
             .0
             .and_then(|l| {
-                right_value.0.map(|r| {
+                right_value_i.0.map(|r| {
                     l.checked_add(r).ok_or(EvaluateError {
                         location: span,
                         reason: format!(
@@ -274,6 +261,20 @@ impl Type for AddLambdaType {
                 )
             }
         }
+            }
+            (Err(ref _e), _) => {
+                return (
+                    left_value,
+                    Box::new(left_value_trace.chain(right_value_trace)),
+                )
+            }
+            (_, Err(ref _e)) => {
+                return (
+                    right_value,
+                    Box::new(left_value_trace.chain(right_value_trace)),
+                )
+            }
+        };
     }
 }
 
