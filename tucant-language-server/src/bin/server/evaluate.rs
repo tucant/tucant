@@ -668,6 +668,7 @@ pub fn evaluate_with_context(
 
 // cargo test -- --show-output evaluate
 #[test]
+#[ignore = "not yet implemented"]
 fn test_primitives() {
     use crate::parser::parse;
 
