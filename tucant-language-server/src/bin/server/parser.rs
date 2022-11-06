@@ -194,7 +194,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                         filename: "<stdin>".to_string(),
                         range: Range {
                             start: start_pos,
-                            end: end_pos,
+                            end: Position { line: end_pos.line, character: end_pos.character+1 },
                         },
                     },
                 ))),
@@ -257,7 +257,7 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 filename: "<stdin>".to_string(),
                 range: Range {
                     start: start_pos,
-                    end: end_pos,
+                    end: Position { line: end_pos.line, character: end_pos.character+1 },
                 },
             };
             match number.parse() {
@@ -306,7 +306,7 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                     filename: "<stdin>".to_string(),
                     range: Range {
                         start: start_pos,
-                        end: end_pos,
+                        end: Position { line: end_pos.line, character: end_pos.character+1 },
                     },
                 },
             )))
@@ -358,16 +358,22 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
         Some((Token::Identifier(ident), span)) => Ok((Ast::Identifier(ident), span)),
         Some((Token::Number(ident), span)) => Ok((Ast::Number(ident), span)),
         Some((Token::String(ident), span)) => Ok((Ast::String(ident), span)),
-        Some((Token::ParenOpen, span)) => {
+        Some((Token::ParenOpen, open_span)) => {
             let mut list = Vec::new();
-            loop {
+            let close_span = loop {
                 match tokenizer.peek() {
-                    Some(Ok((Token::ParenClose, _))) => break,
+                    Some(Ok((Token::ParenClose, close_span))) => break close_span.clone(),
                     _ => list.push(parse(tokenizer)?),
                 }
-            }
+            };
             tokenizer.next();
-            Ok((Ast::List(list), span))
+            Ok((Ast::List(list), Span {
+                filename: open_span.filename,
+                range: Range {
+                    start: open_span.range.start,
+                    end: close_span.range.end,
+                },
+            }))
         }
         Some((Token::ParenClose, span)) => Err(Error {
             location: span,

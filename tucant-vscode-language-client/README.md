@@ -1,3 +1,3 @@
 ```
-ln --symbolic --verbose --force $PWD ~/.vscode-insiders/extensions/tucant-vscode-language-client
+ln --symbolic --verbose --force $PWD ~/.vscode/extensions/tucant-vscode-language-client
 ```
