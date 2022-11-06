@@ -292,7 +292,7 @@ impl Value for LambdaValue {
         })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
-        let return_value = evaluate_with_context(context, self.inner.body.clone());
+        let return_value = evaluate_with_context(context, self.body.clone());
         context.pop();
         return_value
     }
@@ -318,7 +318,7 @@ impl Type for LambdaType {
             Ok(v) => v,
             Err(_) => {
                 let err = Err(EvaluateError {
-                    location: None,
+                    location: span,
                     reason: "expected exactly one argument".to_string().into(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
@@ -326,8 +326,8 @@ impl Type for LambdaType {
         };
         let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value);
         if let Ok(arg_value) = arg_value {
-            context.push((self.inner.variable.clone(), arg_value));
-            let return_value = typecheck_with_context(context, &self.inner.body);
+            context.push((self.variable.clone(), arg_value));
+            let return_value = typecheck_with_context(context, &self.body);
             context.pop();
             return_value
         } else {
@@ -347,24 +347,20 @@ impl Value for DefineLambdaValue {
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         let [variable, body]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
-            location: None,
+            location: span,
             reason: "expected exactly two arguments".to_string().into(),
         })?;
-        let variable = match variable.inner {
+        let variable = match variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
-                location: None,
+                location: variable.1,
                 reason: "expected argument identifier".to_string().into(),
             })?,
         };
-        Ok(Rc::new(Span {
-            inner: LambdaValue::<'_> {
-                variable: variable.to_string(),
-                body: body.clone(),
-            },
-            full_string: "",
-            string: "",
-        }))
+        Ok((Rc::new(LambdaValue {
+            variable: variable.to_string(),
+            body: body.clone(),
+        }), span))
     }
 }
 
@@ -381,34 +377,30 @@ impl Type for DefineLambdaType {
         EvaluateResult<(RcType, Span)>,
         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
     )  {
-        let [variable, body]: &[Span<Ast>; 2] = match args.try_into() {
+        let [variable, body]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(val) => val,
             Err(_) => {
                 let err = Err(EvaluateError {
-                    location: None,
+                    location: span,
                     reason: "expected exactly two arguments".to_string().into(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let variable = match variable.inner {
+        let variable = match variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => {
                 let err = Err(EvaluateError {
-                    location: None,
+                    location: variable.1,
                     reason: "expected argument identifier".to_string().into(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let val: EvaluateResult<RcType> = Ok(Rc::new(Span {
-            inner: LambdaType::<'_> {
-                variable: variable.to_string(),
-                body: body.clone(),
-            },
-            full_string: "lambda", // TODO FIXME fix span info to whole list?
-            string: "lambda",
-        }));
+        let val: EvaluateResult<(RcType, Span)> = Ok((Rc::new(LambdaType {
+            variable: variable.to_string(),
+            body: body.clone(),
+        }), span));
         (val.clone(), Box::new(std::iter::once(val)))
     }
 }
