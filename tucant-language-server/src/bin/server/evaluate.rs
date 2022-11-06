@@ -1,5 +1,6 @@
 use crate::parser::{Ast, Span};
 
+use std::any::Any;
 use std::borrow::Cow;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -28,10 +29,6 @@ pub trait Value: Debug {
             reason: "not yet implemented".to_string().into(),
         })
     }
-
-    fn downcast_integer_value(&self) -> Option<&IntegerValue> {
-        None
-    }
 }
 
 pub trait Type: Debug {
@@ -55,14 +52,12 @@ pub trait Type: Debug {
 #[derive(Debug)]
 pub struct IntegerValue(i64);
 
-impl Value for IntegerValue {
-}
+impl Value for IntegerValue {}
 
 #[derive(Debug, Clone)]
 pub struct IntegerType(Option<i64>);
 
-impl Type for IntegerType {
-}
+impl Type for IntegerType {}
 
 #[derive(Debug, Clone)]
 pub struct WidenInteger;
@@ -99,16 +94,12 @@ impl Type for WidenInteger {
 #[derive(Debug)]
 pub struct StringValue(String);
 
-impl Value for StringValue {
-    
-}
+impl Value for StringValue {}
 
 #[derive(Debug, Clone)]
 pub struct StringType(Option<String>);
 
-impl Type for StringType {
-    
-}
+impl Type for StringType {}
 
 #[derive(Debug)]
 pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
@@ -117,43 +108,44 @@ impl Value for AddLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Value >)>,
+        context: &mut Vec<(String, Rc<dyn Value>)>,
         args: &[(Ast, Span)],
-    ) -> EvaluateResult<Rc<dyn Value >> {
-        let [left, right]: &[Span<Ast>; 2] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly two arguments".to_string().into(),
-            })?;
+    ) -> EvaluateResult<(RcValue, Span)> {
+        let [left, right]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
+            location: span,
+            reason: "expected exactly two arguments".to_string().into(),
+        })?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
-        let left_value = left_value.downcast_integer_value().ok_or(EvaluateError {
-            location: Some(left_value.span()),
-            reason: format!("expected integer type, got {:?}", left_value).into(),
-        })?;
-        let right_value = right_value.downcast_integer_value().ok_or(EvaluateError {
-            location: Some(right_value.span()),
-            reason: format!("expected integer type, got {:?}", right_value).into(),
-        })?;
-        Ok(Rc::new(Span {
-            inner: IntegerValue(
+        let left_value = (&left_value.0 as &dyn Any)
+            .downcast_ref::<IntegerValue>()
+            .ok_or(EvaluateError {
+                location: left_value.1,
+                reason: format!("expected integer type, got {:?}", left_value.0).into(),
+            })?;
+        let right_value = (&right_value.0 as &dyn Any)
+            .downcast_ref::<IntegerValue>()
+            .ok_or(EvaluateError {
+                location: right_value.1,
+                reason: format!("expected integer type, got {:?}", right_value).into(),
+            })?;
+        Ok((
+            Rc::new(IntegerValue(
                 left_value
                     .0
                     .checked_add(right_value.0)
                     .ok_or(EvaluateError {
-                        location: None,
+                        location: span,
                         reason: format!(
                             "integer overflow, adding {:?} and {:?}",
                             left_value, right_value
                         )
                         .into(),
                     })?,
-            ),
-            full_string: "", // TODO FIXME join two spans
-            string: "",
-        }))
+            )),
+            span,
+        ))
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -163,11 +155,11 @@ impl Type for AddLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Type >)>,
+        context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
     ) {
         let [left, right]: &[Span<Ast>; 2] = match args.try_into() {
             Ok(v) => v,
@@ -281,7 +273,6 @@ impl Type for AddLambdaType {
             }
         }
     }
-
 }
 
 #[derive(Debug)]
@@ -294,21 +285,19 @@ impl Value for LambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Value >)>,
+        context: &mut Vec<(String, Rc<dyn Value>)>,
         args: &[(Ast, Span)],
-    ) -> EvaluateResult<Rc<dyn Value >> {
-        let [variable_value]: &[Span<Ast>; 1] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly one argument".to_string().into(),
-            })?;
+    ) -> EvaluateResult<(RcValue, Span)> {
+        let [variable_value]: &[Span<Ast>; 1] = args.try_into().map_err(|_| EvaluateError {
+            location: None,
+            reason: "expected exactly one argument".to_string().into(),
+        })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.inner.variable.clone(), arg_value));
         let return_value = evaluate_with_context(context, self.inner.body.clone());
         context.pop();
         return_value
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -321,11 +310,11 @@ impl Type for LambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Type >)>,
+        context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[Ast],
     ) -> (
         EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
     ) {
         let [variable_value]: &[Span<Ast>; 1] = match args.try_into() {
             Ok(v) => v,
@@ -347,7 +336,6 @@ impl Type for LambdaType {
             (arg_value, arg_value_trace)
         }
     }
-
 }
 
 #[derive(Debug)]
@@ -357,14 +345,13 @@ impl Value for DefineLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, Rc<dyn Value >)>,
+        _context: &mut Vec<(String, Rc<dyn Value>)>,
         args: &[(Ast, Span)],
-    ) -> EvaluateResult<Rc<dyn Value >> {
-        let [variable, body]: &[Span<Ast>; 2] =
-            args.try_into().map_err(|_| EvaluateError {
-                location: None,
-                reason: "expected exactly two arguments".to_string().into(),
-            })?;
+    ) -> EvaluateResult<(RcValue, Span)> {
+        let [variable, body]: &[Span<Ast>; 2] = args.try_into().map_err(|_| EvaluateError {
+            location: None,
+            reason: "expected exactly two arguments".to_string().into(),
+        })?;
         let variable = match variable.inner {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
@@ -381,7 +368,6 @@ impl Value for DefineLambdaValue {
             string: "",
         }))
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -391,11 +377,11 @@ impl Type for DefineLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, Rc<dyn Type >)>,
+        _context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
     ) {
         let [variable, body]: &[Span<Ast>; 2] = match args.try_into() {
             Ok(val) => val,
@@ -427,7 +413,6 @@ impl Type for DefineLambdaType {
         }));
         (val.clone(), Box::new(std::iter::once(val)))
     }
-
 }
 
 pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<RcValue> {
@@ -489,9 +474,9 @@ pub fn typecheck(
 
 // TODO FIXME probably return an IdentiferType that also contains the location of the definition
 fn resolve_identifier_type(
-    context: &mut [(String, Rc<dyn Type >)],
+    context: &mut [(String, Rc<dyn Type>)],
     identifier: (String, Span),
-) -> EvaluateResult<Rc<dyn Type >> {
+) -> EvaluateResult<Rc<dyn Type>> {
     match context
         .iter()
         .rev()
@@ -515,7 +500,7 @@ fn resolve_identifier_type(
 }
 
 pub fn typecheck_with_context(
-    context: &mut Vec<(String, Rc<dyn Type >)>,
+    context: &mut Vec<(String, Rc<dyn Type>)>,
     _type: &(Ast, Span),
 ) -> (
     EvaluateResult<(RcType, Span)>,
@@ -523,7 +508,7 @@ pub fn typecheck_with_context(
 ) {
     match &_type.inner {
         Ast::Number(number) => {
-            let rc: EvaluateResult<Rc<(dyn Type )>> = Ok(Rc::new(Span {
+            let rc: EvaluateResult<Rc<(dyn Type)>> = Ok(Rc::new(Span {
                 inner: IntegerType(Some(*number)),
                 full_string: _type.full_string,
                 string: _type.string,
@@ -531,7 +516,7 @@ pub fn typecheck_with_context(
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::String(string) => {
-            let rc: EvaluateResult<Rc<(dyn Type )>> = Ok(Rc::new(Span {
+            let rc: EvaluateResult<Rc<(dyn Type)>> = Ok(Rc::new(Span {
                 inner: StringType(Some(string.to_string())),
                 full_string: _type.full_string,
                 string: _type.string,
@@ -602,9 +587,9 @@ pub fn typecheck_with_context(
 
 #[allow(clippy::all)]
 pub fn evaluate_with_context(
-    _context: &mut Vec<(String, Rc<dyn Value >)>,
+    _context: &mut Vec<(String, Rc<dyn Value>)>,
     _value: (Ast, Span),
-) -> EvaluateResult<Rc<dyn Value >> {
+) -> EvaluateResult<(RcValue, Span)> {
     todo!()
     /*
     match value.inner {
