@@ -1,3 +1,5 @@
+use tucant_language_server_derive_output::{Position, Range};
+
 use crate::parser::{Ast, Span};
 
 use std::any::Any;
@@ -175,9 +177,10 @@ impl Type for AddLambdaType {
         let (right_value, right_value_trace) = typecheck_with_context(context, right);
         let (left_value, right_value) = match (&left_value, &right_value) {
             (Ok(ref vl), Ok(ref vr)) => {
-                match ( (&vl as &dyn Any)
-                .downcast_ref::<IntegerType>(),  (&vr as &dyn Any)
-                .downcast_ref::<IntegerType>()) {
+                match (
+                    (&vl as &dyn Any).downcast_ref::<IntegerType>(),
+                    (&vr as &dyn Any).downcast_ref::<IntegerType>(),
+                ) {
                     (Some(vl), Some(vr)) => (vl, vr),
                     (None, None) => {
                         let vall = Err(EvaluateError {
@@ -248,7 +251,8 @@ impl Type for AddLambdaType {
             .transpose();
         match val {
             Ok(val) => {
-                let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(val)), span));
+                let return_value: EvaluateResult<(RcType, Span)> =
+                    Ok((Rc::new(IntegerType(val)), span));
                 (
                     return_value.clone(),
                     Box::new(
@@ -310,10 +314,10 @@ impl Type for LambdaType {
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) ->(
+    ) -> (
         EvaluateResult<(RcType, Span)>,
         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    )  {
+    ) {
         let [variable_value]: &[(Ast, Span); 1] = match args.try_into() {
             Ok(v) => v,
             Err(_) => {
@@ -357,10 +361,13 @@ impl Value for DefineLambdaValue {
                 reason: "expected argument identifier".to_string().into(),
             })?,
         };
-        Ok((Rc::new(LambdaValue {
-            variable: variable.to_string(),
-            body: body.clone(),
-        }), span))
+        Ok((
+            Rc::new(LambdaValue {
+                variable: variable.to_string(),
+                body: body.clone(),
+            }),
+            span,
+        ))
     }
 }
 
@@ -373,10 +380,10 @@ impl Type for DefineLambdaType {
         span: Span,
         _context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) ->(
+    ) -> (
         EvaluateResult<(RcType, Span)>,
         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    )  {
+    ) {
         let [variable, body]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(val) => val,
             Err(_) => {
@@ -397,30 +404,52 @@ impl Type for DefineLambdaType {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let val: EvaluateResult<(RcType, Span)> = Ok((Rc::new(LambdaType {
-            variable: variable.to_string(),
-            body: body.clone(),
-        }), span));
+        let val: EvaluateResult<(RcType, Span)> = Ok((
+            Rc::new(LambdaType {
+                variable: variable.to_string(),
+                body: body.clone(),
+            }),
+            span,
+        ));
         (val.clone(), Box::new(std::iter::once(val)))
     }
 }
 
-pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<RcValue> {
+pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<(RcValue, Span)> {
     let mut context: Vec<(String, (RcValue, Span))> = vec![
         (
             "lambda".to_string(),
-            Rc::new(Span {
-                inner: DefineLambdaValue,
-                full_string: "lambda", // this shouldn't really have a location but als it should in some kind of system library, maybe spans should have filenames
-                string: "lambda",
-            }),
+            (
+                Rc::new(DefineLambdaValue),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                    },
+                },
+            ),
         ),
         (
             "add".to_string(),
-            Rc::new(Span {
-                inner: AddLambdaValue,
-                full_string: "add",
-                string: "add",
+            (Rc::new(AddLambdaValue), Span {
+                filename: "<builtin>".to_string(),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                },
             }),
         ),
     ];
@@ -433,29 +462,53 @@ pub fn typecheck(
     EvaluateResult<(RcType, Span)>,
     Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
 ) {
-    let mut context: Vec<(String, Rc<dyn Type>)> = vec![
+    let mut context: Vec<(String, (RcType, Span))> = vec![
         (
             "lambda".to_string(),
-            Rc::new(Span {
-                inner: DefineLambdaType,
-                full_string: "lambda",
-                string: "lambda",
+            (Rc::new(DefineLambdaType), Span {
+                filename: "<builtin>".to_string(),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                },
             }),
         ),
         (
             "add".to_string(),
-            Rc::new(Span {
-                inner: AddLambdaType,
-                full_string: "add",
-                string: "add",
+            (Rc::new(AddLambdaType), Span {
+                filename: "<builtin>".to_string(),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                },
             }),
         ),
         (
             "widen-integer".to_string(),
-            Rc::new(Span {
-                inner: WidenInteger,
-                full_string: "widen-integer",
-                string: "widen-integer",
+            (Rc::new(WidenInteger), Span {
+                filename: "<builtin>".to_string(),
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 0,
+                    },
+                },
             }),
         ),
     ];
@@ -466,37 +519,29 @@ pub fn typecheck(
 fn resolve_identifier_type(
     context: &mut [(String, (RcType, Span))],
     identifier: (String, Span),
-) -> EvaluateResult<Rc<dyn Type>> {
+) -> EvaluateResult<(RcType, Span)> {
     match context
         .iter()
         .rev()
-        .find(|(ident, _)| identifier.inner == ident)
+        .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => Ok(value.clone().with_span(Span {
-            inner: (),
-            full_string: identifier.full_string,
-            string: identifier.string,
-        })),
+        Some(value) => Ok((value.0, value.1)),
         None => Err(EvaluateError {
-            location: Some(Span {
-                full_string: identifier.full_string,
-                string: identifier.string,
-                inner: (),
-            }),
-            reason: format!("could not find identfier {}", identifier.string).into(),
+            location: identifier.1,
+            reason: format!("could not find identifier {}", identifier.0).into(),
         }),
     }
 }
 
 pub fn typecheck_with_context(
     context: &mut Vec<(String, (RcType, Span))>,
-    _type: &(Ast, Span),
+    _type: (Ast, Span),
 ) -> (
     EvaluateResult<(RcType, Span)>,
     Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
 ) {
-    match &_type.inner {
+    match &_type.0 {
         Ast::Number(number) => {
             let rc: EvaluateResult<Rc<(dyn Type)>> = Ok(Rc::new(Span {
                 inner: IntegerType(Some(*number)),
