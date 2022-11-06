@@ -393,9 +393,7 @@ pub fn test_tokenize() {
     );
 }
 
-pub fn visitor(
-    element: (Ast, Span),
-) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)>> {
+pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)>> {
     match element.0 {
         Ast::Identifier(identifier) => {
             let start_pos = element.1.range.start;
@@ -434,9 +432,7 @@ pub fn visitor(
     }
 }
 
-pub fn list_visitor(
-    element: (Ast, Span),
-) -> Box<dyn Iterator<Item = FoldingRange>> {
+pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRange>> {
     match element.0 {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
         Ast::Number(_) => Box::new(std::iter::empty()),
@@ -455,10 +451,7 @@ pub fn list_visitor(
     }
 }
 
-pub fn hover_visitor<'a>(
-    element: (Ast, Span),
-    position: &Position,
-) -> Option<(Ast, Span)> {
+pub fn hover_visitor<'a>(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if (element.1.range.start.line, element.1.range.start.character)

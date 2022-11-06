@@ -266,18 +266,16 @@ impl Server {
                 let (typecheck_result, typecheck_trace) = typecheck(value.unwrap()); // TODO use match, see above
                 println!("{:?}", typecheck_result);
                 if typecheck_result.is_err() {
-                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
-                        Diagnostic {
-                            range: e.location.range,
-                            severity: Some(DiagnosticSeverity::Error),
-                            code: None,
-                            code_description: None,
-                            source: Some("tucant".to_string()),
-                            message: e.reason.to_string(),
-                            tags: None,
-                            related_information: None,
-                            data: None,
-                        }
+                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| Diagnostic {
+                        range: e.location.range,
+                        severity: Some(DiagnosticSeverity::Error),
+                        code: None,
+                        code_description: None,
+                        source: Some("tucant".to_string()),
+                        message: e.reason.to_string(),
+                        tags: None,
+                        related_information: None,
+                        data: None,
                     }))
                 } else {
                     Box::new(std::iter::empty())
@@ -388,7 +386,10 @@ impl Server {
     }
 
     pub fn line_column_to_offset(string: &str, position: Position) -> usize {
-        let the_line = string.lines().nth(position.line.try_into().unwrap()).unwrap();
+        let the_line = string
+            .lines()
+            .nth(position.line.try_into().unwrap())
+            .unwrap();
         let line_offset = the_line
             .char_indices()
             .nth(position.character.try_into().unwrap())
