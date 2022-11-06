@@ -615,9 +615,8 @@ fn test_parse_identifier() {
 fn test_parse_whitespace() {
     init();
 
-    let span = TokenizerBuilder::from_string(r#""#.to_string());
-    let string = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", string);
+    let mut span = TokenizerBuilder::from_string(r#""#.to_string());
+    assert_eq!(span.iterator.next(), None);
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "");
 

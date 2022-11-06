@@ -99,7 +99,7 @@ pub fn handle_type(
                     #name
                 },
                 quote! {
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     #[serde(untagged)]
                     pub enum #name {
                         #(#items)*
@@ -166,7 +166,7 @@ pub fn handle_type(
                 },
                 quote! {
                     #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     pub struct #name {
                         #(#properties)*
                     }
