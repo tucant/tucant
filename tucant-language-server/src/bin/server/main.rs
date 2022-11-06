@@ -22,7 +22,7 @@ use tucant_language_server_derive_output::*;
 
 use crate::{
     evaluate::typecheck,
-    parser::{line_column_to_offset, parse_root, visitor, Error, Span},
+    parser::{visitor, Error, Span},
 };
 
 #[derive(Parser)]
@@ -132,7 +132,7 @@ impl Server {
         };
 
         // TODO FIXME bug whitespace before a list belongs to that list?
-        let found_element = hover_visitor(value, &request.params.variant0.position);
+        let found_element = hover_visitor(value.clone(), &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
@@ -155,16 +155,7 @@ impl Server {
                             value: format!("{:?}", found_type),
                         },
                     ),
-                    range: Some(Range {
-                        start: Position {
-                            line: found_type.span().start_line_column().0.try_into().unwrap(),
-                            character: found_type.span().start_line_column().1.try_into().unwrap(),
-                        },
-                        end: Position {
-                            line: found_type.span().end_line_column().0.try_into().unwrap(),
-                            character: found_type.span().end_line_column().1.try_into().unwrap(),
-                        },
-                    }),
+                    range: Some(found_type.1.range.clone()),
                 })
             })
         });
@@ -257,24 +248,11 @@ impl Server {
         version: i64,
     ) -> anyhow::Result<()> {
         let vec = {
-            let span = Span::new(content);
-            let value = parse_root(span);
+            let value = parse_from_str(content);
 
             let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
-                let start_pos = error.location.start_line_column();
-                let end_pos = error.location.end_line_column();
-
                 Box::new(std::iter::once(Diagnostic {
-                    range: Range {
-                        start: Position {
-                            line: start_pos.0.try_into().unwrap(),
-                            character: start_pos.1.try_into().unwrap(),
-                        },
-                        end: Position {
-                            line: end_pos.0.try_into().unwrap(),
-                            character: end_pos.1.try_into().unwrap(),
-                        },
-                    },
+                    range: error.location.range.clone(),
                     severity: Some(DiagnosticSeverity::Error),
                     code: None,
                     code_description: None,
@@ -285,23 +263,12 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let (typecheck_result, typecheck_trace) = typecheck(&value.unwrap().0); // TODO use match, see above
+                let (typecheck_result, typecheck_trace) = typecheck(value.unwrap()); // TODO use match, see above
                 println!("{:?}", typecheck_result);
                 if typecheck_result.is_err() {
                     Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
-                        let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
-                        let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
                         Diagnostic {
-                            range: Range {
-                                start: Position {
-                                    line: start_pos.0.try_into().unwrap(),
-                                    character: start_pos.1.try_into().unwrap(),
-                                },
-                                end: Position {
-                                    line: end_pos.0.try_into().unwrap(),
-                                    character: end_pos.1.try_into().unwrap(),
-                                },
-                            },
+                            range: e.location.range,
                             severity: Some(DiagnosticSeverity::Error),
                             code: None,
                             code_description: None,
@@ -345,14 +312,13 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         let result = std::iter::once((0, 0, 0, 0, 0))
-            .chain(visitor(value))
+            .chain(visitor(value.clone()))
             .zip(visitor(value))
             .flat_map(|(last, this)| {
                 vec![
