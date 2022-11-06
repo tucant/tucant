@@ -1,552 +1,481 @@
-use std::{borrow::Cow, fmt::Debug};
+use std::{fmt::Debug, iter::Peekable};
 
-use tucant_language_server_derive_output::{FoldingRange, Position};
+use itertools::Itertools;
+use once_cell::sync::Lazy;
+use tucant_language_server_derive_output::{FoldingRange, Position, Range};
 
-// TODO FIXME tokenization in extra stage
+// write idiomatic code first, optimize later
 
-#[derive(Clone, Copy)]
-pub struct Span<'a, T: Debug> {
-    pub inner: T,
-    pub full_string: &'a str, // TODO this could become a ref to a struct for the whole file with name info etc
-    pub string: &'a str,
+#[derive(Debug, Clone)]
+pub struct Span {
+    pub filename: String,
+    pub range: Range,
 }
 
-impl<'a> From<Ast<'a>> for Span<'a, Ast<'a>> {
-    fn from(ast: Ast<'a>) -> Self {
-        let fake: &'static str = "fake";
-        Self {
-            full_string: fake,
-            string: fake,
-            inner: ast,
-        }
-    }
-}
+pub static FAKE_SPAN: Lazy<Span> = Lazy::new(|| Span {
+    filename: String::from("<fake>"),
+    range: Range {
+        start: Position {
+            line: 0,
+            character: 0,
+        },
+        end: Position {
+            line: 0,
+            character: 0,
+        },
+    },
+});
 
 #[derive(Debug)]
-pub struct Error<'a, T: Debug> {
-    pub location: Span<'a, ()>,
-    pub reason: Cow<'static, str>,
+pub struct Error<T: Debug> {
+    pub location: Span,
+    pub reason: String,
     pub partial_parse: T,
 }
 
-fn offset_to_line_column<'a, T: Debug>(span: &Span<'a, T>, string: &str) -> (usize, usize) {
-    span.full_string[..(string.as_ptr() as usize - span.full_string.as_ptr() as usize)]
-        .lines()
-        .enumerate()
-        .last()
-        .map_or((0, 0), |(index, last_line)| (index, last_line.len()))
+#[derive(Debug)]
+pub enum Token {
+    ParenOpen,
+    ParenClose,
+    String(String),
+    Identifier(String),
+    Number(i64),
 }
 
-pub fn line_column_to_offset(string: &str, line: usize, column: usize) -> usize {
-    let the_line = string.lines().nth(line).unwrap();
-    let line_offset = the_line
-        .char_indices()
-        .nth(column)
-        .map(|(offset, _)| offset)
-        .unwrap_or(the_line.len());
-    the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
+#[derive(Debug, Clone)]
+pub enum Ast {
+    Number(i64),
+    String(String),
+    Identifier(String),
+    List(Vec<(Ast, Span)>),
 }
 
-impl<'a, T: Debug> Debug for Span<'a, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let start_pos = offset_to_line_column(self, self.string);
-        let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
-        write!(
-            f,
-            "location:{}:{} - location:{}:{}\n{}\nvalue:{:?}",
-            start_pos.0, start_pos.1, end_pos.0, end_pos.1, &self.string, self.inner
-        )
-    }
+#[derive(Clone)]
+pub struct LineColumnIterator<I: Iterator<Item = char> + Clone> {
+    iterator: I,
+    position: Position,
 }
 
-impl<'a> Span<'a, ()> {
-    pub fn new(input: &'a str) -> Self {
+impl<I: Iterator<Item = char> + Clone> LineColumnIterator<I> {
+    pub fn new(iterator: I) -> Self {
         Self {
-            inner: (),
-            full_string: input,
-            string: input,
+            iterator,
+            position: Position {
+                line: 0,
+                character: 0,
+            },
         }
     }
 }
 
-impl<'a, T: Debug> Span<'a, T> {
-    pub fn start_line_column(&self) -> (usize, usize) {
-        let start_pos = offset_to_line_column(self, self.string);
-        (start_pos.0, start_pos.1)
-    }
+impl<I: Iterator<Item = char> + Clone> Iterator for LineColumnIterator<I> {
+    type Item = (char, Position);
 
-    pub fn end_line_column(&self) -> (usize, usize) {
-        let end_pos = offset_to_line_column(self, &self.string[self.string.len()..]);
-        (end_pos.0, end_pos.1)
-    }
-}
-
-// TODO FIXME remove this as it just makes it less transparent
-impl<'a> From<Span<'a, ()>> for &'a str {
-    fn from(value: Span<'a, ()>) -> Self {
-        value.string
-    }
-}
-
-fn my_char_indices(input: &str) -> impl Iterator<Item = (usize, char, usize)> + '_ {
-    input
-        .char_indices()
-        .map(|(offset, character)| (offset, character, offset + character.len_utf8()))
-}
-
-fn parse_string<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let mut it = my_char_indices(input_str);
-    match it.next() {
-        Some((_, '"', _)) => {}
-        Some((_, character, _)) => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..character.len_utf8()],
-            },
-            reason: Cow::from(r#"Expected a `"`"#),
-            partial_parse: Span {
-                inner: Ast::String(""),
-                full_string: input.full_string,
-                string: &input_str[0..character.len_utf8()],
-            },
-        })?,
-        None => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-            reason: Cow::from(r#"Unexpected end of code. Expected a `"`"#),
-            partial_parse: Span {
-                inner: Ast::String(""),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-        })?,
-    };
-    match it
-        .skip_while(|(_, character, _)| *character != '"')
-        .map(|(_, _, end)| end)
-        .next()
-    {
-        Some(offset) => {
-            let (str_str, rest_str) = input_str.split_at(offset);
-            Ok((
-                Span {
-                    inner: str_str.trim_matches('"'),
-                    full_string: input.full_string,
-                    string: str_str,
-                },
-                Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: rest_str,
-                },
-            ))
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.iterator.next() {
+            Some(character) => {
+                let old_position = self.position.clone();
+                match character {
+                    '\n' => {
+                        self.position.line += 1;
+                        self.position.character = 0;
+                    }
+                    '\r' => {}
+                    _ => {
+                        self.position.character += 1;
+                    }
+                }
+                Some((character, old_position))
+            }
+            None => None,
         }
-        None => Err(Error {
-            location: input,
-            reason: Cow::from(r#"Unterminated string literal"#),
-            partial_parse: Span {
-                inner: Ast::String(&input.string[1..]),
-                full_string: input.full_string,
-                string: input.string,
-            },
-        })?,
     }
 }
 
-// https://doc.rust-lang.org/book/ch08-02-strings.html
-fn parse_number<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, i64>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    let input_str: &'a str = input.into();
-    let end_of_numbers = input_str
-        .char_indices()
-        .skip_while(|(_, character)| character.is_ascii_digit())
-        .map(|(offset, _)| offset)
-        .next()
-        .unwrap_or(input_str.len()); // TODO FIXME different error message
-    let (number_str, rest_str) = input_str.split_at(end_of_numbers);
-    Ok((
-        Span {
-            inner: number_str.parse::<i64>().map_err(|_| Error {
-                location: Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: number_str,
-                },
-                reason: Cow::from(r#"Failed to parse number"#),
-                partial_parse: Span {
-                    inner: Ast::Number(1337),
-                    full_string: input.full_string,
-                    string: number_str,
-                },
-            })?,
-            full_string: input.full_string,
-            string: number_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
+#[derive(Clone)]
+pub struct Tokenizer<I: Iterator<Item = char> + Clone> {
+    iterator: Peekable<LineColumnIterator<I>>,
 }
 
-fn parse_identifier<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, &'a str>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let end = my_char_indices(input_str)
-        .take_while(|(_, character, _)| character.is_ascii_alphabetic() || *character == '-')
-        .map(|(_, _, end)| end)
-        .last()
-        .ok_or_else(|| Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-            reason: Cow::from("Expected an identifier"),
-            partial_parse: Span {
-                inner: Ast::Identifier(""),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-        })?;
-    let (str_str, rest_str) = input_str.split_at(end);
-    Ok((
-        Span {
-            inner: str_str,
-            full_string: input.full_string,
-            string: str_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
-}
-
-fn parse_whitespace<'a>(
-    input: Span<'a, ()>,
-) -> Result<(Span<'a, ()>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    let input_str = Into::<&'a str>::into(input);
-    let pos = my_char_indices(input_str)
-        .find(|(_offset, character, _)| !character.is_whitespace())
-        .map(|(offset, _, _)| offset)
-        .unwrap_or(input_str.len());
-    let (whitespace_str, rest_str) = input_str.split_at(pos);
-    Ok((
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: whitespace_str,
-        },
-        Span {
-            inner: (),
-            full_string: input.full_string,
-            string: rest_str,
-        },
-    ))
-}
-
-fn parse_list<'a>(
-    full_input: Span<'a, ()>,
-) -> Result<(Span<'a, Vec<Span<'a, Ast<'a>>>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    let mut input = full_input;
-    let input_str = Into::<&'a str>::into(input);
-    if !input_str.starts_with('(') {
-        return Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input_str[0..0],
-            },
-            reason: Cow::from(r#"Expected a `(`"#),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: full_input.full_string,
-                string: &input_str[0..0],
-            },
-        });
-    }
-    input = Span {
-        inner: (),
-        full_string: input.full_string,
-        string: &input_str[1..],
-    };
-    let mut result = Vec::new();
-    loop {
-        let result_ref = &result;
-        input = parse_whitespace(input)
-            .map_err(|err| Error {
-                location: err.location,
-                reason: err.reason,
-                partial_parse: Span {
-                    inner: Ast::List(result_ref.clone()),
-                    full_string: full_input.full_string,
-                    string: &input_str[0..0], // TODO FIXME
-                },
-            })?
-            .1;
-        let input_str = Into::<&'a str>::into(input);
-        if let Some(rest) = input_str.strip_prefix(')') {
-            let offset = input_str.as_ptr() as usize + 1 - full_input.string.as_ptr() as usize;
-            break Ok((
-                Span {
-                    inner: result,
-                    full_string: input.full_string,
-                    string: &full_input.string[..offset],
-                },
-                Span {
-                    inner: (),
-                    full_string: input.full_string,
-                    string: rest,
-                },
-            ));
+impl<I: Iterator<Item = char> + Clone> Tokenizer<I> {
+    pub fn new(iterator: I) -> Self {
+        Self {
+            iterator: LineColumnIterator::new(iterator).peekable(),
         }
-        let element;
-        (element, input) = match parse_ast(input) {
-            Ok(value) => value,
-            Err(value) => Err(Error {
-                location: value.location,
-                reason: value.reason,
-                partial_parse: Span {
-                    inner: Ast::List(result_ref.clone()),
-                    full_string: full_input.full_string,
-                    string: &input_str[0..0], // TODO FIXME
-                },
-            })?,
-        };
-        result.push(element);
     }
 }
 
-pub fn visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
-) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
-    match &element.inner {
-        Ast::Identifier(_) => {
-            let pos = element.start_line_column();
+pub struct TokenizerBuilder;
+
+impl TokenizerBuilder {
+    pub fn from_string(string: String) -> Tokenizer<std::vec::IntoIter<char>> {
+        Tokenizer::new(string.chars().collect::<Vec<_>>().into_iter())
+    }
+}
+
+fn parse_paren_open<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('(', position) => Some(Ok((
+            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
+            Token::ParenOpen,
+            Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: Position {
+                        line: position.line,
+                        character: position.character + 1,
+                    },
+                },
+            },
+        ))),
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+fn parse_paren_close<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    // TODO FIXME duplication
+    match iterator.next().unwrap() {
+        (')', position) => Some(Ok((
+            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
+            Token::ParenClose,
+            Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: Position {
+                        line: position.line,
+                        character: position.character + 1,
+                    },
+                },
+            },
+        ))),
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: "".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+pub fn parse_string<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.next().unwrap() {
+        ('"', start_pos) => {
+            let end: String = iterator
+                .peeking_take_while(|(char, _pos)| *char != '"')
+                .map(|(char, _pos)| char)
+                .collect();
+            match iterator.next() {
+                Some(('"', end_pos)) => Some(Ok((
+                    Token::String(end),
+                    Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: start_pos,
+                            end: end_pos,
+                        },
+                    },
+                ))),
+                Some((_, end_pos)) => Some(Err(Error {
+                    location: Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: end_pos.clone(),
+                            end: end_pos,
+                        },
+                    },
+                    reason: r#"Expected a `"`"#.to_string(),
+                    partial_parse: (),
+                })),
+                None => Some(Err(Error {
+                    location: Span {
+                        filename: "<stdin>".to_string(),
+                        range: Range {
+                            start: start_pos.clone(),
+                            end: start_pos,
+                        },
+                    },
+                    reason: r#"Unterminated string literal"#.to_string(),
+                    partial_parse: (),
+                })),
+            }
+        }
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position,
+                },
+            },
+            reason: r#"Expected a `"`"#.to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+pub fn parse_number<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.peek().unwrap() {
+        ('0'..='9', start_pos) => {
+            let start_pos = start_pos.clone();
+            let end_pos = iterator
+                .clone()
+                .peeking_take_while(|(char, _pos)| char.is_ascii_digit())
+                .map(|(_char, pos)| pos)
+                .last()
+                .unwrap();
+            let number: String = iterator
+                .peeking_take_while(|(char, _pos)| char.is_ascii_digit())
+                .map(|(char, _pos)| char)
+                .collect();
+
+            let span = Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: start_pos,
+                    end: end_pos,
+                },
+            };
+            match number.parse() {
+                Ok(n) => Some(Ok((Token::Number(n), span))),
+                Err(_err) => Some(Err(Error {
+                    location: span,
+                    reason: "Failed to parse number".to_string(),
+                    partial_parse: (),
+                })),
+            }
+        }
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position.clone(),
+                },
+            },
+            reason: "Failed to parse number".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+fn parse_identifier<I: Iterator<Item = char> + Clone>(
+    iterator: &mut Peekable<LineColumnIterator<I>>,
+) -> Option<Result<(Token, Span), Error<()>>> {
+    match iterator.peek().unwrap() {
+        ('a'..='z' | 'A'..='Z' | '_', start_pos) => {
+            let start_pos = start_pos.clone();
+            let end_pos = iterator
+                .clone()
+                .peeking_take_while(|(char, _pos)| !char.is_whitespace() && *char != ')')
+                .map(|(_char, pos)| pos)
+                .last()
+                .unwrap();
+            let number: String = iterator
+                .peeking_take_while(|(char, _pos)| !char.is_whitespace() && *char != ')')
+                .map(|(char, _pos)| char)
+                .collect();
+
+            Some(Ok((
+                Token::Identifier(number),
+                Span {
+                    filename: "<stdin>".to_string(),
+                    range: Range {
+                        start: start_pos,
+                        end: end_pos,
+                    },
+                },
+            )))
+        }
+        (_, position) => Some(Err(Error {
+            location: Span {
+                filename: "<stdin>".to_string(),
+                range: Range {
+                    start: position.clone(),
+                    end: position.clone(),
+                },
+            },
+            reason: "Expected an identifier".to_string(),
+            partial_parse: (),
+        })),
+    }
+}
+
+impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
+    type Item = Result<(Token, Span), Error<()>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.iterator.peek() {
+            Some(('(', _position)) => parse_paren_open(&mut self.iterator),
+            Some((')', _position)) => parse_paren_close(&mut self.iterator),
+            Some(('"', _start_pos)) => parse_string(&mut self.iterator),
+            Some(('0'..='9', _start_pos)) => parse_number(&mut self.iterator),
+            Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => parse_identifier(&mut self.iterator),
+            Some((' ' | '\t' | '\n' | '\r', _)) => {
+                self.iterator.next();
+                // whitespace
+                self.next()
+            }
+            Some(_) => {
+                self.iterator.next();
+                // unexpected character
+                // TODO FIXME error
+                None
+            }
+            None => None,
+        }
+    }
+}
+
+pub fn parse<I: Iterator<Item = char> + Clone>(
+    tokenizer: &mut Peekable<Tokenizer<I>>,
+) -> Result<(Ast, Span), Error<()>> {
+    match tokenizer.next().transpose()? {
+        Some((Token::Identifier(ident), span)) => Ok((Ast::Identifier(ident), span)),
+        Some((Token::Number(ident), span)) => Ok((Ast::Number(ident), span)),
+        Some((Token::String(ident), span)) => Ok((Ast::String(ident), span)),
+        Some((Token::ParenOpen, span)) => {
+            let mut list = Vec::new();
+            loop {
+                match tokenizer.peek() {
+                    Some(Ok((Token::ParenClose, _))) => break,
+                    _ => list.push(parse(tokenizer)?),
+                }
+            }
+            tokenizer.next();
+            Ok((Ast::List(list), span))
+        }
+        Some((Token::ParenClose, span)) => Err(Error {
+            location: span,
+            reason: "unmatched closing paren at".to_string(),
+            partial_parse: (),
+        }),
+        None => panic!(),
+    }
+}
+
+pub fn parse_from_str(string: &str) -> Result<(Ast, Span), Error<()>> {
+    let span = TokenizerBuilder::from_string(string.to_string());
+    parse(&mut span.peekable())
+}
+
+// cargo test --target x86_64-unknown-linux-gnu parser -- --show-output
+#[test]
+pub fn test_tokenize() {
+    println!(
+        "{:#?}",
+        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec()
+    );
+}
+
+pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)>> {
+    match element.0 {
+        Ast::Identifier(_identifier) => {
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
+                end_pos.character - start_pos.character,
                 2,
                 0,
             )))
         }
         Ast::Number(_) => {
-            let pos = element.start_line_column();
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
+                end_pos.character - start_pos.character,
                 1,
                 0,
             )))
         }
         Ast::String(_) => {
-            let pos = element.start_line_column();
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
+                end_pos.character - start_pos.character,
                 0,
                 0,
             )))
         }
-        Ast::List(list) => Box::new(list.iter().flat_map(visitor)),
+        Ast::List(list) => Box::new(list.into_iter().flat_map(visitor)),
     }
 }
 
-pub fn list_visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
-) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
-    match &element.inner {
+pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRange>> {
+    match element.0 {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
         Ast::Number(_) => Box::new(std::iter::empty()),
         Ast::String(_) => Box::new(std::iter::empty()),
         Ast::List(list) => Box::new(
             std::iter::once(FoldingRange {
-                start_line: element.start_line_column().0.try_into().unwrap(),
-                start_character: Some(element.start_line_column().1.try_into().unwrap()),
-                end_line: element.end_line_column().0.try_into().unwrap(),
-                end_character: Some(element.end_line_column().1.try_into().unwrap()),
+                start_line: element.1.range.start.line,
+                start_character: Some(element.1.range.start.character),
+                end_line: element.1.range.end.line,
+                end_character: Some(element.1.range.end.character),
                 kind: Some(tucant_language_server_derive_output::FoldingRangeKind::Region),
                 collapsed_text: None,
             })
-            .chain(list.iter().flat_map(list_visitor)),
+            .chain(list.into_iter().flat_map(list_visitor)),
         ),
     }
 }
 
-pub fn hover_visitor<'a>(
-    element: &'a Span<'a, Ast<'a>>,
-    position: &Position,
-) -> Option<&'a Span<'a, Ast<'a>>> {
-    match &element.inner {
+pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
+    match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
-            if element.start_line_column()
-                <= (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
-                )
-                && (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
-                ) <= element.end_line_column()
+            if (element.1.range.start.line, element.1.range.start.character)
+                <= (position.line, position.character)
+                && (position.line, position.character)
+                    <= (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {
                 None
             }
         }
-        Ast::List(list) => {
-            if element.start_line_column()
-                == (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
-                )
-                || (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
-                ) == element.end_line_column()
+        Ast::List(ref list) => {
+            if (element.1.range.start.line, element.1.range.start.character)
+                == (position.line, position.character)
+                || (position.line, position.character)
+                    == (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {
                 list.iter()
-                    .filter_map(|l| hover_visitor(l, position))
+                    .filter_map(|l| hover_visitor(l.clone(), position))
                     .next()
             }
         }
-    }
-}
-
-/*
-pub enum Ast {
-    Number(i64),
-    String(String),
-    Identifier(String),
-    Callable(Ast, Vec<Ast>),
-}
-*/
-
-/*
-pub enum Ast {
-    Number(i64, Position),
-    String(String, Position),
-    Identifier(String, Position),
-    Callable(Ast, Position, Vec<Ast>),
-}
-*/
-
-#[derive(Debug, Clone)]
-pub enum Ast<'a> {
-    Number(i64),
-    String(&'a str),
-    Identifier(&'a str),
-    List(Vec<Span<'a, Ast<'a>>>),
-}
-
-pub fn parse_ast<'a>(
-    mut input: Span<'a, ()>,
-) -> Result<(Span<'a, Ast<'a>>, Span<'a, ()>), Error<'a, Span<'_, Ast<'_>>>> {
-    input = parse_whitespace(input)?.1;
-    let input_str = Into::<&'a str>::into(input);
-    let mut it = my_char_indices(input_str);
-    match it.next() {
-        Some((_, '"', _)) => parse_string(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::String(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, '0'..='9', _)) => parse_number(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::Number(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, 'a'..='z' | 'A'..='Z', _)) => parse_identifier(input).map(|v| {
-            (
-                Span {
-                    //
-                    inner: Ast::Identifier(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((_, '(', _)) => parse_list(input).map(|v| {
-            (
-                Span {
-                    inner: Ast::List(v.0.inner),
-                    full_string: v.0.full_string,
-                    string: v.0.string,
-                },
-                v.1,
-            )
-        }),
-        Some((start, character, end)) => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[start..end],
-            },
-            reason: Cow::from(format!(
-                r#"Unexpected character `{}`. Expected `"`, 0-9, a-z, A-Z or `(`."#,
-                character
-            )),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: input.full_string,
-                string: &input.string[start..end],
-            },
-        }),
-        None => Err(Error {
-            location: Span {
-                inner: (),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-            reason: Cow::from("Unexpected end of input"),
-            partial_parse: Span {
-                inner: Ast::List(vec![]),
-                full_string: input.full_string,
-                string: &input.string[0..0],
-            },
-        }),
-    }
-}
-
-pub fn parse_root(input: Span<()>) -> Result<(Span<Ast>, Span<()>), Error<Span<Ast>>> {
-    let (ast, mut rest) = parse_ast(input)?;
-    rest = parse_whitespace(rest)?.1;
-    if !rest.string.is_empty() {
-        Err(Error {
-            location: rest,
-            reason: Cow::from("Expected end of file."),
-            partial_parse: ast,
-        })
-    } else {
-        Ok((ast, rest))
     }
 }
 
@@ -558,227 +487,204 @@ fn init() {
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
+    use std::assert_matches::assert_matches;
     init();
-    /*let span = Span::new(r#"
-    (this is an (epic awesome great) "test" 5)
-    "#);*/
-    let span = Span::new(r#"notanumber"#);
-    let number = parse_number(span).unwrap_err();
+
+    let mut span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
-    assert_eq!(number.location.string, "");
+    //assert_eq!(number.location.string, "");
 
-    let span = Span::new(r#"3notendingwithanumber"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 3);
-    assert_eq!(number.0.string, "3");
-    assert_eq!(number.1.string, "notendingwithanumber");
+    assert_matches!(number.0, Token::Number(3));
+    //assert_eq!(number.0.string, "3");
+    //assert_eq!(number.1.string, "notendingwithanumber");
 
-    let span = Span::new(r#"3"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 3);
-    assert_eq!(number.0.string, "3");
-    assert_eq!(number.1.string, "");
+    assert_matches!(number.0, Token::Number(3));
+    //assert_eq!(number.0.string, "3");
+    //assert_eq!(number.1.string, "");
 
-    let span = Span::new(r#"3z9"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3z9"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 3);
-    assert_eq!(number.0.string, "3");
-    assert_eq!(number.1.string, "z9");
+    assert_matches!(number.0, Token::Number(3));
+    //assert_eq!(number.0.string, "3");
+    //assert_eq!(number.1.string, "z9");
 
-    let span = Span::new(r#"3546z945"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3546z945"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 3546);
-    assert_eq!(number.0.string, "3546");
-    assert_eq!(number.1.string, "z945");
+    assert_matches!(number.0, Token::Number(3546));
+    //assert_eq!(number.0.string, "3546");
+    //assert_eq!(number.1.string, "z945");
 
-    let span = Span::new(r#"345345"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"345345"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 345345);
-    assert_eq!(number.0.string, "345345");
-    assert_eq!(number.1.string, "");
+    assert_matches!(number.0, Token::Number(345345));
+    //assert_eq!(number.0.string, "345345");
+    //assert_eq!(number.1.string, "");
 
-    let span = Span::new(r#"345345sdfasd"#);
-    let number = parse_number(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", number);
-    assert_eq!(number.0.inner, 345345);
-    assert_eq!(number.0.string, "345345");
-    assert_eq!(number.1.string, "sdfasd");
+    assert_matches!(number.0, Token::Number(345345));
+    //assert_eq!(number.0.string, "345345");
+    //assert_eq!(number.1.string, "sdfasd");
 
-    let span = Span::new(r#"n32otanumber"#);
-    let number = parse_number(span).unwrap_err();
-    println!("{:?}", number);
-    assert_eq!(number.reason, "Failed to parse number");
-    assert_eq!(number.location.string, "");
-
-    let span = Span::new(r#"70708777897986976707598759785978698752otanumber"#);
-    let number = parse_number(span).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"n32otanumber"#.to_string());
+    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", number);
     assert_eq!(number.reason, "Failed to parse number");
-    assert_eq!(
+    //assert_eq!(number.location.string, "");
+
+    let mut span = TokenizerBuilder::from_string(
+        r#"70708777897986976707598759785978698752otanumber"#.to_string(),
+    );
+    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    println!("{:?}", number);
+    assert_eq!(number.reason, "Failed to parse number");
+    /*assert_eq!(
         number.location.string,
         "70708777897986976707598759785978698752"
-    );
+    );*/
 }
 
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_string'
 #[test]
 fn test_parse_string() {
+    use std::assert_matches::assert_matches;
     init();
 
-    let span = Span::new(r#"notastring"#);
-    let string = parse_string(span).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
+    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected a `"`"#);
-    assert_eq!(string.location.string, "n");
+    //assert_eq!(string.location.string, "n");
 
-    let span = Span::new(r#""unterminated"#);
-    let string = parse_string(span).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#""unterminated"#.to_string());
+    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Unterminated string literal"#);
-    assert_eq!(string.location.string, r#""unterminated"#);
+    //assert_eq!(string.location.string, r#""unterminated"#);
 
-    let span = Span::new(r#""astring"jojo"#);
-    let string = parse_string(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#""astring"jojo"#.to_string());
+    let string = parse_string(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.inner, "astring");
-    assert_eq!(string.0.string, r#""astring""#);
-    assert_eq!(string.1.string, "jojo");
+    assert_matches!(string.0, Token::String(v) if v == "astring");
+    //assert_eq!(string.0.string, r#""astring""#);
+    //assert_eq!(string.1.string, "jojo");
 
-    let span = Span::new(r#""astring""#);
-    let string = parse_string(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#""astring""#.to_string());
+    let string = parse_string(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.inner, "astring");
-    assert_eq!(string.0.string, r#""astring""#);
-    assert_eq!(string.1.string, "");
+    assert_matches!(string.0, Token::String(v) if v == "astring");
+    //assert_eq!(string.0.string, r#""astring""#);
+    //assert_eq!(string.1.string, "");
 }
 
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_identifier'
 #[test]
 fn test_parse_identifier() {
+    use std::assert_matches::assert_matches;
     init();
 
-    let span = Span::new(r#"7notanidentifier"#);
-    let string = parse_identifier(span).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
-    assert_eq!(string.location.string, "");
+    //assert_eq!(string.location.string, "");
 
-    let span = Span::new(r#""notanidentifier"#);
-    let string = parse_identifier(span).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
-    assert_eq!(string.location.string, "");
+    //assert_eq!(string.location.string, "");
 
-    let span = Span::new(r#"anidentifier"#);
-    let string = parse_identifier(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.inner, "anidentifier");
-    assert_eq!(string.0.string, "anidentifier");
-    assert_eq!(string.1.string, "");
+    assert_matches!(string.0, Token::Identifier(v) if v == "anidentifier");
+    //assert_eq!(string.0.string, "anidentifier");
+    //assert_eq!(string.1.string, "");
 
-    let span = Span::new(r#"anidentifier    jlih"#);
-    let string = parse_identifier(span).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.inner, "anidentifier");
-    assert_eq!(string.0.string, "anidentifier");
-    assert_eq!(string.1.string, "    jlih");
+    assert_matches!(string.0, Token::Identifier(v) if v == "anidentifier");
+    //assert_eq!(string.0.string, "anidentifier");
+    //assert_eq!(string.1.string, "    jlih");
 }
 
 #[test]
 fn test_parse_whitespace() {
     init();
 
-    let span = Span::new(r#""#);
-    let string = parse_whitespace(span).unwrap();
-    println!("{:?}", string);
-    assert_eq!(string.0.string, "");
-    assert_eq!(string.1.string, "");
+    let mut span = TokenizerBuilder::from_string(r#""#.to_string());
+    assert_eq!(span.iterator.next(), None);
+    //assert_eq!(string.0.string, "");
+    //assert_eq!(string.1.string, "");
 
-    let span = Span::new(r#"  f  fwwe wef"#);
-    let string = parse_whitespace(span).unwrap();
+    let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#.to_string());
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.string, "  ");
-    assert_eq!(string.1.string, "f  fwwe wef");
+    //assert_eq!(string.0.string, "  ");
+    //assert_eq!(string.1.string, "f  fwwe wef");
 
-    let span = Span::new(r#"dsfsdf dsf  "#);
-    let string = parse_whitespace(span).unwrap();
+    let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#.to_string());
+    let string = parse(&mut span.peekable()).unwrap();
     println!("{:?}", string);
-    assert_eq!(string.0.string, "");
-    assert_eq!(string.1.string, "dsfsdf dsf  ");
+    //assert_eq!(string.0.string, "");
+    //assert_eq!(string.1.string, "dsfsdf dsf  ");
 }
 
 #[test]
 fn test_parse_list() {
+    use std::assert_matches::assert_matches;
     init();
 
-    let span = Span::new(r#"()"#);
-    let value = parse_list(span).unwrap();
-    println!("{:?}", value);
-    assert_eq!(value.0.string, "()");
-    assert_eq!(value.1.string, "");
-    assert!(value.0.inner.is_empty());
+    println!(
+        "{:?}",
+        TokenizerBuilder::from_string(r#"()"#.to_string()).collect::<Vec<_>>()
+    );
 
-    let span = Span::new(r#"(  1    2   3    )"#);
-    let value = parse_list(span).unwrap();
+    let span = TokenizerBuilder::from_string(r#"()"#.to_string());
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
-    assert_eq!(value.0.string, "(  1    2   3    )");
-    assert_eq!(value.1.string, "");
-    assert_eq!(value.0.inner.len(), 3);
-    assert!(matches!(value.0.inner[0].inner, Ast::Number(1)));
-    assert_eq!(value.0.inner[0].string, "1");
-    assert!(matches!(value.0.inner[1].inner, Ast::Number(2)));
-    assert_eq!(value.0.inner[1].string, "2");
-    assert!(matches!(value.0.inner[2].inner, Ast::Number(3)));
-    assert_eq!(value.0.inner[2].string, "3");
+    //assert_eq!(value.0.string, "()");
+    //assert_eq!(value.1.string, "");
+    assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), []); true });
+
+    let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#.to_string());
+    let value = parse(&mut span.peekable()).unwrap();
+    println!("{:?}", value);
+    //assert_eq!(value.0.string, "(  1    2   3    )");
+    //assert_eq!(value.1.string, "");
+    assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), [(Ast::Number(1),_), (Ast::Number(2),_), (Ast::Number(3),_)]); true });
 }
 
 #[test]
 fn test_parse_ast() {
+    use std::assert_matches::assert_matches;
     init();
 
-    let span = Span::new(r#"   ()"#);
-    let value = parse_ast(span).unwrap();
+    let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
-    assert_eq!(value.0.string, "()");
-    assert_eq!(value.1.string, "");
-    let value = match value {
-        (
-            Span {
-                inner: Ast::List(list),
-                ..
-            },
-            _,
-        ) => list,
-        _ => panic!("Expected AST list"),
-    };
-    assert!(value.is_empty());
+    //assert_eq!(value.0.string, "()");
+    //assert_eq!(value.1.string, "");
+    assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), []); true });
 
-    let span = Span::new(r#"  (  1    2   3    )"#);
-    let value = parse_ast(span).unwrap();
+    let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#.to_string());
+    let value = parse(&mut span.peekable()).unwrap();
     println!("{:?}", value);
-    assert_eq!(value.0.string, "(  1    2   3    )");
-    assert_eq!(value.1.string, "");
-    let value = match value {
-        (
-            Span {
-                inner: Ast::List(list),
-                ..
-            },
-            _,
-        ) => list,
-        _ => panic!("Expected AST list"),
-    };
-    assert_eq!(value.len(), 3);
-    assert!(matches!(value[0].inner, Ast::Number(1)));
-    assert_eq!(value[0].string, "1");
-    assert!(matches!(value[1].inner, Ast::Number(2)));
-    assert_eq!(value[1].string, "2");
-    assert!(matches!(value[2].inner, Ast::Number(3)));
-    assert_eq!(value[2].string, "3");
+    //assert_eq!(value.0.string, "(  1    2   3    )");
+    //assert_eq!(value.1.string, "");
+    assert_matches!(value.0, Ast::List(list) if { assert_matches!(list.as_slice(), [(Ast::Number(1),_), (Ast::Number(2),_), (Ast::Number(3),_)]); true });
 }

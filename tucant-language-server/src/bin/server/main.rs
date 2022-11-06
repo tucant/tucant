@@ -1,5 +1,6 @@
+#![feature(assert_matches)]
 pub mod evaluate;
-mod parser;
+pub mod parser;
 
 use std::{collections::HashMap, sync::Arc, vec};
 
@@ -7,7 +8,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::{hover_visitor, list_visitor};
+use parser::{hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -21,7 +22,7 @@ use tucant_language_server_derive_output::*;
 
 use crate::{
     evaluate::typecheck,
-    parser::{line_column_to_offset, parse_root, visitor, Error, Span},
+    parser::{visitor, Error},
 };
 
 #[derive(Parser)]
@@ -125,26 +126,27 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error {
+                partial_parse: _, ..
+            }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         // TODO FIXME bug whitespace before a list belongs to that list?
-        let found_element = hover_visitor(&value, &request.params.variant0.position);
+        let found_element = hover_visitor(value.clone(), &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
             // TODO FIXME filter all types from typecheck for that found span
-            let (_typecheck_result, typecheck_trace) = typecheck(&value);
+            let (_typecheck_result, typecheck_trace) = typecheck(value);
             let found_type = typecheck_trace
                 .map(|e| {
                     println!("debug {:?}", e);
                     e
                 })
                 .filter_map(|t| t.ok())
-                .find(|t| t.span().start_line_column() == found_element.start_line_column());
+                .find(|t| t.1.range.start == found_element.1.range.start);
 
             found_type.map(|found_type| {
                 println!("found type {:?}", found_type);
@@ -155,16 +157,7 @@ impl Server {
                             value: format!("{:?}", found_type),
                         },
                     ),
-                    range: Some(Range {
-                        start: Position {
-                            line: found_type.span().start_line_column().0.try_into().unwrap(),
-                            character: found_type.span().start_line_column().1.try_into().unwrap(),
-                        },
-                        end: Position {
-                            line: found_type.span().end_line_column().0.try_into().unwrap(),
-                            character: found_type.span().end_line_column().1.try_into().unwrap(),
-                        },
-                    }),
+                    range: Some(found_type.1.range),
                 })
             })
         });
@@ -236,14 +229,15 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error {
+                partial_parse: _, ..
+            }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME,
         };
 
         let response = H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7::Variant0(
-            list_visitor(&value).collect(),
+            list_visitor(value).collect(),
         );
 
         self.send_response(request, response).await?;
@@ -258,24 +252,11 @@ impl Server {
         version: i64,
     ) -> anyhow::Result<()> {
         let vec = {
-            let span = Span::new(content);
-            let value = parse_root(span);
+            let value = parse_from_str(content);
 
             let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
-                let start_pos = error.location.start_line_column();
-                let end_pos = error.location.end_line_column();
-
                 Box::new(std::iter::once(Diagnostic {
-                    range: Range {
-                        start: Position {
-                            line: start_pos.0.try_into().unwrap(),
-                            character: start_pos.1.try_into().unwrap(),
-                        },
-                        end: Position {
-                            line: end_pos.0.try_into().unwrap(),
-                            character: end_pos.1.try_into().unwrap(),
-                        },
-                    },
+                    range: error.location.range.clone(),
                     severity: Some(DiagnosticSeverity::Error),
                     code: None,
                     code_description: None,
@@ -286,32 +267,19 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let (typecheck_result, typecheck_trace) = typecheck(&value.unwrap().0); // TODO use match, see above
+                let (typecheck_result, typecheck_trace) = typecheck(value.unwrap()); // TODO use match, see above
                 println!("{:?}", typecheck_result);
                 if typecheck_result.is_err() {
-                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| {
-                        let start_pos = e.location.map(|l| l.start_line_column()).unwrap_or((0, 0));
-                        let end_pos = e.location.map(|l| l.end_line_column()).unwrap_or((0, 0));
-                        Diagnostic {
-                            range: Range {
-                                start: Position {
-                                    line: start_pos.0.try_into().unwrap(),
-                                    character: start_pos.1.try_into().unwrap(),
-                                },
-                                end: Position {
-                                    line: end_pos.0.try_into().unwrap(),
-                                    character: end_pos.1.try_into().unwrap(),
-                                },
-                            },
-                            severity: Some(DiagnosticSeverity::Error),
-                            code: None,
-                            code_description: None,
-                            source: Some("tucant".to_string()),
-                            message: e.reason.to_string(),
-                            tags: None,
-                            related_information: None,
-                            data: None,
-                        }
+                    Box::new(typecheck_trace.filter_map(|e| e.err()).map(|e| Diagnostic {
+                        range: e.location.range,
+                        severity: Some(DiagnosticSeverity::Error),
+                        code: None,
+                        code_description: None,
+                        source: Some("tucant".to_string()),
+                        message: e.reason,
+                        tags: None,
+                        related_information: None,
+                        data: None,
                     }))
                 } else {
                     Box::new(std::iter::empty())
@@ -346,15 +314,16 @@ impl Server {
         };
         drop(documents);
 
-        let span = Span::new(&document);
-        let value = match parse_root(span) {
-            Ok((value, _)) => value,
-            Err(Error { partial_parse, .. }) => partial_parse,
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error {
+                partial_parse: _, ..
+            }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         let result = std::iter::once((0, 0, 0, 0, 0))
-            .chain(visitor(&value))
-            .zip(visitor(&value))
+            .chain(visitor(value.clone()))
+            .zip(visitor(value))
             .flat_map(|(last, this)| {
                 vec![
                     this.0 - last.0,
@@ -422,6 +391,19 @@ impl Server {
         Ok(())
     }
 
+    pub fn line_column_to_offset(string: &str, position: Position) -> usize {
+        let the_line = string
+            .lines()
+            .nth(position.line.try_into().unwrap())
+            .unwrap();
+        let line_offset = the_line
+            .char_indices()
+            .nth(position.character.try_into().unwrap())
+            .map(|(offset, _)| offset)
+            .unwrap_or(the_line.len());
+        the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
+    }
+
     // TODO FIXME these and quite some others need to respect some order
     async fn handle_text_document_did_change_notification(
         self: Arc<Self>,
@@ -436,8 +418,8 @@ impl Server {
         for change in notification.params.content_changes.iter() {
             match change {
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
-                    let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
-                    let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+                    let start_offset = Self::line_column_to_offset(&document, incremental_changes.range.start.clone());
+                    let end_offset = Self::line_column_to_offset(&document, incremental_changes.range.end.clone());
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
 

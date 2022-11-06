@@ -104,8 +104,9 @@ pub fn parse_structures(
 
             let return_value = (
                 quote! {
+                    #[allow(clippy::derive_partial_eq_without_eq)]
                     #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     #documentation
                     pub struct #name {
                         #(#extends)*
@@ -159,7 +160,8 @@ pub fn parse_enumerations(
                         .scan(&mut values_err, until_err);
 
                     let return_value = quote! {
-                        #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug)]
+                        #[allow(clippy::derive_partial_eq_without_eq)]
+                        #[derive(serde_repr::Serialize_repr, serde_repr::Deserialize_repr, Debug, PartialEq, Clone)]
                         #[repr(i64)]
                         #documentation
                         pub enum #name {
@@ -202,7 +204,8 @@ pub fn parse_enumerations(
                     };
 
                     let return_value = quote! {
-                        #[derive(serde::Serialize, serde::Deserialize, Debug)]
+                        #[allow(clippy::derive_partial_eq_without_eq)]
+                        #[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq, Clone)]
                         #documentation
                         pub enum #name {
                             #(#values)*
@@ -322,8 +325,9 @@ pub fn parse_requests(
                 .transpose()?
                 .map_or((None, None), |o| (Some(o.0), Some(o.1)));
             let response_struct = quote! {
+                #[allow(clippy::derive_partial_eq_without_eq)]
                 #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                 #documentation
                 pub struct #response_name {
                     pub jsonrpc: String,
@@ -383,8 +387,9 @@ pub fn parse_requests(
                 quote! {}
             };
             let request_struct = quote! {
+                #[allow(clippy::derive_partial_eq_without_eq)]
                 #[::serde_with::skip_serializing_none]
-                #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                 #documentation
                 pub struct #request_name {
                     pub jsonrpc: String,
@@ -474,8 +479,9 @@ pub fn parse_notifications(
             };
             Ok((
                 quote! {
+                    #[allow(clippy::derive_partial_eq_without_eq)]
                     #[::serde_with::skip_serializing_none]
-                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+                    #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     #documentation
                     pub struct #name {
                         pub jsonrpc: String,
@@ -573,14 +579,16 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         #(#notifications)*
         #(#notifications_rest)*
 
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug, Clone)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
         #[serde(untagged)]
         pub enum StringOrNumber {
             String(String),
             Number(i64),
         }
 
-        #[derive(::serde::Serialize, ::serde::Deserialize, Debug)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
         #[serde(tag = "method")]
         pub enum IncomingStuff {
             #(#request_enum)*
@@ -619,7 +627,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
             fn id(&self) -> &StringOrNumber;
         }
 
-        #[derive(Serialize, Deserialize, Debug)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
         pub struct Notification<T> {
             pub params: T,
         }

@@ -39,7 +39,7 @@ where
 {
     use serde::de::Error;
     String::deserialize(deserializer).and_then(|string| {
-        base64::decode_config(&string, base64::URL_SAFE_NO_PAD)
+        base64::decode_config(string, base64::URL_SAFE_NO_PAD)
             .map_err(|err| Error::custom(err.to_string()))
     })
 }
@@ -64,7 +64,7 @@ where
     let string: Option<String> = Option::deserialize(deserializer)?;
 
     if let Some(string) = string {
-        base64::decode_config(&string, base64::URL_SAFE_NO_PAD)
+        base64::decode_config(string, base64::URL_SAFE_NO_PAD)
             .map(Option::Some)
             .map_err(|err| Error::custom(err.to_string()))
     } else {
