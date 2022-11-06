@@ -641,7 +641,10 @@ fn test_parse_whitespace() {
 fn test_parse_list() {
     init();
 
-    println!("{:?}", TokenizerBuilder::from_string(r#"()"#.to_string()).collect::<Vec<_>>());
+    println!(
+        "{:?}",
+        TokenizerBuilder::from_string(r#"()"#.to_string()).collect::<Vec<_>>()
+    );
 
     let span = TokenizerBuilder::from_string(r#"()"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
