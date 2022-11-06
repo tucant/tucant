@@ -1,6 +1,5 @@
 use std::{fmt::Debug, iter::Peekable};
 
-
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use tucant_language_server_derive_output::{FoldingRange, Position, Range};
@@ -455,14 +454,9 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if (element.1.range.start.line, element.1.range.start.character)
-                <= (
-                    position.line,
-                    position.character,
-                )
-                && (
-                    position.line,
-                    position.character,
-                ) <= (element.1.range.end.line, element.1.range.end.character)
+                <= (position.line, position.character)
+                && (position.line, position.character)
+                    <= (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {
@@ -471,14 +465,9 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
         }
         Ast::List(ref list) => {
             if (element.1.range.start.line, element.1.range.start.character)
-                == (
-                    position.line,
-                    position.character,
-                )
-                || (
-                    position.line,
-                    position.character,
-                ) == (element.1.range.end.line, element.1.range.end.character)
+                == (position.line, position.character)
+                || (position.line, position.character)
+                    == (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {

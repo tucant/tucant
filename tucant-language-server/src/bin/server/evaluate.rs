@@ -256,18 +256,14 @@ impl Type for AddLambdaType {
                     }
                 }
             }
-            (Err(ref _e), _) => {
-                (
-                    left_value,
-                    Box::new(left_value_trace.chain(right_value_trace)),
-                )
-            }
-            (_, Err(ref _e)) => {
-                (
-                    right_value,
-                    Box::new(left_value_trace.chain(right_value_trace)),
-                )
-            }
+            (Err(ref _e), _) => (
+                left_value,
+                Box::new(left_value_trace.chain(right_value_trace)),
+            ),
+            (_, Err(ref _e)) => (
+                right_value,
+                Box::new(left_value_trace.chain(right_value_trace)),
+            ),
         }
     }
 }
@@ -372,7 +368,7 @@ impl Type for DefineLambdaType {
         span: Span,
         _context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) ->TypecheckCall {
+    ) -> TypecheckCall {
         let [variable, body]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(val) => val,
             Err(_) => {
@@ -448,12 +444,7 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<(RcValue, Span)> {
     evaluate_with_context(&mut context, value)
 }
 
-pub fn typecheck(
-    value: (Ast, Span),
-) -> (
-    EvaluateResult<(RcType, Span)>,
-    Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-) {
+pub fn typecheck(value: (Ast, Span)) -> TypecheckCall {
     let mut context: Vec<(String, (RcType, Span))> = vec![
         (
             "lambda".to_string(),
@@ -538,10 +529,7 @@ fn resolve_identifier_type(
 pub fn typecheck_with_context(
     context: &mut Vec<(String, (RcType, Span))>,
     _type: (Ast, Span),
-) -> (
-    EvaluateResult<(RcType, Span)>,
-    Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-) {
+) -> TypecheckCall {
     match &_type.0 {
         Ast::Number(number) => {
             let rc: EvaluateResult<(RcType, Span)> =
@@ -572,10 +560,7 @@ pub fn typecheck_with_context(
                 Ast::Identifier(identifier) => {
                     let val =
                         resolve_identifier_type(context, (identifier.clone(), callable.1.clone()));
-                    let val: (
-                        EvaluateResult<(RcType, Span)>,
-                        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-                    ) = (val.clone(), Box::new(std::iter::once(val)));
+                    let val: TypecheckCall = (val.clone(), Box::new(std::iter::once(val)));
                     val
                 }
                 Ast::List(_) => typecheck_with_context(context, callable.clone()),
