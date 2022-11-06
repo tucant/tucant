@@ -33,16 +33,18 @@ pub trait Value: Debug {
     }
 }
 
+pub type TypecheckCall = (
+    EvaluateResult<(RcType, Span)>,
+    Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
+);
+
 pub trait Type: Debug {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
         _context: &mut Vec<(String, (RcType, Span))>,
         _args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<(RcType, Span)>,
-        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    ) {
+    ) -> TypecheckCall {
         let val = Err(EvaluateError {
             location: span,
             reason: "not yet implemented".to_string(),
@@ -70,10 +72,7 @@ impl Type for WidenInteger {
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<(RcType, Span)>,
-        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    ) {
+    ) -> TypecheckCall {
         let [value]: &[(Ast, Span); 1] = match args.try_into() {
             Ok(v) => v,
             Err(_e) => {
@@ -158,10 +157,7 @@ impl Type for AddLambdaType {
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<(RcType, Span)>,
-        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    ) {
+    ) -> TypecheckCall {
         let [left, right]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(v) => v,
             Err(_e) => {
@@ -313,10 +309,7 @@ impl Type for LambdaType {
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<(RcType, Span)>,
-        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    ) {
+    ) -> TypecheckCall {
         let [variable_value]: &[(Ast, Span); 1] = match args.try_into() {
             Ok(v) => v,
             Err(_) => {
@@ -379,10 +372,7 @@ impl Type for DefineLambdaType {
         span: Span,
         _context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<(RcType, Span)>,
-        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-    ) {
+    ) ->TypecheckCall {
         let [variable, body]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(val) => val,
             Err(_) => {

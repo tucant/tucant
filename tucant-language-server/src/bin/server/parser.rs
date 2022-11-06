@@ -451,7 +451,7 @@ pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRang
     }
 }
 
-pub fn hover_visitor<'a>(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
+pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if (element.1.range.start.line, element.1.range.start.character)
