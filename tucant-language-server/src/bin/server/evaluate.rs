@@ -21,7 +21,7 @@ pub trait Value: Debug {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, Rc<dyn Value>)>,
+        _context: &mut Vec<(String, (RcValue, Span))>,
         _args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         Err(EvaluateError {
@@ -35,7 +35,7 @@ pub trait Type: Debug {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, RcType)>,
+        _context: &mut Vec<(String, (RcType, Span))>,
         _args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<(RcType, Span)>,
@@ -66,7 +66,7 @@ impl Type for WidenInteger {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, RcType)>,
+        context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<(RcType, Span)>,
@@ -108,7 +108,7 @@ impl Value for AddLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Value>)>,
+        context: &mut Vec<(String, (RcValue, Span))>,
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         let [left, right]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
@@ -155,7 +155,7 @@ impl Type for AddLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Type>)>,
+        context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<(RcType, Span)>,
@@ -283,7 +283,7 @@ impl Value for LambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Value>)>,
+        context: &mut Vec<(String, (RcValue, Span))>,
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         let [variable_value]: &[(Ast, Span); 1] = args.try_into().map_err(|_| EvaluateError {
@@ -291,7 +291,7 @@ impl Value for LambdaValue {
             reason: "expected exactly one argument".to_string().into(),
         })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
-        context.push((self.inner.variable.clone(), arg_value));
+        context.push((self.variable.clone(), arg_value));
         let return_value = evaluate_with_context(context, self.inner.body.clone());
         context.pop();
         return_value
@@ -308,13 +308,13 @@ impl Type for LambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        context: &mut Vec<(String, Rc<dyn Type>)>,
-        args: &[Ast],
+        context: &mut Vec<(String, (RcType, Span))>,
+        args: &[(Ast, Span)],
     ) ->(
         EvaluateResult<(RcType, Span)>,
         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
     )  {
-        let [variable_value]: &[Span<Ast>; 1] = match args.try_into() {
+        let [variable_value]: &[(Ast, Span); 1] = match args.try_into() {
             Ok(v) => v,
             Err(_) => {
                 let err = Err(EvaluateError {
@@ -343,10 +343,10 @@ impl Value for DefineLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, Rc<dyn Value>)>,
+        _context: &mut Vec<(String, (RcValue, Span))>,
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [variable, body]: &[Span<Ast>; 2] = args.try_into().map_err(|_| EvaluateError {
+        let [variable, body]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
             location: None,
             reason: "expected exactly two arguments".to_string().into(),
         })?;
@@ -375,7 +375,7 @@ impl Type for DefineLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, Rc<dyn Type>)>,
+        _context: &mut Vec<(String, (RcType, Span))>,
         args: &[(Ast, Span)],
     ) ->(
         EvaluateResult<(RcType, Span)>,
@@ -414,7 +414,7 @@ impl Type for DefineLambdaType {
 }
 
 pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<RcValue> {
-    let mut context: Vec<(String, Rc<dyn Value>)> = vec![
+    let mut context: Vec<(String, (RcValue, Span))> = vec![
         (
             "lambda".to_string(),
             Rc::new(Span {
@@ -472,7 +472,7 @@ pub fn typecheck(
 
 // TODO FIXME probably return an IdentiferType that also contains the location of the definition
 fn resolve_identifier_type(
-    context: &mut [(String, Rc<dyn Type>)],
+    context: &mut [(String, (RcType, Span))],
     identifier: (String, Span),
 ) -> EvaluateResult<Rc<dyn Type>> {
     match context
@@ -498,7 +498,7 @@ fn resolve_identifier_type(
 }
 
 pub fn typecheck_with_context(
-    context: &mut Vec<(String, Rc<dyn Type>)>,
+    context: &mut Vec<(String, (RcType, Span))>,
     _type: &(Ast, Span),
 ) -> (
     EvaluateResult<(RcType, Span)>,
@@ -585,7 +585,7 @@ pub fn typecheck_with_context(
 
 #[allow(clippy::all)]
 pub fn evaluate_with_context(
-    _context: &mut Vec<(String, Rc<dyn Value>)>,
+    _context: &mut Vec<(String, (RcValue, Span))>,
     _value: (Ast, Span),
 ) -> EvaluateResult<(RcValue, Span)> {
     todo!()
