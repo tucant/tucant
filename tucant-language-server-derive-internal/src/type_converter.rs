@@ -99,6 +99,7 @@ pub fn handle_type(
                     #name
                 },
                 quote! {
+                    #[allow(clippy::derive_partial_eq_without_eq)]
                     #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     #[serde(untagged)]
                     pub enum #name {
@@ -165,6 +166,7 @@ pub fn handle_type(
                     #name
                 },
                 quote! {
+                    #[allow(clippy::derive_partial_eq_without_eq)]
                     #[::serde_with::skip_serializing_none]
                     #[derive(::serde::Serialize, ::serde::Deserialize, Debug, PartialEq, Clone)]
                     pub struct #name {
