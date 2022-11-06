@@ -103,45 +103,25 @@ impl Type for WidenInteger {
 #[derive(Debug)]
 pub struct StringValue(String);
 
-impl Value for Span<StringValue> {
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
+impl Value for StringValue {
+    
 }
 
 #[derive(Debug, Clone)]
 pub struct StringType(Option<String>);
 
-impl Type for Span<StringType> {
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
+impl Type for StringType {
+    
 }
 
 #[derive(Debug)]
 pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
 
-impl Value for Span<AddLambdaValue> {
+impl Value for AddLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Value >)>,
-        args: &[Span<Ast>],
+        args: &[(Ast, Span)],
     ) -> EvaluateResult<Rc<dyn Value >> {
         let [left, right]: &[Span<Ast>; 2] =
             args.try_into().map_err(|_| EvaluateError {
@@ -177,23 +157,16 @@ impl Value for Span<AddLambdaValue> {
         }))
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
 pub struct AddLambdaType;
 
-impl Type for Span<AddLambdaType> {
+impl Type for AddLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type >)>,
-        args: &[Span<Ast>],
+        args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<RcType>,
         Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
@@ -311,34 +284,19 @@ impl Type for Span<AddLambdaType> {
         }
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
 }
 
 #[derive(Debug)]
 pub struct LambdaValue {
     variable: String,
-    body: Span<Ast>,
+    body: (Ast, Span),
 }
 
-impl Value for Span<LambdaValue> {
+impl Value for LambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Value >)>,
-        args: &[Span<Ast>],
+        args: &[(Ast, Span)],
     ) -> EvaluateResult<Rc<dyn Value >> {
         let [variable_value]: &[Span<Ast>; 1] =
             args.try_into().map_err(|_| EvaluateError {
@@ -352,26 +310,19 @@ impl Value for Span<LambdaValue> {
         return_value
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
 pub struct LambdaType {
     variable: String,
-    body: Span<Ast>,
+    body: (Ast, Span),
 }
 
-impl Type for Span<LambdaType> {
+impl Type for LambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         context: &mut Vec<(String, Rc<dyn Type >)>,
-        args: &[Span<Ast>],
+        args: &[Ast],
     ) -> (
         EvaluateResult<RcType>,
         Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
@@ -397,31 +348,16 @@ impl Type for Span<LambdaType> {
         }
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
 }
 
 #[derive(Debug)]
 pub struct DefineLambdaValue;
 
-impl Value for Span<DefineLambdaValue> {
+impl Value for DefineLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         _context: &mut Vec<(String, Rc<dyn Value >)>,
-        args: &[Span<Ast>],
+        args: &[(Ast, Span)],
     ) -> EvaluateResult<Rc<dyn Value >> {
         let [variable, body]: &[Span<Ast>; 2] =
             args.try_into().map_err(|_| EvaluateError {
@@ -445,24 +381,17 @@ impl Value for Span<DefineLambdaValue> {
         }))
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
 pub struct DefineLambdaType;
 
-impl Type for Span<DefineLambdaType> {
+impl Type for DefineLambdaType {
     fn typecheck_call(
         self: Rc<Self>, // we could pass it it's own spawn by including it in args but this is kinda weird. also then it can't return its span in the span method so
         // but we could probably let the typecheck_call method return a span...
         _context: &mut Vec<(String, Rc<dyn Type >)>,
-        args: &[Span<Ast>],
+        args: &[(Ast, Span)],
     ) -> (
         EvaluateResult<RcType>,
         Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
@@ -498,24 +427,9 @@ impl Type for Span<DefineLambdaType> {
         (val.clone(), Box::new(std::iter::once(val)))
     }
 
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
 }
 
-pub fn evaluate(value: Span<Ast>) -> EvaluateResult<Rc<dyn Value >> {
+pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<Rc<dyn Value >> {
     let mut context: Vec<(String, Rc<dyn Value>)> = vec![
         (
             "lambda".to_string(),
@@ -538,7 +452,7 @@ pub fn evaluate(value: Span<Ast>) -> EvaluateResult<Rc<dyn Value >> {
 }
 
 pub fn typecheck(
-    value: &Span<Ast>,
+    value: (Ast, Span),
 ) -> (
     EvaluateResult<RcType>,
     Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
@@ -575,7 +489,7 @@ pub fn typecheck(
 // TODO FIXME probably return an IdentiferType that also contains the location of the definition
 fn resolve_identifier_type(
     context: &mut [(String, Rc<dyn Type >)],
-    identifier: Span<String>,
+    identifier: (String, Span),
 ) -> EvaluateResult<Rc<dyn Type >> {
     match context
         .iter()
@@ -601,7 +515,7 @@ fn resolve_identifier_type(
 
 pub fn typecheck_with_context(
     context: &mut Vec<(String, Rc<dyn Type >)>,
-    _type: &Span<Ast>,
+    _type: &(Ast, Span),
 ) -> (
     EvaluateResult<RcType>,
     Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
@@ -688,7 +602,7 @@ pub fn typecheck_with_context(
 #[allow(clippy::all)]
 pub fn evaluate_with_context(
     _context: &mut Vec<(String, Rc<dyn Value >)>,
-    _value: Span<Ast>,
+    _value: (Ast, Span),
 ) -> EvaluateResult<Rc<dyn Value >> {
     todo!()
     /*
@@ -740,18 +654,18 @@ pub fn evaluate_with_context(
 // cargo test -- --show-output evaluate
 #[test]
 fn test_primitives() {
-    use crate::parser::parse_root;
+    use crate::parser::parse;
 
     let span = Ast::Number(5);
     println!("{:?}", evaluate(span.into()));
 
-    let span = Ast::String("Hallo");
+    let span = Ast::String("Hallo".to_string());
     println!("{:?}", evaluate(span.into()));
 
-    let span = Ast::Identifier("notexisting");
+    let span = Ast::Identifier("notexisting".to_string());
     println!("{:?}", evaluate(span.into()));
 
-    let span = Ast::Identifier("lambda");
+    let span = Ast::Identifier("lambda".to_string());
     println!("{:?}", evaluate(span.into()));
 
     let span = Ast::List(vec![]);
@@ -761,7 +675,7 @@ fn test_primitives() {
     println!("{:?}", evaluate(span));
 
     let result = evaluate(
-        parse_root(Span::new(
+        parse(Span::new(
             r#"
         (lambda v v)
     "#,
@@ -772,7 +686,7 @@ fn test_primitives() {
     println!("{:?}", result);
 
     let result = evaluate(
-        parse_root(Span::new(
+        parse(Span::new(
             r#"
         (lambda 1 v)
     "#,
@@ -783,7 +697,7 @@ fn test_primitives() {
     println!("{:?}", result);
 
     let result = evaluate(
-        parse_root(Span::new(
+        parse(Span::new(
             r#"
         ((lambda v v) 1)
     "#,
@@ -794,7 +708,7 @@ fn test_primitives() {
     println!("{:?}", result);
 
     let result = evaluate(
-        parse_root(Span::new(
+        parse(Span::new(
             r#"
         (add 1 (add 1 1))
     "#,
@@ -805,7 +719,7 @@ fn test_primitives() {
     println!("{:?}", result);
 
     let result = evaluate(
-        parse_root(Span::new(
+        parse(Span::new(
             r#"
         (add 1 (add 1 ""))
     "#,
