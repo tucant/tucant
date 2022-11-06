@@ -22,7 +22,7 @@ use tucant_language_server_derive_output::*;
 
 use crate::{
     evaluate::typecheck,
-    parser::{visitor, Error, Span},
+    parser::{visitor, Error},
 };
 
 #[derive(Parser)]
@@ -128,7 +128,7 @@ impl Server {
 
         let value = match parse_from_str(&document) {
             Ok(value) => value,
-            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
+            Err(Error { partial_parse: _, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         // TODO FIXME bug whitespace before a list belongs to that list?
@@ -155,7 +155,7 @@ impl Server {
                             value: format!("{:?}", found_type),
                         },
                     ),
-                    range: Some(found_type.1.range.clone()),
+                    range: Some(found_type.1.range),
                 })
             })
         });
@@ -229,7 +229,7 @@ impl Server {
 
         let value = match parse_from_str(&document) {
             Ok(value) => value,
-            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME,
+            Err(Error { partial_parse: _, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME,
         };
 
         let response = H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7::Variant0(
@@ -272,7 +272,7 @@ impl Server {
                         code: None,
                         code_description: None,
                         source: Some("tucant".to_string()),
-                        message: e.reason.to_string(),
+                        message: e.reason,
                         tags: None,
                         related_information: None,
                         data: None,
@@ -312,7 +312,7 @@ impl Server {
 
         let value = match parse_from_str(&document) {
             Ok(value) => value,
-            Err(Error { partial_parse, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
+            Err(Error { partial_parse: _, .. }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
         let result = std::iter::once((0, 0, 0, 0, 0))

@@ -1,9 +1,9 @@
 use tucant_language_server_derive_output::{Position, Range};
 
-use crate::parser::{parse_from_str, Ast, Span};
+use crate::parser::{Ast, Span};
 
 use std::any::Any;
-use std::borrow::Cow;
+
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -28,7 +28,7 @@ pub trait Value: Debug {
     ) -> EvaluateResult<(RcValue, Span)> {
         Err(EvaluateError {
             location: span,
-            reason: "not yet implemented".to_string().into(),
+            reason: "not yet implemented".to_string(),
         })
     }
 }
@@ -45,7 +45,7 @@ pub trait Type: Debug {
     ) {
         let val = Err(EvaluateError {
             location: span,
-            reason: "not yet implemented".to_string().into(),
+            reason: "not yet implemented".to_string(),
         });
         (val.clone(), Box::new(std::iter::once(val)))
     }
@@ -79,7 +79,7 @@ impl Type for WidenInteger {
             Err(_e) => {
                 let val = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly one argument".to_string().into(),
+                    reason: "expected exactly one argument".to_string(),
                 });
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
@@ -115,7 +115,7 @@ impl Value for AddLambdaValue {
     ) -> EvaluateResult<(RcValue, Span)> {
         let [left, right]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
             location: span.clone(),
-            reason: "expected exactly two arguments".to_string().into(),
+            reason: "expected exactly two arguments".to_string(),
         })?;
         let left_value = evaluate_with_context(context, left.clone())?;
         let right_value = evaluate_with_context(context, right.clone())?;
@@ -123,13 +123,13 @@ impl Value for AddLambdaValue {
             .downcast_ref::<IntegerValue>()
             .ok_or(EvaluateError {
                 location: left_value.1,
-                reason: format!("expected integer type, got {:?}", left_value.0).into(),
+                reason: format!("expected integer type, got {:?}", left_value.0),
             })?;
         let right_value = (&right_value.0 as &dyn Any)
             .downcast_ref::<IntegerValue>()
             .ok_or(EvaluateError {
                 location: right_value.1.clone(),
-                reason: format!("expected integer type, got {:?}", right_value).into(),
+                reason: format!("expected integer type, got {:?}", right_value),
             })?;
         Ok((
             Rc::new(IntegerValue(
@@ -141,8 +141,7 @@ impl Value for AddLambdaValue {
                         reason: format!(
                             "integer overflow, adding {:?} and {:?}",
                             left_value, right_value
-                        )
-                        .into(),
+                        ),
                     })?,
             )),
             span,
@@ -168,7 +167,7 @@ impl Type for AddLambdaType {
             Err(_e) => {
                 let val = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly two arguments".to_string().into(),
+                    reason: "expected exactly two arguments".to_string(),
                 });
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
@@ -186,37 +185,37 @@ impl Type for AddLambdaType {
                     (None, None) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl).into(),
+                            reason: format!("expected integer type, got {:?}", vl),
                         });
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr).into(),
+                            reason: format!("expected integer type, got {:?}", vr),
                         });
                         let val = Err(EvaluateError {
                             location: span,
-                            reason: "some parameters are not integers".to_string().into(),
+                            reason: "some parameters are not integers".to_string(),
                         });
                         return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
                     }
                     (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr).into(),
+                            reason: format!("expected integer type, got {:?}", vr),
                         });
                         let val = Err(EvaluateError {
                             location: span,
-                            reason: "some parameters are not integers".to_string().into(),
+                            reason: "some parameters are not integers".to_string(),
                         });
                         return (val.clone(), Box::new(vec![val, valr].into_iter()));
                     }
                     (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl).into(),
+                            reason: format!("expected integer type, got {:?}", vl),
                         });
                         let val = Err(EvaluateError {
                             location: span,
-                            reason: "some parameters are not integers".to_string().into(),
+                            reason: "some parameters are not integers".to_string(),
                         });
                         return (val.clone(), Box::new(vec![val, vall].into_iter()));
                     }
@@ -230,13 +229,12 @@ impl Type for AddLambdaType {
                                 reason: format!(
                                     "integer overflow, adding {:?} and {:?}",
                                     left_value, right_value
-                                )
-                                .into(),
+                                ),
                             })
                         })
                     })
                     .transpose();
-                return match val {
+                match val {
                     Ok(val) => {
                         let return_value: EvaluateResult<(RcType, Span)> =
                             Ok((Rc::new(IntegerType(val)), span));
@@ -260,21 +258,21 @@ impl Type for AddLambdaType {
                             ),
                         )
                     }
-                };
+                }
             }
             (Err(ref _e), _) => {
-                return (
+                (
                     left_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
                 )
             }
             (_, Err(ref _e)) => {
-                return (
+                (
                     right_value,
                     Box::new(left_value_trace.chain(right_value_trace)),
                 )
             }
-        };
+        }
     }
 }
 
@@ -293,7 +291,7 @@ impl Value for LambdaValue {
     ) -> EvaluateResult<(RcValue, Span)> {
         let [variable_value]: &[(Ast, Span); 1] = args.try_into().map_err(|_| EvaluateError {
             location: span,
-            reason: "expected exactly one argument".to_string().into(),
+            reason: "expected exactly one argument".to_string(),
         })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
         context.push((self.variable.clone(), arg_value));
@@ -324,7 +322,7 @@ impl Type for LambdaType {
             Err(_) => {
                 let err = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly one argument".to_string().into(),
+                    reason: "expected exactly one argument".to_string(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
@@ -353,13 +351,13 @@ impl Value for DefineLambdaValue {
     ) -> EvaluateResult<(RcValue, Span)> {
         let [variable, body]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
             location: span.clone(),
-            reason: "expected exactly two arguments".to_string().into(),
+            reason: "expected exactly two arguments".to_string(),
         })?;
         let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
                 location: variable.1.clone(),
-                reason: "expected argument identifier".to_string().into(),
+                reason: "expected argument identifier".to_string(),
             })?,
         };
         Ok((
@@ -390,7 +388,7 @@ impl Type for DefineLambdaType {
             Err(_) => {
                 let err = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly two arguments".to_string().into(),
+                    reason: "expected exactly two arguments".to_string(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
@@ -400,7 +398,7 @@ impl Type for DefineLambdaType {
             _ => {
                 let err = Err(EvaluateError {
                     location: variable.1.clone(),
-                    reason: "expected argument identifier".to_string().into(),
+                    reason: "expected argument identifier".to_string(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
@@ -542,7 +540,7 @@ fn resolve_identifier_type(
         Some(value) => Ok(value.clone()),
         None => Err(EvaluateError {
             location: identifier.1,
-            reason: format!("could not find identifier {}", identifier.0).into(),
+            reason: format!("could not find identifier {}", identifier.0),
         }),
     }
 }
@@ -575,7 +573,7 @@ pub fn typecheck_with_context(
                 None => {
                     let err = Err(EvaluateError {
                         location: _type.1,
-                        reason: "can't call an empty list".to_string().into(),
+                        reason: "can't call an empty list".to_string(),
                     });
                     return (err.clone(), Box::new(std::iter::once(err)));
                 }
@@ -594,7 +592,7 @@ pub fn typecheck_with_context(
                 _ => {
                     let val = Err(EvaluateError {
                         location: _type.1,
-                        reason: "can't call a string or number".to_string().into(),
+                        reason: "can't call a string or number".to_string(),
                     });
                     return (val.clone(), Box::new(std::iter::once(val)));
                 }
@@ -670,7 +668,7 @@ pub fn evaluate_with_context(
 #[test]
 #[ignore = "not yet implemented"]
 fn test_primitives() {
-    use crate::parser::parse;
+    
 
     let fake_span = Span {
         filename: "<fake>".to_string(),
@@ -701,7 +699,7 @@ fn test_primitives() {
     println!("{:?}", evaluate((span, fake_span.clone())));
 
     let span = Ast::List(vec![(Ast::Number(42), fake_span.clone())]);
-    println!("{:?}", evaluate((span, fake_span.clone())));
+    println!("{:?}", evaluate((span, fake_span)));
 
     let result = evaluate(
         parse_from_str(

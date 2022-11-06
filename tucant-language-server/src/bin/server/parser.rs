@@ -1,6 +1,6 @@
-use std::{assert_matches, borrow::Cow, fmt::Debug, iter::Peekable};
+use std::{fmt::Debug, iter::Peekable};
 
-use core::assert_matches::assert_matches;
+
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use tucant_language_server_derive_output::{FoldingRange, Position, Range};
@@ -185,8 +185,8 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
     match iterator.next().unwrap() {
         ('"', start_pos) => {
             let end: String = iterator
-                .peeking_take_while(|(char, pos)| *char != '"')
-                .map(|(char, pos)| char)
+                .peeking_take_while(|(char, _pos)| *char != '"')
+                .map(|(char, _pos)| char)
                 .collect();
             match iterator.next() {
                 Some(('"', end_pos)) => Some(Ok((
@@ -194,7 +194,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                     Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
-                            start: start_pos.clone(),
+                            start: start_pos,
                             end: end_pos,
                         },
                     },
@@ -245,25 +245,25 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
             let start_pos = start_pos.clone();
             let end_pos = iterator
                 .clone()
-                .peeking_take_while(|(char, pos)| char.is_ascii_digit())
-                .map(|(char, pos)| pos)
+                .peeking_take_while(|(char, _pos)| char.is_ascii_digit())
+                .map(|(_char, pos)| pos)
                 .last()
                 .unwrap();
             let number: String = iterator
-                .peeking_take_while(|(char, pos)| char.is_ascii_digit())
-                .map(|(char, pos)| char)
+                .peeking_take_while(|(char, _pos)| char.is_ascii_digit())
+                .map(|(char, _pos)| char)
                 .collect();
 
             let span = Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
-                    start: start_pos.clone(),
+                    start: start_pos,
                     end: end_pos,
                 },
             };
             match number.parse() {
                 Ok(n) => Some(Ok((Token::Number(n), span))),
-                Err(err) => Some(Err(Error {
+                Err(_err) => Some(Err(Error {
                     location: span,
                     reason: "Failed to parse number".to_string(),
                     partial_parse: (),
@@ -292,13 +292,13 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
             let start_pos = start_pos.clone();
             let end_pos = iterator
                 .clone()
-                .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
-                .map(|(char, pos)| pos)
+                .peeking_take_while(|(char, _pos)| !char.is_whitespace() && *char != ')')
+                .map(|(_char, pos)| pos)
                 .last()
                 .unwrap();
             let number: String = iterator
-                .peeking_take_while(|(char, pos)| !char.is_whitespace() && *char != ')')
-                .map(|(char, pos)| char)
+                .peeking_take_while(|(char, _pos)| !char.is_whitespace() && *char != ')')
+                .map(|(char, _pos)| char)
                 .collect();
 
             Some(Ok((
@@ -306,7 +306,7 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                 Span {
                     filename: "<stdin>".to_string(),
                     range: Range {
-                        start: start_pos.clone(),
+                        start: start_pos,
                         end: end_pos,
                     },
                 },
@@ -331,11 +331,11 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
-            Some(('(', position)) => parse_paren_open(&mut self.iterator),
-            Some((')', position)) => parse_paren_close(&mut self.iterator),
-            Some(('"', start_pos)) => parse_string(&mut self.iterator),
-            Some(('0'..='9', start_pos)) => parse_number(&mut self.iterator),
-            Some(('a'..='z' | 'A'..='Z' | '_', start_pos)) => parse_identifier(&mut self.iterator),
+            Some(('(', _position)) => parse_paren_open(&mut self.iterator),
+            Some((')', _position)) => parse_paren_close(&mut self.iterator),
+            Some(('"', _start_pos)) => parse_string(&mut self.iterator),
+            Some(('0'..='9', _start_pos)) => parse_number(&mut self.iterator),
+            Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => parse_identifier(&mut self.iterator),
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
                 // whitespace
@@ -395,7 +395,7 @@ pub fn test_tokenize() {
 
 pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)>> {
     match element.0 {
-        Ast::Identifier(identifier) => {
+        Ast::Identifier(_identifier) => {
             let start_pos = element.1.range.start;
             let end_pos = element.1.range.end;
             Box::new(std::iter::once((
