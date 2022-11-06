@@ -346,9 +346,13 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
         Some((Token::String(ident), span)) => Ok((Ast::String(ident), span)),
         Some((Token::ParenOpen, span)) => {
             let mut list = Vec::new();
-            while let Some(_) = tokenizer.peek() {
-                list.push(parse(tokenizer)?);
+            loop {
+                match tokenizer.peek() {
+                    Some(Ok((Token::ParenClose, _))) => break,
+                    _ => list.push(parse(tokenizer)?),
+                }
             }
+            tokenizer.next();
             Ok((Ast::List(list), span))
         }
         Some((Token::ParenClose, span)) => Err(Error {
@@ -636,6 +640,8 @@ fn test_parse_whitespace() {
 #[test]
 fn test_parse_list() {
     init();
+
+    println!("{:?}", TokenizerBuilder::from_string(r#"()"#.to_string()).collect::<Vec<_>>());
 
     let span = TokenizerBuilder::from_string(r#"()"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
