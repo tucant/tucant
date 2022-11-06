@@ -158,14 +158,14 @@ impl Type for AddLambdaType {
         context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[(Ast, Span)],
     ) -> (
-        EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
+        EvaluateResult<(RcType, Span)>,
+        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
     ) {
-        let [left, right]: &[Span<Ast>; 2] = match args.try_into() {
+        let [left, right]: &[(Ast, Span); 2] = match args.try_into() {
             Ok(v) => v,
             Err(_e) => {
                 let val = Err(EvaluateError {
-                    location: None,
+                    location: span,
                     reason: "expected exactly two arguments".to_string().into(),
                 });
                 return (val.clone(), Box::new(std::iter::once(val)));
@@ -175,41 +175,43 @@ impl Type for AddLambdaType {
         let (right_value, right_value_trace) = typecheck_with_context(context, right);
         let (left_value, right_value) = match (&left_value, &right_value) {
             (Ok(ref vl), Ok(ref vr)) => {
-                match (vl.downcast_integer_type(), vr.downcast_integer_type()) {
+                match ( (&vl as &dyn Any)
+                .downcast_ref::<IntegerType>(),  (&vr as &dyn Any)
+                .downcast_ref::<IntegerType>()) {
                     (Some(vl), Some(vr)) => (vl, vr),
                     (None, None) => {
                         let vall = Err(EvaluateError {
-                            location: Some(vl.span()),
+                            location: vl.1,
                             reason: format!("expected integer type, got {:?}", vl).into(),
                         });
                         let valr = Err(EvaluateError {
-                            location: Some(vr.span()),
+                            location: vr.1,
                             reason: format!("expected integer type, got {:?}", vr).into(),
                         });
                         let val = Err(EvaluateError {
-                            location: Some(self.span()), // it needs its own span
+                            location: span,
                             reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
                     }
                     (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
-                            location: Some(vr.span()),
+                            location: vr.1,
                             reason: format!("expected integer type, got {:?}", vr).into(),
                         });
                         let val = Err(EvaluateError {
-                            location: Some(self.span()),
+                            location: span,
                             reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, valr].into_iter()));
                     }
                     (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
-                            location: Some(vl.span()),
+                            location: vl.1,
                             reason: format!("expected integer type, got {:?}", vl).into(),
                         });
                         let val = Err(EvaluateError {
-                            location: Some(self.span()),
+                            location: span,
                             reason: "some parameters are not integers".to_string().into(),
                         });
                         return (val.clone(), Box::new(vec![val, vall].into_iter()));
@@ -234,7 +236,7 @@ impl Type for AddLambdaType {
             .and_then(|l| {
                 right_value.0.map(|r| {
                     l.checked_add(r).ok_or(EvaluateError {
-                        location: None,
+                        location: span,
                         reason: format!(
                             "integer overflow, adding {:?} and {:?}",
                             left_value, right_value
@@ -246,11 +248,7 @@ impl Type for AddLambdaType {
             .transpose();
         match val {
             Ok(val) => {
-                let return_value: EvaluateResult<RcType> = Ok(Rc::new(Span {
-                    inner: IntegerType(val),
-                    full_string: "",
-                    string: "",
-                }));
+                let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(val)), span));
                 (
                     return_value.clone(),
                     Box::new(
@@ -261,7 +259,7 @@ impl Type for AddLambdaType {
                 )
             }
             Err(err) => {
-                let return_value: EvaluateResult<RcType> = Err(err);
+                let return_value: EvaluateResult<(RcType, Span)> = Err(err);
                 (
                     return_value.clone(),
                     Box::new(
@@ -288,8 +286,8 @@ impl Value for LambdaValue {
         context: &mut Vec<(String, Rc<dyn Value>)>,
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [variable_value]: &[Span<Ast>; 1] = args.try_into().map_err(|_| EvaluateError {
-            location: None,
+        let [variable_value]: &[(Ast, Span); 1] = args.try_into().map_err(|_| EvaluateError {
+            location: span,
             reason: "expected exactly one argument".to_string().into(),
         })?;
         let arg_value = evaluate_with_context(context, variable_value.clone())?;
@@ -312,10 +310,10 @@ impl Type for LambdaType {
         span: Span,
         context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[Ast],
-    ) -> (
-        EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
-    ) {
+    ) ->(
+        EvaluateResult<(RcType, Span)>,
+        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
+    )  {
         let [variable_value]: &[Span<Ast>; 1] = match args.try_into() {
             Ok(v) => v,
             Err(_) => {
@@ -379,10 +377,10 @@ impl Type for DefineLambdaType {
         span: Span,
         _context: &mut Vec<(String, Rc<dyn Type>)>,
         args: &[(Ast, Span)],
-    ) -> (
-        EvaluateResult<RcType>,
-        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
-    ) {
+    ) ->(
+        EvaluateResult<(RcType, Span)>,
+        Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
+    )  {
         let [variable, body]: &[Span<Ast>; 2] = match args.try_into() {
             Ok(val) => val,
             Err(_) => {
