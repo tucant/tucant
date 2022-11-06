@@ -305,7 +305,7 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                     end: position.clone(),
                 },
             },
-            reason: "".to_string(),
+            reason: "Expected an identifier".to_string(),
             partial_parse: (),
         })),
     }
@@ -584,29 +584,29 @@ fn test_parse_string() {
 fn test_parse_identifier() {
     init();
 
-    let span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
-    let string = parse(&mut span.peekable()).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
-    let span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
-    let string = parse(&mut span.peekable()).unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
     println!("{:?}", string);
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
-    let span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
-    let string = parse(&mut span.peekable()).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_matches!(string.0, Ast::Identifier(v) if v == "anidentifier");
+    assert_matches!(string.0, Token::Identifier(v) if v == "anidentifier");
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "");
 
-    let span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
-    let string = parse(&mut span.peekable()).unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
+    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
     println!("{:?}", string);
-    assert_matches!(string.0, Ast::Identifier(v) if v == "anidentifier");
+    assert_matches!(string.0, Token::Identifier(v) if v == "anidentifier");
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "    jlih");
 }
