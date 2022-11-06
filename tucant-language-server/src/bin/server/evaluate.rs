@@ -7,42 +7,40 @@ use std::rc::Rc;
 // remove the lifetimes everywhere and do more
 
 #[derive(Debug, Clone)]
-pub struct EvaluateError<'a> {
-    pub location: Option<Span<()>>,
-    pub reason: Cow<'static, str>,
+pub struct EvaluateError {
+    pub location: Span,
+    pub reason: String,
 }
 
-pub type EvaluateResult<'a, V> = Result<V, EvaluateError<'a>>; // TODO FIXME maybe put the span to the outside?
-pub type RcValue<'a> = Rc<dyn Value<'a> + 'a>;
-pub type RcType<'a> = Rc<dyn Type<'a> + 'a>;
+pub type EvaluateResult<V> = Result<V, EvaluateError>; // TODO FIXME maybe put the span to the outside?
+pub type RcValue = Rc<dyn Value>;
+pub type RcType = Rc<dyn Type>;
 
-pub trait Value<'a>: Debug {
+pub trait Value: Debug {
     fn evaluate_call(
         self: Rc<Self>,
-        _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
-        _args: &[Span<Ast>],
-    ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+        _context: &mut Vec<(String, Rc<dyn Value>)>,
+        _args: &[(Ast, Span)],
+    ) -> EvaluateResult<Rc<dyn Value<>>> {
         Err(EvaluateError {
             location: None,
             reason: "not yet implemented".to_string().into(),
         }) // TODO FIXME add span information
     }
 
-    fn span(&self) -> Span<()>;
-
     fn downcast_integer_value(&self) -> Option<&IntegerValue> {
         None
     }
 }
 
-pub trait Type<'a>: Debug {
+pub trait Type: Debug {
     fn typecheck_call(
         self: Rc<Self>,
-        _context: &mut Vec<(String, RcType<'a>)>,
-        _args: &[Span<Ast>],
+        _context: &mut Vec<(String, RcType)>,
+        _args: &[(Ast, Span)],
     ) -> (
-        EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+        EvaluateResult<RcType>,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
     ) {
         let val = Err(EvaluateError {
             location: Some(self.span()),
@@ -50,69 +48,34 @@ pub trait Type<'a>: Debug {
         });
         (val.clone(), Box::new(std::iter::once(val)))
     }
-
-    fn span(&self) -> Span<()>;
-
-    fn downcast_integer_type(&self) -> Option<&IntegerType> {
-        None
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a>;
 }
 
 #[derive(Debug)]
 pub struct IntegerValue(i64);
 
-impl<'a> Value<'a> for Span<IntegerValue> {
+impl Value for IntegerValue {
     fn downcast_integer_value(&self) -> Option<&IntegerValue> {
         Some(&self.inner)
-    }
-
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct IntegerType(Option<i64>);
 
-impl<'a> Type<'a> for Span<IntegerType> {
-    fn downcast_integer_type(&self) -> Option<&IntegerType> {
-        Some(&self.inner)
-    }
-
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
+impl Type for IntegerType {
 }
 
 #[derive(Debug, Clone)]
 pub struct WidenInteger;
 
-impl<'a> Type<'a> for Span<WidenInteger> {
+impl Type for WidenInteger {
     fn typecheck_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, RcType<'a>)>,
-        args: &[Span<Ast>],
+        context: &mut Vec<(String, RcType)>,
+        args: &[(Ast, Span)],
     ) -> (
-        EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+        EvaluateResult<RcType>,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
     ) {
         let [value]: &[Span<Ast>; 1] = match args.try_into() {
             Ok(v) => v,
@@ -125,7 +88,7 @@ impl<'a> Type<'a> for Span<WidenInteger> {
             }
         };
         let (_value, value_trace) = typecheck_with_context(context, value);
-        let return_value: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
+        let return_value: EvaluateResult<RcType> = Ok(Rc::new(Span {
             inner: IntegerType(None),
             full_string: "",
             string: "",
@@ -135,28 +98,12 @@ impl<'a> Type<'a> for Span<WidenInteger> {
             Box::new(value_trace.chain(std::iter::once(return_value))),
         )
     }
-
-    fn span(&self) -> Span<()> {
-        Span {
-            inner: (),
-            full_string: self.full_string,
-            string: self.string,
-        }
-    }
-
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
-        Rc::new(Span {
-            inner: self.inner.clone(),
-            full_string: span.full_string,
-            string: span.string,
-        })
-    }
 }
 
 #[derive(Debug)]
 pub struct StringValue(String);
 
-impl<'a> Value<'a> for Span<StringValue> {
+impl Value for Span<StringValue> {
     fn span(&self) -> Span<()> {
         Span {
             inner: (),
@@ -169,7 +116,7 @@ impl<'a> Value<'a> for Span<StringValue> {
 #[derive(Debug, Clone)]
 pub struct StringType(Option<String>);
 
-impl<'a> Type<'a> for Span<StringType> {
+impl Type for Span<StringType> {
     fn span(&self) -> Span<()> {
         Span {
             inner: (),
@@ -178,7 +125,7 @@ impl<'a> Type<'a> for Span<StringType> {
         }
     }
 
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
+    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
         Rc::new(Span {
             inner: self.inner.clone(),
             full_string: span.full_string,
@@ -190,12 +137,12 @@ impl<'a> Type<'a> for Span<StringType> {
 #[derive(Debug)]
 pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
 
-impl<'a> Value<'a> for Span<AddLambdaValue> {
+impl Value for Span<AddLambdaValue> {
     fn evaluate_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
+        context: &mut Vec<(String, Rc<dyn Value >)>,
         args: &[Span<Ast>],
-    ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+    ) -> EvaluateResult<Rc<dyn Value >> {
         let [left, right]: &[Span<Ast>; 2] =
             args.try_into().map_err(|_| EvaluateError {
                 location: None,
@@ -242,14 +189,14 @@ impl<'a> Value<'a> for Span<AddLambdaValue> {
 #[derive(Debug, Clone)]
 pub struct AddLambdaType;
 
-impl<'a> Type<'a> for Span<AddLambdaType> {
+impl Type for Span<AddLambdaType> {
     fn typecheck_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
+        context: &mut Vec<(String, Rc<dyn Type >)>,
         args: &[Span<Ast>],
     ) -> (
-        EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+        EvaluateResult<RcType>,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
     ) {
         let [left, right]: &[Span<Ast>; 2] = match args.try_into() {
             Ok(v) => v,
@@ -336,7 +283,7 @@ impl<'a> Type<'a> for Span<AddLambdaType> {
             .transpose();
         match val {
             Ok(val) => {
-                let return_value: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
+                let return_value: EvaluateResult<RcType> = Ok(Rc::new(Span {
                     inner: IntegerType(val),
                     full_string: "",
                     string: "",
@@ -351,7 +298,7 @@ impl<'a> Type<'a> for Span<AddLambdaType> {
                 )
             }
             Err(err) => {
-                let return_value: EvaluateResult<'a, RcType<'a>> = Err(err);
+                let return_value: EvaluateResult<RcType> = Err(err);
                 (
                     return_value.clone(),
                     Box::new(
@@ -372,7 +319,7 @@ impl<'a> Type<'a> for Span<AddLambdaType> {
         }
     }
 
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
+    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
         Rc::new(Span {
             inner: self.inner.clone(),
             full_string: span.full_string,
@@ -382,17 +329,17 @@ impl<'a> Type<'a> for Span<AddLambdaType> {
 }
 
 #[derive(Debug)]
-pub struct LambdaValue<'a> {
+pub struct LambdaValue {
     variable: String,
     body: Span<Ast>,
 }
 
-impl<'a> Value<'a> for Span<LambdaValue<'a>> {
+impl Value for Span<LambdaValue> {
     fn evaluate_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
+        context: &mut Vec<(String, Rc<dyn Value >)>,
         args: &[Span<Ast>],
-    ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+    ) -> EvaluateResult<Rc<dyn Value >> {
         let [variable_value]: &[Span<Ast>; 1] =
             args.try_into().map_err(|_| EvaluateError {
                 location: None,
@@ -415,19 +362,19 @@ impl<'a> Value<'a> for Span<LambdaValue<'a>> {
 }
 
 #[derive(Debug, Clone)]
-pub struct LambdaType<'a> {
+pub struct LambdaType {
     variable: String,
     body: Span<Ast>,
 }
 
-impl<'a> Type<'a> for Span<LambdaType<'a>> {
+impl Type for Span<LambdaType> {
     fn typecheck_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
+        context: &mut Vec<(String, Rc<dyn Type >)>,
         args: &[Span<Ast>],
     ) -> (
-        EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+        EvaluateResult<RcType>,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
     ) {
         let [variable_value]: &[Span<Ast>; 1] = match args.try_into() {
             Ok(v) => v,
@@ -458,7 +405,7 @@ impl<'a> Type<'a> for Span<LambdaType<'a>> {
         }
     }
 
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
+    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
         Rc::new(Span {
             inner: self.inner.clone(),
             full_string: span.full_string,
@@ -470,12 +417,12 @@ impl<'a> Type<'a> for Span<LambdaType<'a>> {
 #[derive(Debug)]
 pub struct DefineLambdaValue;
 
-impl<'a> Value<'a> for Span<DefineLambdaValue> {
+impl Value for Span<DefineLambdaValue> {
     fn evaluate_call(
         self: Rc<Self>,
-        _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
+        _context: &mut Vec<(String, Rc<dyn Value >)>,
         args: &[Span<Ast>],
-    ) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+    ) -> EvaluateResult<Rc<dyn Value >> {
         let [variable, body]: &[Span<Ast>; 2] =
             args.try_into().map_err(|_| EvaluateError {
                 location: None,
@@ -510,15 +457,15 @@ impl<'a> Value<'a> for Span<DefineLambdaValue> {
 #[derive(Debug, Clone)]
 pub struct DefineLambdaType;
 
-impl<'a> Type<'a> for Span<DefineLambdaType> {
+impl Type for Span<DefineLambdaType> {
     fn typecheck_call(
         self: Rc<Self>, // we could pass it it's own spawn by including it in args but this is kinda weird. also then it can't return its span in the span method so
         // but we could probably let the typecheck_call method return a span...
-        _context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
+        _context: &mut Vec<(String, Rc<dyn Type >)>,
         args: &[Span<Ast>],
     ) -> (
-        EvaluateResult<'a, RcType<'a>>,
-        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+        EvaluateResult<RcType>,
+        Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
     ) {
         let [variable, body]: &[Span<Ast>; 2] = match args.try_into() {
             Ok(val) => val,
@@ -540,7 +487,7 @@ impl<'a> Type<'a> for Span<DefineLambdaType> {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let val: EvaluateResult<'a, RcType<'a>> = Ok(Rc::new(Span {
+        let val: EvaluateResult<RcType> = Ok(Rc::new(Span {
             inner: LambdaType::<'_> {
                 variable: variable.to_string(),
                 body: body.clone(),
@@ -559,7 +506,7 @@ impl<'a> Type<'a> for Span<DefineLambdaType> {
         }
     }
 
-    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType<'a> {
+    fn with_span(self: Rc<Self>, span: Span<()>) -> RcType {
         Rc::new(Span {
             inner: self.inner.clone(),
             full_string: span.full_string,
@@ -568,7 +515,7 @@ impl<'a> Type<'a> for Span<DefineLambdaType> {
     }
 }
 
-pub fn evaluate<'a>(value: Span<Ast>) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+pub fn evaluate(value: Span<Ast>) -> EvaluateResult<Rc<dyn Value >> {
     let mut context: Vec<(String, Rc<dyn Value>)> = vec![
         (
             "lambda".to_string(),
@@ -590,11 +537,11 @@ pub fn evaluate<'a>(value: Span<Ast>) -> EvaluateResult<'a, Rc<dyn Value<'a> + '
     evaluate_with_context(&mut context, value)
 }
 
-pub fn typecheck<'a>(
+pub fn typecheck(
     value: &Span<Ast>,
 ) -> (
-    EvaluateResult<'a, RcType<'a>>,
-    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    EvaluateResult<RcType>,
+    Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
 ) {
     let mut context: Vec<(String, Rc<dyn Type>)> = vec![
         (
@@ -626,10 +573,10 @@ pub fn typecheck<'a>(
 }
 
 // TODO FIXME probably return an IdentiferType that also contains the location of the definition
-fn resolve_identifier_type<'a>(
-    context: &mut [(String, Rc<dyn Type<'a> + 'a>)],
-    identifier: Span<&'a str>,
-) -> EvaluateResult<'a, Rc<dyn Type<'a> + 'a>> {
+fn resolve_identifier_type(
+    context: &mut [(String, Rc<dyn Type >)],
+    identifier: Span<String>,
+) -> EvaluateResult<Rc<dyn Type >> {
     match context
         .iter()
         .rev()
@@ -652,16 +599,16 @@ fn resolve_identifier_type<'a>(
     }
 }
 
-pub fn typecheck_with_context<'a>(
-    context: &mut Vec<(String, Rc<dyn Type<'a> + 'a>)>,
+pub fn typecheck_with_context(
+    context: &mut Vec<(String, Rc<dyn Type >)>,
     _type: &Span<Ast>,
 ) -> (
-    EvaluateResult<'a, RcType<'a>>,
-    Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>> + 'a>,
+    EvaluateResult<RcType>,
+    Box<dyn Iterator<Item = EvaluateResult<RcType>> >,
 ) {
     match &_type.inner {
         Ast::Number(number) => {
-            let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
+            let rc: EvaluateResult<Rc<(dyn Type )>> = Ok(Rc::new(Span {
                 inner: IntegerType(Some(*number)),
                 full_string: _type.full_string,
                 string: _type.string,
@@ -669,7 +616,7 @@ pub fn typecheck_with_context<'a>(
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::String(string) => {
-            let rc: EvaluateResult<Rc<(dyn Type<'a> + 'a)>> = Ok(Rc::new(Span {
+            let rc: EvaluateResult<Rc<(dyn Type )>> = Ok(Rc::new(Span {
                 inner: StringType(Some(string.to_string())),
                 full_string: _type.full_string,
                 string: _type.string,
@@ -709,8 +656,8 @@ pub fn typecheck_with_context<'a>(
                         },
                     );
                     let val: (
-                        EvaluateResult<'a, RcType<'a>>,
-                        Box<dyn Iterator<Item = EvaluateResult<'a, RcType<'a>>>>,
+                        EvaluateResult<RcType>,
+                        Box<dyn Iterator<Item = EvaluateResult<RcType>>>,
                     ) = (val.clone(), Box::new(std::iter::once(val)));
                     val
                 }
@@ -739,10 +686,10 @@ pub fn typecheck_with_context<'a>(
 }
 
 #[allow(clippy::all)]
-pub fn evaluate_with_context<'a>(
-    _context: &mut Vec<(String, Rc<dyn Value<'a> + 'a>)>,
+pub fn evaluate_with_context(
+    _context: &mut Vec<(String, Rc<dyn Value >)>,
     _value: Span<Ast>,
-) -> EvaluateResult<'a, Rc<dyn Value<'a> + 'a>> {
+) -> EvaluateResult<Rc<dyn Value >> {
     todo!()
     /*
     match value.inner {
