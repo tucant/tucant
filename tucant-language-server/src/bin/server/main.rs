@@ -387,6 +387,16 @@ impl Server {
         Ok(())
     }
 
+    pub fn line_column_to_offset(string: &str, position: Position) -> usize {
+        let the_line = string.lines().nth(position.line.try_into().unwrap()).unwrap();
+        let line_offset = the_line
+            .char_indices()
+            .nth(position.character.try_into().unwrap())
+            .map(|(offset, _)| offset)
+            .unwrap_or(the_line.len());
+        the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
+    }
+
     // TODO FIXME these and quite some others need to respect some order
     async fn handle_text_document_did_change_notification(
         self: Arc<Self>,
@@ -401,8 +411,8 @@ impl Server {
         for change in notification.params.content_changes.iter() {
             match change {
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
-                    let start_offset = line_column_to_offset(&document, incremental_changes.range.start.line.try_into().unwrap(), incremental_changes.range.start.character.try_into().unwrap());
-                    let end_offset = line_column_to_offset(&document, incremental_changes.range.end.line.try_into().unwrap(), incremental_changes.range.end.character.try_into().unwrap());
+                    let start_offset = Self::line_column_to_offset(&document, incremental_changes.range.start.clone());
+                    let end_offset = Self::line_column_to_offset(&document, incremental_changes.range.end.clone());
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
 

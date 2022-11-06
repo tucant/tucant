@@ -2,6 +2,7 @@ use std::{assert_matches, borrow::Cow, fmt::Debug, iter::Peekable};
 
 use core::assert_matches::assert_matches;
 use itertools::Itertools;
+use once_cell::sync::Lazy;
 use tucant_language_server_derive_output::{FoldingRange, Position, Range};
 
 // write idiomatic code first, optimize later
@@ -12,8 +13,8 @@ pub struct Span {
     pub range: Range,
 }
 
-pub const FAKE_SPAN: Span = Span {
-    filename: "<fake>".to_string(),
+pub static FAKE_SPAN: Lazy<Span> = Lazy::new(|| Span {
+    filename: String::from("<fake>"),
     range: Range {
         start: Position {
             line: 0,
@@ -24,7 +25,7 @@ pub const FAKE_SPAN: Span = Span {
             character: 0,
         },
     },
-};
+});
 
 #[derive(Debug)]
 pub struct Error<T: Debug> {
@@ -475,7 +476,7 @@ pub fn hover_visitor<'a>(
                 None
             }
         }
-        Ast::List(list) => {
+        Ast::List(ref list) => {
             if (element.1.range.start.line, element.1.range.start.character)
                 == (
                     position.line.try_into().unwrap(),
@@ -489,7 +490,7 @@ pub fn hover_visitor<'a>(
                 Some(element)
             } else {
                 list.iter()
-                    .filter_map(|l| hover_visitor(l, position))
+                    .filter_map(|l| hover_visitor(l.clone(), position))
                     .next()
             }
         }
