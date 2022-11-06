@@ -399,8 +399,8 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
             let start_pos = element.1.range.start;
             let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                start_pos.line.try_into().unwrap(),
-                start_pos.character.try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
                 end_pos.character - start_pos.character,
                 2,
                 0,
@@ -410,8 +410,8 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
             let start_pos = element.1.range.start;
             let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                start_pos.line.try_into().unwrap(),
-                start_pos.character.try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
                 end_pos.character - start_pos.character,
                 1,
                 0,
@@ -421,8 +421,8 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
             let start_pos = element.1.range.start;
             let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                start_pos.line.try_into().unwrap(),
-                start_pos.character.try_into().unwrap(),
+                start_pos.line,
+                start_pos.character,
                 end_pos.character - start_pos.character,
                 0,
                 0,
@@ -439,10 +439,10 @@ pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRang
         Ast::String(_) => Box::new(std::iter::empty()),
         Ast::List(list) => Box::new(
             std::iter::once(FoldingRange {
-                start_line: element.1.range.start.line.try_into().unwrap(),
-                start_character: Some(element.1.range.start.character.try_into().unwrap()),
-                end_line: element.1.range.end.line.try_into().unwrap(),
-                end_character: Some(element.1.range.end.character.try_into().unwrap()),
+                start_line: element.1.range.start.line,
+                start_character: Some(element.1.range.start.character),
+                end_line: element.1.range.end.line,
+                end_character: Some(element.1.range.end.character),
                 kind: Some(tucant_language_server_derive_output::FoldingRangeKind::Region),
                 collapsed_text: None,
             })
@@ -456,12 +456,12 @@ pub fn hover_visitor<'a>(element: (Ast, Span), position: &Position) -> Option<(A
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if (element.1.range.start.line, element.1.range.start.character)
                 <= (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
+                    position.line,
+                    position.character,
                 )
                 && (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
+                    position.line,
+                    position.character,
                 ) <= (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
@@ -472,12 +472,12 @@ pub fn hover_visitor<'a>(element: (Ast, Span), position: &Position) -> Option<(A
         Ast::List(ref list) => {
             if (element.1.range.start.line, element.1.range.start.character)
                 == (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
+                    position.line,
+                    position.character,
                 )
                 || (
-                    position.line.try_into().unwrap(),
-                    position.character.try_into().unwrap(),
+                    position.line,
+                    position.character,
                 ) == (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
@@ -498,6 +498,7 @@ fn init() {
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_number'
 #[test]
 fn test_parse_number() {
+    use std::assert_matches::assert_matches;
     init();
 
     let mut span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
@@ -569,6 +570,7 @@ fn test_parse_number() {
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_string'
 #[test]
 fn test_parse_string() {
+    use std::assert_matches::assert_matches;
     init();
 
     let mut span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
@@ -601,6 +603,7 @@ fn test_parse_string() {
 // RUST_LOG=trace cargo watch -x 'test -- --nocapture test_parse_identifier'
 #[test]
 fn test_parse_identifier() {
+    use std::assert_matches::assert_matches;
     init();
 
     let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
@@ -654,6 +657,7 @@ fn test_parse_whitespace() {
 
 #[test]
 fn test_parse_list() {
+    use std::assert_matches::assert_matches;
     init();
 
     println!(
@@ -678,6 +682,7 @@ fn test_parse_list() {
 
 #[test]
 fn test_parse_ast() {
+    use std::assert_matches::assert_matches;
     init();
 
     let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());

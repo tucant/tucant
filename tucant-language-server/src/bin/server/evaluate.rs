@@ -668,7 +668,7 @@ pub fn evaluate_with_context(
 #[test]
 #[ignore = "not yet implemented"]
 fn test_primitives() {
-    
+    use crate::parser::parse_from_str;
 
     let fake_span = Span {
         filename: "<fake>".to_string(),
