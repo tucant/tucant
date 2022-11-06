@@ -1,6 +1,6 @@
 use tucant_language_server_derive_output::{Position, Range};
 
-use crate::parser::{Ast, Span, parse_from_str};
+use crate::parser::{parse_from_str, Ast, Span};
 
 use std::any::Any;
 use std::borrow::Cow;
@@ -222,45 +222,45 @@ impl Type for AddLambdaType {
                     }
                 };
                 let val = left_value_i
-            .0
-            .and_then(|l| {
-                right_value_i.0.map(|r| {
-                    l.checked_add(r).ok_or(EvaluateError {
-                        location: span,
-                        reason: format!(
-                            "integer overflow, adding {:?} and {:?}",
-                            left_value, right_value
-                        )
-                        .into(),
+                    .0
+                    .and_then(|l| {
+                        right_value_i.0.map(|r| {
+                            l.checked_add(r).ok_or(EvaluateError {
+                                location: span,
+                                reason: format!(
+                                    "integer overflow, adding {:?} and {:?}",
+                                    left_value, right_value
+                                )
+                                .into(),
+                            })
+                        })
                     })
-                })
-            })
-            .transpose();
-        match val {
-            Ok(val) => {
-                let return_value: EvaluateResult<(RcType, Span)> =
-                    Ok((Rc::new(IntegerType(val)), span));
-                (
-                    return_value.clone(),
-                    Box::new(
-                        left_value_trace
-                            .chain(right_value_trace)
-                            .chain(std::iter::once(return_value)),
-                    ),
-                )
-            }
-            Err(err) => {
-                let return_value: EvaluateResult<(RcType, Span)> = Err(err);
-                (
-                    return_value.clone(),
-                    Box::new(
-                        left_value_trace
-                            .chain(right_value_trace)
-                            .chain(std::iter::once(return_value)),
-                    ),
-                )
-            }
-        }
+                    .transpose();
+                match val {
+                    Ok(val) => {
+                        let return_value: EvaluateResult<(RcType, Span)> =
+                            Ok((Rc::new(IntegerType(val)), span));
+                        (
+                            return_value.clone(),
+                            Box::new(
+                                left_value_trace
+                                    .chain(right_value_trace)
+                                    .chain(std::iter::once(return_value)),
+                            ),
+                        )
+                    }
+                    Err(err) => {
+                        let return_value: EvaluateResult<(RcType, Span)> = Err(err);
+                        (
+                            return_value.clone(),
+                            Box::new(
+                                left_value_trace
+                                    .chain(right_value_trace)
+                                    .chain(std::iter::once(return_value)),
+                            ),
+                        )
+                    }
+                }
             }
             (Err(ref _e), _) => {
                 return (
@@ -439,19 +439,22 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<(RcValue, Span)> {
         ),
         (
             "add".to_string(),
-            (Rc::new(AddLambdaValue), Span {
-                filename: "<builtin>".to_string(),
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 0,
+            (
+                Rc::new(AddLambdaValue),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
                     },
                 },
-            }),
+            ),
         ),
     ];
     evaluate_with_context(&mut context, value)
@@ -466,51 +469,60 @@ pub fn typecheck(
     let mut context: Vec<(String, (RcType, Span))> = vec![
         (
             "lambda".to_string(),
-            (Rc::new(DefineLambdaType), Span {
-                filename: "<builtin>".to_string(),
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 0,
+            (
+                Rc::new(DefineLambdaType),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
                     },
                 },
-            }),
+            ),
         ),
         (
             "add".to_string(),
-            (Rc::new(AddLambdaType), Span {
-                filename: "<builtin>".to_string(),
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 0,
+            (
+                Rc::new(AddLambdaType),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
                     },
                 },
-            }),
+            ),
         ),
         (
             "widen-integer".to_string(),
-            (Rc::new(WidenInteger), Span {
-                filename: "<builtin>".to_string(),
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 0,
+            (
+                Rc::new(WidenInteger),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
                     },
                 },
-            }),
+            ),
         ),
     ];
     typecheck_with_context(&mut context, value)
@@ -544,18 +556,17 @@ pub fn typecheck_with_context(
 ) {
     match &_type.0 {
         Ast::Number(number) => {
-            let rc: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(Some(*number))), _type.1));
+            let rc: EvaluateResult<(RcType, Span)> =
+                Ok((Rc::new(IntegerType(Some(*number))), _type.1));
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::String(string) => {
-            let rc: EvaluateResult<(RcType, Span)> = Ok((Rc::new(StringType(Some(string.to_string()))), _type.1));
+            let rc: EvaluateResult<(RcType, Span)> =
+                Ok((Rc::new(StringType(Some(string.to_string()))), _type.1));
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::Identifier(identifier) => {
-            let rc = resolve_identifier_type(
-                context,
-                (identifier.to_string(), _type.1),
-            );
+            let rc = resolve_identifier_type(context, (identifier.to_string(), _type.1));
             (rc.clone(), Box::new(std::iter::once(rc)))
         }
         Ast::List(elements) => {
@@ -571,10 +582,7 @@ pub fn typecheck_with_context(
             };
             let (callable, callable_trace) = match callable.0 {
                 Ast::Identifier(identifier) => {
-                    let val = resolve_identifier_type(
-                        context,
-                        (identifier, callable.1),
-                    );
+                    let val = resolve_identifier_type(context, (identifier, callable.1));
                     let val: (
                         EvaluateResult<(RcType, Span)>,
                         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
@@ -719,8 +727,7 @@ fn test_primitives() {
         ((lambda v v) 1)
     "#,
         )
-        .unwrap()
-        ,
+        .unwrap(),
     );
     println!("{:?}", result);
 
@@ -730,8 +737,7 @@ fn test_primitives() {
         (add 1 (add 1 1))
     "#,
         )
-        .unwrap()
-        ,
+        .unwrap(),
     );
     println!("{:?}", result);
 
@@ -741,8 +747,7 @@ fn test_primitives() {
         (add 1 (add 1 ""))
     "#,
         )
-        .unwrap()
-        ,
+        .unwrap(),
     );
     println!("{:?}", result);
 
