@@ -419,23 +419,23 @@ pub fn visitor(
     }
 }
 
-pub fn list_visitor<'a>(
+pub fn list_visitor(
     element: (Ast, Span),
-) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
-    match &element.0 {
+) -> Box<dyn Iterator<Item = FoldingRange>> {
+    match element.0 {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
         Ast::Number(_) => Box::new(std::iter::empty()),
         Ast::String(_) => Box::new(std::iter::empty()),
         Ast::List(list) => Box::new(
             std::iter::once(FoldingRange {
-                start_line: element.start_line_column().0.try_into().unwrap(),
-                start_character: Some(element.start_line_column().1.try_into().unwrap()),
-                end_line: element.end_line_column().0.try_into().unwrap(),
-                end_character: Some(element.end_line_column().1.try_into().unwrap()),
+                start_line: element.1.range.start.line.try_into().unwrap(),
+                start_character: Some(element.1.range.start.character.try_into().unwrap()),
+                end_line: element.1.range.end.line.try_into().unwrap(),
+                end_character: Some(element.1.range.end.character.try_into().unwrap()),
                 kind: Some(tucant_language_server_derive_output::FoldingRangeKind::Region),
                 collapsed_text: None,
             })
-            .chain(list.iter().flat_map(list_visitor)),
+            .chain(list.into_iter().flat_map(list_visitor)),
         ),
     }
 }
@@ -444,9 +444,9 @@ pub fn hover_visitor<'a>(
     element: (Ast, Span),
     position: &Position,
 ) -> Option<(Ast, Span)> {
-    match &element.0 {
+    match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
-            if element.start_line_column()
+            if (element.1.range.start.line, element.1.range.start.character)
                 <= (
                     position.line.try_into().unwrap(),
                     position.character.try_into().unwrap(),
@@ -454,7 +454,7 @@ pub fn hover_visitor<'a>(
                 && (
                     position.line.try_into().unwrap(),
                     position.character.try_into().unwrap(),
-                ) <= element.end_line_column()
+                ) <= (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {
@@ -462,7 +462,7 @@ pub fn hover_visitor<'a>(
             }
         }
         Ast::List(list) => {
-            if element.start_line_column()
+            if (element.1.range.start.line, element.1.range.start.character)
                 == (
                     position.line.try_into().unwrap(),
                     position.character.try_into().unwrap(),
@@ -470,7 +470,7 @@ pub fn hover_visitor<'a>(
                 || (
                     position.line.try_into().unwrap(),
                     position.character.try_into().unwrap(),
-                ) == element.end_line_column()
+                ) == (element.1.range.end.line, element.1.range.end.character)
             {
                 Some(element)
             } else {
