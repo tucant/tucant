@@ -137,7 +137,7 @@ impl Value for AddLambdaValue {
                     .0
                     .checked_add(right_value.0)
                     .ok_or(EvaluateError {
-                        location: span,
+                        location: span.clone(),
                         reason: format!(
                             "integer overflow, adding {:?} and {:?}",
                             left_value, right_value
@@ -175,7 +175,7 @@ impl Type for AddLambdaType {
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
-        let pair = (left_value, right_value);
+        let pair = (left_value.clone(), right_value.clone());
         match pair {
             (Ok(vl), Ok(vr)) => {
                 let (left_value_i, right_value_i) = match (
@@ -185,11 +185,11 @@ impl Type for AddLambdaType {
                     (Some(vl), Some(vr)) => (vl, vr),
                     (None, None) => {
                         let vall = Err(EvaluateError {
-                            location: vl.1,
+                            location: vl.1.clone(),
                             reason: format!("expected integer type, got {:?}", vl).into(),
                         });
                         let valr = Err(EvaluateError {
-                            location: vr.1,
+                            location: vr.1.clone(),
                             reason: format!("expected integer type, got {:?}", vr).into(),
                         });
                         let val = Err(EvaluateError {
@@ -200,7 +200,7 @@ impl Type for AddLambdaType {
                     }
                     (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
-                            location: vr.1,
+                            location: vr.1.clone(),
                             reason: format!("expected integer type, got {:?}", vr).into(),
                         });
                         let val = Err(EvaluateError {
@@ -211,7 +211,7 @@ impl Type for AddLambdaType {
                     }
                     (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
-                            location: vl.1,
+                            location: vl.1.clone(),
                             reason: format!("expected integer type, got {:?}", vl).into(),
                         });
                         let val = Err(EvaluateError {
@@ -226,7 +226,7 @@ impl Type for AddLambdaType {
                     .and_then(|l| {
                         right_value_i.0.map(|r| {
                             l.checked_add(r).ok_or(EvaluateError {
-                                location: span,
+                                location: span.clone(),
                                 reason: format!(
                                     "integer overflow, adding {:?} and {:?}",
                                     left_value, right_value
@@ -236,7 +236,7 @@ impl Type for AddLambdaType {
                         })
                     })
                     .transpose();
-                match val {
+                return match val {
                     Ok(val) => {
                         let return_value: EvaluateResult<(RcType, Span)> =
                             Ok((Rc::new(IntegerType(val)), span));
@@ -332,7 +332,7 @@ impl Type for LambdaType {
         let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
         if let Ok(arg_value) = arg_value {
             context.push((self.variable.clone(), arg_value));
-            let return_value = typecheck_with_context(context, self.body);
+            let return_value = typecheck_with_context(context, self.body.clone());
             context.pop();
             return_value
         } else {
@@ -352,13 +352,13 @@ impl Value for DefineLambdaValue {
         args: &[(Ast, Span)],
     ) -> EvaluateResult<(RcValue, Span)> {
         let [variable, body]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
-            location: span,
+            location: span.clone(),
             reason: "expected exactly two arguments".to_string().into(),
         })?;
-        let variable = match variable.0 {
+        let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
-                location: variable.1,
+                location: variable.1.clone(),
                 reason: "expected argument identifier".to_string().into(),
             })?,
         };
@@ -395,11 +395,11 @@ impl Type for DefineLambdaType {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let variable = match variable.0 {
+        let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => {
                 let err = Err(EvaluateError {
-                    location: variable.1,
+                    location: variable.1.clone(),
                     reason: "expected argument identifier".to_string().into(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
@@ -539,7 +539,7 @@ fn resolve_identifier_type(
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => Ok((value.0, value.1)),
+        Some(value) => Ok(value.clone()),
         None => Err(EvaluateError {
             location: identifier.1,
             reason: format!("could not find identifier {}", identifier.0).into(),
@@ -580,9 +580,9 @@ pub fn typecheck_with_context(
                     return (err.clone(), Box::new(std::iter::once(err)));
                 }
             };
-            let (callable, callable_trace) = match callable.0 {
+            let (callable, callable_trace) = match &callable.0 {
                 Ast::Identifier(identifier) => {
-                    let val = resolve_identifier_type(context, (identifier, callable.1));
+                    let val = resolve_identifier_type(context, (identifier.clone(), callable.1.clone()));
                     let val: (
                         EvaluateResult<(RcType, Span)>,
                         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
@@ -684,22 +684,22 @@ fn test_primitives() {
         },
     };
     let span = Ast::Number(5);
-    println!("{:?}", evaluate((span, fake_span)));
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
     let span = Ast::String("Hallo".to_string());
-    println!("{:?}", evaluate((span, fake_span)));
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
     let span = Ast::Identifier("notexisting".to_string());
-    println!("{:?}", evaluate((span, fake_span)));
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
     let span = Ast::Identifier("lambda".to_string());
-    println!("{:?}", evaluate((span, fake_span)));
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
     let span = Ast::List(vec![]);
-    println!("{:?}", evaluate((span, fake_span)));
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
-    let span = Ast::List(vec![(Ast::Number(42), fake_span)]);
-    println!("{:?}", evaluate((span, fake_span)));
+    let span = Ast::List(vec![(Ast::Number(42), fake_span.clone())]);
+    println!("{:?}", evaluate((span, fake_span.clone())));
 
     let result = evaluate(
         parse_from_str(
