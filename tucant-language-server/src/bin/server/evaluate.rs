@@ -1,6 +1,6 @@
 use tucant_language_server_derive_output::{Position, Range};
 
-use crate::parser::{Ast, Span};
+use crate::parser::{Ast, Span, parse_from_str};
 
 use std::any::Any;
 use std::borrow::Cow;
@@ -84,7 +84,7 @@ impl Type for WidenInteger {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (_value, value_trace) = typecheck_with_context(context, value);
+        let (_value, value_trace) = typecheck_with_context(context, value.clone());
         let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(None)), span));
         (
             return_value.clone(),
@@ -173,8 +173,8 @@ impl Type for AddLambdaType {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (left_value, left_value_trace) = typecheck_with_context(context, left);
-        let (right_value, right_value_trace) = typecheck_with_context(context, right);
+        let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
+        let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
         let (left_value, right_value) = match (&left_value, &right_value) {
             (Ok(ref vl), Ok(ref vr)) => {
                 match (
@@ -328,10 +328,10 @@ impl Type for LambdaType {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
-        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value);
+        let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone());
         if let Ok(arg_value) = arg_value {
             context.push((self.variable.clone(), arg_value));
-            let return_value = typecheck_with_context(context, &self.body);
+            let return_value = typecheck_with_context(context, self.body);
             context.pop();
             return_value
         } else {
@@ -592,7 +592,7 @@ pub fn typecheck_with_context(
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
             match callable {
                 Ok(v) => {
-                    let (res, res_trace) = v.typecheck_call(context, args);
+                    let (res, res_trace) = v.0.typecheck_call(v.1, context, args);
                     (res, Box::new(callable_trace.chain(res_trace)))
                 }
                 e => (
@@ -661,76 +661,87 @@ pub fn evaluate_with_context(
 fn test_primitives() {
     use crate::parser::parse;
 
+    let fake_span = Span {
+        filename: "<fake>".to_string(),
+        range: Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 0,
+            },
+        },
+    };
     let span = Ast::Number(5);
-    println!("{:?}", evaluate(span.into()));
+    println!("{:?}", evaluate((span, fake_span)));
 
     let span = Ast::String("Hallo".to_string());
-    println!("{:?}", evaluate(span.into()));
+    println!("{:?}", evaluate((span, fake_span)));
 
     let span = Ast::Identifier("notexisting".to_string());
-    println!("{:?}", evaluate(span.into()));
+    println!("{:?}", evaluate((span, fake_span)));
 
     let span = Ast::Identifier("lambda".to_string());
-    println!("{:?}", evaluate(span.into()));
+    println!("{:?}", evaluate((span, fake_span)));
 
     let span = Ast::List(vec![]);
-    println!("{:?}", evaluate(span.into()));
+    println!("{:?}", evaluate((span, fake_span)));
 
-    let span = Ast::List(vec![Ast::Number(42).into()]).into();
-    println!("{:?}", evaluate(span));
+    let span = Ast::List(vec![(Ast::Number(42), fake_span)]);
+    println!("{:?}", evaluate((span, fake_span)));
 
     let result = evaluate(
-        parse(Span::new(
+        parse_from_str(
             r#"
         (lambda v v)
     "#,
-        ))
-        .unwrap()
-        .0,
+        )
+        .unwrap(),
     );
     println!("{:?}", result);
 
     let result = evaluate(
-        parse(Span::new(
+        parse_from_str(
             r#"
         (lambda 1 v)
     "#,
-        ))
-        .unwrap()
-        .0,
+        )
+        .unwrap(),
     );
     println!("{:?}", result);
 
     let result = evaluate(
-        parse(Span::new(
+        parse_from_str(
             r#"
         ((lambda v v) 1)
     "#,
-        ))
+        )
         .unwrap()
-        .0,
+        ,
     );
     println!("{:?}", result);
 
     let result = evaluate(
-        parse(Span::new(
+        parse_from_str(
             r#"
         (add 1 (add 1 1))
     "#,
-        ))
+        )
         .unwrap()
-        .0,
+        ,
     );
     println!("{:?}", result);
 
     let result = evaluate(
-        parse(Span::new(
+        parse_from_str(
             r#"
         (add 1 (add 1 ""))
     "#,
-        ))
+        )
         .unwrap()
-        .0,
+        ,
     );
     println!("{:?}", result);
 

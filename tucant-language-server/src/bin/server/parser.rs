@@ -364,6 +364,11 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
     }
 }
 
+pub fn parse_from_str(string: &str) -> Result<(Ast, Span), Error<()>> {
+    let span = TokenizerBuilder::from_string(string.to_string());
+    parse(&mut span.peekable())
+}
+
 // cargo test --target x86_64-unknown-linux-gnu parser -- --show-output
 #[test]
 pub fn test_tokenize() {
