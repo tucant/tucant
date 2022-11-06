@@ -378,49 +378,51 @@ pub fn test_tokenize() {
     );
 }
 
-/*
-pub fn visitor<'a>(
+pub fn visitor(
     element: (Ast, Span),
-) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)> + 'a> {
-    match &element.inner {
-        Ast::Identifier(_) => {
-            let pos = element.start_line_column();
+) -> Box<dyn Iterator<Item = (u64, u64, u64, u64, u64)>> {
+    match element.0 {
+        Ast::Identifier(identifier) => {
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line.try_into().unwrap(),
+                start_pos.character.try_into().unwrap(),
+                end_pos.character - start_pos.character,
                 2,
                 0,
             )))
         }
         Ast::Number(_) => {
-            let pos = element.start_line_column();
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line.try_into().unwrap(),
+                start_pos.character.try_into().unwrap(),
+                end_pos.character - start_pos.character,
                 1,
                 0,
             )))
         }
         Ast::String(_) => {
-            let pos = element.start_line_column();
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
             Box::new(std::iter::once((
-                pos.0.try_into().unwrap(),
-                pos.1.try_into().unwrap(),
-                element.string.len().try_into().unwrap(),
+                start_pos.line.try_into().unwrap(),
+                start_pos.character.try_into().unwrap(),
+                end_pos.character - start_pos.character,
                 0,
                 0,
             )))
         }
-        Ast::List(list) => Box::new(list.iter().flat_map(visitor)),
+        Ast::List(list) => Box::new(list.into_iter().flat_map(visitor)),
     }
 }
 
 pub fn list_visitor<'a>(
     element: (Ast, Span),
 ) -> Box<dyn Iterator<Item = FoldingRange> + 'a> {
-    match &element.inner {
+    match &element.0 {
         Ast::Identifier(_) => Box::new(std::iter::empty()),
         Ast::Number(_) => Box::new(std::iter::empty()),
         Ast::String(_) => Box::new(std::iter::empty()),
@@ -442,7 +444,7 @@ pub fn hover_visitor<'a>(
     element: (Ast, Span),
     position: &Position,
 ) -> Option<(Ast, Span)> {
-    match &element.inner {
+    match &element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
             if element.start_line_column()
                 <= (
@@ -478,7 +480,7 @@ pub fn hover_visitor<'a>(
             }
         }
     }
-}*/
+}
 
 #[cfg(test)]
 fn init() {
