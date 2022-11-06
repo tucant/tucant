@@ -260,7 +260,7 @@ impl Type for AddLambdaType {
                             ),
                         )
                     }
-                }
+                };
             }
             (Err(ref _e), _) => {
                 return (
@@ -582,7 +582,8 @@ pub fn typecheck_with_context(
             };
             let (callable, callable_trace) = match &callable.0 {
                 Ast::Identifier(identifier) => {
-                    let val = resolve_identifier_type(context, (identifier.clone(), callable.1.clone()));
+                    let val =
+                        resolve_identifier_type(context, (identifier.clone(), callable.1.clone()));
                     let val: (
                         EvaluateResult<(RcType, Span)>,
                         Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
