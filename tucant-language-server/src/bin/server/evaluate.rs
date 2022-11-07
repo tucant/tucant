@@ -105,10 +105,6 @@ impl Type for WidenInteger {
                     location: value.1.clone(),
                     reason: format!("expected integer type, got {:?}", value.0),
                 });
-                let val: Result<(RcType, Span), _> = Err(EvaluateError {
-                    location: args.1,
-                    reason: "some parameters are not integers".to_string(),
-                });
                 Err(Box::new(vec![vall].into_iter()))
             }
         }
@@ -187,89 +183,37 @@ impl Type for AddLambdaType {
         let [left, right]: &[(Ast, Span); 2] = expect_n(args)?;
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone())?;
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone())?;
-
-        let (left_value_i, right_value_i) = match (
-            Rc::downcast::<IntegerType>(vl.0.clone()).ok(),
-            Rc::downcast::<IntegerType>(vr.0.clone()).ok(),
-        ) {
-            (Some(vl), Some(vr)) => (vl, vr),
-            (None, None) => {
-                let vall = Err(EvaluateError {
-                    location: vl.1.clone(),
-                    reason: format!("expected integer type, got {:?}", vl.0),
-                });
-                let valr = Err(EvaluateError {
-                    location: vr.1.clone(),
-                    reason: format!("expected integer type, got {:?}", vr.0),
-                });
-                let val = Err(EvaluateError {
-                    location: args.1,
-                    reason: "some parameters are not integers".to_string(),
-                });
-                return (val.clone(), Box::new(vec![vall, valr].into_iter()));
-            }
-            (Some(_vl), None) => {
-                let valr = Err(EvaluateError {
-                    location: vr.1.clone(),
-                    reason: format!("expected integer type, got {:?}", vr.0),
-                });
-                let val = Err(EvaluateError {
-                    location: args.1,
-                    reason: "some parameters are not integers".to_string(),
-                });
-                return (val.clone(), Box::new(vec![valr].into_iter()));
-            }
-            (None, Some(_vr)) => {
-                let vall = Err(EvaluateError {
-                    location: vl.1.clone(),
-                    reason: format!("expected integer type, got {:?}", vl.0),
-                });
-                let val = Err(EvaluateError {
-                    location: args.1,
-                    reason: "some parameters are not integers".to_string(),
-                });
-                return (val.clone(), Box::new(vec![vall].into_iter()));
-            }
-        };
-        let val = left_value_i
+        let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|err| {
+            let val: Box<(dyn Iterator<Item = Result<(Rc<(dyn Type)>, Span), EvaluateError>>)> = Box::new(std::iter::once(Err(EvaluateError {
+                location: left_value.1.clone(),
+                reason: format!("expected integer type, got {:?}", left_value.0),
+            })));
+            val
+        })?;
+        let right_value = Rc::downcast::<IntegerType>(right_value.0.clone()).map_err(|err| {
+            Box::new(std::iter::once(Err(EvaluateError {
+                location: right_value.1.clone(),
+                reason: format!("expected integer type, got {:?}", right_value.0),
+            }))) as Box<(dyn Iterator<Item=_>)>
+        })?;
+        let val = left_value
             .0
             .and_then(|l| {
-                right_value_i.0.map(|r| {
-                    l.checked_add(r).ok_or(EvaluateError {
+                right_value.0.map(|r| {
+                    l.checked_add(r).ok_or_else(|| {
+                        Box::new(std::iter::once(Err(EvaluateError {
                         location: span.clone(),
                         reason: format!(
                             "integer overflow, adding {:?} and {:?}",
                             left_value, right_value
                         ),
-                    })
+                    }))) as Box<(dyn Iterator<Item=_>)>
+                })
                 })
             })
-            .transpose();
-        match val {
-            Ok(val) => {
-                let return_value: EvaluateResult<(RcType, Span)> =
-                    Ok((Rc::new(IntegerType(val)), args.1));
-                (
-                    return_value.clone(),
-                    Box::new(
-                        left_value_trace
-                            .chain(right_value_trace)
-                            .chain(std::iter::once(return_value)),
-                    ),
-                )
-            }
-            Err(err) => {
-                let return_value: EvaluateResult<(RcType, Span)> = Err(err);
-                (
-                    return_value.clone(),
-                    Box::new(
-                        left_value_trace
-                            .chain(right_value_trace)
-                            .chain(std::iter::once(return_value)),
-                    ),
-                )
-            }
-        }
+            .transpose()?;
+        let res = (Rc::new(IntegerType(val)) as RcType, span);
+        Ok((res.clone(), Box::new(std::iter::once(Ok(res)))))
     }
 }
 
