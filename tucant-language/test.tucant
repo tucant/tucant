@@ -1,1 +1,2 @@
- (add 24 (widen-integer 9223372036854775807))
+(lambda test
+    (add 24 (widen-integer 9223372036854775807)))

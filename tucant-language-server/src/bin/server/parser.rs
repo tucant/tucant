@@ -391,7 +391,11 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
             reason: "unmatched closing paren at".to_string(),
             partial_parse: (),
         }),
-        None => panic!(),
+        None => Err(Error {
+            location: FAKE_SPAN.clone(),
+            reason: "unexpected end of input".to_string(),
+            partial_parse: (),
+        }),
     }
 }
 
