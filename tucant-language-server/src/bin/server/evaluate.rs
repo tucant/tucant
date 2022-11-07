@@ -7,17 +7,23 @@ use std::any::Any;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-// remove the lifetimes everywhere and do more
-
 #[derive(Debug, Clone)]
 pub struct EvaluateError {
     pub location: Span,
     pub reason: String,
 }
 
-pub type EvaluateResult<V> = Result<V, EvaluateError>; // TODO FIXME maybe put the span to the outside?
 pub type RcValue = Rc<dyn Value>;
 pub type RcType = Rc<dyn Type>;
+
+pub type GenericCall<T> = Result<(
+    (T, Span),
+    Box<dyn Iterator<Item = Result<(T, Span), EvaluateError>>>,
+), (EvaluateError, Box<dyn Iterator<Item = Result<(T, Span), EvaluateError>>>)>;
+
+pub type EvaluateCall = GenericCall<RcValue>;
+
+pub type TypecheckCall = GenericCall<RcType>;
 
 pub trait Value: Debug + Any {
     fn evaluate_call(
@@ -25,18 +31,14 @@ pub trait Value: Debug + Any {
         span: Span,
         _context: &mut Vec<(String, (RcValue, Span))>,
         _args: (&[(Ast, Span)], Span),
-    ) -> EvaluateResult<(RcValue, Span)> {
-        Err(EvaluateError {
+    ) -> EvaluateCall {
+        /*Err(EvaluateError {
             location: span,
             reason: "not yet implemented".to_string(),
-        })
+        });*/
+        todo!()
     }
 }
-
-pub type TypecheckCall = (
-    EvaluateResult<(RcType, Span)>,
-    Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
-);
 
 pub trait Type: Debug + Any {
     fn typecheck_call(
@@ -130,7 +132,8 @@ impl Value for AddLambdaValue {
         span: Span,
         context: &mut Vec<(String, (RcValue, Span))>,
         args: (&[(Ast, Span)], Span),
-    ) -> EvaluateResult<(RcValue, Span)> {
+    ) -> EvaluateCall {
+        /*
         let [left, right]: &[(Ast, Span); 2] = args.0.try_into().map_err(|_| EvaluateError {
             location: span.clone(),
             reason: "expected exactly two arguments".to_string(),
@@ -163,7 +166,9 @@ impl Value for AddLambdaValue {
                     })?,
             )),
             args.1,
-        ))
+        ));
+        */
+        todo!()
     }
 }
 
@@ -298,7 +303,8 @@ impl Value for LambdaValue {
         span: Span,
         context: &mut Vec<(String, (RcValue, Span))>,
         args: (&[(Ast, Span)], Span),
-    ) -> EvaluateResult<(RcValue, Span)> {
+    ) -> EvaluateCall {
+        /*
         let [variable_value]: &[(Ast, Span); 1] = args.0.try_into().map_err(|_| EvaluateError {
             location: span,
             reason: "expected exactly one argument".to_string(),
@@ -308,6 +314,8 @@ impl Value for LambdaValue {
         let return_value = evaluate_with_context(context, self.body.clone());
         context.pop();
         return_value
+        */
+        todo!()
     }
 }
 
@@ -355,7 +363,8 @@ impl Value for DefineLambdaValue {
         span: Span,
         _context: &mut Vec<(String, (RcValue, Span))>,
         args: (&[(Ast, Span)], Span),
-    ) -> EvaluateResult<(RcValue, Span)> {
+    ) -> EvaluateCall {
+        /*
         let [variable, _type, body]: &[(Ast, Span); 3] =
             args.0.try_into().map_err(|_| EvaluateError {
                 location: span.clone(),
@@ -382,6 +391,8 @@ impl Value for DefineLambdaValue {
             }),
             span,
         ))
+        */
+        todo!()
     }
 }
 
@@ -454,7 +465,7 @@ impl Type for DefineLambdaType {
     }
 }
 
-pub fn evaluate(value: (Ast, Span)) -> EvaluateResult<(RcValue, Span)> {
+pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
     let mut context: Vec<(String, (RcValue, Span))> = vec![
         (
             "lambda".to_string(),
@@ -584,7 +595,7 @@ pub fn typecheck(value: (Ast, Span)) -> TypecheckCall {
 fn resolve_identifier_type(
     context: &mut [(String, (RcType, Span))],
     identifier: (String, Span),
-) -> EvaluateResult<(RcType, Span)> {
+) -> TypecheckCall {
     match context
         .iter()
         .rev()
@@ -664,7 +675,7 @@ pub fn typecheck_with_context(
 pub fn evaluate_with_context(
     _context: &mut Vec<(String, (RcValue, Span))>,
     _value: (Ast, Span),
-) -> EvaluateResult<(RcValue, Span)> {
+) -> EvaluateCall {
     todo!()
     /*
     match value.inner {
@@ -716,6 +727,7 @@ pub fn evaluate_with_context(
 #[test]
 #[ignore = "not yet implemented"]
 fn test_primitives() {
+    /*
     use crate::parser::parse_from_str;
 
     let fake_span = Span {
@@ -802,4 +814,5 @@ fn test_primitives() {
     // TODO FIXME
     // (lambda x (add 1 ""))
     // the underlying problem is that lambdas are not typechecked when not called
+    */
 }
