@@ -19,12 +19,12 @@ pub type EvaluateResult<V> = Result<V, EvaluateError>; // TODO FIXME maybe put t
 pub type RcValue = Rc<dyn Value>;
 pub type RcType = Rc<dyn Type>;
 
-pub trait Value: Debug {
+pub trait Value: Debug + Any {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
         _context: &mut Vec<(String, (RcValue, Span))>,
-        _args: &[(Ast, Span)],
+        _args: (&[(Ast, Span)], Span),
     ) -> EvaluateResult<(RcValue, Span)> {
         Err(EvaluateError {
             location: span,
@@ -38,12 +38,12 @@ pub type TypecheckCall = (
     Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
 );
 
-pub trait Type: Debug {
+pub trait Type: Debug + Any {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
         _context: &mut Vec<(String, (RcType, Span))>,
-        _args: &[(Ast, Span)],
+        _args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
         let val = Err(EvaluateError {
             location: span,
@@ -71,9 +71,9 @@ impl Type for WidenInteger {
         self: Rc<Self>,
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [value]: &[(Ast, Span); 1] = match args.try_into() {
+        let [value]: &[(Ast, Span); 1] = match args.0.try_into() {
             Ok(v) => v,
             Err(_e) => {
                 let val = Err(EvaluateError {
@@ -83,12 +83,31 @@ impl Type for WidenInteger {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (_value, value_trace) = typecheck_with_context(context, value.clone());
-        let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(None)), span));
-        (
-            return_value.clone(),
-            Box::new(value_trace.chain(std::iter::once(return_value))),
-        )
+        let (value, value_trace) = typecheck_with_context(context, value.clone());
+        match value {
+            Ok(value) => match Rc::downcast::<IntegerType>(value.0.clone()) {
+                Ok(_) => {
+                    let return_value: EvaluateResult<(RcType, Span)> =
+                        Ok((Rc::new(IntegerType(None)), args.1));
+                    (
+                        return_value.clone(),
+                        Box::new(value_trace.chain(std::iter::once(return_value))),
+                    )
+                }
+                Err(_err) => {
+                    let vall = Err(EvaluateError {
+                        location: value.1.clone(),
+                        reason: format!("expected integer type, got {:?}", value.0),
+                    });
+                    let val = Err(EvaluateError {
+                        location: args.1,
+                        reason: "some parameters are not integers".to_string(),
+                    });
+                    (val.clone(), Box::new(vec![vall].into_iter()))
+                }
+            },
+            Err(_) => (value, value_trace),
+        }
     }
 }
 
@@ -110,9 +129,9 @@ impl Value for AddLambdaValue {
         self: Rc<Self>,
         span: Span,
         context: &mut Vec<(String, (RcValue, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [left, right]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
+        let [left, right]: &[(Ast, Span); 2] = args.0.try_into().map_err(|_| EvaluateError {
             location: span.clone(),
             reason: "expected exactly two arguments".to_string(),
         })?;
@@ -143,7 +162,7 @@ impl Value for AddLambdaValue {
                         ),
                     })?,
             )),
-            span,
+            args.1,
         ))
     }
 }
@@ -156,13 +175,13 @@ impl Type for AddLambdaType {
         self: Rc<Self>,
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [left, right]: &[(Ast, Span); 2] = match args.try_into() {
+        let [left, right]: &[(Ast, Span); 2] = match args.0.try_into() {
             Ok(v) => v,
             Err(_e) => {
                 let val = Err(EvaluateError {
-                    location: span,
+                    location: args.1,
                     reason: "expected exactly two arguments".to_string(),
                 });
                 return (val.clone(), Box::new(std::iter::once(val)));
@@ -170,50 +189,49 @@ impl Type for AddLambdaType {
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
-        let pair = (left_value.clone(), right_value.clone());
-        match pair {
+        match (left_value.clone(), right_value.clone()) {
             (Ok(vl), Ok(vr)) => {
                 let (left_value_i, right_value_i) = match (
-                    (&vl as &dyn Any).downcast_ref::<IntegerType>(),
-                    (&vr as &dyn Any).downcast_ref::<IntegerType>(),
+                    Rc::downcast::<IntegerType>(vl.0.clone()).ok(),
+                    Rc::downcast::<IntegerType>(vr.0.clone()).ok(),
                 ) {
                     (Some(vl), Some(vr)) => (vl, vr),
                     (None, None) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl),
+                            reason: format!("expected integer type, got {:?}", vl.0),
                         });
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr),
+                            reason: format!("expected integer type, got {:?}", vr.0),
                         });
                         let val = Err(EvaluateError {
-                            location: span,
+                            location: args.1,
                             reason: "some parameters are not integers".to_string(),
                         });
-                        return (val.clone(), Box::new(vec![val, vall, valr].into_iter()));
+                        return (val.clone(), Box::new(vec![vall, valr].into_iter()));
                     }
                     (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr),
+                            reason: format!("expected integer type, got {:?}", vr.0),
                         });
                         let val = Err(EvaluateError {
-                            location: span,
+                            location: args.1,
                             reason: "some parameters are not integers".to_string(),
                         });
-                        return (val.clone(), Box::new(vec![val, valr].into_iter()));
+                        return (val.clone(), Box::new(vec![valr].into_iter()));
                     }
                     (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl),
+                            reason: format!("expected integer type, got {:?}", vl.0),
                         });
                         let val = Err(EvaluateError {
-                            location: span,
+                            location: args.1,
                             reason: "some parameters are not integers".to_string(),
                         });
-                        return (val.clone(), Box::new(vec![val, vall].into_iter()));
+                        return (val.clone(), Box::new(vec![vall].into_iter()));
                     }
                 };
                 let val = left_value_i
@@ -233,7 +251,7 @@ impl Type for AddLambdaType {
                 match val {
                     Ok(val) => {
                         let return_value: EvaluateResult<(RcType, Span)> =
-                            Ok((Rc::new(IntegerType(val)), span));
+                            Ok((Rc::new(IntegerType(val)), args.1));
                         (
                             return_value.clone(),
                             Box::new(
@@ -279,9 +297,9 @@ impl Value for LambdaValue {
         self: Rc<Self>,
         span: Span,
         context: &mut Vec<(String, (RcValue, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [variable_value]: &[(Ast, Span); 1] = args.try_into().map_err(|_| EvaluateError {
+        let [variable_value]: &[(Ast, Span); 1] = args.0.try_into().map_err(|_| EvaluateError {
             location: span,
             reason: "expected exactly one argument".to_string(),
         })?;
@@ -304,9 +322,9 @@ impl Type for LambdaType {
         self: Rc<Self>,
         span: Span,
         context: &mut Vec<(String, (RcType, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [variable_value]: &[(Ast, Span); 1] = match args.try_into() {
+        let [variable_value]: &[(Ast, Span); 1] = match args.0.try_into() {
             Ok(v) => v,
             Err(_) => {
                 let err = Err(EvaluateError {
@@ -336,17 +354,25 @@ impl Value for DefineLambdaValue {
         self: Rc<Self>,
         span: Span,
         _context: &mut Vec<(String, (RcValue, Span))>,
-        args: &[(Ast, Span)],
+        args: (&[(Ast, Span)], Span),
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [variable, body]: &[(Ast, Span); 2] = args.try_into().map_err(|_| EvaluateError {
-            location: span.clone(),
-            reason: "expected exactly two arguments".to_string(),
-        })?;
+        let [variable, _type, body]: &[(Ast, Span); 3] =
+            args.0.try_into().map_err(|_| EvaluateError {
+                location: span.clone(),
+                reason: "expected exactly three arguments".to_string(),
+            })?;
         let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
                 location: variable.1.clone(),
                 reason: "expected argument identifier".to_string(),
+            })?,
+        };
+        let _type = match &_type.0 {
+            Ast::Identifier(identifier) => identifier,
+            _ => Err(EvaluateError {
+                location: _type.1.clone(),
+                reason: "expected argument type".to_string(),
             })?,
         };
         Ok((
@@ -366,15 +392,15 @@ impl Type for DefineLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, (RcType, Span))>,
-        args: &[(Ast, Span)],
+        context: &mut Vec<(String, (RcType, Span))>,
+        args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [variable, body]: &[(Ast, Span); 2] = match args.try_into() {
+        let [variable, _type, body]: &[(Ast, Span); 3] = match args.0.try_into() {
             Ok(val) => val,
             Err(_) => {
                 let err = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly two arguments".to_string(),
+                    reason: "expected exactly three arguments".to_string(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
@@ -389,6 +415,34 @@ impl Type for DefineLambdaType {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
+        let type_identifier = match &_type.0 {
+            Ast::Identifier(identifier) => identifier,
+            _ => {
+                let err = Err(EvaluateError {
+                    location: _type.1.clone(),
+                    reason: "expected argument type".to_string(),
+                });
+                return (err.clone(), Box::new(std::iter::once(err)));
+            }
+        };
+
+        let param_type =
+            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()));
+        let Ok(param_type) = param_type else {
+            let err = Err(EvaluateError {
+                location: _type.1.clone(),
+                reason: "unknown argument type".to_string(),
+            });
+            return (err.clone(), Box::new(std::iter::once(err)));
+        };
+        context.push((variable.clone(), param_type));
+        let (return_value, trace) = typecheck_with_context(context, body.clone());
+        context.pop();
+
+        if let Err(_err) = &return_value {
+            return (return_value, trace);
+        }
+
         let val: EvaluateResult<(RcType, Span)> = Ok((
             Rc::new(LambdaType {
                 variable: variable.to_string(),
@@ -503,6 +557,25 @@ pub fn typecheck(value: (Ast, Span)) -> TypecheckCall {
                 },
             ),
         ),
+        (
+            "integer-type".to_string(),
+            (
+                Rc::new(IntegerType(None)),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                    },
+                },
+            ),
+        ),
     ];
     typecheck_with_context(&mut context, value)
 }
@@ -518,7 +591,7 @@ fn resolve_identifier_type(
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => Ok(value.clone()),
+        Some(value) => Ok((value.0.clone(), identifier.1)),
         None => Err(EvaluateError {
             location: identifier.1,
             reason: format!("could not find identifier {}", identifier.0),
@@ -575,7 +648,7 @@ pub fn typecheck_with_context(
             // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
             match callable {
                 Ok(v) => {
-                    let (res, res_trace) = v.0.typecheck_call(v.1, context, args);
+                    let (res, res_trace) = v.0.typecheck_call(v.1, context, (args, _type.1));
                     (res, Box::new(callable_trace.chain(res_trace)))
                 }
                 e => (

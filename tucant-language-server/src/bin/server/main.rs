@@ -1,4 +1,7 @@
 #![feature(assert_matches)]
+#![feature(type_name_of_val)]
+#![allow(incomplete_features)]
+#![feature(trait_upcasting)]
 pub mod evaluate;
 pub mod parser;
 
@@ -8,7 +11,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::{hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
+use parser::{highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -133,18 +136,12 @@ impl Server {
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
-        // TODO FIXME bug whitespace before a list belongs to that list?
         let found_element = hover_visitor(value.clone(), &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
-            // TODO FIXME filter all types from typecheck for that found span
             let (_typecheck_result, typecheck_trace) = typecheck(value);
             let found_type = typecheck_trace
-                .map(|e| {
-                    println!("debug {:?}", e);
-                    e
-                })
                 .filter_map(|t| t.ok())
                 .find(|t| t.1.range.start == found_element.1.range.start);
 
@@ -154,7 +151,7 @@ impl Server {
                     contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
                         MarkupContent {
                             kind: MarkupKind::Markdown,
-                            value: format!("{:?}", found_type),
+                            value: format!("{:?}", found_type.0),
                         },
                     ),
                     range: Some(found_type.1.range),
@@ -195,21 +192,38 @@ impl Server {
         self: Arc<Self>,
         request: TextDocumentDocumentHighlightRequest,
     ) -> anyhow::Result<()> {
-        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(vec![
-            DocumentHighlight {
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 1,
-                    },
-                },
-                kind: Some(DocumentHighlightKind::Text),
-            },
-        ]);
+        // https://github.com/microsoft/vscode-languageserver-node/tree/main/client
+        // https://github.com/microsoft/vscode-languageserver-node/blob/f97bb73dbfb920af4bc8c13ecdcdc16359cdeda6/client/src/common/documentHighlight.ts
+        // https://github.com/microsoft/vscode/search?q=provideDocumentHighlights
+        // https://github.com/microsoft/vscode/issues/42649
+        // https://github.com/microsoft/vscode/issues/51869
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.variant0.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.variant0.text_document.uri).await?
+        };
+        drop(documents);
+
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error {
+                partial_parse: _, ..
+            }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
+        };
+
+        let found_element = highlight_visitor(value.clone(), &request.params.variant0.position);
+
+        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(
+            found_element
+                .into_iter()
+                .map(|found_element| DocumentHighlight {
+                    range: found_element.range,
+                    kind: Some(DocumentHighlightKind::Text),
+                })
+                .collect_vec(),
+        );
 
         self.send_response(request, response).await?;
 
@@ -571,6 +585,7 @@ impl Server {
                                     "string".to_string(),
                                     "number".to_string(),
                                     "type".to_string(),
+                                    "operator".to_string(),
                                 ],
                                 token_modifiers: vec![],
                             },

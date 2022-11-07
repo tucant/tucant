@@ -118,7 +118,6 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
 ) -> Option<Result<(Token, Span), Error<()>>> {
     match iterator.next().unwrap() {
         ('(', position) => Some(Ok((
-            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenOpen,
             Span {
                 filename: "<stdin>".to_string(),
@@ -194,7 +193,10 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                         filename: "<stdin>".to_string(),
                         range: Range {
                             start: start_pos,
-                            end: end_pos,
+                            end: Position {
+                                line: end_pos.line,
+                                character: end_pos.character + 1,
+                            },
                         },
                     },
                 ))),
@@ -257,7 +259,10 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 filename: "<stdin>".to_string(),
                 range: Range {
                     start: start_pos,
-                    end: end_pos,
+                    end: Position {
+                        line: end_pos.line,
+                        character: end_pos.character + 1,
+                    },
                 },
             };
             match number.parse() {
@@ -306,7 +311,10 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                     filename: "<stdin>".to_string(),
                     range: Range {
                         start: start_pos,
-                        end: end_pos,
+                        end: Position {
+                            line: end_pos.line,
+                            character: end_pos.character + 1,
+                        },
                     },
                 },
             )))
@@ -358,23 +366,36 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
         Some((Token::Identifier(ident), span)) => Ok((Ast::Identifier(ident), span)),
         Some((Token::Number(ident), span)) => Ok((Ast::Number(ident), span)),
         Some((Token::String(ident), span)) => Ok((Ast::String(ident), span)),
-        Some((Token::ParenOpen, span)) => {
+        Some((Token::ParenOpen, open_span)) => {
             let mut list = Vec::new();
-            loop {
+            let close_span = loop {
                 match tokenizer.peek() {
-                    Some(Ok((Token::ParenClose, _))) => break,
+                    Some(Ok((Token::ParenClose, close_span))) => break close_span.clone(),
                     _ => list.push(parse(tokenizer)?),
                 }
-            }
+            };
             tokenizer.next();
-            Ok((Ast::List(list), span))
+            Ok((
+                Ast::List(list),
+                Span {
+                    filename: open_span.filename,
+                    range: Range {
+                        start: open_span.range.start,
+                        end: close_span.range.end,
+                    },
+                },
+            ))
         }
         Some((Token::ParenClose, span)) => Err(Error {
             location: span,
             reason: "unmatched closing paren at".to_string(),
             partial_parse: (),
         }),
-        None => panic!(),
+        None => Err(Error {
+            location: FAKE_SPAN.clone(),
+            reason: "unexpected end of input".to_string(),
+            partial_parse: (),
+        }),
     }
 }
 
@@ -427,7 +448,21 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
                 0,
             )))
         }
-        Ast::List(list) => Box::new(list.into_iter().flat_map(visitor)),
+        Ast::List(list) => {
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
+            Box::new(
+                std::iter::once((start_pos.line, start_pos.character, 1, 3, 0))
+                    .chain(list.into_iter().flat_map(visitor))
+                    .chain(std::iter::once((
+                        end_pos.line,
+                        end_pos.character.saturating_sub(1),
+                        1,
+                        3,
+                        0,
+                    ))),
+            )
+        }
     }
 }
 
@@ -464,16 +499,58 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
             }
         }
         Ast::List(ref list) => {
-            if (element.1.range.start.line, element.1.range.start.character)
-                == (position.line, position.character)
-                || (position.line, position.character)
-                    == (element.1.range.end.line, element.1.range.end.character)
-            {
+            if &element.1.range.start == position || position == &element.1.range.end {
                 Some(element)
             } else {
                 list.iter()
                     .filter_map(|l| hover_visitor(l.clone(), position))
                     .next()
+            }
+        }
+    }
+}
+
+pub fn highlight_visitor(element: (Ast, Span), position: &Position) -> Vec<Span> {
+    match element.0 {
+        Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
+            if (element.1.range.start.line, element.1.range.start.character)
+                <= (position.line, position.character)
+                && (position.line, position.character)
+                    <= (element.1.range.end.line, element.1.range.end.character)
+            {
+                vec![element.1]
+            } else {
+                vec![]
+            }
+        }
+        Ast::List(ref list) => {
+            if &element.1.range.start == position || position == &element.1.range.end {
+                vec![
+                    Span {
+                        filename: element.1.filename.clone(),
+                        range: Range {
+                            start: element.1.range.start.clone(),
+                            end: Position {
+                                line: element.1.range.start.line,
+                                character: element.1.range.start.character + 1,
+                            },
+                        },
+                    },
+                    Span {
+                        filename: element.1.filename,
+                        range: Range {
+                            start: Position {
+                                line: element.1.range.end.line,
+                                character: element.1.range.end.character - 1,
+                            },
+                            end: element.1.range.end,
+                        },
+                    },
+                ]
+            } else {
+                list.iter()
+                    .flat_map(|l| highlight_visitor(l.clone(), position))
+                    .collect()
             }
         }
     }

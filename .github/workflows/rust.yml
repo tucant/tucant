@@ -36,11 +36,11 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             ${{ inputs.path }}/target/
-          key: ${{steps.toolchain.outputs.cachekey}}
+          key: ${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}
       - name: Formatting
         run: cargo fmt --check
       - name: Clippy
-        run: cargo clippy --all-targets --all-features -- --allow clippy::type_complexity --allow clippy::large-enum-variant -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Build
         run: cargo build
       - name: Run tests
