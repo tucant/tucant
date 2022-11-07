@@ -1,4 +1,6 @@
 #![feature(assert_matches)]
+#![feature(type_name_of_val)]
+#![feature(trait_upcasting)]
 pub mod evaluate;
 pub mod parser;
 
@@ -133,18 +135,12 @@ impl Server {
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
-        // TODO FIXME bug whitespace before a list belongs to that list?
         let found_element = hover_visitor(value.clone(), &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
-            // TODO FIXME filter all types from typecheck for that found span
             let (_typecheck_result, typecheck_trace) = typecheck(value);
             let found_type = typecheck_trace
-                .map(|e| {
-                    println!("debug {:?}", e);
-                    e
-                })
                 .filter_map(|t| t.ok())
                 .find(|t| t.1.range.start == found_element.1.range.start);
 
@@ -154,7 +150,7 @@ impl Server {
                     contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
                         MarkupContent {
                             kind: MarkupKind::Markdown,
-                            value: format!("{:?}", found_type),
+                            value: format!("{:?}", found_type.0),
                         },
                     ),
                     range: Some(found_type.1.range),

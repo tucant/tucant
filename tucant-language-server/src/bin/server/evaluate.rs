@@ -2,7 +2,7 @@ use tucant_language_server_derive_output::{Position, Range};
 
 use crate::parser::{Ast, Span};
 
-use std::any::Any;
+use std::any::{type_name_of_val, Any, TypeId};
 
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -19,7 +19,7 @@ pub type EvaluateResult<V> = Result<V, EvaluateError>; // TODO FIXME maybe put t
 pub type RcValue = Rc<dyn Value>;
 pub type RcType = Rc<dyn Type>;
 
-pub trait Value: Debug {
+pub trait Value: Debug + Any {
     fn evaluate_call(
         self: Rc<Self>,
         span: Span,
@@ -38,7 +38,7 @@ pub type TypecheckCall = (
     Box<dyn Iterator<Item = EvaluateResult<(RcType, Span)>>>,
 );
 
-pub trait Type: Debug {
+pub trait Type: Debug + Any {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
@@ -84,7 +84,7 @@ impl Type for WidenInteger {
             }
         };
         let (_value, value_trace) = typecheck_with_context(context, value.clone());
-        let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(None)), span));
+        let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(None)), args.1));
         (
             return_value.clone(),
             Box::new(value_trace.chain(std::iter::once(return_value))),
@@ -143,7 +143,7 @@ impl Value for AddLambdaValue {
                         ),
                     })?,
             )),
-            span,
+            args.1,
         ))
     }
 }
@@ -170,22 +170,21 @@ impl Type for AddLambdaType {
         };
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone());
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone());
-        let pair = (left_value.clone(), right_value.clone());
-        match pair {
+        match (left_value.clone(), right_value.clone()) {
             (Ok(vl), Ok(vr)) => {
                 let (left_value_i, right_value_i) = match (
-                    (&vl as &dyn Any).downcast_ref::<IntegerType>(),
-                    (&vr as &dyn Any).downcast_ref::<IntegerType>(),
+                    Rc::downcast::<IntegerType>(vl.0.clone()).ok(),
+                    Rc::downcast::<IntegerType>(vr.0.clone()).ok(),
                 ) {
                     (Some(vl), Some(vr)) => (vl, vr),
                     (None, None) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl),
+                            reason: format!("expected integer type, got {:?}", vl.0),
                         });
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr),
+                            reason: format!("expected integer type, got {:?}", vr.0),
                         });
                         let val = Err(EvaluateError {
                             location: args.1,
@@ -196,7 +195,7 @@ impl Type for AddLambdaType {
                     (Some(_vl), None) => {
                         let valr = Err(EvaluateError {
                             location: vr.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vr),
+                            reason: format!("expected integer type, got {:?}", vr.0),
                         });
                         let val = Err(EvaluateError {
                             location: args.1,
@@ -207,7 +206,7 @@ impl Type for AddLambdaType {
                     (None, Some(_vr)) => {
                         let vall = Err(EvaluateError {
                             location: vl.1.clone(),
-                            reason: format!("expected integer type, got {:?}", vl),
+                            reason: format!("expected integer type, got {:?}", vl.0),
                         });
                         let val = Err(EvaluateError {
                             location: args.1,
@@ -233,7 +232,7 @@ impl Type for AddLambdaType {
                 match val {
                     Ok(val) => {
                         let return_value: EvaluateResult<(RcType, Span)> =
-                            Ok((Rc::new(IntegerType(val)), span));
+                            Ok((Rc::new(IntegerType(val)), args.1));
                         (
                             return_value.clone(),
                             Box::new(
@@ -518,7 +517,7 @@ fn resolve_identifier_type(
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => Ok(value.clone()),
+        Some(value) => Ok((value.0.clone(), identifier.1)),
         None => Err(EvaluateError {
             location: identifier.1,
             reason: format!("could not find identifier {}", identifier.0),

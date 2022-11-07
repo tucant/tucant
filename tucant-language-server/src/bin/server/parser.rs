@@ -118,7 +118,6 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
 ) -> Option<Result<(Token, Span), Error<()>>> {
     match iterator.next().unwrap() {
         ('(', position) => Some(Ok((
-            // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenOpen,
             Span {
                 filename: "<stdin>".to_string(),
@@ -194,7 +193,10 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                         filename: "<stdin>".to_string(),
                         range: Range {
                             start: start_pos,
-                            end: Position { line: end_pos.line, character: end_pos.character+1 },
+                            end: Position {
+                                line: end_pos.line,
+                                character: end_pos.character + 1,
+                            },
                         },
                     },
                 ))),
@@ -257,7 +259,10 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 filename: "<stdin>".to_string(),
                 range: Range {
                     start: start_pos,
-                    end: Position { line: end_pos.line, character: end_pos.character+1 },
+                    end: Position {
+                        line: end_pos.line,
+                        character: end_pos.character + 1,
+                    },
                 },
             };
             match number.parse() {
@@ -306,7 +311,10 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                     filename: "<stdin>".to_string(),
                     range: Range {
                         start: start_pos,
-                        end: Position { line: end_pos.line, character: end_pos.character+1 },
+                        end: Position {
+                            line: end_pos.line,
+                            character: end_pos.character + 1,
+                        },
                     },
                 },
             )))
@@ -367,13 +375,16 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
                 }
             };
             tokenizer.next();
-            Ok((Ast::List(list), Span {
-                filename: open_span.filename,
-                range: Range {
-                    start: open_span.range.start,
-                    end: close_span.range.end,
+            Ok((
+                Ast::List(list),
+                Span {
+                    filename: open_span.filename,
+                    range: Range {
+                        start: open_span.range.start,
+                        end: close_span.range.end,
+                    },
                 },
-            }))
+            ))
         }
         Some((Token::ParenClose, span)) => Err(Error {
             location: span,
@@ -470,11 +481,7 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
             }
         }
         Ast::List(ref list) => {
-            if (element.1.range.start.line, element.1.range.start.character)
-                == (position.line, position.character)
-                || (position.line, position.character)
-                    == (element.1.range.end.line, element.1.range.end.character)
-            {
+            if &element.1.range.start == position || position == &element.1.range.end {
                 Some(element)
             } else {
                 list.iter()
