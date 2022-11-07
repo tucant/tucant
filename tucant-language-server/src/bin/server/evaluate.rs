@@ -71,7 +71,7 @@ impl Type for IntegerType {}
 #[derive(Debug, Clone)]
 pub struct WidenInteger;
 
-fn expect_n<T, const N: usize>(
+fn expect_n<T: 'static, const N: usize>(
     args: (&[(Ast, Span)], Span),
 ) -> Result<&[(Ast, Span); N], Box<dyn Iterator<Item = Result<(T, Span), EvaluateError>>>> {
     match TryInto::<&[(Ast, Span); N]>::try_into(args.0) {
@@ -90,7 +90,7 @@ impl Type for WidenInteger {
         context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [value]: &[(Ast, Span); 1] = expect_n(args)?;
+        let [value]: &[(Ast, Span); 1] = expect_n(args.clone())?;
         let (value, value_trace) = typecheck_with_context(context, value.clone())?;
         match Rc::downcast::<IntegerType>(value.0.clone()) {
             Ok(_) => {
