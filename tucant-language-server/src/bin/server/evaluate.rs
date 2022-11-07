@@ -83,12 +83,31 @@ impl Type for WidenInteger {
                 return (val.clone(), Box::new(std::iter::once(val)));
             }
         };
-        let (_value, value_trace) = typecheck_with_context(context, value.clone());
-        let return_value: EvaluateResult<(RcType, Span)> = Ok((Rc::new(IntegerType(None)), args.1));
-        (
-            return_value.clone(),
-            Box::new(value_trace.chain(std::iter::once(return_value))),
-        )
+        let (value, value_trace) = typecheck_with_context(context, value.clone());
+        match value {
+            Ok(value) => match Rc::downcast::<IntegerType>(value.0.clone()) {
+                Ok(_) => {
+                    let return_value: EvaluateResult<(RcType, Span)> =
+                        Ok((Rc::new(IntegerType(None)), args.1));
+                    return (
+                        return_value.clone(),
+                        Box::new(value_trace.chain(std::iter::once(return_value))),
+                    );
+                }
+                Err(err) => {
+                    let vall = Err(EvaluateError {
+                        location: value.1.clone(),
+                        reason: format!("expected integer type, got {:?}", value.0),
+                    });
+                    let val = Err(EvaluateError {
+                        location: args.1,
+                        reason: "some parameters are not integers".to_string(),
+                    });
+                    return (val.clone(), Box::new(vec![vall].into_iter()));
+                }
+            },
+            Err(_) => return (value, value_trace),
+        }
     }
 }
 
