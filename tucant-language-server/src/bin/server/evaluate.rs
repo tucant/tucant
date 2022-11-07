@@ -2,7 +2,7 @@ use tucant_language_server_derive_output::{Position, Range};
 
 use crate::parser::{Ast, Span};
 
-use std::any::{Any};
+use std::any::Any;
 
 use std::fmt::Debug;
 use std::rc::Rc;
