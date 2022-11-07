@@ -2,7 +2,7 @@ use tucant_language_server_derive_output::{Position, Range};
 
 use crate::parser::{Ast, Span};
 
-use std::any::{type_name_of_val, Any, TypeId};
+use std::any::{Any};
 
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -89,12 +89,12 @@ impl Type for WidenInteger {
                 Ok(_) => {
                     let return_value: EvaluateResult<(RcType, Span)> =
                         Ok((Rc::new(IntegerType(None)), args.1));
-                    return (
+                    (
                         return_value.clone(),
                         Box::new(value_trace.chain(std::iter::once(return_value))),
-                    );
+                    )
                 }
-                Err(err) => {
+                Err(_err) => {
                     let vall = Err(EvaluateError {
                         location: value.1.clone(),
                         reason: format!("expected integer type, got {:?}", value.0),
@@ -103,10 +103,10 @@ impl Type for WidenInteger {
                         location: args.1,
                         reason: "some parameters are not integers".to_string(),
                     });
-                    return (val.clone(), Box::new(vec![vall].into_iter()));
+                    (val.clone(), Box::new(vec![vall].into_iter()))
                 }
             },
-            Err(_) => return (value, value_trace),
+            Err(_) => (value, value_trace),
         }
     }
 }
@@ -439,7 +439,7 @@ impl Type for DefineLambdaType {
         let (return_value, trace) = typecheck_with_context(context, body.clone());
         context.pop();
 
-        if let Err(err) = &return_value {
+        if let Err(_err) = &return_value {
             return (return_value, trace);
         }
 
