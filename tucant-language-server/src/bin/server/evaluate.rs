@@ -496,11 +496,11 @@ fn resolve_identifier_type(
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => Ok((value.0.clone(), identifier.1)),
-        None => Err(EvaluateError {
+        Some(value) => Ok((value.clone(), Box::new(std::iter::once(Ok(value.clone()))))),
+        None => Err(Box::new(std::iter::once(Err(EvaluateError {
             location: identifier.1,
             reason: format!("could not find identifier {}", identifier.0),
-        }),
+        })))),
     }
 }
 
@@ -510,18 +510,17 @@ pub fn typecheck_with_context(
 ) -> TypecheckCall {
     match &_type.0 {
         Ast::Number(number) => {
-            let rc: EvaluateResult<(RcType, Span)> =
-                Ok((Rc::new(IntegerType(Some(*number))), _type.1));
-            (rc.clone(), Box::new(std::iter::once(rc)))
+            let rc =
+                (Rc::new(IntegerType(Some(*number))) as RcType, _type.1);
+            Ok((rc.clone(), Box::new(std::iter::once(Ok(rc)))))
         }
         Ast::String(string) => {
-            let rc: EvaluateResult<(RcType, Span)> =
-                Ok((Rc::new(StringType(Some(string.to_string()))), _type.1));
-            (rc.clone(), Box::new(std::iter::once(rc)))
+            let rc =
+                (Rc::new(StringType(Some(string.to_string()))) as RcType, _type.1);
+            Ok((rc.clone(), Box::new(std::iter::once(Ok(rc)))))
         }
         Ast::Identifier(identifier) => {
-            let rc = resolve_identifier_type(context, (identifier.to_string(), _type.1));
-            (rc.clone(), Box::new(std::iter::once(rc)))
+            resolve_identifier_type(context, (identifier.to_string(), _type.1))
         }
         Ast::List(elements) => {
             let (callable, args) = match elements.split_first() {
@@ -531,36 +530,23 @@ pub fn typecheck_with_context(
                         location: _type.1,
                         reason: "can't call an empty list".to_string(),
                     });
-                    return (err.clone(), Box::new(std::iter::once(err)));
+                    return Err(Box::new(std::iter::once(err)));
                 }
             };
             let (callable, callable_trace) = match &callable.0 {
                 Ast::Identifier(identifier) => {
-                    let val =
-                        resolve_identifier_type(context, (identifier.clone(), callable.1.clone()));
-                    let val: TypecheckCall = (val.clone(), Box::new(std::iter::once(val)));
-                    val
+                    resolve_identifier_type(context, (identifier.clone(), callable.1.clone()))?
                 }
-                Ast::List(_) => typecheck_with_context(context, callable.clone()),
+                Ast::List(_) => typecheck_with_context(context, callable.clone())?,
                 _ => {
                     let val = Err(EvaluateError {
                         location: _type.1,
                         reason: "can't call a string or number".to_string(),
                     });
-                    return (val.clone(), Box::new(std::iter::once(val)));
+                    return Err(Box::new(std::iter::once(val)));
                 }
             };
-            // TODO FIXME pass the whole list to get proper span information / pass an outer span (rewrap list)
-            match callable {
-                Ok(v) => {
-                    let (res, res_trace) = v.0.typecheck_call(v.1, context, (args, _type.1));
-                    (res, Box::new(callable_trace.chain(res_trace)))
-                }
-                e => (
-                    e.clone(),
-                    Box::new(callable_trace.chain(std::iter::once(e))),
-                ),
-            }
+            callable.0.typecheck_call(callable.1, context, (args, _type.1))
         }
     }
 }
