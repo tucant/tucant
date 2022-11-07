@@ -510,13 +510,14 @@ pub fn typecheck_with_context(
 ) -> TypecheckCall {
     match &_type.0 {
         Ast::Number(number) => {
-            let rc =
-                (Rc::new(IntegerType(Some(*number))) as RcType, _type.1);
+            let rc = (Rc::new(IntegerType(Some(*number))) as RcType, _type.1);
             Ok((rc.clone(), Box::new(std::iter::once(Ok(rc)))))
         }
         Ast::String(string) => {
-            let rc =
-                (Rc::new(StringType(Some(string.to_string()))) as RcType, _type.1);
+            let rc = (
+                Rc::new(StringType(Some(string.to_string()))) as RcType,
+                _type.1,
+            );
             Ok((rc.clone(), Box::new(std::iter::once(Ok(rc)))))
         }
         Ast::Identifier(identifier) => {
@@ -546,7 +547,9 @@ pub fn typecheck_with_context(
                     return Err(Box::new(std::iter::once(val)));
                 }
             };
-            callable.0.typecheck_call(callable.1, context, (args, _type.1))
+            callable
+                .0
+                .typecheck_call(callable.1, context, (args, _type.1))
         }
     }
 }

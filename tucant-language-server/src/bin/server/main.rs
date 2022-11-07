@@ -142,18 +142,22 @@ impl Server {
             println!("found element {:?}", found_element);
             let typecheck = typecheck(value);
 
-            typecheck.iter().find(|t| t.0.1.range.start == found_element.1.range.start).map(|found_type| {
-                println!("found type {:?}", found_type.0.0);
-                H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
-                    contents: H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
-                        MarkupContent {
-                            kind: MarkupKind::Markdown,
-                            value: format!("{:?}", found_type.0),
-                        },
-                    ),
-                    range: Some(found_type.0.1.range.clone()),
+            typecheck
+                .iter()
+                .find(|t| t.0 .1.range.start == found_element.1.range.start)
+                .map(|found_type| {
+                    println!("found type {:?}", found_type.0 .0);
+                    H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
+                        contents:
+                            H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
+                                MarkupContent {
+                                    kind: MarkupKind::Markdown,
+                                    value: format!("{:?}", found_type.0 .0),
+                                },
+                            ),
+                        range: Some(found_type.0 .1.range.clone()),
+                    })
                 })
-            })
         });
 
         if let Some(response) = response {
