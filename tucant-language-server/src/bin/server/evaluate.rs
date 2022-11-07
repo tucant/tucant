@@ -356,15 +356,23 @@ impl Value for DefineLambdaValue {
         _context: &mut Vec<(String, (RcValue, Span))>,
         args: (&[(Ast, Span)], Span),
     ) -> EvaluateResult<(RcValue, Span)> {
-        let [variable, body]: &[(Ast, Span); 2] = args.0.try_into().map_err(|_| EvaluateError {
-            location: span.clone(),
-            reason: "expected exactly two arguments".to_string(),
-        })?;
+        let [variable, _type, body]: &[(Ast, Span); 3] =
+            args.0.try_into().map_err(|_| EvaluateError {
+                location: span.clone(),
+                reason: "expected exactly three arguments".to_string(),
+            })?;
         let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => Err(EvaluateError {
                 location: variable.1.clone(),
                 reason: "expected argument identifier".to_string(),
+            })?,
+        };
+        let _type = match &_type.0 {
+            Ast::Identifier(identifier) => identifier,
+            _ => Err(EvaluateError {
+                location: _type.1.clone(),
+                reason: "expected argument type".to_string(),
             })?,
         };
         Ok((
@@ -384,15 +392,15 @@ impl Type for DefineLambdaType {
     fn typecheck_call(
         self: Rc<Self>,
         span: Span,
-        _context: &mut Vec<(String, (RcType, Span))>,
+        context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
     ) -> TypecheckCall {
-        let [variable, body]: &[(Ast, Span); 2] = match args.0.try_into() {
+        let [variable, _type, body]: &[(Ast, Span); 3] = match args.0.try_into() {
             Ok(val) => val,
             Err(_) => {
                 let err = Err(EvaluateError {
                     location: span,
-                    reason: "expected exactly two arguments".to_string(),
+                    reason: "expected exactly three arguments".to_string(),
                 });
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
@@ -407,6 +415,34 @@ impl Type for DefineLambdaType {
                 return (err.clone(), Box::new(std::iter::once(err)));
             }
         };
+        let type_identifier = match &_type.0 {
+            Ast::Identifier(identifier) => identifier,
+            _ => {
+                let err = Err(EvaluateError {
+                    location: _type.1.clone(),
+                    reason: "expected argument type".to_string(),
+                });
+                return (err.clone(), Box::new(std::iter::once(err)));
+            }
+        };
+
+        let param_type =
+            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()));
+        let Ok(param_type) = param_type else {
+            let err = Err(EvaluateError {
+                location: _type.1.clone(),
+                reason: "unknown argument type".to_string(),
+            });
+            return (err.clone(), Box::new(std::iter::once(err)));
+        };
+        context.push((variable.clone(), param_type));
+        let (return_value, trace) = typecheck_with_context(context, body.clone());
+        context.pop();
+
+        if let Err(err) = &return_value {
+            return (return_value, trace);
+        }
+
         let val: EvaluateResult<(RcType, Span)> = Ok((
             Rc::new(LambdaType {
                 variable: variable.to_string(),
@@ -506,6 +542,25 @@ pub fn typecheck(value: (Ast, Span)) -> TypecheckCall {
             "widen-integer".to_string(),
             (
                 Rc::new(WidenInteger),
+                Span {
+                    filename: "<builtin>".to_string(),
+                    range: Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                    },
+                },
+            ),
+        ),
+        (
+            "integer-type".to_string(),
+            (
+                Rc::new(IntegerType(None)),
                 Span {
                     filename: "<builtin>".to_string(),
                     range: Range {

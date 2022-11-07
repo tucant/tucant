@@ -456,7 +456,7 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
                     .chain(list.into_iter().flat_map(visitor))
                     .chain(std::iter::once((
                         end_pos.line,
-                        end_pos.character - 1,
+                        end_pos.character.saturating_sub(1),
                         1,
                         3,
                         0,
