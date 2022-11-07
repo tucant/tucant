@@ -261,14 +261,10 @@ impl Type for LambdaType {
     ) -> TypecheckCall {
         let [variable_value]: &[(Ast, Span); 1] = expect_n(args)?;
         let (arg_value, arg_value_trace) = typecheck_with_context(context, variable_value.clone())?;
-        if let Ok(arg_value) = arg_value {
-            context.push((self.variable.clone(), arg_value));
-            let return_value = typecheck_with_context(context, self.body.clone())?;
-            context.pop();
-            return_value
-        } else {
-            (arg_value, arg_value_trace)
-        }
+        context.push((self.variable.clone(), arg_value)); // TODO FIXME make this in some way you can't forget popping on drop? (like try syntax?)
+        let return_value = typecheck_with_context(context, self.body.clone());
+        context.pop();
+        return_value
     }
 }
 
@@ -332,7 +328,7 @@ impl Type for DefineLambdaType {
                     location: variable.1.clone(),
                     reason: "expected argument identifier".to_string(),
                 });
-                return (err.clone(), Box::new(std::iter::once(err)));
+                return Err(Box::new(std::iter::once(err)));
             }
         };
         let type_identifier = match &_type.0 {
@@ -342,35 +338,24 @@ impl Type for DefineLambdaType {
                     location: _type.1.clone(),
                     reason: "expected argument type".to_string(),
                 });
-                return (err.clone(), Box::new(std::iter::once(err)));
+                return Err(Box::new(std::iter::once(err)));
             }
         };
-
-        let param_type =
-            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()));
-        let Ok(param_type) = param_type else {
-            let err = Err(EvaluateError {
-                location: _type.1.clone(),
-                reason: "unknown argument type".to_string(),
-            });
-            return (err.clone(), Box::new(std::iter::once(err)));
-        };
+        let (param_type, trace) =
+            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()))?;
         context.push((variable.clone(), param_type));
-        let (return_value, trace) = typecheck_with_context(context, body.clone())?;
+        let return_value = typecheck_with_context(context, body.clone());
         context.pop();
+        let return_value = return_value?;
 
-        if let Err(_err) = &return_value {
-            return (return_value, trace);
-        }
-
-        let val: EvaluateResult<(RcType, Span)> = Ok((
+        let val = (
             Rc::new(LambdaType {
                 variable: variable.to_string(),
                 body: body.clone(),
-            }),
+            }) as RcType,
             span,
-        ));
-        (val.clone(), Box::new(std::iter::once(val)))
+        );
+        Ok((val.clone(), Box::new(std::iter::once(Ok(val)))))
     }
 }
 
