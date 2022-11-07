@@ -140,22 +140,22 @@ impl Server {
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
-            let typecheck = typecheck(value);
+            let typecheck = typecheck(value).map(|val| val.1).unwrap_or_else(|err| err);
 
             typecheck
-                .iter()
-                .find(|t| t.0 .1.range.start == found_element.1.range.start)
+                .filter_map(|e| e.ok())
+                .find(|t| t.1.range.start == found_element.1.range.start)
                 .map(|found_type| {
-                    println!("found type {:?}", found_type.0 .0);
+                    println!("found type {:?}", found_type.0);
                     H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant0(Hover {
                         contents:
                             H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13::Variant0(
                                 MarkupContent {
                                     kind: MarkupKind::Markdown,
-                                    value: format!("{:?}", found_type.0 .0),
+                                    value: format!("{:?}", found_type.0),
                                 },
                             ),
-                        range: Some(found_type.0 .1.range.clone()),
+                        range: Some(found_type.1.range.clone()),
                     })
                 })
         });
@@ -282,22 +282,18 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let typecheck = typecheck(value.unwrap()); // TODO use match, see above
-                if let Ok(typecheck) = typecheck {
-                    Box::new(typecheck.1.filter_map(|e| e.err()).map(|e| Diagnostic {
-                        range: e.location.range,
-                        severity: Some(DiagnosticSeverity::Error),
-                        code: None,
-                        code_description: None,
-                        source: Some("tucant".to_string()),
-                        message: e.reason,
-                        tags: None,
-                        related_information: None,
-                        data: None,
-                    }))
-                } else {
-                    Box::new(std::iter::empty())
-                }
+                let typecheck = typecheck(value.unwrap()).map(|val| val.1).unwrap_or_else(|err| err);
+                Box::new(typecheck.filter_map(|e| e.err()).map(|e| Diagnostic {
+                    range: e.location.range,
+                    severity: Some(DiagnosticSeverity::Error),
+                    code: None,
+                    code_description: None,
+                    source: Some("tucant".to_string()),
+                    message: e.reason,
+                    tags: None,
+                    related_information: None,
+                    data: None,
+                }))
             };
 
             diagnostics.collect_vec()
