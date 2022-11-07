@@ -10,7 +10,7 @@ use bytes::{Buf, BytesMut};
 use clap::Parser;
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use itertools::Itertools;
-use parser::{hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
+use parser::{highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
@@ -191,21 +191,38 @@ impl Server {
         self: Arc<Self>,
         request: TextDocumentDocumentHighlightRequest,
     ) -> anyhow::Result<()> {
-        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(vec![
-            DocumentHighlight {
-                range: Range {
-                    start: Position {
-                        line: 0,
-                        character: 0,
-                    },
-                    end: Position {
-                        line: 0,
-                        character: 1,
-                    },
-                },
-                kind: Some(DocumentHighlightKind::Text),
-            },
-        ]);
+        // https://github.com/microsoft/vscode-languageserver-node/tree/main/client
+        // https://github.com/microsoft/vscode-languageserver-node/blob/f97bb73dbfb920af4bc8c13ecdcdc16359cdeda6/client/src/common/documentHighlight.ts
+        // https://github.com/microsoft/vscode/search?q=provideDocumentHighlights
+        // https://github.com/microsoft/vscode/issues/42649
+        // https://github.com/microsoft/vscode/issues/51869
+        let documents = self.documents.read().await;
+        let document = documents.get(&request.params.variant0.text_document.uri);
+        let document = if let Some(document) = document {
+            document.clone()
+        } else {
+            tokio::fs::read_to_string(&request.params.variant0.text_document.uri).await?
+        };
+        drop(documents);
+
+        let value = match parse_from_str(&document) {
+            Ok(value) => value,
+            Err(Error {
+                partial_parse: _, ..
+            }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
+        };
+
+        let found_element = highlight_visitor(value.clone(), &request.params.variant0.position);
+
+        let response = H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d::Variant0(
+            found_element
+                .into_iter()
+                .map(|found_element| DocumentHighlight {
+                    range: found_element.range,
+                    kind: Some(DocumentHighlightKind::Text),
+                })
+                .collect_vec(),
+        );
 
         self.send_response(request, response).await?;
 
@@ -567,6 +584,7 @@ impl Server {
                                     "string".to_string(),
                                     "number".to_string(),
                                     "type".to_string(),
+                                    "operator".to_string(),
                                 ],
                                 token_modifiers: vec![],
                             },

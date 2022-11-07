@@ -448,7 +448,21 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
                 0,
             )))
         }
-        Ast::List(list) => Box::new(list.into_iter().flat_map(visitor)),
+        Ast::List(list) => {
+            let start_pos = element.1.range.start;
+            let end_pos = element.1.range.end;
+            Box::new(
+                std::iter::once((start_pos.line, start_pos.character, 1, 3, 0))
+                    .chain(list.into_iter().flat_map(visitor))
+                    .chain(std::iter::once((
+                        end_pos.line,
+                        end_pos.character - 1,
+                        1,
+                        3,
+                        0,
+                    ))),
+            )
+        }
     }
 }
 
@@ -491,6 +505,52 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
                 list.iter()
                     .filter_map(|l| hover_visitor(l.clone(), position))
                     .next()
+            }
+        }
+    }
+}
+
+pub fn highlight_visitor(element: (Ast, Span), position: &Position) -> Vec<Span> {
+    match element.0 {
+        Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
+            if (element.1.range.start.line, element.1.range.start.character)
+                <= (position.line, position.character)
+                && (position.line, position.character)
+                    <= (element.1.range.end.line, element.1.range.end.character)
+            {
+                vec![element.1]
+            } else {
+                vec![]
+            }
+        }
+        Ast::List(ref list) => {
+            if &element.1.range.start == position || position == &element.1.range.end {
+                vec![
+                    Span {
+                        filename: element.1.filename.clone(),
+                        range: Range {
+                            start: element.1.range.start.clone(),
+                            end: Position {
+                                line: element.1.range.start.line,
+                                character: element.1.range.start.character + 1,
+                            },
+                        },
+                    },
+                    Span {
+                        filename: element.1.filename,
+                        range: Range {
+                            start: Position {
+                                line: element.1.range.end.line,
+                                character: element.1.range.end.character - 1,
+                            },
+                            end: element.1.range.end,
+                        },
+                    },
+                ]
+            } else {
+                list.iter()
+                    .flat_map(|l| highlight_visitor(l.clone(), position))
+                    .collect()
             }
         }
     }

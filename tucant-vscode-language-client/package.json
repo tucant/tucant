@@ -27,7 +27,8 @@
         ],
         "extensions": [
           ".tucant"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "commands": [
