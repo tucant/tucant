@@ -214,7 +214,14 @@ impl Type for AddLambdaType {
             })
             .transpose()?;
         let res = (Rc::new(IntegerType(val)) as RcType, span);
-        Ok((res.clone(), Box::new(std::iter::once(Ok(res)).chain(left_value_trace).chain(right_value_trace))))
+        Ok((
+            res.clone(),
+            Box::new(
+                std::iter::once(Ok(res))
+                    .chain(left_value_trace)
+                    .chain(right_value_trace),
+            ),
+        ))
     }
 }
 
@@ -265,7 +272,10 @@ impl Type for LambdaType {
         let return_value = typecheck_with_context(context, self.body.clone());
         context.pop();
         let return_value = return_value?;
-        Ok((return_value.0, Box::new(return_value.1.chain(arg_value_trace))))
+        Ok((
+            return_value.0,
+            Box::new(return_value.1.chain(arg_value_trace)),
+        ))
     }
 }
 
@@ -356,7 +366,10 @@ impl Type for DefineLambdaType {
             }) as RcType,
             span,
         );
-        Ok((val.clone(), Box::new(std::iter::once(Ok(val)).chain(return_value.1).chain(trace))))
+        Ok((
+            val.clone(),
+            Box::new(std::iter::once(Ok(val)).chain(return_value.1).chain(trace)),
+        ))
     }
 }
 
@@ -551,7 +564,10 @@ pub fn typecheck_with_context(
             let return_value = callable
                 .0
                 .typecheck_call(callable.1, context, (args, _type.1))?;
-            Ok((return_value.0, Box::new(return_value.1.chain(callable_trace))))
+            Ok((
+                return_value.0,
+                Box::new(return_value.1.chain(callable_trace)),
+            ))
         }
     }
 }

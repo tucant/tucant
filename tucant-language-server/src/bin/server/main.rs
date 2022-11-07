@@ -282,7 +282,9 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let typecheck = typecheck(value.unwrap()).map(|val| val.1).unwrap_or_else(|err| err);
+                let typecheck = typecheck(value.unwrap())
+                    .map(|val| val.1)
+                    .unwrap_or_else(|err| err);
                 Box::new(typecheck.filter_map(|e| e.err()).map(|e| Diagnostic {
                     range: e.location.range,
                     severity: Some(DiagnosticSeverity::Error),
