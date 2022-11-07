@@ -184,17 +184,18 @@ impl Type for AddLambdaType {
         let (left_value, left_value_trace) = typecheck_with_context(context, left.clone())?;
         let (right_value, right_value_trace) = typecheck_with_context(context, right.clone())?;
         let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|err| {
-            let val: Box<(dyn Iterator<Item = Result<(Rc<(dyn Type)>, Span), EvaluateError>>)> = Box::new(std::iter::once(Err(EvaluateError {
-                location: left_value.1.clone(),
-                reason: format!("expected integer type, got {:?}", left_value.0),
-            })));
+            let val: Box<(dyn Iterator<Item = Result<(Rc<(dyn Type)>, Span), EvaluateError>>)> =
+                Box::new(std::iter::once(Err(EvaluateError {
+                    location: left_value.1.clone(),
+                    reason: format!("expected integer type, got {:?}", left_value.0),
+                })));
             val
         })?;
         let right_value = Rc::downcast::<IntegerType>(right_value.0.clone()).map_err(|err| {
             Box::new(std::iter::once(Err(EvaluateError {
                 location: right_value.1.clone(),
                 reason: format!("expected integer type, got {:?}", right_value.0),
-            }))) as Box<(dyn Iterator<Item=_>)>
+            }))) as Box<(dyn Iterator<Item = _>)>
         })?;
         let val = left_value
             .0
@@ -202,13 +203,13 @@ impl Type for AddLambdaType {
                 right_value.0.map(|r| {
                     l.checked_add(r).ok_or_else(|| {
                         Box::new(std::iter::once(Err(EvaluateError {
-                        location: span.clone(),
-                        reason: format!(
-                            "integer overflow, adding {:?} and {:?}",
-                            left_value, right_value
-                        ),
-                    }))) as Box<(dyn Iterator<Item=_>)>
-                })
+                            location: span.clone(),
+                            reason: format!(
+                                "integer overflow, adding {:?} and {:?}",
+                                left_value, right_value
+                            ),
+                        }))) as Box<(dyn Iterator<Item = _>)>
+                    })
                 })
             })
             .transpose()?;
