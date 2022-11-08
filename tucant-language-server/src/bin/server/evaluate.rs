@@ -274,7 +274,12 @@ impl Type for LambdaType {
         let return_value = return_value?;
         Ok((
             return_value.0,
-            Box::new(return_value.1.chain(arg_value_trace)),
+            Box::new(
+                return_value
+                    .1
+                    .chain(arg_value_trace)
+                    .chain(std::iter::once(Ok((self as RcType, span)))),
+            ), // maybe remove this?
         ))
     }
 }
