@@ -26,7 +26,7 @@ pub async fn course(
     let tucan = tucan.continue_session(session).await.unwrap();
 
     let result = tucan
-        .course(Coursedetails {
+        .course_or_course_group(Coursedetails {
             id: binary_path.clone(),
         })
         .await?;

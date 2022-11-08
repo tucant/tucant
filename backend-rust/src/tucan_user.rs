@@ -268,7 +268,7 @@ impl TucanUser {
         Ok((module, courses))
     }
 
-    pub async fn course(&self, url: Coursedetails) -> anyhow::Result<Course> {
+    pub async fn course_or_course_group(&self, url: Coursedetails) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -749,7 +749,7 @@ impl TucanUser {
                 )
                 .unwrap()
             })
-            .map(|details| self.course(details))
+            .map(|details| self.course_or_course_group(details))
             .collect::<FuturesUnordered<_>>();
 
         let results: Vec<anyhow::Result<Course>> = my_courses.collect().await;

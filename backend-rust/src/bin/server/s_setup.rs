@@ -88,7 +88,7 @@ fn fetch_registration(
                         // TODO FIXME make this in parallel for absolute overkill?
                         for course in module.1 {
                             tucan
-                                .course(Coursedetails {
+                                .course_or_course_group(Coursedetails {
                                     id: course.tucan_id.clone(),
                                 })
                                 .await

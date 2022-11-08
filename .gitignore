@@ -9,3 +9,4 @@ analyze.json
 node_modules/
 target/
 out/
+.env
