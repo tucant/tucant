@@ -181,7 +181,7 @@ impl Type for AddLambdaType {
         args: (&[(Ast, Span)], Span),
         trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
     ) -> TypecheckCall {
-        let [left, right]: &[(Ast, Span); 2] = expect_n(args, trace)?;
+        let [left, right]: &[(Ast, Span); 2] = expect_n(args.clone(), trace)?;
         let left_value = typecheck_with_context(context, left.clone(), trace)?;
         let right_value = typecheck_with_context(context, right.clone(), trace)?;
         let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|err| {
@@ -202,7 +202,7 @@ impl Type for AddLambdaType {
                 right_value.0.map(|r| {
                     l.checked_add(r).ok_or_else(|| {
                         trace.push(Err(EvaluateError {
-                            location: span.clone(),
+                            location: args.1.clone(),
                             reason: format!(
                                 "integer overflow, adding {:?} and {:?}",
                                 left_value, right_value
@@ -212,7 +212,7 @@ impl Type for AddLambdaType {
                 })
             })
             .transpose()?;
-        let res = (Rc::new(IntegerType(val)) as RcType, span);
+        let res = (Rc::new(IntegerType(val)) as RcType, args.1.clone());
         trace.push(Ok(res.clone()));
         Ok(res)
     }
@@ -324,7 +324,7 @@ impl Type for DefineLambdaType {
         args: (&[(Ast, Span)], Span),
         trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
     ) -> TypecheckCall {
-        let [variable, _type, body]: &[(Ast, Span); 3] = expect_n(args, trace)?;
+        let [variable, _type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
         let variable = match &variable.0 {
             Ast::Identifier(identifier) => identifier,
             _ => {
@@ -359,7 +359,7 @@ impl Type for DefineLambdaType {
                 variable: variable.to_string(),
                 body: body.clone(),
             }) as RcType,
-            span,
+            args.1.clone(),
         );
         trace.push(Ok(val.clone()));
         Ok(val.clone())
