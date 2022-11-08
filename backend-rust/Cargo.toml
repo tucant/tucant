@@ -43,7 +43,7 @@ once_cell = { version = "1", optional = true }
 diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "mohe2015-patch-1", optional = true }
 base64 = { version = "0.13" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
-file-lock = { version = "2.1.6", optional = true }
+file-lock = { version = "2", optional = true }
 
 [features]
 default = ["server"]
