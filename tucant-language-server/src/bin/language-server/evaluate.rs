@@ -53,6 +53,10 @@ pub trait Type: Debug + Any {
         type_trace.push(Err(val));
         Err(())
     }
+
+    fn downcast_integer_type(self: Rc<Self>) -> Result<Rc<IntegerType>, ()> {
+        Err(())
+    }
 }
 
 #[derive(Debug)]
@@ -63,7 +67,11 @@ impl Value for IntegerValue {}
 #[derive(Debug, Clone)]
 pub struct IntegerType(Option<i64>);
 
-impl Type for IntegerType {}
+impl Type for IntegerType {
+    fn downcast_integer_type(self: Rc<Self>) -> Result<Rc<IntegerType>, ()> {
+        Ok(self)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct WidenInteger;
@@ -93,7 +101,7 @@ impl Type for WidenInteger {
     ) -> TypecheckCall {
         let [value]: &[(Ast, Span); 1] = expect_n(args.clone(), trace)?;
         let value = typecheck_with_context(context, value.clone(), trace)?;
-        match Rc::downcast::<IntegerType>(value.0.clone()) {
+        match value.0.clone().downcast_integer_type() {
             Ok(_) => {
                 let return_value: (RcType, Span) = (Rc::new(IntegerType(None)), args.1);
                 trace.push(Ok(return_value.clone()));
@@ -182,18 +190,26 @@ impl Type for AddLambdaType {
         let [left, right]: &[(Ast, Span); 2] = expect_n(args.clone(), trace)?;
         let left_value = typecheck_with_context(context, left.clone(), trace)?;
         let right_value = typecheck_with_context(context, right.clone(), trace)?;
-        let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|_err| {
-            trace.push(Err(EvaluateError {
-                location: left_value.1.clone(),
-                reason: format!("expected integer type, got {:?}", left_value.0),
-            }));
-        })?;
-        let right_value = Rc::downcast::<IntegerType>(right_value.0.clone()).map_err(|_err| {
-            trace.push(Err(EvaluateError {
-                location: right_value.1.clone(),
-                reason: format!("expected integer type, got {:?}", right_value.0),
-            }));
-        })?;
+        let left_value = left_value
+            .0
+            .clone()
+            .downcast_integer_type()
+            .map_err(|_err| {
+                trace.push(Err(EvaluateError {
+                    location: left_value.1.clone(),
+                    reason: format!("expected integer type, got {:?}", left_value.0),
+                }));
+            })?;
+        let right_value = right_value
+            .0
+            .clone()
+            .downcast_integer_type()
+            .map_err(|_err| {
+                trace.push(Err(EvaluateError {
+                    location: right_value.1.clone(),
+                    reason: format!("expected integer type, got {:?}", right_value.0),
+                }));
+            })?;
         let val = left_value
             .0
             .and_then(|l| {

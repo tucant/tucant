@@ -1,7 +1,3 @@
-#![feature(assert_matches)]
-#![feature(type_name_of_val)]
-#![allow(incomplete_features)]
-#![feature(trait_upcasting)]
 pub mod evaluate;
 pub mod parser;
 
