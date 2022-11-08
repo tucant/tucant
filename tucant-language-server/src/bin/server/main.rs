@@ -140,9 +140,10 @@ impl Server {
 
         let response = found_element.and_then(|found_element| {
             println!("found element {:?}", found_element);
-            let typecheck = typecheck(value).map(|val| val.1).unwrap_or_else(|err| err);
+            let typecheck = typecheck(value).1;
 
             typecheck
+                .into_iter()
                 .filter_map(|e| e.ok())
                 .find(|t| t.1.range.start == found_element.1.range.start)
                 .map(|found_type| {
@@ -266,40 +267,42 @@ impl Server {
         uri: String,
         version: i64,
     ) -> anyhow::Result<()> {
-        let vec = {
-            let value = parse_from_str(content);
+        let vec =
+            {
+                let value = parse_from_str(content);
 
-            let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
-                Box::new(std::iter::once(Diagnostic {
-                    range: error.location.range.clone(),
-                    severity: Some(DiagnosticSeverity::Error),
-                    code: None,
-                    code_description: None,
-                    source: Some("tucant".to_string()),
-                    message: error.reason.to_string(),
-                    tags: None,
-                    related_information: None,
-                    data: None,
-                }))
-            } else {
-                let typecheck = typecheck(value.unwrap())
-                    .map(|val| val.1)
-                    .unwrap_or_else(|err| err);
-                Box::new(typecheck.filter_map(|e| e.err()).map(|e| Diagnostic {
-                    range: e.location.range,
-                    severity: Some(DiagnosticSeverity::Error),
-                    code: None,
-                    code_description: None,
-                    source: Some("tucant".to_string()),
-                    message: e.reason,
-                    tags: None,
-                    related_information: None,
-                    data: None,
-                }))
+                let diagnostics: Box<dyn Iterator<Item = Diagnostic>> =
+                    if let Err(ref error) = value {
+                        Box::new(std::iter::once(Diagnostic {
+                            range: error.location.range.clone(),
+                            severity: Some(DiagnosticSeverity::Error),
+                            code: None,
+                            code_description: None,
+                            source: Some("tucant".to_string()),
+                            message: error.reason.to_string(),
+                            tags: None,
+                            related_information: None,
+                            data: None,
+                        }))
+                    } else {
+                        let typecheck = typecheck(value.unwrap()).1;
+                        Box::new(typecheck.into_iter().filter_map(|e| e.err()).map(|e| {
+                            Diagnostic {
+                                range: e.location.range,
+                                severity: Some(DiagnosticSeverity::Error),
+                                code: None,
+                                code_description: None,
+                                source: Some("tucant".to_string()),
+                                message: e.reason,
+                                tags: None,
+                                related_information: None,
+                                data: None,
+                            }
+                        }))
+                    };
+
+                diagnostics.collect_vec()
             };
-
-            diagnostics.collect_vec()
-        };
 
         let response = PublishDiagnosticsParams {
             uri,
