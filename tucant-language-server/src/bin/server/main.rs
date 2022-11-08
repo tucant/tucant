@@ -156,7 +156,7 @@ impl Server {
                                     value: format!("{:?}", found_type.0),
                                 },
                             ),
-                        range: Some(found_type.1.range.clone()),
+                        range: Some(found_type.1.range),
                     })
                 })
         });

@@ -1,3 +1,4 @@
+#[allow(clippy::result_unit_err)]
 use tucant_language_server_derive_output::{Position, Range};
 
 use crate::parser::{Ast, Span};
@@ -22,6 +23,8 @@ pub type EvaluateCall = GenericCall<RcValue>;
 
 pub type TypecheckCall = GenericCall<RcType>;
 
+pub type TypeTrace = Vec<Result<(RcType, Span), EvaluateError>>;
+
 pub trait Value: Debug + Any {
     fn evaluate_call(
         self: Rc<Self>,
@@ -41,7 +44,7 @@ pub trait Type: Debug + Any {
         self: Rc<Self>,
         _context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
-        type_trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+        type_trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let val = EvaluateError {
             location: args.1,
@@ -71,7 +74,7 @@ fn expect_n<'a, T: 'static, const N: usize>(
 ) -> Result<&'a [(Ast, Span); N], ()> {
     match TryInto::<&[(Ast, Span); N]>::try_into(args.0) {
         Ok(v) => Ok(v),
-        Err(err) => {
+        Err(_err) => {
             trace.push(Err(EvaluateError {
                 location: args.1,
                 reason: format!("expected exactly {} arguments", N),
@@ -86,7 +89,7 @@ impl Type for WidenInteger {
         self: Rc<Self>,
         context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
-        trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+        trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let [value]: &[(Ast, Span); 1] = expect_n(args.clone(), trace)?;
         let value = typecheck_with_context(context, value.clone(), trace)?;
@@ -124,8 +127,8 @@ pub struct AddLambdaValue; // if this doesn't work maybe just add a span to ever
 impl Value for AddLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, (RcValue, Span))>,
-        args: (&[(Ast, Span)], Span),
+        _context: &mut Vec<(String, (RcValue, Span))>,
+        _args: (&[(Ast, Span)], Span),
     ) -> EvaluateCall {
         /*
         let [left, right]: &[(Ast, Span); 2] = args.0.try_into().map_err(|_| EvaluateError {
@@ -174,18 +177,18 @@ impl Type for AddLambdaType {
         self: Rc<Self>,
         context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
-        trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+        trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let [left, right]: &[(Ast, Span); 2] = expect_n(args.clone(), trace)?;
         let left_value = typecheck_with_context(context, left.clone(), trace)?;
         let right_value = typecheck_with_context(context, right.clone(), trace)?;
-        let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|err| {
+        let left_value = Rc::downcast::<IntegerType>(left_value.0.clone()).map_err(|_err| {
             trace.push(Err(EvaluateError {
                 location: left_value.1.clone(),
                 reason: format!("expected integer type, got {:?}", left_value.0),
             }));
         })?;
-        let right_value = Rc::downcast::<IntegerType>(right_value.0.clone()).map_err(|err| {
+        let right_value = Rc::downcast::<IntegerType>(right_value.0.clone()).map_err(|_err| {
             trace.push(Err(EvaluateError {
                 location: right_value.1.clone(),
                 reason: format!("expected integer type, got {:?}", right_value.0),
@@ -222,8 +225,8 @@ pub struct LambdaValue {
 impl Value for LambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
-        context: &mut Vec<(String, (RcValue, Span))>,
-        args: (&[(Ast, Span)], Span),
+        _context: &mut Vec<(String, (RcValue, Span))>,
+        _args: (&[(Ast, Span)], Span),
     ) -> EvaluateCall {
         /*
         let [variable_value]: &[(Ast, Span); 1] = args.0.try_into().map_err(|_| EvaluateError {
@@ -251,7 +254,7 @@ impl Type for LambdaType {
         self: Rc<Self>,
         context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
-        trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+        trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let [variable_value]: &[(Ast, Span); 1] = expect_n(args, trace)?;
         let arg_value = typecheck_with_context(context, variable_value.clone(), trace)?;
@@ -271,7 +274,7 @@ impl Value for DefineLambdaValue {
     fn evaluate_call(
         self: Rc<Self>,
         _context: &mut Vec<(String, (RcValue, Span))>,
-        args: (&[(Ast, Span)], Span),
+        _args: (&[(Ast, Span)], Span),
     ) -> EvaluateCall {
         /*
         let [variable, _type, body]: &[(Ast, Span); 3] =
@@ -313,7 +316,7 @@ impl Type for DefineLambdaType {
         self: Rc<Self>,
         context: &mut Vec<(String, (RcType, Span))>,
         args: (&[(Ast, Span)], Span),
-        trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+        trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let [variable, _type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
         let variable = match &variable.0 {
@@ -403,8 +406,8 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
 
 pub fn typecheck(
     value: (Ast, Span),
-) -> (TypecheckCall, Vec<Result<(RcType, Span), EvaluateError>>) {
-    let mut trace: Vec<Result<(RcType, Span), EvaluateError>> = Vec::new();
+) -> (TypecheckCall, TypeTrace) {
+    let mut trace: TypeTrace = Vec::new();
     let mut context: Vec<(String, (RcType, Span))> = vec![
         (
             "lambda".to_string(),
@@ -493,7 +496,7 @@ pub fn typecheck(
 fn resolve_identifier_type(
     context: &mut [(String, (RcType, Span))],
     identifier: (String, Span),
-    trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+    trace: &mut TypeTrace,
 ) -> TypecheckCall {
     match context
         .iter()
@@ -519,7 +522,7 @@ fn resolve_identifier_type(
 pub fn typecheck_with_context(
     context: &mut Vec<(String, (RcType, Span))>,
     _type: (Ast, Span),
-    trace: &mut Vec<Result<(RcType, Span), EvaluateError>>,
+    trace: &mut TypeTrace,
 ) -> TypecheckCall {
     match &_type.0 {
         Ast::Number(number) => {
