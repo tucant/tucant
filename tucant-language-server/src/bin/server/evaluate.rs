@@ -511,8 +511,9 @@ fn resolve_identifier_type(
         .map(|(_ident, value)| value)
     {
         Some(value) => {
-            trace.push(Ok(value.clone()));
-            Ok(value.clone())
+            let val = (value.0.clone(), identifier.1);
+            trace.push(Ok(val.clone()));
+            Ok(val)
         }
         None => {
             trace.push(Err(EvaluateError {
