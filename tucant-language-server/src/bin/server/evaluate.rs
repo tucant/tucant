@@ -1,4 +1,4 @@
-#[allow(clippy::result_unit_err)]
+#![allow(clippy::result_unit_err)]
 use tucant_language_server_derive_output::{Position, Range};
 
 use crate::parser::{Ast, Span};
@@ -217,6 +217,7 @@ impl Type for AddLambdaType {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct LambdaValue {
     variable: String,
     body: (Ast, Span),
@@ -404,9 +405,7 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
     evaluate_with_context(&mut context, value)
 }
 
-pub fn typecheck(
-    value: (Ast, Span),
-) -> (TypecheckCall, TypeTrace) {
+pub fn typecheck(value: (Ast, Span)) -> (TypecheckCall, TypeTrace) {
     let mut trace: TypeTrace = Vec::new();
     let mut context: Vec<(String, (RcType, Span))> = vec![
         (
