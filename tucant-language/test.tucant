@@ -1,5 +1,4 @@
 (lambda test integer-type
     (add test
-        (widen-integer 
-            9223372036854775807)))
-
+        5)
+)
