@@ -18,6 +18,7 @@ use actix_web::HttpResponse;
 use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
+use tracing_futures::Instrument;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
@@ -43,6 +44,7 @@ async fn yield_stream(
     }
 }
 
+// https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
@@ -108,9 +110,10 @@ fn fetch_registration(
         }
 
         Ok(())
-    }))
+    }).instrument(tracing::info_span!("my_future")))
 }
 
+#[tracing::instrument]
 #[post("/setup")]
 pub async fn setup(
     tucan: Data<Tucan>,

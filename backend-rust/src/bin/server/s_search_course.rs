@@ -36,6 +36,7 @@ pub struct SearchResult {
     rank: f32,
 }
 
+#[tracing::instrument]
 #[ts]
 #[post("/search-course")]
 pub async fn search_course(

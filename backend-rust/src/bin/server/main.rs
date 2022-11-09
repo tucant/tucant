@@ -73,17 +73,18 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
     }
 }
 
-#[derive(Deserialize, Typescriptable)]
+#[derive(Deserialize, Debug, Typescriptable)]
 struct Login {
     username: String,
     password: String,
 }
 
-#[derive(Serialize, Typescriptable)]
+#[derive(Serialize, Debug, Typescriptable)]
 struct LoginResult {
     success: bool,
 }
 
+#[tracing::instrument(skip(session))]
 #[ts]
 #[post("/login")]
 async fn login(
@@ -96,6 +97,7 @@ async fn login(
     Ok(web::Json(LoginResult { success: true }))
 }
 
+#[tracing::instrument(skip(session))]
 #[ts]
 #[post("/logout")]
 async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
@@ -103,12 +105,14 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
     Ok(web::Json(()))
 }
 
+#[tracing::instrument]
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
     Ok(web::Json(format!("Welcome! {}", session.tu_id)))
 }
 
+#[tracing::instrument]
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
