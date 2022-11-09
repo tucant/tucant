@@ -71,7 +71,6 @@ impl Tucan {
         })
     }
 
-    #[tracing::instrument]
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", username),
