@@ -5,6 +5,10 @@
 DROP INDEX courses_idx;
 DROP INDEX modules_idx;
 
+DROP TABLE course_groups_events;
+DROP TABLE course_events;
+DROP TABLE course_groups_unfinished;
+
 DROP TABLE module_courses;
 DROP TABLE courses_unfinished;
 DROP TABLE users_studies;

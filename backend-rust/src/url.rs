@@ -159,7 +159,7 @@ impl TucanProgram {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TucanArgument<'a> {
     Number(u64),
     String(&'a str),
@@ -322,18 +322,23 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "COURSEDETAILS" => {
             // TODO FIXME this now also parses subgroups of courses as courses
-            assert!([311, 274].contains(&number(&mut arguments)));
+            assert!([311, 274, 275].contains(&number(&mut arguments)));
             assert!([0, 376333755785484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
                     number(&mut arguments).to_be_bytes(), // this *should* be unique per course
-                    number(&mut arguments).to_be_bytes(), // this *should* be different per sub-group in a course and the course itself
+                    number(&mut arguments).to_be_bytes(), // this *should* be different per sub-group in a course and the course itself - but you can't find out which of these is the top-level course page without fetching
                 ]
                 .concat(),
             });
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            // assert_eq!(number(&mut arguments), 3); // I think this is optional in the url but we should parse it at some point
+            assert!([
+                Some(TucanArgument::Number(0)),
+                Some(TucanArgument::Number(3)),
+                None
+            ]
+            .contains(&arguments.next()));
             prog
         }
         other => {

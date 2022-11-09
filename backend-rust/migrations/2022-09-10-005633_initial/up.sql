@@ -104,6 +104,31 @@ CREATE TABLE courses_unfinished (
 
 CREATE INDEX courses_idx ON courses_unfinished USING GIN (tsv);
 
+CREATE TABLE course_groups_unfinished (
+    tucan_id BYTEA NOT NULL PRIMARY KEY,
+    course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    title TEXT NOT NULL,
+    done BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE course_events (
+    course BYTEA NOT NULL REFERENCES courses_unfinished(tucan_id),
+    timestamp_start TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    timestamp_end TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    room TEXT NOT NULL,
+    teachers TEXT NOT NULL,
+    PRIMARY KEY (course, timestamp_start, timestamp_end, room)
+);
+
+CREATE TABLE course_groups_events (
+    course BYTEA NOT NULL REFERENCES course_groups_unfinished(tucan_id),
+    timestamp_start TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    timestamp_end TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    room TEXT NOT NULL,
+    teachers TEXT NOT NULL,
+    PRIMARY KEY (course, timestamp_start, timestamp_end, room)
+);
+
 CREATE TABLE module_courses (
     module BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
     course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
