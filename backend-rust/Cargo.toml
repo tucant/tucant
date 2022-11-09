@@ -44,10 +44,11 @@ diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_
 base64 = { version = "0.13" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
 file-lock = { version = "2", optional = true }
-opentelemetry = "0.18"
+opentelemetry = { version = "0.18", features = ["rt-tokio"] }
 tracing-opentelemetry = "0.18"
 tracing = "0.1"
 tracing-subscriber = "0.3"
+opentelemetry-otlp = "0.11"
 
 [features]
 default = ["server"]
