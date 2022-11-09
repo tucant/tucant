@@ -18,12 +18,12 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     let tucant::url::TucanProgram::Coursedetails(coursedetails) = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N579216929454815,-N000274,-N376333755785484,-N382005035345541,-N382005035304542,-N0,-N0,-N0").program else { panic!() };
-    let mut course = tucan.course_or_course_group(coursedetails).await?;
+    let course = tucan.course_or_course_group(coursedetails).await?;
     //course.content = String::new();
     println!("{:?}", course);
 
     let tucant::url::TucanProgram::Coursedetails(coursedetails) = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N579216929454815,-N000274,-N376333755785484,-N382005035345541,-N382005035451545,-N0,-N0,-N0").program else { panic!() };
-    let mut course = tucan.course_or_course_group(coursedetails).await?;
+    let course = tucan.course_or_course_group(coursedetails).await?;
     //course.content = String::new();
     println!("{:?}", course);
 

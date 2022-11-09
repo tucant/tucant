@@ -366,8 +366,7 @@ impl TucanUser {
 
         let plenum_element = document
             .select(&s(".img_arrowLeft"))
-            .filter(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
-            .next()
+            .find(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
             .unwrap();
 
         let plenum_url = parse_tucan_url(&format!(

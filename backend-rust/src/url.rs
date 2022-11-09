@@ -159,7 +159,7 @@ impl TucanProgram {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TucanArgument<'a> {
     Number(u64),
     String(&'a str),
