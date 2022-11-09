@@ -23,8 +23,8 @@ jobs:
         working-directory: ${{ inputs.path }}
 
     steps:
-      - run: sudo apt-get install -y protobuf3-compiler
       - uses: actions/checkout@v3
+      - run: sudo apt-get install -y protobuf3-compiler
       - uses: dtolnay/rust-toolchain@stable
         id: toolchain
         with:
