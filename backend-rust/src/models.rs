@@ -13,6 +13,7 @@ use diesel::sql_types::Text;
 #[cfg(feature = "server")]
 use diesel::sql_types::{Bytea, Nullable};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
 #[cfg(feature = "server")]
 use tucant_derive::Typescriptable;
 
@@ -338,7 +339,10 @@ impl UndoneUser {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
 #[cfg_attr(feature = "server", diesel(primary_key(tu_id, session_nr, session_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = sessions))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]

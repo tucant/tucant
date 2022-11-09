@@ -37,7 +37,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             ${{ inputs.path }}/target/
-          key: ${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}
+          key: new_${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}-${{ github.run_id }} # https://github.com/actions/cache/blob/main/workarounds.md#update-a-cache
+          restore-keys: |
+            new_${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}
       - name: Formatting
         run: cargo fmt --check
       - name: Clippy

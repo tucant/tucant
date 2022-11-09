@@ -2,7 +2,7 @@ use std::collections::{BTreeSet, VecDeque};
 
 use actix_web::{
     dev::{HttpServiceFactory, ServiceFactory, ServiceRequest},
-    web::Json,
+    web::{Form, Json},
     Error,
 };
 use chrono::NaiveDateTime;
@@ -15,6 +15,12 @@ pub trait Typescriptable {
 }
 
 impl Typescriptable for u32 {
+    fn name() -> String {
+        "number".to_string()
+    }
+}
+
+impl Typescriptable for i64 {
     fn name() -> String {
         "number".to_string()
     }
@@ -105,6 +111,15 @@ impl<T: Typescriptable, E> Typescriptable for Result<T, E> {
 }
 
 impl<T: Typescriptable> Typescriptable for Json<T> {
+    fn name() -> String {
+        T::name()
+    }
+    fn code() -> BTreeSet<String> {
+        T::code()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for Form<T> {
     fn name() -> String {
         T::name()
     }

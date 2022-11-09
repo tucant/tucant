@@ -17,8 +17,9 @@ use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
-use actix_web::web::Json;
+use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
+use actix_web::{get, HttpResponse};
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -37,8 +38,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt::Display;
 use tracing::warn;
+use tucant::schema::{sessions, users_unfinished};
 
-use tucant::models::TucanSession;
+use tucant::models::{TucanSession, UndoneUser};
 
 use tokio::{
     fs::{self, OpenOptions},
@@ -93,6 +95,54 @@ async fn login(
     let tucan_user = tucan.login(&input.username, &input.password).await?;
     session.insert("session", tucan_user.session).unwrap();
     Ok(web::Json(LoginResult { success: true }))
+}
+
+#[tracing::instrument(skip(session))]
+#[get("/login-hack")]
+async fn login_hack(
+    session: Session,
+    tucan: web::Data<Tucan>,
+    input: Query<TucanSession>,
+) -> Result<HttpResponse, MyError> {
+    // TODO FIXME check that this session belongs to the user etc. (simply don't request the user id but fetch it from server)
+    // TODO FIXME
+    let user = UndoneUser::new("mh58hyqa".to_string());
+
+    use diesel_async::RunQueryDsl;
+
+    let mut connection = tucan.pool.get().await?;
+
+    {
+        let input = input.0.clone();
+        connection
+            .build_transaction()
+            .run(|mut connection| {
+                Box::pin(async move {
+                    // TODO FIXME implement this by fetching and checking the session
+                    diesel::insert_into(users_unfinished::table)
+                        .values(user)
+                        .on_conflict(users_unfinished::tu_id)
+                        .do_nothing()
+                        .execute(&mut connection)
+                        .await?;
+
+                    diesel::insert_into(sessions::table)
+                        .values(input)
+                        .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
+                        .do_nothing()
+                        .execute(&mut connection)
+                        .await?;
+
+                    Ok::<(), diesel::result::Error>(())
+                })
+            })
+            .await?;
+    }
+
+    session.insert("session", input.0).unwrap();
+    Ok(HttpResponse::Found()
+        .append_header(("Location", "http://localhost:5173/"))
+        .finish())
 }
 
 #[tracing::instrument(skip(session))]
@@ -223,7 +273,7 @@ import { genericFetch } from "./api_base"
         // Manually unlocking is optional as we unlock on Drop
         filelock.unlock().unwrap();
 
-        app.app.service(setup)
+        app.app.service(setup).service(login_hack)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
