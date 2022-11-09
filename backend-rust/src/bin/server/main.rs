@@ -24,6 +24,7 @@ use csrf_middleware::CsrfMiddleware;
 
 use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
+use opentelemetry::sdk::export::trace::stdout;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -33,6 +34,9 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn};
+use tracing_subscriber::Registry;
+use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use std::collections::BTreeSet;
 use std::fmt::Display;
 use tucant::models::TucanSession;
@@ -107,6 +111,23 @@ async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
+
+    // Install a new OpenTelemetry trace pipeline
+    let tracer = stdout::new_pipeline().install_simple();
+
+    // Create a tracing layer with the configured tracer
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+    // Use the tracing subscriber `Registry`, or any other subscriber
+    // that impls `LookupSpan`
+    let subscriber = Registry::default().with(telemetry);
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
+
+    warn!("Starting server...");
+
+    // https://crates.io/crates/tracing
 
     let random_secret_key = Key::generate();
 

@@ -42,6 +42,12 @@ pub struct Tucan {
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
 }
 
+impl std::fmt::Debug for Tucan {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Tucan").finish()
+    }
+}
+
 impl Tucan {
     pub async fn new() -> anyhow::Result<Self> {
         let pool = create_pool();
@@ -53,6 +59,7 @@ impl Tucan {
         })
     }
 
+    #[tracing::instrument]
     pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
         let _url = "https://www.tucan.tu-darmstadt.de/scripts"
             .parse::<Url>()
@@ -64,6 +71,7 @@ impl Tucan {
         })
     }
 
+    #[tracing::instrument]
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", username),

@@ -131,6 +131,14 @@ To access the database from using a CLI on Linux
 psql postgres://postgres:password@localhost:5432/tucant
 ```
 
+Tracing:
+
+```bash
+sudo docker run -d -p6831:6831/udp -p6832:6832/udp -p16686:16686 docker.io/jaegertracing/all-in-one:latest
+cargo run --bin server
+echo http://localhost:16686/
+```
+
 Add license headers  
 `reuse` needs to be installed on the host system
 
