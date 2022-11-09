@@ -64,10 +64,9 @@ The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used
 ```bash
 cd backend-rust
 
-# Depending on your system you might have to run these with sudo
 # We recommend using podman (with docker compat)
-docker build . -f Dockerfile-postgres --tag postgres-hunspell
-docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
+sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
+sudo docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
 
 ### Backend
@@ -79,7 +78,7 @@ cargo install diesel_cli --no-default-features --features postgres
 $HOME/.cargo/bin/diesel setup
 
 # run this each time you want to run the backend
-RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run
+RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run --bin server
 ```
 
 ### Frontend
@@ -107,7 +106,7 @@ If you want the backend to automatically restart on file change
 ```bash
 cargo install cargo-watch
 cargo watch -x check -s 'touch .trigger'
-cargo watch --no-gitignore -w .trigger -x run
+RUST_BACKTRACE=1 cargo watch --no-gitignore -w ./.trigger -s 'cargo run --bin server'
 ```
 
 To test the backend

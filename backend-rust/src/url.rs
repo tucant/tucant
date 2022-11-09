@@ -159,7 +159,7 @@ impl TucanProgram {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TucanArgument<'a> {
     Number(u64),
     String(&'a str),
@@ -333,7 +333,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             });
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            assert_eq!(number(&mut arguments), 0); // this may be optional
+            assert!([Some(TucanArgument::Number(0)), Some(TucanArgument::Number(3)), None].contains(&arguments.next()));
             prog
         }
         other => {

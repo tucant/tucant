@@ -4,6 +4,44 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
+    course_events (course, timestamp_start, timestamp_end, room) {
+        course -> Bytea,
+        timestamp_start -> Timestamptz,
+        timestamp_end -> Timestamptz,
+        room -> Text,
+        teachers -> Text,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    course_groups_events (course, timestamp_start, timestamp_end, room) {
+        course -> Bytea,
+        timestamp_start -> Timestamptz,
+        timestamp_end -> Timestamptz,
+        room -> Text,
+        teachers -> Text,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    course_groups_unfinished (tucan_id) {
+        tucan_id -> Bytea,
+        course -> Bytea,
+        title -> Text,
+        done -> Bool,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     courses_unfinished (tucan_id) {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
@@ -126,6 +164,9 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(course_events -> courses_unfinished (course));
+diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
+diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
 diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
@@ -137,6 +178,9 @@ diesel::joinable!(user_modules -> modules_unfinished (module_id));
 diesel::joinable!(user_modules -> users_unfinished (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    course_events,
+    course_groups_events,
+    course_groups_unfinished,
     courses_unfinished,
     module_courses,
     module_menu_module,
