@@ -298,6 +298,10 @@ impl TucanUser {
 
         let document = self.fetch_document(&url.clone().into()).await?;
 
+        let is_course_group = element_by_selector(&document, "form h1 + h2").is_some();
+
+        println!("is_course_group {}", is_course_group);
+
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();

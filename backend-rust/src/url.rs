@@ -333,7 +333,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             });
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            // assert_eq!(number(&mut arguments), 3); // I think this is optional in the url but we should parse it at some point
+            assert_eq!(number(&mut arguments), 0); // this may be optional
             prog
         }
         other => {

@@ -3,6 +3,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
-FROM postgres:15beta4
+FROM docker.io/postgres
 
 RUN apt-get update && apt-get install -y hunspell-en-us hunspell-de-de-frami

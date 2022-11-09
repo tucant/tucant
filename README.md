@@ -65,6 +65,7 @@ The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used
 cd backend-rust
 
 # Depending on your system you might have to run these with sudo
+# We recommend using podman (with docker compat)
 docker build . -f Dockerfile-postgres --tag postgres-hunspell
 docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
