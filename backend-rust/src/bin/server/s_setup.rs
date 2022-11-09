@@ -88,6 +88,7 @@ fn fetch_registration(
                             .unwrap();
 
                         // TODO FIXME make this in parallel for absolute overkill?
+                        // TODO FIXME only load the current course?
                         for course in module.1 {
                             tucan
                                 .course_or_course_group(Coursedetails {
@@ -98,7 +99,7 @@ fn fetch_registration(
                         }
 
                         module.0
-                    })
+                    }.instrument(tracing::info_span!("magic")))
                     .collect();
 
                 while let Some(module) = futures.next().await {
@@ -110,7 +111,7 @@ fn fetch_registration(
         }
 
         Ok(())
-    }).instrument(tracing::info_span!("my_future")))
+    }).instrument(tracing::info_span!("fetch_registration")))
 }
 
 #[tracing::instrument]

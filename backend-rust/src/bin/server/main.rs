@@ -117,9 +117,7 @@ async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, 
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    // Install a new OpenTelemetry trace pipeline
-    //let tracer = stdout::new_pipeline().install_simple();
-
+    /*
     let tracer = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(opentelemetry_otlp::new_exporter().tonic()) // with_endpoint("http://localhost:")
@@ -133,6 +131,7 @@ async fn main() -> anyhow::Result<()> {
     let subscriber = Registry::default().with(telemetry);
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+*/
 
     warn!("Starting server...");
 

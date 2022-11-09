@@ -119,7 +119,6 @@ impl TucanUser {
         Ok(html_doc)
     }
 
-    #[tracing::instrument]
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
         use diesel_async::RunQueryDsl;
 
@@ -409,7 +408,6 @@ impl TucanUser {
         Ok(course_group)
     }
 
-    #[tracing::instrument]
     pub async fn course_or_course_group(
         &self,
         url: Coursedetails,
