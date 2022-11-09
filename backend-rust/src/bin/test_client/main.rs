@@ -5,6 +5,7 @@
 use actix_web::web;
 use tucant::{tucan::Tucan, url::parse_tucan_url};
 
+// $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();

@@ -333,7 +333,12 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             });
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
-            assert!([Some(TucanArgument::Number(0)), Some(TucanArgument::Number(3)), None].contains(&arguments.next()));
+            assert!([
+                Some(TucanArgument::Number(0)),
+                Some(TucanArgument::Number(3)),
+                None
+            ]
+            .contains(&arguments.next()));
             prog
         }
         other => {

@@ -18,8 +18,9 @@ use tucant_derive::Typescriptable;
 
 #[cfg(feature = "server")]
 use crate::schema::{
-    courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
-    modules_unfinished, sessions, user_courses, user_modules, users_unfinished, course_groups_unfinished
+    course_groups_unfinished, courses_unfinished, module_courses, module_menu_module,
+    module_menu_unfinished, modules_unfinished, sessions, user_courses, user_modules,
+    users_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -251,7 +252,14 @@ pub struct Course {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable, Associations)
+    derive(
+        Identifiable,
+        Queryable,
+        Insertable,
+        AsChangeset,
+        Typescriptable,
+        Associations
+    )
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = course_groups_unfinished))]

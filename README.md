@@ -121,6 +121,7 @@ To get a nice GUI of the database on Linux
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub io.dbeaver.DBeaverCommunity
+flatpak run io.dbeaver.DBeaverCommunity
 ```
 
 To access the database from using a CLI on Linux  

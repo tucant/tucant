@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, CourseGroup},
+    models::{Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
     url::{
         parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
@@ -73,7 +73,7 @@ pub struct TucanUser {
 #[derive(Debug)]
 pub enum CourseOrCourseGroup {
     Course(Course),
-    CourseGroup(CourseGroup)
+    CourseGroup(CourseGroup),
 }
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
@@ -298,7 +298,7 @@ impl TucanUser {
             .inner_html();
 
         let course = Course {
-            tucan_id: url.id,
+            tucan_id: url.id.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
             title: course_name.unwrap().to_string(),
             sws,
@@ -306,6 +306,34 @@ impl TucanUser {
             content,
             done: true,
         };
+
+        let course_groups: Vec<CourseGroup> = document
+            .select(&s(".dl-ul-listview .listelement"))
+            .map(|e| {
+                let coursegroupdetails: Coursedetails = parse_tucan_url(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    e.select(&s(".img_arrowLeft"))
+                        .next()
+                        .unwrap()
+                        .value()
+                        .attr("href")
+                        .unwrap()
+                ))
+                .program
+                .try_into()
+                .unwrap();
+                CourseGroup {
+                    tucan_id: coursegroupdetails.id,
+                    course: url.id.clone(),
+                    title: e
+                        .select(&s(".dl-ul-li-headline strong"))
+                        .next()
+                        .unwrap()
+                        .inner_html(),
+                    done: false,
+                }
+            })
+            .collect();
 
         debug!("[+] course {:?}", course);
 
@@ -319,17 +347,28 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
+        diesel::insert_into(course_groups_unfinished::table)
+            .values(&course_groups)
+            .on_conflict(course_groups_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
         Ok(course)
     }
 
-    async fn course_group(&self, url: Coursedetails, document: Html) -> anyhow::Result<CourseGroup> {
+    async fn course_group(
+        &self,
+        url: Coursedetails,
+        document: Html,
+    ) -> anyhow::Result<CourseGroup> {
         use diesel_async::RunQueryDsl;
 
         let plenum_element = document
-        .select(&s(".img_arrowLeft"))
-        .filter(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
-        .next()
-        .unwrap();
+            .select(&s(".img_arrowLeft"))
+            .filter(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
+            .next()
+            .unwrap();
 
         let plenum_url = parse_tucan_url(&format!(
             "https://www.tucan.tu-darmstadt.de{}",
@@ -338,7 +377,12 @@ impl TucanUser {
 
         let course_details: Coursedetails = plenum_url.program.try_into().unwrap();
 
-        let name = element_by_selector(&document, "h2").unwrap().inner_html();
+        let name = element_by_selector(
+            &document,
+            ".dl-ul-listview .tbsubhead .dl-ul-li-headline strong",
+        )
+        .unwrap()
+        .inner_html();
 
         let course_group = CourseGroup {
             tucan_id: url.id,
@@ -362,7 +406,10 @@ impl TucanUser {
         Ok(course_group)
     }
 
-    pub async fn course_or_course_group(&self, url: Coursedetails) -> anyhow::Result<CourseOrCourseGroup> {
+    pub async fn course_or_course_group(
+        &self,
+        url: Coursedetails,
+    ) -> anyhow::Result<CourseOrCourseGroup> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -415,11 +462,14 @@ impl TucanUser {
         println!("is_course_group {}", is_course_group);
 
         if is_course_group {
-            Ok(CourseOrCourseGroup::CourseGroup(self.course_group(url, document).await?))
+            Ok(CourseOrCourseGroup::CourseGroup(
+                self.course_group(url, document).await?,
+            ))
         } else {
-            Ok(CourseOrCourseGroup::Course(self.course(url, document).await?))
+            Ok(CourseOrCourseGroup::Course(
+                self.course(url, document).await?,
+            ))
         }
-
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
@@ -835,10 +885,13 @@ impl TucanUser {
 
         let results: anyhow::Result<Vec<CourseOrCourseGroup>> = results.into_iter().collect();
 
-        let results: Vec<Course> = results?.into_iter().filter_map(|v| match v {
-            CourseOrCourseGroup::Course(course) => Some(course),
-            CourseOrCourseGroup::CourseGroup(_) => None,
-        }).collect_vec();
+        let results: Vec<Course> = results?
+            .into_iter()
+            .filter_map(|v| match v {
+                CourseOrCourseGroup::Course(course) => Some(course),
+                CourseOrCourseGroup::CourseGroup(_) => None,
+            })
+            .collect_vec();
 
         let my_user_studies = results
             .iter()
