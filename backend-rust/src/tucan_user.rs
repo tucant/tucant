@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
+    models::{Course, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, CourseGroup},
     tucan::Tucan,
     url::{
         parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
@@ -68,6 +68,12 @@ impl FromRequest for TucanSession {
 pub struct TucanUser {
     pub tucan: Tucan,
     pub session: TucanSession,
+}
+
+#[derive(Debug)]
+pub enum CourseOrCourseGroup {
+    Course(Course),
+    CourseGroup(CourseGroup)
 }
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
@@ -268,39 +274,8 @@ impl TucanUser {
         Ok((module, courses))
     }
 
-    pub async fn course_or_course_group(&self, url: Coursedetails) -> anyhow::Result<Course> {
+    async fn course(&self, url: Coursedetails, document: Html) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
-
-        let mut connection = self.tucan.pool.get().await?;
-
-        let existing = courses_unfinished::table
-            .filter(courses_unfinished::tucan_id.eq(&url.id))
-            .filter(courses_unfinished::done)
-            .select((
-                courses_unfinished::tucan_id,
-                courses_unfinished::tucan_last_checked,
-                courses_unfinished::title,
-                courses_unfinished::course_id,
-                courses_unfinished::sws,
-                courses_unfinished::content,
-                courses_unfinished::done,
-            ))
-            .get_result::<Course>(&mut connection)
-            .await
-            .optional()?;
-
-        drop(connection);
-
-        if let Some(existing) = existing {
-            debug!("[~] course {:?}", existing);
-            return Ok(existing);
-        }
-
-        let document = self.fetch_document(&url.clone().into()).await?;
-
-        let is_course_group = element_by_selector(&document, "form h1 + h2").is_some();
-
-        println!("is_course_group {}", is_course_group);
 
         let name = element_by_selector(&document, "h1").unwrap();
 
@@ -345,6 +320,106 @@ impl TucanUser {
             .await?;
 
         Ok(course)
+    }
+
+    async fn course_group(&self, url: Coursedetails, document: Html) -> anyhow::Result<CourseGroup> {
+        use diesel_async::RunQueryDsl;
+
+        let plenum_element = document
+        .select(&s(".img_arrowLeft"))
+        .filter(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
+        .next()
+        .unwrap();
+
+        let plenum_url = parse_tucan_url(&format!(
+            "https://www.tucan.tu-darmstadt.de{}",
+            plenum_element.value().attr("href").unwrap()
+        ));
+
+        let course_details: Coursedetails = plenum_url.program.try_into().unwrap();
+
+        let name = element_by_selector(&document, "h2").unwrap().inner_html();
+
+        let course_group = CourseGroup {
+            tucan_id: url.id,
+            course: course_details.id,
+            title: name,
+            done: true,
+        };
+
+        debug!("[+] course group {:?}", course_group);
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        diesel::insert_into(course_groups_unfinished::table)
+            .values(&course_group)
+            .on_conflict(course_groups_unfinished::tucan_id)
+            .do_update()
+            .set(&course_group)
+            .execute(&mut connection)
+            .await?;
+
+        Ok(course_group)
+    }
+
+    pub async fn course_or_course_group(&self, url: Coursedetails) -> anyhow::Result<CourseOrCourseGroup> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        let existing = courses_unfinished::table
+            .filter(courses_unfinished::tucan_id.eq(&url.id))
+            .filter(courses_unfinished::done)
+            .select((
+                courses_unfinished::tucan_id,
+                courses_unfinished::tucan_last_checked,
+                courses_unfinished::title,
+                courses_unfinished::course_id,
+                courses_unfinished::sws,
+                courses_unfinished::content,
+                courses_unfinished::done,
+            ))
+            .get_result::<Course>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(existing) = existing {
+            debug!("[~] course {:?}", existing);
+            return Ok(CourseOrCourseGroup::Course(existing));
+        }
+
+        let existing = course_groups_unfinished::table
+            .filter(course_groups_unfinished::tucan_id.eq(&url.id))
+            .filter(course_groups_unfinished::done)
+            .select((
+                course_groups_unfinished::tucan_id,
+                course_groups_unfinished::course,
+                course_groups_unfinished::title,
+                course_groups_unfinished::done,
+            ))
+            .get_result::<CourseGroup>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(existing) = existing {
+            debug!("[~] coursegroup {:?}", existing);
+            return Ok(CourseOrCourseGroup::CourseGroup(existing));
+        }
+
+        drop(connection);
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+
+        let is_course_group = element_by_selector(&document, "form h1 + h2").is_some();
+
+        println!("is_course_group {}", is_course_group);
+
+        if is_course_group {
+            Ok(CourseOrCourseGroup::CourseGroup(self.course_group(url, document).await?))
+        } else {
+            Ok(CourseOrCourseGroup::Course(self.course(url, document).await?))
+        }
+
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
@@ -756,11 +831,14 @@ impl TucanUser {
             .map(|details| self.course_or_course_group(details))
             .collect::<FuturesUnordered<_>>();
 
-        let results: Vec<anyhow::Result<Course>> = my_courses.collect().await;
+        let results: Vec<anyhow::Result<CourseOrCourseGroup>> = my_courses.collect().await;
 
-        let results: anyhow::Result<Vec<Course>> = results.into_iter().collect();
+        let results: anyhow::Result<Vec<CourseOrCourseGroup>> = results.into_iter().collect();
 
-        let results: Vec<Course> = results?;
+        let results: Vec<Course> = results?.into_iter().filter_map(|v| match v {
+            CourseOrCourseGroup::Course(course) => Some(course),
+            CourseOrCourseGroup::CourseGroup(_) => None,
+        }).collect_vec();
 
         let my_user_studies = results
             .iter()

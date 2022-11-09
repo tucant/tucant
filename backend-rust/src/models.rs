@@ -19,7 +19,7 @@ use tucant_derive::Typescriptable;
 #[cfg(feature = "server")]
 use crate::schema::{
     courses_unfinished, module_courses, module_menu_module, module_menu_unfinished,
-    modules_unfinished, sessions, user_courses, user_modules, users_unfinished,
+    modules_unfinished, sessions, user_courses, user_modules, users_unfinished, course_groups_unfinished
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -245,6 +245,26 @@ pub struct Course {
     pub course_id: String,
     pub sws: i16,
     pub content: String,
+    pub done: bool,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable, Associations)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = course_groups_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
+pub struct CourseGroup {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub tucan_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub course: Vec<u8>,
+    pub title: String,
     pub done: bool,
 }
 
