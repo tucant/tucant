@@ -44,10 +44,13 @@ async fn yield_stream(
     }
 }
 
+enum ModulesOrCourses { Modules, Courses }
+
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
+    modules_or_courses: ModulesOrCourses
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     Box::pin(
         try_stream(move |mut stream| async move {
@@ -69,6 +72,7 @@ fn fetch_registration(
                                         Registration {
                                             path: menu.tucan_id,
                                         },
+                                        modules_or_courses
                                     )
                                 })
                                 .flatten_unordered(None),
@@ -81,26 +85,29 @@ fn fetch_registration(
                         .iter()
                         .map(|module| {
                             async {
-                                // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
-                                let module = tucan
-                                    .module(Moduledetails {
-                                        id: module.tucan_id.clone(),
-                                    })
-                                    .await
-                                    .unwrap();
-
-                                // TODO FIXME make this in parallel for absolute overkill?
-                                // TODO FIXME only load the current course?
-                                for course in module.1 {
-                                    tucan
-                                        .course_or_course_group(Coursedetails {
-                                            id: course.tucan_id.clone(),
+                                match modules_or_courses {
+                                    ModulesOrCourses::Modules => {
+                                        let module = tucan
+                                        .module(Moduledetails {
+                                            id: module.tucan_id.clone(),
                                         })
                                         .await
                                         .unwrap();
+                                        module.0
+                                    },
+                                    ModulesOrCourses::Courses => {
+                                        // some history modules have multiple courses per module
+
+                                        // TODO FIXME allow fetching courses without ever fetching modules
+                                            tucan
+                                                .course_or_course_group(Coursedetails {
+                                                    id: course.tucan_id.clone(),
+                                                })
+                                                .await
+                                                .unwrap();
+                                    },
                                 }
 
-                                module.0
                             }
                             .instrument(tracing::info_span!("magic"))
                         })

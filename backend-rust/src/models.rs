@@ -117,7 +117,7 @@ pub struct ModuleMenuPathPart {
 #[serde(tag = "type", content = "value")]
 pub enum RegistrationEnum {
     Submenu(Vec<ModuleMenu>),
-    Modules(Vec<Module>),
+    ModulesAndCourses(Vec<(Module, Vec<Course>)>),
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
