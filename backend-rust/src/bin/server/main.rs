@@ -24,6 +24,7 @@ use csrf_middleware::CsrfMiddleware;
 
 use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
+
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -35,6 +36,8 @@ use s_setup::setup;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fmt::Display;
+use tracing::warn;
+
 use tucant::models::TucanSession;
 
 use tokio::{
@@ -68,17 +71,18 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
     }
 }
 
-#[derive(Deserialize, Typescriptable)]
+#[derive(Deserialize, Debug, Typescriptable)]
 struct Login {
     username: String,
     password: String,
 }
 
-#[derive(Serialize, Typescriptable)]
+#[derive(Serialize, Debug, Typescriptable)]
 struct LoginResult {
     success: bool,
 }
 
+#[tracing::instrument(skip(session))]
 #[ts]
 #[post("/login")]
 async fn login(
@@ -91,6 +95,7 @@ async fn login(
     Ok(web::Json(LoginResult { success: true }))
 }
 
+#[tracing::instrument(skip(session))]
 #[ts]
 #[post("/logout")]
 async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
@@ -98,15 +103,37 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
     Ok(web::Json(()))
 }
 
+#[tracing::instrument]
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
     Ok(web::Json(format!("Welcome! {}", session.tu_id)))
 }
 
+#[tracing::instrument]
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
+
+    /*
+        let tracer = opentelemetry_otlp::new_pipeline()
+            .tracing()
+            .with_exporter(opentelemetry_otlp::new_exporter().tonic()) // with_endpoint("http://localhost:")
+            .install_batch(opentelemetry::runtime::Tokio)?;
+
+        // Create a tracing layer with the configured tracer
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
+        // Use the tracing subscriber `Registry`, or any other subscriber
+        // that impls `LookupSpan`
+        let subscriber = Registry::default().with(telemetry);
+
+        tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    */
+
+    warn!("Starting server...");
+
+    // https://crates.io/crates/tracing
 
     let random_secret_key = Key::generate();
 

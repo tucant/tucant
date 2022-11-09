@@ -64,7 +64,7 @@ impl FromRequest for TucanSession {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TucanUser {
     pub tucan: Tucan,
     pub session: TucanSession,
@@ -92,6 +92,7 @@ impl TucanUser {
             .to_lowercase()
     }
 
+    #[tracing::instrument]
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.session_id);
 
@@ -274,6 +275,7 @@ impl TucanUser {
         Ok((module, courses))
     }
 
+    #[tracing::instrument]
     async fn course(&self, url: Coursedetails, document: Html) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
@@ -357,6 +359,7 @@ impl TucanUser {
         Ok(course)
     }
 
+    #[tracing::instrument]
     async fn course_group(
         &self,
         url: Coursedetails,
@@ -471,6 +474,7 @@ impl TucanUser {
         }
     }
 
+    #[tracing::instrument]
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
@@ -505,6 +509,7 @@ impl TucanUser {
         })
     }
 
+    #[tracing::instrument]
     pub async fn registration(
         &self,
         url: Registration,
@@ -709,6 +714,7 @@ impl TucanUser {
         Ok((module_menu, return_value))
     }
 
+    #[tracing::instrument]
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -819,6 +825,7 @@ impl TucanUser {
         Ok(results.into_iter().map(|r| r.0).collect())
     }
 
+    #[tracing::instrument]
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
         {
             let mut connection = self.tucan.pool.get().await?;

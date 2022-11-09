@@ -22,6 +22,7 @@ use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
 use futures_util::StreamExt;
+use tracing_futures::Instrument;
 use tucant::models::RegistrationEnum;
 
 async fn yield_stream(
@@ -43,74 +44,83 @@ async fn yield_stream(
     }
 }
 
+// https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
-    Box::pin(try_stream(move |mut stream| async move {
-        let value = tucan.registration(parent.clone()).await?;
+    Box::pin(
+        try_stream(move |mut stream| async move {
+            let value = tucan.registration(parent.clone()).await?;
 
-        stream
-            .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
-            .await;
+            stream
+                .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
+                .await;
 
-        match value.1 {
-            RegistrationEnum::Submenu(submenu) => {
-                yield_stream(
-                    &mut stream,
-                    Box::pin(
-                        futures::stream::iter(submenu.into_iter())
-                            .map(move |menu| {
-                                fetch_registration(
-                                    tucan.clone(),
-                                    Registration {
-                                        path: menu.tucan_id,
-                                    },
-                                )
-                            })
-                            .flatten_unordered(None),
-                    ),
-                )
-                .await?;
-            }
-            RegistrationEnum::Modules(modules) => {
-                let mut futures: FuturesUnordered<_> = modules
-                    .iter()
-                    .map(|module| async {
-                        // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
-                        let module = tucan
-                            .module(Moduledetails {
-                                id: module.tucan_id.clone(),
-                            })
-                            .await
-                            .unwrap();
-
-                        // TODO FIXME make this in parallel for absolute overkill?
-                        for course in module.1 {
-                            tucan
-                                .course_or_course_group(Coursedetails {
-                                    id: course.tucan_id.clone(),
+            match value.1 {
+                RegistrationEnum::Submenu(submenu) => {
+                    yield_stream(
+                        &mut stream,
+                        Box::pin(
+                            futures::stream::iter(submenu.into_iter())
+                                .map(move |menu| {
+                                    fetch_registration(
+                                        tucan.clone(),
+                                        Registration {
+                                            path: menu.tucan_id,
+                                        },
+                                    )
                                 })
-                                .await
-                                .unwrap();
-                        }
+                                .flatten_unordered(None),
+                        ),
+                    )
+                    .await?;
+                }
+                RegistrationEnum::Modules(modules) => {
+                    let mut futures: FuturesUnordered<_> = modules
+                        .iter()
+                        .map(|module| {
+                            async {
+                                // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
+                                let module = tucan
+                                    .module(Moduledetails {
+                                        id: module.tucan_id.clone(),
+                                    })
+                                    .await
+                                    .unwrap();
 
-                        module.0
-                    })
-                    .collect();
+                                // TODO FIXME make this in parallel for absolute overkill?
+                                // TODO FIXME only load the current course?
+                                for course in module.1 {
+                                    tucan
+                                        .course_or_course_group(Coursedetails {
+                                            id: course.tucan_id.clone(),
+                                        })
+                                        .await
+                                        .unwrap();
+                                }
 
-                while let Some(module) = futures.next().await {
-                    stream
-                        .yield_item(Bytes::from(format!("\nmodule {}", module.title)))
-                        .await;
+                                module.0
+                            }
+                            .instrument(tracing::info_span!("magic"))
+                        })
+                        .collect();
+
+                    while let Some(module) = futures.next().await {
+                        stream
+                            .yield_item(Bytes::from(format!("\nmodule {}", module.title)))
+                            .await;
+                    }
                 }
             }
-        }
 
-        Ok(())
-    }))
+            Ok(())
+        })
+        .instrument(tracing::info_span!("fetch_registration")),
+    )
 }
 
+#[tracing::instrument]
 #[post("/setup")]
 pub async fn setup(
     tucan: Data<Tucan>,

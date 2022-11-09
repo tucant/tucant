@@ -20,6 +20,7 @@ use tucant::models::TucanSession;
 use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
+#[tracing::instrument]
 #[ts]
 #[post("/search-module")]
 pub async fn search_module(
