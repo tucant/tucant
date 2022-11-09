@@ -13,7 +13,7 @@ use diesel::sql_types::Text;
 #[cfg(feature = "server")]
 use diesel::sql_types::{Bytea, Nullable};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tucant_derive::ts;
+
 #[cfg(feature = "server")]
 use tucant_derive::Typescriptable;
 

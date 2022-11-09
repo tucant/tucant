@@ -26,7 +26,6 @@ use csrf_middleware::CsrfMiddleware;
 use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
 
-use actix_web::web::Form;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
