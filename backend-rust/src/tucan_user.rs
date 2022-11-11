@@ -509,7 +509,6 @@ impl TucanUser {
         })
     }
 
-    #[tracing::instrument]
     pub async fn registration(
         &self,
         url: Registration,
@@ -652,7 +651,13 @@ impl TucanUser {
 
                         e.1.map(|course| {
                             Course {
-                                
+                                tucan_id: todo!(),
+                                tucan_last_checked: todo!(),
+                                title: todo!(),
+                                course_id: todo!(),
+                                sws: todo!(),
+                                content: todo!(),
+                                done: todo!(),
                             }
                         })
 
