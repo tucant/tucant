@@ -586,7 +586,6 @@ impl TucanUser {
             _ => panic!(),
         };
 
-        // ModuleMenuRef?
         let module_menu = ModuleMenu {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
@@ -615,7 +614,6 @@ impl TucanUser {
 
                 let d = a.batching(|f| {
                     let title = f.next()?;
-                    println!("bruh {:?}", title.text().collect_vec());
                     let sub_elements: Vec<ElementRef> = f
                         .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
                         .collect();
