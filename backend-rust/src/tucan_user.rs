@@ -717,6 +717,21 @@ impl TucanUser {
                     .execute(&mut connection)
                     .await?;
 
+                diesel::insert_into(module_courses::table)
+                    .values(
+                        modules
+                            .iter()
+                            .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                            .map(|m| ModuleCourse {
+                                module: m.0.tucan_id.clone(),
+                                course: m.1.tucan_id.clone(),
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+                    .await?;
+
                 RegistrationEnum::ModulesAndCourses(modules)
             }
             (Some(list), None) => {

@@ -83,7 +83,7 @@ fn fetch_registration(
                     )
                     .await?;
                 }
-                RegistrationEnum::Modules(modules) => {
+                RegistrationEnum::ModulesAndCourses(modules) => {
                     let mut futures: FuturesUnordered<_> = modules
                         .iter()
                         .map(|module| {
@@ -92,22 +92,24 @@ fn fetch_registration(
                                     ModulesOrCourses::Modules => {
                                         let module = tucan
                                             .module(Moduledetails {
-                                                id: module.tucan_id.clone(),
+                                                id: module.0.tucan_id.clone(),
                                             })
                                             .await
                                             .unwrap();
-                                        module.0
+                                        module.0;
                                     }
                                     ModulesOrCourses::Courses => {
                                         // some history modules have multiple courses per module
 
                                         // TODO FIXME allow fetching courses without ever fetching modules
-                                        tucan
+                                        for course in module.1.iter() {
+                                            tucan
                                             .course_or_course_group(Coursedetails {
                                                 id: course.tucan_id.clone(),
                                             })
                                             .await
                                             .unwrap();
+                                        }
                                     }
                                 }
                             }
@@ -117,7 +119,7 @@ fn fetch_registration(
 
                     while let Some(module) = futures.next().await {
                         stream
-                            .yield_item(Bytes::from(format!("\nmodule {}", module.title)))
+                            .yield_item(Bytes::from(format!("\nmodule {:?}", module)))
                             .await;
                     }
                 }
@@ -149,6 +151,7 @@ pub async fn setup(
             Registration {
                 path: root.tucan_id,
             },
+            ModulesOrCourses::Modules
         );
 
         yield_stream(&mut stream, input).await.unwrap();
