@@ -339,6 +339,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                 None
             ]
             .contains(&arguments.next()));
+            assert!(matches!(
+                arguments.next(),
+                None | Some(TucanArgument::String(_))
+            ));
             prog
         }
         other => {
@@ -347,7 +351,11 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
     };
 
     if arguments.peek().is_some() {
-        panic!("too many arguments {:?}", arguments.collect::<Vec<_>>())
+        panic!(
+            "too many arguments while parsing {} {:?}",
+            prgname,
+            arguments.collect::<Vec<_>>()
+        )
     }
 
     TucanUrl {
