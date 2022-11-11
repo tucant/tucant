@@ -611,11 +611,17 @@ impl TucanUser {
 
         let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
-                let modules: Vec<Module> = list
+                // batching
+                let a: Vec<ElementRef> = list
+                    .select(&s(".tbcoursestatus strong a[href]"))
+                    .collect();
+                // TODO FIXME split at appropiate place
+
+                let modules: Vec<(Module, Vec<Course>)> = list
                     .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
                     .map(|e| {
                         let mut text = e.text();
-                        Module {
+                        (Module {
                             tucan_id: TryInto::<Moduledetails>::try_into(
                                 parse_tucan_url(&format!(
                                     "https://www.tucan.tu-darmstadt.de{}",
@@ -637,7 +643,7 @@ impl TucanUser {
                             credits: None,
                             content: "".to_string(),
                             done: false,
-                        }
+                        }, Vec::new())
                     })
                     .collect();
 

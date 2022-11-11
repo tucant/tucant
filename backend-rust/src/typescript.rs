@@ -79,7 +79,9 @@ impl<T1: Typescriptable, T2: Typescriptable> Typescriptable for (T1, T2) {
         "[".to_string() + &T1::name() + ", " + &T2::name() + "]"
     }
     fn code() -> BTreeSet<String> {
-        T1::code() + "\n" + T2::code()
+        let val = T1::code();
+        val.extend(T2::code());
+        val
     }
 }
 
