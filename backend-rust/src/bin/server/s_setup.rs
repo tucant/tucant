@@ -44,13 +44,16 @@ async fn yield_stream(
     }
 }
 
-enum ModulesOrCourses { Modules, Courses }
+enum ModulesOrCourses {
+    Modules,
+    Courses,
+}
 
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
-    modules_or_courses: ModulesOrCourses
+    modules_or_courses: ModulesOrCourses,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     Box::pin(
         try_stream(move |mut stream| async move {
@@ -72,7 +75,7 @@ fn fetch_registration(
                                         Registration {
                                             path: menu.tucan_id,
                                         },
-                                        modules_or_courses
+                                        modules_or_courses,
                                     )
                                 })
                                 .flatten_unordered(None),
@@ -88,26 +91,25 @@ fn fetch_registration(
                                 match modules_or_courses {
                                     ModulesOrCourses::Modules => {
                                         let module = tucan
-                                        .module(Moduledetails {
-                                            id: module.tucan_id.clone(),
-                                        })
-                                        .await
-                                        .unwrap();
+                                            .module(Moduledetails {
+                                                id: module.tucan_id.clone(),
+                                            })
+                                            .await
+                                            .unwrap();
                                         module.0
-                                    },
+                                    }
                                     ModulesOrCourses::Courses => {
                                         // some history modules have multiple courses per module
 
                                         // TODO FIXME allow fetching courses without ever fetching modules
-                                            tucan
-                                                .course_or_course_group(Coursedetails {
-                                                    id: course.tucan_id.clone(),
-                                                })
-                                                .await
-                                                .unwrap();
-                                    },
+                                        tucan
+                                            .course_or_course_group(Coursedetails {
+                                                id: course.tucan_id.clone(),
+                                            })
+                                            .await
+                                            .unwrap();
+                                    }
                                 }
-
                             }
                             .instrument(tracing::info_span!("magic"))
                         })
@@ -127,7 +129,6 @@ fn fetch_registration(
     )
 }
 
-#[tracing::instrument]
 #[post("/setup")]
 pub async fn setup(
     tucan: Data<Tucan>,

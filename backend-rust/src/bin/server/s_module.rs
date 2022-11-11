@@ -22,7 +22,6 @@ use tucant::tucan::Tucan;
 use tucant::url::Moduledetails;
 use tucant_derive::ts;
 
-#[tracing::instrument]
 #[ts]
 #[post("/module")]
 pub async fn module(

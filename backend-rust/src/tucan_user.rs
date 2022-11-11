@@ -92,7 +92,6 @@ impl TucanUser {
             .to_lowercase()
     }
 
-    #[tracing::instrument]
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.session_id);
 
@@ -275,7 +274,6 @@ impl TucanUser {
         Ok((module, courses))
     }
 
-    #[tracing::instrument]
     async fn course(&self, url: Coursedetails, document: Html) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
@@ -359,7 +357,6 @@ impl TucanUser {
         Ok(course)
     }
 
-    #[tracing::instrument]
     async fn course_group(
         &self,
         url: Coursedetails,
@@ -474,7 +471,6 @@ impl TucanUser {
         }
     }
 
-    #[tracing::instrument]
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
@@ -610,12 +606,13 @@ impl TucanUser {
 
         let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
-                let a = list
-                    .select(&s(".tbcoursestatus strong a[href]")).peekable();
+                let a = list.select(&s(".tbcoursestatus strong a[href]")).peekable();
 
                 let d = a.batching(|f| {
                     let title = f.peek()?;
-                    let sub_elements: Vec<ElementRef> = f.peeking_take_while(|e| e.value().attr("name") == Some("eventLink")).collect();
+                    let sub_elements: Vec<ElementRef> = f
+                        .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
+                        .collect();
 
                     Some((title, sub_elements))
                 });
@@ -649,20 +646,15 @@ impl TucanUser {
                             done: false,
                         };
 
-                        e.1.map(|course| {
-                            Course {
-                                tucan_id: todo!(),
-                                tucan_last_checked: todo!(),
-                                title: todo!(),
-                                course_id: todo!(),
-                                sws: todo!(),
-                                content: todo!(),
-                                done: todo!(),
-                            }
-                        })
-
-
-                        (module, Vec::new())
+                        e.1.map(|course| Course {
+                            tucan_id: todo!(),
+                            tucan_last_checked: todo!(),
+                            title: todo!(),
+                            course_id: todo!(),
+                            sws: todo!(),
+                            content: todo!(),
+                            done: todo!(),
+                        })(module, Vec::new())
                     })
                     .collect();
 
@@ -739,7 +731,6 @@ impl TucanUser {
         Ok((module_menu, return_value))
     }
 
-    #[tracing::instrument]
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -850,7 +841,6 @@ impl TucanUser {
         Ok(results.into_iter().map(|r| r.0).collect())
     }
 
-    #[tracing::instrument]
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
         {
             let mut connection = self.tucan.pool.get().await?;
