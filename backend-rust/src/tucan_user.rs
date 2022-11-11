@@ -611,7 +611,6 @@ impl TucanUser {
 
         let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
-                // batching
                 let a = list
                     .select(&s(".tbcoursestatus strong a[href]")).peekable();
 
@@ -621,19 +620,17 @@ impl TucanUser {
 
                     Some((title, sub_elements))
                 });
-                let test = d.next();
 
-                // TODO FIXME split at appropiate place
-
-                let modules: Vec<(Module, Vec<Course>)> = list
-                    .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
+                let modules: Vec<(Module, Vec<Course>)> = d
                     .map(|e| {
-                        let mut text = e.text();
-                        (Module {
+                        println!("{:?}", e);
+                        let mut text = e.0.text();
+
+                        let module = Module {
                             tucan_id: TryInto::<Moduledetails>::try_into(
                                 parse_tucan_url(&format!(
                                     "https://www.tucan.tu-darmstadt.de{}",
-                                    e.value().attr("href").unwrap()
+                                    e.0.value().attr("href").unwrap()
                                 ))
                                 .program,
                             )
@@ -642,16 +639,25 @@ impl TucanUser {
                             tucan_last_checked: Utc::now().naive_utc(),
                             module_id: text
                                 .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.text().collect::<Vec<_>>()))
+                                .unwrap_or_else(|| panic!("{:?}", e.0.text().collect::<Vec<_>>()))
                                 .to_string(),
                             title: text
                                 .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.text().collect::<Vec<_>>()))
+                                .unwrap_or_else(|| panic!("{:?}", e.0.text().collect::<Vec<_>>()))
                                 .to_string(),
                             credits: None,
                             content: "".to_string(),
                             done: false,
-                        }, Vec::new())
+                        };
+
+                        e.1.map(|course| {
+                            Course {
+                                
+                            }
+                        })
+
+
+                        (module, Vec::new())
                     })
                     .collect();
 
