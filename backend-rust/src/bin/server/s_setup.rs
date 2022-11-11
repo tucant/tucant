@@ -22,6 +22,7 @@ use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
 use futures_util::StreamExt;
+use itertools::Itertools;
 use tracing_futures::Instrument;
 use tucant::models::RegistrationEnum;
 
@@ -44,6 +45,7 @@ async fn yield_stream(
     }
 }
 
+#[derive(Clone, Copy)]
 enum ModulesOrCourses {
     Modules,
     Courses,
@@ -101,14 +103,20 @@ fn fetch_registration(
                                     ModulesOrCourses::Courses => {
                                         // some history modules have multiple courses per module
 
-                                        // TODO FIXME allow fetching courses without ever fetching modules
-                                        for course in module.1.iter() {
+                                        // this is a hack as there is no guarantee
+                                        let newest_course = module
+                                            .1
+                                            .iter()
+                                            .sorted_by_key(|c| std::cmp::Reverse(&c.tucan_id))
+                                            .next();
+
+                                        if let Some(newest_course) = newest_course {
                                             tucan
-                                            .course_or_course_group(Coursedetails {
-                                                id: course.tucan_id.clone(),
-                                            })
-                                            .await
-                                            .unwrap();
+                                                .course_or_course_group(Coursedetails {
+                                                    id: newest_course.tucan_id.clone(),
+                                                })
+                                                .await
+                                                .unwrap();
                                         }
                                     }
                                 }
@@ -151,7 +159,7 @@ pub async fn setup(
             Registration {
                 path: root.tucan_id,
             },
-            ModulesOrCourses::Modules
+            ModulesOrCourses::Modules,
         );
 
         yield_stream(&mut stream, input).await.unwrap();
