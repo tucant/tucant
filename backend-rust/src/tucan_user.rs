@@ -612,9 +612,17 @@ impl TucanUser {
         let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
                 // batching
-                let a: Vec<ElementRef> = list
-                    .select(&s(".tbcoursestatus strong a[href]"))
-                    .collect();
+                let a = list
+                    .select(&s(".tbcoursestatus strong a[href]")).peekable();
+
+                let d = a.batching(|f| {
+                    let title = f.peek()?;
+                    let sub_elements: Vec<ElementRef> = f.peeking_take_while(|e| e.value().attr("name") == Some("eventLink")).collect();
+
+                    Some((title, sub_elements))
+                });
+                let test = d.next();
+
                 // TODO FIXME split at appropiate place
 
                 let modules: Vec<(Module, Vec<Course>)> = list
