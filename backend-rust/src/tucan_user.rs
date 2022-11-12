@@ -720,7 +720,7 @@ impl TucanUser {
                         modules
                             .iter()
                             .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
-                            .filter_map(|v| v.0.and_then(|v0| Some((v0,v.1))))
+                            .filter_map(|v| v.0.as_ref().and_then(|v0| Some((v0,v.1))))
                             .map(|m| ModuleCourse {
                                 module: m.0.tucan_id.clone(),
                                 course: m.1.tucan_id.clone(),

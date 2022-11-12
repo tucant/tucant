@@ -102,7 +102,7 @@ export type ModuleResponse = {
 };
 export type RegistrationEnum =
   | { type: "Submenu"; value: ModuleMenu[] }
-  | { type: "ModulesAndCourses"; value: [Module, Course[]][] };
+  | { type: "ModulesAndCourses"; value: [Module | null, Course[]][] };
 
 export type SearchResult = {
   tucan_id: string;
