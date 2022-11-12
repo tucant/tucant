@@ -78,11 +78,12 @@ where
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+//#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
 pub struct Module {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -233,11 +234,12 @@ pub struct ModuleMenuEntryModuleRef<'a> {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable, Associations)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -286,7 +288,7 @@ pub struct CourseGroup {
 #[cfg_attr(feature = "server", diesel(table_name = module_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
+//#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module: Vec<u8>,

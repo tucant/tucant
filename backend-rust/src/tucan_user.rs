@@ -513,7 +513,12 @@ impl TucanUser {
         url: Registration,
     ) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
         use diesel_async::RunQueryDsl;
-        /*
+
+        // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
+        // also you can get multiple courses per module
+        // you can also get no module but courses (I think we currently don't return these, NEVER FIX THIS BULLSHIT)
+        // maybe return highest row for each course_id
+        
         let mut connection = self.tucan.pool.get().await?;
 
         let existing_registration_already_fetched = module_menu_unfinished::table
@@ -540,28 +545,35 @@ impl TucanUser {
                 debug!("[~] menu {:?}", module_menu);
 
                 // existing submodules
-                let submodules = module_menu_module::table
-                    .inner_join(modules_unfinished::table)
+                let submodules: Vec<(Module, ModuleCourse)> = module_menu_module::table
+                    .inner_join(modules_unfinished::table.inner_join(module_courses::table))
                     .select((
-                        modules_unfinished::tucan_id,
+                        (modules_unfinished::tucan_id,
                         modules_unfinished::tucan_last_checked,
                         modules_unfinished::title,
                         modules_unfinished::module_id,
                         modules_unfinished::credits,
                         modules_unfinished::content,
-                        modules_unfinished::done,
+                        modules_unfinished::done),
+                        (module_courses::module,
+                        module_courses::course)
                     ))
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
-                    .load::<Module>(&mut connection)
+                    .load::<(Module, ModuleCourse)>(&mut connection)
                     .await?;
 
-                return Ok((module_menu, RegistrationEnum::Modules(submodules)));
+
+                //let subcourses = module_courses::table
+                    // .inner_join(courses_unfinished::table)
+
+
+                return Ok((module_menu, RegistrationEnum::ModulesAndCourses(submodules)));
             }
             _ => {}
         }
 
         drop(connection);
-        */
+        
 
         let document = self.fetch_document(&url.clone().into()).await?;
 
