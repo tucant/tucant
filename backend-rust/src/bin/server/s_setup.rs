@@ -18,15 +18,15 @@ use actix_web::HttpResponse;
 use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
-use futures::Future;
-use futures::FutureExt;
-use tucant::models::Course;
-use tucant::models::Module;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
+use futures::Future;
+use futures::FutureExt;
 use futures::Stream;
 use futures_util::StreamExt;
 use tracing_futures::Instrument;
+use tucant::models::Course;
+use tucant::models::Module;
 use tucant::models::RegistrationEnum;
 
 async fn yield_stream(
@@ -57,7 +57,7 @@ enum ModulesOrCourses {
 #[derive(Debug)]
 enum ModuleOrCourse {
     Module(Module),
-    Course(Course)
+    Course(Course),
 }
 
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
@@ -167,7 +167,7 @@ pub async fn setup(
             Registration {
                 path: root.tucan_id,
             },
-            ModulesOrCourses::Modules
+            ModulesOrCourses::Modules,
         );
 
         yield_stream(&mut stream, input).await.unwrap();

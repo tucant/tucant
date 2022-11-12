@@ -234,7 +234,14 @@ pub struct ModuleMenuEntryModuleRef<'a> {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable, Associations)
+    derive(
+        Identifiable,
+        Queryable,
+        Insertable,
+        AsChangeset,
+        Typescriptable,
+        Associations
+    )
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
