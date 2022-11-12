@@ -563,9 +563,20 @@ impl TucanUser {
                     .await?;
 
 
-                //let subcourses = module_courses::table
-                    // .inner_join(courses_unfinished::table)
-
+                let ids = submodules.iter().map(|(m,mc)| mc.course).collect_vec();
+                let courses: Vec<Course> = courses_unfinished::table
+                .filter(courses_unfinished::tucan_id.eq_any(ids))
+                .select((
+                    courses_unfinished::tucan_id,
+                    courses_unfinished::tucan_last_checked,
+                    courses_unfinished::title,
+                    courses_unfinished::course_id,
+                    courses_unfinished::sws,
+                    courses_unfinished::content,
+                    courses_unfinished::done,
+                ))
+                .load::<Course>(&mut connection)
+                .await?;
 
                 return Ok((module_menu, RegistrationEnum::ModulesAndCourses(submodules)));
             }
