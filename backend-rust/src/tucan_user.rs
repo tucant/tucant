@@ -42,6 +42,7 @@ use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
 use log::debug;
+use diesel::GroupedBy;
 
 use scraper::Selector;
 
@@ -545,42 +546,42 @@ impl TucanUser {
                 debug!("[~] menu {:?}", module_menu);
 
                 // existing submodules
-                let submodules: Vec<(Module, ModuleCourse)> = module_menu_module::table
-                    .inner_join(modules_unfinished::table.inner_join(module_courses::table))
+                let submodules: Vec<Module> = module_menu_module::table
+                    .inner_join(modules_unfinished::table)
                     .select((
-                        (modules_unfinished::tucan_id,
+                        modules_unfinished::tucan_id,
                         modules_unfinished::tucan_last_checked,
                         modules_unfinished::title,
                         modules_unfinished::module_id,
                         modules_unfinished::credits,
                         modules_unfinished::content,
-                        modules_unfinished::done),
-                        (module_courses::module,
-                        module_courses::course)
+                        modules_unfinished::done,
                     ))
                     .filter(module_menu_module::module_menu_id.eq(&url.path))
-                    .load::<(Module, ModuleCourse)>(&mut connection)
+                    .load::<Module>(&mut connection)
                     .await?;
 
-
-                let ids = submodules.iter().map(|(m,mc)| mc.course).collect_vec();
-                let courses: Vec<Course> = courses_unfinished::table
-                .filter(courses_unfinished::tucan_id.eq_any(ids))
-                .select((
-                    courses_unfinished::tucan_id,
-                    courses_unfinished::tucan_last_checked,
-                    courses_unfinished::title,
-                    courses_unfinished::course_id,
-                    courses_unfinished::sws,
-                    courses_unfinished::content,
-                    courses_unfinished::done,
-                ))
-                .load::<Course>(&mut connection)
-                .await?;
-
-                let courses: HashMap<Vec<u8>, Course> = courses.into_iter().map(|c| (c.tucan_id, c)).collect();
-
-                let result = submodules.iter().map(|s| (Some(s.0), courses.get(&s.1.course).unwrap().clone())).collect_vec();
+                let module_courses: Vec<(ModuleCourse, Course)> = ModuleCourse::belonging_to(&submodules)
+                    .inner_join(courses_unfinished::table)
+                    .select((
+                        (module_courses::module,
+                        module_courses::course),
+                        (courses_unfinished::tucan_id,
+                        courses_unfinished::tucan_last_checked,
+                        courses_unfinished::title,
+                        courses_unfinished::course_id,
+                        courses_unfinished::sws,
+                        courses_unfinished::content,
+                        courses_unfinished::done)
+                    ))
+                    .load::<(ModuleCourse, Course)>(&mut connection)
+                    .await?;
+                let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> = module_courses.grouped_by(&submodules);
+                let result: Vec<(Option<Module>, Vec<Course>)> = submodules
+                    .into_iter()
+                    .zip(grouped_module_courses)
+                    .map(|(m, r)| (Some(m), r.into_iter().map(|r| r.1).collect_vec()))
+                    .collect();
 
                 return Ok((module_menu, RegistrationEnum::ModulesAndCourses(result)));
             }
