@@ -24,7 +24,7 @@ export function ModuleList({ listData }: ModuleListProps) {
             <Link
               key={e[0]?.tucan_id}
               className="list-group-item list-group-item-action"
-              to={`/module/${e[0]?.tucan_id}`}
+              to={`/module/${String(e[0]?.tucan_id)}`}
             >
               {e[0]?.title}
             </Link>

@@ -3,17 +3,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use std::{
-    collections::HashMap,
     convert::TryInto,
     future::{ready, Ready},
     io::{Error, ErrorKind},
 };
 
 use crate::{
-    models::{
-        Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModule,
-        ModuleMenuEntryModuleRef,
-    },
+    models::{Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef},
     tucan::Tucan,
     url::{
         parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
@@ -765,7 +761,7 @@ impl TucanUser {
                         modules
                             .iter()
                             .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
-                            .filter_map(|v| v.0.as_ref().and_then(|v0| Some((v0, v.1))))
+                            .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
                             .map(|m| ModuleCourse {
                                 module: m.0.tucan_id.clone(),
                                 course: m.1.tucan_id.clone(),

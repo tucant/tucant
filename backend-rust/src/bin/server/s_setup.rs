@@ -20,7 +20,7 @@ use anyhow::Error;
 use async_stream::try_stream;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
-use futures::Future;
+
 use futures::FutureExt;
 use futures::Stream;
 use futures_util::StreamExt;
@@ -51,6 +51,7 @@ async fn yield_stream(
 #[derive(Clone, Copy)]
 enum ModulesOrCourses {
     Modules,
+    #[allow(dead_code)]
     Courses,
 }
 

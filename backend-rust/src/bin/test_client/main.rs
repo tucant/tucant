@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         println!("{:?}", course);
     */
     let tucant::url::TucanProgram::Registration(program) = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N115106201942566,-N000311,-N376333755785484,-N0,-N356175025101319,-N354165664027444").program else { panic!() };
-    let registration = tucan.registration(program).await?;
+    let _registration = tucan.registration(program).await?;
 
     Ok(())
 }
