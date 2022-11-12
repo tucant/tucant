@@ -613,7 +613,9 @@ impl TucanUser {
                 let a = list.select(&selector).fuse().peekable();
 
                 let d = a.batching(|f| {
-                    let title = f.next()?;
+                    let title = if f.peek()?.value().attr("name") != Some("eventLink") {
+                        f.next()
+                    } else { None };
                     let sub_elements: Vec<ElementRef> = f
                         .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
                         .collect();
@@ -623,30 +625,31 @@ impl TucanUser {
 
                 let modules: Vec<(Option<Module>, Vec<Course>)> = d
                     .map(|e| {
-                        let mut text = e.0.text();
 
-                        let module = TryInto::<Moduledetails>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                e.0.value().attr("href").unwrap()
-                            ))
-                            .program,
-                        ).ok().map(|i| Module {
-                            tucan_id: i.id,
+                        let module = e.0.map(|i| {
+                            let mut text = i.text();
+                            Module {
+                            tucan_id: TryInto::<Moduledetails>::try_into(
+                                parse_tucan_url(&format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    i.value().attr("href").unwrap()
+                                ))
+                                .program,
+                            ).unwrap().id,
                              //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
                             tucan_last_checked: Utc::now().naive_utc(),
                             module_id: text
                                 .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.0.text().collect::<Vec<_>>()))
+                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
                                 .to_string(),
                             title: text
                                 .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.0.text().collect::<Vec<_>>()))
+                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
                                 .to_string(),
                             credits: None,
                             content: "".to_string(),
                             done: false,
-                        });
+                        }});
 
                         let courses =
                             e.1.into_iter()
