@@ -621,20 +621,19 @@ impl TucanUser {
                     Some((title, sub_elements))
                 });
 
-                let modules: Vec<(Module, Vec<Course>)> = d
+                let modules: Vec<(Option<Module>, Vec<Course>)> = d
                     .map(|e| {
                         let mut text = e.0.text();
 
-                        let module = Module {
-                            tucan_id: TryInto::<Moduledetails>::try_into(
-                                parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    e.0.value().attr("href").unwrap()
-                                ))
-                                .program,
-                            )
-                            .unwrap()
-                            .id,
+                        let module = TryInto::<Moduledetails>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                e.0.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        ).ok().map(|i| Module {
+                            tucan_id: i.id,
+                             //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
                             tucan_last_checked: Utc::now().naive_utc(),
                             module_id: text
                                 .next()
@@ -647,7 +646,7 @@ impl TucanUser {
                             credits: None,
                             content: "".to_string(),
                             done: false,
-                        };
+                        });
 
                         let courses =
                             e.1.into_iter()
@@ -689,7 +688,7 @@ impl TucanUser {
                     .collect();
 
                 diesel::insert_into(modules_unfinished::table)
-                    .values(modules.iter().map(|m| &m.0).collect_vec())
+                    .values(modules.iter().map(|m| &m.0).filter_map(|v| v.as_ref()).collect_vec())
                     .on_conflict_do_nothing()
                     .execute(&mut connection)
                     .await?;
@@ -699,6 +698,7 @@ impl TucanUser {
                         modules
                             .iter()
                             .map(|m| &m.0)
+                            .filter_map(|v| v.as_ref())
                             .map(|m| ModuleMenuEntryModuleRef {
                                 module_id: &m.tucan_id,
                                 module_menu_id: &url.path,
@@ -720,6 +720,7 @@ impl TucanUser {
                         modules
                             .iter()
                             .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                            .filter_map(|v| v.0.and_then(|v0| Some((v0,v.1))))
                             .map(|m| ModuleCourse {
                                 module: m.0.tucan_id.clone(),
                                 course: m.1.tucan_id.clone(),

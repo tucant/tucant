@@ -18,6 +18,10 @@ use actix_web::HttpResponse;
 use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
+use futures::Future;
+use futures::FutureExt;
+use tucant::models::Course;
+use tucant::models::Module;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 use futures::Stream;
@@ -48,6 +52,12 @@ async fn yield_stream(
 enum ModulesOrCourses {
     Modules,
     Courses,
+}
+
+#[derive(Debug)]
+enum ModuleOrCourse {
+    Module(Module),
+    Course(Course)
 }
 
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
@@ -87,40 +97,45 @@ fn fetch_registration(
                 RegistrationEnum::ModulesAndCourses(modules) => {
                     let mut futures: FuturesUnordered<_> = modules
                         .iter()
-                        .map(|module| {
-                            async {
+                        .flat_map(|module| {
+                            //                             .instrument(tracing::info_span!("magic"))
                                 match modules_or_courses {
-                                    ModulesOrCourses::Modules => {
+                                    ModulesOrCourses::Modules => Box::new(std::iter::once((async {
                                         let module = tucan
                                             .module(Moduledetails {
                                                 id: module.0.tucan_id.clone(),
                                             })
                                             .await
                                             .unwrap();
-                                        module.0;
-                                    }
+                                        ModuleOrCourse::Module(module.0)
+                                    }).boxed_local())) as Box<dyn Iterator<Item=_>>,
                                     ModulesOrCourses::Courses => {
                                         // some history modules have multiple courses per module
                                         // so we have to fetch all here
 
-                                        for course in module.1.iter() {
+                                        Box::new(module.1.iter().map(|course| (async {
+                                            ModuleOrCourse::Course(match
                                             tucan
                                             .course_or_course_group(Coursedetails {
                                                 id: course.tucan_id.clone(),
                                             })
                                             .await
-                                            .unwrap();
-                                        }
+                                            .unwrap() {
+                                                tucant::tucan_user::CourseOrCourseGroup::Course(c) => c,
+                                                tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
+                                            })
+                                        }).boxed_local())) as Box<dyn Iterator<Item=_>>
                                     }
                                 }
-                            }
-                            .instrument(tracing::info_span!("magic"))
-                        })
+                            })
                         .collect();
 
                     while let Some(module) = futures.next().await {
                         stream
-                            .yield_item(Bytes::from(format!("\nmodule {:?}", module)))
+                            .yield_item(Bytes::from(match module {
+                                ModuleOrCourse::Module(module) => format!("\nmodule {:?}", module.title),
+                                ModuleOrCourse::Course(course) => format!("\ncourse {:?}", course.title),
+                            }))
                             .await;
                     }
                 }
