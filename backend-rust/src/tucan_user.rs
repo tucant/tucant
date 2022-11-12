@@ -561,6 +561,7 @@ impl TucanUser {
                     .load::<Module>(&mut connection)
                     .await?;
 
+                // TODO FIXME maybe only return the latest course for courses with same course_id
                 let module_courses: Vec<(ModuleCourse, Course)> = ModuleCourse::belonging_to(&submodules)
                     .inner_join(courses_unfinished::table)
                     .select((
