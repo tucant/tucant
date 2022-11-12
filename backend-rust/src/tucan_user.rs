@@ -5,7 +5,7 @@
 use std::{
     convert::TryInto,
     future::{ready, Ready},
-    io::{Error, ErrorKind},
+    io::{Error, ErrorKind}, collections::HashMap,
 };
 
 use crate::{
@@ -578,7 +578,11 @@ impl TucanUser {
                 .load::<Course>(&mut connection)
                 .await?;
 
-                return Ok((module_menu, RegistrationEnum::ModulesAndCourses(submodules)));
+                let courses: HashMap<Vec<u8>, Course> = courses.into_iter().map(|c| (c.tucan_id, c)).collect();
+
+                let result = submodules.iter().map(|s| (Some(s.0), courses.get(&s.1.course).unwrap().clone())).collect_vec();
+
+                return Ok((module_menu, RegistrationEnum::ModulesAndCourses(result)));
             }
             _ => {}
         }
