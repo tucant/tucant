@@ -26,7 +26,7 @@ use tucant::url::Registration;
 use tucant_derive::ts;
 
 // trailing slash is menu
-#[tracing::instrument]
+
 #[ts]
 #[post("/modules")]
 pub async fn get_modules<'a>(

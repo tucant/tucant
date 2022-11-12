@@ -14,7 +14,6 @@ use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant_derive::ts;
 
-#[tracing::instrument]
 #[ts]
 #[post("/my_courses")]
 pub async fn my_courses(

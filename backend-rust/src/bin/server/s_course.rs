@@ -17,7 +17,6 @@ use tucant::url::Coursedetails;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
-#[tracing::instrument]
 #[ts]
 #[post("/course")]
 pub async fn course(

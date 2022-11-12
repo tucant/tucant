@@ -55,11 +55,10 @@ impl Tucan {
         Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
-            semaphore: Arc::new(Semaphore::new(1)),
+            semaphore: Arc::new(Semaphore::new(3)),
         })
     }
 
-    #[tracing::instrument]
     pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
         let _url = "https://www.tucan.tu-darmstadt.de/scripts"
             .parse::<Url>()

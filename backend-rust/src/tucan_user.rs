@@ -35,6 +35,7 @@ use crate::schema::*;
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
+use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::{dsl::not, upsert::excluded};
@@ -92,7 +93,6 @@ impl TucanUser {
             .to_lowercase()
     }
 
-    #[tracing::instrument]
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<Html> {
         let cookie = format!("cnsc={}", self.session.session_id);
 
@@ -275,7 +275,6 @@ impl TucanUser {
         Ok((module, courses))
     }
 
-    #[tracing::instrument]
     async fn course(&self, url: Coursedetails, document: Html) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
@@ -359,7 +358,6 @@ impl TucanUser {
         Ok(course)
     }
 
-    #[tracing::instrument]
     async fn course_group(
         &self,
         url: Coursedetails,
@@ -474,7 +472,6 @@ impl TucanUser {
         }
     }
 
-    #[tracing::instrument]
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
@@ -509,12 +506,16 @@ impl TucanUser {
         })
     }
 
-    #[tracing::instrument]
     pub async fn registration(
         &self,
         url: Registration,
     ) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
         use diesel_async::RunQueryDsl;
+
+        // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
+        // also you can get multiple courses per module
+        // you can also get no module but courses (I think we currently don't return these, NEVER FIX THIS BULLSHIT)
+        // maybe return highest row for each course_id
 
         let mut connection = self.tucan.pool.get().await?;
 
@@ -542,7 +543,7 @@ impl TucanUser {
                 debug!("[~] menu {:?}", module_menu);
 
                 // existing submodules
-                let submodules = module_menu_module::table
+                let submodules: Vec<Module> = module_menu_module::table
                     .inner_join(modules_unfinished::table)
                     .select((
                         modules_unfinished::tucan_id,
@@ -557,7 +558,33 @@ impl TucanUser {
                     .load::<Module>(&mut connection)
                     .await?;
 
-                return Ok((module_menu, RegistrationEnum::Modules(submodules)));
+                // TODO FIXME maybe only return the latest course for courses with same course_id
+                let module_courses: Vec<(ModuleCourse, Course)> =
+                    ModuleCourse::belonging_to(&submodules)
+                        .inner_join(courses_unfinished::table)
+                        .select((
+                            (module_courses::module, module_courses::course),
+                            (
+                                courses_unfinished::tucan_id,
+                                courses_unfinished::tucan_last_checked,
+                                courses_unfinished::title,
+                                courses_unfinished::course_id,
+                                courses_unfinished::sws,
+                                courses_unfinished::content,
+                                courses_unfinished::done,
+                            ),
+                        ))
+                        .load::<(ModuleCourse, Course)>(&mut connection)
+                        .await?;
+                let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
+                    module_courses.grouped_by(&submodules);
+                let result: Vec<(Option<Module>, Vec<Course>)> = submodules
+                    .into_iter()
+                    .zip(grouped_module_courses)
+                    .map(|(m, r)| (Some(m), r.into_iter().map(|r| r.1).collect_vec()))
+                    .collect();
+
+                return Ok((module_menu, RegistrationEnum::ModulesAndCourses(result)));
             }
             _ => {}
         }
@@ -587,7 +614,6 @@ impl TucanUser {
             _ => panic!(),
         };
 
-        // ModuleMenuRef?
         let module_menu = ModuleMenu {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
@@ -611,38 +637,99 @@ impl TucanUser {
 
         let return_value = match (submenu_list, modules_list) {
             (_, Some(list)) => {
-                let modules: Vec<Module> = list
-                    .select(&s(r#"td.tbsubhead.dl-inner a[href]"#))
+                let selector = s(".tbcoursestatus strong a[href]");
+                let a = list.select(&selector).fuse().peekable();
+
+                let d = a.batching(|f| {
+                    let title = if f.peek()?.value().attr("name") != Some("eventLink") {
+                        f.next()
+                    } else {
+                        None
+                    };
+                    let sub_elements: Vec<ElementRef> = f
+                        .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
+                        .collect();
+
+                    Some((title, sub_elements))
+                });
+
+                let modules: Vec<(Option<Module>, Vec<Course>)> = d
                     .map(|e| {
-                        let mut text = e.text();
-                        Module {
-                            tucan_id: TryInto::<Moduledetails>::try_into(
-                                parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    e.value().attr("href").unwrap()
-                                ))
-                                .program,
-                            )
-                            .unwrap()
-                            .id,
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            module_id: text
-                                .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.text().collect::<Vec<_>>()))
-                                .to_string(),
-                            title: text
-                                .next()
-                                .unwrap_or_else(|| panic!("{:?}", e.text().collect::<Vec<_>>()))
-                                .to_string(),
-                            credits: None,
-                            content: "".to_string(),
-                            done: false,
-                        }
+                        let module = e.0.map(|i| {
+                            let mut text = i.text();
+                            Module {
+                                tucan_id: TryInto::<Moduledetails>::try_into(
+                                    parse_tucan_url(&format!(
+                                        "https://www.tucan.tu-darmstadt.de{}",
+                                        i.value().attr("href").unwrap()
+                                    ))
+                                    .program,
+                                )
+                                .unwrap()
+                                .id,
+                                //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                module_id: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                title: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                credits: None,
+                                content: "".to_string(),
+                                done: false,
+                            }
+                        });
+
+                        let courses =
+                            e.1.into_iter()
+                                .map(|course| {
+                                    let mut text = course.text();
+
+                                    Course {
+                                        tucan_id: TryInto::<Coursedetails>::try_into(
+                                            parse_tucan_url(&format!(
+                                                "https://www.tucan.tu-darmstadt.de{}",
+                                                course.value().attr("href").unwrap()
+                                            ))
+                                            .program,
+                                        )
+                                        .unwrap()
+                                        .id,
+                                        tucan_last_checked: Utc::now().naive_utc(),
+                                        course_id: text
+                                            .next()
+                                            .unwrap_or_else(|| {
+                                                panic!("{:?}", course.text().collect::<Vec<_>>())
+                                            })
+                                            .to_string(),
+                                        title: text
+                                            .next()
+                                            .unwrap_or_else(|| {
+                                                panic!("{:?}", course.text().collect::<Vec<_>>())
+                                            })
+                                            .to_string(),
+                                        sws: 0,
+                                        content: "".to_string(),
+                                        done: false,
+                                    }
+                                })
+                                .collect_vec();
+
+                        (module, courses)
                     })
                     .collect();
 
                 diesel::insert_into(modules_unfinished::table)
-                    .values(&modules[..])
+                    .values(
+                        modules
+                            .iter()
+                            .map(|m| &m.0)
+                            .filter_map(|v| v.as_ref())
+                            .collect_vec(),
+                    )
                     .on_conflict_do_nothing()
                     .execute(&mut connection)
                     .await?;
@@ -651,6 +738,8 @@ impl TucanUser {
                     .values(
                         modules
                             .iter()
+                            .map(|m| &m.0)
+                            .filter_map(|v| v.as_ref())
                             .map(|m| ModuleMenuEntryModuleRef {
                                 module_id: &m.tucan_id,
                                 module_menu_id: &url.path,
@@ -661,7 +750,29 @@ impl TucanUser {
                     .execute(&mut connection)
                     .await?;
 
-                RegistrationEnum::Modules(modules)
+                diesel::insert_into(courses_unfinished::table)
+                    .values(modules.iter().flat_map(|m| &m.1).collect_vec())
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+                    .await?;
+
+                diesel::insert_into(module_courses::table)
+                    .values(
+                        modules
+                            .iter()
+                            .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                            .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
+                            .map(|m| ModuleCourse {
+                                module: m.0.tucan_id.clone(),
+                                course: m.1.tucan_id.clone(),
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+                    .await?;
+
+                RegistrationEnum::ModulesAndCourses(modules)
             }
             (Some(list), None) => {
                 let utc = Utc::now().naive_utc();
@@ -714,7 +825,6 @@ impl TucanUser {
         Ok((module_menu, return_value))
     }
 
-    #[tracing::instrument]
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -825,7 +935,6 @@ impl TucanUser {
         Ok(results.into_iter().map(|r| r.0).collect())
     }
 
-    #[tracing::instrument]
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
         {
             let mut connection = self.tucan.pool.get().await?;

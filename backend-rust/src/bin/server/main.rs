@@ -153,14 +153,12 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
     Ok(web::Json(()))
 }
 
-#[tracing::instrument]
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
     Ok(web::Json(format!("Welcome! {}", session.tu_id)))
 }
 
-#[tracing::instrument]
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();

@@ -20,9 +20,13 @@ use anyhow::Error;
 use async_stream::try_stream;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
+
+use futures::FutureExt;
 use futures::Stream;
 use futures_util::StreamExt;
 use tracing_futures::Instrument;
+use tucant::models::Course;
+use tucant::models::Module;
 use tucant::models::RegistrationEnum;
 
 async fn yield_stream(
@@ -44,10 +48,24 @@ async fn yield_stream(
     }
 }
 
+#[derive(Clone, Copy)]
+enum ModulesOrCourses {
+    Modules,
+    #[allow(dead_code)]
+    Courses,
+}
+
+#[derive(Debug)]
+enum ModuleOrCourse {
+    Module(Module),
+    Course(Course),
+}
+
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 fn fetch_registration(
     tucan: TucanUser,
     parent: Registration,
+    modules_or_courses: ModulesOrCourses,
 ) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
     Box::pin(
         try_stream(move |mut stream| async move {
@@ -69,6 +87,7 @@ fn fetch_registration(
                                         Registration {
                                             path: menu.tucan_id,
                                         },
+                                        modules_or_courses,
                                     )
                                 })
                                 .flatten_unordered(None),
@@ -76,39 +95,48 @@ fn fetch_registration(
                     )
                     .await?;
                 }
-                RegistrationEnum::Modules(modules) => {
+                RegistrationEnum::ModulesAndCourses(modules) => {
                     let mut futures: FuturesUnordered<_> = modules
                         .iter()
-                        .map(|module| {
-                            async {
-                                // TODO FIXME make this a nested stream like above so we can yield_item in here also for courses
-                                let module = tucan
-                                    .module(Moduledetails {
-                                        id: module.tucan_id.clone(),
-                                    })
-                                    .await
-                                    .unwrap();
+                        .flat_map(|module| {
+                            //                             .instrument(tracing::info_span!("magic"))
+                                match modules_or_courses {
+                                    ModulesOrCourses::Modules => Box::new(module.0.iter().map(|m| (async {
+                                        let module = tucan
+                                            .module(Moduledetails {
+                                                id: m.tucan_id.clone(),
+                                            })
+                                            .await
+                                            .unwrap();
+                                        ModuleOrCourse::Module(module.0)
+                                    }).boxed_local())) as Box<dyn Iterator<Item=_>>,
+                                    ModulesOrCourses::Courses => {
+                                        // some history modules have multiple courses per module
+                                        // so we have to fetch all here
 
-                                // TODO FIXME make this in parallel for absolute overkill?
-                                // TODO FIXME only load the current course?
-                                for course in module.1 {
-                                    tucan
-                                        .course_or_course_group(Coursedetails {
-                                            id: course.tucan_id.clone(),
-                                        })
-                                        .await
-                                        .unwrap();
+                                        Box::new(module.1.iter().map(|course| (async {
+                                            ModuleOrCourse::Course(match
+                                            tucan
+                                            .course_or_course_group(Coursedetails {
+                                                id: course.tucan_id.clone(),
+                                            })
+                                            .await
+                                            .unwrap() {
+                                                tucant::tucan_user::CourseOrCourseGroup::Course(c) => c,
+                                                tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
+                                            })
+                                        }).boxed_local())) as Box<dyn Iterator<Item=_>>
+                                    }
                                 }
-
-                                module.0
-                            }
-                            .instrument(tracing::info_span!("magic"))
-                        })
+                            })
                         .collect();
 
                     while let Some(module) = futures.next().await {
                         stream
-                            .yield_item(Bytes::from(format!("\nmodule {}", module.title)))
+                            .yield_item(Bytes::from(match module {
+                                ModuleOrCourse::Module(module) => format!("\nmodule {:?}", module.title),
+                                ModuleOrCourse::Course(course) => format!("\ncourse {:?}", course.title),
+                            }))
                             .await;
                     }
                 }
@@ -120,7 +148,6 @@ fn fetch_registration(
     )
 }
 
-#[tracing::instrument]
 #[post("/setup")]
 pub async fn setup(
     tucan: Data<Tucan>,
@@ -141,6 +168,7 @@ pub async fn setup(
             Registration {
                 path: root.tucan_id,
             },
+            ModulesOrCourses::Modules,
         );
 
         yield_stream(&mut stream, input).await.unwrap();
