@@ -78,10 +78,10 @@ pub async fn search_module_opensearch(
                 "multi_match": {
                     "query": input.0,
                     "fields": [
-                      "title.de^3",
-                      "title.en^3",
+                      //"title.de^3",
+                      //"title.en^3",
                       "content.de",
-                      "content.en"
+                      //"content.en"
                     ],
                 }
             },

@@ -62,6 +62,15 @@ async fn main() -> anyhow::Result<()> {
 
     // maybe multiplex, then german and english and then combine?
 
+    // http://localhost:5601/app/dev_tools#/console
+/*
+GET tucant_modules/_analyze
+{
+  "analyzer" : "my_german",
+  "text" : "Funktional Funktionale Funktionalen"
+}
+*/
+
     let response = tucan
         .opensearch
         .indices()
@@ -89,8 +98,9 @@ async fn main() -> anyhow::Result<()> {
                                 "lowercase",
                                 "german_stop",
                                 "english_stop",
-                                "german_normalization",
-                                "german_hunspell"
+                                // "german_normalization",
+                                "german_hunspell",
+                                "german_snowball"
                             ],
                             "char_filter": [
                                 "html_strip"
@@ -116,11 +126,11 @@ async fn main() -> anyhow::Result<()> {
                         },
                         "german_stemmer": {
                             "type": "stemmer",
-                            "language": "minimal_german"
+                            "language": "german"
                         },
                         "german_snowball": {
                             "type": "snowball",
-                            "language": "German2"
+                            "language": "German"
                         },
                         "german_hunspell": {
                             "type": "hunspell",
