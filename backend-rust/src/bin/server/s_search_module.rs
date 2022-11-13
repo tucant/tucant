@@ -86,13 +86,11 @@ pub async fn search_module_opensearch(
                 }
             },
             "highlight": {
-                "require_field_match": false,
                 "fields": {
                     "content.de": {
                         // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
-                       // "matched_fields": [ "content.de" ],
-                       // "type": "fvh",
-                        //"require_field_match": false,
+                        "matched_fields": [ "content", "content.de" ],
+                        "type": "fvh",
                         "pre_tags": ["<b>", "<b>"],
                         "post_tags": ["</b>", "</b>"],
                     },

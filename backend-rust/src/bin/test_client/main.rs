@@ -51,6 +51,8 @@ async fn main() -> anyhow::Result<()> {
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer
 
     // TODO FIXME searching for "Funktional" doesnt highlight body because of no matches?
+    // no it seems like its some other weird stuff
+
     // TODO https://www.elastic.co/guide/en/elasticsearch/reference/current/test-analyzer.html
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-dict-decomp-tokenfilter.html
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-hyp-decomp-tokenfilter.html
@@ -146,10 +148,12 @@ GET tucant_modules/_analyze
                         "term_vector": "with_positions_offsets",
                         "fields": {
                             "de": {
+                                "term_vector": "with_positions_offsets",
                                 "type": "text",
                                 "analyzer": "my_german"
                             },
                             "en": {
+                                "term_vector": "with_positions_offsets",
                                 "type": "text",
                                 "analyzer": "my_english"
                             },
@@ -160,10 +164,12 @@ GET tucant_modules/_analyze
                         "term_vector": "with_positions_offsets",
                         "fields": {
                             "de": {
+                                "term_vector": "with_positions_offsets",
                                 "type": "text",
                                 "analyzer": "my_german"
                             },
                             "en": {
+                                "term_vector": "with_positions_offsets",
                                 "type": "text",
                                 "analyzer": "my_english"
                             },
