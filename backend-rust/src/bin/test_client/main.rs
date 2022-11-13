@@ -23,6 +23,8 @@ use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan, url::pars
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
+    // Dashboard index pattern needs to not include timestamp
+
     env_logger::init();
 
     // https://codarium.substack.com/p/designing-an-optimal-multi-language
@@ -39,8 +41,20 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let client = OpenSearch::new(transport);
 
-    const INDEX_NAME: &str = "tucant_modules_v1";
+    // TODO FIXME mappings are not updated, fix that
+    const INDEX_NAME: &str = "tucant_modules_v3";
 
+    let response = client.indices()
+    .create(IndicesCreateParts::Index(INDEX_NAME))
+    .send()
+    .await?;
+
+   /* let exception = response.exception().await?;
+    match exception {
+        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+        None => {}
+    };
+*/
     let response = client
         .indices()
         .put_mapping(IndicesPutMappingParts::Index(&[INDEX_NAME]))
@@ -48,6 +62,7 @@ async fn main() -> anyhow::Result<()> {
             "properties" : {
                 "content": {
                     "type": "text",
+                    "fielddata": true,
                     "fields": {
                       "de": {
                         "type":     "text",
@@ -56,11 +71,15 @@ async fn main() -> anyhow::Result<()> {
                       "en": {
                           "type":     "text",
                           "analyzer": "english"
+                      },
+                      "raw": {
+                        "type": "keyword"
                       }
                     }
                   },
                   "title": {
                     "type": "text",
+                    "fielddata": true,
                     "fields": {
                       "de": {
                         "type":     "text",
@@ -69,6 +88,9 @@ async fn main() -> anyhow::Result<()> {
                       "en": {
                           "type":     "text",
                           "analyzer": "english"
+                      },
+                      "raw": {
+                        "type": "keyword"
                       }
                     }
                   }
@@ -118,6 +140,7 @@ async fn main() -> anyhow::Result<()> {
         .into_iter()
         .flat_map(|m| {
             let base64_tucan_id = base64::encode_config(&m.tucan_id, base64::URL_SAFE_NO_PAD);
+            // TODO FIXME we always increase the version as we always index all documents
             [
                 json!({"index": {"_id": base64_tucan_id}}).into(),
                 json!({
