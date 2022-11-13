@@ -49,6 +49,9 @@ async fn main() -> anyhow::Result<()> {
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-htmlstrip-charfilter.html
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer
+
+    // TODO FIXME searching for "Funktional" doesnt highlight body because of no matches?
+
     let response = tucan
         .opensearch
         .indices()

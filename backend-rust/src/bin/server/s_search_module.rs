@@ -83,7 +83,6 @@ pub async fn search_module_opensearch(
                       "content.de",
                       "content.en"
                     ],
-                    "type": "most_fields"
                 }
             },
             "highlight": {
@@ -93,8 +92,10 @@ pub async fn search_module_opensearch(
                         // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
                         "matched_fields": [ "content", "content.de", "content.en" ],
                         "type": "fvh",
-                        "require_field_match": false
-                    }
+                        "require_field_match": false,
+                        "pre_tags": ["<b>", "<b>"],
+                        "post_tags": ["</b>", "</b>"],
+                    },
                 }
             }
         }))
@@ -114,7 +115,7 @@ pub async fn search_module_opensearch(
         SearchResult {
             tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD).unwrap(),
             title: hit["_source"]["title"].as_str().unwrap().to_string(),
-            excerpt: hit["_source"]["content"].as_str().unwrap().to_string(),
+            excerpt: hit["highlight"]["content"].as_array().unwrap_or(&Vec::new()).into_iter().map(|e| e.as_str().unwrap()).join(" ... ").to_string(),
             rank: hit["_score"].as_f64().unwrap() as f32,
         }
     }).collect_vec();
