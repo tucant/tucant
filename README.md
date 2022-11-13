@@ -169,3 +169,18 @@ Add license headers
 ```bash
 reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-later --exclude-year --recursive --skip-unrecognised .
 ```
+
+## Search
+
+https://opensearch.org/docs/latest/opensearch/search-template/
+
+https://opensearch.org/docs/latest/opensearch/ux/
+autocomplete
+
+https://opensearch.org/docs/latest/api-reference/document-apis/index-document/
+
+https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
+
+https://opensearch.org/docs/latest/api-reference/explain/
+
+https://opensearch.org/docs/latest/api-reference/search/
