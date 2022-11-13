@@ -16,6 +16,7 @@ use opensearch::{
     indices::{IndicesCreateParts, IndicesPutMappingParts},
     BulkParts, IndexParts, OpenSearch, SearchParts,
 };
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use reqwest::Url;
 use serde_json::{json, Value};
 use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan, url::parse_tucan_url};
@@ -41,78 +42,57 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let client = OpenSearch::new(transport);
 
-    // TODO FIXME mappings are not updated, fix that
-    const INDEX_NAME: &str = "tucant_modules_v3";
+    let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
 
-    let response = client.indices()
-    .create(IndicesCreateParts::Index(INDEX_NAME))
-    .send()
-    .await?;
+    let index_name: String = format!("tucant_modules_{}", rand_string);
 
-   /* let exception = response.exception().await?;
-    match exception {
-        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-        None => {}
-    };
-*/
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-htmlstrip-charfilter.html
+
     let response = client
         .indices()
-        .put_mapping(IndicesPutMappingParts::Index(&[INDEX_NAME]))
+        .create(IndicesCreateParts::Index(index_name))
         .body(json!({
-            "properties" : {
-                "content": {
-                    "type": "text",
-                    "fielddata": true,
-                    "fields": {
-                      "de": {
-                        "type":     "text",
-                        "analyzer": "german"
-                      },
-                      "en": {
-                          "type":     "text",
-                          "analyzer": "english"
-                      },
-                      "raw": {
-                        "type": "keyword"
-                      }
+            "mappings": {
+                "properties": {
+                    "content": {
+                        "type": "text",
+                        "fielddata": true,
+                        "fields": {
+                            "de": {
+                                "type":     "text",
+                                "analyzer": "german"
+                            },
+                            "en": {
+                                "type":     "text",
+                                "analyzer": "english"
+                            },
+                        }
+                    },
+                    "title": {
+                        "type": "text",
+                        "fielddata": true,
+                        "fields": {
+                            "de": {
+                                "type":     "text",
+                                "analyzer": "german"
+                            },
+                            "en": {
+                                "type":     "text",
+                                "analyzer": "english"
+                            },
+                        }
                     }
-                  },
-                  "title": {
-                    "type": "text",
-                    "fielddata": true,
-                    "fields": {
-                      "de": {
-                        "type":     "text",
-                        "analyzer": "german"
-                      },
-                      "en": {
-                          "type":     "text",
-                          "analyzer": "english"
-                      },
-                      "raw": {
-                        "type": "keyword"
-                      }
-                    }
-                  }
+                }
             }
-        }))
+        }
+        ))
         .send()
         .await?;
-    /*
-        let response = client
-            .indices()
-            .create(IndicesCreateParts::Index(INDEX_NAME))
-            .body(json!({
-              "mappings": {
-                "properties": {
 
-                }
-              }
-            }
-            ))
-            .send()
-            .await?;
-    */
     let exception = response.exception().await?;
     match exception {
         Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
@@ -140,7 +120,6 @@ async fn main() -> anyhow::Result<()> {
         .into_iter()
         .flat_map(|m| {
             let base64_tucan_id = base64::encode_config(&m.tucan_id, base64::URL_SAFE_NO_PAD);
-            // TODO FIXME we always increase the version as we always index all documents
             [
                 json!({"index": {"_id": base64_tucan_id}}).into(),
                 json!({
@@ -158,7 +137,7 @@ async fn main() -> anyhow::Result<()> {
         .collect_vec();
 
     let response = client
-        .bulk(BulkParts::Index(INDEX_NAME))
+        .bulk(BulkParts::Index(&index_name))
         .body(body)
         .send()
         .await?;
@@ -170,7 +149,21 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let response = client
-        .search(SearchParts::Index(&[INDEX_NAME]))
+        .indices()
+        .put_alias(opensearch::indices::IndicesPutAliasParts::IndexName(
+            &[&index_name],
+            "tucant_modules",
+        ))
+        .send()
+        .await?;
+    let exception = response.exception().await?;
+    match exception {
+        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+        None => {}
+    };
+
+    let response = client
+        .search(SearchParts::Index(&["tucant_modules"]))
         .from(0)
         .size(10)
         .body(json!({
@@ -199,6 +192,18 @@ async fn main() -> anyhow::Result<()> {
         // print the source document
         println!("{:?}", hit["_source"]["title"]);
     }
+
+    let response = client
+        .indices()
+        .get(opensearch::indices::IndicesGetParts::Index(&[
+            "tucant_modules_*",
+        ]))
+        .send()
+        .await?;
+
+    let response_body = response.json::<Value>().await?;
+    //println!("{}", response_body);
+    // TODO FIXME delete indexes here
 
     /*
     let tucan = web::Data::new(Tucan::new().await?);

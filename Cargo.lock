@@ -3401,6 +3401,7 @@ dependencies = [
  "opensearch",
  "opentelemetry",
  "opentelemetry-otlp",
+ "rand 0.8.5",
  "regex",
  "reqwest",
  "scraper",
