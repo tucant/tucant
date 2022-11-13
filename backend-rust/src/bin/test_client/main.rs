@@ -13,7 +13,7 @@ use opensearch::{
         request::JsonBody,
         transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     },
-    indices::IndicesCreateParts,
+    indices::{IndicesCreateParts, IndicesPutMappingParts},
     BulkParts, IndexParts, OpenSearch, SearchParts,
 };
 use reqwest::Url;
@@ -43,50 +43,61 @@ async fn main() -> anyhow::Result<()> {
 
     let response = client
         .indices()
-        .create(IndicesCreateParts::Index(INDEX_NAME))
+        .put_mapping(IndicesPutMappingParts::Index(&[INDEX_NAME]))
         .body(json!({
-          "mappings": {
-            "properties": {
-              "content": {
-                "type": "text",
-                "fields": {
-                  "de": {
-                    "type":     "text",
-                    "analyzer": "german"
+            "properties" : {
+                "content": {
+                    "type": "text",
+                    "fields": {
+                      "de": {
+                        "type":     "text",
+                        "analyzer": "german"
+                      },
+                      "en": {
+                          "type":     "text",
+                          "analyzer": "english"
+                      }
+                    }
                   },
-                  "en": {
-                      "type":     "text",
-                      "analyzer": "english"
+                  "title": {
+                    "type": "text",
+                    "fields": {
+                      "de": {
+                        "type":     "text",
+                        "analyzer": "german"
+                      },
+                      "en": {
+                          "type":     "text",
+                          "analyzer": "english"
+                      }
+                    }
                   }
-                }
-              },
-              "title": {
-                "type": "text",
-                "fields": {
-                  "de": {
-                    "type":     "text",
-                    "analyzer": "german"
-                  },
-                  "en": {
-                      "type":     "text",
-                      "analyzer": "english"
-                  }
+            }
+        }))
+        .send()
+        .await?;
+    /*
+        let response = client
+            .indices()
+            .create(IndicesCreateParts::Index(INDEX_NAME))
+            .body(json!({
+              "mappings": {
+                "properties": {
+
                 }
               }
             }
-          }
-        }
-        ))
-        .send()
-        .await?;
-
+            ))
+            .send()
+            .await?;
+    */
     let exception = response.exception().await?;
     match exception {
         Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
         None => {}
     };
-    
-   // let response_body = response.json::<Value>().await?;
+
+    // let response_body = response.json::<Value>().await?;
     //println!("{:?}", response_body);
 
     let mut connection = tucan.pool.get().await?;
@@ -106,11 +117,11 @@ async fn main() -> anyhow::Result<()> {
     let body: Vec<JsonBody<_>> = modules
         .into_iter()
         .flat_map(|m| {
-            
+            let base64_tucan_id = base64::encode_config(&m.tucan_id, base64::URL_SAFE_NO_PAD);
             [
-                json!({"index": {"_id": m.tucan_id}}).into(),
+                json!({"index": {"_id": base64_tucan_id}}).into(),
                 json!({
-                    "id": m.tucan_id,
+                    "id": base64_tucan_id,
                     "last_checked": m.tucan_last_checked,
                     "title": m.title,
                     "module_id": m.module_id,
@@ -129,8 +140,11 @@ async fn main() -> anyhow::Result<()> {
         .send()
         .await?;
 
-    let response_body = response.json::<Value>().await?;
-    println!("{:?}", response_body);
+    let exception = response.exception().await?;
+    match exception {
+        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+        None => {}
+    };
 
     let response = client
         .search(SearchParts::Index(&[INDEX_NAME]))
