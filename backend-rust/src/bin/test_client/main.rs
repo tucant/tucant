@@ -42,10 +42,14 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let client = OpenSearch::new(transport);
 
-    let rand_string: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(30)
-        .map(char::from)
+    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+    let mut rng = rand::thread_rng();
+
+    let rand_string: String = (0..10)
+        .map(|_| {
+            let idx = rng.gen_range(0..CHARSET.len());
+            CHARSET[idx] as char
+        })
         .collect();
 
     let index_name: String = format!("tucant_modules_{}", rand_string);
@@ -54,7 +58,7 @@ async fn main() -> anyhow::Result<()> {
 
     let response = client
         .indices()
-        .create(IndicesCreateParts::Index(index_name))
+        .create(IndicesCreateParts::Index(&index_name))
         .body(json!({
             "mappings": {
                 "properties": {
@@ -147,6 +151,8 @@ async fn main() -> anyhow::Result<()> {
         Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
         None => {}
     };
+
+    // TODO wait until indexing is finished to update index
 
     let response = client
         .indices()
