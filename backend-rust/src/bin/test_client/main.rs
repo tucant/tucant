@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use actix_web::web;
+use diesel::QueryDsl;
+use diesel_async::RunQueryDsl;
+use itertools::Itertools;
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -15,12 +18,18 @@ use opensearch::{
 };
 use reqwest::Url;
 use serde_json::{json, Value};
-use tucant::{tucan::Tucan, url::parse_tucan_url};
+use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan, url::parse_tucan_url};
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
+
+    // https://codarium.substack.com/p/designing-an-optimal-multi-language
+    // https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/
+    // https://opensearch.org/docs/latest/opensearch/query-dsl/text-analyzers
+
+    let tucan = web::Data::new(Tucan::new().await?);
 
     let url = Url::parse("https://localhost:9200")?;
     let conn_pool = SingleNodeConnectionPool::new(url);
@@ -30,59 +39,113 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let client = OpenSearch::new(transport);
 
-    client
+    const INDEX_NAME: &str = "tucant_modules_v1";
+
+    let response = client
         .indices()
-        .create(IndicesCreateParts::Index("test_index"))
+        .create(IndicesCreateParts::Index(INDEX_NAME))
         .body(json!({
-            "mappings" : {
-                "properties" : {
-                    "message" : { "type" : "text" }
+          "mappings": {
+            "properties": {
+              "content": {
+                "type": "text",
+                "fields": {
+                  "de": {
+                    "type":     "text",
+                    "analyzer": "german"
+                  },
+                  "en": {
+                      "type":     "text",
+                      "analyzer": "english"
+                  }
                 }
+              },
+              "title": {
+                "type": "text",
+                "fields": {
+                  "de": {
+                    "type":     "text",
+                    "analyzer": "german"
+                  },
+                  "en": {
+                      "type":     "text",
+                      "analyzer": "english"
+                  }
+                }
+              }
             }
-        }))
+          }
+        }
+        ))
         .send()
         .await?;
 
-    let mut body: Vec<JsonBody<_>> = Vec::with_capacity(4);
+    let exception = response.exception().await?;
+    match exception {
+        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+        None => {}
+    };
+    
+   // let response_body = response.json::<Value>().await?;
+    //println!("{:?}", response_body);
 
-    // add the first operation and document
-    body.push(json!({"index": {"_id": "1"}}).into());
-    body.push(
-        json!({
-            "id": 1,
-            "user": "kimchy",
-            "post_date": "2009-11-15T00:00:00Z",
-            "message": "Trying out OpenSearch, so far so good?"
-        })
-        .into(),
-    );
+    let mut connection = tucan.pool.get().await?;
+    let modules: Vec<Module> = modules_unfinished::table
+        .select((
+            modules_unfinished::tucan_id,
+            modules_unfinished::tucan_last_checked,
+            modules_unfinished::title,
+            modules_unfinished::module_id,
+            modules_unfinished::credits,
+            modules_unfinished::content,
+            modules_unfinished::done,
+        ))
+        .load::<Module>(&mut connection)
+        .await?;
 
-    // add the second operation and document
-    body.push(json!({"index": {"_id": "2"}}).into());
-    body.push(
-        json!({
-            "id": 2,
-            "user": "forloop",
-            "post_date": "2020-01-08T00:00:00Z",
-            "message": "Bulk indexing with the rust client, yeah!"
+    let body: Vec<JsonBody<_>> = modules
+        .into_iter()
+        .flat_map(|m| {
+            
+            [
+                json!({"index": {"_id": m.tucan_id}}).into(),
+                json!({
+                    "id": m.tucan_id,
+                    "last_checked": m.tucan_last_checked,
+                    "title": m.title,
+                    "module_id": m.module_id,
+                    "credits": m.credits,
+                    "content": m.content
+                })
+                .into(),
+            ]
+            .into_iter()
         })
-        .into(),
-    );
+        .collect_vec();
 
     let response = client
-        .bulk(BulkParts::Index("test_index"))
+        .bulk(BulkParts::Index(INDEX_NAME))
         .body(body)
         .send()
         .await?;
 
+    let response_body = response.json::<Value>().await?;
+    println!("{:?}", response_body);
+
     let response = client
-        .search(SearchParts::Index(&["test_index"]))
+        .search(SearchParts::Index(&[INDEX_NAME]))
         .from(0)
         .size(10)
         .body(json!({
             "query": {
-                "match": {
-                    "message": "Open"
+                "multi_match": {
+                    "query": "Funktional",
+                    "fields": [
+                      "title",
+                      "title.de",
+                      "title.en"
+                    ],
+                    "type": "most_fields"
                 }
             }
         }))
