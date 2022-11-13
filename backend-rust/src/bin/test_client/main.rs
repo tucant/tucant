@@ -157,7 +157,10 @@ async fn main() -> anyhow::Result<()> {
                     "fields": [
                       "title",
                       "title.de",
-                      "title.en"
+                      "title.en",
+                      "content",
+                      "content.de",
+                      "content.en"
                     ],
                     "type": "most_fields"
                 }
@@ -171,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
     println!("took {}", took);
     for hit in response_body["hits"]["hits"].as_array().unwrap() {
         // print the source document
-        println!("{:?}", hit["_source"]);
+        println!("{:?}", hit["_source"]["title"]);
     }
 
     /*
