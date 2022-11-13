@@ -14,7 +14,8 @@ use opensearch::{
         transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     },
     indices::{IndicesCreateParts, IndicesPutMappingParts},
-    BulkParts, IndexParts, OpenSearch, SearchParts, params::Refresh,
+    params::Refresh,
+    BulkParts, IndexParts, OpenSearch, SearchParts,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use reqwest::Url;
@@ -63,12 +64,13 @@ async fn main() -> anyhow::Result<()> {
             "settings": {
                 "analysis": {
                     "analyzer": {
-                        "english": {
+                        "my_english": {
                             "tokenizer": "standard",
                             "filter": [
                                 "english_possessive_stemmer",
                                 "lowercase",
                                 "english_stop",
+                                "german_stop",
                                 "english_keywords",
                                 "english_stemmer"
                             ],
@@ -76,11 +78,12 @@ async fn main() -> anyhow::Result<()> {
                                 "html_strip"
                             ]
                         },
-                        "german": {
+                        "my_german": {
                             "tokenizer": "standard",
                             "filter": [
                                 "lowercase",
                                 "german_stop",
+                                "english_stop",
                                 "german_keywords",
                                 "german_normalization",
                                 "german_stemmer"
@@ -130,29 +133,27 @@ async fn main() -> anyhow::Result<()> {
                 "properties": {
                     "content": {
                         "type": "text",
-                        "fielddata": true,
                         "fields": {
                             "de": {
                                 "type": "text",
-                                "analyzer": "german"
+                                "analyzer": "my_german"
                             },
                             "en": {
                                 "type": "text",
-                                "analyzer": "english"
+                                "analyzer": "my_english"
                             },
                         }
                     },
                     "title": {
                         "type": "text",
-                        "fielddata": true,
                         "fields": {
                             "de": {
                                 "type": "text",
-                                "analyzer": "german"
+                                "analyzer": "my_german"
                             },
                             "en": {
                                 "type": "text",
-                                "analyzer": "english"
+                                "analyzer": "my_english"
                             },
                         }
                     }
@@ -221,33 +222,33 @@ async fn main() -> anyhow::Result<()> {
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
 
-    let response = client.
-    indices()
-    .update_aliases()
-    .body(json!({
-        "actions": [
-    {
-      "remove": {
-        "index": "tucant_modules_*",
-        "alias": "tucant_modules"
-      }
-    },
-    {
-        "add": {
-            "index": index_name,
-            "alias": "tucant_modules"
-        }
-    }
-  ]
-    })).send()
-    .await?;
+    let response = client
+        .indices()
+        .update_aliases()
+        .body(json!({
+              "actions": [
+          {
+            "remove": {
+              "index": "tucant_modules_*",
+              "alias": "tucant_modules"
+            }
+          },
+          {
+              "add": {
+                  "index": index_name,
+                  "alias": "tucant_modules"
+              }
+          }
+        ]
+          }))
+        .send()
+        .await?;
 
-let exception = response.exception().await?;
-match exception {
-    Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-    None => {}
-};
-
+    let exception = response.exception().await?;
+    match exception {
+        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+        None => {}
+    };
 
     let response = client
         .indices()
