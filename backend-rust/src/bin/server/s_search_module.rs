@@ -85,7 +85,15 @@ pub async fn search_module_opensearch(
                 }
             },
             "highlight": {
+                "require_field_match": false,
                 "fields": {
+                    "title": {
+                        // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
+                        "matched_fields": [ "title.en", "title.de" ],
+                        "type": "fvh",
+                        "pre_tags": ["<b>", "<b>"],
+                        "post_tags": ["</b>", "</b>"],
+                    },
                     "content": {
                         // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
                         "matched_fields": [ "content.en", "content.de" ],
@@ -115,13 +123,19 @@ pub async fn search_module_opensearch(
         .map(|hit| SearchResult {
             tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD)
                 .unwrap(),
-            title: hit["_source"]["title"].as_str().unwrap().to_string(),
+            title: hit["highlight"]["title"]
+                .as_array()
+                .unwrap_or(&vec![hit["_source"]["title"].clone()])
+                .into_iter()
+                .map(|e| e.as_str().unwrap())
+                .join("[...]")
+                .to_string(),
             excerpt: hit["highlight"]["content"]
                 .as_array()
                 .unwrap_or(&Vec::new())
                 .into_iter()
                 .map(|e| e.as_str().unwrap())
-                .join(" ... ")
+                .join("[...]")
                 .to_string(),
             rank: hit["_score"].as_f64().unwrap() as f32,
         })
