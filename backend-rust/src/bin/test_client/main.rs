@@ -271,12 +271,10 @@ async fn main() -> anyhow::Result<()> {
         .body(json!({
             "query": {
                 "multi_match": {
-                    "query": "Funktional",
+                    "query": "functionality",
                     "fields": [
-                      "title",
-                      "title.de",
-                      "title.en",
-                      "content",
+                      "title.de^3",
+                      "title.en^3",
                       "content.de",
                       "content.en"
                     ],
