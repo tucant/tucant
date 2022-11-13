@@ -14,7 +14,7 @@ use opensearch::{
         transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     },
     indices::{IndicesCreateParts, IndicesPutMappingParts},
-    BulkParts, IndexParts, OpenSearch, SearchParts,
+    BulkParts, IndexParts, OpenSearch, SearchParts, params::Refresh,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use reqwest::Url;
@@ -55,11 +55,77 @@ async fn main() -> anyhow::Result<()> {
     let index_name: String = format!("tucant_modules_{}", rand_string);
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-htmlstrip-charfilter.html
-
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer
     let response = client
         .indices()
         .create(IndicesCreateParts::Index(&index_name))
         .body(json!({
+            "settings": {
+                "analysis": {
+                    "analyzer": {
+                        "english": {
+                            "tokenizer": "standard",
+                            "filter": [
+                                "english_possessive_stemmer",
+                                "lowercase",
+                                "english_stop",
+                                "english_keywords",
+                                "english_stemmer"
+                            ],
+                            "char_filter": [
+                                "html_strip"
+                            ]
+                        },
+                        "german": {
+                            "tokenizer": "standard",
+                            "filter": [
+                                "lowercase",
+                                "german_stop",
+                                "german_keywords",
+                                "german_normalization",
+                                "german_stemmer"
+                            ],
+                            "char_filter": [
+                                "html_strip"
+                            ]
+                        }
+                    },
+                    "filter": {
+                        "english_stop": {
+                            "type": "stop",
+                            "stopwords": "_english_"
+                        },
+                        "english_keywords": {
+                            "type": "keyword_marker",
+                            "keywords": [
+                                "example"
+                            ]
+                        },
+                        "english_stemmer": {
+                            "type": "stemmer",
+                            "language": "english"
+                        },
+                        "english_possessive_stemmer": {
+                            "type": "stemmer",
+                            "language": "possessive_english"
+                        },
+                        "german_stop": {
+                            "type": "stop",
+                            "stopwords": "_german_"
+                        },
+                        "german_keywords": {
+                            "type": "keyword_marker",
+                            "keywords": [
+                                "Beispiel"
+                            ]
+                        },
+                        "german_stemmer": {
+                            "type": "stemmer",
+                            "language": "light_german"
+                        }
+                    }
+                }
+            },
             "mappings": {
                 "properties": {
                     "content": {
@@ -67,11 +133,11 @@ async fn main() -> anyhow::Result<()> {
                         "fielddata": true,
                         "fields": {
                             "de": {
-                                "type":     "text",
+                                "type": "text",
                                 "analyzer": "german"
                             },
                             "en": {
-                                "type":     "text",
+                                "type": "text",
                                 "analyzer": "english"
                             },
                         }
@@ -81,11 +147,11 @@ async fn main() -> anyhow::Result<()> {
                         "fielddata": true,
                         "fields": {
                             "de": {
-                                "type":     "text",
+                                "type": "text",
                                 "analyzer": "german"
                             },
                             "en": {
-                                "type":     "text",
+                                "type": "text",
                                 "analyzer": "english"
                             },
                         }
@@ -142,6 +208,7 @@ async fn main() -> anyhow::Result<()> {
 
     let response = client
         .bulk(BulkParts::Index(&index_name))
+        .refresh(Refresh::WaitFor)
         .body(body)
         .send()
         .await?;
@@ -152,7 +219,35 @@ async fn main() -> anyhow::Result<()> {
         None => {}
     };
 
-    // TODO wait until indexing is finished to update index
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
+
+    let response = client.
+    indices()
+    .update_aliases()
+    .body(json!({
+        "actions": [
+    {
+      "remove": {
+        "index": "tucant_modules_*",
+        "alias": "tucant_modules"
+      }
+    },
+    {
+        "add": {
+            "index": index_name,
+            "alias": "tucant_modules"
+        }
+    }
+  ]
+    })).send()
+    .await?;
+
+let exception = response.exception().await?;
+match exception {
+    Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
+    None => {}
+};
+
 
     let response = client
         .indices()
