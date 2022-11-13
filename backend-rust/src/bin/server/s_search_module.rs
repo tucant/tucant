@@ -60,7 +60,6 @@ pub async fn search_module(
     Ok(Json(result))
 }
 
-
 #[ts]
 #[post("/search-module-opensearch")]
 pub async fn search_module_opensearch(
@@ -78,18 +77,18 @@ pub async fn search_module_opensearch(
                 "multi_match": {
                     "query": input.0,
                     "fields": [
-                      //"title.de^3",
-                      //"title.en^3",
+                      "title.de^3",
+                      "title.en^3",
                       "content.de",
-                      //"content.en"
+                      "content.en"
                     ],
                 }
             },
             "highlight": {
                 "fields": {
-                    "content.de": {
+                    "content": {
                         // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
-                        "matched_fields": [ "content", "content.de" ],
+                        "matched_fields": [ "content.en", "content.de" ],
                         "type": "fvh",
                         "pre_tags": ["<b>", "<b>"],
                         "post_tags": ["</b>", "</b>"],
@@ -109,14 +108,24 @@ pub async fn search_module_opensearch(
         //println!("{}", hit);
     }
 
-    let search_results: Vec<SearchResult> = response_body["hits"]["hits"].as_array().unwrap().into_iter().map(|hit| {
-        SearchResult {
-            tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD).unwrap(),
+    let search_results: Vec<SearchResult> = response_body["hits"]["hits"]
+        .as_array()
+        .unwrap()
+        .into_iter()
+        .map(|hit| SearchResult {
+            tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD)
+                .unwrap(),
             title: hit["_source"]["title"].as_str().unwrap().to_string(),
-            excerpt: hit["highlight"]["content.de"].as_array().unwrap_or(&Vec::new()).into_iter().map(|e| e.as_str().unwrap()).join(" ... ").to_string(),
+            excerpt: hit["highlight"]["content"]
+                .as_array()
+                .unwrap_or(&Vec::new())
+                .into_iter()
+                .map(|e| e.as_str().unwrap())
+                .join(" ... ")
+                .to_string(),
             rank: hit["_score"].as_f64().unwrap() as f32,
-        }
-    }).collect_vec();
+        })
+        .collect_vec();
 
     Ok(Json(search_results))
 }

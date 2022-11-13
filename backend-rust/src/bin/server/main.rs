@@ -234,8 +234,8 @@ async fn main() -> anyhow::Result<()> {
             codes: BTreeSet::new(),
         };
         let app = app
-            // TODO FIXME looks like this generates massive backtraces, maybe switch to manual get and post and not this macro and service magic   
-        .service(index)
+            // TODO FIXME looks like this generates massive backtraces, maybe switch to manual get and post and not this macro and service magic
+            .service(index)
             .service(login)
             .service(logout)
             .service(get_modules)

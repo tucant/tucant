@@ -65,13 +65,13 @@ async fn main() -> anyhow::Result<()> {
     // maybe multiplex, then german and english and then combine?
 
     // http://localhost:5601/app/dev_tools#/console
-/*
-GET tucant_modules/_analyze
-{
-  "analyzer" : "my_german",
-  "text" : "Funktional Funktionale Funktionalen"
-}
-*/
+    /*
+    GET tucant_modules/_analyze
+    {
+      "analyzer" : "my_german",
+      "text" : "Funktional Funktionale Funktionalen"
+    }
+    */
 
     let response = tucan
         .opensearch
