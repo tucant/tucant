@@ -51,6 +51,16 @@ async fn main() -> anyhow::Result<()> {
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer
 
     // TODO FIXME searching for "Funktional" doesnt highlight body because of no matches?
+    // TODO https://www.elastic.co/guide/en/elasticsearch/reference/current/test-analyzer.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-dict-decomp-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-hyp-decomp-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-stemmer-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-snowball-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-hunspell-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-multiplexer-tokenfilter.html
+    // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-remove-duplicates-tokenfilter.html
+
+    // maybe multiplex, then german and english and then combine?
 
     let response = tucan
         .opensearch
@@ -67,7 +77,6 @@ async fn main() -> anyhow::Result<()> {
                                 "lowercase",
                                 "english_stop",
                                 "german_stop",
-                                "english_keywords",
                                 "english_stemmer"
                             ],
                             "char_filter": [
@@ -80,9 +89,8 @@ async fn main() -> anyhow::Result<()> {
                                 "lowercase",
                                 "german_stop",
                                 "english_stop",
-                                "german_keywords",
                                 "german_normalization",
-                                "german_stemmer"
+                                "german_hunspell"
                             ],
                             "char_filter": [
                                 "html_strip"
@@ -93,12 +101,6 @@ async fn main() -> anyhow::Result<()> {
                         "english_stop": {
                             "type": "stop",
                             "stopwords": "_english_"
-                        },
-                        "english_keywords": {
-                            "type": "keyword_marker",
-                            "keywords": [
-                                "example"
-                            ]
                         },
                         "english_stemmer": {
                             "type": "stemmer",
@@ -112,15 +114,17 @@ async fn main() -> anyhow::Result<()> {
                             "type": "stop",
                             "stopwords": "_german_"
                         },
-                        "german_keywords": {
-                            "type": "keyword_marker",
-                            "keywords": [
-                                "Beispiel"
-                            ]
-                        },
                         "german_stemmer": {
                             "type": "stemmer",
-                            "language": "light_german"
+                            "language": "minimal_german"
+                        },
+                        "german_snowball": {
+                            "type": "snowball",
+                            "language": "German2"
+                        },
+                        "german_hunspell": {
+                            "type": "hunspell",
+                            "locale": "de_DE",
                         }
                     }
                 }

@@ -1,0 +1,19 @@
+FROM opensearchproject/opensearch
+
+USER root
+RUN yum search hunspell
+RUN yum install -y hunspell hunspell-de hunspell-en hunspell-en-US
+
+RUN mkdir -p /usr/share/opensearch/hunspell/de_DE
+RUN cp -r /usr/share/myspell/de_DE.* /usr/share/opensearch/hunspell/de_DE/
+RUN mkdir -p /usr/share/opensearch/config/hunspell/de_DE
+RUN cp -r /usr/share/myspell/de_DE.* /usr/share/opensearch/config/hunspell/de_DE/
+
+#  Each dictionary is expected to have its own directory, named after its associated language and locale (e.g., pt_BR, en_GB).
+
+USER opensearch
+
+RUN ls -R /usr/share/opensearch/hunspell
+RUN ls -R /usr/share/opensearch/config/hunspell
+
+# docker build --tag=opensearch-custom . -f Dockerfile-opensearch
