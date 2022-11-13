@@ -72,7 +72,7 @@ pub async fn search_module_opensearch(
         .opensearch
         .search(SearchParts::Index(&["tucant_modules"]))
         .from(0)
-        .size(1)
+        .size(20)
         .body(json!({
             "query": {
                 "multi_match": {
