@@ -57,7 +57,7 @@ export async function search_module_opensearch(
   input: string
 ): Promise<SearchResult[]> {
   return (await genericFetch(
-    "http://localhost:8080/search-moduel-opensearch",
+    "http://localhost:8080/search-module-opensearch",
     input
   )) as SearchResult[];
 }
