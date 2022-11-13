@@ -72,7 +72,7 @@ pub async fn search_module_opensearch(
         .opensearch
         .search(SearchParts::Index(&["tucant_modules"]))
         .from(0)
-        .size(10)
+        .size(1)
         .body(json!({
             "query": {
                 "multi_match": {
@@ -87,11 +87,13 @@ pub async fn search_module_opensearch(
                 }
             },
             "highlight": {
+                "require_field_match": false,
                 "fields": {
                     "content": {
                         // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
-                        "matched_fields": [ "content.de", "content.en" ],
-                        "type": "fvh"
+                        "matched_fields": [ "content", "content.de", "content.en" ],
+                        "type": "fvh",
+                        "require_field_match": false
                     }
                 }
             }
