@@ -35,14 +35,6 @@ async fn main() -> anyhow::Result<()> {
 
     let tucan = web::Data::new(Tucan::new().await?);
 
-    let url = Url::parse("https://localhost:9200")?;
-    let conn_pool = SingleNodeConnectionPool::new(url);
-    let transport = TransportBuilder::new(conn_pool)
-        .auth(Credentials::Basic("admin".to_string(), "admin".to_string()))
-        .cert_validation(CertificateValidation::None)
-        .build()?;
-    let client = OpenSearch::new(transport);
-
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut rng = rand::thread_rng();
 
@@ -57,7 +49,8 @@ async fn main() -> anyhow::Result<()> {
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-htmlstrip-charfilter.html
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer
-    let response = client
+    let response = tucan
+        .opensearch
         .indices()
         .create(IndicesCreateParts::Index(&index_name))
         .body(json!({
@@ -133,6 +126,7 @@ async fn main() -> anyhow::Result<()> {
                 "properties": {
                     "content": {
                         "type": "text",
+                        "term_vector": "with_positions_offsets",
                         "fields": {
                             "de": {
                                 "type": "text",
@@ -146,6 +140,7 @@ async fn main() -> anyhow::Result<()> {
                     },
                     "title": {
                         "type": "text",
+                        "term_vector": "with_positions_offsets",
                         "fields": {
                             "de": {
                                 "type": "text",
@@ -207,7 +202,8 @@ async fn main() -> anyhow::Result<()> {
         })
         .collect_vec();
 
-    let response = client
+    let response = tucan
+        .opensearch
         .bulk(BulkParts::Index(&index_name))
         .refresh(Refresh::WaitFor)
         .body(body)
@@ -222,7 +218,8 @@ async fn main() -> anyhow::Result<()> {
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
 
-    let response = client
+    let response = tucan
+        .opensearch
         .indices()
         .update_aliases()
         .body(json!({
@@ -250,50 +247,8 @@ async fn main() -> anyhow::Result<()> {
         None => {}
     };
 
-    let response = client
-        .indices()
-        .put_alias(opensearch::indices::IndicesPutAliasParts::IndexName(
-            &[&index_name],
-            "tucant_modules",
-        ))
-        .send()
-        .await?;
-    let exception = response.exception().await?;
-    match exception {
-        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-        None => {}
-    };
-
-    let response = client
-        .search(SearchParts::Index(&["tucant_modules"]))
-        .from(0)
-        .size(10)
-        .body(json!({
-            "query": {
-                "multi_match": {
-                    "query": "functionality",
-                    "fields": [
-                      "title.de^3",
-                      "title.en^3",
-                      "content.de",
-                      "content.en"
-                    ],
-                    "type": "most_fields"
-                }
-            }
-        }))
-        .send()
-        .await?;
-
-    let response_body = response.json::<Value>().await?;
-    let took = response_body["took"].as_i64().unwrap();
-    println!("took {}", took);
-    for hit in response_body["hits"]["hits"].as_array().unwrap() {
-        // print the source document
-        println!("{:?}", hit["_source"]["title"]);
-    }
-
-    let response = client
+    let response = tucan
+        .opensearch
         .indices()
         .get(opensearch::indices::IndicesGetParts::Index(&[
             "tucant_modules_*",

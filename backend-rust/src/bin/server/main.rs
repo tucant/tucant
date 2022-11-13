@@ -54,6 +54,8 @@ use tucant::tucan_user::TucanUser;
 use tucant::url::{Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 
+use crate::s_search_module::search_module_opensearch;
+
 #[derive(Debug)]
 pub struct MyError {
     err: anyhow::Error,
@@ -237,6 +239,7 @@ async fn main() -> anyhow::Result<()> {
             .service(logout)
             .service(get_modules)
             .service(search_module)
+            .service(search_module_opensearch)
             .service(search_course)
             .service(course)
             .service(module)
