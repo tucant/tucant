@@ -86,6 +86,11 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link className="nav-link" to="/search-modules-opensearch">
+                  Modulsuche (OpenSearch)
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link" to="/search-courses">
                   Veranstaltungssuche
                 </Link>

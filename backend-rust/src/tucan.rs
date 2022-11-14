@@ -11,6 +11,12 @@ use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
+use opensearch::{
+    auth::Credentials,
+    cert::CertificateValidation,
+    http::transport::{SingleNodeConnectionPool, TransportBuilder},
+    OpenSearch,
+};
 use reqwest::{Client, Url};
 use tokio::sync::Semaphore;
 
@@ -40,6 +46,7 @@ pub struct Tucan {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
+    pub opensearch: OpenSearch,
 }
 
 impl std::fmt::Debug for Tucan {
@@ -52,10 +59,19 @@ impl Tucan {
     pub async fn new() -> anyhow::Result<Self> {
         let pool = create_pool();
 
+        let url = Url::parse("https://localhost:9200")?;
+        let conn_pool = SingleNodeConnectionPool::new(url);
+        let transport = TransportBuilder::new(conn_pool)
+            .auth(Credentials::Basic("admin".to_string(), "admin".to_string()))
+            .cert_validation(CertificateValidation::None)
+            .build()?;
+        let opensearch = OpenSearch::new(transport);
+
         Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
             semaphore: Arc::new(Semaphore::new(3)),
+            opensearch,
         })
     }
 

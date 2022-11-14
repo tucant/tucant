@@ -54,6 +54,8 @@ use tucant::tucan_user::TucanUser;
 use tucant::url::{Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 
+use crate::s_search_module::search_module_opensearch;
+
 #[derive(Debug)]
 pub struct MyError {
     err: anyhow::Error,
@@ -232,11 +234,13 @@ async fn main() -> anyhow::Result<()> {
             codes: BTreeSet::new(),
         };
         let app = app
+            // TODO FIXME looks like this generates massive backtraces, maybe switch to manual get and post and not this macro and service magic
             .service(index)
             .service(login)
             .service(logout)
             .service(get_modules)
             .service(search_module)
+            .service(search_module_opensearch)
             .service(search_course)
             .service(course)
             .service(module)

@@ -53,6 +53,14 @@ export async function search_module(input: string): Promise<SearchResult[]> {
     input
   )) as SearchResult[];
 }
+export async function search_module_opensearch(
+  input: string
+): Promise<SearchResult[]> {
+  return (await genericFetch(
+    "http://localhost:8080/search-module-opensearch",
+    input
+  )) as SearchResult[];
+}
 export type Course = {
   tucan_id: string;
   tucan_last_checked: string;

@@ -16,6 +16,9 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
+use itertools::Itertools;
+use opensearch::SearchParts;
+use serde_json::{json, Value};
 use tucant::models::TucanSession;
 use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
@@ -55,4 +58,86 @@ pub async fn search_module(
     let result = sql_query.load::<SearchResult>(&mut connection).await?;
 
     Ok(Json(result))
+}
+
+#[ts]
+#[post("/search-module-opensearch")]
+pub async fn search_module_opensearch(
+    _: TucanSession,
+    tucan: Data<Tucan>,
+    input: Json<String>,
+) -> Result<Json<Vec<SearchResult>>, MyError> {
+    let response = tucan
+        .opensearch
+        .search(SearchParts::Index(&["tucant_modules"]))
+        .from(0)
+        .size(20)
+        .body(json!({
+            "query": {
+                "multi_match": {
+                    "query": input.0,
+                    "fields": [
+                      "title.de^3",
+                      "title.en^3",
+                      "content.de",
+                      "content.en"
+                    ],
+                }
+            },
+            "highlight": {
+                "require_field_match": false,
+                "fields": {
+                    "title": {
+                        // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
+                        "matched_fields": [ "title.en", "title.de" ],
+                        "type": "fvh",
+                        "pre_tags": ["<b>", "<b>"],
+                        "post_tags": ["</b>", "</b>"],
+                    },
+                    "content": {
+                        // https://www.elastic.co/guide/en/elasticsearch/reference/current/highlighting.html#specify-highlight-query
+                        "matched_fields": [ "content.en", "content.de" ],
+                        "type": "fvh",
+                        "pre_tags": ["<b>", "<b>"],
+                        "post_tags": ["</b>", "</b>"],
+                    },
+                }
+            }
+        }))
+        .send()
+        .await?;
+
+    let response_body = response.json::<Value>().await?;
+    println!("{}", response_body);
+
+    let _took = response_body["took"].as_i64().unwrap();
+    for _hit in response_body["hits"]["hits"].as_array().unwrap() {
+        // print the source document
+        //println!("{}", hit);
+    }
+
+    let search_results: Vec<SearchResult> = response_body["hits"]["hits"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|hit| SearchResult {
+            tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD)
+                .unwrap(),
+            title: hit["highlight"]["title"]
+                .as_array()
+                .unwrap_or(&vec![hit["_source"]["title"].clone()])
+                .iter()
+                .map(|e| e.as_str().unwrap())
+                .join("[...]"),
+            excerpt: hit["highlight"]["content"]
+                .as_array()
+                .unwrap_or(&Vec::new())
+                .iter()
+                .map(|e| e.as_str().unwrap())
+                .join("[...]"),
+            rank: hit["_score"].as_f64().unwrap() as f32,
+        })
+        .collect_vec();
+
+    Ok(Json(search_results))
 }

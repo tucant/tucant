@@ -19,6 +19,7 @@ use diesel_full_text_search::{
     websearch_to_tsquery_with_search_config,
 };
 use serde::Serialize;
+
 use tucant::{
     models::{as_base64, TucanSession},
     schema::courses_unfinished,
@@ -31,9 +32,9 @@ pub struct SearchResult {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
-    title: String,
-    excerpt: String,
-    rank: f32,
+    pub title: String,
+    pub excerpt: String,
+    pub rank: f32,
 }
 
 #[ts]

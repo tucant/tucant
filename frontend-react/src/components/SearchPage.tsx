@@ -118,7 +118,12 @@ export default function SearchPage(props: {
               to={`/${props.base_path}/${e.tucan_id}`}
             >
               <div className="d-flex w-100 justify-content-between align-items-center">
-                <h5 className="mb-1">{e.title}</h5>
+                <h5
+                  className="mb-1"
+                  dangerouslySetInnerHTML={{
+                    __html: dompurify.sanitize(e.title),
+                  }}
+                ></h5>
                 <span className="badge bg-primary rounded-pill">
                   {e.rank.toFixed(3)}
                 </span>
