@@ -7,20 +7,12 @@ use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
 use itertools::Itertools;
 use opensearch::{
-    auth::Credentials,
-    cert::CertificateValidation,
-    http::{
-        request::JsonBody,
-        transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
-    },
-    indices::{IndicesCreateParts, IndicesPutMappingParts},
-    params::Refresh,
-    BulkParts, IndexParts, OpenSearch, SearchParts,
+    http::request::JsonBody, indices::IndicesCreateParts, params::Refresh, BulkParts,
 };
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use reqwest::Url;
+use rand::Rng;
+
 use serde_json::{json, Value};
-use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan, url::parse_tucan_url};
+use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[actix_web::main]
@@ -183,10 +175,9 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     let exception = response.exception().await?;
-    match exception {
-        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-        None => {}
-    };
+    if let Some(exception) = exception {
+        Err(anyhow::anyhow!("{:?}", exception))?
+    }
 
     // let response_body = response.json::<Value>().await?;
     //println!("{:?}", response_body);
@@ -234,10 +225,9 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     let exception = response.exception().await?;
-    match exception {
-        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-        None => {}
-    };
+    if let Some(exception) = exception {
+        Err(anyhow::anyhow!("{:?}", exception))?
+    }
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
 
@@ -265,10 +255,9 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     let exception = response.exception().await?;
-    match exception {
-        Some(exception) => Err(anyhow::anyhow!("{:?}", exception))?,
-        None => {}
-    };
+    if let Some(exception) = exception {
+        Err(anyhow::anyhow!("{:?}", exception))?
+    }
 
     let response = tucan
         .opensearch
@@ -279,7 +268,7 @@ async fn main() -> anyhow::Result<()> {
         .send()
         .await?;
 
-    let response_body = response.json::<Value>().await?;
+    let _response_body = response.json::<Value>().await?;
     //println!("{}", response_body);
     // TODO FIXME delete indexes here
 

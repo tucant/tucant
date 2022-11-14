@@ -110,8 +110,8 @@ pub async fn search_module_opensearch(
     let response_body = response.json::<Value>().await?;
     println!("{}", response_body);
 
-    let took = response_body["took"].as_i64().unwrap();
-    for hit in response_body["hits"]["hits"].as_array().unwrap() {
+    let _took = response_body["took"].as_i64().unwrap();
+    for _hit in response_body["hits"]["hits"].as_array().unwrap() {
         // print the source document
         //println!("{}", hit);
     }
@@ -119,24 +119,22 @@ pub async fn search_module_opensearch(
     let search_results: Vec<SearchResult> = response_body["hits"]["hits"]
         .as_array()
         .unwrap()
-        .into_iter()
+        .iter()
         .map(|hit| SearchResult {
             tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD)
                 .unwrap(),
             title: hit["highlight"]["title"]
                 .as_array()
                 .unwrap_or(&vec![hit["_source"]["title"].clone()])
-                .into_iter()
+                .iter()
                 .map(|e| e.as_str().unwrap())
-                .join("[...]")
-                .to_string(),
+                .join("[...]"),
             excerpt: hit["highlight"]["content"]
                 .as_array()
                 .unwrap_or(&Vec::new())
-                .into_iter()
+                .iter()
                 .map(|e| e.as_str().unwrap())
-                .join("[...]")
-                .to_string(),
+                .join("[...]"),
             rank: hit["_score"].as_f64().unwrap() as f32,
         })
         .collect_vec();

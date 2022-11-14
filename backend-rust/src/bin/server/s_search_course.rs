@@ -18,10 +18,8 @@ use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
     websearch_to_tsquery_with_search_config,
 };
-use itertools::Itertools;
-use opensearch::SearchParts;
 use serde::Serialize;
-use serde_json::{json, Value};
+
 use tucant::{
     models::{as_base64, TucanSession},
     schema::courses_unfinished,
