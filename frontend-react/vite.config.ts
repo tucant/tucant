@@ -10,13 +10,15 @@ import { visualizer } from "rollup-plugin-visualizer";
 export default defineConfig({
   plugins: [
     react({
-      fastRefresh: false,
+      //fastRefresh: false,
     }),
     visualizer({}),
   ],
   server: {
     // https://github.com/vitejs/vite/issues/3301
-    // hmr: false
+    proxy: {
+      "/redirect": "http://127.0.0.1:8080/",
+    },
   },
 });
 /*

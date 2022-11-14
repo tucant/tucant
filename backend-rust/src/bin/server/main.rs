@@ -8,6 +8,7 @@ mod s_get_modules;
 mod s_module;
 mod s_my_courses;
 mod s_my_modules;
+mod s_redirect;
 mod s_search_course;
 mod s_search_module;
 mod s_setup;
@@ -19,7 +20,7 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware::Logger;
 use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, HttpResponse};
+use actix_web::{get, guard, HttpResponse};
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -54,6 +55,7 @@ use tucant::tucan_user::TucanUser;
 use tucant::url::{Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 
+use crate::s_redirect::redirect;
 use crate::s_search_module::search_module_opensearch;
 
 #[derive(Debug)]
@@ -275,9 +277,18 @@ import { genericFetch } from "./api_base"
         // Manually unlocking is optional as we unlock on Drop
         filelock.unlock().unwrap();
 
-        app.app.service(setup).service(login_hack)
+        app.app
+            .service(setup)
+            .service(
+                web::resource("/redirect")
+                    .name("redirect")
+                    .guard(guard::Get())
+                    .to(redirect),
+            )
+            .external_resource("course", "http://localhost:5173/course/{course_name}")
+            .service(login_hack)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("localhost", 8080))?
     .run()
     .await?;
 
