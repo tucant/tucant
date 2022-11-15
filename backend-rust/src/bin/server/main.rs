@@ -20,7 +20,7 @@ use actix_web::http::header;
 use actix_web::middleware::Logger;
 use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, guard, HttpResponse, HttpRequest};
+use actix_web::{get, guard, HttpRequest, HttpResponse};
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -52,7 +52,7 @@ use tucant::typescript::TypescriptableApp;
 use std::io::Write;
 use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanUser;
-use tucant::url::{Coursedetails, Moduledetails, Registration, parse_tucan_url};
+use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 
 use crate::s_search_module::search_module_opensearch;
@@ -100,11 +100,12 @@ async fn login(
     Ok(web::Json(LoginResult { success: true }))
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct LoginHack {
-    #[serde(flatten)]
-    session: Option<TucanSession>,
-    redirect: String
+    pub tu_id: Option<String>,
+    pub session_nr: Option<i64>,
+    pub session_id: Option<String>,
+    pub redirect: String,
 }
 
 #[tracing::instrument(skip(session))]
@@ -115,6 +116,8 @@ async fn login_hack(
     tucan: web::Data<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<HttpResponse, MyError> {
+    println!("{:?}", input);
+
     // TODO FIXME check that this session belongs to the user etc. (simply don't request the user id but fetch it from server)
     // TODO FIXME
     let user = UndoneUser::new("mh58hyqa".to_string());
@@ -123,35 +126,43 @@ async fn login_hack(
 
     let mut connection = tucan.pool.get().await?;
 
-    if let Some(the_session) = input.session.clone() {
-        {
-            let input = the_session.clone();
-            connection
-                .build_transaction()
-                .run(|mut connection| {
-                    Box::pin(async move {
-                        // TODO FIXME implement this by fetching and checking the session
-                        diesel::insert_into(users_unfinished::table)
-                            .values(user)
-                            .on_conflict(users_unfinished::tu_id)
-                            .do_nothing()
-                            .execute(&mut connection)
-                            .await?;
+    if let LoginHack {
+        tu_id: Some(tu_id),
+        session_nr: Some(session_nr),
+        session_id: Some(session_id),
+        ..
+    } = input.0.clone()
+    {
+        let tucan_session = TucanSession {
+            tu_id: "mh58hyqa".to_string(),
+            session_nr,
+            session_id,
+        };
+        let input = tucan_session.clone();
+        connection
+            .build_transaction()
+            .run(|mut connection| {
+                Box::pin(async move {
+                    // TODO FIXME implement this by fetching and checking the session
+                    diesel::insert_into(users_unfinished::table)
+                        .values(user)
+                        .on_conflict(users_unfinished::tu_id)
+                        .do_nothing()
+                        .execute(&mut connection)
+                        .await?;
 
-                        diesel::insert_into(sessions::table)
-                            .values(input)
-                            .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
-                            .do_nothing()
-                            .execute(&mut connection)
-                            .await?;
+                    diesel::insert_into(sessions::table)
+                        .values(input)
+                        .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
+                        .do_nothing()
+                        .execute(&mut connection)
+                        .await?;
 
-                        Ok::<(), diesel::result::Error>(())
-                    })
+                    Ok::<(), diesel::result::Error>(())
                 })
-                .await?;
-        }
-
-        session.insert("session", the_session.clone()).unwrap();
+            })
+            .await?;
+        session.insert("session", tucan_session.clone()).unwrap();
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
@@ -162,10 +173,9 @@ async fn login_hack(
                 base64::URL_SAFE_NO_PAD,
             )],
         )?,
-        tucant::url::TucanProgram::RootRegistration(_) => req.url_for::<[String; 0], _>(
-            "root_registration",
-            [],
-        )?,
+        tucant::url::TucanProgram::RootRegistration(_) => {
+            req.url_for::<[String; 0], _>("root_registration", [])?
+        }
         tucant::url::TucanProgram::Moduledetails(module_details) => req.url_for(
             "module",
             [base64::encode_config(
@@ -180,14 +190,13 @@ async fn login_hack(
                 base64::URL_SAFE_NO_PAD,
             )],
         )?,
-        tucant::url::TucanProgram::Externalpages(_) => req.url_for::<[String; 0], _>(
-            "index",
-            [],
-        )?,
+        tucant::url::TucanProgram::Externalpages(_) => {
+            req.url_for::<[String; 0], _>("index", [])?
+        }
         other => {
             println!("{:?}", other);
-            return Ok(HttpResponse::NotFound().finish())
-        },
+            return Ok(HttpResponse::NotFound().finish());
+        }
     };
 
     Ok(HttpResponse::Found()
@@ -328,7 +337,10 @@ import { genericFetch } from "./api_base"
             .service(login_hack)
             .external_resource("course", "http://localhost:5173/course/{course_name}")
             .external_resource("module", "http://localhost:5173/module/{course_name}")
-            .external_resource("registration", "http://localhost:5173/modules/{registration}")
+            .external_resource(
+                "registration",
+                "http://localhost:5173/modules/{registration}",
+            )
             .external_resource("root_registration", "http://localhost:5173/modules/")
             .external_resource("my_modules", "http://localhost:5173/my-modules/")
             .external_resource("my_courses", "http://localhost:5173/my-courses/")
