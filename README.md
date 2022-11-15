@@ -51,18 +51,10 @@ The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used
 
 ## Bookmarklet
 
-The following bookmarklet can log you into tucant from tucan:
+The following bookmarklet opens the tucan page in tucant (and optionally logs you in):
 
 ```
-javascript:window.location.href = `http://localhost:8080/login-hack?tu_id=TODO&session_nr=${new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "")}&session_id=${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1]}`
-```
-
-The following bookmarklet opens the tucan page in tucant:
-
-TODO FIXME integrate the login-hack feature into the redirect feature
-
-```
-javascript:window.location.href = `http://localhost:8080/redirect?${window.location.href}`
+javascript:window.location.href = `http://localhost:8080/login-hack?tu_id=TODO${document.querySelector("#logoutButton") ? new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "&session_nr=") : ""}&${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")) ? "&session_id=" document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1] : ""}&redirect=${encodeURIComponent(window.location.href)}`
 ```
 
 ## How to run
