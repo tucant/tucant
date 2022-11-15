@@ -8,7 +8,6 @@ mod s_get_modules;
 mod s_module;
 mod s_my_courses;
 mod s_my_modules;
-mod s_redirect;
 mod s_search_course;
 mod s_search_module;
 mod s_setup;
@@ -17,10 +16,11 @@ use actix_cors::Cors;
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
+use actix_web::http::header;
 use actix_web::middleware::Logger;
 use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, guard, HttpResponse};
+use actix_web::{get, guard, HttpResponse, HttpRequest};
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -52,10 +52,9 @@ use tucant::typescript::TypescriptableApp;
 use std::io::Write;
 use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanUser;
-use tucant::url::{Coursedetails, Moduledetails, Registration};
+use tucant::url::{Coursedetails, Moduledetails, Registration, parse_tucan_url};
 use tucant_derive::{ts, Typescriptable};
 
-use crate::s_redirect::redirect;
 use crate::s_search_module::search_module_opensearch;
 
 #[derive(Debug)]
@@ -101,12 +100,20 @@ async fn login(
     Ok(web::Json(LoginResult { success: true }))
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct LoginHack {
+    #[serde(flatten)]
+    session: Option<TucanSession>,
+    redirect: String
+}
+
 #[tracing::instrument(skip(session))]
 #[get("/login-hack")]
 async fn login_hack(
     session: Session,
+    req: HttpRequest,
     tucan: web::Data<Tucan>,
-    input: Query<TucanSession>,
+    input: Query<LoginHack>,
 ) -> Result<HttpResponse, MyError> {
     // TODO FIXME check that this session belongs to the user etc. (simply don't request the user id but fetch it from server)
     // TODO FIXME
@@ -116,36 +123,75 @@ async fn login_hack(
 
     let mut connection = tucan.pool.get().await?;
 
-    {
-        let input = input.0.clone();
-        connection
-            .build_transaction()
-            .run(|mut connection| {
-                Box::pin(async move {
-                    // TODO FIXME implement this by fetching and checking the session
-                    diesel::insert_into(users_unfinished::table)
-                        .values(user)
-                        .on_conflict(users_unfinished::tu_id)
-                        .do_nothing()
-                        .execute(&mut connection)
-                        .await?;
+    if let Some(the_session) = input.session.clone() {
+        {
+            let input = the_session.clone();
+            connection
+                .build_transaction()
+                .run(|mut connection| {
+                    Box::pin(async move {
+                        // TODO FIXME implement this by fetching and checking the session
+                        diesel::insert_into(users_unfinished::table)
+                            .values(user)
+                            .on_conflict(users_unfinished::tu_id)
+                            .do_nothing()
+                            .execute(&mut connection)
+                            .await?;
 
-                    diesel::insert_into(sessions::table)
-                        .values(input)
-                        .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
-                        .do_nothing()
-                        .execute(&mut connection)
-                        .await?;
+                        diesel::insert_into(sessions::table)
+                            .values(input)
+                            .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
+                            .do_nothing()
+                            .execute(&mut connection)
+                            .await?;
 
-                    Ok::<(), diesel::result::Error>(())
+                        Ok::<(), diesel::result::Error>(())
+                    })
                 })
-            })
-            .await?;
+                .await?;
+        }
+
+        session.insert("session", the_session.clone()).unwrap();
     }
 
-    session.insert("session", input.0).unwrap();
+    let url = match parse_tucan_url(&input.redirect).program {
+        tucant::url::TucanProgram::Registration(registration) => req.url_for(
+            "registration",
+            [base64::encode_config(
+                registration.path,
+                base64::URL_SAFE_NO_PAD,
+            )],
+        )?,
+        tucant::url::TucanProgram::RootRegistration(_) => req.url_for::<[String; 0], _>(
+            "root_registration",
+            [],
+        )?,
+        tucant::url::TucanProgram::Moduledetails(module_details) => req.url_for(
+            "module",
+            [base64::encode_config(
+                module_details.id,
+                base64::URL_SAFE_NO_PAD,
+            )],
+        )?,
+        tucant::url::TucanProgram::Coursedetails(course_details) => req.url_for(
+            "course",
+            [base64::encode_config(
+                course_details.id,
+                base64::URL_SAFE_NO_PAD,
+            )],
+        )?,
+        tucant::url::TucanProgram::Externalpages(_) => req.url_for::<[String; 0], _>(
+            "index",
+            [],
+        )?,
+        other => {
+            println!("{:?}", other);
+            return Ok(HttpResponse::NotFound().finish())
+        },
+    };
+
     Ok(HttpResponse::Found()
-        .append_header(("Location", "http://localhost:5173/"))
+        .insert_header((header::LOCATION, url.as_str()))
         .finish())
 }
 
@@ -279,14 +325,14 @@ import { genericFetch } from "./api_base"
 
         app.app
             .service(setup)
-            .service(
-                web::resource("/redirect")
-                    .name("redirect")
-                    .guard(guard::Get())
-                    .to(redirect),
-            )
-            .external_resource("course", "http://localhost:5173/course/{course_name}")
             .service(login_hack)
+            .external_resource("course", "http://localhost:5173/course/{course_name}")
+            .external_resource("module", "http://localhost:5173/module/{course_name}")
+            .external_resource("registration", "http://localhost:5173/modules/{registration}")
+            .external_resource("root_registration", "http://localhost:5173/modules/")
+            .external_resource("my_modules", "http://localhost:5173/my-modules/")
+            .external_resource("my_courses", "http://localhost:5173/my-courses/")
+            .external_resource("index", "http://localhost:5173/")
     })
     .bind(("localhost", 8080))?
     .run()
