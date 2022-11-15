@@ -20,7 +20,7 @@ use actix_web::http::header;
 use actix_web::middleware::Logger;
 use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, guard, HttpRequest, HttpResponse};
+use actix_web::{get, HttpRequest, HttpResponse};
 
 use csrf_middleware::CsrfMiddleware;
 
@@ -127,7 +127,7 @@ async fn login_hack(
     let mut connection = tucan.pool.get().await?;
 
     if let LoginHack {
-        tu_id: Some(tu_id),
+        tu_id: Some(_tu_id),
         session_nr: Some(session_nr),
         session_id: Some(session_id),
         ..
