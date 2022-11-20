@@ -830,7 +830,7 @@ impl TucanUser {
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
         {
             let mut connection = self.tucan.pool.get().await?;
-            let tu_id = self.session.matriculation_number.clone();
+            let tu_id = self.session.matriculation_number;
 
             let modules = connection
                 .build_transaction()
@@ -897,7 +897,7 @@ impl TucanUser {
         let my_user_studies = results
             .iter()
             .map(|(m, _cs)| UserModule {
-                user_id: self.session.matriculation_number.clone(),
+                user_id: self.session.matriculation_number,
                 module_id: m.tucan_id.clone(),
             })
             .collect::<Vec<_>>();
@@ -907,7 +907,7 @@ impl TucanUser {
         {
             let mut connection = self.tucan.pool.get().await?;
 
-            let matriculation_number = self.session.matriculation_number.clone();
+            let matriculation_number = self.session.matriculation_number;
             connection
                 .build_transaction()
                 .run(|mut connection| {
@@ -940,7 +940,7 @@ impl TucanUser {
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
         {
             let mut connection = self.tucan.pool.get().await?;
-            let matriculation_number = self.session.matriculation_number.clone();
+            let matriculation_number = self.session.matriculation_number;
 
             let courses = connection
                 .build_transaction()
@@ -1015,7 +1015,7 @@ impl TucanUser {
         let my_user_studies = results
             .iter()
             .map(|c| UserCourse {
-                user_id: self.session.matriculation_number.clone(),
+                user_id: self.session.matriculation_number,
                 course_id: c.tucan_id.clone(),
             })
             .collect::<Vec<_>>();
@@ -1025,7 +1025,7 @@ impl TucanUser {
         {
             let mut connection = self.tucan.pool.get().await?;
 
-            let tu_id = self.session.matriculation_number.clone();
+            let tu_id = self.session.matriculation_number;
             connection
                 .build_transaction()
                 .run(|mut connection| {
