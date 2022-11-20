@@ -9,11 +9,13 @@ use std::{
 };
 
 use crate::{
-    models::{Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, UndoneUser},
+    models::{
+        Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, UndoneUser,
+    },
     tucan::Tucan,
     url::{
-        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Registration, RootRegistration,
-        TucanProgram, TucanUrl, Persaddress,
+        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Persaddress, Registration,
+        RootRegistration, TucanProgram, TucanUrl,
     },
 };
 use crate::{
@@ -945,7 +947,9 @@ impl TucanUser {
                 .run(|mut connection| {
                     Box::pin(async move {
                         let user_courses_already_fetched = users_unfinished::table
-                            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                            .filter(
+                                users_unfinished::matriculation_number.eq(&matriculation_number),
+                            )
                             .select(users_unfinished::user_courses_last_checked)
                             .get_result::<Option<NaiveDateTime>>(&mut connection)
                             .await?;
@@ -1054,7 +1058,14 @@ impl TucanUser {
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
 
-        let matriculation_number: i32 = document.select(&s(r#"td[name="matriculationNumber"]"#)).next().unwrap().inner_html().trim().parse().unwrap();
+        let matriculation_number: i32 = document
+            .select(&s(r#"td[name="matriculationNumber"]"#))
+            .next()
+            .unwrap()
+            .inner_html()
+            .trim()
+            .parse()
+            .unwrap();
 
         Ok(UndoneUser::new(matriculation_number))
     }

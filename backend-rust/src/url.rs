@@ -156,12 +156,7 @@ impl TucanProgram {
             ),
             TucanProgram::Persaddress(_) => (
                 "PERSADDRESS",
-                Box::new(
-                    [
-                        TucanArgument::Number(339),
-                    ]
-                    .into_iter(),
-                ),
+                Box::new([TucanArgument::Number(339)].into_iter()),
             ),
             TucanProgram::StartpageDispatch(_) => todo!(),
             TucanProgram::Externalpages(_) => todo!(),
@@ -357,7 +352,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                 None | Some(TucanArgument::String(_))
             ));
             prog
-        },
+        }
         "PERSADDRESS" => {
             number(&mut arguments);
             assert!(matches!(

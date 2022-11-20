@@ -343,7 +343,10 @@ pub struct UndoneUser {
 
 impl UndoneUser {
     pub fn new(matriculation_number: i32) -> Self {
-        Self { matriculation_number, done: false }
+        Self {
+            matriculation_number,
+            done: false,
+        }
     }
 }
 
@@ -352,7 +355,10 @@ impl UndoneUser {
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable)
 )]
-#[cfg_attr(feature = "server", diesel(primary_key(matriculation_number, session_nr, session_id)))]
+#[cfg_attr(
+    feature = "server",
+    diesel(primary_key(matriculation_number, session_nr, session_id))
+)]
 #[cfg_attr(feature = "server", diesel(table_name = sessions))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct TucanSession {

@@ -86,7 +86,11 @@ impl Tucan {
         })
     }
 
-    pub async fn tucan_session_from_session_data(&self, session_nr: i64, session_id: String) -> anyhow::Result<TucanUser> {
+    pub async fn tucan_session_from_session_data(
+        &self,
+        session_nr: i64,
+        session_id: String,
+    ) -> anyhow::Result<TucanUser> {
         let session = TucanSession {
             matriculation_number: -1, // TODO FIXME implement this more cleanly
             session_nr,
@@ -158,7 +162,9 @@ impl Tucan {
                 let session_nr = nr.try_into().unwrap();
                 let session_id = id.to_string();
 
-                let user = self.tucan_session_from_session_data(session_nr, session_id.clone()).await?;
+                let user = self
+                    .tucan_session_from_session_data(session_nr, session_id.clone())
+                    .await?;
 
                 use diesel_async::RunQueryDsl;
 

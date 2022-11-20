@@ -127,7 +127,9 @@ async fn login_hack(
         ..
     } = input.0.clone()
     {
-        let tucan_user = tucan.tucan_session_from_session_data(session_nr, session_id).await?;
+        let tucan_user = tucan
+            .tucan_session_from_session_data(session_nr, session_id)
+            .await?;
         let tucan_session = tucan_user.session.clone();
         let user = UndoneUser::new(tucan_user.session.matriculation_number);
         connection
@@ -144,7 +146,11 @@ async fn login_hack(
 
                     diesel::insert_into(sessions::table)
                         .values(tucan_session)
-                        .on_conflict((sessions::matriculation_number, sessions::session_nr, sessions::session_id))
+                        .on_conflict((
+                            sessions::matriculation_number,
+                            sessions::session_nr,
+                            sessions::session_id,
+                        ))
                         .do_nothing()
                         .execute(&mut connection)
                         .await?;
@@ -153,7 +159,9 @@ async fn login_hack(
                 })
             })
             .await?;
-        session.insert("session", tucan_user.session.clone()).unwrap();
+        session
+            .insert("session", tucan_user.session.clone())
+            .unwrap();
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
@@ -206,7 +214,10 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
-    Ok(web::Json(format!("Welcome! {}", session.matriculation_number)))
+    Ok(web::Json(format!(
+        "Welcome! {}",
+        session.matriculation_number
+    )))
 }
 
 #[actix_web::main]
