@@ -120,7 +120,9 @@ async fn login_hack(
 
     // TODO FIXME check that this session belongs to the user etc. (simply don't request the user id but fetch it from server)
     // TODO FIXME
-    let user = UndoneUser::new("mh58hyqa".to_string());
+    let dsfa = 0;
+
+    let user = UndoneUser::new(dsfa);
 
     use diesel_async::RunQueryDsl;
 
@@ -134,7 +136,7 @@ async fn login_hack(
     } = input.0.clone()
     {
         let tucan_session = TucanSession {
-            tu_id: "mh58hyqa".to_string(),
+            matriculation_number: user.matriculation_number,
             session_nr,
             session_id,
         };
@@ -146,14 +148,14 @@ async fn login_hack(
                     // TODO FIXME implement this by fetching and checking the session
                     diesel::insert_into(users_unfinished::table)
                         .values(user)
-                        .on_conflict(users_unfinished::tu_id)
+                        .on_conflict(users_unfinished::matriculation_number)
                         .do_nothing()
                         .execute(&mut connection)
                         .await?;
 
                     diesel::insert_into(sessions::table)
                         .values(input)
-                        .on_conflict((sessions::tu_id, sessions::session_nr, sessions::session_id))
+                        .on_conflict((sessions::matriculation_number, sessions::session_nr, sessions::session_id))
                         .do_nothing()
                         .execute(&mut connection)
                         .await?;
@@ -215,7 +217,7 @@ async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError>
 #[ts]
 #[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
-    Ok(web::Json(format!("Welcome! {}", session.tu_id)))
+    Ok(web::Json(format!("Welcome! {}", session.matriculation_number)))
 }
 
 #[actix_web::main]

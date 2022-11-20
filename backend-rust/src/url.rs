@@ -66,6 +66,9 @@ pub struct Examresults;
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct StudentResult;
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+pub struct Persaddress;
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone, TryInto, From)]
 pub enum TucanProgram {
     Mlsstart(Mlsstart),
@@ -82,6 +85,7 @@ pub enum TucanProgram {
     Coursedetails(Coursedetails),
     StartpageDispatch(StartpageDispatch),
     Externalpages(Externalpages),
+    Persaddress(Persaddress),
 }
 
 impl TucanProgram {
@@ -148,6 +152,15 @@ impl TucanProgram {
                             TucanArgument::Number(u64::from_be_bytes(n.try_into().unwrap()))
                         }))
                         .chain([TucanArgument::Number(0), TucanArgument::Number(0)].into_iter()),
+                ),
+            ),
+            TucanProgram::Persaddress(_) => (
+                "PERSADDRESS",
+                Box::new(
+                    [
+                        TucanArgument::Number(339),
+                    ]
+                    .into_iter(),
                 ),
             ),
             TucanProgram::StartpageDispatch(_) => todo!(),
@@ -344,6 +357,14 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                 None | Some(TucanArgument::String(_))
             ));
             prog
+        },
+        "PERSADDRESS" => {
+            assert!([339].contains(&number(&mut arguments)));
+            assert!(matches!(
+                arguments.next(),
+                None | Some(TucanArgument::String(_))
+            ));
+            TucanProgram::Persaddress(Persaddress)
         }
         other => {
             panic!("invalid appname: {}", other);

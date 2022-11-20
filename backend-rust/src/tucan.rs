@@ -86,6 +86,21 @@ impl Tucan {
         })
     }
 
+    pub async fn personal_data(&self, session_nr: i64, session_id: String) -> anyhow::Result<UndoneUser> {
+        let session = TucanSession {
+            matriculation_number: -1, // TODO FIXME implement this more cleanly
+            session_nr,
+            session_id,
+        };
+
+        let tucan_user = TucanUser {
+            tucan: self.clone(),
+            session,
+        };
+
+        tucan_user.personal_data().await
+    }
+
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", username),
@@ -129,12 +144,15 @@ impl Tucan {
 
                 res_headers.text().await?;
 
-                let user = UndoneUser::new(username.to_string());
+                let session_nr = nr.try_into().unwrap();
+                let session_id = id.to_string();
+
+                let user = self.personal_data(session_nr, session_id.clone()).await?;
 
                 let session = TucanSession {
-                    tu_id: username.to_string(),
-                    session_nr: nr.try_into().unwrap(),
-                    session_id: id.to_string(),
+                    matriculation_number: user.matriculation_number,
+                    session_nr,
+                    session_id,
                 };
 
                 use diesel_async::RunQueryDsl;
@@ -149,7 +167,7 @@ impl Tucan {
                             Box::pin(async move {
                                 diesel::insert_into(users_unfinished::table)
                                     .values(user)
-                                    .on_conflict(users_unfinished::tu_id)
+                                    .on_conflict(users_unfinished::matriculation_number)
                                     .do_nothing()
                                     .execute(&mut connection)
                                     .await?;
