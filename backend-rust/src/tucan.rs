@@ -86,6 +86,36 @@ impl Tucan {
         })
     }
 
+    pub async fn tucan_session_from_session_data(
+        &self,
+        session_nr: i64,
+        session_id: String,
+    ) -> anyhow::Result<TucanUser> {
+        let session = TucanSession {
+            matriculation_number: -1, // TODO FIXME implement this more cleanly
+            session_nr,
+            session_id: session_id.clone(),
+        };
+
+        let tucan_user = TucanUser {
+            tucan: self.clone(),
+            session,
+        };
+
+        let user = tucan_user.personal_data().await?;
+
+        let session = TucanSession {
+            matriculation_number: user.matriculation_number,
+            session_nr,
+            session_id,
+        };
+
+        Ok(TucanUser {
+            tucan: self.clone(),
+            session,
+        })
+    }
+
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
         let params: [(&str, &str); 10] = [
             ("usrname", username),
@@ -129,33 +159,32 @@ impl Tucan {
 
                 res_headers.text().await?;
 
-                let user = UndoneUser::new(username.to_string());
+                let session_nr = nr.try_into().unwrap();
+                let session_id = id.to_string();
 
-                let session = TucanSession {
-                    tu_id: username.to_string(),
-                    session_nr: nr.try_into().unwrap(),
-                    session_id: id.to_string(),
-                };
+                let user = self
+                    .tucan_session_from_session_data(session_nr, session_id.clone())
+                    .await?;
 
                 use diesel_async::RunQueryDsl;
 
                 let mut connection = self.pool.get().await?;
 
                 {
-                    let session = session.clone();
+                    let user_session = user.session.clone();
                     connection
                         .build_transaction()
                         .run(|mut connection| {
                             Box::pin(async move {
                                 diesel::insert_into(users_unfinished::table)
-                                    .values(user)
-                                    .on_conflict(users_unfinished::tu_id)
+                                    .values(UndoneUser::new(user.session.matriculation_number))
+                                    .on_conflict(users_unfinished::matriculation_number)
                                     .do_nothing()
                                     .execute(&mut connection)
                                     .await?;
 
                                 diesel::insert_into(sessions::table)
-                                    .values(session)
+                                    .values(user_session)
                                     .execute(&mut connection)
                                     .await?;
 
@@ -165,10 +194,7 @@ impl Tucan {
                         .await?;
                 }
 
-                return Ok(TucanUser {
-                    tucan: self.clone(),
-                    session,
-                });
+                return Ok(user);
             } else {
                 panic!("Failed to extract session_nr");
             }

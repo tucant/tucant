@@ -57,7 +57,7 @@ CREATE TABLE module_menu_module (
 -- the problem is diesel doesn't support views. instead we should probably create the proper
 -- abstractions on the rust side
 CREATE TABLE users_unfinished (
-    tu_id TEXT NOT NULL PRIMARY KEY,
+    matriculation_number INTEGER NOT NULL PRIMARY KEY,
     title TEXT NOT NULL DEFAULT '',
     academic_title TEXT NOT NULL DEFAULT '',
     post_name TEXT NOT NULL DEFAULT '',
@@ -82,10 +82,10 @@ CREATE TABLE users_unfinished (
 );
 
 CREATE TABLE sessions (
-    tu_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    matriculation_number INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
     session_nr BIGINT NOT NULL,
     session_id TEXT NOT NULL,
-    PRIMARY KEY (tu_id, session_nr, session_id)
+    PRIMARY KEY (matriculation_number, session_nr, session_id)
 );
 
 CREATE TABLE courses_unfinished (
@@ -136,13 +136,13 @@ CREATE TABLE module_courses (
 );
 
 CREATE TABLE user_modules (
-    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    user_id INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
     module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
     PRIMARY KEY (user_id, module_id)
 );
 
 CREATE TABLE user_courses (
-    user_id TEXT NOT NULL REFERENCES users_unfinished (tu_id),
+    user_id INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
     course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
     PRIMARY KEY (user_id, course_id)
 );

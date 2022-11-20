@@ -51,13 +51,11 @@ The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used
 
 ## Bookmarklet
 
-Create a bookmark with the following contents:
+The following bookmarklet opens the tucan page in tucant (and optionally logs you in):
 
 ```
-javascript:window.location.href = `http://localhost:8080/login-hack?tu_id=TODO&session_nr=${new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "")}&session_id=${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1]}`
+javascript:window.location.href = `http://localhost:8080/login-hack?${document.querySelector("#logoutButton") ? new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "session_nr=") + "&" : ""}${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")) ? "session_id=" + document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1] + "&" : ""}redirect=${encodeURIComponent(window.location.href)}`
 ```
-
-Clicking it when being on tucan logs you into tucant.
 
 ## How to run
 

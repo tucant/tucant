@@ -305,11 +305,11 @@ pub struct ModuleCourse {
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
-#[cfg_attr(feature = "server", diesel(primary_key(tu_id)))]
+#[cfg_attr(feature = "server", diesel(primary_key(matriculation_number)))]
 #[cfg_attr(feature = "server", diesel(table_name = users_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct User {
-    tu_id: String,
+    matriculation_number: i32,
     title: String,
     academic_title: String,
     post_name: String,
@@ -333,17 +333,20 @@ pub struct User {
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
-#[cfg_attr(feature = "server", diesel(primary_key(tu_id)))]
+#[cfg_attr(feature = "server", diesel(primary_key(matriculation_number)))]
 #[cfg_attr(feature = "server", diesel(table_name = users_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct UndoneUser {
-    tu_id: String,
-    done: bool,
+    pub matriculation_number: i32,
+    pub done: bool,
 }
 
 impl UndoneUser {
-    pub fn new(tu_id: String) -> Self {
-        Self { tu_id, done: false }
+    pub fn new(matriculation_number: i32) -> Self {
+        Self {
+            matriculation_number,
+            done: false,
+        }
     }
 }
 
@@ -352,11 +355,14 @@ impl UndoneUser {
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable)
 )]
-#[cfg_attr(feature = "server", diesel(primary_key(tu_id, session_nr, session_id)))]
+#[cfg_attr(
+    feature = "server",
+    diesel(primary_key(matriculation_number, session_nr, session_id))
+)]
 #[cfg_attr(feature = "server", diesel(table_name = sessions))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct TucanSession {
-    pub tu_id: String,
+    pub matriculation_number: i32,
     pub session_nr: i64,
     pub session_id: String,
 }
@@ -372,7 +378,7 @@ pub struct TucanSession {
 #[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
 pub struct UserModule {
-    pub user_id: String,
+    pub user_id: i32,
     pub module_id: Vec<u8>,
 }
 
@@ -387,6 +393,6 @@ pub struct UserModule {
 #[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
 pub struct UserCourse {
-    pub user_id: String,
+    pub user_id: i32,
     pub course_id: Vec<u8>,
 }

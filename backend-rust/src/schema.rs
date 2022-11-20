@@ -107,8 +107,8 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    sessions (tu_id, session_nr, session_id) {
-        tu_id -> Text,
+    sessions (matriculation_number, session_nr, session_id) {
+        matriculation_number -> Int4,
         session_nr -> Int8,
         session_id -> Text,
     }
@@ -119,7 +119,7 @@ diesel::table! {
     use diesel_full_text_search::*;
 
     user_courses (user_id, course_id) {
-        user_id -> Text,
+        user_id -> Int4,
         course_id -> Bytea,
     }
 }
@@ -129,7 +129,7 @@ diesel::table! {
     use diesel_full_text_search::*;
 
     user_modules (user_id, module_id) {
-        user_id -> Text,
+        user_id -> Int4,
         module_id -> Bytea,
     }
 }
@@ -138,8 +138,8 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    users_unfinished (tu_id) {
-        tu_id -> Text,
+    users_unfinished (matriculation_number) {
+        matriculation_number -> Int4,
         title -> Text,
         academic_title -> Text,
         post_name -> Text,
@@ -171,7 +171,7 @@ diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
-diesel::joinable!(sessions -> users_unfinished (tu_id));
+diesel::joinable!(sessions -> users_unfinished (matriculation_number));
 diesel::joinable!(user_courses -> courses_unfinished (course_id));
 diesel::joinable!(user_courses -> users_unfinished (user_id));
 diesel::joinable!(user_modules -> modules_unfinished (module_id));
