@@ -15,7 +15,7 @@
     "@popperjs/core": "^2.11.6",
     "@reduxjs/toolkit": "^1.9.0",
     "bootstrap": "^5.2.2",
-    "dompurify": "^2.4.0",
+    "dompurify": "^2.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
@@ -23,21 +23,21 @@
     "swr": "^1.3.0"
   },
   "devDependencies": {
-    "@types/bootstrap": "^5.2.5",
-    "@types/dompurify": "^2.3.4",
+    "@types/bootstrap": "^5.2.6",
+    "@types/dompurify": "^2.4.0",
     "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.8",
+    "@types/react-dom": "^18.0.9",
     "@types/react-redux": "^7.1.24",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
-    "@typescript-eslint/parser": "^5.42.1",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
     "@vitejs/plugin-react": "^2.2.0",
-    "eslint": "^8.27.0",
+    "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-react": "^7.31.10",
+    "eslint-plugin-react": "^7.31.11",
     "prettier": "2.7.1",
     "rollup-plugin-visualizer": "^5.8.3",
-    "sass": "^1.56.0",
-    "typescript": "^4.8.4",
-    "vite": "^3.2.3"
+    "sass": "^1.56.1",
+    "typescript": "^4.9.3",
+    "vite": "^3.2.4"
   }
 }
