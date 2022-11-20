@@ -258,7 +258,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
 
     let program = match prgname {
         "STARTPAGE_DISPATCH" => {
-            assert_eq!(number(&mut arguments), 19);
+            number(&mut arguments);
             assert_eq!(number(&mut arguments), 0);
 
             TucanProgram::StartpageDispatch(StartpageDispatch)
@@ -268,25 +268,25 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             name: string(&mut arguments).to_string(),
         }),
         "MLSSTART" => {
-            assert_eq!(number(&mut arguments), 19);
+            number(&mut arguments);
             TucanProgram::Mlsstart(Mlsstart)
         }
         "MYMODULES" => {
-            assert_eq!(number(&mut arguments), 275);
+            number(&mut arguments);
             assert_eq!(number(&mut arguments), 999);
             TucanProgram::Mymodules(Mymodules)
         }
         "PROFCOURSES" => {
-            assert_eq!(number(&mut arguments), 274);
+            number(&mut arguments);
             assert_eq!(number(&mut arguments), 999);
             TucanProgram::Profcourses(Profcourses)
         }
         "STUDENTCHOICECOURSES" => {
-            assert_eq!(number(&mut arguments), 307);
+            number(&mut arguments);
             TucanProgram::Studentchoicecourses(Studentchoicecourses)
         }
         "REGISTRATION" => {
-            assert_eq!(number(&mut arguments), 311);
+            number(&mut arguments);
             match arguments.peek().unwrap() {
                 TucanArgument::Number(_) => {
                     let a = number(&mut arguments).to_be_bytes();
@@ -304,19 +304,19 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             }
         }
         "MYEXAMS" => {
-            assert_eq!(number(&mut arguments), 318);
+            number(&mut arguments);
             TucanProgram::Myexams(Myexams)
         }
         "COURSERESULTS" => {
-            assert_eq!(number(&mut arguments), 324);
+            number(&mut arguments);
             TucanProgram::Courseresults(Courseresults)
         }
         "EXAMRESULTS" => {
-            assert_eq!(number(&mut arguments), 325);
+            number(&mut arguments);
             TucanProgram::Examresults(Examresults)
         }
         "STUDENT_RESULT" => {
-            assert_eq!(number(&mut arguments), 316);
+            number(&mut arguments);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
             assert_eq!(number(&mut arguments), 0);
@@ -326,7 +326,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             TucanProgram::StudentResult(StudentResult)
         }
         "MODULEDETAILS" => {
-            assert!([311, 275].contains(&number(&mut arguments)));
+            number(&mut arguments);
             let program = TucanProgram::Moduledetails(Moduledetails {
                 id: number(&mut arguments).to_be_bytes().to_vec(),
             });
@@ -335,7 +335,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "COURSEDETAILS" => {
             // TODO FIXME this now also parses subgroups of courses as courses
-            assert!([311, 274, 275].contains(&number(&mut arguments)));
+            number(&mut arguments);
             assert!([0, 376333755785484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
@@ -359,7 +359,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             prog
         },
         "PERSADDRESS" => {
-            assert!([339].contains(&number(&mut arguments)));
+            number(&mut arguments);
             assert!(matches!(
                 arguments.next(),
                 None | Some(TucanArgument::String(_))

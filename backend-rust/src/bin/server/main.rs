@@ -102,7 +102,6 @@ async fn login(
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct LoginHack {
-    pub tu_id: Option<String>,
     pub session_nr: Option<i64>,
     pub session_id: Option<String>,
     pub redirect: String,
@@ -118,29 +117,19 @@ async fn login_hack(
 ) -> Result<HttpResponse, MyError> {
     println!("{:?}", input);
 
-    // TODO FIXME check that this session belongs to the user etc. (simply don't request the user id but fetch it from server)
-    // TODO FIXME
-    let dsfa = 0;
-
-    let user = UndoneUser::new(dsfa);
-
     use diesel_async::RunQueryDsl;
 
     let mut connection = tucan.pool.get().await?;
 
     if let LoginHack {
-        tu_id: Some(_tu_id),
         session_nr: Some(session_nr),
         session_id: Some(session_id),
         ..
     } = input.0.clone()
     {
-        let tucan_session = TucanSession {
-            matriculation_number: user.matriculation_number,
-            session_nr,
-            session_id,
-        };
-        let input = tucan_session.clone();
+        let tucan_user = tucan.tucan_session_from_session_data(session_nr, session_id).await?;
+        let tucan_session = tucan_user.session.clone();
+        let user = UndoneUser::new(tucan_user.session.matriculation_number);
         connection
             .build_transaction()
             .run(|mut connection| {
@@ -154,7 +143,7 @@ async fn login_hack(
                         .await?;
 
                     diesel::insert_into(sessions::table)
-                        .values(input)
+                        .values(tucan_session)
                         .on_conflict((sessions::matriculation_number, sessions::session_nr, sessions::session_id))
                         .do_nothing()
                         .execute(&mut connection)
@@ -164,7 +153,7 @@ async fn login_hack(
                 })
             })
             .await?;
-        session.insert("session", tucan_session.clone()).unwrap();
+        session.insert("session", tucan_user.session.clone()).unwrap();
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
