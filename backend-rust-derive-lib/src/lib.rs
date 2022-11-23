@@ -1,8 +1,6 @@
-use std::collections::{BTreeSet, VecDeque};
-use actix_web::{
-    web::{Form, Json},
-};
+use actix_web::web::{Form, Json};
 use chrono::NaiveDateTime;
+use std::collections::{BTreeSet, VecDeque};
 
 pub trait Typescriptable {
     fn name() -> String;

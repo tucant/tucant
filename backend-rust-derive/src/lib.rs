@@ -315,12 +315,10 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
-    use syn::{DeriveInput, parse::Parse};
+    use syn::{parse::Parse, DeriveInput};
 
     use crate::typescriptable_impl;
     use crate::Typescriptable;
-
-    
 
     #[test]
     fn it_works() {

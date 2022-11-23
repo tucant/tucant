@@ -5,7 +5,7 @@ export function TucanUrlLink(props: { data: { tucan_url: string } }) {
         className="btn btn-light"
         target="_blank"
         rel="noopener noreferrer"
-        href={data.tucan_url}
+        href={props.data.tucan_url}
         role="button"
       >
         <svg
