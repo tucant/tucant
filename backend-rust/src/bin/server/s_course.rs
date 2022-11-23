@@ -5,6 +5,7 @@
 use std::io::ErrorKind;
 
 use crate::MyError;
+use crate::WithTucanUrl;
 
 use actix_web::post;
 use actix_web::web::Json;
@@ -20,13 +21,6 @@ use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 use tucant_derive::Typescriptable;
 use tucant_derive_lib::Typescriptable;
-
-#[derive(Serialize, Typescriptable)]
-pub struct WithTucanUrl<T: Serialize + Typescriptable> {
-    pub tucan_url: String,
-    //#[serde(flatten)] // not supported by Typescriptable
-    pub inner: T,
-}
 
 #[ts]
 #[post("/course")]

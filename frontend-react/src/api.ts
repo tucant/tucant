@@ -6,13 +6,11 @@ export async function course(input: string): Promise<WithTucanUrl> {
     input
   )) as WithTucanUrl;
 }
-export async function get_modules(
-  input: string | null
-): Promise<ModuleMenuResponse> {
+export async function get_modules(input: string | null): Promise<WithTucanUrl> {
   return (await genericFetch(
     "http://localhost:8080/modules",
     input
-  )) as ModuleMenuResponse;
+  )) as WithTucanUrl;
 }
 export async function index(input: null): Promise<string> {
   return (await genericFetch("http://localhost:8080/", input)) as string;
@@ -26,23 +24,23 @@ export async function login(input: Login): Promise<LoginResult> {
 export async function logout(input: null): Promise<null> {
   return (await genericFetch("http://localhost:8080/logout", input)) as null;
 }
-export async function module(input: string): Promise<ModuleResponse> {
+export async function module(input: string): Promise<WithTucanUrl> {
   return (await genericFetch(
     "http://localhost:8080/module",
     input
-  )) as ModuleResponse;
+  )) as WithTucanUrl;
 }
-export async function my_courses(input: null): Promise<Course[]> {
+export async function my_courses(input: null): Promise<WithTucanUrl> {
   return (await genericFetch(
     "http://localhost:8080/my_courses",
     input
-  )) as Course[];
+  )) as WithTucanUrl;
 }
-export async function my_modules(input: null): Promise<Module[]> {
+export async function my_modules(input: null): Promise<WithTucanUrl> {
   return (await genericFetch(
     "http://localhost:8080/my_modules",
     input
-  )) as Module[];
+  )) as WithTucanUrl;
 }
 export async function search_course(input: string): Promise<SearchResult[]> {
   return (await genericFetch(
@@ -124,4 +122,20 @@ export type SearchResult = {
 export type WithTucanUrl = {
   tucan_url: string;
   inner: Course;
+};
+export type WithTucanUrl = {
+  tucan_url: string;
+  inner: Course[];
+};
+export type WithTucanUrl = {
+  tucan_url: string;
+  inner: ModuleMenuResponse;
+};
+export type WithTucanUrl = {
+  tucan_url: string;
+  inner: ModuleResponse;
+};
+export type WithTucanUrl = {
+  tucan_url: string;
+  inner: Module[];
 };

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use crate::MyError;
+use crate::WithTucanUrl;
 
 use actix_web::post;
 use actix_web::web::Json;
@@ -23,6 +24,8 @@ use tucant::models::RegistrationEnum;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant::url::Registration;
+use tucant::url::RootRegistration;
+use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 // trailing slash is menu
@@ -33,8 +36,8 @@ pub async fn get_modules(
     session: TucanSession,
     tucan: Data<Tucan>,
     input: Json<Option<String>>,
-) -> Result<Json<ModuleMenuResponse>, MyError> {
-    let tucan = tucan.continue_session(session).await.unwrap();
+) -> Result<Json<WithTucanUrl<ModuleMenuResponse>>, MyError> {
+    let tucan = tucan.continue_session(session.clone()).await.unwrap();
 
     let value = match input.0 {
         None => {
@@ -45,7 +48,7 @@ pub async fn get_modules(
                 path: Vec::new(),
             }
         }
-        Some(input) => {
+        Some(ref input) => {
             let binary_path =
                 base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
             let (module_menu, subentries) = tucan
@@ -106,5 +109,20 @@ pub async fn get_modules(
         }
     };
 
-    Ok(Json(value))
+    let url: TucanProgram = match input.0 {
+        Some(ref input) => {
+            let binary_path =
+                base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
+            Registration {
+                path: binary_path.clone(),
+            }
+            .into()
+        }
+        None => RootRegistration {}.into(),
+    };
+
+    Ok(Json(WithTucanUrl {
+        tucan_url: url.to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        inner: value,
+    }))
 }

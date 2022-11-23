@@ -5,6 +5,7 @@
 use std::collections::{HashMap, VecDeque};
 
 use crate::MyError;
+use crate::WithTucanUrl;
 
 use actix_web::post;
 use actix_web::web::Json;
@@ -20,6 +21,7 @@ use tucant::models::ModuleResponse;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant::url::Moduledetails;
+use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
@@ -28,12 +30,12 @@ pub async fn module(
     session: TucanSession,
     tucan: Data<Tucan>,
     input: Json<String>,
-) -> Result<Json<ModuleResponse>, MyError> {
+) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
     let binary_path = base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
 
-    let tucan = tucan.continue_session(session).await.unwrap();
+    let tucan = tucan.continue_session(session.clone()).await.unwrap();
 
     let result = tucan
         .module(Moduledetails {
@@ -55,7 +57,7 @@ pub async fn module(
                 SELECT * FROM search_tree;
 "#,
         )
-        .bind::<Bytea, _>(binary_path)
+        .bind::<Bytea, _>(binary_path.clone())
         .load::<ModuleMenuPathPart>(&mut connection)
         .await?;
 
@@ -84,8 +86,16 @@ pub async fn module(
         })
         .collect::<Vec<_>>();
 
-    Ok(Json(ModuleResponse {
+    let result = ModuleResponse {
         module: result,
         path: paths,
+    };
+
+    Ok(Json(WithTucanUrl {
+        tucan_url: Into::<TucanProgram>::into(Moduledetails {
+            id: binary_path.clone(),
+        })
+        .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        inner: result,
     }))
 }

@@ -54,8 +54,16 @@ use tucant::tucan::Tucan;
 use tucant::tucan_user::TucanUser;
 use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
+use tucant_derive_lib::Typescriptable;
 
 use crate::s_search_module::search_module_opensearch;
+
+#[derive(Serialize, Typescriptable)]
+pub struct WithTucanUrl<T: Serialize + Typescriptable> {
+    pub tucan_url: String,
+    //#[serde(flatten)] // not supported by Typescriptable
+    pub inner: T,
+}
 
 #[derive(Debug)]
 pub struct MyError {
