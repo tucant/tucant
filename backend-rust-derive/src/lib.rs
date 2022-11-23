@@ -276,6 +276,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let ty_generics_turbofish = ty_generics.as_turbofish();
 
     Ok(quote! {
         impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
@@ -284,7 +285,7 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
             }
 
             fn code() -> ::std::collections::BTreeSet<String> {
-                let mut result = ::std::collections::BTreeSet::from(["export type ".to_string() + &#name::name() + " =\n"
+                let mut result = ::std::collections::BTreeSet::from(["export type ".to_string() + &#name #ty_generics_turbofish::name() + " =\n"
                 #members
                 ]);
                 #members_code
