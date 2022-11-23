@@ -3416,6 +3416,7 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-subscriber",
  "tucant_derive",
+ "tucant_derive_lib",
  "url",
 ]
 
@@ -3451,6 +3452,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+ "tucant_derive_lib",
+]
+
+[[package]]
+name = "tucant_derive_lib"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "chrono",
 ]
 
 [[package]]

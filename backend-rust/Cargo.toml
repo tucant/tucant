@@ -53,6 +53,7 @@ opentelemetry-otlp = "0.11"
 tracing-futures = { version = "0.2", features = ["futures-03"] }
 opensearch = "2"
 rand = "0.8"
+tucant_derive_lib = { path = "../backend-rust-derive-lib" }
 
 [features]
 default = ["server"]
