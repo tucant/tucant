@@ -12,3 +12,4 @@ proc-macro = true
 syn = { version = "1", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
+prettyplease = "0.1"

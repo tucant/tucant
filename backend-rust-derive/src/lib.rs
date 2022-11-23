@@ -317,7 +317,9 @@ mod tests {
     #[test]
     fn it_works() {
         let input: DeriveInput = syn::parse_str("struct Test {}").unwrap();
-        let result = typescriptable_impl(input).unwrap();
-        println!("{}", result);
+        let output = typescriptable_impl(input).unwrap();
+        let output = syn::parse2::<syn::File>(output).unwrap();
+        let output = prettyplease::unparse(&output);
+        println!("{}", output);
     }
 }
