@@ -912,7 +912,7 @@ dependencies = [
 [[package]]
 name = "diesel"
 version = "2.0.2"
-source = "git+https://github.com/mohe2015/diesel.git?branch=add-c-char-type#fb4620937f271d839d189c5e13345bbda5262d6a"
+source = "git+https://github.com/diesel-rs/diesel.git#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
 dependencies = [
  "bitflags",
  "byteorder",
@@ -939,7 +939,7 @@ dependencies = [
 [[package]]
 name = "diesel_derives"
 version = "2.0.1"
-source = "git+https://github.com/mohe2015/diesel.git?branch=add-c-char-type#fb4620937f271d839d189c5e13345bbda5262d6a"
+source = "git+https://github.com/diesel-rs/diesel.git#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -950,7 +950,7 @@ dependencies = [
 [[package]]
 name = "diesel_full_text_search"
 version = "2.0.0"
-source = "git+https://github.com/mohe2015/diesel_full_text_search.git?branch=mohe2015-patch-1#a00b1a26b9c8e4981099399a302dced33b8c1587"
+source = "git+https://github.com/mohe2015/diesel_full_text_search.git?branch=setweight#eead58bba839a4339e1a566a95ec3c2a38234ba2"
 dependencies = [
  "diesel",
 ]
@@ -3894,9 +3894,9 @@ dependencies = [
 
 [[package]]
 name = "zstd-sys"
-version = "2.0.1+zstd.1.5.2"
+version = "2.0.2+zstd.1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fd07cbbc53846d9145dbffdf6dd09a7a0aa52be46741825f5c97bdd4f73f12b"
+checksum = "24faa29d97c8ddca9b37b680e3bd2d5439d864a9cac3a0640d086b71c908bb83"
 dependencies = [
  "cc",
  "libc",

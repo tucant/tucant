@@ -15,12 +15,12 @@ use serde::Deserialize;
 use serde::Serialize;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
-use tucant::typescript::Typescriptable;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::Typescriptable;
 use tucant_derive::ts;
+use tucant_derive_lib::Typescriptable;
 
 #[derive(Serialize, Typescriptable)]
 pub struct WithTucanUrl<T: Serialize + Typescriptable> {

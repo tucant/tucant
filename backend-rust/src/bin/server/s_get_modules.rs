@@ -29,7 +29,7 @@ use tucant_derive::ts;
 
 #[ts]
 #[post("/modules")]
-pub async fn get_modules<'a>(
+pub async fn get_modules(
     session: TucanSession,
     tucan: Data<Tucan>,
     input: Json<Option<String>>,
