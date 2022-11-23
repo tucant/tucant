@@ -12,15 +12,12 @@ use actix_web::web::Json;
 
 use actix_web::web::Data;
 
-use serde::Serialize;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
-use tucant_derive::Typescriptable;
-use tucant_derive_lib::Typescriptable;
 
 #[ts]
 #[post("/course")]

@@ -113,10 +113,7 @@ pub async fn get_modules(
         Some(ref input) => {
             let binary_path =
                 base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
-            Registration {
-                path: binary_path.clone(),
-            }
-            .into()
+            Registration { path: binary_path }.into()
         }
         None => RootRegistration {}.into(),
     };
