@@ -60,6 +60,9 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
 
     if let Some(arg_type) = arg_type {
         let name = &node.sig.ident;
+
+        let (impl_generics, ty_generics, where_clause) = node.sig.generics.split_for_impl();
+
         let name_string = node.sig.ident.to_string();
 
         let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
@@ -81,7 +84,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         Ok(quote! {
             #node
 
-            impl tucant_derive_lib::Typescriptable for #name {
+            impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
                 fn name() -> String {
                     #name_string.to_string()
                 }
@@ -272,8 +275,10 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+
     Ok(quote! {
-        impl tucant_derive_lib::Typescriptable for #name {
+        impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
             fn name() -> String {
                 #name_string.to_string()
             }

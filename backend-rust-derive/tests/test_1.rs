@@ -5,4 +5,4 @@ struct Test { inner: i32 }
 
 
 #[derive(Typescriptable)]
-struct TestT<T> { inner: T }
+struct TestT<T: tucant_derive_lib::Typescriptable> { inner: T }
