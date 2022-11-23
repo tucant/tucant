@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
+import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
@@ -22,8 +23,8 @@ export default function Modules() {
 
   return (
     <main className="container">
-      <h1 className="text-center">{data?.module_menu.name}</h1>
-      {data?.path.map((p, i) => (
+      <h1 className="text-center">{data?.inner.module_menu.name}</h1>
+      {data?.inner.path.map((p, i) => (
         <nav
           key={i}
           style={{ "--bs-breadcrumb-divider": "'>'" }}
@@ -42,7 +43,8 @@ export default function Modules() {
           </ol>
         </nav>
       ))}
-      {data && <ModuleList listData={data} />}
+      <TucanUrlLink data={data!} />
+      {data && <ModuleList listData={data.inner} />}
     </main>
   );
 }
