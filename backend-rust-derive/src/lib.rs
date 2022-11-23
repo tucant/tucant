@@ -308,7 +308,16 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 
 #[cfg(test)]
 mod tests {
+    use proc_macro2::TokenStream;
+    use syn::{DeriveInput, parse::Parse};
+
+    use crate::typescriptable_impl;
+
 
     #[test]
-    fn it_works() {}
+    fn it_works() {
+        let input: DeriveInput = syn::parse_str("struct Test {}").unwrap();
+        let result = typescriptable_impl(input).unwrap();
+        println!("{}", result);
+    }
 }
