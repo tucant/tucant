@@ -8,6 +8,7 @@ import { module } from "../api";
 import useSWR from "swr";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
+import { TucanUrlLink } from "../components/TucanUrlLink";
 
 export default function Module() {
   const { id } = useParams();
@@ -25,9 +26,9 @@ export default function Module() {
       {data && (
         <>
           <h1>
-            {data.module.module_id} {data.module.title}
+            {data.inner.module.module_id} {data.inner.module.title}
           </h1>
-          {data.path.map((p, i) => (
+          {data.inner.path.map((p, i) => (
             <nav key={i} aria-label="breadcrumb">
               <ol className="breadcrumb">
                 {p.map((pe) => (
@@ -39,11 +40,12 @@ export default function Module() {
             </nav>
           ))}
           <span className="badge rounded-pill text-bg-primary">{`${
-            data.module.credits ?? 0
+            data.inner.module.credits ?? 0
           } Credits`}</span>
+          <TucanUrlLink data={data} />
           <div
             dangerouslySetInnerHTML={{
-              __html: dompurify.sanitize(data.module.content),
+              __html: dompurify.sanitize(data.inner.module.content),
             }}
           ></div>
         </>

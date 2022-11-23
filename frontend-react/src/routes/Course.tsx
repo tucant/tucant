@@ -7,6 +7,7 @@ import dompurify from "dompurify";
 import { course } from "../api";
 import useSWR from "swr";
 import SignOut from "./Logout";
+import { TucanUrlLink } from "../components/TucanUrlLink";
 
 export default function CourseRoute() {
   const { id } = useParams();
@@ -25,11 +26,12 @@ export default function CourseRoute() {
       {data && (
         <>
           <h3 className="text-center">
-            {data.course_id} {data.title}
+            {data.inner.course_id} {data.inner.title}
           </h3>
+          <TucanUrlLink data={data} />
           <div
             dangerouslySetInnerHTML={{
-              __html: dompurify.sanitize(data.content),
+              __html: dompurify.sanitize(data.inner.content),
             }}
           ></div>
         </>

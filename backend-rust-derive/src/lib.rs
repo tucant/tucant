@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
-    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
+    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -60,34 +60,37 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
 
     if let Some(arg_type) = arg_type {
         let name = &node.sig.ident;
+
+        let (impl_generics, ty_generics, where_clause) = node.sig.generics.split_for_impl();
+
         let name_string = node.sig.ident.to_string();
 
         let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
-            <#arg_type as tucant::typescript::Typescriptable>::name()
+            <#arg_type as tucant_derive_lib::Typescriptable>::name()
         };
 
         let typescriptable_arg_type_code = quote_spanned! {arg_type.span()=>
-            <#arg_type as tucant::typescript::Typescriptable>::code()
+            <#arg_type as tucant_derive_lib::Typescriptable>::code()
         };
 
         let typescriptable_return_type_name = quote_spanned! {return_type.span()=>
-            <#return_type as tucant::typescript::Typescriptable>::name()
+            <#return_type as tucant_derive_lib::Typescriptable>::name()
         };
 
         let typescriptable_return_type_code = quote_spanned! {return_type.span()=>
-            <#return_type as tucant::typescript::Typescriptable>::code()
+            <#return_type as tucant_derive_lib::Typescriptable>::code()
         };
 
         Ok(quote! {
             #node
 
-            impl tucant::typescript::Typescriptable for #name {
+            impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
                 fn name() -> String {
                     #name_string.to_string()
                 }
 
                 fn code() -> ::std::collections::BTreeSet<String> {
-                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant::typescript::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
+                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant_derive_lib::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
         return await genericFetch("http://localhost:8080"# + #url_path + r#"", input) as "# + &#typescriptable_return_type_name +
@@ -158,11 +161,11 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                     };
 
                     let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
-                        <#field_type as tucant::typescript::Typescriptable>::name()
+                        <#field_type as tucant_derive_lib::Typescriptable>::name()
                     };
 
                     let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
-                        <#field_type as tucant::typescript::Typescriptable>::code()
+                        <#field_type as tucant_derive_lib::Typescriptable>::code()
                     };
 
                     Ok((
@@ -237,11 +240,11 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                 let field_type = &field.ty;
 
                 let typescriptable_field_type_name = quote_spanned! {field_type.span()=>
-                    <#field_type as tucant::typescript::Typescriptable>::name()
+                    <#field_type as tucant_derive_lib::Typescriptable>::name()
                 };
 
                 let typescriptable_field_type_code = quote_spanned! {field_type.span()=>
-                    <#field_type as tucant::typescript::Typescriptable>::code()
+                    <#field_type as tucant_derive_lib::Typescriptable>::code()
                 };
 
                 (
@@ -272,14 +275,35 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let ty_generics_turbofish = ty_generics.as_turbofish();
+
+    let generics = input
+        .generics
+        .type_params()
+        .map(|TypeParam { ident, .. }| {
+            quote! {
+                <#ident as tucant_derive_lib::Typescriptable>::name()
+            }
+        })
+        .fold(quote! {}, |acc, val| {
+            quote! {
+                #acc + &base64::encode_config(
+                    #val,
+                    base64::URL_SAFE_NO_PAD,
+                )
+            }
+        });
+
     Ok(quote! {
-        impl tucant::typescript::Typescriptable for #name {
+        impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
             fn name() -> String {
-                #name_string.to_string()
+                // TODO FIXME actual generic typescript types would be way nicer
+                #name_string.to_string() #generics
             }
 
             fn code() -> ::std::collections::BTreeSet<String> {
-                let mut result = ::std::collections::BTreeSet::from(["export type ".to_string() + &#name::name() + " =\n"
+                let mut result = ::std::collections::BTreeSet::from(["export type ".to_string() + &#name #ty_generics_turbofish::name() + " =\n"
                 #members
                 ]);
                 #members_code
@@ -309,6 +333,16 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 #[cfg(test)]
 mod tests {
 
+    use syn::DeriveInput;
+
+    use crate::typescriptable_impl;
+
     #[test]
-    fn it_works() {}
+    fn it_works() {
+        let input: DeriveInput = syn::parse_str("struct Test<T> { inner: T }").unwrap();
+        let output = typescriptable_impl(input).unwrap();
+        let output = syn::parse2::<syn::File>(output).unwrap();
+        let output = prettyplease::unparse(&output);
+        println!("{}", output);
+    }
 }

@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
+import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
@@ -22,27 +23,32 @@ export default function Modules() {
 
   return (
     <main className="container">
-      <h1 className="text-center">{data?.module_menu.name}</h1>
-      {data?.path.map((p, i) => (
-        <nav
-          key={i}
-          style={{ "--bs-breadcrumb-divider": "'>'" }}
-          aria-label="breadcrumb"
-        >
-          <ol className="breadcrumb">
-            {p.map((pe) => (
-              <Link
-                key={pe.tucan_id}
-                className="breadcrumb-item active"
-                to={`/modules/${pe.tucan_id}`}
-              >
-                {pe.name}
-              </Link>
-            ))}
-          </ol>
-        </nav>
-      ))}
-      {data && <ModuleList listData={data} />}
+      <h1 className="text-center">{data?.inner.module_menu.name}</h1>
+      {data && (
+        <>
+          {data.inner.path.map((p, i) => (
+            <nav
+              key={i}
+              style={{ "--bs-breadcrumb-divider": "'>'" }}
+              aria-label="breadcrumb"
+            >
+              <ol className="breadcrumb">
+                {p.map((pe) => (
+                  <Link
+                    key={pe.tucan_id}
+                    className="breadcrumb-item active"
+                    to={`/modules/${pe.tucan_id}`}
+                  >
+                    {pe.name}
+                  </Link>
+                ))}
+              </ol>
+            </nav>
+          ))}
+          <TucanUrlLink data={data} />
+          <ModuleList listData={data.inner} />
+        </>
+      )}
     </main>
   );
 }
