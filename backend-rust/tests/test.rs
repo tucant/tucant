@@ -23,13 +23,9 @@ async fn index(_session: String, _input: Json<()>) -> actix_web::Result<Json<Str
 
 #[test]
 pub fn test() {
+    use tucant_derive_lib::Typescriptable;
+
     // cargo test -- --show-output
-    println!(
-        "{:?}",
-        <Struct1 as ::tucant::typescript::Typescriptable>::code()
-    );
-    println!(
-        "{:?}",
-        <index as ::tucant::typescript::Typescriptable>::code()
-    );
+    println!("{:?}", <Struct1 as Typescriptable>::code());
+    println!("{:?}", <index as Typescriptable>::code());
 }
