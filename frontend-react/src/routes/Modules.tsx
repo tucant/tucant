@@ -24,27 +24,31 @@ export default function Modules() {
   return (
     <main className="container">
       <h1 className="text-center">{data?.inner.module_menu.name}</h1>
-      {data?.inner.path.map((p, i) => (
-        <nav
-          key={i}
-          style={{ "--bs-breadcrumb-divider": "'>'" }}
-          aria-label="breadcrumb"
-        >
-          <ol className="breadcrumb">
-            {p.map((pe) => (
-              <Link
-                key={pe.tucan_id}
-                className="breadcrumb-item active"
-                to={`/modules/${pe.tucan_id}`}
-              >
-                {pe.name}
-              </Link>
-            ))}
-          </ol>
-        </nav>
-      ))}
-      <TucanUrlLink data={data!} />
-      {data && <ModuleList listData={data.inner} />}
+      {data && (
+        <>
+          {data.inner.path.map((p, i) => (
+            <nav
+              key={i}
+              style={{ "--bs-breadcrumb-divider": "'>'" }}
+              aria-label="breadcrumb"
+            >
+              <ol className="breadcrumb">
+                {p.map((pe) => (
+                  <Link
+                    key={pe.tucan_id}
+                    className="breadcrumb-item active"
+                    to={`/modules/${pe.tucan_id}`}
+                  >
+                    {pe.name}
+                  </Link>
+                ))}
+              </ol>
+            </nav>
+          ))}
+          <TucanUrlLink data={data} />
+          <ModuleList listData={data.inner} />
+        </>
+      )}
     </main>
   );
 }
