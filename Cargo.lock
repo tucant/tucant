@@ -3448,6 +3448,7 @@ dependencies = [
 name = "tucant_derive"
 version = "0.1.0"
 dependencies = [
+ "base64 0.13.1",
  "prettyplease",
  "proc-macro2",
  "quote",

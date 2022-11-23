@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
-    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType,
+    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -278,10 +278,28 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let ty_generics_turbofish = ty_generics.as_turbofish();
 
+    let generics = input
+        .generics
+        .type_params()
+        .map(|TypeParam { ident, .. }| {
+            quote! {
+                <#ident as tucant_derive_lib::Typescriptable>::name()
+            }
+        })
+        .fold(quote! {}, |acc, val| {
+            quote! {
+                #acc + &base64::encode_config(
+                    #val,
+                    base64::URL_SAFE_NO_PAD,
+                )
+            }
+        });
+
     Ok(quote! {
         impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
             fn name() -> String {
-                #name_string.to_string()
+                // TODO FIXME actual generic typescript types would be way nicer
+                #name_string.to_string() #generics
             }
 
             fn code() -> ::std::collections::BTreeSet<String> {
