@@ -11,7 +11,6 @@ use actix_web::web::Json;
 
 use actix_web::web::Data;
 
-use serde::Deserialize;
 use serde::Serialize;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
@@ -25,7 +24,7 @@ use tucant_derive_lib::Typescriptable;
 #[derive(Serialize, Typescriptable)]
 pub struct WithTucanUrl<T: Serialize + Typescriptable> {
     pub tucan_url: String,
-    #[serde(flatten)]
+    //#[serde(flatten)] // not supported by Typescriptable
     pub inner: T,
 }
 
