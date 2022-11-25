@@ -19,7 +19,7 @@ use crate::{
     },
 };
 use crate::{
-    models::{RegistrationEnum, TucanSession, UserCourse, UserModule},
+    models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
 use actix_session::SessionExt;
@@ -37,10 +37,10 @@ use crate::schema::*;
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
+use diesel::upsert::excluded;
 use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
-use diesel::{dsl::not, upsert::excluded};
 use log::debug;
 
 use scraper::Selector;
@@ -503,7 +503,7 @@ impl TucanUser {
             tucan_id: url.path,
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            child_type: 0,
+            done: false,
             parent: None,
         })
     }
@@ -511,7 +511,7 @@ impl TucanUser {
     pub async fn registration(
         &self,
         url: Registration,
-    ) -> anyhow::Result<(ModuleMenu, RegistrationEnum)> {
+    ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
         use diesel_async::RunQueryDsl;
 
         // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
@@ -523,83 +523,75 @@ impl TucanUser {
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.eq(&url.path))
-            .filter(not(module_menu_unfinished::child_type.eq(0)))
+            .filter(module_menu_unfinished::done)
             .get_result::<ModuleMenu>(&mut connection)
             .await
             .optional()?;
 
-        match existing_registration_already_fetched {
-            Some(module_menu @ ModuleMenu { child_type: 1, .. }) => {
-                debug!("[~] menu {:?}", module_menu);
+        if let Some(module_menu) = existing_registration_already_fetched {
+            debug!("[~] menu {:?}", module_menu);
 
-                // existing submenus
-                let submenus = module_menu_unfinished::table
-                    .select(module_menu_unfinished::all_columns)
-                    .filter(module_menu_unfinished::parent.eq(&url.path))
-                    .load::<ModuleMenu>(&mut connection)
-                    .await?;
+            // existing submenus
+            let submenus = module_menu_unfinished::table
+                .select(module_menu_unfinished::all_columns)
+                .filter(module_menu_unfinished::parent.eq(&url.path))
+                .load::<ModuleMenu>(&mut connection)
+                .await?;
 
-                return Ok((module_menu, RegistrationEnum::Submenu(submenus)));
-            }
-            Some(module_menu @ ModuleMenu { child_type: 2, .. }) => {
-                debug!("[~] menu {:?}", module_menu);
+            // existing submodules
+            let submodules: Vec<Module> = module_menu_module::table
+                .inner_join(modules_unfinished::table)
+                .select((
+                    modules_unfinished::tucan_id,
+                    modules_unfinished::tucan_last_checked,
+                    modules_unfinished::title,
+                    modules_unfinished::module_id,
+                    modules_unfinished::credits,
+                    modules_unfinished::content,
+                    modules_unfinished::done,
+                ))
+                .filter(module_menu_module::module_menu_id.eq(&url.path))
+                .load::<Module>(&mut connection)
+                .await?;
 
-                // existing submodules
-                let submodules: Vec<Module> = module_menu_module::table
-                    .inner_join(modules_unfinished::table)
+            // TODO FIXME maybe only return the latest course for courses with same course_id
+            let module_courses: Vec<(ModuleCourse, Course)> =
+                ModuleCourse::belonging_to(&submodules)
+                    .inner_join(courses_unfinished::table)
                     .select((
-                        modules_unfinished::tucan_id,
-                        modules_unfinished::tucan_last_checked,
-                        modules_unfinished::title,
-                        modules_unfinished::module_id,
-                        modules_unfinished::credits,
-                        modules_unfinished::content,
-                        modules_unfinished::done,
+                        (module_courses::module, module_courses::course),
+                        (
+                            courses_unfinished::tucan_id,
+                            courses_unfinished::tucan_last_checked,
+                            courses_unfinished::title,
+                            courses_unfinished::course_id,
+                            courses_unfinished::sws,
+                            courses_unfinished::content,
+                            courses_unfinished::done,
+                        ),
                     ))
-                    .filter(module_menu_module::module_menu_id.eq(&url.path))
-                    .load::<Module>(&mut connection)
+                    .load::<(ModuleCourse, Course)>(&mut connection)
                     .await?;
+            let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
+                module_courses.grouped_by(&submodules);
+            let modules_and_courses: Vec<(Option<Module>, Vec<Course>)> = submodules
+                .into_iter()
+                .zip(grouped_module_courses)
+                .map(|(m, r)| (Some(m), r.into_iter().map(|r| r.1).collect_vec()))
+                .collect();
 
-                // TODO FIXME maybe only return the latest course for courses with same course_id
-                let module_courses: Vec<(ModuleCourse, Course)> =
-                    ModuleCourse::belonging_to(&submodules)
-                        .inner_join(courses_unfinished::table)
-                        .select((
-                            (module_courses::module, module_courses::course),
-                            (
-                                courses_unfinished::tucan_id,
-                                courses_unfinished::tucan_last_checked,
-                                courses_unfinished::title,
-                                courses_unfinished::course_id,
-                                courses_unfinished::sws,
-                                courses_unfinished::content,
-                                courses_unfinished::done,
-                            ),
-                        ))
-                        .load::<(ModuleCourse, Course)>(&mut connection)
-                        .await?;
-                let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
-                    module_courses.grouped_by(&submodules);
-                let result: Vec<(Option<Module>, Vec<Course>)> = submodules
-                    .into_iter()
-                    .zip(grouped_module_courses)
-                    .map(|(m, r)| (Some(m), r.into_iter().map(|r| r.1).collect_vec()))
-                    .collect();
-
-                return Ok((module_menu, RegistrationEnum::ModulesAndCourses(result)));
-            }
-            _ => {}
+            return Ok((
+                module_menu,
+                crate::models::Registration {
+                    submenus,
+                    modules_and_courses,
+                },
+            ));
         }
 
         drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
-
-        // list of subcategories
-        let submenu_list = element_by_selector(&document, "#contentSpacer_IE ul");
-
-        // list of modules
-        let modules_list = element_by_selector(&document, "table.tbcoursestatus");
 
         let url_element = document
             .select(&s("h2 a"))
@@ -610,17 +602,11 @@ impl TucanUser {
         let name = url_element.inner_html();
         let _normalized_name = TucanUser::normalize(&name);
 
-        let child_type = match (submenu_list, modules_list) {
-            (_, Some(_)) => 2,
-            (Some(_), None) => 1,
-            _ => panic!(),
-        };
-
         let module_menu = ModuleMenu {
             tucan_id: url.path.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
             name: url_element.inner_html(),
-            child_type,
+            done: false,
             parent: None,
         };
 
@@ -637,194 +623,182 @@ impl TucanUser {
             .get_result::<ModuleMenu>(&mut connection)
             .await?;
 
-        let return_value = match (submenu_list, modules_list) {
-            (_, Some(list)) => {
-                let selector = s(".tbcoursestatus strong a[href]");
-                let a = list.select(&selector).fuse().peekable();
+        let selector = s("table.tbcoursestatus strong a[href]");
+        let a = document.select(&selector).fuse().peekable();
 
-                let d = a.batching(|f| {
-                    let title = if f.peek()?.value().attr("name") != Some("eventLink") {
-                        f.next()
-                    } else {
-                        None
-                    };
-                    let sub_elements: Vec<ElementRef> = f
-                        .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
-                        .collect();
+        let d = a.batching(|f| {
+            let title = if f.peek()?.value().attr("name") != Some("eventLink") {
+                f.next()
+            } else {
+                None
+            };
+            let sub_elements: Vec<ElementRef> = f
+                .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
+                .collect();
 
-                    Some((title, sub_elements))
+            Some((title, sub_elements))
+        });
+
+        let modules: Vec<(Option<Module>, Vec<Course>)> = d
+            .map(|e| {
+                let module = e.0.map(|i| {
+                    let mut text = i.text();
+                    Module {
+                        tucan_id: TryInto::<Moduledetails>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                i.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .id,
+                        //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        module_id: text
+                            .next()
+                            .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                            .to_string(),
+                        title: text
+                            .next()
+                            .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                            .to_string(),
+                        credits: None,
+                        content: "".to_string(),
+                        done: false,
+                    }
                 });
 
-                let modules: Vec<(Option<Module>, Vec<Course>)> = d
-                    .map(|e| {
-                        let module = e.0.map(|i| {
-                            let mut text = i.text();
-                            Module {
-                                tucan_id: TryInto::<Moduledetails>::try_into(
+                let courses =
+                    e.1.into_iter()
+                        .map(|course| {
+                            let mut text = course.text();
+
+                            Course {
+                                tucan_id: TryInto::<Coursedetails>::try_into(
                                     parse_tucan_url(&format!(
                                         "https://www.tucan.tu-darmstadt.de{}",
-                                        i.value().attr("href").unwrap()
+                                        course.value().attr("href").unwrap()
                                     ))
                                     .program,
                                 )
                                 .unwrap()
                                 .id,
-                                //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
                                 tucan_last_checked: Utc::now().naive_utc(),
-                                module_id: text
+                                course_id: text
                                     .next()
-                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .unwrap_or_else(|| {
+                                        panic!("{:?}", course.text().collect::<Vec<_>>())
+                                    })
                                     .to_string(),
                                 title: text
                                     .next()
-                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .unwrap_or_else(|| {
+                                        panic!("{:?}", course.text().collect::<Vec<_>>())
+                                    })
                                     .to_string(),
-                                credits: None,
+                                sws: 0,
                                 content: "".to_string(),
                                 done: false,
                             }
-                        });
+                        })
+                        .collect_vec();
 
-                        let courses =
-                            e.1.into_iter()
-                                .map(|course| {
-                                    let mut text = course.text();
+                (module, courses)
+            })
+            .collect();
 
-                                    Course {
-                                        tucan_id: TryInto::<Coursedetails>::try_into(
-                                            parse_tucan_url(&format!(
-                                                "https://www.tucan.tu-darmstadt.de{}",
-                                                course.value().attr("href").unwrap()
-                                            ))
-                                            .program,
-                                        )
-                                        .unwrap()
-                                        .id,
-                                        tucan_last_checked: Utc::now().naive_utc(),
-                                        course_id: text
-                                            .next()
-                                            .unwrap_or_else(|| {
-                                                panic!("{:?}", course.text().collect::<Vec<_>>())
-                                            })
-                                            .to_string(),
-                                        title: text
-                                            .next()
-                                            .unwrap_or_else(|| {
-                                                panic!("{:?}", course.text().collect::<Vec<_>>())
-                                            })
-                                            .to_string(),
-                                        sws: 0,
-                                        content: "".to_string(),
-                                        done: false,
-                                    }
-                                })
-                                .collect_vec();
+        diesel::insert_into(modules_unfinished::table)
+            .values(
+                modules
+                    .iter()
+                    .map(|m| &m.0)
+                    .filter_map(|v| v.as_ref())
+                    .collect_vec(),
+            )
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
 
-                        (module, courses)
+        diesel::insert_into(module_menu_module::table)
+            .values(
+                modules
+                    .iter()
+                    .map(|m| &m.0)
+                    .filter_map(|v| v.as_ref())
+                    .map(|m| ModuleMenuEntryModuleRef {
+                        module_id: &m.tucan_id,
+                        module_menu_id: &url.path,
                     })
-                    .collect();
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
 
-                diesel::insert_into(modules_unfinished::table)
-                    .values(
-                        modules
-                            .iter()
-                            .map(|m| &m.0)
-                            .filter_map(|v| v.as_ref())
-                            .collect_vec(),
-                    )
-                    .on_conflict_do_nothing()
-                    .execute(&mut connection)
-                    .await?;
+        diesel::insert_into(courses_unfinished::table)
+            .values(modules.iter().flat_map(|m| &m.1).collect_vec())
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
 
-                diesel::insert_into(module_menu_module::table)
-                    .values(
-                        modules
-                            .iter()
-                            .map(|m| &m.0)
-                            .filter_map(|v| v.as_ref())
-                            .map(|m| ModuleMenuEntryModuleRef {
-                                module_id: &m.tucan_id,
-                                module_menu_id: &url.path,
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                    .on_conflict_do_nothing()
-                    .execute(&mut connection)
-                    .await?;
-
-                diesel::insert_into(courses_unfinished::table)
-                    .values(modules.iter().flat_map(|m| &m.1).collect_vec())
-                    .on_conflict_do_nothing()
-                    .execute(&mut connection)
-                    .await?;
-
-                diesel::insert_into(module_courses::table)
-                    .values(
-                        modules
-                            .iter()
-                            .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
-                            .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
-                            .map(|m| ModuleCourse {
-                                module: m.0.tucan_id.clone(),
-                                course: m.1.tucan_id.clone(),
-                            })
-                            .collect::<Vec<_>>(),
-                    )
-                    .on_conflict_do_nothing()
-                    .execute(&mut connection)
-                    .await?;
-
-                RegistrationEnum::ModulesAndCourses(modules)
-            }
-            (Some(list), None) => {
-                let utc = Utc::now().naive_utc();
-                let submenus: Vec<ModuleMenu> = list
-                    .select(&s("a[href]"))
-                    .map(|e| {
-                        let child = TryInto::<Registration>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                e.value().attr("href").unwrap()
-                            ))
-                            .program,
-                        )
-                        .unwrap()
-                        .path;
-
-                        ModuleMenu {
-                            tucan_id: child,
-                            tucan_last_checked: utc,
-                            name: e.inner_html().trim().to_string(),
-                            child_type: 0,
-                            parent: Some(url.path.clone()),
-                        }
+        diesel::insert_into(module_courses::table)
+            .values(
+                modules
+                    .iter()
+                    .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                    .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
+                    .map(|m| ModuleCourse {
+                        module: m.0.tucan_id.clone(),
+                        course: m.1.tucan_id.clone(),
                     })
-                    .collect::<Vec<_>>();
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
 
-                diesel::insert_into(module_menu_unfinished::table)
-                    .values(&submenus[..])
-                    .on_conflict(module_menu_unfinished::tucan_id)
-                    .do_update()
-                    .set(
-                        module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)),
-                    )
-                    .get_result::<ModuleMenu>(&mut connection)
-                    .await?;
+        let utc = Utc::now().naive_utc();
+        let submenus: Vec<ModuleMenu> = document
+            .select(&s("#contentSpacer_IE ul a[href]"))
+            .map(|e| {
+                let child = TryInto::<Registration>::try_into(
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        e.value().attr("href").unwrap()
+                    ))
+                    .program,
+                )
+                .unwrap()
+                .path;
 
-                RegistrationEnum::Submenu(submenus)
-            }
-            _ => {
-                panic!(
-                    "{:?} {} {}",
-                    url.clone(),
-                    Into::<TucanProgram>::into(url)
-                        .to_tucan_url(Some(self.session.session_nr.try_into().unwrap())),
-                    document.root_element().html()
-                );
-            }
-        };
+                ModuleMenu {
+                    tucan_id: child,
+                    tucan_last_checked: utc,
+                    name: e.inner_html().trim().to_string(),
+                    done: false,
+                    parent: Some(url.path.clone()),
+                }
+            })
+            .collect::<Vec<_>>();
 
-        Ok((module_menu, return_value))
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&submenus[..])
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)))
+            .get_result::<ModuleMenu>(&mut connection)
+            .await?;
+
+        // TODO FIXME make module menu done
+
+        Ok((
+            module_menu,
+            crate::models::Registration {
+                submenus,
+                modules_and_courses: modules,
+            },
+        ))
     }
 
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {

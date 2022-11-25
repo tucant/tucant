@@ -82,7 +82,7 @@ diesel::table! {
         tucan_id -> Bytea,
         tucan_last_checked -> Timestamptz,
         name -> Text,
-        child_type -> Int2,
+        done -> Bool,
         parent -> Nullable<Bytea>,
     }
 }

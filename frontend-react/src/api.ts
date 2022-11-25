@@ -99,7 +99,7 @@ export type ModuleMenu = {
   tucan_id: string;
   tucan_last_checked: string;
   name: string;
-  child_type: number;
+  done: boolean;
   parent: string;
 };
 export type ModuleMenuPathPart = {
@@ -110,17 +110,17 @@ export type ModuleMenuPathPart = {
 };
 export type ModuleMenuResponse = {
   module_menu: ModuleMenu;
-  entries: RegistrationEnum;
+  entries: Registration;
   path: ModuleMenuPathPart[][];
 };
 export type ModuleResponse = {
   module: Module;
   path: ModuleMenuPathPart[][];
 };
-export type RegistrationEnum =
-  | { type: "Submenu"; value: ModuleMenu[] }
-  | { type: "ModulesAndCourses"; value: [Module | null, Course[]][] };
-
+export type Registration = {
+  submenus: ModuleMenu[];
+  modules_and_courses: [Module | null, Course[]][];
+};
 export type SearchResult = {
   tucan_id: string;
   title: string;
