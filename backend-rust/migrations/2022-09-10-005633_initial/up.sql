@@ -98,7 +98,7 @@ CREATE TABLE courses_unfinished (
 
 CREATE INDEX courses_idx ON courses_unfinished USING GIN (tsv);
 
-CREATE TABLE module_courses (
+CREATE TABLE module_menu_module_courses (
     module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
     module_id BYTEA REFERENCES modules_unfinished (tucan_id), -- may be NULL because don't ask (there are courses without a module)
     course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
