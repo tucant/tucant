@@ -17,15 +17,23 @@ export function ModuleList({ listData }: ModuleListProps) {
         ))}
       </div>
       <div className="list-group">
-        {listData.entries.modules_and_courses.map((e) => (
-          <Link
-            key={e[0]?.tucan_id}
-            className="list-group-item list-group-item-action"
-            to={`/module/${String(e[0]?.tucan_id)}`}
-          >
-            {e[0]?.title}
-          </Link>
-        ))}
+        {listData.entries.modules_and_courses.map((e) => {
+          if (e[0]) {
+            return (
+              <Link
+                key={e[0].tucan_id}
+                className="list-group-item list-group-item-action"
+                to={`/module/${String(e[0].tucan_id)}`}
+              >
+                {e[0].title}
+              </Link>
+            );
+          } else {
+            return (
+              <a className="list-group-item list-group-item-action">Guten Tag. TUCaN ist lost. Hier gibt es kein Modul.</a>
+            );
+          }
+        })}
       </div>
     </>
   );
