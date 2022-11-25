@@ -30,7 +30,9 @@ export function ModuleList({ listData }: ModuleListProps) {
             );
           } else {
             return (
-              <a className="list-group-item list-group-item-action">Guten Tag. TUCaN ist lost. Hier gibt es kein Modul.</a>
+              <a key="fake" className="list-group-item list-group-item-action">
+                Guten Tag. TUCaN ist lost. Hier gibt es kein Modul.
+              </a>
             );
           }
         })}

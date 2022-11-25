@@ -47,17 +47,6 @@ CREATE TABLE module_menu_unfinished (
 
 CREATE INDEX module_menu_unfinished_parent ON module_menu_unfinished USING HASH (parent);
 
-CREATE TABLE module_menu_module (
-    id BYTEA NOT NULL PRIMARY KEY, -- how do we reidentify this on second run - we also can't just recreate this because then subrefs are broken?
-    -- alternatively maybe courses have a menu item as parent and maybe a module?
-    -- well reidentification is only an issue if this is a course without a module
-    -- maybe the index only then includes the id?
-    -- or we actually create a fake module?
-    -- that may be the nices solution
-    module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
-    module_id BYTEA REFERENCES modules_unfinished (tucan_id) -- may be NULL because don't ask
-);
-
 -- normally we should create a view that removes all that are not done.
 -- the problem is diesel doesn't support views. instead we should probably create the proper
 -- abstractions on the rust side
@@ -109,6 +98,13 @@ CREATE TABLE courses_unfinished (
 
 CREATE INDEX courses_idx ON courses_unfinished USING GIN (tsv);
 
+CREATE TABLE module_courses (
+    module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
+    module_id BYTEA REFERENCES modules_unfinished (tucan_id), -- may be NULL because don't ask (there are courses without a module)
+    course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    PRIMARY KEY (module_menu_id, module_id, course)
+);
+
 CREATE TABLE course_groups_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
     course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
@@ -132,12 +128,6 @@ CREATE TABLE course_groups_events (
     room TEXT NOT NULL,
     teachers TEXT NOT NULL,
     PRIMARY KEY (course, timestamp_start, timestamp_end, room)
-);
-
-CREATE TABLE module_courses (
-    module BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
-    course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
-    PRIMARY KEY (module, course)
 );
 
 CREATE TABLE user_modules (
