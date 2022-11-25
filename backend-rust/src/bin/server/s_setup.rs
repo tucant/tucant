@@ -27,7 +27,6 @@ use futures_util::StreamExt;
 use tracing_futures::Instrument;
 use tucant::models::Course;
 use tucant::models::Module;
-use tucant::models::RegistrationEnum;
 
 async fn yield_stream(
     stream: &mut async_stream::Stream<Bytes>,
@@ -75,71 +74,68 @@ fn fetch_registration(
                 .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
                 .await;
 
-            match value.1 {
-                RegistrationEnum::Submenu(submenu) => {
-                    yield_stream(
-                        &mut stream,
-                        Box::pin(
-                            futures::stream::iter(submenu.into_iter())
-                                .map(move |menu| {
-                                    fetch_registration(
-                                        tucan.clone(),
-                                        Registration {
-                                            path: menu.tucan_id,
-                                        },
-                                        modules_or_courses,
-                                    )
-                                })
-                                .flatten_unordered(None),
-                        ),
-                    )
-                    .await?;
-                }
-                RegistrationEnum::ModulesAndCourses(modules) => {
-                    let mut futures: FuturesUnordered<_> = modules
-                        .iter()
-                        .flat_map(|module| {
-                            //                             .instrument(tracing::info_span!("magic"))
-                                match modules_or_courses {
-                                    ModulesOrCourses::Modules => Box::new(module.0.iter().map(|m| (async {
-                                        let module = tucan
-                                            .module(Moduledetails {
-                                                id: m.tucan_id.clone(),
-                                            })
-                                            .await
-                                            .unwrap();
-                                        ModuleOrCourse::Module(module.0)
-                                    }).boxed_local())) as Box<dyn Iterator<Item=_>>,
-                                    ModulesOrCourses::Courses => {
-                                        // some history modules have multiple courses per module
-                                        // so we have to fetch all here
+            let tucan_clone = tucan.clone();
 
-                                        Box::new(module.1.iter().map(|course| (async {
-                                            ModuleOrCourse::Course(match
-                                            tucan
-                                            .course_or_course_group(Coursedetails {
-                                                id: course.tucan_id.clone(),
-                                            })
-                                            .await
-                                            .unwrap() {
-                                                tucant::tucan_user::CourseOrCourseGroup::Course(c) => c,
-                                                tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
-                                            })
-                                        }).boxed_local())) as Box<dyn Iterator<Item=_>>
-                                    }
-                                }
-                            })
-                        .collect();
+            yield_stream(
+                &mut stream,
+                Box::pin(
+                    futures::stream::iter(value.1.submenus.into_iter())
+                        .map(move |menu| {
+                            fetch_registration(
+                                tucan_clone.clone(),
+                                Registration {
+                                    path: menu.tucan_id,
+                                },
+                                modules_or_courses,
+                            )
+                        })
+                        .flatten_unordered(None),
+                ),
+            )
+            .await?;
 
-                    while let Some(module) = futures.next().await {
-                        stream
-                            .yield_item(Bytes::from(match module {
-                                ModuleOrCourse::Module(module) => format!("\nmodule {:?}", module.title),
-                                ModuleOrCourse::Course(course) => format!("\ncourse {:?}", course.title),
-                            }))
-                            .await;
-                    }
-                }
+            let mut futures: FuturesUnordered<_> = value.1.modules_and_courses
+                .iter()
+                .flat_map(|module| {
+                    //                             .instrument(tracing::info_span!("magic"))
+                        match modules_or_courses {
+                            ModulesOrCourses::Modules => Box::new(module.0.iter().map(|m| (async {
+                                let module = tucan
+                                    .module(Moduledetails {
+                                        id: m.tucan_id.clone(),
+                                    })
+                                    .await
+                                    .unwrap();
+                                ModuleOrCourse::Module(module.0)
+                            }).boxed_local())) as Box<dyn Iterator<Item=_>>,
+                            ModulesOrCourses::Courses => {
+                                // some history modules have multiple courses per module
+                                // so we have to fetch all here
+
+                                Box::new(module.1.iter().map(|course| (async {
+                                    ModuleOrCourse::Course(match
+                                    tucan
+                                    .course_or_course_group(Coursedetails {
+                                        id: course.tucan_id.clone(),
+                                    })
+                                    .await
+                                    .unwrap() {
+                                        tucant::tucan_user::CourseOrCourseGroup::Course(c) => c,
+                                        tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
+                                    })
+                                }).boxed_local())) as Box<dyn Iterator<Item=_>>
+                            }
+                        }
+                    })
+                .collect();
+
+            while let Some(module) = futures.next().await {
+                stream
+                    .yield_item(Bytes::from(match module {
+                        ModuleOrCourse::Module(module) => format!("\nmodule {:?}", module.title),
+                        ModuleOrCourse::Course(course) => format!("\ncourse {:?}", course.title),
+                    }))
+                    .await;
             }
 
             Ok(())

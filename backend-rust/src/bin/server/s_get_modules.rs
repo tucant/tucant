@@ -20,7 +20,6 @@ use diesel_async::RunQueryDsl;
 
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleMenuResponse;
-use tucant::models::RegistrationEnum;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant::url::Registration;
@@ -44,7 +43,10 @@ pub async fn get_modules(
             let module_menu = tucan.root_registration().await?;
             ModuleMenuResponse {
                 module_menu: module_menu.clone(),
-                entries: RegistrationEnum::Submenu(vec![module_menu]),
+                entries: tucant::models::Registration {
+                    modules_and_courses: vec![],
+                    submenus: vec![module_menu],
+                },
                 path: Vec::new(),
             }
         }

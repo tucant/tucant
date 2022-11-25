@@ -115,17 +115,16 @@ pub struct ModuleMenuPathPart {
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", content = "value")]
-pub enum RegistrationEnum {
-    Submenu(Vec<ModuleMenu>),
-    ModulesAndCourses(Vec<(Option<Module>, Vec<Course>)>),
+pub struct Registration {
+    pub submenus: Vec<ModuleMenu>,
+    pub modules_and_courses: Vec<(Option<Module>, Vec<Course>)>,
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct ModuleMenuResponse {
     pub module_menu: ModuleMenu,
-    pub entries: RegistrationEnum,
+    pub entries: Registration,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
@@ -157,7 +156,7 @@ pub struct ModuleMenu {
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
-    pub child_type: i16,
+    pub done: bool,
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(
         serialize_with = "as_option_base64",
@@ -174,7 +173,7 @@ pub struct ModuleMenuChangeset {
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
-    pub child_type: i16,
+    pub done: bool,
     pub parent: Option<Option<Vec<u8>>>,
 }
 
@@ -191,7 +190,7 @@ pub struct ModuleMenuRef<'a> {
     pub tucan_id: &'a [u8],
     pub tucan_last_checked: &'a NaiveDateTime,
     pub name: &'a str,
-    pub child_type: i16,
+    pub done: bool,
     #[serde(
         serialize_with = "as_option_base64",
         deserialize_with = "from_option_base64"
