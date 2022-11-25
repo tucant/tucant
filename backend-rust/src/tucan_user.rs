@@ -790,7 +790,11 @@ impl TucanUser {
             .get_result::<ModuleMenu>(&mut connection)
             .await?;
 
-        // TODO FIXME make module menu done
+        diesel::update(module_menu_unfinished::table)
+            .filter(module_menu_unfinished::tucan_id.eq(url.path.clone()))
+            .set(module_menu_unfinished::done.eq(true))
+            .execute(&mut connection)
+            .await?;
 
         Ok((
             module_menu,
