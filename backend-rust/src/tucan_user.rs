@@ -788,7 +788,7 @@ impl TucanUser {
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
             .set(module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)))
-            .get_result::<ModuleMenu>(&mut connection)
+            .execute(&mut connection)
             .await?;
 
         diesel::update(module_menu_unfinished::table)
