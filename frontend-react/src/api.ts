@@ -92,7 +92,7 @@ export type ModuleResponse =
 export type Registration =
 {
   submenus: ModuleMenu[],
-  modules_and_courses: [Module | null, Course[]][],
+  modules_and_courses: [Module, Course[]][],
 }
 export type SearchResult =
 {

@@ -81,6 +81,16 @@ pub enum CourseOrCourseGroup {
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
 
+static TUCANSCHEISS: Lazy<Module> = Lazy::new(|| Module {
+    tucan_id: base64::decode_config("TUCANSCHEISS", base64::URL_SAFE_NO_PAD).unwrap(),
+    tucan_last_checked: Utc::now().naive_utc(),
+    title: "TUCANSCHEISS".to_string(),
+    module_id: "TUCANSCHEISS".to_string(),
+    credits: Some(0),
+    content: "TUCANSCHEISS".to_string(),
+    done: true,
+});
+
 impl TucanUser {
     pub fn normalize(string: &str) -> String {
         // maybe do in postgres as this is generated?
@@ -574,10 +584,10 @@ impl TucanUser {
                     .await?;
             let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
                 module_courses.grouped_by(&submodules);
-            let modules_and_courses: Vec<(Option<Module>, Vec<Course>)> = submodules
+            let modules_and_courses: Vec<(Module, Vec<Course>)> = submodules
                 .into_iter()
                 .zip(grouped_module_courses)
-                .map(|(m, r)| (Some(m), r.into_iter().map(|r| r.1).collect_vec()))
+                .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect_vec()))
                 .collect();
 
             return Ok((
@@ -639,35 +649,37 @@ impl TucanUser {
             Some((title, sub_elements))
         });
 
-        let modules: Vec<(Option<Module>, Vec<Course>)> = d
+        let modules: Vec<(Module, Vec<Course>)> = d
             .map(|e| {
-                let module = e.0.map(|i| {
-                    let mut text = i.text();
-                    Module {
-                        tucan_id: TryInto::<Moduledetails>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                i.value().attr("href").unwrap()
-                            ))
-                            .program,
-                        )
-                        .unwrap()
-                        .id,
-                        //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        module_id: text
-                            .next()
-                            .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                            .to_string(),
-                        title: text
-                            .next()
-                            .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                            .to_string(),
-                        credits: None,
-                        content: "".to_string(),
-                        done: false,
-                    }
-                });
+                let module =
+                    e.0.map(|i| {
+                        let mut text = i.text();
+                        Module {
+                            tucan_id: TryInto::<Moduledetails>::try_into(
+                                parse_tucan_url(&format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    i.value().attr("href").unwrap()
+                                ))
+                                .program,
+                            )
+                            .unwrap()
+                            .id,
+                            //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
+                            tucan_last_checked: Utc::now().naive_utc(),
+                            module_id: text
+                                .next()
+                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                .to_string(),
+                            title: text
+                                .next()
+                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                .to_string(),
+                            credits: None,
+                            content: "".to_string(),
+                            done: false,
+                        }
+                    })
+                    .unwrap_or(TUCANSCHEISS.clone());
 
                 let courses =
                     e.1.into_iter()
@@ -709,13 +721,7 @@ impl TucanUser {
             .collect();
 
         diesel::insert_into(modules_unfinished::table)
-            .values(
-                modules
-                    .iter()
-                    .map(|m| &m.0)
-                    .filter_map(|v| v.as_ref())
-                    .collect_vec(),
-            )
+            .values(modules.iter().map(|m| &m.0).collect_vec())
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
@@ -725,7 +731,6 @@ impl TucanUser {
                 modules
                     .iter()
                     .map(|m| &m.0)
-                    .filter_map(|v| v.as_ref())
                     .map(|m| ModuleMenuEntryModuleRef {
                         module_id: &m.tucan_id,
                         module_menu_id: &url.path,
@@ -747,7 +752,6 @@ impl TucanUser {
                 modules
                     .iter()
                     .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
-                    .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
                     .map(|m| ModuleCourse {
                         module: m.0.tucan_id.clone(),
                         course: m.1.tucan_id.clone(),
