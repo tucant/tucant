@@ -259,17 +259,17 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_menu_module_courses::table)
+        diesel::insert_into(module_courses::table)
             .values(
                 courses
                     .iter()
                     .map(|c| ModuleCourse {
                         course: c.tucan_id.clone(),
-                        module_id: module.tucan_id.clone(),
+                        module: module.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
             )
-            .on_conflict(module_menu_module_courses::all_columns)
+            .on_conflict(module_courses::all_columns)
             .do_nothing()
             .execute(&mut connection)
             .await?;
@@ -539,7 +539,7 @@ impl TucanUser {
                 .await?;
 
             // existing submodules
-            let submodules: Vec<Module> = module_menu_module_courses::table
+            let submodules: Vec<Module> = module_menu_module::table
                 .inner_join(modules_unfinished::table)
                 .select((
                     modules_unfinished::tucan_id,
@@ -550,7 +550,7 @@ impl TucanUser {
                     modules_unfinished::content,
                     modules_unfinished::done,
                 ))
-                .filter(module_menu_module_courses::module_menu_id.eq(&url.path))
+                .filter(module_menu_module::module_menu_id.eq(&url.path))
                 .load::<Module>(&mut connection)
                 .await?;
 
@@ -559,7 +559,7 @@ impl TucanUser {
                 ModuleCourse::belonging_to(&submodules)
                     .inner_join(courses_unfinished::table)
                     .select((
-                        (module_menu_module_courses::module_id, module_menu_module_courses::course),
+                        (module_courses::module, module_courses::course),
                         (
                             courses_unfinished::tucan_id,
                             courses_unfinished::tucan_last_checked,
@@ -720,7 +720,7 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_menu_module_courses::table)
+        diesel::insert_into(module_menu_module::table)
             .values(
                 modules
                     .iter()
@@ -742,14 +742,14 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_menu_module_courses::table)
+        diesel::insert_into(module_courses::table)
             .values(
                 modules
                     .iter()
                     .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
                     .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
                     .map(|m| ModuleCourse {
-                        module_id: m.0.tucan_id.clone(),
+                        module: m.0.tucan_id.clone(),
                         course: m.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),

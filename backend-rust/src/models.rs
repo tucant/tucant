@@ -19,7 +19,7 @@ use tucant_derive::Typescriptable;
 
 #[cfg(feature = "server")]
 use crate::schema::{
-    course_groups_unfinished, courses_unfinished, module_menu_module_courses,
+    course_groups_unfinished, courses_unfinished, module_courses, module_menu_module,
     module_menu_unfinished, modules_unfinished, sessions, user_courses, user_modules,
     users_unfinished,
 };
@@ -204,7 +204,7 @@ pub struct ModuleMenuRef<'a> {
     derive(Associations, Identifiable, Queryable, Insertable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_module_courses))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
 pub struct ModuleMenuEntryModule {
@@ -220,7 +220,7 @@ pub struct ModuleMenuEntryModule {
     derive(Associations, Identifiable, Queryable, Insertable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_module_courses))]
+#[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
 pub struct ModuleMenuEntryModuleRef<'a> {
@@ -290,16 +290,14 @@ pub struct CourseGroup {
     feature = "server",
     derive(Associations, Identifiable, Queryable, Insertable,)
 )]
-#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id, course)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_module_courses))]
+#[cfg_attr(feature = "server", diesel(primary_key(module, course)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module_id)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module)))]
 //#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_menu_id: Vec<u8>,
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_id: Vec<u8>,
+    pub module: Vec<u8>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub course: Vec<u8>,
 }
