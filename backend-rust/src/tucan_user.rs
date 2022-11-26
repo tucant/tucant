@@ -10,7 +10,8 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, UndoneUser,
+        Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModule,
+        ModuleMenuEntryModuleRef, UndoneUser,
     },
     tucan::Tucan,
     url::{
@@ -556,10 +557,10 @@ impl TucanUser {
 
             // TODO FIXME maybe only return the latest course for courses with same course_id
             let module_courses: Vec<(ModuleCourse, Course)> =
-                ModuleCourse::belonging_to(&submodules)
+                ModuleMenuEntryModule::belonging_to(&submodules)
                     .inner_join(courses_unfinished::table)
                     .select((
-                        (module_courses::module, module_courses::course),
+                        (module_menu_module::module_id, module_menu_module::course_id),
                         (
                             courses_unfinished::tucan_id,
                             courses_unfinished::tucan_last_checked,

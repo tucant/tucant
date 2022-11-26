@@ -83,7 +83,6 @@ where
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-//#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
 pub struct Module {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -256,6 +255,7 @@ pub struct ModuleMenuEntryModuleRef<'a> {
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 #[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
+#[diesel(belongs_to(ModuleMenuEntryModule, foreign_key = tucan_id))]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
