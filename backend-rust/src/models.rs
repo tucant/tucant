@@ -212,8 +212,8 @@ pub struct ModuleMenuRef<'a> {
 pub struct ModuleMenuEntryModule {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_menu_id: Vec<u8>,
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_id: Vec<u8>,
+    #[serde(serialize_with = "as_option_base64", deserialize_with = "from_option_base64")]
+    pub module_id: Option<Vec<u8>>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub course_id: Vec<u8>,
 }
@@ -233,8 +233,8 @@ pub struct ModuleMenuEntryModule {
 pub struct ModuleMenuEntryModuleRef<'a> {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_menu_id: &'a [u8],
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_id: &'a [u8],
+    #[serde(serialize_with = "as_option_base64", deserialize_with = "from_option_base64")]
+    pub module_id: Option<&'a [u8]>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub course_id: &'a [u8],
 }

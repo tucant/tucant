@@ -35,7 +35,7 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 
 use crate::schema::*;
-use diesel::BelongingToDsl;
+use diesel::{BelongingToDsl, NullableExpressionMethods};
 use diesel::ExpressionMethods;
 
 use diesel::upsert::excluded;
@@ -538,7 +538,7 @@ impl TucanUser {
                 .filter(module_menu_unfinished::parent.eq(&url.path))
                 .load::<ModuleMenu>(&mut connection)
                 .await?;
-
+/*
             // existing submodules
             let submodules: Vec<Module> = module_menu_module::table
                 .inner_join(modules_unfinished::table)
@@ -554,11 +554,14 @@ impl TucanUser {
                 .filter(module_menu_module::module_menu_id.eq(&url.path))
                 .load::<Module>(&mut connection)
                 .await?;
-
+*/
             // TODO FIXME maybe only return the latest course for courses with same course_id
-            let module_courses: Vec<(ModuleCourse, Course)> =
-                ModuleMenuEntryModule::belonging_to(&submodules)
-                    .inner_join(courses_unfinished::table)
+            // this needs to get them based on the submenu
+            let module_courses: Vec<ModuleMenuEntryModule> =
+                ModuleMenuEntryModule::belonging_to(&module_menu)
+                    .select((module_menu_module::module_menu_id, module_menu_module::module_id.nullable(), module_menu_module::course_id))
+                  /*  .inner_join(courses_unfinished::table)
+                    .inner_join(modules_unfinished::table)
                     .select((
                         (module_menu_module::module_id, module_menu_module::course_id),
                         (
@@ -570,9 +573,11 @@ impl TucanUser {
                             courses_unfinished::content,
                             courses_unfinished::done,
                         ),
-                    ))
-                    .load::<(ModuleCourse, Course)>(&mut connection)
+                    ))*/
+                    .load::<ModuleMenuEntryModule>(&mut connection)
                     .await?;
+            
+
             let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
                 module_courses.grouped_by(&submodules);
             let modules_and_courses: Vec<(Option<Module>, Vec<Course>)> = submodules
