@@ -16,7 +16,7 @@ use actix_cors::Cors;
 use actix_session::Session;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::cookie::SameSite;
-use actix_web::http::header;
+use actix_web::http::header::{self, ContentType};
 use actix_web::middleware::Logger;
 use actix_web::web::{Json, Query};
 use actix_web::{cookie::Key, post, web, App, HttpServer};
@@ -27,6 +27,7 @@ use csrf_middleware::CsrfMiddleware;
 use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
 
+use log::error;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -76,7 +77,14 @@ impl Display for MyError {
     }
 }
 
-impl actix_web::error::ResponseError for MyError {}
+impl actix_web::error::ResponseError for MyError {
+    fn error_response(&self) -> HttpResponse {
+        error!("{:?}", self.err);
+        HttpResponse::build(self.status_code())
+            .insert_header(ContentType::html())
+            .body(self.to_string())
+    }
+}
 
 impl<E: Into<anyhow::Error>> From<E> for MyError {
     fn from(err: E) -> MyError {

@@ -36,6 +36,10 @@ CREATE TABLE modules_unfinished (
 
 CREATE INDEX modules_idx ON modules_unfinished USING GIN (tsv);
 
+INSERT INTO modules_unfinished
+(tucan_id, tucan_last_checked, title, module_id, credits, content, done) VALUES
+('\x4d4080352087108492', current_timestamp, 'TUCANSCHEISS', 'TUCANSCHEISS', 0, 'TUCANSCHEISS', true);
+
 CREATE TABLE module_menu_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,

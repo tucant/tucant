@@ -117,7 +117,7 @@ pub struct ModuleMenuPathPart {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
     pub submenus: Vec<ModuleMenu>,
-    pub modules_and_courses: Vec<(Option<Module>, Vec<Course>)>,
+    pub modules_and_courses: Vec<(Module, Vec<Course>)>,
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]

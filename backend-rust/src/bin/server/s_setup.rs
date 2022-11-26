@@ -99,10 +99,10 @@ fn fetch_registration(
                 .flat_map(|module| {
                     //                             .instrument(tracing::info_span!("magic"))
                         match modules_or_courses {
-                            ModulesOrCourses::Modules => Box::new(module.0.iter().map(|m| (async {
+                            ModulesOrCourses::Modules => Box::new(std::iter::once((async {
                                 let module = tucan
                                     .module(Moduledetails {
-                                        id: m.tucan_id.clone(),
+                                        id: module.0.tucan_id.clone(),
                                     })
                                     .await
                                     .unwrap();
