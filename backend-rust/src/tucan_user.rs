@@ -22,8 +22,6 @@ use crate::{
     models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
-use actix_session::SessionExt;
-use actix_web::{dev::Payload, error::ErrorUnauthorized, FromRequest, HttpRequest};
 use chrono::{NaiveDateTime, Utc};
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
@@ -52,7 +50,7 @@ fn s(selector: &str) -> Selector {
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
 }
-
+/*
 impl FromRequest for TucanSession {
     type Error = actix_web::error::Error;
     type Future = Ready<Result<TucanSession, actix_web::error::Error>>;
@@ -66,6 +64,7 @@ impl FromRequest for TucanSession {
         }
     }
 }
+*/
 
 #[derive(Clone, Debug)]
 pub struct TucanUser {

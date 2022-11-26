@@ -5,8 +5,6 @@
 use crate::s_search_course::SearchResult;
 use crate::MyError;
 
-use actix_web::post;
-use actix_web::web::{Data, Json};
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;

@@ -1,4 +1,3 @@
-use actix_web::web::{Form, Json};
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, VecDeque};
 
@@ -114,24 +113,6 @@ impl<T: Typescriptable> Typescriptable for Option<T> {
 }
 
 impl<T: Typescriptable, E> Typescriptable for Result<T, E> {
-    fn name() -> String {
-        T::name()
-    }
-    fn code() -> BTreeSet<String> {
-        T::code()
-    }
-}
-
-impl<T: Typescriptable> Typescriptable for Json<T> {
-    fn name() -> String {
-        T::name()
-    }
-    fn code() -> BTreeSet<String> {
-        T::code()
-    }
-}
-
-impl<T: Typescriptable> Typescriptable for Form<T> {
     fn name() -> String {
         T::name()
     }

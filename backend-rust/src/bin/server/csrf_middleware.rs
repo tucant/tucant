@@ -2,14 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use actix_web::http::Method;
 use std::future::{ready, Ready};
 
-use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    error::ErrorForbidden,
-    Error,
-};
 use futures_util::future::LocalBoxFuture;
 use reqwest::header::HeaderValue;
 

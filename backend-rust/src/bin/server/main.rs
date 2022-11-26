@@ -12,16 +12,6 @@ mod s_search_course;
 mod s_search_module;
 mod s_setup;
 
-use actix_cors::Cors;
-use actix_session::Session;
-use actix_session::{storage::CookieSessionStore, SessionMiddleware};
-use actix_web::cookie::SameSite;
-use actix_web::http::header::{self, ContentType};
-use actix_web::middleware::Logger;
-use actix_web::web::{Json, Query};
-use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, HttpRequest, HttpResponse};
-
 use csrf_middleware::CsrfMiddleware;
 
 use diesel::{Connection, PgConnection};
@@ -81,15 +71,6 @@ impl Display for MyError {
     }
 }
 
-impl actix_web::error::ResponseError for MyError {
-    fn error_response(&self) -> HttpResponse {
-        error!("{:?}", self.err);
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::html())
-            .body(self.to_string())
-    }
-}
-
 impl<E: Into<anyhow::Error>> From<E> for MyError {
     fn from(err: E) -> MyError {
         MyError { err: err.into() }
@@ -128,7 +109,6 @@ struct LoginHack {
 }
 
 #[tracing::instrument(skip(session))]
-#[get("/login-hack")]
 async fn login_hack(
     session: Session,
     req: HttpRequest,
@@ -225,14 +205,12 @@ async fn login_hack(
 
 #[tracing::instrument(skip(session))]
 #[ts]
-#[post("/logout")]
 async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
     session.purge();
     Ok(web::Json(()))
 }
 
 #[ts]
-#[post("/")]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
     Ok(web::Json(format!(
         "Welcome! {}",
@@ -240,7 +218,7 @@ async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, 
     )))
 }
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::init();
@@ -289,6 +267,8 @@ async fn main() -> anyhow::Result<()> {
     let secret_key = Key::derive_from(&secret_key_raw);
 
     let tucan = web::Data::new(Tucan::new().await?);
+
+    let app = Router::new();
 
     HttpServer::new(move || {
         let logger = Logger::default();

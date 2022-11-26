@@ -4,11 +4,6 @@
 
 use crate::MyError;
 
-use actix_web::{
-    post,
-    web::{Data, Json},
-};
-
 use diesel::ExpressionMethods;
 use diesel::TextExpressionMethods;
 use diesel::{QueryDsl, Queryable};

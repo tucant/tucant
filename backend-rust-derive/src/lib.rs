@@ -18,29 +18,6 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
-    let actix_macro = node
-        .attrs
-        .iter()
-        .find(|attr| attr.path.get_ident().map(Ident::to_string) == Some("post".to_string()));
-
-    let actix_macro = if let Some(actix_macro) = actix_macro {
-        actix_macro
-    } else {
-        return Err(Error::new(
-            Span::call_site(),
-            r#"could not find actix `post` attribute macro"#,
-        ));
-    };
-    let url_path = actix_macro.parse_meta()?;
-    let url_path = match url_path {
-        Meta::List(meta_list) => match meta_list.nested.iter().next() {
-            Some(NestedMeta::Lit(Lit::Str(str))) => str.value(),
-            None => return Err(Error::new(meta_list.span(), r#"expected a literal string"#)),
-            err => return Err(Error::new(err.span(), r#"expected a literal string"#)),
-        },
-        err => return Err(Error::new(err.span(), r#"expected a list"#)),
-    };
-
     let arg_type = node
         .sig
         .inputs

@@ -7,11 +7,6 @@ use std::io::ErrorKind;
 use crate::MyError;
 use crate::WithTucanUrl;
 
-use actix_web::post;
-use actix_web::web::Json;
-
-use actix_web::web::Data;
-
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;

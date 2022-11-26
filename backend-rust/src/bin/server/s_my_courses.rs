@@ -5,11 +5,6 @@
 use crate::MyError;
 use crate::WithTucanUrl;
 
-use actix_web::post;
-use actix_web::web::Json;
-
-use actix_web::web::Data;
-
 use tucant::models::Course;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;

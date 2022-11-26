@@ -24,11 +24,9 @@ diesel-async = { version = "0.1", features = ["postgres", "deadpool"], optional 
 dotenvy = { version = "0.15", optional = true }
 anyhow = { version = "1", features = ["backtrace"], optional = true }
 regex = { version = "1", optional = true}
-actix-web = { version = "4", optional = true }
+axum = "0.6"
 futures-util = { version = "0.3", optional = true }
-actix-cors = { version = "0.6", optional = true }
 serde = { version = "1", features = ["derive"] }
-actix-session = { version = "0.7", features = ["cookie-session"], optional = true }
 serde_json = {version = "1", optional = true }
 async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro", optional = true }
 chrono = { version = "0.4", features = ["serde"] }
@@ -69,10 +67,7 @@ server = ["reqwest",
 "dotenvy",
 "anyhow",
 "regex",
-"actix-web",
 "futures-util",
-"actix-cors",
-"actix-session",
 "serde_json",
 "async-stream",
 "deadpool",
