@@ -12,6 +12,7 @@ mod s_search_course;
 mod s_search_module;
 mod s_setup;
 
+use axum::Json;
 use csrf_middleware::CsrfMiddleware;
 
 use diesel::{Connection, PgConnection};
@@ -90,11 +91,10 @@ struct LoginResult {
 
 #[tracing::instrument(skip(session))]
 #[ts]
-#[post("/login")]
 async fn login(
     session: Session,
     tucan: web::Data<Tucan>,
-    input: web::Json<Login>,
+    input: Json<Login>,
 ) -> Result<Json<LoginResult>, MyError> {
     let tucan_user = tucan.login(&input.username, &input.password).await?;
     session.insert("session", tucan_user.session).unwrap();

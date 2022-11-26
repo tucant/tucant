@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
-use axum::{Router, routing::MethodRouter};
-use tucant_derive_lib::Typescriptable;
+use axum::{Router, routing::{MethodRouter, get}};
+use tucant_derive_lib::{Typescriptable, TypescriptRoute};
 
 pub struct TypescriptableApp {
     pub app: Router,
@@ -10,11 +10,9 @@ pub struct TypescriptableApp {
 
 impl TypescriptableApp
 {
-    pub fn service<F>(mut self, path: &str, method_router: MethodRouter) -> Self
-    where
-        F: Typescriptable + 'static,
+    pub fn service<TR: TypescriptRoute>(mut self, path: &str, method_router: MethodRouter) -> Self
     {
-        self.codes.extend(<F as Typescriptable>::code());
+        self.codes.extend(TR::code(path));
         self.app = self.app.route(path, method_router);
         self
     }

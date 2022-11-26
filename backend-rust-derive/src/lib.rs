@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens, format_ident};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
     Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
@@ -42,6 +42,8 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
 
         let name_string = node.sig.ident.to_string();
 
+        let name_ts = format_ident!("{}_ts", name);
+
         let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
             <#arg_type as tucant_derive_lib::Typescriptable>::name()
         };
@@ -61,16 +63,15 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         Ok(quote! {
             #node
 
-            impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
-                fn name() -> String {
-                    #name_string.to_string()
-                }
+            struct #name_ts;
 
-                fn code() -> ::std::collections::BTreeSet<String> {
+            impl #impl_generics tucant_derive_lib::TypescriptRoute for #name_ts #ty_generics #where_clause {
+                
+                fn code(path: &str) -> ::std::collections::BTreeSet<String> {
                     let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant_derive_lib::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
-        return await genericFetch("http://localhost:8080"# + /* #url_path + */ r#"", input) as "# + &#typescriptable_return_type_name +
+        return await genericFetch("http://localhost:8080"# + path + r#"", input) as "# + &#typescriptable_return_type_name +
         "\n}"]);
                     result.extend(#typescriptable_arg_type_code);
                     result.extend(#typescriptable_return_type_code);

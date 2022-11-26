@@ -8,6 +8,10 @@ pub trait Typescriptable {
     }
 }
 
+pub trait TypescriptRoute {
+    fn code(path: &str) -> BTreeSet<String>;
+}
+
 impl Typescriptable for u32 {
     fn name() -> String {
         "number".to_string()
