@@ -92,10 +92,14 @@ pub async fn module(
     };
 
     Ok(Json(WithTucanUrl {
-        tucan_url: Into::<TucanProgram>::into(Moduledetails {
-            id: binary_path.clone(),
-        })
-        .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: if *input == "TUCANSCHEISS" {
+            "https://github.com/mohe2015/tucant/issues/104".to_string()
+        } else {
+            Into::<TucanProgram>::into(Moduledetails {
+                id: binary_path.clone(),
+            })
+            .to_tucan_url(Some(session.session_nr.try_into().unwrap()))
+        },
         inner: result,
     }))
 }
