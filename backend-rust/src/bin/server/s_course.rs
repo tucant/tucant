@@ -15,7 +15,6 @@ use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[post("/course")]
 pub async fn course(
     session: TucanSession,
     tucan: Data<Tucan>,

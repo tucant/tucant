@@ -13,7 +13,6 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
-#[post("/my_modules")]
 pub async fn my_modules(
     session: TucanSession,
     tucan: Data<Tucan>,

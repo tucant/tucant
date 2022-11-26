@@ -33,7 +33,6 @@ pub struct SearchResult {
 }
 
 #[ts]
-#[post("/search-course")]
 pub async fn search_course(
     _: TucanSession,
     tucan: Data<Tucan>,

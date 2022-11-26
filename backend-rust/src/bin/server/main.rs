@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-mod csrf_middleware;
 mod s_course;
 mod s_get_modules;
 mod s_module;
@@ -13,8 +12,13 @@ mod s_search_module;
 mod s_setup;
 
 use axum::Json;
-use csrf_middleware::CsrfMiddleware;
 
+use axum::Router;
+use axum::async_trait;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
+use axum_extra::extract::PrivateCookieJar;
+use axum_extra::extract::cookie::Key;
 use diesel::{Connection, PgConnection};
 use diesel_migrations::FileBasedMigrations;
 use diesel_migrations::MigrationHarness;
@@ -23,6 +27,8 @@ use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
 
 use log::error;
+use reqwest::StatusCode;
+use reqwest::header::USER_AGENT;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -89,10 +95,10 @@ struct LoginResult {
     success: bool,
 }
 
-#[tracing::instrument(skip(session))]
+// https://docs.rs/axum-extra/latest/axum_extra/extract/struct.PrivateCookieJar.html
 #[ts]
 async fn login(
-    session: Session,
+    cookie_jar: PrivateCookieJar,
     tucan: web::Data<Tucan>,
     input: Json<Login>,
 ) -> Result<Json<LoginResult>, MyError> {
@@ -264,23 +270,14 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let secret_key_raw = fs::read("sessions.key").await?;
-    let secret_key = Key::derive_from(&secret_key_raw);
+    let secret_key = Key::from(&secret_key_raw);
 
-    let tucan = web::Data::new(Tucan::new().await?);
+    let tucan = Tucan::new().await?;
 
-    let app = Router::new();
-
+    let app = Router::new().with_state(secret_key);
+/*
     HttpServer::new(move || {
         let logger = Logger::default();
-        /*
-        let cors = Cors::default()
-            .supports_credentials()
-            .allow_any_method()
-            .allow_any_header()
-            .allowed_origin_fn(|origin, _| {
-                println!("{:?}", origin);
-                origin == "http://127.0.0.1:5173" ||  origin == "http://localhost:5173"
-            });*/
         let cors = Cors::permissive();
 
         let app = App::new()
@@ -359,6 +356,6 @@ import { genericFetch } from "./api_base"
     .bind(("localhost", 8080))?
     .run()
     .await?;
-
+*/
     Ok(())
 }

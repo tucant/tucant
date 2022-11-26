@@ -21,7 +21,6 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
-#[post("/module")]
 pub async fn module(
     session: TucanSession,
     tucan: Data<Tucan>,

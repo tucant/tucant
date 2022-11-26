@@ -1,3 +1,4 @@
+use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens, format_ident};
 use syn::{
@@ -42,7 +43,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
 
         let name_string = node.sig.ident.to_string();
 
-        let name_ts = format_ident!("{}_ts", name);
+        let name_ts = format_ident!("{}Ts", name.to_string().to_upper_camel_case());
 
         let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
             <#arg_type as tucant_derive_lib::Typescriptable>::name()
@@ -68,7 +69,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
             impl #impl_generics tucant_derive_lib::TypescriptRoute for #name_ts #ty_generics #where_clause {
                 
                 fn code(path: &str) -> ::std::collections::BTreeSet<String> {
-                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant_derive_lib::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
+                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + #name_string + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
         return await genericFetch("http://localhost:8080"# + path + r#"", input) as "# + &#typescriptable_return_type_name +

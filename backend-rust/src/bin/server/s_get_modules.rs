@@ -26,7 +26,6 @@ use tucant_derive::ts;
 // trailing slash is menu
 
 #[ts]
-#[post("/modules")]
 pub async fn get_modules(
     session: TucanSession,
     tucan: Data<Tucan>,

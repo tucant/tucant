@@ -15,3 +15,4 @@ proc-macro2 = "1"
 prettyplease = "0.1"
 tucant_derive_lib = { path = "../backend-rust-derive-lib" }
 base64 = { version = "0.13" }
+heck = "0.4"

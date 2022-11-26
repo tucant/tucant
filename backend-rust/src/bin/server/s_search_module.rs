@@ -22,7 +22,6 @@ use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[post("/search-module")]
 pub async fn search_module(
     _: TucanSession,
     tucan: Data<Tucan>,
