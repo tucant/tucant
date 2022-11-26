@@ -58,10 +58,20 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    module_menu_module_courses (module_menu_id, module_id, course) {
+    module_courses (module, course) {
+        module -> Bytea,
+        course -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    module_menu_module (module_id, module_menu_id) {
         module_menu_id -> Bytea,
         module_id -> Bytea,
-        course -> Bytea,
+        course_id -> Bytea,
     }
 }
 
@@ -158,9 +168,11 @@ diesel::table! {
 diesel::joinable!(course_events -> courses_unfinished (course));
 diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
 diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
-diesel::joinable!(module_menu_module_courses -> courses_unfinished (course));
-diesel::joinable!(module_menu_module_courses -> module_menu_unfinished (module_menu_id));
-diesel::joinable!(module_menu_module_courses -> modules_unfinished (module_id));
+diesel::joinable!(module_courses -> courses_unfinished (course));
+diesel::joinable!(module_courses -> modules_unfinished (module));
+diesel::joinable!(module_menu_module -> courses_unfinished (course_id));
+diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
+diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (matriculation_number));
 diesel::joinable!(user_courses -> courses_unfinished (course_id));
 diesel::joinable!(user_courses -> users_unfinished (user_id));
@@ -172,7 +184,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     course_groups_events,
     course_groups_unfinished,
     courses_unfinished,
-    module_menu_module_courses,
+    module_courses,
+    module_menu_module,
     module_menu_unfinished,
     modules_unfinished,
     sessions,

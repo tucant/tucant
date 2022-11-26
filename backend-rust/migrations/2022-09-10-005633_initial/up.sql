@@ -98,13 +98,6 @@ CREATE TABLE courses_unfinished (
 
 CREATE INDEX courses_idx ON courses_unfinished USING GIN (tsv);
 
-CREATE TABLE module_menu_module_courses (
-    module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
-    module_id BYTEA REFERENCES modules_unfinished (tucan_id), -- may be NULL because don't ask (there are courses without a module)
-    course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
-    PRIMARY KEY (module_menu_id, module_id, course)
-);
-
 CREATE TABLE course_groups_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
     course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
@@ -128,6 +121,21 @@ CREATE TABLE course_groups_events (
     room TEXT NOT NULL,
     teachers TEXT NOT NULL,
     PRIMARY KEY (course, timestamp_start, timestamp_end, room)
+);
+
+CREATE TABLE module_menu_module (
+    module_menu_id BYTEA NOT NULL REFERENCES module_menu_unfinished (tucan_id),
+    module_id BYTEA REFERENCES modules_unfinished (tucan_id), -- nullable because there are entries without a module
+    course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    PRIMARY KEY (module_id, module_menu_id)
+);
+
+-- we need to store this separately as we could fetch a module with it's child courses without knowing its module menus yet
+-- this is definitely n:m
+CREATE TABLE module_courses (
+    module BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
+    course BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    PRIMARY KEY (module, course)
 );
 
 CREATE TABLE user_modules (
