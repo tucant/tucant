@@ -720,24 +720,25 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_menu_module::table)
-            .values(
-                modules
-                    .iter()
-                    .map(|m| &m.0)
-                    .filter_map(|v| v.as_ref())
-                    .map(|m| ModuleMenuEntryModuleRef {
-                        module_id: &m.tucan_id,
-                        module_menu_id: &url.path,
-                    })
-                    .collect::<Vec<_>>(),
-            )
+        diesel::insert_into(courses_unfinished::table)
+            .values(modules.iter().flat_map(|m| &m.1).collect_vec())
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(courses_unfinished::table)
-            .values(modules.iter().flat_map(|m| &m.1).collect_vec())
+        diesel::insert_into(module_menu_module::table)
+            .values(
+                modules
+                    .iter()
+                    .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                    .filter_map(|v| v.0.as_ref().map(|v0| (v0, v.1)))
+                    .map(|m| ModuleMenuEntryModuleRef {
+                        module_id: &m.0.tucan_id,
+                        module_menu_id: &url.path,
+                        course_id: &m.1.tucan_id,
+                    })
+                    .collect::<Vec<_>>(),
+            )
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;

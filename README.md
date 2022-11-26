@@ -49,6 +49,8 @@ The backend is written in [Rust](https://www.rust-lang.org/) and is supposed to 
 
 The database is a [PostgreSQL](https://www.postgresql.org/) database. It is used to store the crawled data from TUCaN.
 
+When resetting the database remember to also remove `sessions.key`.
+
 ## Bookmarklet
 
 The following bookmarklet opens the tucan page in tucant (and optionally logs you in):

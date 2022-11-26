@@ -203,7 +203,7 @@ pub struct ModuleMenuRef<'a> {
     feature = "server",
     derive(Associations, Identifiable, Queryable, Insertable,)
 )]
-#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
+#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id, course_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
@@ -212,6 +212,8 @@ pub struct ModuleMenuEntryModule {
     pub module_menu_id: Vec<u8>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub course_id: Vec<u8>,
 }
 
 #[derive(Serialize, Debug)]
@@ -219,7 +221,7 @@ pub struct ModuleMenuEntryModule {
     feature = "server",
     derive(Associations, Identifiable, Queryable, Insertable,)
 )]
-#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
+#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id, course_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
 #[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
@@ -228,6 +230,8 @@ pub struct ModuleMenuEntryModuleRef<'a> {
     pub module_menu_id: &'a [u8],
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_id: &'a [u8],
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub course_id: &'a [u8],
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

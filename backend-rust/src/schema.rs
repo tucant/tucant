@@ -68,7 +68,7 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    module_menu_module (module_id, module_menu_id) {
+    module_menu_module (module_id, module_menu_id, course_id) {
         module_menu_id -> Bytea,
         module_id -> Bytea,
         course_id -> Bytea,
