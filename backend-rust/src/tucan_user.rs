@@ -679,7 +679,7 @@ impl TucanUser {
                             done: false,
                         }
                     })
-                    .unwrap_or(TUCANSCHEISS.clone());
+                    .unwrap_or_else(|| TUCANSCHEISS.clone());
 
                 let courses =
                     e.1.into_iter()
