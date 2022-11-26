@@ -24,6 +24,10 @@ use actix_web::{get, HttpRequest, HttpResponse};
 
 use csrf_middleware::CsrfMiddleware;
 
+use diesel::{Connection, PgConnection};
+use diesel_migrations::FileBasedMigrations;
+use diesel_migrations::MigrationHarness;
+use dotenvy::dotenv;
 use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
 
@@ -238,6 +242,7 @@ async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, 
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
     env_logger::init();
 
     /*
@@ -257,6 +262,13 @@ async fn main() -> anyhow::Result<()> {
     */
 
     warn!("Starting server...");
+
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    // https://github.com/weiznich/diesel_async/issues/17
+    let migrations = FileBasedMigrations::find_migrations_directory()?;
+    let mut connection = PgConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+    connection.run_pending_migrations(migrations).unwrap();
 
     // https://crates.io/crates/tracing
 

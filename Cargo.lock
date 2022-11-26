@@ -912,7 +912,7 @@ dependencies = [
 [[package]]
 name = "diesel"
 version = "2.0.2"
-source = "git+https://github.com/diesel-rs/diesel.git#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
+source = "git+https://github.com/diesel-rs/diesel.git#6ebee810db3c8b217062063c347dd4ffbb1bbdc4"
 dependencies = [
  "bitflags",
  "byteorder",
@@ -939,7 +939,7 @@ dependencies = [
 [[package]]
 name = "diesel_derives"
 version = "2.0.1"
-source = "git+https://github.com/diesel-rs/diesel.git#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
+source = "git+https://github.com/diesel-rs/diesel.git#6ebee810db3c8b217062063c347dd4ffbb1bbdc4"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -953,6 +953,17 @@ version = "2.0.0"
 source = "git+https://github.com/mohe2015/diesel_full_text_search.git?branch=setweight#eead58bba839a4339e1a566a95ec3c2a38234ba2"
 dependencies = [
  "diesel",
+]
+
+[[package]]
+name = "diesel_migrations"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9ae22beef5e9d6fab9225ddb073c1c6c1a7a6ded5019d5da11d1e5c5adc34e2"
+dependencies = [
+ "diesel",
+ "migrations_internals",
+ "migrations_macros",
 ]
 
 [[package]]
@@ -1694,6 +1705,27 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+
+[[package]]
+name = "migrations_internals"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c493c09323068c01e54c685f7da41a9ccf9219735c3766fbfd6099806ea08fbc"
+dependencies = [
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "migrations_macros"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a8ff27a350511de30cdabb77147501c36ef02e0451d957abea2f30caffb2b58"
+dependencies = [
+ "migrations_internals",
+ "proc-macro2",
+ "quote",
+]
 
 [[package]]
 name = "mime"
@@ -3187,6 +3219,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d82e1a7758622a465f8cee077614c73484dac5b836c02ff6a40d5d1010324d7"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "tonic"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3389,6 +3430,7 @@ dependencies = [
  "diesel",
  "diesel-async",
  "diesel_full_text_search",
+ "diesel_migrations",
  "dotenvy",
  "ego-tree",
  "either",
