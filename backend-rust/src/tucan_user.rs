@@ -109,8 +109,8 @@ impl TucanUser {
         Ok(resp)
     }
 
-    pub(crate) fn parse_document(&self, resp: String) -> anyhow::Result<Html> {
-        let html_doc = Html::parse_document(&resp);
+    pub(crate) fn parse_document(&self, resp: &str) -> anyhow::Result<Html> {
+        let html_doc = Html::parse_document(resp);
 
         if html_doc
             .select(&s("h1"))
@@ -165,7 +165,7 @@ impl TucanUser {
         drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let name = element_by_selector(&document, "h1").unwrap();
 
@@ -281,12 +281,14 @@ impl TucanUser {
     async fn course(
         &self,
         url: Coursedetails,
-        document: Html,
+        document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
         let (course, course_groups) = {
+            let document = self.parse_document(&document)?;
+
             let name = element_by_selector(&document, "h1").unwrap();
 
             let text = name.inner_html();
@@ -371,12 +373,14 @@ impl TucanUser {
     async fn course_group(
         &self,
         url: Coursedetails,
-        document: Html,
+        document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<CourseGroup> {
         use diesel_async::RunQueryDsl;
 
         let course_group = {
+            let document = self.parse_document(&document)?;
+
             let plenum_element = document
                 .select(&s(".img_arrowLeft"))
                 .find(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
@@ -468,9 +472,9 @@ impl TucanUser {
 
         let document = self.fetch_document(&url.clone().into()).await?;
         let connection = self.tucan.pool.get().await?;
-        let document = self.parse_document(document)?;
 
-        let is_course_group = element_by_selector(&document, "form h1 + h2").is_some();
+        // we parse it twice because it was so nice
+        let is_course_group = element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
 
         println!("is_course_group {}", is_course_group);
 
@@ -487,7 +491,7 @@ impl TucanUser {
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let url_element = document
             .select(&s("h2 a"))
@@ -606,7 +610,7 @@ impl TucanUser {
         drop(connection);
 
         let document = self_cloned.fetch_document(&url.clone().into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let (name, module_menu) = {
             let url_element = document
@@ -861,7 +865,7 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let my_modules = document
             .select(&s("tbody tr a"))
@@ -974,7 +978,7 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let my_courses = document
             .select(&s("tbody tr a"))
@@ -1048,7 +1052,7 @@ impl TucanUser {
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
-        let document = self.parse_document(document)?;
+        let document = self.parse_document(&document)?;
 
         let matriculation_number: i32 = document
             .select(&s(r#"td[name="matriculationNumber"]"#))
