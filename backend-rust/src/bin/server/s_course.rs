@@ -4,6 +4,7 @@
 
 use std::io::ErrorKind;
 
+use crate::AppState;
 use crate::WithTucanUrl;
 
 use axum::extract::State;
@@ -18,6 +19,7 @@ use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
+#[axum::debug_handler(state=AppState)]
 pub async fn course(
     session: TucanSession,
     tucan: State<Tucan>,
