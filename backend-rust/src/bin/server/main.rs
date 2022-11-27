@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+extern crate self as tucant;
 
 mod s_course;
 mod s_get_modules;
@@ -282,7 +283,7 @@ async fn main() -> anyhow::Result<()> {
 
     let tucan = Tucan::new().await?;
 
-    let app: Router<Key> = Router::new().with_state(secret_key);
+    let app: Router<Key> = Router::new().with_state(secret_key).with_state(tucan);
 
     let app = TypescriptableApp {
         app,

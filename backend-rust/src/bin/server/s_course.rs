@@ -4,11 +4,11 @@
 
 use std::io::ErrorKind;
 
-use crate::MyError;
 use crate::WithTucanUrl;
 
 use axum::extract::State;
 use axum::Json;
+use tucant::MyError;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
