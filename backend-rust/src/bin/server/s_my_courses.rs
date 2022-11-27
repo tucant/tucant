@@ -5,8 +5,8 @@
 use crate::MyError;
 use crate::WithTucanUrl;
 
-use axum::Json;
 use axum::extract::State;
+use axum::Json;
 use tucant::models::Course;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;

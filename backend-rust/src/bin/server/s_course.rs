@@ -7,8 +7,8 @@ use std::io::ErrorKind;
 use crate::MyError;
 use crate::WithTucanUrl;
 
-use axum::Json;
 use axum::extract::State;
+use axum::Json;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;

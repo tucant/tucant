@@ -12,12 +12,12 @@ use crate::TucanUser;
 
 use anyhow::Error;
 use async_stream::try_stream;
-use axum::Json;
 use axum::body::Bytes;
 use axum::body::StreamBody;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::response::Response;
+use axum::Json;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 

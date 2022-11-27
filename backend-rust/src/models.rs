@@ -5,6 +5,7 @@ use axum::http::request::Parts;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum_extra::extract::PrivateCookieJar;
+use axum_extra::extract::cookie::Key;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -372,19 +373,18 @@ pub struct TucanSession {
 }
 
 #[axum::async_trait]
-impl<S> FromRequestParts<S> for TucanSession
-where
-    S: Send + Sync,
+impl FromRequestParts<Key> for TucanSession
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let cookie_jar =
-            PrivateCookieJar::from_request_parts(parts, state)
-                .await
-                .map_err(|err| err.into_response())?;
+    async fn from_request_parts(parts: &mut Parts, state: &Key) -> Result<Self, Self::Rejection> {
+        let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
+            .await
+            .map_err(|err| err.into_response())?;
 
-        let session: TucanSession = serde_json::from_str(cookie_jar.get("session").unwrap().value())?;
+        let session: TucanSession =
+            serde_json::from_str(cookie_jar.get("session").unwrap().value())
+                .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
         Ok(session)
     }
 }

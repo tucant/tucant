@@ -13,7 +13,6 @@ mod s_setup;
 
 use axum::Json;
 
-use axum::Router;
 use axum::async_trait;
 use axum::body::Body;
 use axum::extract::FromRequestParts;
@@ -26,9 +25,10 @@ use axum::response::Redirect;
 use axum::response::Response;
 use axum::routing::get;
 use axum::routing::post;
-use axum_extra::extract::PrivateCookieJar;
+use axum::Router;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
+use axum_extra::extract::PrivateCookieJar;
 use diesel::{Connection, PgConnection};
 use diesel_migrations::FileBasedMigrations;
 use diesel_migrations::MigrationHarness;
@@ -37,8 +37,8 @@ use file_lock::{FileLock, FileOptions};
 use itertools::Itertools;
 
 use log::error;
-use reqwest::StatusCode;
 use reqwest::header::USER_AGENT;
+use reqwest::StatusCode;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -75,29 +75,6 @@ pub struct WithTucanUrl<T: Serialize + Typescriptable> {
     pub tucan_url: String,
     //#[serde(flatten)] // not supported by Typescriptable
     pub inner: T,
-}
-
-#[derive(Debug)]
-pub struct MyError {
-    err: anyhow::Error,
-}
-
-impl Display for MyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.err.fmt(f)
-    }
-}
-
-impl<E: Into<anyhow::Error>> From<E> for MyError {
-    fn from(err: E) -> MyError {
-        MyError { err: err.into() }
-    }
-}
-
-impl IntoResponse for MyError {
-    fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, self).into_response()
-    }
 }
 
 #[derive(Deserialize, Debug, Typescriptable)]
@@ -139,10 +116,13 @@ async fn login(
     input: Json<Login>,
 ) -> Result<TsHide<PrivateCookieJar, Json<LoginResult>>, MyError> {
     let tucan_user = tucan.login(&input.username, &input.password).await?;
-    let cookie_jar = cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)?));
+    let cookie_jar = cookie_jar.add(Cookie::new(
+        "session",
+        serde_json::to_string(&tucan_user.session)?,
+    ));
     Ok(TsHide {
         hidden: cookie_jar,
-        visible: Json(LoginResult { success: true })
+        visible: Json(LoginResult { success: true }),
     })
 }
 
@@ -202,34 +182,29 @@ async fn login_hack(
                 })
             })
             .await?;
-        cookie_jar = cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)?));
+        cookie_jar = cookie_jar.add(Cookie::new(
+            "session",
+            serde_json::to_string(&tucan_user.session)?,
+        ));
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
         tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
-        "http://localhost:5173/modules/{}",
-            base64::encode_config(
-                registration.path,
-                base64::URL_SAFE_NO_PAD,
-            )
+            "http://localhost:5173/modules/{}",
+            base64::encode_config(registration.path, base64::URL_SAFE_NO_PAD,)
         )),
-        tucant::url::TucanProgram::RootRegistration(_) => Redirect::to("http://localhost:5173/modules/"),
-        tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
-        "http://localhost:5173/module/{}",
-            base64::encode_config(
-                module_details.id,
-                base64::URL_SAFE_NO_PAD,
-            )
-        )),
-        tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!("http://localhost:5173/course/{}",
-            base64::encode_config(
-                course_details.id,
-                base64::URL_SAFE_NO_PAD,
-            )
-        )),
-        tucant::url::TucanProgram::Externalpages(_) => {
-            Redirect::to("http://localhost:5173/")
+        tucant::url::TucanProgram::RootRegistration(_) => {
+            Redirect::to("http://localhost:5173/modules/")
         }
+        tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
+            "http://localhost:5173/module/{}",
+            base64::encode_config(module_details.id, base64::URL_SAFE_NO_PAD,)
+        )),
+        tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
+            "http://localhost:5173/course/{}",
+            base64::encode_config(course_details.id, base64::URL_SAFE_NO_PAD,)
+        )),
+        tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
         other => {
             println!("{:?}", other);
             return Ok(StatusCode::NOT_FOUND.into_response());
@@ -240,21 +215,21 @@ async fn login_hack(
 }
 
 #[ts]
-async fn logout(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<TsHide<PrivateCookieJar, Json<()>>, MyError> {
+async fn logout(
+    cookie_jar: PrivateCookieJar,
+    _input: Json<()>,
+) -> Result<TsHide<PrivateCookieJar, Json<()>>, MyError> {
     let cookie_jar = cookie_jar.remove(Cookie::named("session"));
     Ok(TsHide {
         hidden: cookie_jar,
-        visible: Json(())
+        visible: Json(()),
     })
 }
 
 #[ts]
 async fn index(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Json<String>, MyError> {
     let session: TucanSession = serde_json::from_str(cookie_jar.get("session").unwrap().value())?;
-    Ok(Json(format!(
-        "Welcome! {}",
-        session.matriculation_number
-    )))
+    Ok(Json(format!("Welcome! {}", session.matriculation_number)))
 }
 
 #[tokio::main]
@@ -315,7 +290,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     app.route::<IndexTs>("/", post(index))
-       // .route("/login", post(login))
+        // .route("/login", post(login))
         .route("/logout", post(logout))
         .route("/modules", post(get_modules))
         .route("/search-modules", post(search_module))
@@ -325,61 +300,61 @@ async fn main() -> anyhow::Result<()> {
         .route("/module", post(module))
         .route("/my-modules", post(my_modules))
         .route("/my-courses", post(my_courses));
-/*
-    HttpServer::new(move || {
-        let logger = Logger::default();
-        let cors = Cors::permissive();
+    /*
+        HttpServer::new(move || {
+            let logger = Logger::default();
+            let cors = Cors::permissive();
 
-        let app = App::new()
-            .app_data(tucan.clone())
-            .wrap(
-                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
-                    .cookie_same_site(SameSite::None)
-                    .cookie_secure(true)
-                    .cookie_http_only(false)
-                    .build(), // TODO FIXME
-            )
-            .wrap(CsrfMiddleware {})
-            .wrap(cors)
-            .wrap(logger);
+            let app = App::new()
+                .app_data(tucan.clone())
+                .wrap(
+                    SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
+                        .cookie_same_site(SameSite::None)
+                        .cookie_secure(true)
+                        .cookie_http_only(false)
+                        .build(), // TODO FIXME
+                )
+                .wrap(CsrfMiddleware {})
+                .wrap(cors)
+                .wrap(logger);
 
-        
 
-        let should_we_block = true;
-        let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
-        let mut filelock = match FileLock::lock(
-            "../frontend-react/src/api.ts",
-            should_we_block,
-            lock_for_writing,
-        ) {
-            Ok(lock) => lock,
-            Err(err) => panic!("Error getting write lock: {}", err),
-        };
+            let should_we_block = true;
+            let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
-        filelock
-            .file
-            .write_all(
-                (r#"
-// This file is automatically generated at startup. Do not modify.
-import { genericFetch } from "./api_base"
-"#
-                .to_string()
-                    + &app.codes.into_iter().join("\n"))
-                    .as_bytes(),
-            )
-            .unwrap();
+            let mut filelock = match FileLock::lock(
+                "../frontend-react/src/api.ts",
+                should_we_block,
+                lock_for_writing,
+            ) {
+                Ok(lock) => lock,
+                Err(err) => panic!("Error getting write lock: {}", err),
+            };
 
-        // Manually unlocking is optional as we unlock on Drop
-        filelock.unlock().unwrap();
+            filelock
+                .file
+                .write_all(
+                    (r#"
+    // This file is automatically generated at startup. Do not modify.
+    import { genericFetch } from "./api_base"
+    "#
+                    .to_string()
+                        + &app.codes.into_iter().join("\n"))
+                        .as_bytes(),
+                )
+                .unwrap();
 
-        app.app
-            .service(setup)
-            .service(login_hack)
-    })
-    .bind(("localhost", 8080))?
-    .run()
-    .await?;
-*/
+            // Manually unlocking is optional as we unlock on Drop
+            filelock.unlock().unwrap();
+
+            app.app
+                .service(setup)
+                .service(login_hack)
+        })
+        .bind(("localhost", 8080))?
+        .run()
+        .await?;
+    */
     Ok(())
 }
