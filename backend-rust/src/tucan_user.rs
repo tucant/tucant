@@ -165,85 +165,89 @@ impl TucanUser {
         drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+        let mut connection = self.tucan.pool.get().await?;
 
-        let name = element_by_selector(&document, "h1").unwrap();
+        let (module, courses) = {
+            let document = self.parse_document(&document)?;
 
-        let text = name.inner_html();
-        let mut fs = text.split("&nbsp;");
-        let module_id = fs.next().unwrap().trim();
+            let name = element_by_selector(&document, "h1").unwrap();
 
-        let module_name = fs.next().map(str::trim);
+            let text = name.inner_html();
+            let mut fs = text.split("&nbsp;");
+            let module_id = fs.next().unwrap().trim();
 
-        let credits = document
-            .select(&s(r#"#contentlayoutleft b"#))
-            .find(|e| e.inner_html() == "Credits: ")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap();
+            let module_name = fs.next().map(str::trim);
 
-        // Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.
-        let credits = credits
-            .trim()
-            .strip_suffix(",0")
-            .and_then(|v| v.parse::<i32>().ok())
-            .unwrap_or(0);
+            let credits = document
+                .select(&s(r#"#contentlayoutleft b"#))
+                .find(|e| e.inner_html() == "Credits: ")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap();
 
-        /* let responsible_person = document
-        .select(&s("#dozenten"))
-        .next()
-        .unwrap()
-        .inner_html();*/
-        let content = document
-            .select(&s("#contentlayoutleft tr.tbdata"))
+            // Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.
+            let credits = credits
+                .trim()
+                .strip_suffix(",0")
+                .and_then(|v| v.parse::<i32>().ok())
+                .unwrap_or(0);
+
+            /* let responsible_person = document
+            .select(&s("#dozenten"))
             .next()
-            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
-            .inner_html();
+            .unwrap()
+            .inner_html();*/
+            let content = document
+                .select(&s("#contentlayoutleft tr.tbdata"))
+                .next()
+                .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
+                .inner_html();
 
-        let courses = document
-            .select(&s(r#"a[name="eventLink"]"#))
-            .map(|e| e.parent().unwrap().parent().unwrap())
-            .unique_by(NodeRef::id)
-            .map(|node| {
-                let element_ref = ElementRef::wrap(node).unwrap();
-                let selector = &s("a");
-                let mut links = element_ref.select(selector);
-                Course {
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    course_id: links.next().unwrap().inner_html(),
-                    title: links.next().unwrap().inner_html(),
-                    tucan_id: TryInto::<Coursedetails>::try_into(
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            links.next().unwrap().value().attr("href").unwrap()
-                        ))
-                        .program,
-                    )
-                    .unwrap()
-                    .id,
-                    sws: 0,
-                    content: "".to_string(),
-                    done: false,
-                }
-            })
-            .collect::<Vec<_>>();
+            let courses = document
+                .select(&s(r#"a[name="eventLink"]"#))
+                .map(|e| e.parent().unwrap().parent().unwrap())
+                .unique_by(NodeRef::id)
+                .map(|node| {
+                    let element_ref = ElementRef::wrap(node).unwrap();
+                    let selector = &s("a");
+                    let mut links = element_ref.select(selector);
+                    Course {
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        course_id: links.next().unwrap().inner_html(),
+                        title: links.next().unwrap().inner_html(),
+                        tucan_id: TryInto::<Coursedetails>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                links.next().unwrap().value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .id,
+                        sws: 0,
+                        content: "".to_string(),
+                        done: false,
+                    }
+                })
+                .collect::<Vec<_>>();
 
-        let module = Module {
-            tucan_id: url.id,
-            tucan_last_checked: Utc::now().naive_utc(),
-            title: module_name.unwrap().to_string(),
-            credits: Some(credits),
-            module_id: TucanUser::normalize(module_id),
-            content,
-            done: true,
+            let module = Module {
+                tucan_id: url.id,
+                tucan_last_checked: Utc::now().naive_utc(),
+                title: module_name.unwrap().to_string(),
+                credits: Some(credits),
+                module_id: TucanUser::normalize(module_id),
+                content,
+                done: true,
+            };
+
+            (module, courses)
         };
 
         debug!("[+] module {:?}", module);
-
-        let mut connection = self.tucan.pool.get().await?;
 
         diesel::insert_into(modules_unfinished::table)
             .values(&module)
@@ -474,7 +478,8 @@ impl TucanUser {
         let connection = self.tucan.pool.get().await?;
 
         // we parse it twice because it was so nice
-        let is_course_group = element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
+        let is_course_group =
+            element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
 
         println!("is_course_group {}", is_course_group);
 
@@ -610,30 +615,145 @@ impl TucanUser {
         drop(connection);
 
         let document = self_cloned.fetch_document(&url.clone().into()).await?;
-        let document = self.parse_document(&document)?;
-
-        let (name, module_menu) = {
-            let url_element = document
-                .select(&s("h2 a"))
-                .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
-                .last()
-                .unwrap();
-
-            (
-                url_element.inner_html(),
-                ModuleMenu {
-                    tucan_id: url.path.clone(),
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    name: url_element.inner_html(),
-                    done: false,
-                    parent: None,
-                },
-            )
-        };
-
-        debug!("[+] menu {:?}", module_menu);
-
         let mut connection = self_cloned.tucan.pool.get().await?;
+
+        let (module_menu, submenus, modules) = {
+            let document = self.parse_document(&document)?;
+
+            let (name, module_menu) = {
+                let url_element = document
+                    .select(&s("h2 a"))
+                    .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
+                    .last()
+                    .unwrap();
+
+                (
+                    url_element.inner_html(),
+                    ModuleMenu {
+                        tucan_id: url.path.clone(),
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        name: url_element.inner_html(),
+                        done: false,
+                        parent: None,
+                    },
+                )
+            };
+
+            debug!("[+] menu {:?}", module_menu);
+
+            let selector = s("table.tbcoursestatus strong a[href]");
+            let a = document.select(&selector).fuse().peekable();
+
+            let d = a.batching(|f| {
+                let title = if f.peek()?.value().attr("name") != Some("eventLink") {
+                    f.next()
+                } else {
+                    None
+                };
+                let sub_elements: Vec<ElementRef> = f
+                    .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
+                    .collect();
+
+                Some((title, sub_elements))
+            });
+
+            let modules: Vec<(Module, Vec<Course>)> = d
+                .map(|e| {
+                    let module =
+                        e.0.map(|i| {
+                            let mut text = i.text();
+                            Module {
+                                tucan_id: TryInto::<Moduledetails>::try_into(
+                                    parse_tucan_url(&format!(
+                                        "https://www.tucan.tu-darmstadt.de{}",
+                                        i.value().attr("href").unwrap()
+                                    ))
+                                    .program,
+                                )
+                                .unwrap()
+                                .id,
+                                //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                module_id: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                title: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                credits: None,
+                                content: "".to_string(),
+                                done: false,
+                            }
+                        })
+                        .unwrap_or_else(|| TUCANSCHEISS.clone());
+
+                    let courses =
+                        e.1.into_iter()
+                            .map(|course| {
+                                let mut text = course.text();
+
+                                Course {
+                                    tucan_id: TryInto::<Coursedetails>::try_into(
+                                        parse_tucan_url(&format!(
+                                            "https://www.tucan.tu-darmstadt.de{}",
+                                            course.value().attr("href").unwrap()
+                                        ))
+                                        .program,
+                                    )
+                                    .unwrap()
+                                    .id,
+                                    tucan_last_checked: Utc::now().naive_utc(),
+                                    course_id: text
+                                        .next()
+                                        .unwrap_or_else(|| {
+                                            panic!("{:?}", course.text().collect::<Vec<_>>())
+                                        })
+                                        .to_string(),
+                                    title: text
+                                        .next()
+                                        .unwrap_or_else(|| {
+                                            panic!("{:?}", course.text().collect::<Vec<_>>())
+                                        })
+                                        .to_string(),
+                                    sws: 0,
+                                    content: "".to_string(),
+                                    done: false,
+                                }
+                            })
+                            .collect_vec();
+
+                    (module, courses)
+                })
+                .collect();
+
+            let utc = Utc::now().naive_utc();
+            let submenus: Vec<ModuleMenu> = document
+                .select(&s("#contentSpacer_IE ul a[href]"))
+                .map(|e| {
+                    let child = TryInto::<Registration>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            e.value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                    .path;
+
+                    ModuleMenu {
+                        tucan_id: child,
+                        tucan_last_checked: utc,
+                        name: e.inner_html().trim().to_string(),
+                        done: false,
+                        parent: Some(url.path.clone()),
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            (module_menu, submenus, modules)
+        };
 
         let module_menu = diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
@@ -643,93 +763,6 @@ impl TucanUser {
             // I think there is a bug here when using ModuleMenuChangeset in set() the types are wrong.
             .get_result::<ModuleMenu>(&mut connection)
             .await?;
-
-        let selector = s("table.tbcoursestatus strong a[href]");
-        let a = document.select(&selector).fuse().peekable();
-
-        let d = a.batching(|f| {
-            let title = if f.peek()?.value().attr("name") != Some("eventLink") {
-                f.next()
-            } else {
-                None
-            };
-            let sub_elements: Vec<ElementRef> = f
-                .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
-                .collect();
-
-            Some((title, sub_elements))
-        });
-
-        let modules: Vec<(Module, Vec<Course>)> = d
-            .map(|e| {
-                let module =
-                    e.0.map(|i| {
-                        let mut text = i.text();
-                        Module {
-                            tucan_id: TryInto::<Moduledetails>::try_into(
-                                parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    i.value().attr("href").unwrap()
-                                ))
-                                .program,
-                            )
-                            .unwrap()
-                            .id,
-                            //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
-                            tucan_last_checked: Utc::now().naive_utc(),
-                            module_id: text
-                                .next()
-                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                                .to_string(),
-                            title: text
-                                .next()
-                                .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                                .to_string(),
-                            credits: None,
-                            content: "".to_string(),
-                            done: false,
-                        }
-                    })
-                    .unwrap_or_else(|| TUCANSCHEISS.clone());
-
-                let courses =
-                    e.1.into_iter()
-                        .map(|course| {
-                            let mut text = course.text();
-
-                            Course {
-                                tucan_id: TryInto::<Coursedetails>::try_into(
-                                    parse_tucan_url(&format!(
-                                        "https://www.tucan.tu-darmstadt.de{}",
-                                        course.value().attr("href").unwrap()
-                                    ))
-                                    .program,
-                                )
-                                .unwrap()
-                                .id,
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                course_id: text
-                                    .next()
-                                    .unwrap_or_else(|| {
-                                        panic!("{:?}", course.text().collect::<Vec<_>>())
-                                    })
-                                    .to_string(),
-                                title: text
-                                    .next()
-                                    .unwrap_or_else(|| {
-                                        panic!("{:?}", course.text().collect::<Vec<_>>())
-                                    })
-                                    .to_string(),
-                                sws: 0,
-                                content: "".to_string(),
-                                done: false,
-                            }
-                        })
-                        .collect_vec();
-
-                (module, courses)
-            })
-            .collect();
 
         diesel::insert_into(modules_unfinished::table)
             .values(modules.iter().map(|m| &m.0).collect_vec())
@@ -772,30 +805,6 @@ impl TucanUser {
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
-
-        let utc = Utc::now().naive_utc();
-        let submenus: Vec<ModuleMenu> = document
-            .select(&s("#contentSpacer_IE ul a[href]"))
-            .map(|e| {
-                let child = TryInto::<Registration>::try_into(
-                    parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        e.value().attr("href").unwrap()
-                    ))
-                    .program,
-                )
-                .unwrap()
-                .path;
-
-                ModuleMenu {
-                    tucan_id: child,
-                    tucan_last_checked: utc,
-                    name: e.inner_html().trim().to_string(),
-                    done: false,
-                    parent: Some(url.path.clone()),
-                }
-            })
-            .collect::<Vec<_>>();
 
         diesel::insert_into(module_menu_unfinished::table)
             .values(&submenus[..])

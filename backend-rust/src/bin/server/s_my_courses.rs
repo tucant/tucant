@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::AppState;
 use crate::WithTucanUrl;
 use tucant::MyError;
 
@@ -15,6 +16,7 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
+#[axum::debug_handler(state=AppState)]
 pub async fn my_courses(
     session: TucanSession,
     tucan: State<Tucan>,

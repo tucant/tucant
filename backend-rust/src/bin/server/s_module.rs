@@ -4,6 +4,7 @@
 
 use std::collections::{HashMap, VecDeque};
 
+use crate::AppState;
 use crate::WithTucanUrl;
 use tucant::MyError;
 
@@ -23,6 +24,7 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
+#[axum::debug_handler(state=AppState)]
 pub async fn module(
     session: TucanSession,
     tucan: State<Tucan>,
