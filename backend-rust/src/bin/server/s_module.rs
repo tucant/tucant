@@ -7,6 +7,8 @@ use std::collections::{HashMap, VecDeque};
 use crate::MyError;
 use crate::WithTucanUrl;
 
+use axum::Json;
+use axum::extract::State;
 use diesel::sql_types::Bytea;
 
 use diesel::sql_query;
@@ -23,7 +25,7 @@ use tucant_derive::ts;
 #[ts]
 pub async fn module(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
     let mut connection = tucan.pool.get().await?;

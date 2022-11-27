@@ -5,6 +5,8 @@
 use crate::MyError;
 use crate::WithTucanUrl;
 
+use axum::Json;
+use axum::extract::State;
 use tucant::models::Module;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
@@ -15,7 +17,7 @@ use tucant_derive::ts;
 #[ts]
 pub async fn my_modules(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     _input: Json<()>,
 ) -> Result<Json<WithTucanUrl<Vec<Module>>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();

@@ -7,6 +7,8 @@ use std::io::ErrorKind;
 use crate::MyError;
 use crate::WithTucanUrl;
 
+use axum::Json;
+use axum::extract::State;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
@@ -17,7 +19,7 @@ use tucant_derive::ts;
 #[ts]
 pub async fn course(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<Course>>, MyError> {
     let binary_path = base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();

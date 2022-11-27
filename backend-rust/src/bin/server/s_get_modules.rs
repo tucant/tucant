@@ -8,6 +8,8 @@ use std::collections::VecDeque;
 use crate::MyError;
 use crate::WithTucanUrl;
 
+use axum::Json;
+use axum::extract::State;
 use diesel::sql_query;
 
 use diesel::sql_types::Bytea;
@@ -28,7 +30,7 @@ use tucant_derive::ts;
 #[ts]
 pub async fn get_modules(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<Option<String>>,
 ) -> Result<Json<WithTucanUrl<ModuleMenuResponse>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();

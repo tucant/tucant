@@ -4,6 +4,8 @@
 
 use crate::MyError;
 
+use axum::Json;
+use axum::extract::State;
 use diesel::ExpressionMethods;
 use diesel::TextExpressionMethods;
 use diesel::{QueryDsl, Queryable};
@@ -35,7 +37,7 @@ pub struct SearchResult {
 #[ts]
 pub async fn search_course(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     let mut connection = tucan.pool.get().await?;

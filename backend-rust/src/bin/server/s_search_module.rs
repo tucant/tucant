@@ -5,6 +5,8 @@
 use crate::s_search_course::SearchResult;
 use crate::MyError;
 
+use axum::Json;
+use axum::extract::State;
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
@@ -24,7 +26,7 @@ use tucant_derive::ts;
 #[ts]
 pub async fn search_module(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
@@ -58,10 +60,9 @@ pub async fn search_module(
 }
 
 #[ts]
-#[post("/search-module-opensearch")]
 pub async fn search_module_opensearch(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     let response = tucan
