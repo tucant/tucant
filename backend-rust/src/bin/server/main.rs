@@ -25,6 +25,7 @@ use axum::response::IntoResponseParts;
 use axum::response::Redirect;
 use axum::response::Response;
 use axum::routing::get;
+use axum::routing::post;
 use axum_extra::extract::PrivateCookieJar;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
@@ -313,17 +314,17 @@ async fn main() -> anyhow::Result<()> {
         codes: BTreeSet::new(),
     };
 
-    app.route("/", get(index))
-        .service(login)
-        .service(logout)
-        .service(get_modules)
-        .service(search_module)
-        .service(search_module_opensearch)
-        .service(search_course)
-        .service(course)
-        .service(module)
-        .service(my_modules)
-        .service(my_courses);
+    app.route::<IndexTs>("/", post(index))
+       // .route("/login", post(login))
+        .route("/logout", post(logout))
+        .route("/modules", post(get_modules))
+        .route("/search-modules", post(search_module))
+        .route("/search-modules-opensearch", post(search_module_opensearch))
+        .route("/search-course", post(search_course))
+        .route("/course", post(course))
+        .route("/module", post(module))
+        .route("/my-modules", post(my_modules))
+        .route("/my-courses", post(my_courses));
 /*
     HttpServer::new(move || {
         let logger = Logger::default();
