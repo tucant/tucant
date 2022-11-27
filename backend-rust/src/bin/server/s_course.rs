@@ -9,11 +9,11 @@ use crate::WithTucanUrl;
 use axum::extract::State;
 use axum::Json;
 use axum_extra::extract::cookie::Key;
-use tucant::MyError;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
+use tucant::MyError;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 

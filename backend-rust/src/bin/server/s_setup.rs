@@ -4,11 +4,11 @@
 
 use crate::Coursedetails;
 use crate::Moduledetails;
-use tucant::MyError;
 use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 use crate::TucanUser;
+use tucant::MyError;
 
 use anyhow::Error;
 use async_stream::try_stream;

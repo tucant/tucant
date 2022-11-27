@@ -5,8 +5,8 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use axum_extra::extract::PrivateCookieJar;
 use axum_extra::extract::cookie::Key;
+use axum_extra::extract::PrivateCookieJar;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later

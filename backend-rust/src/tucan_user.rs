@@ -594,13 +594,16 @@ impl TucanUser {
                 .last()
                 .unwrap();
 
-            (url_element.inner_html(), ModuleMenu {
-                tucan_id: url.path.clone(),
-                tucan_last_checked: Utc::now().naive_utc(),
-                name: url_element.inner_html(),
-                done: false,
-                parent: None,
-            })
+            (
+                url_element.inner_html(),
+                ModuleMenu {
+                    tucan_id: url.path.clone(),
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    name: url_element.inner_html(),
+                    done: false,
+                    parent: None,
+                },
+            )
         };
 
         debug!("[+] menu {:?}", module_menu);

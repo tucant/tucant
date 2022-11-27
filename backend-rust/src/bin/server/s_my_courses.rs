@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use tucant::MyError;
 use crate::WithTucanUrl;
+use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;

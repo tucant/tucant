@@ -5,9 +5,9 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use tucant::MyError;
 use crate::AppState;
 use crate::WithTucanUrl;
+use tucant::MyError;
 
 use axum::async_trait;
 use axum::extract::FromRequestParts;

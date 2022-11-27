@@ -4,8 +4,8 @@
 
 use std::collections::{HashMap, VecDeque};
 
-use tucant::MyError;
 use crate::WithTucanUrl;
+use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;

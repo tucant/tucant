@@ -48,11 +48,11 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
-use tucant::MyError;
 use std::collections::BTreeSet;
 use std::fmt::Display;
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
+use tucant::MyError;
 
 use tucant::models::{TucanSession, UndoneUser};
 
@@ -236,7 +236,7 @@ async fn index(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Json<St
 #[derive(Clone, FromRef)]
 struct AppState {
     key: Key,
-    tucan: Tucan
+    tucan: Tucan,
 }
 
 #[tokio::main]
@@ -291,7 +291,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = AppState {
         key: secret_key,
-        tucan
+        tucan,
     };
 
     let app: Router<AppState> = Router::new().with_state(app_state);
