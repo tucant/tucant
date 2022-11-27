@@ -19,7 +19,9 @@ use axum::extract::FromRequestParts;
 use axum::extract::Query;
 use axum::extract::State;
 use axum::http::request::Parts;
+use axum::response::IntoResponse;
 use axum::response::Redirect;
+use axum::response::Response;
 use axum_extra::extract::PrivateCookieJar;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
@@ -88,6 +90,12 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
     }
 }
 
+impl IntoResponse for MyError {
+    fn into_response(self) -> Response {
+        (StatusCode::INTERNAL_SERVER_ERROR, self).into_response()
+    }
+}
+
 #[derive(Deserialize, Debug, Typescriptable)]
 struct Login {
     username: String,
@@ -119,10 +127,10 @@ struct LoginHack {
 }
 
 async fn login_hack(
-    cookie_jar: PrivateCookieJar,
+    mut cookie_jar: PrivateCookieJar,
     tucan: State<Tucan>,
     input: Query<LoginHack>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<Response, MyError> {
     println!("{:?}", input);
 
     use diesel_async::RunQueryDsl;
@@ -167,7 +175,7 @@ async fn login_hack(
                 })
             })
             .await?;
-        cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)));
+        cookie_jar = cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)?));
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
@@ -193,29 +201,26 @@ async fn login_hack(
             )
         )),
         tucant::url::TucanProgram::Externalpages(_) => {
-            req.url_for::<[String; 0], _>("index", [])?
+            Redirect::to("http://localhost:5173/")
         }
         other => {
             println!("{:?}", other);
-            return Ok(HttpResponse::NotFound().finish());
+            return Ok(StatusCode::NOT_FOUND.into_response());
         }
     };
 
-    Ok(HttpResponse::Found()
-        .insert_header((header::LOCATION, url.as_str()))
-        .finish())
+    Ok((cookie_jar, url).into_response())
 }
 
-#[tracing::instrument(skip(session))]
 #[ts]
-async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
-    session.purge();
-    Ok(web::Json(()))
+async fn logout(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Response, MyError> {
+    let cookie_jar = cookie_jar.remove(Cookie::named("session"));
+    Ok((cookie_jar, Json(())).into_response())
 }
 
 #[ts]
 async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
-    Ok(web::Json(format!(
+    Ok(Json(format!(
         "Welcome! {}",
         session.matriculation_number
     )))
