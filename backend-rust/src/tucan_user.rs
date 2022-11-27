@@ -794,8 +794,9 @@ impl TucanUser {
         diesel::insert_into(module_courses::table)
             .values(
                 modules
-                    .iter()
-                    .flat_map(|m| m.1.iter().map(|e| (&m.0, e)))
+                    .clone()
+                    .into_iter()
+                    .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
                     .map(|m| ModuleCourse {
                         module: m.0.tucan_id.clone(),
                         course: m.1.tucan_id.clone(),
