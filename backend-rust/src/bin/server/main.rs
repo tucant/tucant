@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-extern crate self as tucant;
-
 mod s_course;
 mod s_get_modules;
 mod s_module;

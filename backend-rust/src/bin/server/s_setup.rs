@@ -4,7 +4,7 @@
 
 use crate::Coursedetails;
 use crate::Moduledetails;
-use crate::MyError;
+use tucant::MyError;
 use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
@@ -144,6 +144,7 @@ fn fetch_registration(
     )
 }
 
+#[axum::debug_handler]
 pub async fn setup(
     tucan: State<Tucan>,
     session: TucanSession,

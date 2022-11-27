@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::s_search_course::SearchResult;
-use crate::MyError;
+use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
@@ -24,6 +24,7 @@ use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
+#[axum::debug_handler]
 pub async fn search_module(
     _: TucanSession,
     tucan: State<Tucan>,
@@ -60,6 +61,7 @@ pub async fn search_module(
 }
 
 #[ts]
+#[axum::debug_handler]
 pub async fn search_module_opensearch(
     _: TucanSession,
     tucan: State<Tucan>,

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::MyError;
+use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
@@ -35,6 +35,7 @@ pub struct SearchResult {
 }
 
 #[ts]
+#[axum::debug_handler]
 pub async fn search_course(
     _: TucanSession,
     tucan: State<Tucan>,

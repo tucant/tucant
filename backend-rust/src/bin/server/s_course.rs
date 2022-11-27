@@ -17,6 +17,7 @@ use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
+#[axum::debug_handler]
 pub async fn course(
     session: TucanSession,
     tucan: State<Tucan>,

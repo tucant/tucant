@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use crate::MyError;
+use tucant::MyError;
 use crate::WithTucanUrl;
 
 use axum::async_trait;
