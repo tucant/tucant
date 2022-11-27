@@ -50,21 +50,6 @@ fn s(selector: &str) -> Selector {
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
 }
-/*
-impl FromRequest for TucanSession {
-    type Error = actix_web::error::Error;
-    type Future = Ready<Result<TucanSession, actix_web::error::Error>>;
-
-    #[inline]
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let session = SessionExt::get_session(req);
-        match session.get::<TucanSession>("session").unwrap() {
-            Some(session) => ready(Ok(session)),
-            None => ready(Err(ErrorUnauthorized("Not logged in!"))),
-        }
-    }
-}
-*/
 
 #[derive(Clone, Debug)]
 pub struct TucanUser {

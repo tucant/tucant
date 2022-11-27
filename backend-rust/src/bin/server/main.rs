@@ -14,6 +14,7 @@ use axum::Json;
 
 use axum::async_trait;
 use axum::body::Body;
+use axum::extract::FromRef;
 use axum::extract::FromRequestParts;
 use axum::extract::Query;
 use axum::extract::State;
@@ -47,6 +48,7 @@ use s_search_course::search_course;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
+use tucant::MyError;
 use std::collections::BTreeSet;
 use std::fmt::Display;
 use tracing::warn;
@@ -231,6 +233,12 @@ async fn index(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Json<St
     Ok(Json(format!("Welcome! {}", session.matriculation_number)))
 }
 
+#[derive(Clone, FromRef)]
+struct AppState {
+    key: Key,
+    tucan: Tucan
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
@@ -281,7 +289,12 @@ async fn main() -> anyhow::Result<()> {
 
     let tucan = Tucan::new().await?;
 
-    let app: Router<Key> = Router::new().with_state(secret_key).with_state(tucan);
+    let app_state = AppState {
+        key: secret_key,
+        tucan
+    };
+
+    let app: Router<AppState> = Router::new().with_state(app_state);
 
     let app = TypescriptableApp {
         app,

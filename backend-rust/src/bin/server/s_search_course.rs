@@ -35,7 +35,6 @@ pub struct SearchResult {
 }
 
 #[ts]
-#[axum::debug_handler]
 pub async fn search_course(
     _: TucanSession,
     tucan: State<Tucan>,

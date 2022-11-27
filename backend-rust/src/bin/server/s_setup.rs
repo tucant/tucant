@@ -144,7 +144,6 @@ fn fetch_registration(
     )
 }
 
-#[axum::debug_handler]
 pub async fn setup(
     tucan: State<Tucan>,
     session: TucanSession,

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use axum::extract::State;
 use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
 use itertools::Itertools;
@@ -24,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     // https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/
     // https://opensearch.org/docs/latest/opensearch/query-dsl/text-analyzers
 
-    let tucan = web::Data::new(Tucan::new().await?);
+    let tucan = Tucan::new().await?;
 
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut rng = rand::thread_rng();

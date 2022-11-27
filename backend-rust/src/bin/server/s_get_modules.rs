@@ -32,7 +32,6 @@ use tucant_derive::ts;
 
 // trailing slash is menu
 #[ts]
-#[axum::debug_handler]
 pub async fn get_modules(
     session: TucanSession,
     tucan: State<Tucan>,

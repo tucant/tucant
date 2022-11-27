@@ -15,7 +15,6 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
-#[axum::debug_handler]
 pub async fn my_courses(
     session: TucanSession,
     tucan: State<Tucan>,

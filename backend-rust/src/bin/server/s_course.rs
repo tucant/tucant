@@ -8,6 +8,7 @@ use crate::WithTucanUrl;
 
 use axum::extract::State;
 use axum::Json;
+use axum_extra::extract::cookie::Key;
 use tucant::MyError;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
@@ -17,7 +18,6 @@ use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[axum::debug_handler]
 pub async fn course(
     session: TucanSession,
     tucan: State<Tucan>,
