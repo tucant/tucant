@@ -15,6 +15,7 @@ use axum::Json;
 
 use axum::Router;
 use axum::async_trait;
+use axum::body::Body;
 use axum::extract::FromRequestParts;
 use axum::extract::Query;
 use axum::extract::State;
@@ -23,6 +24,7 @@ use axum::response::IntoResponse;
 use axum::response::IntoResponseParts;
 use axum::response::Redirect;
 use axum::response::Response;
+use axum::routing::get;
 use axum_extra::extract::PrivateCookieJar;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
@@ -237,13 +239,17 @@ async fn login_hack(
 }
 
 #[ts]
-async fn logout(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Response, MyError> {
+async fn logout(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<TsHide<PrivateCookieJar, Json<()>>, MyError> {
     let cookie_jar = cookie_jar.remove(Cookie::named("session"));
-    Ok((cookie_jar, Json(())).into_response())
+    Ok(TsHide {
+        hidden: cookie_jar,
+        visible: Json(())
+    })
 }
 
 #[ts]
-async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
+async fn index(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Json<String>, MyError> {
+    let session: TucanSession = serde_json::from_str(cookie_jar.get("session").unwrap().value())?;
     Ok(Json(format!(
         "Welcome! {}",
         session.matriculation_number
@@ -300,7 +306,24 @@ async fn main() -> anyhow::Result<()> {
 
     let tucan = Tucan::new().await?;
 
-    let app = Router::new().with_state(secret_key);
+    let app: Router<Key> = Router::new().with_state(secret_key);
+
+    let app = TypescriptableApp {
+        app,
+        codes: BTreeSet::new(),
+    };
+
+    app.route("/", get(index))
+        .service(login)
+        .service(logout)
+        .service(get_modules)
+        .service(search_module)
+        .service(search_module_opensearch)
+        .service(search_course)
+        .service(course)
+        .service(module)
+        .service(my_modules)
+        .service(my_courses);
 /*
     HttpServer::new(move || {
         let logger = Logger::default();
@@ -319,23 +342,7 @@ async fn main() -> anyhow::Result<()> {
             .wrap(cors)
             .wrap(logger);
 
-        let app = TypescriptableApp {
-            app,
-            codes: BTreeSet::new(),
-        };
-        let app = app
-            // TODO FIXME looks like this generates massive backtraces, maybe switch to manual get and post and not this macro and service magic
-            .service(index)
-            .service(login)
-            .service(logout)
-            .service(get_modules)
-            .service(search_module)
-            .service(search_module_opensearch)
-            .service(search_course)
-            .service(course)
-            .service(module)
-            .service(my_modules)
-            .service(my_courses);
+        
 
         let should_we_block = true;
         let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
