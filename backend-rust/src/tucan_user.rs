@@ -4,7 +4,6 @@
 
 use std::{
     convert::TryInto,
-    future::{ready, Ready},
     io::{Error, ErrorKind},
 };
 
@@ -620,7 +619,7 @@ impl TucanUser {
         let (module_menu, submenus, modules) = {
             let document = self.parse_document(&document)?;
 
-            let (name, module_menu) = {
+            let (_name, module_menu) = {
                 let url_element = document
                     .select(&s("h2 a"))
                     .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
@@ -799,7 +798,7 @@ impl TucanUser {
                     .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
                     .map(|m| ModuleCourse {
                         module: m.0.tucan_id.clone(),
-                        course: m.1.tucan_id.clone(),
+                        course: m.1.tucan_id,
                     })
                     .collect::<Vec<_>>(),
             )

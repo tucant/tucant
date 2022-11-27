@@ -1,9 +1,9 @@
 use heck::ToUpperCamelCase;
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens, format_ident};
+use proc_macro2::{Ident, TokenStream};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
-    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
+    Error, ItemFn, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -67,7 +67,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
             pub struct #name_ts;
 
             impl #impl_generics tucant_derive_lib::TypescriptRoute for #name_ts #ty_generics #where_clause {
-                
+
                 fn code(path: &str) -> ::std::collections::BTreeSet<String> {
                     let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + #name_string + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +

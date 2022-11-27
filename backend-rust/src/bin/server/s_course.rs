@@ -9,7 +9,7 @@ use crate::WithTucanUrl;
 
 use axum::extract::State;
 use axum::Json;
-use axum_extra::extract::cookie::Key;
+
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;

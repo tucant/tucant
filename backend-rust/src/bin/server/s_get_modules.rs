@@ -5,17 +5,13 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use crate::AppState;
 use crate::WithTucanUrl;
 use tucant::MyError;
 
-use axum::async_trait;
-use axum::extract::FromRequestParts;
 use axum::extract::State;
-use axum::http::response::Parts;
-use axum::response::Response;
+
 use axum::Json;
-use axum_extra::extract::PrivateCookieJar;
+
 use diesel::sql_query;
 
 use diesel::sql_types::Bytea;

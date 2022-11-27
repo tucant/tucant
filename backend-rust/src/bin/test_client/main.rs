@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use axum::extract::State;
 use diesel::QueryDsl;
 use diesel_async::RunQueryDsl;
 use itertools::Itertools;

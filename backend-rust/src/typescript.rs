@@ -1,9 +1,6 @@
 use std::collections::BTreeSet;
 
-use axum::{
-    routing::{get, MethodRouter},
-    Router,
-};
+use axum::{routing::MethodRouter, Router};
 use tucant_derive_lib::{TypescriptRoute, Typescriptable};
 
 pub struct TypescriptableApp<S: Clone + Send + Sync + 'static = ()> {

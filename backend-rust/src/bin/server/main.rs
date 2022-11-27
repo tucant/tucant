@@ -12,17 +12,16 @@ mod s_setup;
 
 use axum::Json;
 
-use axum::async_trait;
-use axum::body::Body;
 use axum::extract::FromRef;
-use axum::extract::FromRequestParts;
+
 use axum::extract::Query;
 use axum::extract::State;
-use axum::http::request::Parts;
+
 use axum::response::IntoResponse;
 use axum::response::IntoResponseParts;
 use axum::response::Redirect;
 use axum::response::Response;
+
 use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
@@ -33,11 +32,7 @@ use diesel::{Connection, PgConnection};
 use diesel_migrations::FileBasedMigrations;
 use diesel_migrations::MigrationHarness;
 use dotenvy::dotenv;
-use file_lock::{FileLock, FileOptions};
-use itertools::Itertools;
 
-use log::error;
-use reqwest::header::USER_AGENT;
 use reqwest::StatusCode;
 use s_course::course;
 use s_get_modules::get_modules;
@@ -49,10 +44,10 @@ use s_search_course::search_course;
 use s_search_course::SearchCourseTs;
 use s_search_module::search_module;
 use s_search_module::SearchModuleOpensearchTs;
-use s_setup::setup;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use std::fmt::Display;
+
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
 use tucant::MyError;
@@ -78,6 +73,7 @@ use crate::s_module::ModuleTs;
 use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
 use crate::s_search_module::SearchModuleTs;
+use crate::s_setup::setup;
 
 #[derive(Serialize, Typescriptable)]
 pub struct WithTucanUrl<T: Serialize + Typescriptable> {
@@ -302,7 +298,10 @@ async fn main() -> anyhow::Result<()> {
         tucan,
     };
 
-    let app: Router<AppState> = Router::new().with_state(app_state);
+    let app: Router<AppState> = Router::new()
+        .with_state(app_state)
+        .route("/setup", post(setup))
+        .route("/login-hack", get(login_hack));
 
     let app = TypescriptableApp {
         app,
@@ -310,7 +309,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     app.route::<IndexTs>("/", post(index))
-        // .route("/login", post(login))
+        .route::<LoginTs>("/login", post(login))
         .route::<LogoutTs>("/logout", post(logout))
         .route::<GetModulesTs>("/modules", post(get_modules))
         .route::<SearchModuleTs>("/search-modules", post(search_module))

@@ -13,7 +13,7 @@ use tucant::MyError;
 use anyhow::Error;
 use async_stream::try_stream;
 use axum::body::Bytes;
-use axum::body::StreamBody;
+
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -149,7 +149,7 @@ pub async fn setup(
     session: TucanSession,
     _input: Json<()>,
 ) -> Result<Response, MyError> {
-    let stream = try_stream(move |mut stream| async move {
+    let _stream = try_stream(move |mut stream| async move {
         stream
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
