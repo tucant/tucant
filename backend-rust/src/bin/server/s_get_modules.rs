@@ -80,7 +80,8 @@ pub async fn get_modules(
             .load::<ModuleMenuPathPart>(&mut connection)
             .await?;
 
-            let leaves = path_to_root.iter().take_while(|v| v.leaf);
+            let leaves: Vec<&ModuleMenuPathPart> =
+                path_to_root.iter().take_while(|v| v.leaf).collect();
 
             let nonleaves = path_to_root
                 .iter()
@@ -90,6 +91,7 @@ pub async fn get_modules(
                 .collect::<HashMap<_, _>>();
 
             let paths = leaves
+                .into_iter()
                 .map(|l| {
                     let mut current = Some(&l);
                     let mut path = VecDeque::new();

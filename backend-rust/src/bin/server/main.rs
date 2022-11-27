@@ -312,7 +312,7 @@ async fn main() -> anyhow::Result<()> {
     app.route::<IndexTs>("/", post(index))
         // .route("/login", post(login))
         .route::<LogoutTs>("/logout", post(logout))
-        //.route::<GetModulesTs>("/modules", post(get_modules))
+        .route::<GetModulesTs>("/modules", post(get_modules))
         .route::<SearchModuleTs>("/search-modules", post(search_module))
         .route::<SearchModuleOpensearchTs>(
             "/search-modules-opensearch",
