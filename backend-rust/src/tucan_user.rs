@@ -287,63 +287,63 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let (course, course_groups) = {
-        let name = element_by_selector(&document, "h1").unwrap();
+            let name = element_by_selector(&document, "h1").unwrap();
 
-        let text = name.inner_html();
-        let mut fs = text.trim().split('\n');
-        let course_id = fs.next().unwrap().trim();
-        let course_name = fs.next().map(str::trim);
+            let text = name.inner_html();
+            let mut fs = text.trim().split('\n');
+            let course_id = fs.next().unwrap().trim();
+            let course_name = fs.next().map(str::trim);
 
-        let sws = document
-            .select(&s(r#"#contentlayoutleft b"#))
-            .find(|e| e.inner_html() == "Semesterwochenstunden: ")
-            .map(|v| v.next_sibling().unwrap().value().as_text().unwrap());
+            let sws = document
+                .select(&s(r#"#contentlayoutleft b"#))
+                .find(|e| e.inner_html() == "Semesterwochenstunden: ")
+                .map(|v| v.next_sibling().unwrap().value().as_text().unwrap());
 
-        let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
+            let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
 
-        let content = document
-            .select(&s("#contentlayoutleft td.tbdata"))
-            .next()
-            .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
-            .inner_html();
+            let content = document
+                .select(&s("#contentlayoutleft td.tbdata"))
+                .next()
+                .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
+                .inner_html();
 
-        let course = Course {
-            tucan_id: url.id.clone(),
-            tucan_last_checked: Utc::now().naive_utc(),
-            title: course_name.unwrap().to_string(),
-            sws,
-            course_id: TucanUser::normalize(course_id),
-            content,
-            done: true,
-        };
+            let course = Course {
+                tucan_id: url.id.clone(),
+                tucan_last_checked: Utc::now().naive_utc(),
+                title: course_name.unwrap().to_string(),
+                sws,
+                course_id: TucanUser::normalize(course_id),
+                content,
+                done: true,
+            };
 
-        let course_groups: Vec<CourseGroup> = document
-            .select(&s(".dl-ul-listview .listelement"))
-            .map(|e| {
-                let coursegroupdetails: Coursedetails = parse_tucan_url(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    e.select(&s(".img_arrowLeft"))
-                        .next()
-                        .unwrap()
-                        .value()
-                        .attr("href")
-                        .unwrap()
-                ))
-                .program
-                .try_into()
-                .unwrap();
-                CourseGroup {
-                    tucan_id: coursegroupdetails.id,
-                    course: url.id.clone(),
-                    title: e
-                        .select(&s(".dl-ul-li-headline strong"))
-                        .next()
-                        .unwrap()
-                        .inner_html(),
-                    done: false,
-                }
-            })
-            .collect();
+            let course_groups: Vec<CourseGroup> = document
+                .select(&s(".dl-ul-listview .listelement"))
+                .map(|e| {
+                    let coursegroupdetails: Coursedetails = parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        e.select(&s(".img_arrowLeft"))
+                            .next()
+                            .unwrap()
+                            .value()
+                            .attr("href")
+                            .unwrap()
+                    ))
+                    .program
+                    .try_into()
+                    .unwrap();
+                    CourseGroup {
+                        tucan_id: coursegroupdetails.id,
+                        course: url.id.clone(),
+                        title: e
+                            .select(&s(".dl-ul-li-headline strong"))
+                            .next()
+                            .unwrap()
+                            .inner_html(),
+                        done: false,
+                    }
+                })
+                .collect();
 
             (course, course_groups)
         };
@@ -376,30 +376,32 @@ impl TucanUser {
     ) -> anyhow::Result<CourseGroup> {
         use diesel_async::RunQueryDsl;
 
-        let plenum_element = document
-            .select(&s(".img_arrowLeft"))
-            .find(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
-            .unwrap();
+        let course_group = {
+            let plenum_element = document
+                .select(&s(".img_arrowLeft"))
+                .find(|e| e.inner_html() == "Plenumsveranstaltung anzeigen")
+                .unwrap();
 
-        let plenum_url = parse_tucan_url(&format!(
-            "https://www.tucan.tu-darmstadt.de{}",
-            plenum_element.value().attr("href").unwrap()
-        ));
+            let plenum_url = parse_tucan_url(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                plenum_element.value().attr("href").unwrap()
+            ));
 
-        let course_details: Coursedetails = plenum_url.program.try_into().unwrap();
+            let course_details: Coursedetails = plenum_url.program.try_into().unwrap();
 
-        let name = element_by_selector(
-            &document,
-            ".dl-ul-listview .tbsubhead .dl-ul-li-headline strong",
-        )
-        .unwrap()
-        .inner_html();
+            let name = element_by_selector(
+                &document,
+                ".dl-ul-listview .tbsubhead .dl-ul-li-headline strong",
+            )
+            .unwrap()
+            .inner_html();
 
-        let course_group = CourseGroup {
-            tucan_id: url.id,
-            course: course_details.id,
-            title: name,
-            done: true,
+            CourseGroup {
+                tucan_id: url.id,
+                course: course_details.id,
+                title: name,
+                done: true,
+            }
         };
 
         debug!("[+] course group {:?}", course_group);
