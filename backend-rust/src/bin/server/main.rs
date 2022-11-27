@@ -16,8 +16,12 @@ use axum::Json;
 use axum::Router;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
+use axum::extract::Query;
+use axum::extract::State;
 use axum::http::request::Parts;
+use axum::response::Redirect;
 use axum_extra::extract::PrivateCookieJar;
+use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
 use diesel::{Connection, PgConnection};
 use diesel_migrations::FileBasedMigrations;
@@ -99,12 +103,12 @@ struct LoginResult {
 #[ts]
 async fn login(
     cookie_jar: PrivateCookieJar,
-    tucan: web::Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<Login>,
-) -> Result<Json<LoginResult>, MyError> {
+) -> Result<(PrivateCookieJar, Json<LoginResult>), MyError> {
     let tucan_user = tucan.login(&input.username, &input.password).await?;
-    session.insert("session", tucan_user.session).unwrap();
-    Ok(web::Json(LoginResult { success: true }))
+    let cookie_jar = cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)?));
+    Ok((cookie_jar, Json(LoginResult { success: true })))
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -114,11 +118,9 @@ struct LoginHack {
     pub redirect: String,
 }
 
-#[tracing::instrument(skip(session))]
 async fn login_hack(
-    session: Session,
-    req: HttpRequest,
-    tucan: web::Data<Tucan>,
+    cookie_jar: PrivateCookieJar,
+    tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<HttpResponse, MyError> {
     println!("{:?}", input);
@@ -165,36 +167,31 @@ async fn login_hack(
                 })
             })
             .await?;
-        session
-            .insert("session", tucan_user.session.clone())
-            .unwrap();
+        cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)));
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
-        tucant::url::TucanProgram::Registration(registration) => req.url_for(
-            "registration",
-            [base64::encode_config(
+        tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
+        "http://localhost:5173/modules/{}",
+            base64::encode_config(
                 registration.path,
                 base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
-        tucant::url::TucanProgram::RootRegistration(_) => {
-            req.url_for::<[String; 0], _>("root_registration", [])?
-        }
-        tucant::url::TucanProgram::Moduledetails(module_details) => req.url_for(
-            "module",
-            [base64::encode_config(
+            )
+        )),
+        tucant::url::TucanProgram::RootRegistration(_) => Redirect::to("http://localhost:5173/modules/"),
+        tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
+        "http://localhost:5173/module/{}",
+            base64::encode_config(
                 module_details.id,
                 base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
-        tucant::url::TucanProgram::Coursedetails(course_details) => req.url_for(
-            "course",
-            [base64::encode_config(
+            )
+        )),
+        tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!("http://localhost:5173/course/{}",
+            base64::encode_config(
                 course_details.id,
                 base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
+            )
+        )),
         tucant::url::TucanProgram::Externalpages(_) => {
             req.url_for::<[String; 0], _>("index", [])?
         }
@@ -342,16 +339,6 @@ import { genericFetch } from "./api_base"
         app.app
             .service(setup)
             .service(login_hack)
-            .external_resource("course", "http://localhost:5173/course/{course_name}")
-            .external_resource("module", "http://localhost:5173/module/{course_name}")
-            .external_resource(
-                "registration",
-                "http://localhost:5173/modules/{registration}",
-            )
-            .external_resource("root_registration", "http://localhost:5173/modules/")
-            .external_resource("my_modules", "http://localhost:5173/my-modules/")
-            .external_resource("my_courses", "http://localhost:5173/my-courses/")
-            .external_resource("index", "http://localhost:5173/")
     })
     .bind(("localhost", 8080))?
     .run()
