@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use axum::extract::FromRef;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::response::IntoResponse;
@@ -373,11 +374,14 @@ pub struct TucanSession {
 }
 
 #[axum::async_trait]
-impl FromRequestParts<Key> for TucanSession
+impl<S> FromRequestParts<S> for TucanSession
+where
+    Key: FromRef<S>,
+    S: Send + Sync,
 {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &Key) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
             .await
             .map_err(|err| err.into_response())?;

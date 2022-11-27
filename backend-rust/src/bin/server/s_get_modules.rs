@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use tucant::MyError;
+use crate::AppState;
 use crate::WithTucanUrl;
 
 use axum::async_trait;
@@ -32,6 +33,7 @@ use tucant_derive::ts;
 
 // trailing slash is menu
 #[ts]
+#[axum::debug_handler(state=AppState)]
 pub async fn get_modules(
     session: TucanSession,
     tucan: State<Tucan>,
