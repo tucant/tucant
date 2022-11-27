@@ -587,21 +587,20 @@ impl TucanUser {
 
         let document = self.fetch_document(&url.clone().into()).await?;
 
-        let url_element = document
-            .select(&s("h2 a"))
-            .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
-            .last()
-            .unwrap();
+        let (name, module_menu) = {
+            let url_element = document
+                .select(&s("h2 a"))
+                .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
+                .last()
+                .unwrap();
 
-        let name = url_element.inner_html();
-        let _normalized_name = TucanUser::normalize(&name);
-
-        let module_menu = ModuleMenu {
-            tucan_id: url.path.clone(),
-            tucan_last_checked: Utc::now().naive_utc(),
-            name: url_element.inner_html(),
-            done: false,
-            parent: None,
+            (url_element.inner_html(), ModuleMenu {
+                tucan_id: url.path.clone(),
+                tucan_last_checked: Utc::now().naive_utc(),
+                name: url_element.inner_html(),
+                done: false,
+                parent: None,
+            })
         };
 
         debug!("[+] menu {:?}", module_menu);
