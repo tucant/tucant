@@ -64,7 +64,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         Ok(quote! {
             #node
 
-            struct #name_ts;
+            pub struct #name_ts;
 
             impl #impl_generics tucant_derive_lib::TypescriptRoute for #name_ts #ty_generics #where_clause {
                 

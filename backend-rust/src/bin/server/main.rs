@@ -42,9 +42,12 @@ use reqwest::StatusCode;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
+use s_my_courses::MyCoursesTs;
 use s_my_courses::my_courses;
 use s_my_modules::my_modules;
+use s_search_course::SearchCourseTs;
 use s_search_course::search_course;
+use s_search_module::SearchModuleOpensearchTs;
 use s_search_module::search_module;
 use s_setup::setup;
 use serde::{Deserialize, Serialize};
@@ -69,6 +72,11 @@ use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 use tucant_derive_lib::Typescriptable;
 
+use crate::s_course::CourseTs;
+use crate::s_get_modules::GetModulesTs;
+use crate::s_module::ModuleTs;
+use crate::s_my_modules::MyModulesTs;
+use crate::s_search_module::SearchModuleTs;
 use crate::s_search_module::search_module_opensearch;
 
 #[derive(Serialize, Typescriptable)]
@@ -303,15 +311,15 @@ async fn main() -> anyhow::Result<()> {
 
     app.route::<IndexTs>("/", post(index))
         // .route("/login", post(login))
-        .route("/logout", post(logout))
-        .route("/modules", post(get_modules))
-        .route("/search-modules", post(search_module))
-        .route("/search-modules-opensearch", post(search_module_opensearch))
-        .route("/search-course", post(search_course))
-        .route("/course", post(course))
-        .route("/module", post(module))
-        .route("/my-modules", post(my_modules))
-        .route("/my-courses", post(my_courses));
+        .route::<LogoutTs>("/logout", post(logout))
+        .route::<GetModulesTs>("/modules", post(get_modules))
+        .route::<SearchModuleTs>("/search-modules", post(search_module))
+        .route::<SearchModuleOpensearchTs>("/search-modules-opensearch", post(search_module_opensearch))
+        .route::<SearchCourseTs>("/search-course", post(search_course))
+        .route::<CourseTs>("/course", post(course))
+        .route::<ModuleTs>("/module", post(module))
+        .route::<MyModulesTs>("/my-modules", post(my_modules))
+        .route::<MyCoursesTs>("/my-courses", post(my_courses));
     /*
         HttpServer::new(move || {
             let logger = Logger::default();
