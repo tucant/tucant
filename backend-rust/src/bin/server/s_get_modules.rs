@@ -9,7 +9,12 @@ use crate::MyError;
 use crate::WithTucanUrl;
 
 use axum::Json;
+use axum::async_trait;
+use axum::extract::FromRequestParts;
 use axum::extract::State;
+use axum::http::response::Parts;
+use axum::response::Response;
+use axum_extra::extract::PrivateCookieJar;
 use diesel::sql_query;
 
 use diesel::sql_types::Bytea;
@@ -26,8 +31,8 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 // trailing slash is menu
-
 #[ts]
+#[axum::debug_handler]
 pub async fn get_modules(
     session: TucanSession,
     tucan: State<Tucan>,
