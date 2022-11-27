@@ -20,6 +20,7 @@ use axum::extract::Query;
 use axum::extract::State;
 use axum::http::request::Parts;
 use axum::response::IntoResponse;
+use axum::response::IntoResponseParts;
 use axum::response::Redirect;
 use axum::response::Response;
 use axum_extra::extract::PrivateCookieJar;
@@ -107,16 +108,39 @@ struct LoginResult {
     success: bool,
 }
 
+struct TsHide<H: IntoResponseParts, V: IntoResponse + Typescriptable> {
+    hidden: H,
+    visible: V,
+}
+
+impl<H: IntoResponseParts, V: IntoResponse + Typescriptable> IntoResponse for TsHide<H, V> {
+    fn into_response(self) -> Response {
+        (self.hidden, self.visible).into_response()
+    }
+}
+
+impl<H: IntoResponseParts, V: IntoResponse + Typescriptable> Typescriptable for TsHide<H, V> {
+    fn name() -> String {
+        V::name()
+    }
+    fn code() -> BTreeSet<String> {
+        V::code()
+    }
+}
+
 // https://docs.rs/axum-extra/latest/axum_extra/extract/struct.PrivateCookieJar.html
 #[ts]
 async fn login(
     cookie_jar: PrivateCookieJar,
     tucan: State<Tucan>,
     input: Json<Login>,
-) -> Result<(PrivateCookieJar, Json<LoginResult>), MyError> {
+) -> Result<TsHide<PrivateCookieJar, Json<LoginResult>>, MyError> {
     let tucan_user = tucan.login(&input.username, &input.password).await?;
     let cookie_jar = cookie_jar.add(Cookie::new("session", serde_json::to_string(&tucan_user.session)?));
-    Ok((cookie_jar, Json(LoginResult { success: true })))
+    Ok(TsHide {
+        hidden: cookie_jar,
+        visible: Json(LoginResult { success: true })
+    })
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -3261,6 +3261,7 @@ dependencies = [
 name = "tucant_derive_lib"
 version = "0.1.0"
 dependencies = [
+ "axum 0.6.0",
  "chrono",
 ]
 

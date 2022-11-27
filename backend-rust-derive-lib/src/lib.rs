@@ -1,6 +1,6 @@
+use axum::Json;
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, VecDeque};
-
 pub trait Typescriptable {
     fn name() -> String;
     fn code() -> BTreeSet<String> {
@@ -75,6 +75,15 @@ impl Typescriptable for f64 {
 impl Typescriptable for i32 {
     fn name() -> String {
         "number".to_string()
+    }
+}
+
+impl<T: Typescriptable> Typescriptable for Json<T> {
+    fn name() -> String {
+        T::name()
+    }
+    fn code() -> BTreeSet<String> {
+        T::code()
     }
 }
 
