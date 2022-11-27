@@ -286,6 +286,7 @@ impl TucanUser {
     ) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
+        let (course, course_groups) = {
         let name = element_by_selector(&document, "h1").unwrap();
 
         let text = name.inner_html();
@@ -344,6 +345,9 @@ impl TucanUser {
             })
             .collect();
 
+            (course, course_groups)
+        };
+
         debug!("[+] course {:?}", course);
 
         diesel::insert_into(courses_unfinished::table)
@@ -368,6 +372,7 @@ impl TucanUser {
         &self,
         url: Coursedetails,
         document: Html,
+        mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<CourseGroup> {
         use diesel_async::RunQueryDsl;
 
@@ -398,8 +403,6 @@ impl TucanUser {
         };
 
         debug!("[+] course group {:?}", course_group);
-
-        let mut connection = self.tucan.pool.get().await?;
 
         diesel::insert_into(course_groups_unfinished::table)
             .values(&course_group)
@@ -471,7 +474,7 @@ impl TucanUser {
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup(
-                self.course_group(url, document).await?,
+                self.course_group(url, document, connection).await?,
             ))
         } else {
             Ok(CourseOrCourseGroup::Course(
@@ -482,6 +485,7 @@ impl TucanUser {
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
+        let document = self.parse_document(document)?;
 
         let url_element = document
             .select(&s("h2 a"))
@@ -855,6 +859,7 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
+        let document = self.parse_document(document)?;
 
         let my_modules = document
             .select(&s("tbody tr a"))
@@ -967,6 +972,7 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
+        let document = self.parse_document(document)?;
 
         let my_courses = document
             .select(&s("tbody tr a"))
@@ -1040,6 +1046,7 @@ impl TucanUser {
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
+        let document = self.parse_document(document)?;
 
         let matriculation_number: i32 = document
             .select(&s(r#"td[name="matriculationNumber"]"#))
