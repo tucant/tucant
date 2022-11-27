@@ -874,22 +874,24 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+        let my_modules = {
+            let document = self.parse_document(&document)?;
 
-        let my_modules = document
-            .select(&s("tbody tr a"))
-            .map(|link| {
-                TryInto::<Moduledetails>::try_into(
-                    parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        link.value().attr("href").unwrap()
-                    ))
-                    .program,
-                )
-                .unwrap()
-            })
-            .map(|moduledetails| self.module(moduledetails))
-            .collect::<FuturesUnordered<_>>();
+            document
+                .select(&s("tbody tr a"))
+                .map(|link| {
+                    TryInto::<Moduledetails>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            link.value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                })
+                .map(|moduledetails| self.module(moduledetails))
+                .collect::<FuturesUnordered<_>>()
+        };
 
         let results: Vec<anyhow::Result<(Module, Vec<Course>)>> = my_modules.collect().await;
 
@@ -987,22 +989,24 @@ impl TucanUser {
         }
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+        let my_courses = {
+            let document = self.parse_document(&document)?;
 
-        let my_courses = document
-            .select(&s("tbody tr a"))
-            .map(|link| {
-                TryInto::<Coursedetails>::try_into(
-                    parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        link.value().attr("href").unwrap()
-                    ))
-                    .program,
-                )
-                .unwrap()
-            })
-            .map(|details| self.course_or_course_group(details))
-            .collect::<FuturesUnordered<_>>();
+            document
+                .select(&s("tbody tr a"))
+                .map(|link| {
+                    TryInto::<Coursedetails>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            link.value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                })
+                .map(|details| self.course_or_course_group(details))
+                .collect::<FuturesUnordered<_>>()
+        };
 
         let results: Vec<anyhow::Result<CourseOrCourseGroup>> = my_courses.collect().await;
 
