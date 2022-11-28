@@ -17,6 +17,7 @@ use axum::extract::FromRef;
 use axum::extract::Query;
 use axum::extract::State;
 
+use axum::http::HeaderValue;
 use axum::response::IntoResponse;
 use axum::response::IntoResponseParts;
 use axum::response::Redirect;
@@ -37,6 +38,11 @@ use dotenvy::dotenv;
 use file_lock::FileLock;
 use file_lock::FileOptions;
 use itertools::Itertools;
+use reqwest::header::HeaderName;
+use reqwest::header::ACCEPT;
+use reqwest::header::AUTHORIZATION;
+use reqwest::header::CONTENT_TYPE;
+use reqwest::Method;
 use reqwest::StatusCode;
 use s_course::course;
 use s_get_modules::get_modules;
@@ -52,6 +58,9 @@ use s_search_module::SearchModuleOpensearchTs;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
+use tower_http::cors::Any;
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
 
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
@@ -313,7 +322,25 @@ async fn main() -> anyhow::Result<()> {
         codes: BTreeSet::new(),
     };
 
-    let app = app.route::<IndexTs>("/", post(index))
+    // TODO FIXME these settings are dangerous
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            ACCEPT,
+            CONTENT_TYPE,
+            "x-csrf-protection".parse::<HeaderName>().unwrap(),
+        ])
+        // allow requests from any origin
+        .allow_origin([
+            "http://127.0.0.1:5173".parse::<HeaderValue>().unwrap(),
+            "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+        ]);
+
+    let app = app
+        .route::<IndexTs>("/", post(index))
         .route::<LoginTs>("/login", post(login))
         .route::<LogoutTs>("/logout", post(logout))
         .route::<GetModulesTs>("/modules", post(get_modules))
@@ -362,7 +389,13 @@ async fn main() -> anyhow::Result<()> {
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
-        .serve(app.app.with_state::<()>(app_state).into_make_service())
+        .serve(
+            app.app
+                .with_state::<()>(app_state)
+                .layer(cors)
+                .layer(TraceLayer::new_for_http())
+                .into_make_service(),
+        )
         .await
         .unwrap();
 
