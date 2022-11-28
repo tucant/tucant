@@ -386,9 +386,13 @@ where
             .await
             .map_err(|err| err.into_response())?;
 
-        let session: TucanSession =
-            serde_json::from_str(cookie_jar.get("session").ok_or("".into_response())?.value())
-                .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
+        let session: TucanSession = serde_json::from_str(
+            cookie_jar
+                .get("session")
+                .ok_or("session not found".into_response())?
+                .value(),
+        )
+        .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
         Ok(session)
     }
 }
