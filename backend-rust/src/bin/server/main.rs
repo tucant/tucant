@@ -246,9 +246,15 @@ async fn logout(
 }
 
 #[ts]
-async fn index(cookie_jar: PrivateCookieJar, _input: Json<()>) -> Result<Json<String>, MyError> {
-    let session: TucanSession = serde_json::from_str(cookie_jar.get("session").unwrap().value())?;
-    Ok(Json(format!("Welcome! {}", session.matriculation_number)))
+async fn index(
+    session: Option<TucanSession>,
+    cookie_jar: PrivateCookieJar,
+    _input: Json<()>,
+) -> Result<Json<String>, MyError> {
+    Ok(Json(format!(
+        "Welcome! {}",
+        session.map(|v| v.matriculation_number).unwrap_or(-1)
+    )))
 }
 
 #[derive(Clone, FromRef)]
