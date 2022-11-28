@@ -13,6 +13,7 @@ pub struct Struct1 {
 }
 
 #[ts]
+#[allow(dead_code)]
 async fn index(_session: String, _input: Json<()>) -> axum::response::Result<Json<String>> {
     Ok(Json("Welcome Anonymous!".to_owned()))
 }

@@ -22,7 +22,6 @@ use axum::response::IntoResponse;
 use axum::response::IntoResponseParts;
 use axum::response::Redirect;
 use axum::response::Response;
-use axum::ServiceExt;
 
 use axum::routing::get;
 use axum::routing::post;

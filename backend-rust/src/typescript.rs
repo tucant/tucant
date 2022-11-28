@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use axum::{routing::MethodRouter, Router};
-use tucant_derive_lib::{TypescriptRoute, Typescriptable};
+use tucant_derive_lib::TypescriptRoute;
 
 pub struct TypescriptableApp<S: Clone + Send + Sync + 'static = ()> {
     pub app: Router<S>,
