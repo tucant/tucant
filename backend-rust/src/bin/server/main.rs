@@ -59,7 +59,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
 use tower_http::compression::CompressionLayer;
-use tower_http::cors::Any;
+
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
@@ -249,7 +249,7 @@ async fn logout(
 #[ts]
 async fn index(
     session: Option<TucanSession>,
-    cookie_jar: PrivateCookieJar,
+    _cookie_jar: PrivateCookieJar,
     _input: Json<()>,
 ) -> Result<Json<String>, MyError> {
     Ok(Json(format!(
