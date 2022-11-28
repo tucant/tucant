@@ -58,6 +58,7 @@ use s_search_module::SearchModuleOpensearchTs;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
+use tower_http::compression::CompressionLayer;
 use tower_http::cors::Any;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -361,7 +362,6 @@ async fn main() -> anyhow::Result<()> {
         .route::<MyModulesTs>("/my-modules", post(my_modules))
         .route::<MyCoursesTs>("/my-courses", post(my_courses));
 
-    // TODO FIXME cors
     // TODO FIXME csrf
 
     let should_we_block = true;
@@ -399,6 +399,7 @@ async fn main() -> anyhow::Result<()> {
             app.app
                 .with_state::<()>(app_state)
                 .layer(cors)
+                .layer(CompressionLayer::new())
                 .layer(TraceLayer::new_for_http())
                 .into_make_service(),
         )
