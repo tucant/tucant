@@ -389,7 +389,7 @@ where
         let session: TucanSession = serde_json::from_str(
             cookie_jar
                 .get("session")
-                .ok_or("session not found".into_response())?
+                .ok_or_else(|| "session not found".into_response())?
                 .value(),
         )
         .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
