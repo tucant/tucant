@@ -398,7 +398,7 @@ async fn main() -> anyhow::Result<()> {
             app.app
                 .with_state::<()>(app_state)
                 .layer(cors)
-                .layer(CompressionLayer::new())
+                //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
                 .layer(TraceLayer::new_for_http())
                 .into_make_service(),
         )
