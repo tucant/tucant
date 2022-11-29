@@ -57,7 +57,6 @@ use s_search_module::SearchModuleOpensearchTs;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
-use tower_http::compression::CompressionLayer;
 
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;

@@ -8,13 +8,12 @@ use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 use crate::TucanUser;
-use async_stream::stream;
+
 use async_stream::Stream;
 use axum::body::StreamBody;
 use reqwest::header;
 use tucant::MyError;
 
-use anyhow::Error;
 use async_stream::try_stream;
 use axum::body::Bytes;
 
@@ -22,13 +21,7 @@ use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
-use core::pin::Pin;
-use futures::stream::FuturesUnordered;
-use std::sync::Arc;
 
-use futures::FutureExt;
-use futures_util::StreamExt;
-use tracing_futures::Instrument;
 use tucant::models::Course;
 use tucant::models::Module;
 
@@ -41,7 +34,9 @@ enum ModulesOrCourses {
 
 #[derive(Debug)]
 enum ModuleOrCourse {
+    #[allow(dead_code)]
     Module(Module),
+    #[allow(dead_code)]
     Course(Course),
 }
 
