@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::s_search_course::SearchResult;
-use crate::MyError;
+use tucant::MyError;
 
-use actix_web::post;
-use actix_web::web::{Data, Json};
+use axum::extract::State;
+use axum::Json;
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
@@ -24,10 +24,9 @@ use tucant::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[post("/search-module")]
 pub async fn search_module(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
@@ -61,10 +60,9 @@ pub async fn search_module(
 }
 
 #[ts]
-#[post("/search-module-opensearch")]
 pub async fn search_module_opensearch(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     let response = tucan

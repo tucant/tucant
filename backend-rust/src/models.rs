@@ -1,5 +1,12 @@
 use std::collections::VecDeque;
 
+use axum::extract::FromRef;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use axum_extra::extract::cookie::Key;
+use axum_extra::extract::PrivateCookieJar;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -364,6 +371,30 @@ pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,
     pub session_id: String,
+}
+
+#[axum::async_trait]
+impl<S> FromRequestParts<S> for TucanSession
+where
+    Key: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
+            .await
+            .map_err(|err| err.into_response())?;
+
+        let session: TucanSession = serde_json::from_str(
+            cookie_jar
+                .get("session")
+                .ok_or_else(|| "session not found".into_response())?
+                .value(),
+        )
+        .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
+        Ok(session)
+    }
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

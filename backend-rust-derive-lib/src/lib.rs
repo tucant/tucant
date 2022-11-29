@@ -1,12 +1,15 @@
-use actix_web::web::{Form, Json};
+use axum::Json;
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, VecDeque};
-
 pub trait Typescriptable {
     fn name() -> String;
     fn code() -> BTreeSet<String> {
         BTreeSet::new()
     }
+}
+
+pub trait TypescriptRoute {
+    fn code(path: &str) -> BTreeSet<String>;
 }
 
 impl Typescriptable for u32 {
@@ -75,6 +78,15 @@ impl Typescriptable for i32 {
     }
 }
 
+impl<T: Typescriptable> Typescriptable for Json<T> {
+    fn name() -> String {
+        T::name()
+    }
+    fn code() -> BTreeSet<String> {
+        T::code()
+    }
+}
+
 impl<T1: Typescriptable, T2: Typescriptable> Typescriptable for (T1, T2) {
     fn name() -> String {
         "[".to_string() + &T1::name() + ", " + &T2::name() + "]"
@@ -114,24 +126,6 @@ impl<T: Typescriptable> Typescriptable for Option<T> {
 }
 
 impl<T: Typescriptable, E> Typescriptable for Result<T, E> {
-    fn name() -> String {
-        T::name()
-    }
-    fn code() -> BTreeSet<String> {
-        T::code()
-    }
-}
-
-impl<T: Typescriptable> Typescriptable for Json<T> {
-    fn name() -> String {
-        T::name()
-    }
-    fn code() -> BTreeSet<String> {
-        T::code()
-    }
-}
-
-impl<T: Typescriptable> Typescriptable for Form<T> {
     fn name() -> String {
         T::name()
     }

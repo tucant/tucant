@@ -2,13 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::MyError;
+use tucant::MyError;
 
-use actix_web::{
-    post,
-    web::{Data, Json},
-};
-
+use axum::extract::State;
+use axum::Json;
 use diesel::ExpressionMethods;
 use diesel::TextExpressionMethods;
 use diesel::{QueryDsl, Queryable};
@@ -38,10 +35,9 @@ pub struct SearchResult {
 }
 
 #[ts]
-#[post("/search-course")]
 pub async fn search_course(
     _: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     let mut connection = tucan.pool.get().await?;

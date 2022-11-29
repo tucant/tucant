@@ -4,26 +4,25 @@
 
 use std::io::ErrorKind;
 
-use crate::MyError;
+use crate::AppState;
 use crate::WithTucanUrl;
 
-use actix_web::post;
-use actix_web::web::Json;
-
-use actix_web::web::Data;
+use axum::extract::State;
+use axum::Json;
 
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
+use tucant::MyError;
 use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
-#[post("/course")]
+#[axum::debug_handler(state=AppState)]
 pub async fn course(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<Course>>, MyError> {
     let binary_path = base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();

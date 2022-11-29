@@ -1,8 +1,9 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use heck::ToUpperCamelCase;
+use proc_macro2::{Ident, TokenStream};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
-    Error, ItemFn, Lit, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
+    Error, ItemFn, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -16,29 +17,6 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
             ))
         }
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
-    };
-
-    let actix_macro = node
-        .attrs
-        .iter()
-        .find(|attr| attr.path.get_ident().map(Ident::to_string) == Some("post".to_string()));
-
-    let actix_macro = if let Some(actix_macro) = actix_macro {
-        actix_macro
-    } else {
-        return Err(Error::new(
-            Span::call_site(),
-            r#"could not find actix `post` attribute macro"#,
-        ));
-    };
-    let url_path = actix_macro.parse_meta()?;
-    let url_path = match url_path {
-        Meta::List(meta_list) => match meta_list.nested.iter().next() {
-            Some(NestedMeta::Lit(Lit::Str(str))) => str.value(),
-            None => return Err(Error::new(meta_list.span(), r#"expected a literal string"#)),
-            err => return Err(Error::new(err.span(), r#"expected a literal string"#)),
-        },
-        err => return Err(Error::new(err.span(), r#"expected a list"#)),
     };
 
     let arg_type = node
@@ -65,6 +43,8 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
 
         let name_string = node.sig.ident.to_string();
 
+        let name_ts = format_ident!("{}Ts", name.to_string().to_upper_camel_case());
+
         let typescriptable_arg_type_name = quote_spanned! {arg_type.span()=>
             <#arg_type as tucant_derive_lib::Typescriptable>::name()
         };
@@ -84,16 +64,15 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         Ok(quote! {
             #node
 
-            impl #impl_generics tucant_derive_lib::Typescriptable for #name #ty_generics #where_clause {
-                fn name() -> String {
-                    #name_string.to_string()
-                }
+            pub struct #name_ts;
 
-                fn code() -> ::std::collections::BTreeSet<String> {
-                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + &<#name as tucant_derive_lib::Typescriptable>::name() + "(input: " + &#typescriptable_arg_type_name + ")"
+            impl #impl_generics tucant_derive_lib::TypescriptRoute for #name_ts #ty_generics #where_clause {
+
+                fn code(path: &str) -> ::std::collections::BTreeSet<String> {
+                    let mut result = ::std::collections::BTreeSet::from(["export async function ".to_string() + #name_string + "(input: " + &#typescriptable_arg_type_name + ")"
                     + ": Promise<" + &#typescriptable_return_type_name + "> {" +
                     r#"
-        return await genericFetch("http://localhost:8080"# + #url_path + r#"", input) as "# + &#typescriptable_return_type_name +
+        return await genericFetch("http://localhost:8080"# + path + r#"", input) as "# + &#typescriptable_return_type_name +
         "\n}"]);
                     result.extend(#typescriptable_arg_type_code);
                     result.extend(#typescriptable_return_type_code);

@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-
-mod csrf_middleware;
 mod s_course;
 mod s_get_modules;
 mod s_module;
@@ -12,35 +10,61 @@ mod s_search_course;
 mod s_search_module;
 mod s_setup;
 
-use actix_cors::Cors;
-use actix_session::Session;
-use actix_session::{storage::CookieSessionStore, SessionMiddleware};
-use actix_web::cookie::SameSite;
-use actix_web::http::header::{self, ContentType};
-use actix_web::middleware::Logger;
-use actix_web::web::{Json, Query};
-use actix_web::{cookie::Key, post, web, App, HttpServer};
-use actix_web::{get, HttpRequest, HttpResponse};
+use axum::Json;
 
-use csrf_middleware::CsrfMiddleware;
+use axum::extract::FromRef;
 
-use file_lock::{FileLock, FileOptions};
+use axum::extract::Query;
+use axum::extract::State;
+
+use axum::http::HeaderValue;
+use axum::response::IntoResponse;
+use axum::response::IntoResponseParts;
+use axum::response::Redirect;
+use axum::response::Response;
+
+use axum::routing::get;
+use axum::routing::post;
+use axum::Router;
+use axum_extra::extract::cookie::Cookie;
+use axum_extra::extract::cookie::Key;
+use axum_extra::extract::PrivateCookieJar;
+use diesel::{Connection, PgConnection};
+use diesel_migrations::FileBasedMigrations;
+use diesel_migrations::MigrationHarness;
+use dotenvy::dotenv;
+
+use file_lock::FileLock;
+use file_lock::FileOptions;
 use itertools::Itertools;
-
-use log::error;
+use reqwest::header::HeaderName;
+use reqwest::header::ACCEPT;
+use reqwest::header::AUTHORIZATION;
+use reqwest::header::CONTENT_TYPE;
+use reqwest::Method;
+use reqwest::StatusCode;
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
 use s_my_courses::my_courses;
+use s_my_courses::MyCoursesTs;
 use s_my_modules::my_modules;
 use s_search_course::search_course;
+use s_search_course::SearchCourseTs;
 use s_search_module::search_module;
-use s_setup::setup;
+use s_search_module::SearchModuleOpensearchTs;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use std::fmt::Display;
+use std::net::SocketAddr;
+use tower_http::compression::CompressionLayer;
+
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
+
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
+use tucant::MyError;
 
 use tucant::models::{TucanSession, UndoneUser};
 
@@ -57,39 +81,19 @@ use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 use tucant_derive_lib::Typescriptable;
 
+use crate::s_course::CourseTs;
+use crate::s_get_modules::GetModulesTs;
+use crate::s_module::ModuleTs;
+use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
+use crate::s_search_module::SearchModuleTs;
+use crate::s_setup::setup;
 
 #[derive(Serialize, Typescriptable)]
 pub struct WithTucanUrl<T: Serialize + Typescriptable> {
     pub tucan_url: String,
     //#[serde(flatten)] // not supported by Typescriptable
     pub inner: T,
-}
-
-#[derive(Debug)]
-pub struct MyError {
-    err: anyhow::Error,
-}
-
-impl Display for MyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.err.fmt(f)
-    }
-}
-
-impl actix_web::error::ResponseError for MyError {
-    fn error_response(&self) -> HttpResponse {
-        error!("{:?}", self.err);
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::html())
-            .body(self.to_string())
-    }
-}
-
-impl<E: Into<anyhow::Error>> From<E> for MyError {
-    fn from(err: E) -> MyError {
-        MyError { err: err.into() }
-    }
 }
 
 #[derive(Deserialize, Debug, Typescriptable)]
@@ -103,17 +107,42 @@ struct LoginResult {
     success: bool,
 }
 
-#[tracing::instrument(skip(session))]
+struct TsHide<H: IntoResponseParts, V: IntoResponse + Typescriptable> {
+    hidden: H,
+    visible: V,
+}
+
+impl<H: IntoResponseParts, V: IntoResponse + Typescriptable> IntoResponse for TsHide<H, V> {
+    fn into_response(self) -> Response {
+        (self.hidden, self.visible).into_response()
+    }
+}
+
+impl<H: IntoResponseParts, V: IntoResponse + Typescriptable> Typescriptable for TsHide<H, V> {
+    fn name() -> String {
+        V::name()
+    }
+    fn code() -> BTreeSet<String> {
+        V::code()
+    }
+}
+
+// https://docs.rs/axum-extra/latest/axum_extra/extract/struct.PrivateCookieJar.html
 #[ts]
-#[post("/login")]
 async fn login(
-    session: Session,
-    tucan: web::Data<Tucan>,
-    input: web::Json<Login>,
-) -> Result<Json<LoginResult>, MyError> {
+    cookie_jar: PrivateCookieJar,
+    tucan: State<Tucan>,
+    input: Json<Login>,
+) -> Result<TsHide<PrivateCookieJar, Json<LoginResult>>, MyError> {
     let tucan_user = tucan.login(&input.username, &input.password).await?;
-    session.insert("session", tucan_user.session).unwrap();
-    Ok(web::Json(LoginResult { success: true }))
+    let cookie_jar = cookie_jar.add(Cookie::new(
+        "session",
+        serde_json::to_string(&tucan_user.session)?,
+    ));
+    Ok(TsHide {
+        hidden: cookie_jar,
+        visible: Json(LoginResult { success: true }),
+    })
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -123,14 +152,11 @@ struct LoginHack {
     pub redirect: String,
 }
 
-#[tracing::instrument(skip(session))]
-#[get("/login-hack")]
 async fn login_hack(
-    session: Session,
-    req: HttpRequest,
-    tucan: web::Data<Tucan>,
+    mut cookie_jar: PrivateCookieJar,
+    tucan: State<Tucan>,
     input: Query<LoginHack>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<Response, MyError> {
     println!("{:?}", input);
 
     use diesel_async::RunQueryDsl;
@@ -175,69 +201,71 @@ async fn login_hack(
                 })
             })
             .await?;
-        session
-            .insert("session", tucan_user.session.clone())
-            .unwrap();
+        cookie_jar = cookie_jar.add(Cookie::new(
+            "session",
+            serde_json::to_string(&tucan_user.session)?,
+        ));
     }
 
     let url = match parse_tucan_url(&input.redirect).program {
-        tucant::url::TucanProgram::Registration(registration) => req.url_for(
-            "registration",
-            [base64::encode_config(
-                registration.path,
-                base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
+        tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
+            "http://localhost:5173/modules/{}",
+            base64::encode_config(registration.path, base64::URL_SAFE_NO_PAD,)
+        )),
         tucant::url::TucanProgram::RootRegistration(_) => {
-            req.url_for::<[String; 0], _>("root_registration", [])?
+            Redirect::to("http://localhost:5173/modules/")
         }
-        tucant::url::TucanProgram::Moduledetails(module_details) => req.url_for(
-            "module",
-            [base64::encode_config(
-                module_details.id,
-                base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
-        tucant::url::TucanProgram::Coursedetails(course_details) => req.url_for(
-            "course",
-            [base64::encode_config(
-                course_details.id,
-                base64::URL_SAFE_NO_PAD,
-            )],
-        )?,
-        tucant::url::TucanProgram::Externalpages(_) => {
-            req.url_for::<[String; 0], _>("index", [])?
-        }
+        tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
+            "http://localhost:5173/module/{}",
+            base64::encode_config(module_details.id, base64::URL_SAFE_NO_PAD,)
+        )),
+        tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
+            "http://localhost:5173/course/{}",
+            base64::encode_config(course_details.id, base64::URL_SAFE_NO_PAD,)
+        )),
+        tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
         other => {
             println!("{:?}", other);
-            return Ok(HttpResponse::NotFound().finish());
+            return Ok(StatusCode::NOT_FOUND.into_response());
         }
     };
 
-    Ok(HttpResponse::Found()
-        .insert_header((header::LOCATION, url.as_str()))
-        .finish())
-}
-
-#[tracing::instrument(skip(session))]
-#[ts]
-#[post("/logout")]
-async fn logout(session: Session, _input: Json<()>) -> Result<Json<()>, MyError> {
-    session.purge();
-    Ok(web::Json(()))
+    Ok((cookie_jar, url).into_response())
 }
 
 #[ts]
-#[post("/")]
-async fn index(session: TucanSession, _input: Json<()>) -> Result<Json<String>, MyError> {
-    Ok(web::Json(format!(
+async fn logout(
+    cookie_jar: PrivateCookieJar,
+    _input: Json<()>,
+) -> Result<TsHide<PrivateCookieJar, Json<()>>, MyError> {
+    let cookie_jar = cookie_jar.remove(Cookie::named("session"));
+    Ok(TsHide {
+        hidden: cookie_jar,
+        visible: Json(()),
+    })
+}
+
+#[ts]
+async fn index(
+    session: Option<TucanSession>,
+    _cookie_jar: PrivateCookieJar,
+    _input: Json<()>,
+) -> Result<Json<String>, MyError> {
+    Ok(Json(format!(
         "Welcome! {}",
-        session.matriculation_number
+        session.map(|v| v.matriculation_number).unwrap_or(-1)
     )))
 }
 
-#[actix_web::main]
+#[derive(Clone, FromRef)]
+struct AppState {
+    key: Key,
+    tucan: Tucan,
+}
+
+#[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
     env_logger::init();
 
     /*
@@ -258,6 +286,13 @@ async fn main() -> anyhow::Result<()> {
 
     warn!("Starting server...");
 
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    // https://github.com/weiznich/diesel_async/issues/17
+    let migrations = FileBasedMigrations::find_migrations_directory()?;
+    let mut connection = PgConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+    connection.run_pending_migrations(migrations).unwrap();
+
     // https://crates.io/crates/tracing
 
     let random_secret_key = Key::generate();
@@ -274,99 +309,101 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let secret_key_raw = fs::read("sessions.key").await?;
-    let secret_key = Key::derive_from(&secret_key_raw);
+    let secret_key = Key::from(&secret_key_raw);
 
-    let tucan = web::Data::new(Tucan::new().await?);
+    let tucan = Tucan::new().await?;
 
-    HttpServer::new(move || {
-        let logger = Logger::default();
-        /*
-        let cors = Cors::default()
-            .supports_credentials()
-            .allow_any_method()
-            .allow_any_header()
-            .allowed_origin_fn(|origin, _| {
-                println!("{:?}", origin);
-                origin == "http://127.0.0.1:5173" ||  origin == "http://localhost:5173"
-            });*/
-        let cors = Cors::permissive();
+    let app_state = AppState {
+        key: secret_key,
+        tucan,
+    };
 
-        let app = App::new()
-            .app_data(tucan.clone())
-            .wrap(
-                SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
-                    .cookie_same_site(SameSite::None)
-                    .cookie_secure(true)
-                    .cookie_http_only(false)
-                    .build(), // TODO FIXME
-            )
-            .wrap(CsrfMiddleware {})
-            .wrap(cors)
-            .wrap(logger);
+    let app: Router<AppState> = Router::new()
+        .with_state(app_state.clone())
+        .route("/setup", post(setup))
+        .route("/login-hack", get(login_hack));
 
-        let app = TypescriptableApp {
-            app,
-            codes: BTreeSet::new(),
-        };
-        let app = app
-            // TODO FIXME looks like this generates massive backtraces, maybe switch to manual get and post and not this macro and service magic
-            .service(index)
-            .service(login)
-            .service(logout)
-            .service(get_modules)
-            .service(search_module)
-            .service(search_module_opensearch)
-            .service(search_course)
-            .service(course)
-            .service(module)
-            .service(my_modules)
-            .service(my_courses);
+    let app = TypescriptableApp {
+        app,
+        codes: BTreeSet::new(),
+    };
 
-        let should_we_block = true;
-        let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
+    // TODO FIXME these settings are dangerous
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            ACCEPT,
+            CONTENT_TYPE,
+            "x-csrf-protection".parse::<HeaderName>().unwrap(),
+        ])
+        // allow requests from any origin
+        .allow_origin([
+            "http://127.0.0.1:5173".parse::<HeaderValue>().unwrap(),
+            "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+        ]);
 
-        let mut filelock = match FileLock::lock(
-            "../frontend-react/src/api.ts",
-            should_we_block,
-            lock_for_writing,
-        ) {
-            Ok(lock) => lock,
-            Err(err) => panic!("Error getting write lock: {}", err),
-        };
+    let app = app
+        .route::<IndexTs>("/", post(index))
+        .route::<LoginTs>("/login", post(login))
+        .route::<LogoutTs>("/logout", post(logout))
+        .route::<GetModulesTs>("/modules", post(get_modules))
+        .route::<SearchModuleTs>("/search-modules", post(search_module))
+        .route::<SearchModuleOpensearchTs>(
+            "/search-modules-opensearch",
+            post(search_module_opensearch),
+        )
+        .route::<SearchCourseTs>("/search-course", post(search_course))
+        .route::<CourseTs>("/course", post(course))
+        .route::<ModuleTs>("/module", post(module))
+        .route::<MyModulesTs>("/my-modules", post(my_modules))
+        .route::<MyCoursesTs>("/my-courses", post(my_courses));
 
-        filelock
-            .file
-            .write_all(
-                (r#"
-// This file is automatically generated at startup. Do not modify.
-import { genericFetch } from "./api_base"
-"#
-                .to_string()
-                    + &app.codes.into_iter().join("\n"))
-                    .as_bytes(),
-            )
-            .unwrap();
+    // TODO FIXME csrf
 
-        // Manually unlocking is optional as we unlock on Drop
-        filelock.unlock().unwrap();
+    let should_we_block = true;
+    let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
-        app.app
-            .service(setup)
-            .service(login_hack)
-            .external_resource("course", "http://localhost:5173/course/{course_name}")
-            .external_resource("module", "http://localhost:5173/module/{course_name}")
-            .external_resource(
-                "registration",
-                "http://localhost:5173/modules/{registration}",
-            )
-            .external_resource("root_registration", "http://localhost:5173/modules/")
-            .external_resource("my_modules", "http://localhost:5173/my-modules/")
-            .external_resource("my_courses", "http://localhost:5173/my-courses/")
-            .external_resource("index", "http://localhost:5173/")
-    })
-    .bind(("localhost", 8080))?
-    .run()
-    .await?;
+    let mut filelock = match FileLock::lock(
+        "../frontend-react/src/api.ts",
+        should_we_block,
+        lock_for_writing,
+    ) {
+        Ok(lock) => lock,
+        Err(err) => panic!("Error getting write lock: {}", err),
+    };
+
+    filelock
+        .file
+        .write_all(
+            (r#"
+    // This file is automatically generated at startup. Do not modify.
+    import { genericFetch } from "./api_base"
+    "#
+            .to_string()
+                + &app.codes.into_iter().join("\n"))
+                .as_bytes(),
+        )
+        .unwrap();
+
+    // Manually unlocking is optional as we unlock on Drop
+    filelock.unlock().unwrap();
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(
+            app.app
+                .with_state::<()>(app_state)
+                .layer(cors)
+                .layer(CompressionLayer::new())
+                .layer(TraceLayer::new_for_http())
+                .into_make_service(),
+        )
+        .await
+        .unwrap();
 
     Ok(())
 }

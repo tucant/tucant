@@ -1,7 +1,4 @@
-use actix_web::{
-    post,
-    web::{self, Json},
-};
+use axum::Json;
 use tucant_derive::{ts, Typescriptable};
 
 // cargo install cargo-expand
@@ -16,9 +13,9 @@ pub struct Struct1 {
 }
 
 #[ts]
-#[post("/")]
-async fn index(_session: String, _input: Json<()>) -> actix_web::Result<Json<String>> {
-    Ok(web::Json("Welcome Anonymous!".to_owned()))
+#[allow(dead_code)]
+async fn index(_session: String, _input: Json<()>) -> axum::response::Result<Json<String>> {
+    Ok(Json("Welcome Anonymous!".to_owned()))
 }
 
 #[test]
@@ -27,5 +24,4 @@ pub fn test() {
 
     // cargo test -- --show-output
     println!("{:?}", <Struct1 as Typescriptable>::code());
-    println!("{:?}", <index as Typescriptable>::code());
 }

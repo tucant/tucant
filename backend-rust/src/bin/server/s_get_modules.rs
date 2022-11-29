@@ -5,13 +5,13 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-use crate::MyError;
 use crate::WithTucanUrl;
+use tucant::MyError;
 
-use actix_web::post;
-use actix_web::web::Json;
+use axum::extract::State;
 
-use actix_web::web::Data;
+use axum::Json;
+
 use diesel::sql_query;
 
 use diesel::sql_types::Bytea;
@@ -28,12 +28,10 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 // trailing slash is menu
-
 #[ts]
-#[post("/modules")]
 pub async fn get_modules(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<Option<String>>,
 ) -> Result<Json<WithTucanUrl<ModuleMenuResponse>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();

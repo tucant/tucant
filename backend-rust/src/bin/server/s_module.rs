@@ -4,13 +4,12 @@
 
 use std::collections::{HashMap, VecDeque};
 
-use crate::MyError;
+use crate::AppState;
 use crate::WithTucanUrl;
+use tucant::MyError;
 
-use actix_web::post;
-use actix_web::web::Json;
-
-use actix_web::web::Data;
+use axum::extract::State;
+use axum::Json;
 use diesel::sql_types::Bytea;
 
 use diesel::sql_query;
@@ -25,10 +24,10 @@ use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
-#[post("/module")]
+#[axum::debug_handler(state=AppState)]
 pub async fn module(
     session: TucanSession,
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
     let mut connection = tucan.pool.get().await?;

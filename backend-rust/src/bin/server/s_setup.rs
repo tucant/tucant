@@ -4,20 +4,20 @@
 
 use crate::Coursedetails;
 use crate::Moduledetails;
-use crate::MyError;
 use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 use crate::TucanUser;
+use tucant::MyError;
 
-use actix_web::post;
-use actix_web::web::Bytes;
-use actix_web::web::Data;
-use actix_web::web::Json;
-use actix_web::HttpResponse;
-use actix_web::Responder;
 use anyhow::Error;
 use async_stream::try_stream;
+use axum::body::Bytes;
+
+use axum::extract::State;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use axum::Json;
 use core::pin::Pin;
 use futures::stream::FuturesUnordered;
 
@@ -144,13 +144,12 @@ fn fetch_registration(
     )
 }
 
-#[post("/setup")]
 pub async fn setup(
-    tucan: Data<Tucan>,
+    tucan: State<Tucan>,
     session: TucanSession,
     _input: Json<()>,
-) -> Result<impl Responder, MyError> {
-    let stream = try_stream(move |mut stream| async move {
+) -> Result<Response, MyError> {
+    let _stream = try_stream(move |mut stream| async move {
         stream
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
@@ -178,7 +177,7 @@ pub async fn setup(
 
     // TODO FIXME search for <h1>Timeout!</h1>
 
-    Ok(HttpResponse::Ok()
-        .content_type("text/plain")
-        .streaming(stream))
+    Ok("".into_response())
+
+    //Ok(StreamBody::new(stream).into_response())
 }
