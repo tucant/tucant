@@ -55,6 +55,7 @@ opensearch = "2"
 rand = "0.8"
 tucant_derive_lib = { path = "../backend-rust-derive-lib" }
 diesel_migrations = "2"
+async-recursion = "1"
 
 [features]
 default = ["server"]

@@ -8,9 +8,12 @@ use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 use crate::TucanUser;
+
+use async_stream::Stream;
+use axum::body::StreamBody;
+use reqwest::header;
 use tucant::MyError;
 
-use anyhow::Error;
 use async_stream::try_stream;
 use axum::body::Bytes;
 
@@ -18,34 +21,9 @@ use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
-use core::pin::Pin;
-use futures::stream::FuturesUnordered;
 
-use futures::FutureExt;
-use futures::Stream;
-use futures_util::StreamExt;
-use tracing_futures::Instrument;
 use tucant::models::Course;
 use tucant::models::Module;
-
-async fn yield_stream(
-    stream: &mut async_stream::Stream<Bytes>,
-    mut inner_stream: Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>>,
-) -> Result<(), MyError> {
-    loop {
-        match inner_stream.next().await {
-            Some(Ok(value)) => {
-                stream.yield_item(value).await;
-            }
-            Some(err @ Err(_)) => {
-                err?;
-            }
-            None => {
-                break Ok(());
-            }
-        }
-    }
-}
 
 #[derive(Clone, Copy)]
 enum ModulesOrCourses {
@@ -56,92 +34,76 @@ enum ModulesOrCourses {
 
 #[derive(Debug)]
 enum ModuleOrCourse {
+    #[allow(dead_code)]
     Module(Module),
+    #[allow(dead_code)]
     Course(Course),
 }
 
 // https://docs.rs/tracing-futures/0.2.5/tracing_futures/
-fn fetch_registration(
+#[async_recursion::async_recursion]
+async fn fetch_registration(
+    stream: &mut Stream<Bytes>,
     tucan: TucanUser,
     parent: Registration,
     modules_or_courses: ModulesOrCourses,
-) -> Pin<Box<dyn Stream<Item = Result<Bytes, MyError>>>> {
-    Box::pin(
-        try_stream(move |mut stream| async move {
-            let value = tucan.registration(parent.clone()).await?;
+) {
+    let value = tucan.registration(parent.clone()).await.unwrap();
 
-            stream
-                .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
-                .await;
+    stream
+        .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
+        .await;
 
-            let tucan_clone = tucan.clone();
+    let tucan_clone = tucan.clone();
 
-            yield_stream(
-                &mut stream,
-                Box::pin(
-                    futures::stream::iter(value.1.submenus.into_iter())
-                        .map(move |menu| {
-                            fetch_registration(
-                                tucan_clone.clone(),
-                                Registration {
-                                    path: menu.tucan_id,
-                                },
-                                modules_or_courses,
-                            )
-                        })
-                        .flatten_unordered(None),
-                ),
-            )
-            .await?;
+    for menu in value.1.submenus.into_iter() {
+        fetch_registration(
+            stream,
+            tucan_clone.clone(),
+            Registration {
+                path: menu.tucan_id,
+            },
+            modules_or_courses,
+        )
+        .await;
+    }
 
-            let mut futures: FuturesUnordered<_> = value.1.modules_and_courses
-                .iter()
-                .flat_map(|module| {
-                    //                             .instrument(tracing::info_span!("magic"))
-                        match modules_or_courses {
-                            ModulesOrCourses::Modules => Box::new(std::iter::once((async {
-                                let module = tucan
-                                    .module(Moduledetails {
-                                        id: module.0.tucan_id.clone(),
-                                    })
-                                    .await
-                                    .unwrap();
-                                ModuleOrCourse::Module(module.0)
-                            }).boxed_local())) as Box<dyn Iterator<Item=_>>,
-                            ModulesOrCourses::Courses => {
-                                // some history modules have multiple courses per module
-                                // so we have to fetch all here
-
-                                Box::new(module.1.iter().map(|course| (async {
-                                    ModuleOrCourse::Course(match
-                                    tucan
-                                    .course_or_course_group(Coursedetails {
-                                        id: course.tucan_id.clone(),
-                                    })
-                                    .await
-                                    .unwrap() {
-                                        tucant::tucan_user::CourseOrCourseGroup::Course(c) => c,
-                                        tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
-                                    })
-                                }).boxed_local())) as Box<dyn Iterator<Item=_>>
-                            }
-                        }
+    for module in value.1.modules_and_courses {
+        match modules_or_courses {
+            ModulesOrCourses::Modules => {
+                let module = tucan
+                    .module(Moduledetails {
+                        id: module.0.tucan_id.clone(),
                     })
-                .collect();
-
-            while let Some(module) = futures.next().await {
+                    .await
+                    .unwrap();
                 stream
-                    .yield_item(Bytes::from(match module {
-                        ModuleOrCourse::Module(module) => format!("\nmodule {:?}", module.title),
-                        ModuleOrCourse::Course(course) => format!("\ncourse {:?}", course.title),
-                    }))
+                    .yield_item(Bytes::from(format!("\nmodule {:?}", module.0.title)))
                     .await;
             }
+            ModulesOrCourses::Courses => {
+                // some history modules have multiple courses per module
+                // so we have to fetch all here
 
-            Ok(())
-        })
-        .instrument(tracing::info_span!("fetch_registration")),
-    )
+                for course in module.1 {
+                    match tucan
+                        .course_or_course_group(Coursedetails {
+                            id: course.tucan_id.clone(),
+                        })
+                        .await
+                        .unwrap()
+                    {
+                        tucant::tucan_user::CourseOrCourseGroup::Course(course) => {
+                            stream
+                                .yield_item(Bytes::from(format!("\ncourse {:?}", course.title)))
+                                .await;
+                        }
+                        tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub async fn setup(
@@ -149,7 +111,7 @@ pub async fn setup(
     session: TucanSession,
     _input: Json<()>,
 ) -> Result<Response, MyError> {
-    let _stream = try_stream(move |mut stream| async move {
+    let stream = try_stream(move |mut stream| async move {
         stream
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
@@ -158,26 +120,24 @@ pub async fn setup(
 
         let root = tucan.root_registration().await.unwrap();
 
-        let input = fetch_registration(
+        fetch_registration(
+            &mut stream,
             tucan,
             Registration {
                 path: root.tucan_id,
             },
             ModulesOrCourses::Modules,
-        );
-
-        yield_stream(&mut stream, input).await.unwrap();
+        )
+        .await;
 
         stream.yield_item(Bytes::from("\nFertig!")).await;
 
-        let return_value: Result<(), Error> = Ok(());
+        let return_value: std::io::Result<()> = Ok(());
 
         return_value
     });
 
-    // TODO FIXME search for <h1>Timeout!</h1>
+    let headers = [(header::CONTENT_TYPE, "text/plain")];
 
-    Ok("".into_response())
-
-    //Ok(StreamBody::new(stream).into_response())
+    Ok((headers, StreamBody::new(stream)).into_response())
 }
