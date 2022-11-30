@@ -127,7 +127,10 @@ impl TucanProgram {
                 "REGISTRATION",
                 Box::new([TucanArgument::Number(311), TucanArgument::String("")].into_iter()),
             ),
-            TucanProgram::Myexams(_) => todo!(),
+            TucanProgram::Myexams(_) => (
+                "MYEXAMS",
+                Box::new([TucanArgument::Number(318), TucanArgument::Number(999)].into_iter()),
+            ),
             TucanProgram::Courseresults(_) => todo!(),
             TucanProgram::Examresults(_) => todo!(),
             TucanProgram::StudentResult(_) => todo!(),

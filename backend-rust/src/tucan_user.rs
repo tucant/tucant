@@ -13,8 +13,8 @@ use crate::{
     },
     tucan::Tucan,
     url::{
-        parse_tucan_url, Coursedetails, Moduledetails, Mymodules, Persaddress, Registration,
-        RootRegistration, TucanProgram, TucanUrl,
+        parse_tucan_url, Coursedetails, Moduledetails, Myexams, Mymodules, Persaddress,
+        Registration, RootRegistration, TucanProgram, TucanUrl,
     },
 };
 use crate::{
@@ -1078,4 +1078,43 @@ impl TucanUser {
 
         Ok(UndoneUser::new(matriculation_number))
     }
+
+    pub async fn my_exams(&self) -> anyhow::Result<()> {
+        let document = self.fetch_document(&Myexams.clone().into()).await?;
+        let document = self.parse_document(&document)?;
+
+        let exams = document.select(&s("table tbody tr")).map(|exam| {
+            let selector = s(r#"td"#);
+            let mut tds = exam.select(&selector);
+            let nr_column = tds.next().unwrap();
+            let course_column = tds.next().unwrap();
+            let name_column = tds.next().unwrap();
+            let date_column = tds.next().unwrap();
+            let registered = tds.next().unwrap();
+
+            Exam {
+                course_id: Vec::new(),
+                name: String::new(),
+                semester: String::new(),
+                date: Utc::now().naive_utc(),
+                registration_start: Utc::now().naive_utc(),
+                registration_end: Utc::now().naive_utc(),
+                unregistration_start: Utc::now().naive_utc(),
+                unregistration_end: Utc::now().naive_utc(),
+            }
+        });
+
+        Ok(())
+    }
+}
+
+struct Exam {
+    course_id: Vec<u8>,
+    name: String,
+    semester: String,
+    date: NaiveDateTime,
+    registration_start: NaiveDateTime,
+    registration_end: NaiveDateTime,
+    unregistration_start: NaiveDateTime,
+    unregistration_end: NaiveDateTime,
 }
