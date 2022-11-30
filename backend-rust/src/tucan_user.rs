@@ -1083,14 +1083,14 @@ impl TucanUser {
         let document = self.fetch_document(&Myexams.clone().into()).await?;
         let document = self.parse_document(&document)?;
 
-        let exams = document.select(&s("table tbody tr")).map(|exam| {
+        let _exams = document.select(&s("table tbody tr")).map(|exam| {
             let selector = s(r#"td"#);
             let mut tds = exam.select(&selector);
-            let nr_column = tds.next().unwrap();
-            let course_column = tds.next().unwrap();
-            let name_column = tds.next().unwrap();
-            let date_column = tds.next().unwrap();
-            let registered = tds.next().unwrap();
+            let _nr_column = tds.next().unwrap();
+            let _course_column = tds.next().unwrap();
+            let _name_column = tds.next().unwrap();
+            let _date_column = tds.next().unwrap();
+            let _registered = tds.next().unwrap();
 
             Exam {
                 course_id: Vec::new(),

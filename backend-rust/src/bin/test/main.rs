@@ -2,16 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use diesel::QueryDsl;
-use diesel_async::RunQueryDsl;
-use itertools::Itertools;
-use opensearch::{
-    http::request::JsonBody, indices::IndicesCreateParts, params::Refresh, BulkParts,
-};
-use rand::Rng;
-
-use serde_json::{json, Value};
-use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant::tucan::Tucan;
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test
 #[tokio::main]
@@ -26,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let exams = tucan.my_exams().await?;
+    tucan.my_exams().await?;
 
     Ok(())
 }
