@@ -1079,42 +1079,63 @@ impl TucanUser {
         Ok(UndoneUser::new(matriculation_number))
     }
 
-    pub async fn my_exams(&self) -> anyhow::Result<()> {
+    pub async fn my_exams(&self) -> anyhow::Result<Vec<Exam>> {
         let document = self.fetch_document(&Myexams.clone().into()).await?;
         let document = self.parse_document(&document)?;
 
-        let _exams = document.select(&s("table tbody tr")).map(|exam| {
+        Ok(document.select(&s("table tbody tr")).map(|exam| {
             let selector = s(r#"td"#);
             let mut tds = exam.select(&selector);
             let _nr_column = tds.next().unwrap();
-            let _course_column = tds.next().unwrap();
+            let module_column = tds.next().unwrap();
             let _name_column = tds.next().unwrap();
-            let _date_column = tds.next().unwrap();
+            let date_column = tds.next().unwrap();
             let _registered = tds.next().unwrap();
 
+            let module_link = module_column.select(&s("a")).next().unwrap();
+
+            let program = parse_tucan_url(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                module_link.value().attr("href").unwrap()
+            ))
+            .program;
+
+            println!("{:?}", program);
+
+            // Mo, 13. Feb. 2023 00:00-24:00
+            let date = match date_column.select(&s("a")).next() {
+                Some(date_link) => {
+                    let re = Regex::new(r"([[:alpha:]]{2}), (\d{1,2}). ([[:alpha:]]{3}) (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})").unwrap();
+                    for cap in re.captures_iter(&date_link.inner_html()) {
+                        println!("{:?}", cap);
+                    }
+                    None
+                },
+                None => None,
+            };
+
             Exam {
-                course_id: Vec::new(),
-                name: String::new(),
+                program,
+                name: module_link.inner_html(),
                 semester: String::new(),
-                date: Utc::now().naive_utc(),
+                date: date,
                 registration_start: Utc::now().naive_utc(),
                 registration_end: Utc::now().naive_utc(),
                 unregistration_start: Utc::now().naive_utc(),
                 unregistration_end: Utc::now().naive_utc(),
             }
-        });
-
-        Ok(())
+        }).collect())
     }
 }
 
-struct Exam {
-    course_id: Vec<u8>,
-    name: String,
-    semester: String,
-    date: NaiveDateTime,
-    registration_start: NaiveDateTime,
-    registration_end: NaiveDateTime,
-    unregistration_start: NaiveDateTime,
-    unregistration_end: NaiveDateTime,
+#[derive(Debug)]
+pub struct Exam {
+    pub program: TucanProgram, // Moduledetails or Coursedetails
+    pub name: String,
+    pub semester: String,
+    pub date: Option<NaiveDateTime>,
+    pub registration_start: NaiveDateTime,
+    pub registration_end: NaiveDateTime,
+    pub unregistration_start: NaiveDateTime,
+    pub unregistration_end: NaiveDateTime,
 }
