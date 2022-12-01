@@ -1095,14 +1095,27 @@ impl TucanUser {
 
             let module_link = module_column.select(&s("a")).next().unwrap();
             let name_link = name_column.select(&s("a")).next().unwrap();
+            let date_link = date_column.select(&s("a")).next();
 
-            let program = parse_tucan_url(&format!(
+            let module_program = parse_tucan_url(&format!(
                 "https://www.tucan.tu-darmstadt.de{}",
                 module_link.value().attr("href").unwrap()
             ))
             .program;
 
-            let date = match date_column.select(&s("a")).next() {
+            let name_program = parse_tucan_url(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                name_link.value().attr("href").unwrap()
+            ))
+            .program;
+
+            let date_program = date_link.map(|date_link| parse_tucan_url(&format!(
+                "https://www.tucan.tu-darmstadt.de{}",
+                date_link.value().attr("href").unwrap()
+            ))
+            .program);
+
+            let date = match date_link {
                 Some(date_link) => {
                     let value = date_link.inner_html();
                     let re = Regex::new(r"([[:alpha:]]{2}), (\d{1,2})\. ([[^.]]{3})\. (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})").unwrap().captures_iter(&value).next().unwrap();
@@ -1131,7 +1144,7 @@ impl TucanUser {
             };
 
             Exam {
-                program,
+                program: module_program,
                 name: module_link.inner_html(),
                 exam_type: name_link.inner_html(),
                 semester: String::new(),
