@@ -1110,16 +1110,15 @@ impl TucanUser {
             ))
             .program;
 
-            let date_document = self.fetch_document(&Myexams.clone().into()).await?;
-            let date_document = self.parse_document(&date_document)?;
-
-            let date_program = date_link.map(|date_link| {
-                parse_tucan_url(&format!(
+            if let Some(date_link) = date_link {
+                let date_program = parse_tucan_url(&format!(
                     "https://www.tucan.tu-darmstadt.de{}",
                     date_link.value().attr("href").unwrap()
                 ))
-                .program
-            });
+                .program;
+                let date_document = self.fetch_document(&date_program.into()).await?;
+                let date_document = self.parse_document(&date_document)?;
+            }
 
             let date = match date_link {
                 Some(date_link) => {
