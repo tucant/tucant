@@ -1084,7 +1084,8 @@ impl TucanUser {
         let document = self.fetch_document(&Myexams.clone().into()).await?;
         let document = self.parse_document(&document)?;
 
-        Ok(document.select(&s("table tbody tr")).map(|exam| {
+        let mut exams = Vec::new();
+        for exam in document.select(&s("table tbody tr")) {
             let selector = s(r#"td"#);
             let mut tds = exam.select(&selector);
             let _nr_column = tds.next().unwrap();
@@ -1109,11 +1110,16 @@ impl TucanUser {
             ))
             .program;
 
-            let date_program = date_link.map(|date_link| parse_tucan_url(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                date_link.value().attr("href").unwrap()
-            ))
-            .program);
+            let date_document = self.fetch_document(&Myexams.clone().into()).await?;
+            let date_document = self.parse_document(&date_document)?;
+
+            let date_program = date_link.map(|date_link| {
+                parse_tucan_url(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    date_link.value().attr("href").unwrap()
+                ))
+                .program
+            });
 
             let date = match date_link {
                 Some(date_link) => {
@@ -1125,25 +1131,51 @@ impl TucanUser {
                     let _weekday_name = captures.next().unwrap().unwrap().as_str();
                     let day_of_month = captures.next().unwrap().unwrap().as_str().parse().unwrap();
                     let month_name = captures.next().unwrap().unwrap().as_str();
-                    let month_id = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"].into_iter().position(|v| v == month_name).unwrap()+1;
+                    let month_id = [
+                        "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt",
+                        "Nov", "Dez",
+                    ]
+                    .into_iter()
+                    .position(|v| v == month_name)
+                    .unwrap()
+                        + 1;
                     let year = captures.next().unwrap().unwrap().as_str().parse().unwrap();
                     let start_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
                     let start_minute = captures.next().unwrap().unwrap().as_str().parse().unwrap();
                     let mut end_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
-                    let mut end_minute = captures.next().unwrap().unwrap().as_str().parse().unwrap();
-                    let start_datetime = Utc.with_ymd_and_hms(year, month_id.try_into().unwrap(), day_of_month, start_hour, start_minute, 0).unwrap();
+                    let mut end_minute =
+                        captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let start_datetime = Utc
+                        .with_ymd_and_hms(
+                            year,
+                            month_id.try_into().unwrap(),
+                            day_of_month,
+                            start_hour,
+                            start_minute,
+                            0,
+                        )
+                        .unwrap();
                     if end_hour == 24 && end_minute == 0 {
                         end_hour = 23;
                         end_minute = 59;
                     }
-                    let end_datetime = Utc.with_ymd_and_hms(year, month_id.try_into().unwrap(), day_of_month, end_hour, end_minute, 0).unwrap();
+                    let end_datetime = Utc
+                        .with_ymd_and_hms(
+                            year,
+                            month_id.try_into().unwrap(),
+                            day_of_month,
+                            end_hour,
+                            end_minute,
+                            0,
+                        )
+                        .unwrap();
 
                     Some((start_datetime.naive_utc(), end_datetime.naive_utc()))
-                },
+                }
                 None => None,
             };
 
-            Exam {
+            exams.push(Exam {
                 program: module_program,
                 name: module_link.inner_html(),
                 exam_type: name_link.inner_html(),
@@ -1153,8 +1185,10 @@ impl TucanUser {
                 registration_end: Utc::now().naive_utc(),
                 unregistration_start: Utc::now().naive_utc(),
                 unregistration_end: Utc::now().naive_utc(),
-            }
-        }).collect())
+            })
+        }
+
+        Ok(exams)
     }
 }
 
