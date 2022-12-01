@@ -74,6 +74,11 @@ pub struct Examdetails {
     pub id: i64,
 }
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+pub struct Courseprep {
+    pub id: i64,
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone, TryInto, From)]
 pub enum TucanProgram {
     Mlsstart(Mlsstart),
@@ -92,6 +97,7 @@ pub enum TucanProgram {
     Externalpages(Externalpages),
     Persaddress(Persaddress),
     Examdetails(Examdetails),
+    Courseprep(Courseprep),
 }
 
 impl TucanProgram {
@@ -174,6 +180,17 @@ impl TucanProgram {
                 Box::new(
                     [
                         TucanArgument::Number(318),
+                        TucanArgument::Number((*id).try_into().unwrap()),
+                    ]
+                    .into_iter(),
+                ),
+            ),
+            TucanProgram::Courseprep(Courseprep { id }) => (
+                "COURSEPREP",
+                Box::new(
+                    [
+                        TucanArgument::Number(318),
+                        TucanArgument::Number(0),
                         TucanArgument::Number((*id).try_into().unwrap()),
                     ]
                     .into_iter(),
@@ -387,6 +404,14 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             assert!(matches!(arguments.next(), Some(TucanArgument::String("M"))));
             number(&mut arguments); // nobody knows what this is
             TucanProgram::Examdetails(Examdetails {
+                id: id.try_into().unwrap(),
+            })
+        }
+        "COURSEPREP" => {
+            assert!(matches!(arguments.next(), Some(TucanArgument::Number(318))));
+            assert!(matches!(arguments.next(), Some(TucanArgument::Number(0))));
+            let id = number(&mut arguments);
+            TucanProgram::Courseprep(Courseprep {
                 id: id.try_into().unwrap(),
             })
         }
