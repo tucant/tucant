@@ -5,6 +5,7 @@
 use std::{
     convert::TryInto,
     io::{Error, ErrorKind},
+    ops::Index,
 };
 
 use crate::{
@@ -21,7 +22,7 @@ use crate::{
     models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
-use chrono::{NaiveDateTime, Utc};
+use chrono::{NaiveDate, NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
@@ -1088,11 +1089,12 @@ impl TucanUser {
             let mut tds = exam.select(&selector);
             let _nr_column = tds.next().unwrap();
             let module_column = tds.next().unwrap();
-            let _name_column = tds.next().unwrap();
+            let name_column = tds.next().unwrap();
             let date_column = tds.next().unwrap();
             let _registered = tds.next().unwrap();
 
             let module_link = module_column.select(&s("a")).next().unwrap();
+            let name_link = name_column.select(&s("a")).next().unwrap();
 
             let program = parse_tucan_url(&format!(
                 "https://www.tucan.tu-darmstadt.de{}",
@@ -1100,16 +1102,30 @@ impl TucanUser {
             ))
             .program;
 
-            println!("{:?}", program);
-
-            // Mo, 13. Feb. 2023 00:00-24:00
             let date = match date_column.select(&s("a")).next() {
                 Some(date_link) => {
-                    let re = Regex::new(r"([[:alpha:]]{2}), (\d{1,2}). ([[:alpha:]]{3}) (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})").unwrap();
-                    for cap in re.captures_iter(&date_link.inner_html()) {
-                        println!("{:?}", cap);
+                    let value = date_link.inner_html();
+                    let re = Regex::new(r"([[:alpha:]]{2}), (\d{1,2})\. ([[^.]]{3})\. (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})").unwrap().captures_iter(&value).next().unwrap();
+                    let mut captures = re.iter();
+
+                    let _full_match = captures.next().unwrap().unwrap().as_str();
+                    let _weekday_name = captures.next().unwrap().unwrap().as_str();
+                    let day_of_month = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let month_name = captures.next().unwrap().unwrap().as_str();
+                    let month_id = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"].into_iter().position(|v| v == month_name).unwrap()+1;
+                    let year = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let start_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let start_minute = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let mut end_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let mut end_minute = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+                    let start_datetime = Utc.with_ymd_and_hms(year, month_id.try_into().unwrap(), day_of_month, start_hour, start_minute, 0).unwrap();
+                    if end_hour == 24 && end_minute == 0 {
+                        end_hour = 23;
+                        end_minute = 59;
                     }
-                    None
+                    let end_datetime = Utc.with_ymd_and_hms(year, month_id.try_into().unwrap(), day_of_month, end_hour, end_minute, 0).unwrap();
+
+                    Some((start_datetime.naive_utc(), end_datetime.naive_utc()))
                 },
                 None => None,
             };
@@ -1117,8 +1133,9 @@ impl TucanUser {
             Exam {
                 program,
                 name: module_link.inner_html(),
+                exam_type: name_link.inner_html(),
                 semester: String::new(),
-                date: date,
+                exam_time: date,
                 registration_start: Utc::now().naive_utc(),
                 registration_end: Utc::now().naive_utc(),
                 unregistration_start: Utc::now().naive_utc(),
@@ -1132,8 +1149,9 @@ impl TucanUser {
 pub struct Exam {
     pub program: TucanProgram, // Moduledetails or Coursedetails
     pub name: String,
+    pub exam_type: String,
     pub semester: String,
-    pub date: Option<NaiveDateTime>,
+    pub exam_time: Option<(NaiveDateTime, NaiveDateTime)>,
     pub registration_start: NaiveDateTime,
     pub registration_end: NaiveDateTime,
     pub unregistration_start: NaiveDateTime,
