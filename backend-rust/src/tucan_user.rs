@@ -5,7 +5,6 @@
 use std::{
     convert::TryInto,
     io::{Error, ErrorKind},
-    ops::Index,
 };
 
 use crate::{
@@ -22,7 +21,7 @@ use crate::{
     models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
-use chrono::{DateTime, NaiveDate, NaiveDateTime, TimeZone, Utc};
+use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
@@ -44,7 +43,6 @@ use diesel::QueryDsl;
 use log::debug;
 
 use scraper::Selector;
-use selectors::Element;
 
 fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()
@@ -1175,13 +1173,12 @@ impl TucanUser {
                             let date_document = self.parse_document(&date_document)?;
                         }
             */
-            let name_document = self.fetch_document(&name_program.into()).await?;
+            let name_document = self.fetch_document(&name_program).await?;
             let name_document = self.parse_document(&name_document)?;
 
             let registration_range_element = name_document
                 .select(&s("table td b"))
-                .filter(|e| e.inner_html() == "Anmeldezeitraum")
-                .next()
+                .find(|e| e.inner_html() == "Anmeldezeitraum")
                 .unwrap();
             let registration_range = registration_range_element
                 .next_sibling()
@@ -1195,8 +1192,7 @@ impl TucanUser {
                 .unwrap();
             let unregistration_range_element = name_document
                 .select(&s("table td b"))
-                .filter(|e| e.inner_html() == "Abmeldezeitraum")
-                .next()
+                .find(|e| e.inner_html() == "Abmeldezeitraum")
                 .unwrap();
             let unregistration_range = unregistration_range_element
                 .next_sibling()
@@ -1221,8 +1217,7 @@ impl TucanUser {
 
             let semester = name_document
                 .select(&s("table td b"))
-                .filter(|e| e.inner_html() == "Semester")
-                .next()
+                .find(|e| e.inner_html() == "Semester")
                 .unwrap()
                 .next_sibling()
                 .unwrap()
@@ -1235,8 +1230,7 @@ impl TucanUser {
 
             let examinator = name_document
                 .select(&s("table td b"))
-                .filter(|e| e.inner_html() == "Prüfer")
-                .next()
+                .find(|e| e.inner_html() == "Prüfer")
                 .map(|examinator| {
                     examinator
                         .next_sibling()
@@ -1251,8 +1245,7 @@ impl TucanUser {
 
             let room = name_document
                 .select(&s("table td b"))
-                .filter(|e| e.inner_html() == "Raum")
-                .next()
+                .find(|e| e.inner_html() == "Raum")
                 .map(|room| {
                     ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
                         .unwrap()
