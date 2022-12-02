@@ -44,6 +44,7 @@ use diesel::QueryDsl;
 use log::debug;
 
 use scraper::Selector;
+use selectors::Element;
 
 fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()
@@ -1218,16 +1219,58 @@ impl TucanUser {
             let unregistration_end =
                 NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
 
+            let semester = name_document
+                .select(&s("table td b"))
+                .filter(|e| e.inner_html() == "Semester")
+                .next()
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .to_string();
+
+            let examinator = name_document
+                .select(&s("table td b"))
+                .filter(|e| e.inner_html() == "Prüfer")
+                .next()
+                .map(|examinator| {
+                    examinator
+                        .next_sibling()
+                        .unwrap()
+                        .value()
+                        .as_text()
+                        .unwrap()
+                        .trim()
+                        .trim_start_matches(": ")
+                        .to_string()
+                });
+
+            let room = name_document
+                .select(&s("table td b"))
+                .filter(|e| e.inner_html() == "Raum")
+                .next()
+                .map(|room| {
+                    ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
+                        .unwrap()
+                        .inner_html()
+                });
+
             exams.push(Exam {
                 program: module_program,
                 name: module_link.inner_html(),
                 exam_type: name_link.inner_html(),
-                semester: String::new(),
+                semester,
                 exam_time: date,
                 registration_start,
                 registration_end,
                 unregistration_start,
                 unregistration_end,
+                examinator,
+                room,
             })
         }
 
@@ -1246,4 +1289,6 @@ pub struct Exam {
     pub registration_end: NaiveDateTime,
     pub unregistration_start: NaiveDateTime,
     pub unregistration_end: NaiveDateTime,
+    pub examinator: Option<String>,
+    pub room: Option<String>,
 }
