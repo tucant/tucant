@@ -1110,16 +1110,6 @@ impl TucanUser {
             ))
             .program;
 
-            if let Some(date_link) = date_link {
-                let date_program = parse_tucan_url(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    date_link.value().attr("href").unwrap()
-                ))
-                .program;
-                let date_document = self.fetch_document(&date_program.into()).await?;
-                let date_document = self.parse_document(&date_document)?;
-            }
-
             let date = match date_link {
                 Some(date_link) => {
                     let value = date_link.inner_html();
@@ -1173,6 +1163,49 @@ impl TucanUser {
                 }
                 None => None,
             };
+
+            if let Some(date_link) = date_link {
+                let date_program = parse_tucan_url(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    date_link.value().attr("href").unwrap()
+                ))
+                .program;
+                let date_document = self.fetch_document(&date_program.into()).await?;
+                let date_document = self.parse_document(&date_document)?;
+            }
+
+            let name_document = self.fetch_document(&name_program.into()).await?;
+            let name_document = self.parse_document(&name_document)?;
+
+            let registration_range_element = name_document
+                .select(&s("table td b"))
+                .filter(|e| e.inner_html() == "Anmeldezeitraum")
+                .next()
+                .unwrap();
+            let registration_range = registration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ");
+            let unregistration_range_element = name_document
+                .select(&s("table td b"))
+                .filter(|e| e.inner_html() == "Abmeldezeitraum")
+                .next()
+                .unwrap();
+            let unregistration_range = unregistration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ");
+
+            println!("{registration_range}");
+            println!("{unregistration_range}");
 
             exams.push(Exam {
                 program: module_program,
