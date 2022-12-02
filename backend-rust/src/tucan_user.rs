@@ -22,7 +22,7 @@ use crate::{
     models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
-use chrono::{NaiveDate, NaiveDateTime, TimeZone, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
@@ -1163,17 +1163,17 @@ impl TucanUser {
                 }
                 None => None,
             };
-
-            if let Some(date_link) = date_link {
-                let date_program = parse_tucan_url(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    date_link.value().attr("href").unwrap()
-                ))
-                .program;
-                let date_document = self.fetch_document(&date_program.into()).await?;
-                let date_document = self.parse_document(&date_document)?;
-            }
-
+            /*
+                        if let Some(date_link) = date_link {
+                            let date_program = parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                date_link.value().attr("href").unwrap()
+                            ))
+                            .program;
+                            let date_document = self.fetch_document(&date_program.into()).await?;
+                            let date_document = self.parse_document(&date_document)?;
+                        }
+            */
             let name_document = self.fetch_document(&name_program.into()).await?;
             let name_document = self.parse_document(&name_document)?;
 
@@ -1189,7 +1189,9 @@ impl TucanUser {
                 .as_text()
                 .unwrap()
                 .trim()
-                .trim_start_matches(": ");
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
             let unregistration_range_element = name_document
                 .select(&s("table td b"))
                 .filter(|e| e.inner_html() == "Abmeldezeitraum")
@@ -1202,10 +1204,19 @@ impl TucanUser {
                 .as_text()
                 .unwrap()
                 .trim()
-                .trim_start_matches(": ");
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
 
-            println!("{registration_range}");
-            println!("{unregistration_range}");
+            let date_format = "%d.%m.%y %H:%M";
+            let registration_start =
+                NaiveDateTime::parse_from_str(registration_range.0, date_format)?;
+            let registration_end =
+                NaiveDateTime::parse_from_str(registration_range.1, date_format)?;
+            let unregistration_start =
+                NaiveDateTime::parse_from_str(unregistration_range.0, date_format)?;
+            let unregistration_end =
+                NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
 
             exams.push(Exam {
                 program: module_program,
@@ -1213,10 +1224,10 @@ impl TucanUser {
                 exam_type: name_link.inner_html(),
                 semester: String::new(),
                 exam_time: date,
-                registration_start: Utc::now().naive_utc(),
-                registration_end: Utc::now().naive_utc(),
-                unregistration_start: Utc::now().naive_utc(),
-                unregistration_end: Utc::now().naive_utc(),
+                registration_start,
+                registration_end,
+                unregistration_start,
+                unregistration_end,
             })
         }
 
