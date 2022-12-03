@@ -163,7 +163,8 @@ CREATE TABLE exams (
     unregistration_start TIMESTAMP WITH TIME ZONE NOT NULL,
     unregistration_end TIMESTAMP WITH TIME ZONE NOT NULL,
     examinator TEXT,
-    room TEXT
+    room TEXT,
+    done BOOLEAN NOT NULL DEFAULT FALSE -- it would be nice if this would be a two-value enum and the fields than can be read before are already available and then later the rest is available.
 );
 
 CREATE TABLE module_exams (

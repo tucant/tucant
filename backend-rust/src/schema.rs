@@ -81,6 +81,7 @@ diesel::table! {
         unregistration_end -> Timestamptz,
         examinator -> Nullable<Text>,
         room -> Nullable<Text>,
+        done -> Bool,
     }
 }
 
