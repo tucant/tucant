@@ -17,6 +17,16 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
+    course_exams (course_id, exam) {
+        course_id -> Bytea,
+        exam -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     course_groups_events (course, timestamp_start, timestamp_end, room) {
         course -> Bytea,
         timestamp_start -> Timestamptz,
@@ -58,9 +68,40 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
+    exams (tucan_id) {
+        tucan_id -> Bytea,
+        name -> Text,
+        exam_type -> Text,
+        semester -> Text,
+        exam_time_start -> Nullable<Timestamptz>,
+        exam_time_end -> Nullable<Timestamptz>,
+        registration_start -> Timestamptz,
+        registration_end -> Timestamptz,
+        unregistration_start -> Timestamptz,
+        unregistration_end -> Timestamptz,
+        examinator -> Nullable<Text>,
+        room -> Nullable<Text>,
+        done -> Bool,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     module_courses (module, course) {
         module -> Bytea,
         course -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    module_exams (module_id, exam) {
+        module_id -> Bytea,
+        exam -> Bytea,
     }
 }
 
@@ -128,6 +169,16 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
+    user_exams (matriculation_number, exam) {
+        matriculation_number -> Int4,
+        exam -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     user_modules (user_id, module_id) {
         user_id -> Int4,
         module_id -> Bytea,
@@ -165,29 +216,39 @@ diesel::table! {
 }
 
 diesel::joinable!(course_events -> courses_unfinished (course));
+diesel::joinable!(course_exams -> courses_unfinished (course_id));
+diesel::joinable!(course_exams -> exams (exam));
 diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
 diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
 diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
+diesel::joinable!(module_exams -> exams (exam));
+diesel::joinable!(module_exams -> modules_unfinished (module_id));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (matriculation_number));
 diesel::joinable!(user_courses -> courses_unfinished (course_id));
 diesel::joinable!(user_courses -> users_unfinished (user_id));
+diesel::joinable!(user_exams -> exams (exam));
+diesel::joinable!(user_exams -> users_unfinished (matriculation_number));
 diesel::joinable!(user_modules -> modules_unfinished (module_id));
 diesel::joinable!(user_modules -> users_unfinished (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     course_events,
+    course_exams,
     course_groups_events,
     course_groups_unfinished,
     courses_unfinished,
+    exams,
     module_courses,
+    module_exams,
     module_menu_module,
     module_menu_unfinished,
     modules_unfinished,
     sessions,
     user_courses,
+    user_exams,
     user_modules,
     users_unfinished,
 );

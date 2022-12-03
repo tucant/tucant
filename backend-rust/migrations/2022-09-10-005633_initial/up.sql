@@ -150,3 +150,37 @@ CREATE TABLE user_courses (
     course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
     PRIMARY KEY (user_id, course_id)
 );
+
+CREATE TABLE exams (
+    tucan_id BYTEA NOT NULL PRIMARY KEY, -- exam_details
+    name TEXT NOT NULL,
+    exam_type TEXT NOT NULL,
+    semester TEXT NOT NULL,
+    exam_time_start TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    exam_time_end TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    registration_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    registration_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    unregistration_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    unregistration_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    examinator TEXT,
+    room TEXT,
+    done BOOLEAN NOT NULL DEFAULT FALSE -- it would be nice if this would be a two-value enum and the fields than can be read before are already available and then later the rest is available.
+);
+
+CREATE TABLE module_exams (
+    module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
+    exam BYTEA NOT NULL REFERENCES exams (tucan_id),
+    PRIMARY KEY (module_id, exam)
+);
+
+CREATE TABLE course_exams (
+    course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    exam BYTEA NOT NULL REFERENCES exams (tucan_id),
+    PRIMARY KEY (course_id, exam)
+);
+
+CREATE TABLE user_exams (
+    matriculation_number INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
+    exam BYTEA NOT NULL REFERENCES exams (tucan_id),
+    PRIMARY KEY (matriculation_number, exam)
+);
