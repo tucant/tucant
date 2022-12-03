@@ -166,15 +166,14 @@ impl Tucan {
 
                 let db = self.pool.database_with_options("tucant", DatabaseOptions::builder().build());
 
-                let users_unfinished = db.collection_with_options::<UndoneUser>("users_unfinished", CollectionOptions::builder().build());
+                let users_unfinished = db.collection::<UndoneUser>("users_unfinished");
+                let sessions = db.collection::<TucanSession>("sessions");
 
                 let value = UndoneUser::new(user.session.matriculation_number);
-                let res = users_unfinished.update_one(bson::to_document(&value)?, value.into(), UpdateOptions::builder().upsert(Some(true)).build()).await?;
+                let value = bson::to_document(&value)?;
+                users_unfinished.update_one(value.clone(), value, UpdateOptions::builder().upsert(Some(true)).build()).await?;
 
-                diesel::insert_into(sessions::table)
-                    .values(user_session)
-                    .execute(&mut connection)
-                    .await?;
+                sessions.insert_one(user.session.clone(), None).await?;
 
                 return Ok(user);
             } else {
