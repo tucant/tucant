@@ -1,8 +1,0 @@
-# SPDX-FileCopyrightText: The tucant Contributors
-#
-# SPDX-License-Identifier: AGPL-3.0-or-later
-
-# sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
-FROM docker.io/postgres
-
-RUN apt-get update && apt-get install -y hunspell-en-us hunspell-de-de-frami

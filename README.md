@@ -75,8 +75,9 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 cd backend-rust
 
 # We recommend using podman (with docker compat)
-sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
-sudo docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
+docker run --name mongodb -d -p 27017:27017 mongo
+
+docker exec -it mongodb bash
 ```
 
 ### Backend

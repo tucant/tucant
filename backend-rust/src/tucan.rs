@@ -9,6 +9,7 @@ use std::{
 
 use deadpool::managed::Pool;
 
+use mongodb::options::ClientOptions;
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -26,23 +27,23 @@ use crate::{
 
 use dotenvy::dotenv;
 
-fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection> {
+async fn create_pool() -> Result<mongodb::Client, mongodb::error::Error> {
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url)
-}
+    let mut client_options = ClientOptions::parse(database_url).await?;
 
-fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
-    let config = get_config();
-    Pool::builder(config).build().unwrap()
+    client_options.app_name = Some("tucant".to_string());
+    // TODO FIXME some consistency values probably need to be set here
+
+    mongodb::Client::with_options(client_options)
 }
 
 #[derive(Clone)]
 pub struct Tucan {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
-    pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
+    pub pool: mongodb::Client,
     pub opensearch: OpenSearch,
 }
 
