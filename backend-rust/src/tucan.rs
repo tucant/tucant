@@ -9,8 +9,6 @@ use std::{
 
 use deadpool::managed::Pool;
 
-use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
-
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -22,7 +20,6 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{TucanSession, UndoneUser},
-    schema::{sessions, users_unfinished},
     tucan_user::TucanUser,
     url::{parse_tucan_url, TucanUrl},
 };
@@ -165,8 +162,6 @@ impl Tucan {
                 let user = self
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
-
-                use diesel_async::RunQueryDsl;
 
                 let mut connection = self.pool.get().await?;
 

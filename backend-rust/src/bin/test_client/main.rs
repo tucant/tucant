@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use diesel::QueryDsl;
-use diesel_async::RunQueryDsl;
 use itertools::Itertools;
 use opensearch::{
     http::request::JsonBody, indices::IndicesCreateParts, params::Refresh, BulkParts,
@@ -13,7 +11,6 @@ use rand::Rng;
 use serde_json::{json, Value};
 use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
 
-// $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Dashboard index pattern needs to not include timestamp

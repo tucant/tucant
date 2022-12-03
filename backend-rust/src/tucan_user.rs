@@ -23,7 +23,6 @@ use crate::{
 };
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
-use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
@@ -32,14 +31,6 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 
-use crate::schema::*;
-use diesel::BelongingToDsl;
-use diesel::ExpressionMethods;
-
-use diesel::upsert::excluded;
-use diesel::GroupedBy;
-use diesel::OptionalExtension;
-use diesel::QueryDsl;
 use log::debug;
 
 use scraper::Selector;
@@ -121,8 +112,6 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
-        use diesel_async::RunQueryDsl;
-
         let mut connection = self.tucan.pool.get().await?;
 
         let existing_module = modules_unfinished::table
@@ -287,8 +276,6 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<Course> {
-        use diesel_async::RunQueryDsl;
-
         let (course, course_groups) = {
             let document = self.parse_document(&document)?;
 
@@ -379,8 +366,6 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<CourseGroup> {
-        use diesel_async::RunQueryDsl;
-
         let course_group = {
             let document = self.parse_document(&document)?;
 
@@ -428,8 +413,6 @@ impl TucanUser {
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
-        use diesel_async::RunQueryDsl;
-
         let mut connection = self.tucan.pool.get().await?;
 
         let existing = courses_unfinished::table
@@ -534,7 +517,6 @@ impl TucanUser {
     ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
         // tendril::tendril::NonAtomic not Send
         let self_cloned = self.clone();
-        use diesel_async::RunQueryDsl;
 
         // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
         // also you can get multiple courses per module
@@ -907,8 +889,6 @@ impl TucanUser {
             })
             .collect::<Vec<_>>();
 
-        use diesel_async::RunQueryDsl;
-
         {
             let mut connection = self.tucan.pool.get().await?;
 
@@ -1027,8 +1007,6 @@ impl TucanUser {
                 course_id: c.tucan_id.clone(),
             })
             .collect::<Vec<_>>();
-
-        use diesel_async::RunQueryDsl;
 
         {
             let mut connection = self.tucan.pool.get().await?;

@@ -6,15 +6,6 @@ use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
-use diesel::ExpressionMethods;
-use diesel::TextExpressionMethods;
-use diesel::{QueryDsl, Queryable};
-use diesel_async::RunQueryDsl;
-use diesel_full_text_search::TsVectorExtensions;
-use diesel_full_text_search::{
-    configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
-    websearch_to_tsquery_with_search_config,
-};
 use serde::Serialize;
 
 use tucant::{

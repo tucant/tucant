@@ -10,10 +10,6 @@ use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
-use diesel::sql_types::Bytea;
-
-use diesel::sql_query;
-use diesel_async::RunQueryDsl;
 
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleResponse;

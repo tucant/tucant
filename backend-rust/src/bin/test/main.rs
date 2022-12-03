@@ -4,7 +4,6 @@
 
 use tucant::tucan::Tucan;
 
-// $HOME/.cargo/bin/diesel database reset && cargo run --bin test
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();

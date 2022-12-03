@@ -29,9 +29,6 @@ use axum::Router;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
-use diesel::{Connection, PgConnection};
-use diesel_migrations::FileBasedMigrations;
-use diesel_migrations::MigrationHarness;
 use dotenvy::dotenv;
 
 use file_lock::FileLock;
@@ -157,8 +154,6 @@ async fn login_hack(
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
     println!("{:?}", input);
-
-    use diesel_async::RunQueryDsl;
 
     let mut connection = tucan.pool.get().await?;
 
@@ -286,7 +281,6 @@ async fn main() -> anyhow::Result<()> {
     warn!("Starting server...");
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    // https://github.com/weiznich/diesel_async/issues/17
     let migrations = FileBasedMigrations::find_migrations_directory()?;
     let mut connection = PgConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));

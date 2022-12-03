@@ -52,6 +52,7 @@ opensearch = "2"
 rand = "0.8"
 tucant_derive_lib = { path = "../backend-rust-derive-lib" }
 async-recursion = "1"
+mongodb = "2"
 
 [features]
 default = ["server"]
