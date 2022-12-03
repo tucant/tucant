@@ -84,9 +84,6 @@ sudo docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_I
 ```bash
 cd backend-rust
 
-cargo install diesel_cli --no-default-features --features postgres
-$HOME/.cargo/bin/diesel setup
-
 # run this each time you want to run the backend
 RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run --bin server
 ```

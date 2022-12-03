@@ -19,8 +19,6 @@ html5ever = { version = "0.26", optional = true }
 scraper = { version = "0.13", optional = true }
 ego-tree = { version = "0.6", optional = true }
 futures = { version = "0.3", optional = true }
-diesel = { version = "2", features = ["postgres", "chrono"], optional = true }
-diesel-async = { version = "0.1", features = ["postgres", "deadpool"], optional = true }
 dotenvy = { version = "0.15", optional = true }
 anyhow = { version = "1", features = ["backtrace"], optional = true }
 regex = { version = "1", optional = true}
@@ -41,7 +39,6 @@ derive_more = { version = "0.99", optional = true }
 itertools = { version = "0.10", optional = true }
 either = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
-diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "setweight", optional = true }
 base64 = { version = "0.13" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
 file-lock = { version = "2", optional = true }
@@ -54,7 +51,6 @@ tracing-futures = { version = "0.2", features = ["futures-03"] }
 opensearch = "2"
 rand = "0.8"
 tucant_derive_lib = { path = "../backend-rust-derive-lib" }
-diesel_migrations = "2"
 async-recursion = "1"
 
 [features]
@@ -65,8 +61,6 @@ server = ["reqwest",
 "scraper",
 "ego-tree",
 "futures",
-"diesel",
-"diesel-async",
 "dotenvy",
 "anyhow",
 "regex",
@@ -82,6 +76,5 @@ server = ["reqwest",
 "itertools",
 "either",
 "once_cell",
-"diesel_full_text_search",
 "tucant_derive",
 "file-lock"]
