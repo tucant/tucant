@@ -9,7 +9,7 @@ use std::{
 
 use deadpool::managed::Pool;
 
-use mongodb::options::ClientOptions;
+use mongodb::options::{ClientOptions, SessionOptions, TransactionOptions, DatabaseOptions, CollectionOptions, InsertOneOptions};
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -20,7 +20,7 @@ use reqwest::{Client, Url};
 use tokio::sync::Semaphore;
 
 use crate::{
-    models::{TucanSession, UndoneUser},
+    models::{TucanSession, UndoneUser, User},
     tucan_user::TucanUser,
     url::{parse_tucan_url, TucanUrl},
 };
@@ -164,31 +164,29 @@ impl Tucan {
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
 
-                let mut connection = self.pool.get().await?;
+                let mut session = self.pool.start_session(SessionOptions::builder().build()).await?;
 
-                {
-                    let user_session = user.session.clone();
-                    connection
-                        .build_transaction()
-                        .run(|mut connection| {
-                            Box::pin(async move {
-                                diesel::insert_into(users_unfinished::table)
-                                    .values(UndoneUser::new(user.session.matriculation_number))
-                                    .on_conflict(users_unfinished::matriculation_number)
-                                    .do_nothing()
-                                    .execute(&mut connection)
-                                    .await?;
+                session.start_transaction(TransactionOptions::builder().build()).await?;
 
-                                diesel::insert_into(sessions::table)
-                                    .values(user_session)
-                                    .execute(&mut connection)
-                                    .await?;
+                let db = self.pool.database_with_options("tucant", DatabaseOptions::builder().build());
 
-                                Ok::<(), diesel::result::Error>(())
-                            })
-                        })
-                        .await?;
-                }
+                let users_unfinished = db.collection_with_options::<UndoneUser>("users_unfinished", CollectionOptions::builder().build());
+
+                let res = users_unfinished.insert_one_with_session(UndoneUser::new(user.session.matriculation_number), Some(InsertOneOptions::builder().build()), &mut session).await?;
+
+                diesel::insert_into(users_unfinished::table)
+                    .values(UndoneUser::new(user.session.matriculation_number))
+                    .on_conflict(users_unfinished::matriculation_number)
+                    .do_nothing()
+                    .execute(&mut connection)
+                    .await?;
+
+                diesel::insert_into(sessions::table)
+                    .values(user_session)
+                    .execute(&mut connection)
+                    .await?;
+
+                session.commit_transaction().await?;
 
                 return Ok(user);
             } else {
