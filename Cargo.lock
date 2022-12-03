@@ -3423,6 +3423,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "base64 0.13.1",
+ "bson",
  "chrono",
  "deadpool",
  "derive_more",

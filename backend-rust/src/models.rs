@@ -227,6 +227,7 @@ pub struct ModuleCourse {
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct User {
+    #[serde(rename = "_id")]
     matriculation_number: i32,
     title: String,
     academic_title: String,
@@ -251,6 +252,7 @@ pub struct User {
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct UndoneUser {
+    //#[serde(rename = "_id")]
     pub matriculation_number: i32,
     pub done: bool,
 }
