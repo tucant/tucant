@@ -22,28 +22,16 @@ use tokio::sync::Semaphore;
 use crate::{
     models::{TucanSession, UndoneUser, User},
     tucan_user::TucanUser,
-    url::{parse_tucan_url, TucanUrl},
+    url::{parse_tucan_url, TucanUrl}, mongodb::MongoDb,
 };
 
 use dotenvy::dotenv;
-
-async fn create_pool() -> Result<mongodb::Client, mongodb::error::Error> {
-    dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    let mut client_options = ClientOptions::parse(database_url).await?;
-
-    client_options.app_name = Some("tucant".to_string());
-    // TODO FIXME some consistency values probably need to be set here
-
-    mongodb::Client::with_options(client_options)
-}
 
 #[derive(Clone)]
 pub struct Tucan {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
-    pub pool: mongodb::Client,
+    pub mongodb: MongoDb,
     pub opensearch: OpenSearch,
 }
 
@@ -55,7 +43,7 @@ impl std::fmt::Debug for Tucan {
 
 impl Tucan {
     pub async fn new() -> anyhow::Result<Self> {
-        let pool = create_pool();
+        let mongodb = MongoDb::new().await?;
 
         let url = Url::parse("https://localhost:9200")?;
         let conn_pool = SingleNodeConnectionPool::new(url);
@@ -66,7 +54,7 @@ impl Tucan {
         let opensearch = OpenSearch::new(transport);
 
         Ok(Self {
-            pool,
+            mongodb,
             client: reqwest::Client::builder().build()?,
             semaphore: Arc::new(Semaphore::new(3)),
             opensearch,
@@ -164,16 +152,11 @@ impl Tucan {
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
 
-                let db = self.pool.database_with_options("tucant", DatabaseOptions::builder().build());
-
-                let users_unfinished = db.collection::<UndoneUser>("users_unfinished");
-                let sessions = db.collection::<TucanSession>("sessions");
-
                 let value = UndoneUser::new(user.session.matriculation_number);
                 let value = bson::to_document(&value)?;
-                users_unfinished.update_one(value.clone(), value, UpdateOptions::builder().upsert(Some(true)).build()).await?;
+                self.mongodb.users_unfinished.update_one(value.clone(), value, UpdateOptions::builder().upsert(Some(true)).build()).await?;
 
-                sessions.insert_one(user.session.clone(), None).await?;
+                self.mongodb.sessions.insert_one(user.session.clone(), None).await?;
 
                 return Ok(user);
             } else {

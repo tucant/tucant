@@ -18,6 +18,7 @@ pub mod tucan_user;
 pub mod typescript;
 #[cfg(feature = "server")]
 pub mod url;
+pub mod mongodb;
 
 #[derive(Debug)]
 pub struct MyError {
