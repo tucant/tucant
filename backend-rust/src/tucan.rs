@@ -9,7 +9,10 @@ use std::{
 
 use deadpool::managed::Pool;
 
-use mongodb::options::{ClientOptions, SessionOptions, TransactionOptions, DatabaseOptions, CollectionOptions, InsertOneOptions, UpdateModifications, UpdateOptions};
+use mongodb::options::{
+    ClientOptions, CollectionOptions, DatabaseOptions, InsertOneOptions, SessionOptions,
+    TransactionOptions, UpdateModifications, UpdateOptions,
+};
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -21,8 +24,9 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{TucanSession, UndoneUser, User},
+    mongodb::MongoDb,
     tucan_user::TucanUser,
-    url::{parse_tucan_url, TucanUrl}, mongodb::MongoDb,
+    url::{parse_tucan_url, TucanUrl},
 };
 
 use dotenvy::dotenv;
@@ -154,9 +158,19 @@ impl Tucan {
 
                 let value = UndoneUser::new(user.session.matriculation_number);
                 let value = bson::to_document(&value)?;
-                self.mongodb.users_unfinished.update_one(value.clone(), value, UpdateOptions::builder().upsert(Some(true)).build()).await?;
+                self.mongodb
+                    .users_unfinished
+                    .update_one(
+                        value.clone(),
+                        value,
+                        UpdateOptions::builder().upsert(Some(true)).build(),
+                    )
+                    .await?;
 
-                self.mongodb.sessions.insert_one(user.session.clone(), None).await?;
+                self.mongodb
+                    .sessions
+                    .insert_one(user.session.clone(), None)
+                    .await?;
 
                 return Ok(user);
             } else {

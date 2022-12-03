@@ -112,8 +112,6 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
-        let mut connection = self.tucan.pool.get().await?;
-
         let existing_module = modules_unfinished::table
             .filter(modules_unfinished::tucan_id.eq(&url.id))
             .filter(modules_unfinished::done)
@@ -153,7 +151,6 @@ impl TucanUser {
         drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let mut connection = self.tucan.pool.get().await?;
 
         let (module, courses) = {
             let document = self.parse_document(&document)?;
@@ -413,8 +410,6 @@ impl TucanUser {
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
-        let mut connection = self.tucan.pool.get().await?;
-
         let existing = courses_unfinished::table
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
@@ -457,7 +452,6 @@ impl TucanUser {
         drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let connection = self.tucan.pool.get().await?;
 
         // we parse it twice because it was so nice
         let is_course_group =
@@ -813,7 +807,6 @@ impl TucanUser {
 
     pub async fn my_modules(&self) -> anyhow::Result<Vec<Module>> {
         {
-            let mut connection = self.tucan.pool.get().await?;
             let tu_id = self.session.matriculation_number;
 
             let modules = connection
@@ -890,8 +883,6 @@ impl TucanUser {
             .collect::<Vec<_>>();
 
         {
-            let mut connection = self.tucan.pool.get().await?;
-
             let matriculation_number = self.session.matriculation_number;
             connection
                 .build_transaction()
@@ -924,7 +915,6 @@ impl TucanUser {
 
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
         {
-            let mut connection = self.tucan.pool.get().await?;
             let matriculation_number = self.session.matriculation_number;
 
             let courses = connection
@@ -1009,8 +999,6 @@ impl TucanUser {
             .collect::<Vec<_>>();
 
         {
-            let mut connection = self.tucan.pool.get().await?;
-
             let tu_id = self.session.matriculation_number;
             connection
                 .build_transaction()

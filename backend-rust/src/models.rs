@@ -68,10 +68,7 @@ where
 
 // order needs to be equal to the table definition
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Typescriptable)
-)]
+#[cfg_attr(feature = "server", derive(Typescriptable))]
 pub struct Module {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -120,12 +117,7 @@ pub struct ModuleResponse {
 }
 
 #[derive(Serialize, Debug, Eq, PartialEq, Deserialize, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(
-        Typescriptable,
-    )
-)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct ModuleMenu {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -181,12 +173,7 @@ pub struct ModuleMenuEntryModuleRef<'a> {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(
-        Typescriptable,
-    )
-)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -200,12 +187,7 @@ pub struct Course {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(
-        Typescriptable,
-    )
-)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct CourseGroup {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -267,10 +249,7 @@ impl UndoneUser {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Typescriptable)
-)]
+#[cfg_attr(feature = "server", derive(Typescriptable))]
 pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,

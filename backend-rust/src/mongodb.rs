@@ -1,9 +1,9 @@
 use std::env::var;
 
 use dotenvy::dotenv;
-use mongodb::{Collection, Database, options::ClientOptions, Client, error::Error};
+use mongodb::{error::Error, options::ClientOptions, Client, Collection, Database};
 
-use crate::models::{UndoneUser, TucanSession};
+use crate::models::{TucanSession, UndoneUser};
 
 #[derive(Clone)]
 pub struct MongoDb {
@@ -34,7 +34,7 @@ impl MongoDb {
             client,
             database,
             users_unfinished,
-            sessions, 
+            sessions,
         })
     }
 }
