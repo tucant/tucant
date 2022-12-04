@@ -21,11 +21,13 @@ use crate::{
     models::{TucanSession, UserCourse, UserModule},
     url::Profcourses,
 };
+use bson::{doc, Bson, Binary, spec::BinarySubtype};
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
+use mongodb::options::FindOneOptions;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
@@ -112,24 +114,15 @@ impl TucanUser {
     }
 
     pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
-        let existing_module = modules_unfinished::table
-            .filter(modules_unfinished::tucan_id.eq(&url.id))
-            .filter(modules_unfinished::done)
-            .select((
-                modules_unfinished::tucan_id,
-                modules_unfinished::tucan_last_checked,
-                modules_unfinished::title,
-                modules_unfinished::module_id,
-                modules_unfinished::credits,
-                modules_unfinished::content,
-                modules_unfinished::done,
-            ))
-            .get_result::<Module>(&mut connection)
-            .await
-            .optional()?;
+        let existing_module = self.tucan.mongodb.modules_unfinished.find_one(Some(doc! {
+            "_id": Bson::Binary(Binary { subtype: BinarySubtype::Generic, bytes: url.id.clone() }),
+            "done": true,
+        }), None).await?;
 
         if let Some(existing_module) = existing_module {
             debug!("[~] module {:?}", existing_module);
+
+            self.tucan.mongodb.module_courses.aggregate(pipeline, options);
 
             let course_list = ModuleCourse::belonging_to(&existing_module)
                 .inner_join(courses_unfinished::table)
@@ -147,8 +140,6 @@ impl TucanUser {
 
             return Ok((existing_module, course_list));
         }
-
-        drop(connection);
 
         let document = self.fetch_document(&url.clone().into()).await?;
 

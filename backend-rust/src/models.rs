@@ -72,6 +72,7 @@ where
 pub struct Module {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[serde(rename = "_id")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -88,6 +89,7 @@ pub struct ModuleMenuPathPart {
     pub parent: Option<Vec<u8>>,
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[serde(rename = "_id")]
     pub tucan_id: Vec<u8>,
     pub name: String,
     #[serde(skip)]
@@ -121,6 +123,7 @@ pub struct ModuleResponse {
 pub struct ModuleMenu {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[serde(rename = "_id")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub name: String,
@@ -133,29 +136,6 @@ pub struct ModuleMenu {
     pub parent: Option<Vec<u8>>,
 }
 
-#[cfg_attr(feature = "server", derive(Debug))]
-pub struct ModuleMenuChangeset {
-    pub tucan_id: Vec<u8>,
-    pub tucan_last_checked: NaiveDateTime,
-    pub name: String,
-    pub done: bool,
-    pub parent: Option<Option<Vec<u8>>>,
-}
-
-#[derive(Serialize, Debug)]
-pub struct ModuleMenuRef<'a> {
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub tucan_id: &'a [u8],
-    pub tucan_last_checked: &'a NaiveDateTime,
-    pub name: &'a str,
-    pub done: bool,
-    #[serde(
-        serialize_with = "as_option_base64",
-        deserialize_with = "from_option_base64"
-    )]
-    pub parent: Option<&'a [u8]>,
-}
-
 #[derive(Serialize, Debug)]
 pub struct ModuleMenuEntryModule {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -164,19 +144,12 @@ pub struct ModuleMenuEntryModule {
     pub module_id: Vec<u8>,
 }
 
-#[derive(Serialize, Debug)]
-pub struct ModuleMenuEntryModuleRef<'a> {
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_menu_id: &'a [u8],
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_id: &'a [u8],
-}
-
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct Course {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(rename = "_id")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -191,6 +164,7 @@ pub struct Course {
 pub struct CourseGroup {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(rename = "_id")]
     pub tucan_id: Vec<u8>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -234,7 +208,7 @@ pub struct User {
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct UndoneUser {
-    //#[serde(rename = "_id")]
+    #[serde(rename = "_id")]
     pub matriculation_number: i32,
     pub done: bool,
 }

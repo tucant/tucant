@@ -3,14 +3,16 @@ use std::env::var;
 use dotenvy::dotenv;
 use mongodb::{error::Error, options::ClientOptions, Client, Collection, Database};
 
-use crate::models::{TucanSession, UndoneUser};
+use crate::models::{TucanSession, UndoneUser, Module, ModuleCourse};
 
 #[derive(Clone)]
 pub struct MongoDb {
     pub client: Client,
     pub database: Database,
     pub users_unfinished: Collection<UndoneUser>,
+    pub modules_unfinished: Collection<Module>,
     pub sessions: Collection<TucanSession>,
+    pub module_courses: Collection<ModuleCourse>,
 }
 
 impl MongoDb {
@@ -27,14 +29,13 @@ impl MongoDb {
 
         let database = client.database("tucant");
 
-        let users_unfinished = database.collection::<UndoneUser>("users_unfinished");
-        let sessions = database.collection::<TucanSession>("sessions");
-
         Ok(Self {
+            users_unfinished: database.collection("users_unfinished"),
+            sessions: database.collection("sessions"),
+            modules_unfinished: database.collection("modules_unfinished"),
+            module_courses: database.collection("module_courses"),
             client,
             database,
-            users_unfinished,
-            sessions,
         })
     }
 }
