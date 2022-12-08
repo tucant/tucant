@@ -1173,21 +1173,24 @@ impl TucanUser {
         let exam_time = name_document
             .select(&s("table td b"))
             .find(|e| e.inner_html() == "Termin")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .to_string();
+            .map(|exam_time| {
+                Self::parse_date(
+                    exam_time
+                        .next_sibling()
+                        .unwrap()
+                        .value()
+                        .as_text()
+                        .unwrap()
+                        .trim()
+                        .trim_start_matches(": "),
+                )
+            });
 
         Ok(Exam {
             tucan_id: exam_details.id,
             exam_type,
             semester,
-            exam_time: Some(Self::parse_date(&exam_time)),
+            exam_time,
             registration_start,
             registration_end,
             unregistration_start,
