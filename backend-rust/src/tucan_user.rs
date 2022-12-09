@@ -1304,7 +1304,7 @@ impl TucanUser {
             return Ok(user_exams::table
                 .filter(user_exams::matriculation_number.eq(&matriculation_number))
                 .inner_join(exams_unfinished::table)
-                .select(exams_unfinished::table)
+                .select(exams_unfinished::all_columns)
                 .load::<Exam>(&mut connection)
                 .await?)
         }
