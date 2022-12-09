@@ -14,7 +14,7 @@ export default function Module() {
   const { id } = useParams();
 
   const { data } = useSWR(["course", id ?? ""], {
-    fetcher: (_, id) => module(id),
+    fetcher: ([_, id]) => module(id),
   });
 
   if (data === null) {

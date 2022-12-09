@@ -14,7 +14,7 @@ export default function Modules() {
   const { id } = useParams();
 
   const { data } = useSWR(["module_menu", id ?? null], {
-    fetcher: (_, id) => get_modules(id),
+    fetcher: ([_, id]) => get_modules(id),
   });
 
   if (data === null) {
