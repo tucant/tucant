@@ -71,7 +71,7 @@ pub struct Persaddress;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Examdetails {
-    pub id: i64,
+    pub id: Vec<u8>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -175,16 +175,23 @@ impl TucanProgram {
             ),
             TucanProgram::StartpageDispatch(_) => todo!(),
             TucanProgram::Externalpages(_) => todo!(),
-            TucanProgram::Examdetails(Examdetails { id }) => (
-                "EXAMDETAILS",
-                Box::new(
-                    [
-                        TucanArgument::Number(318),
-                        TucanArgument::Number((*id).try_into().unwrap()),
-                    ]
-                    .into_iter(),
-                ),
-            ),
+            TucanProgram::Examdetails(Examdetails { id }) => {
+                let mut a = id.chunks(std::mem::size_of::<u64>());
+                (
+                    "EXAMDETAILS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(318),
+                            TucanArgument::Number(
+                                (u64::from_be_bytes(a.next().unwrap().try_into().unwrap()))
+                                    .try_into()
+                                    .unwrap(),
+                            ),
+                        ]
+                        .into_iter(),
+                    ),
+                )
+            }
             TucanProgram::Courseprep(Courseprep { id }) => (
                 "COURSEPREP",
                 Box::new(
@@ -399,13 +406,11 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "EXAMDETAILS" => {
             assert!(matches!(arguments.next(), Some(TucanArgument::Number(318))));
-            let id = number(&mut arguments);
+            let id = number(&mut arguments).to_be_bytes();
             assert!(matches!(arguments.next(), Some(TucanArgument::Number(0))));
             assert!(matches!(arguments.next(), Some(TucanArgument::String("M"))));
             number(&mut arguments); // nobody knows what this is
-            TucanProgram::Examdetails(Examdetails {
-                id: id.try_into().unwrap(),
-            })
+            TucanProgram::Examdetails(Examdetails { id: id.to_vec() })
         }
         "COURSEPREP" => {
             assert!(matches!(arguments.next(), Some(TucanArgument::Number(318))));

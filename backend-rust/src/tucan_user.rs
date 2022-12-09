@@ -9,7 +9,8 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseGroup, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef, UndoneUser,
+        Course, CourseGroup, Exam, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
+        UndoneUser,
     },
     tucan::Tucan,
     url::{
@@ -1080,6 +1081,8 @@ impl TucanUser {
     }
 
     pub async fn exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Exam> {
+        use diesel_async::RunQueryDsl;
+
         let name_document = self.fetch_document(&exam_details.clone().into()).await?;
         let name_document = self.parse_document(&name_document)?;
 
@@ -1186,18 +1189,31 @@ impl TucanUser {
                 )
             });
 
-        Ok(Exam {
+        let exam = Exam {
             tucan_id: exam_details.id,
             exam_type,
             semester,
-            exam_time,
+            exam_time_start: exam_time.map(|v| v.0),
+            exam_time_end: exam_time.map(|v| v.1),
             registration_start,
             registration_end,
             unregistration_start,
             unregistration_end,
             examinator,
             room,
-        })
+        };
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        diesel::insert_into(exams_unfinished::table)
+            .values(&exam)
+            .on_conflict(exams_unfinished::tucan_id)
+            .do_update()
+            .set(&exam)
+            .execute(&mut connection)
+            .await?;
+
+        Ok(exam)
     }
 
     fn parse_date(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
@@ -1300,18 +1316,4 @@ impl TucanUser {
 
         Ok(exams)
     }
-}
-
-#[derive(Debug)]
-pub struct Exam {
-    pub tucan_id: i64,
-    pub exam_type: String,
-    pub semester: String,
-    pub exam_time: Option<(NaiveDateTime, NaiveDateTime)>,
-    pub registration_start: NaiveDateTime,
-    pub registration_end: NaiveDateTime,
-    pub unregistration_start: NaiveDateTime,
-    pub unregistration_end: NaiveDateTime,
-    pub examinator: Option<String>,
-    pub room: Option<String>,
 }

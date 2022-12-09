@@ -68,7 +68,7 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
-    exams (tucan_id) {
+    exams_unfinished (tucan_id) {
         tucan_id -> Bytea,
         name -> Text,
         exam_type -> Text,
@@ -217,19 +217,19 @@ diesel::table! {
 
 diesel::joinable!(course_events -> courses_unfinished (course));
 diesel::joinable!(course_exams -> courses_unfinished (course_id));
-diesel::joinable!(course_exams -> exams (exam));
+diesel::joinable!(course_exams -> exams_unfinished (exam));
 diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
 diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
 diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
-diesel::joinable!(module_exams -> exams (exam));
+diesel::joinable!(module_exams -> exams_unfinished (exam));
 diesel::joinable!(module_exams -> modules_unfinished (module_id));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (matriculation_number));
 diesel::joinable!(user_courses -> courses_unfinished (course_id));
 diesel::joinable!(user_courses -> users_unfinished (user_id));
-diesel::joinable!(user_exams -> exams (exam));
+diesel::joinable!(user_exams -> exams_unfinished (exam));
 diesel::joinable!(user_exams -> users_unfinished (matriculation_number));
 diesel::joinable!(user_modules -> modules_unfinished (module_id));
 diesel::joinable!(user_modules -> users_unfinished (user_id));
@@ -240,7 +240,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     course_groups_events,
     course_groups_unfinished,
     courses_unfinished,
-    exams,
+    exams_unfinished,
     module_courses,
     module_exams,
     module_menu_module,
