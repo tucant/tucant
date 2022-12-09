@@ -5,6 +5,7 @@ mod s_course;
 mod s_get_modules;
 mod s_module;
 mod s_my_courses;
+mod s_my_exams;
 mod s_my_modules;
 mod s_search_course;
 mod s_search_module;

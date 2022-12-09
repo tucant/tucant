@@ -427,7 +427,7 @@ pub struct UserCourse {
     pub course_id: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)

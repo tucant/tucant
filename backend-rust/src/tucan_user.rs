@@ -34,8 +34,8 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 
 use crate::schema::*;
-use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
+use diesel::{helper_types::Lt, BelongingToDsl};
 
 use diesel::upsert::excluded;
 use diesel::GroupedBy;
@@ -1098,125 +1098,129 @@ impl TucanUser {
             return Ok(exam);
         }
 
-        let name_document = self.fetch_document(&exam_details.clone().into()).await?;
-        let name_document = self.parse_document(&name_document)?;
+        let exam = {
+            let name_document = self.fetch_document(&exam_details.clone().into()).await?;
+            let name_document = self.parse_document(&name_document)?;
 
-        let registration_range_element = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Anmeldezeitraum")
-            .unwrap();
-        let registration_range = registration_range_element
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .split_once(" - ")
-            .unwrap();
-        let unregistration_range_element = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Abmeldezeitraum")
-            .unwrap();
-        let unregistration_range = unregistration_range_element
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .split_once(" - ")
-            .unwrap();
+            let registration_range_element = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Anmeldezeitraum")
+                .unwrap();
+            let registration_range = registration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
+            let unregistration_range_element = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Abmeldezeitraum")
+                .unwrap();
+            let unregistration_range = unregistration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
 
-        let date_format = "%d.%m.%y %H:%M";
-        let registration_start = NaiveDateTime::parse_from_str(registration_range.0, date_format)?;
-        let registration_end = NaiveDateTime::parse_from_str(registration_range.1, date_format)?;
-        let unregistration_start =
-            NaiveDateTime::parse_from_str(unregistration_range.0, date_format)?;
-        let unregistration_end =
-            NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
+            let date_format = "%d.%m.%y %H:%M";
+            let registration_start =
+                NaiveDateTime::parse_from_str(registration_range.0, date_format)?;
+            let registration_end =
+                NaiveDateTime::parse_from_str(registration_range.1, date_format)?;
+            let unregistration_start =
+                NaiveDateTime::parse_from_str(unregistration_range.0, date_format)?;
+            let unregistration_end =
+                NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
 
-        let semester = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Semester")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .to_string();
+            let semester = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Semester")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .to_string();
 
-        let examinator = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Prüfer")
-            .map(|examinator| {
-                examinator
-                    .next_sibling()
-                    .unwrap()
-                    .value()
-                    .as_text()
-                    .unwrap()
-                    .trim()
-                    .trim_start_matches(": ")
-                    .to_string()
-            });
-
-        let room = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Raum")
-            .map(|room| {
-                ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
-                    .unwrap()
-                    .inner_html()
-            });
-
-        let exam_type = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Name")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .to_string();
-
-        let exam_time = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Termin")
-            .map(|exam_time| {
-                Self::parse_date(
-                    exam_time
+            let examinator = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Prüfer")
+                .map(|examinator| {
+                    examinator
                         .next_sibling()
                         .unwrap()
                         .value()
                         .as_text()
                         .unwrap()
                         .trim()
-                        .trim_start_matches(": "),
-                )
-            });
+                        .trim_start_matches(": ")
+                        .to_string()
+                });
 
-        let exam = Exam {
-            tucan_id: exam_details.id,
-            exam_type,
-            semester,
-            exam_time_start: exam_time.map(|v| v.0),
-            exam_time_end: exam_time.map(|v| v.1),
-            registration_start,
-            registration_end,
-            unregistration_start,
-            unregistration_end,
-            examinator,
-            room,
-            done: true,
+            let room = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Raum")
+                .map(|room| {
+                    ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
+                        .unwrap()
+                        .inner_html()
+                });
+
+            let exam_type = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Name")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .to_string();
+
+            let exam_time = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Termin")
+                .map(|exam_time| {
+                    Self::parse_date(
+                        exam_time
+                            .next_sibling()
+                            .unwrap()
+                            .value()
+                            .as_text()
+                            .unwrap()
+                            .trim()
+                            .trim_start_matches(": "),
+                    )
+                });
+
+            Exam {
+                tucan_id: exam_details.id,
+                exam_type,
+                semester,
+                exam_time_start: exam_time.map(|v| v.0),
+                exam_time_end: exam_time.map(|v| v.1),
+                registration_start,
+                registration_end,
+                unregistration_start,
+                unregistration_end,
+                examinator,
+                room,
+                done: true,
+            }
         };
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1289,67 +1293,76 @@ impl TucanUser {
     pub async fn my_exams(&self) -> anyhow::Result<Vec<Exam>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.tucan.pool.get().await?;
         let matriculation_number = self.session.matriculation_number;
 
-        let exams_already_fetched = users_unfinished::table
-            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-            .select(users_unfinished::user_exams_last_checked)
-            .get_result::<Option<NaiveDateTime>>(&mut connection)
-            .await?;
+        {
+            let mut connection = self.tucan.pool.get().await?;
 
-        if exams_already_fetched.is_some() {
-            return Ok(user_exams::table
-                .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                .inner_join(exams_unfinished::table)
-                .select(exams_unfinished::all_columns)
-                .load::<Exam>(&mut connection)
-                .await?);
+            let exams_already_fetched = users_unfinished::table
+                .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                .select(users_unfinished::user_exams_last_checked)
+                .get_result::<Option<NaiveDateTime>>(&mut connection)
+                .await?;
+
+            if exams_already_fetched.is_some() {
+                return Ok(user_exams::table
+                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                    .inner_join(exams_unfinished::table)
+                    .select(exams_unfinished::all_columns)
+                    .load::<Exam>(&mut connection)
+                    .await?);
+            }
         }
 
-        drop(connection);
+        let exam_links = {
+            let document = self.fetch_document(&Myexams.clone().into()).await?;
+            let document = self.parse_document(&document)?;
 
-        let document = self.fetch_document(&Myexams.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+            let mut exams: Vec<Examdetails> = Vec::new();
+            for exam in document.select(&s("table tbody tr")) {
+                let selector = s(r#"td"#);
+                let mut tds = exam.select(&selector);
+                let _nr_column = tds.next().unwrap();
+                let module_column = tds.next().unwrap();
+                let name_column = tds.next().unwrap();
+                let date_column = tds.next().unwrap();
+                let _registered = tds.next().unwrap();
+
+                let module_link = module_column.select(&s("a")).next().unwrap();
+                let name_link = name_column.select(&s("a")).next().unwrap();
+                let _date_link = date_column.select(&s("a")).next();
+
+                let _module_program = parse_tucan_url(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    module_link.value().attr("href").unwrap()
+                ))
+                .program;
+
+                let name_program = parse_tucan_url(&format!(
+                    "https://www.tucan.tu-darmstadt.de{}",
+                    name_link.value().attr("href").unwrap()
+                ))
+                .program;
+
+                /*
+                            if let Some(date_link) = date_link {
+                                let date_program = parse_tucan_url(&format!(
+                                    "https://www.tucan.tu-darmstadt.de{}",
+                                    date_link.value().attr("href").unwrap()
+                                ))
+                                .program;
+                                let date_document = self.fetch_document(&date_program.into()).await?;
+                                let date_document = self.parse_document(&date_document)?;
+                            }
+                */
+                exams.push(name_program.try_into().unwrap())
+            }
+            exams
+        };
 
         let mut exams = Vec::new();
-        for exam in document.select(&s("table tbody tr")) {
-            let selector = s(r#"td"#);
-            let mut tds = exam.select(&selector);
-            let _nr_column = tds.next().unwrap();
-            let module_column = tds.next().unwrap();
-            let name_column = tds.next().unwrap();
-            let date_column = tds.next().unwrap();
-            let _registered = tds.next().unwrap();
-
-            let module_link = module_column.select(&s("a")).next().unwrap();
-            let name_link = name_column.select(&s("a")).next().unwrap();
-            let _date_link = date_column.select(&s("a")).next();
-
-            let _module_program = parse_tucan_url(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                module_link.value().attr("href").unwrap()
-            ))
-            .program;
-
-            let name_program = parse_tucan_url(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                name_link.value().attr("href").unwrap()
-            ))
-            .program;
-
-            /*
-                        if let Some(date_link) = date_link {
-                            let date_program = parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                date_link.value().attr("href").unwrap()
-                            ))
-                            .program;
-                            let date_document = self.fetch_document(&date_program.into()).await?;
-                            let date_document = self.parse_document(&date_document)?;
-                        }
-            */
-            exams.push(self.exam_details(name_program.try_into().unwrap()).await?)
+        for exam in exam_links {
+            exams.push(self.exam_details(exam).await?);
         }
 
         let mut connection = self.tucan.pool.get().await?;
