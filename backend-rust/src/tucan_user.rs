@@ -10,7 +10,7 @@ use std::{
 use crate::{
     models::{
         Course, CourseGroup, Exam, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
-        UndoneUser,
+        UndoneUser, UserExam,
     },
     tucan::Tucan,
     url::{
@@ -1309,6 +1309,8 @@ impl TucanUser {
                 .await?)
         }
 
+        drop(connection);
+
         let document = self.fetch_document(&Myexams.clone().into()).await?;
         let document = self.parse_document(&document)?;
 
@@ -1351,6 +1353,23 @@ impl TucanUser {
             */
             exams.push(self.exam_details(name_program.try_into().unwrap()).await?)
         }
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        diesel::insert_into(user_exams::table)
+            .values(
+                exams
+                    .iter()
+                    .map(|e| UserExam {
+                        matriculation_number,
+                        exam: e.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(user_exams::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
 
         Ok(exams)
     }
