@@ -4,6 +4,9 @@
     export async function course(input: string): Promise<WithTucanUrlQ291cnNl> {
         return await genericFetch("http://localhost:8080/course", input) as WithTucanUrlQ291cnNl
 }
+export async function exam(input: string): Promise<WithTucanUrlRXhhbQ> {
+        return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlRXhhbQ
+}
 export async function get_modules(input: string | null): Promise<WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl> {
         return await genericFetch("http://localhost:8080/modules", input) as WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl
 }
@@ -128,6 +131,11 @@ export type WithTucanUrlQ291cnNlW10 =
 {
   tucan_url: string,
   inner: Course[],
+}
+export type WithTucanUrlRXhhbQ =
+{
+  tucan_url: string,
+  inner: Exam,
 }
 export type WithTucanUrlRXhhbVtd =
 {
