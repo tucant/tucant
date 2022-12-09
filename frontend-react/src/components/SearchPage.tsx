@@ -37,7 +37,7 @@ export default function SearchPage(props: {
   };
 
   const { data } = useSWR([`search_${props.base_path}`, form.q], {
-    fetcher: (_, q) => props.function(q),
+    fetcher: ([_, q]) => props.function(q),
   });
 
   if (data === null) {
