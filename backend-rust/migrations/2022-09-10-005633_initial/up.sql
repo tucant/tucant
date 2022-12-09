@@ -82,6 +82,7 @@ CREATE TABLE users_unfinished (
     phone_number TEXT NOT NULL DEFAULT '',
     user_modules_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     user_courses_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    user_exams_last_checked TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE
 );
 

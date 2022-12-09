@@ -210,6 +210,7 @@ diesel::table! {
         phone_number -> Text,
         user_modules_last_checked -> Nullable<Timestamptz>,
         user_courses_last_checked -> Nullable<Timestamptz>,
+        user_exams_last_checked -> Nullable<Timestamptz>,
         done -> Bool,
     }
 }

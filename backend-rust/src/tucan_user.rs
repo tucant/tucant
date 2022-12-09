@@ -1287,6 +1287,28 @@ impl TucanUser {
     }
 
     pub async fn my_exams(&self) -> anyhow::Result<Vec<Exam>> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.tucan.pool.get().await?;
+        let matriculation_number = self.session.matriculation_number;
+
+        let exams_already_fetched = users_unfinished::table
+            .filter(
+                users_unfinished::matriculation_number.eq(&matriculation_number),
+            )
+            .select(users_unfinished::user_exams_last_checked)
+            .get_result::<Option<NaiveDateTime>>(&mut connection)
+            .await?;
+
+        if exams_already_fetched.is_some() {
+            return Ok(user_exams::table
+                .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                .inner_join(exams_unfinished::table)
+                .select(exams_unfinished::table)
+                .load::<Exam>(&mut connection)
+                .await?)
+        }
+
         let document = self.fetch_document(&Myexams.clone().into()).await?;
         let document = self.parse_document(&document)?;
 
