@@ -1324,9 +1324,9 @@ impl TucanUser {
 
             let module_link = module_column.select(&s("a")).next().unwrap();
             let name_link = name_column.select(&s("a")).next().unwrap();
-            let date_link = date_column.select(&s("a")).next();
+            let _date_link = date_column.select(&s("a")).next();
 
-            let module_program = parse_tucan_url(&format!(
+            let _module_program = parse_tucan_url(&format!(
                 "https://www.tucan.tu-darmstadt.de{}",
                 module_link.value().attr("href").unwrap()
             ))

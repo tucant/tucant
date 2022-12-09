@@ -182,11 +182,9 @@ impl TucanProgram {
                     Box::new(
                         [
                             TucanArgument::Number(318),
-                            TucanArgument::Number(
-                                (u64::from_be_bytes(a.next().unwrap().try_into().unwrap()))
-                                    .try_into()
-                                    .unwrap(),
-                            ),
+                            TucanArgument::Number(u64::from_be_bytes(
+                                a.next().unwrap().try_into().unwrap(),
+                            )),
                         ]
                         .into_iter(),
                     ),
