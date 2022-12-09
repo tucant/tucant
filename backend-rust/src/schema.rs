@@ -70,7 +70,6 @@ diesel::table! {
 
     exams_unfinished (tucan_id) {
         tucan_id -> Bytea,
-        name -> Text,
         exam_type -> Text,
         semester -> Text,
         exam_time_start -> Nullable<Timestamptz>,

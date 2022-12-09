@@ -1083,6 +1083,21 @@ impl TucanUser {
     pub async fn exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Exam> {
         use diesel_async::RunQueryDsl;
 
+        let mut connection = self.tucan.pool.get().await?;
+
+        let existing = exams_unfinished::table
+            .filter(exams_unfinished::tucan_id.eq(&exam_details.id))
+            .filter(exams_unfinished::done)
+            .get_result::<Exam>(&mut connection)
+            .await
+            .optional()?;
+
+        drop(connection);
+
+        if let Some(exam) = existing {
+            return Ok(exam);
+        }
+
         let name_document = self.fetch_document(&exam_details.clone().into()).await?;
         let name_document = self.parse_document(&name_document)?;
 
@@ -1201,6 +1216,7 @@ impl TucanUser {
             unregistration_end,
             examinator,
             room,
+            done: true,
         };
 
         let mut connection = self.tucan.pool.get().await?;

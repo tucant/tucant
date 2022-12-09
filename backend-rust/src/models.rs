@@ -447,4 +447,5 @@ pub struct Exam {
     pub unregistration_end: NaiveDateTime,
     pub examinator: Option<String>,
     pub room: Option<String>,
+    pub done: bool,
 }

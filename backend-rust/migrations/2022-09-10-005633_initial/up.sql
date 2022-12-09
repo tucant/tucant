@@ -153,7 +153,6 @@ CREATE TABLE user_courses (
 
 CREATE TABLE exams_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL,
     exam_type TEXT NOT NULL,
     semester TEXT NOT NULL,
     exam_time_start TIMESTAMP WITH TIME ZONE DEFAULT NULL,
