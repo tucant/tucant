@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { useParams } from "react-router-dom";
-import dompurify from "dompurify";
 import { exam } from "../api";
 import useSWR from "swr";
 import SignOut from "./Logout";
