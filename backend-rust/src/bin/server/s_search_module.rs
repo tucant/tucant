@@ -65,6 +65,8 @@ pub async fn search_module_opensearch(
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
+    println!("before");
+
     let response = tucan
         .opensearch
         .search(SearchParts::Index(&["tucant_modules"]))
@@ -104,6 +106,8 @@ pub async fn search_module_opensearch(
         }))
         .send()
         .await?;
+
+    println!("after");
 
     let response_body = response.json::<Value>().await?;
     println!("{}", response_body);
