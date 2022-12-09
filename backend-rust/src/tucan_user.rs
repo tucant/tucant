@@ -35,7 +35,7 @@ use scraper::{ElementRef, Html};
 
 use crate::schema::*;
 use diesel::ExpressionMethods;
-use diesel::{helper_types::Lt, BelongingToDsl};
+use diesel::BelongingToDsl;
 
 use diesel::upsert::excluded;
 use diesel::GroupedBy;

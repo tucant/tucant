@@ -436,6 +436,8 @@ pub struct UserCourse {
 #[cfg_attr(feature = "server", diesel(table_name = exams_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct Exam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
     pub semester: String,
@@ -450,7 +452,7 @@ pub struct Exam {
     pub done: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable)
@@ -460,5 +462,7 @@ pub struct Exam {
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct UserExam {
     pub matriculation_number: i32,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub exam: Vec<u8>,
 }

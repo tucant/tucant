@@ -22,6 +22,9 @@ export async function module(input: string): Promise<WithTucanUrlTW9kdWxlUmVzcG9
 export async function my_courses(input: null): Promise<WithTucanUrlQ291cnNlW10> {
         return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlQ291cnNlW10
 }
+export async function my_exams(input: null): Promise<WithTucanUrlRXhhbVtd> {
+        return await genericFetch("http://localhost:8080/my-exams", input) as WithTucanUrlRXhhbVtd
+}
 export async function my_modules(input: null): Promise<WithTucanUrlTW9kdWxlW10> {
         return await genericFetch("http://localhost:8080/my-modules", input) as WithTucanUrlTW9kdWxlW10
 }
@@ -42,6 +45,21 @@ export type Course =
   course_id: string,
   sws: number,
   content: string,
+  done: boolean,
+}
+export type Exam =
+{
+  tucan_id: string,
+  exam_type: string,
+  semester: string,
+  exam_time_start: string | null,
+  exam_time_end: string | null,
+  registration_start: string,
+  registration_end: string,
+  unregistration_start: string,
+  unregistration_end: string,
+  examinator: string | null,
+  room: string | null,
   done: boolean,
 }
 export type Login =
@@ -110,6 +128,11 @@ export type WithTucanUrlQ291cnNlW10 =
 {
   tucan_url: string,
   inner: Course[],
+}
+export type WithTucanUrlRXhhbVtd =
+{
+  tucan_url: string,
+  inner: Exam[],
 }
 export type WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl =
 {

@@ -23,6 +23,7 @@ import { SearchCourses } from "./routes/SearchCourses";
 import { NavigationContext } from "./NavigationContext";
 import MyCourses from "./routes/MyCourses";
 import { SearchModulesOpenSearch } from "./routes/SearchModulesOpenSearch";
+import MyExams from "./routes/MyExams";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
@@ -47,6 +48,7 @@ function App() {
                   <Route path="search-courses" element={<SearchCourses />} />
                   <Route path="logout" element={<Logout />} />
                   <Route path="search-modules" element={<SearchModules />} />
+                  <Route path="my-exams" element={<MyExams />} />
                   <Route
                     path="search-modules-opensearch"
                     element={<SearchModulesOpenSearch />}
