@@ -1293,9 +1293,7 @@ impl TucanUser {
         let matriculation_number = self.session.matriculation_number;
 
         let exams_already_fetched = users_unfinished::table
-            .filter(
-                users_unfinished::matriculation_number.eq(&matriculation_number),
-            )
+            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
             .select(users_unfinished::user_exams_last_checked)
             .get_result::<Option<NaiveDateTime>>(&mut connection)
             .await?;
@@ -1306,7 +1304,7 @@ impl TucanUser {
                 .inner_join(exams_unfinished::table)
                 .select(exams_unfinished::all_columns)
                 .load::<Exam>(&mut connection)
-                .await?)
+                .await?);
         }
 
         drop(connection);
@@ -1368,6 +1366,12 @@ impl TucanUser {
             )
             .on_conflict(user_exams::all_columns)
             .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::update(users_unfinished::table)
+            .filter(users_unfinished::matriculation_number.eq(matriculation_number))
+            .set(users_unfinished::user_exams_last_checked.eq(Utc::now().naive_utc()))
             .execute(&mut connection)
             .await?;
 
