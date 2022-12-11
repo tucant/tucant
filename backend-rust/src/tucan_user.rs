@@ -10,7 +10,7 @@ use std::{
 use crate::{
     models::{
         Course, CourseGroup, Exam, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
-        UndoneUser, UserExam,
+        UndoneUser, UserExam, ModuleExam, CourseExam,
     },
     tucan::Tucan,
     url::{
@@ -1314,12 +1314,11 @@ impl TucanUser {
             }
         }
 
-        let exam_links = {
+        let result = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
             let document = self.parse_document(&document)?;
 
-            let mut exams: Vec<Examdetails> = Vec::new();
-            for exam in document.select(&s("table tbody tr")) {
+            document.select(&s("table tbody tr")).map(|exam| {
                 let selector = s(r#"td"#);
                 let mut tds = exam.select(&selector);
                 let _nr_column = tds.next().unwrap();
@@ -1332,7 +1331,7 @@ impl TucanUser {
                 let name_link = name_column.select(&s("a")).next().unwrap();
                 let _date_link = date_column.select(&s("a")).next();
 
-                let _module_program = parse_tucan_url(&format!(
+                let module_program = parse_tucan_url(&format!(
                     "https://www.tucan.tu-darmstadt.de{}",
                     module_link.value().attr("href").unwrap()
                 ))
@@ -1355,14 +1354,13 @@ impl TucanUser {
                                 let date_document = self.parse_document(&date_document)?;
                             }
                 */
-                exams.push(name_program.try_into().unwrap())
-            }
-            exams
+                (module_program, TryInto::<Examdetails>::try_into(name_program).unwrap())
+            }).collect_vec()
         };
 
         let mut exams = Vec::new();
-        for exam in exam_links {
-            exams.push(self.exam_details(exam).await?);
+        for exam in result {
+            exams.push((exam.0, self.exam_details(exam.1).await?));
         }
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1373,11 +1371,51 @@ impl TucanUser {
                     .iter()
                     .map(|e| UserExam {
                         matriculation_number,
-                        exam: e.tucan_id.clone(),
+                        exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
             )
             .on_conflict(user_exams::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_exams::table)
+            .values(
+                exams
+                    .iter()
+                    .filter_map(|v| {
+                        TryInto::<Moduledetails>::try_into(v.0.clone()).ok().map(|m| {
+                            (m, v.1.clone())
+                        })
+                    })
+                    .map(|e| ModuleExam {
+                        module_id: e.0.id,
+                        exam: e.1.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(module_exams::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+            diesel::insert_into(course_exams::table)
+            .values(
+                exams
+                    .iter()
+                    .filter_map(|v| {
+                        TryInto::<Coursedetails>::try_into(v.0.clone()).ok().map(|m| {
+                            (m, v.1.clone())
+                        })
+                    })
+                    .map(|e| CourseExam {
+                        course_id: e.0.id,
+                        exam: e.1.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(course_exams::all_columns)
             .do_nothing()
             .execute(&mut connection)
             .await?;
@@ -1388,6 +1426,6 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(exams)
+        Ok(exams.into_iter().map(|r| r.1).collect_vec())
     }
 }

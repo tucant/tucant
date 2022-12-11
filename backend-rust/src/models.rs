@@ -28,7 +28,7 @@ use tucant_derive::Typescriptable;
 use crate::schema::{
     course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
     module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_courses,
-    user_exams, user_modules, users_unfinished,
+    user_exams, user_modules, users_unfinished, course_exams, module_exams
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -427,7 +427,7 @@ pub struct UserCourse {
     pub course_id: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)
@@ -450,6 +450,40 @@ pub struct Exam {
     pub examinator: Option<String>,
     pub room: Option<String>,
     pub done: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(course_id, exam)))]
+#[cfg_attr(feature = "server", diesel(table_name = course_exams))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct CourseExam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub course_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub exam: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(module_id, exam)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_exams))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct ModuleExam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub module_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub exam: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
