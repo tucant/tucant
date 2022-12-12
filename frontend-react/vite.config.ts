@@ -12,11 +12,11 @@ export default defineConfig({
       brotliSize: true,
       gzipSize: true,
       template: "sunburst",
-      open: true
+      open: true,
     }),
   ],
   build: {
-    sourcemap: true
+    sourcemap: true,
   },
   server: {
     // https://github.com/vitejs/vite/issues/3301

@@ -1291,32 +1291,30 @@ impl TucanUser {
         (start_datetime.naive_utc(), end_datetime.naive_utc())
     }
 
-    pub async fn my_exams(
-        &self,
-    ) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
+    pub async fn my_exams(&self) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.session.matriculation_number;
-/*
-        {
-            let mut connection = self.tucan.pool.get().await?;
+        /*
+                {
+                    let mut connection = self.tucan.pool.get().await?;
 
-            let exams_already_fetched = users_unfinished::table
-                .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-                .select(users_unfinished::user_exams_last_checked)
-                .get_result::<Option<NaiveDateTime>>(&mut connection)
-                .await?;
+                    let exams_already_fetched = users_unfinished::table
+                        .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                        .select(users_unfinished::user_exams_last_checked)
+                        .get_result::<Option<NaiveDateTime>>(&mut connection)
+                        .await?;
 
-            if exams_already_fetched.is_some() {
-                return Ok(user_exams::table
-                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                    .inner_join(exams_unfinished::table)
-                    .select(exams_unfinished::all_columns)
-                    .load::<Exam>(&mut connection)
-                    .await?);
-            }
-        }
-*/
+                    if exams_already_fetched.is_some() {
+                        return Ok(user_exams::table
+                            .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                            .inner_join(exams_unfinished::table)
+                            .select(exams_unfinished::all_columns)
+                            .load::<Exam>(&mut connection)
+                            .await?);
+                    }
+                }
+        */
         let result = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
             let document = self.parse_document(&document)?;
