@@ -26,9 +26,9 @@ use tucant_derive::Typescriptable;
 
 #[cfg(feature = "server")]
 use crate::schema::{
-    course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
-    module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_courses,
-    user_exams, user_modules, users_unfinished,
+    course_exams, course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
+    module_exams, module_menu_module, module_menu_unfinished, modules_unfinished, sessions,
+    user_courses, user_exams, user_modules, users_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -427,7 +427,7 @@ pub struct UserCourse {
     pub course_id: Vec<u8>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)
@@ -436,6 +436,8 @@ pub struct UserCourse {
 #[cfg_attr(feature = "server", diesel(table_name = exams_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct Exam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
     pub semester: String,
@@ -450,7 +452,41 @@ pub struct Exam {
     pub done: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(course_id, exam)))]
+#[cfg_attr(feature = "server", diesel(table_name = course_exams))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct CourseExam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub course_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub exam: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(module_id, exam)))]
+#[cfg_attr(feature = "server", diesel(table_name = module_exams))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct ModuleExam {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub module_id: Vec<u8>,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub exam: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable)
@@ -460,5 +496,7 @@ pub struct Exam {
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct UserExam {
     pub matriculation_number: i32,
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub exam: Vec<u8>,
 }

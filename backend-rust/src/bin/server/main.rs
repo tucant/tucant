@@ -2,9 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 mod s_course;
+mod s_exam;
 mod s_get_modules;
 mod s_module;
 mod s_my_courses;
+mod s_my_exams;
 mod s_my_modules;
 mod s_search_course;
 mod s_search_module;
@@ -81,8 +83,12 @@ use tucant_derive::{ts, Typescriptable};
 use tucant_derive_lib::Typescriptable;
 
 use crate::s_course::CourseTs;
+use crate::s_exam::exam;
+use crate::s_exam::ExamTs;
 use crate::s_get_modules::GetModulesTs;
 use crate::s_module::ModuleTs;
+use crate::s_my_exams::my_exams;
+use crate::s_my_exams::MyExamsTs;
 use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
 use crate::s_search_module::SearchModuleTs;
@@ -357,6 +363,8 @@ async fn main() -> anyhow::Result<()> {
         .route::<SearchCourseTs>("/search-course", post(search_course))
         .route::<CourseTs>("/course", post(course))
         .route::<ModuleTs>("/module", post(module))
+        .route::<ExamTs>("/exam", post(exam))
+        .route::<MyExamsTs>("/my-exams", post(my_exams))
         .route::<MyModulesTs>("/my-modules", post(my_modules))
         .route::<MyCoursesTs>("/my-courses", post(my_courses));
 

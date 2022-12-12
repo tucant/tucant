@@ -4,6 +4,9 @@
     export async function course(input: string): Promise<WithTucanUrlQ291cnNl> {
         return await genericFetch("http://localhost:8080/course", input) as WithTucanUrlQ291cnNl
 }
+export async function exam(input: string): Promise<WithTucanUrlRXhhbQ> {
+        return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlRXhhbQ
+}
 export async function get_modules(input: string | null): Promise<WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl> {
         return await genericFetch("http://localhost:8080/modules", input) as WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl
 }
@@ -21,6 +24,9 @@ export async function module(input: string): Promise<WithTucanUrlTW9kdWxlUmVzcG9
 }
 export async function my_courses(input: null): Promise<WithTucanUrlQ291cnNlW10> {
         return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlQ291cnNlW10
+}
+export async function my_exams(input: null): Promise<WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d> {
+        return await genericFetch("http://localhost:8080/my-exams", input) as WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d
 }
 export async function my_modules(input: null): Promise<WithTucanUrlTW9kdWxlW10> {
         return await genericFetch("http://localhost:8080/my-modules", input) as WithTucanUrlTW9kdWxlW10
@@ -42,6 +48,21 @@ export type Course =
   course_id: string,
   sws: number,
   content: string,
+  done: boolean,
+}
+export type Exam =
+{
+  tucan_id: string,
+  exam_type: string,
+  semester: string,
+  exam_time_start: string | null,
+  exam_time_end: string | null,
+  registration_start: string,
+  registration_end: string,
+  unregistration_start: string,
+  unregistration_end: string,
+  examinator: string | null,
+  room: string | null,
   done: boolean,
 }
 export type Login =
@@ -111,6 +132,11 @@ export type WithTucanUrlQ291cnNlW10 =
   tucan_url: string,
   inner: Course[],
 }
+export type WithTucanUrlRXhhbQ =
+{
+  tucan_url: string,
+  inner: Exam,
+}
 export type WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl =
 {
   tucan_url: string,
@@ -125,4 +151,9 @@ export type WithTucanUrlTW9kdWxlW10 =
 {
   tucan_url: string,
   inner: Module[],
+}
+export type WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d =
+{
+  tucan_url: string,
+  inner: [[Module, Exam][], [Course, Exam][]],
 }

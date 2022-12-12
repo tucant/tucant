@@ -81,6 +81,11 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link className="nav-link" to="/my-exams/">
+                  Meine Prüfungen
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link" to="/search-modules">
                   Modulsuche
                 </Link>

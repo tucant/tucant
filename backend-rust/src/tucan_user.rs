@@ -9,8 +9,8 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseGroup, Exam, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
-        UndoneUser, UserExam,
+        Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
+        ModuleMenuEntryModuleRef, UndoneUser, UserExam,
     },
     tucan::Tucan,
     url::{
@@ -26,6 +26,7 @@ use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
+use either::Either;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
@@ -1098,125 +1099,129 @@ impl TucanUser {
             return Ok(exam);
         }
 
-        let name_document = self.fetch_document(&exam_details.clone().into()).await?;
-        let name_document = self.parse_document(&name_document)?;
+        let exam = {
+            let name_document = self.fetch_document(&exam_details.clone().into()).await?;
+            let name_document = self.parse_document(&name_document)?;
 
-        let registration_range_element = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Anmeldezeitraum")
-            .unwrap();
-        let registration_range = registration_range_element
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .split_once(" - ")
-            .unwrap();
-        let unregistration_range_element = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Abmeldezeitraum")
-            .unwrap();
-        let unregistration_range = unregistration_range_element
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .split_once(" - ")
-            .unwrap();
+            let registration_range_element = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Anmeldezeitraum")
+                .unwrap();
+            let registration_range = registration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
+            let unregistration_range_element = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Abmeldezeitraum")
+                .unwrap();
+            let unregistration_range = unregistration_range_element
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .split_once(" - ")
+                .unwrap();
 
-        let date_format = "%d.%m.%y %H:%M";
-        let registration_start = NaiveDateTime::parse_from_str(registration_range.0, date_format)?;
-        let registration_end = NaiveDateTime::parse_from_str(registration_range.1, date_format)?;
-        let unregistration_start =
-            NaiveDateTime::parse_from_str(unregistration_range.0, date_format)?;
-        let unregistration_end =
-            NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
+            let date_format = "%d.%m.%y %H:%M";
+            let registration_start =
+                NaiveDateTime::parse_from_str(registration_range.0, date_format)?;
+            let registration_end =
+                NaiveDateTime::parse_from_str(registration_range.1, date_format)?;
+            let unregistration_start =
+                NaiveDateTime::parse_from_str(unregistration_range.0, date_format)?;
+            let unregistration_end =
+                NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
 
-        let semester = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Semester")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .to_string();
+            let semester = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Semester")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .to_string();
 
-        let examinator = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Prüfer")
-            .map(|examinator| {
-                examinator
-                    .next_sibling()
-                    .unwrap()
-                    .value()
-                    .as_text()
-                    .unwrap()
-                    .trim()
-                    .trim_start_matches(": ")
-                    .to_string()
-            });
-
-        let room = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Raum")
-            .map(|room| {
-                ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
-                    .unwrap()
-                    .inner_html()
-            });
-
-        let exam_type = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Name")
-            .unwrap()
-            .next_sibling()
-            .unwrap()
-            .value()
-            .as_text()
-            .unwrap()
-            .trim()
-            .trim_start_matches(": ")
-            .to_string();
-
-        let exam_time = name_document
-            .select(&s("table td b"))
-            .find(|e| e.inner_html() == "Termin")
-            .map(|exam_time| {
-                Self::parse_date(
-                    exam_time
+            let examinator = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Prüfer")
+                .map(|examinator| {
+                    examinator
                         .next_sibling()
                         .unwrap()
                         .value()
                         .as_text()
                         .unwrap()
                         .trim()
-                        .trim_start_matches(": "),
-                )
-            });
+                        .trim_start_matches(": ")
+                        .to_string()
+                });
 
-        let exam = Exam {
-            tucan_id: exam_details.id,
-            exam_type,
-            semester,
-            exam_time_start: exam_time.map(|v| v.0),
-            exam_time_end: exam_time.map(|v| v.1),
-            registration_start,
-            registration_end,
-            unregistration_start,
-            unregistration_end,
-            examinator,
-            room,
-            done: true,
+            let room = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Raum")
+                .map(|room| {
+                    ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
+                        .unwrap()
+                        .inner_html()
+                });
+
+            let exam_type = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Name")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .trim_start_matches(": ")
+                .to_string();
+
+            let exam_time = name_document
+                .select(&s("table td b"))
+                .find(|e| e.inner_html() == "Termin")
+                .map(|exam_time| {
+                    Self::parse_date(
+                        exam_time
+                            .next_sibling()
+                            .unwrap()
+                            .value()
+                            .as_text()
+                            .unwrap()
+                            .trim()
+                            .trim_start_matches(": "),
+                    )
+                });
+
+            Exam {
+                tucan_id: exam_details.id,
+                exam_type,
+                semester,
+                exam_time_start: exam_time.map(|v| v.0),
+                exam_time_end: exam_time.map(|v| v.1),
+                registration_start,
+                registration_end,
+                unregistration_start,
+                unregistration_end,
+                examinator,
+                room,
+                done: true,
+            }
         };
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1286,70 +1291,85 @@ impl TucanUser {
         (start_datetime.naive_utc(), end_datetime.naive_utc())
     }
 
-    pub async fn my_exams(&self) -> anyhow::Result<Vec<Exam>> {
+    pub async fn my_exams(&self) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.tucan.pool.get().await?;
         let matriculation_number = self.session.matriculation_number;
+        /*
+                {
+                    let mut connection = self.tucan.pool.get().await?;
 
-        let exams_already_fetched = users_unfinished::table
-            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-            .select(users_unfinished::user_exams_last_checked)
-            .get_result::<Option<NaiveDateTime>>(&mut connection)
-            .await?;
+                    let exams_already_fetched = users_unfinished::table
+                        .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                        .select(users_unfinished::user_exams_last_checked)
+                        .get_result::<Option<NaiveDateTime>>(&mut connection)
+                        .await?;
 
-        if exams_already_fetched.is_some() {
-            return Ok(user_exams::table
-                .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                .inner_join(exams_unfinished::table)
-                .select(exams_unfinished::all_columns)
-                .load::<Exam>(&mut connection)
-                .await?);
-        }
+                    if exams_already_fetched.is_some() {
+                        return Ok(user_exams::table
+                            .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                            .inner_join(exams_unfinished::table)
+                            .select(exams_unfinished::all_columns)
+                            .load::<Exam>(&mut connection)
+                            .await?);
+                    }
+                }
+        */
+        let result = {
+            let document = self.fetch_document(&Myexams.clone().into()).await?;
+            let document = self.parse_document(&document)?;
 
-        drop(connection);
+            document
+                .select(&s("table tbody tr"))
+                .map(|exam| {
+                    let selector = s(r#"td"#);
+                    let mut tds = exam.select(&selector);
+                    let _nr_column = tds.next().unwrap();
+                    let module_column = tds.next().unwrap();
+                    let name_column = tds.next().unwrap();
+                    let date_column = tds.next().unwrap();
+                    let _registered = tds.next().unwrap();
 
-        let document = self.fetch_document(&Myexams.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+                    let module_link = module_column.select(&s("a")).next().unwrap();
+                    let name_link = name_column.select(&s("a")).next().unwrap();
+                    let _date_link = date_column.select(&s("a")).next();
 
+                    let module_program = parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        module_link.value().attr("href").unwrap()
+                    ))
+                    .program;
+
+                    let name_program = parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        name_link.value().attr("href").unwrap()
+                    ))
+                    .program;
+
+                    /*
+                                if let Some(date_link) = date_link {
+                                    let date_program = parse_tucan_url(&format!(
+                                        "https://www.tucan.tu-darmstadt.de{}",
+                                        date_link.value().attr("href").unwrap()
+                                    ))
+                                    .program;
+                                    let date_document = self.fetch_document(&date_program.into()).await?;
+                                    let date_document = self.parse_document(&date_document)?;
+                                }
+                    */
+                    (
+                        module_program,
+                        TryInto::<Examdetails>::try_into(name_program).unwrap(),
+                        module_link.inner_html(),
+                    )
+                })
+                .collect_vec()
+        };
+
+        // TODO FIXME don't do this here but do this lazily
         let mut exams = Vec::new();
-        for exam in document.select(&s("table tbody tr")) {
-            let selector = s(r#"td"#);
-            let mut tds = exam.select(&selector);
-            let _nr_column = tds.next().unwrap();
-            let module_column = tds.next().unwrap();
-            let name_column = tds.next().unwrap();
-            let date_column = tds.next().unwrap();
-            let _registered = tds.next().unwrap();
-
-            let module_link = module_column.select(&s("a")).next().unwrap();
-            let name_link = name_column.select(&s("a")).next().unwrap();
-            let _date_link = date_column.select(&s("a")).next();
-
-            let _module_program = parse_tucan_url(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                module_link.value().attr("href").unwrap()
-            ))
-            .program;
-
-            let name_program = parse_tucan_url(&format!(
-                "https://www.tucan.tu-darmstadt.de{}",
-                name_link.value().attr("href").unwrap()
-            ))
-            .program;
-
-            /*
-                        if let Some(date_link) = date_link {
-                            let date_program = parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                date_link.value().attr("href").unwrap()
-                            ))
-                            .program;
-                            let date_document = self.fetch_document(&date_program.into()).await?;
-                            let date_document = self.parse_document(&date_document)?;
-                        }
-            */
-            exams.push(self.exam_details(name_program.try_into().unwrap()).await?)
+        for exam in result {
+            exams.push((exam.0, self.exam_details(exam.1).await?, exam.2));
         }
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1360,11 +1380,87 @@ impl TucanUser {
                     .iter()
                     .map(|e| UserExam {
                         matriculation_number,
-                        exam: e.tucan_id.clone(),
+                        exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
             )
             .on_conflict(user_exams::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        type ModuleExams = Vec<(Module, Exam)>;
+        type CourseExams = Vec<(Course, Exam)>;
+
+        let (module_exams, course_exams): (ModuleExams, CourseExams) =
+            exams.into_iter().partition_map(|v| match v.0 {
+                TucanProgram::Moduledetails(moduledetails) => Either::Left((
+                    Module {
+                        tucan_id: moduledetails.id,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        module_id: "".to_string(),
+                        title: v.2,
+                        credits: None,
+                        content: "".to_string(),
+                        done: false,
+                    },
+                    v.1,
+                )),
+                TucanProgram::Coursedetails(coursedetails) => Either::Right((
+                    Course {
+                        tucan_id: coursedetails.id,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        course_id: "".to_string(),
+                        title: v.2,
+                        sws: 0,
+                        content: "".to_string(),
+                        done: false,
+                    },
+                    v.1,
+                )),
+                _ => panic!(),
+            });
+
+        diesel::insert_into(modules_unfinished::table)
+            .values(module_exams.iter().map(|v| &v.0).collect_vec())
+            .on_conflict(modules_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_exams::table)
+            .values(
+                module_exams
+                    .iter()
+                    .map(|e| ModuleExam {
+                        module_id: e.0.tucan_id.clone(),
+                        exam: e.1.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(module_exams::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(course_exams.iter().map(|v| &v.0).collect_vec())
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(course_exams::table)
+            .values(
+                course_exams
+                    .iter()
+                    .map(|e| CourseExam {
+                        course_id: e.0.tucan_id.clone(),
+                        exam: e.1.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(course_exams::all_columns)
             .do_nothing()
             .execute(&mut connection)
             .await?;
@@ -1375,6 +1471,6 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(exams)
+        Ok((module_exams, course_exams))
     }
 }
