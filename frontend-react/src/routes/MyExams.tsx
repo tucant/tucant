@@ -24,13 +24,22 @@ export default function MyExams() {
         {data != null && (
           <>
             <TucanUrlLink data={data} />
-            {data.inner.map((e) => (
+            {data.inner[0].map((e) => (
               <Link
-                key={e.tucan_id}
+                key={e[1].tucan_id}
                 className="list-group-item list-group-item-action"
-                to={`/exam/${e.tucan_id}`}
+                to={`/exam/${e[1].tucan_id}`}
               >
-                {e.tucan_id}
+                {e[1].tucan_id}
+              </Link>
+            ))}
+            {data.inner[1].map((e) => (
+              <Link
+                key={e[1].tucan_id}
+                className="list-group-item list-group-item-action"
+                to={`/exam/${e[1].tucan_id}`}
+              >
+                {e[1].tucan_id}
               </Link>
             ))}
           </>

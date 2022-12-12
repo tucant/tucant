@@ -1293,11 +1293,11 @@ impl TucanUser {
 
     pub async fn my_exams(
         &self,
-    ) -> anyhow::Result<(Vec<(Moduledetails, Exam)>, Vec<(Coursedetails, Exam)>)> {
+    ) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.session.matriculation_number;
-
+/*
         {
             let mut connection = self.tucan.pool.get().await?;
 
@@ -1316,7 +1316,7 @@ impl TucanUser {
                     .await?);
             }
         }
-
+*/
         let result = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
             let document = self.parse_document(&document)?;
@@ -1404,12 +1404,23 @@ impl TucanUser {
                     },
                     v.1,
                 )),
-                TucanProgram::Coursedetails(coursedetails) => Either::Right((coursedetails, v.1)),
+                TucanProgram::Coursedetails(coursedetails) => Either::Right((
+                    Course {
+                        tucan_id: coursedetails.id,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        course_id: "".to_string(),
+                        title: "".to_string(),
+                        sws: 0,
+                        content: "".to_string(),
+                        done: false,
+                    },
+                    v.1,
+                )),
                 _ => panic!(),
             });
 
         diesel::insert_into(modules_unfinished::table)
-            .values(module_exams.iter().map(|v| v.0))
+            .values(module_exams.iter().map(|v| &v.0).collect_vec())
             .on_conflict(modules_unfinished::tucan_id)
             .do_nothing()
             .execute(&mut connection)
@@ -1420,7 +1431,7 @@ impl TucanUser {
                 module_exams
                     .iter()
                     .map(|e| ModuleExam {
-                        module_id: e.0.id,
+                        module_id: e.0.tucan_id.clone(),
                         exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
@@ -1430,12 +1441,19 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
+        diesel::insert_into(courses_unfinished::table)
+            .values(course_exams.iter().map(|v| &v.0).collect_vec())
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
         diesel::insert_into(course_exams::table)
             .values(
                 course_exams
                     .iter()
                     .map(|e| CourseExam {
-                        course_id: e.0.id,
+                        course_id: e.0.tucan_id.clone(),
                         exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
@@ -1451,6 +1469,6 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(exams.into_iter().map(|r| r.1).collect_vec())
+        Ok((module_exams, course_exams))
     }
 }

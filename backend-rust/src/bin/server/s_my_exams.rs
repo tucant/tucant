@@ -8,7 +8,9 @@ use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
+use tucant::models::Course;
 use tucant::models::Exam;
+use tucant::models::Module;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant::url::Mymodules;
@@ -21,7 +23,7 @@ pub async fn my_exams(
     session: TucanSession,
     tucan: State<Tucan>,
     _input: Json<()>,
-) -> Result<Json<WithTucanUrl<Vec<Exam>>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();
 
     let result = tucan.my_exams().await?;
