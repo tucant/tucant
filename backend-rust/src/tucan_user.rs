@@ -9,8 +9,8 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseGroup, Exam, Module, ModuleCourse, ModuleMenu, ModuleMenuEntryModuleRef,
-        UndoneUser, UserExam, ModuleExam, CourseExam,
+        Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
+        ModuleMenuEntryModuleRef, UndoneUser, UserExam,
     },
     tucan::Tucan,
     url::{
@@ -26,6 +26,7 @@ use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 use ego_tree::NodeRef;
+use either::Either;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
@@ -34,8 +35,8 @@ use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
 
 use crate::schema::*;
-use diesel::ExpressionMethods;
 use diesel::BelongingToDsl;
+use diesel::ExpressionMethods;
 
 use diesel::upsert::excluded;
 use diesel::GroupedBy;
@@ -1290,7 +1291,9 @@ impl TucanUser {
         (start_datetime.naive_utc(), end_datetime.naive_utc())
     }
 
-    pub async fn my_exams(&self) -> anyhow::Result<Vec<Exam>> {
+    pub async fn my_exams(
+        &self,
+    ) -> anyhow::Result<(Vec<(Moduledetails, Exam)>, Vec<(Coursedetails, Exam)>)> {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.session.matriculation_number;
@@ -1318,46 +1321,53 @@ impl TucanUser {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
             let document = self.parse_document(&document)?;
 
-            document.select(&s("table tbody tr")).map(|exam| {
-                let selector = s(r#"td"#);
-                let mut tds = exam.select(&selector);
-                let _nr_column = tds.next().unwrap();
-                let module_column = tds.next().unwrap();
-                let name_column = tds.next().unwrap();
-                let date_column = tds.next().unwrap();
-                let _registered = tds.next().unwrap();
+            document
+                .select(&s("table tbody tr"))
+                .map(|exam| {
+                    let selector = s(r#"td"#);
+                    let mut tds = exam.select(&selector);
+                    let _nr_column = tds.next().unwrap();
+                    let module_column = tds.next().unwrap();
+                    let name_column = tds.next().unwrap();
+                    let date_column = tds.next().unwrap();
+                    let _registered = tds.next().unwrap();
 
-                let module_link = module_column.select(&s("a")).next().unwrap();
-                let name_link = name_column.select(&s("a")).next().unwrap();
-                let _date_link = date_column.select(&s("a")).next();
+                    let module_link = module_column.select(&s("a")).next().unwrap();
+                    let name_link = name_column.select(&s("a")).next().unwrap();
+                    let _date_link = date_column.select(&s("a")).next();
 
-                let module_program = parse_tucan_url(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    module_link.value().attr("href").unwrap()
-                ))
-                .program;
+                    let module_program = parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        module_link.value().attr("href").unwrap()
+                    ))
+                    .program;
 
-                let name_program = parse_tucan_url(&format!(
-                    "https://www.tucan.tu-darmstadt.de{}",
-                    name_link.value().attr("href").unwrap()
-                ))
-                .program;
+                    let name_program = parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        name_link.value().attr("href").unwrap()
+                    ))
+                    .program;
 
-                /*
-                            if let Some(date_link) = date_link {
-                                let date_program = parse_tucan_url(&format!(
-                                    "https://www.tucan.tu-darmstadt.de{}",
-                                    date_link.value().attr("href").unwrap()
-                                ))
-                                .program;
-                                let date_document = self.fetch_document(&date_program.into()).await?;
-                                let date_document = self.parse_document(&date_document)?;
-                            }
-                */
-                (module_program, TryInto::<Examdetails>::try_into(name_program).unwrap())
-            }).collect_vec()
+                    /*
+                                if let Some(date_link) = date_link {
+                                    let date_program = parse_tucan_url(&format!(
+                                        "https://www.tucan.tu-darmstadt.de{}",
+                                        date_link.value().attr("href").unwrap()
+                                    ))
+                                    .program;
+                                    let date_document = self.fetch_document(&date_program.into()).await?;
+                                    let date_document = self.parse_document(&date_document)?;
+                                }
+                    */
+                    (
+                        module_program,
+                        TryInto::<Examdetails>::try_into(name_program).unwrap(),
+                    )
+                })
+                .collect_vec()
         };
 
+        // TODO FIXME don't do this here but do this lazily
         let mut exams = Vec::new();
         for exam in result {
             exams.push((exam.0, self.exam_details(exam.1).await?));
@@ -1380,15 +1390,35 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
+        let (module_exams, course_exams): (Vec<(Module, Exam)>, Vec<(Course, Exam)>) =
+            exams.into_iter().partition_map(|v| match v.0 {
+                TucanProgram::Moduledetails(moduledetails) => Either::Left((
+                    Module {
+                        tucan_id: moduledetails.id,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        module_id: "".to_string(),
+                        title: "".to_string(),
+                        credits: None,
+                        content: "".to_string(),
+                        done: false,
+                    },
+                    v.1,
+                )),
+                TucanProgram::Coursedetails(coursedetails) => Either::Right((coursedetails, v.1)),
+                _ => panic!(),
+            });
+
+        diesel::insert_into(modules_unfinished::table)
+            .values(module_exams.iter().map(|v| v.0))
+            .on_conflict(modules_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
         diesel::insert_into(module_exams::table)
             .values(
-                exams
+                module_exams
                     .iter()
-                    .filter_map(|v| {
-                        TryInto::<Moduledetails>::try_into(v.0.clone()).ok().map(|m| {
-                            (m, v.1.clone())
-                        })
-                    })
                     .map(|e| ModuleExam {
                         module_id: e.0.id,
                         exam: e.1.tucan_id.clone(),
@@ -1400,15 +1430,10 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-            diesel::insert_into(course_exams::table)
+        diesel::insert_into(course_exams::table)
             .values(
-                exams
+                course_exams
                     .iter()
-                    .filter_map(|v| {
-                        TryInto::<Coursedetails>::try_into(v.0.clone()).ok().map(|m| {
-                            (m, v.1.clone())
-                        })
-                    })
                     .map(|e| CourseExam {
                         course_id: e.0.id,
                         exam: e.1.tucan_id.clone(),

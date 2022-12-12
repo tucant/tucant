@@ -26,9 +26,9 @@ use tucant_derive::Typescriptable;
 
 #[cfg(feature = "server")]
 use crate::schema::{
-    course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
-    module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_courses,
-    user_exams, user_modules, users_unfinished, course_exams, module_exams
+    course_exams, course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
+    module_exams, module_menu_module, module_menu_unfinished, modules_unfinished, sessions,
+    user_courses, user_exams, user_modules, users_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>

@@ -37,7 +37,7 @@ pub async fn exam(
 
     let result = tucan.exam_details(url.clone()).await?;
 
-     Ok(Json(WithTucanUrl {
+    Ok(Json(WithTucanUrl {
         tucan_url: Into::<TucanProgram>::into(url)
             .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
         inner: result,
