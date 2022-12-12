@@ -30,7 +30,7 @@ export default function MyExams() {
                 className="list-group-item list-group-item-action"
                 to={`/exam/${e[1].tucan_id}`}
               >
-                {e[1].tucan_id}
+                {e[0].title} ({e[1].exam_type}) {e[1].exam_time_start}
               </Link>
             ))}
             {data.inner[1].map((e) => (
@@ -39,7 +39,7 @@ export default function MyExams() {
                 className="list-group-item list-group-item-action"
                 to={`/exam/${e[1].tucan_id}`}
               >
-                {e[1].tucan_id}
+                {e[0].title} ({e[1].exam_type}) {e[1].exam_time_start}
               </Link>
             ))}
           </>

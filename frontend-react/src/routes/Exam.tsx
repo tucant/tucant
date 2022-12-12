@@ -25,7 +25,8 @@ export default function Exam() {
       {data && (
         <>
           <h3 className="text-center">
-            {data.inner.tucan_id} {data.inner.exam_time_start}
+            {data.inner.tucan_id} ({data.inner.exam_type}){" "}
+            {data.inner.exam_time_start}
           </h3>
           <TucanUrlLink data={data} />
         </>

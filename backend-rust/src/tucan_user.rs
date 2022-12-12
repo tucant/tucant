@@ -1362,6 +1362,7 @@ impl TucanUser {
                     (
                         module_program,
                         TryInto::<Examdetails>::try_into(name_program).unwrap(),
+                        module_link.inner_html(),
                     )
                 })
                 .collect_vec()
@@ -1370,7 +1371,7 @@ impl TucanUser {
         // TODO FIXME don't do this here but do this lazily
         let mut exams = Vec::new();
         for exam in result {
-            exams.push((exam.0, self.exam_details(exam.1).await?));
+            exams.push((exam.0, self.exam_details(exam.1).await?, exam.2));
         }
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1397,7 +1398,7 @@ impl TucanUser {
                         tucan_id: moduledetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
                         module_id: "".to_string(),
-                        title: "".to_string(),
+                        title: v.2,
                         credits: None,
                         content: "".to_string(),
                         done: false,
@@ -1409,7 +1410,7 @@ impl TucanUser {
                         tucan_id: coursedetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
                         course_id: "".to_string(),
-                        title: "".to_string(),
+                        title: v.2,
                         sws: 0,
                         content: "".to_string(),
                         done: false,
