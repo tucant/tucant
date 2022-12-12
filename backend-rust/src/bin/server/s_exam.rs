@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::io::ErrorKind;
-
 use crate::AppState;
 use crate::WithTucanUrl;
 
@@ -12,12 +10,11 @@ use axum::Json;
 
 use tucant::models::Exam;
 use tucant::models::TucanSession;
-use tucant::tucan_user::CourseOrCourseGroup;
-use tucant::url::Coursedetails;
+
+use tucant::tucan::Tucan;
 use tucant::url::Examdetails;
 use tucant::url::TucanProgram;
 use tucant::MyError;
-use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]

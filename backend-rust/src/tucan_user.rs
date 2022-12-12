@@ -1389,7 +1389,10 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        let (module_exams, course_exams): (Vec<(Module, Exam)>, Vec<(Course, Exam)>) =
+        type ModuleExams = Vec<(Module, Exam)>;
+        type CourseExams = Vec<(Course, Exam)>;
+
+        let (module_exams, course_exams): (ModuleExams, CourseExams) =
             exams.into_iter().partition_map(|v| match v.0 {
                 TucanProgram::Moduledetails(moduledetails) => Either::Left((
                     Module {
