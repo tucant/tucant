@@ -1295,27 +1295,27 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.session.matriculation_number;
-        /*
-                {
-                    let mut connection = self.tucan.pool.get().await?;
 
-                    let exams_already_fetched = users_unfinished::table
-                        .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-                        .select(users_unfinished::user_exams_last_checked)
-                        .get_result::<Option<NaiveDateTime>>(&mut connection)
-                        .await?;
+        {
+            let mut connection = self.tucan.pool.get().await?;
 
-                    if exams_already_fetched.is_some() {
-                        return Ok(user_exams::table
-                            .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                            .inner_join(exams_unfinished::table)
-                            .select(exams_unfinished::all_columns)
-                            .load::<Exam>(&mut connection)
-                            .await?);
-                    }
-                }
-        */
-        let result = {
+            let exams_already_fetched = users_unfinished::table
+                .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                .select(users_unfinished::user_exams_last_checked)
+                .get_result::<Option<NaiveDateTime>>(&mut connection)
+                .await?;
+
+            if exams_already_fetched.is_some() {
+                let a = user_exams::table
+                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                    .inner_join(exams_unfinished::table)
+                    .select(exams_unfinished::all_columns)
+                    .load::<Exam>(&mut connection)
+                    .await?;
+            }
+        }
+
+        let exams = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
             let document = self.parse_document(&document)?;
 
@@ -1346,6 +1346,8 @@ impl TucanUser {
                     ))
                     .program;
 
+                    let examdetails = TryInto::<Examdetails>::try_into(name_program).unwrap();
+
                     /*
                                 if let Some(date_link) = date_link {
                                     let date_program = parse_tucan_url(&format!(
@@ -1359,20 +1361,34 @@ impl TucanUser {
                     */
                     (
                         module_program,
-                        TryInto::<Examdetails>::try_into(name_program).unwrap(),
+                        Exam {
+                            tucan_id: examdetails.id,
+                            exam_type: "".to_string(),
+                            semester: "".to_string(),
+                            exam_time_start: None,
+                            exam_time_end: None,
+                            registration_start: Utc::now().naive_utc(), // TODO FIXME
+                            registration_end: Utc::now().naive_utc(),
+                            unregistration_start: Utc::now().naive_utc(),
+                            unregistration_end: Utc::now().naive_utc(),
+                            examinator: None,
+                            room: None,
+                            done: false,
+                        },
                         module_link.inner_html(),
                     )
                 })
                 .collect_vec()
         };
 
-        // TODO FIXME don't do this here but do this lazily
-        let mut exams = Vec::new();
-        for exam in result {
-            exams.push((exam.0, self.exam_details(exam.1).await?, exam.2));
-        }
-
         let mut connection = self.tucan.pool.get().await?;
+
+        diesel::insert_into(exams_unfinished::table)
+            .values(exams.iter().map(|e| &e.1).collect_vec())
+            .on_conflict(exams_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
 
         diesel::insert_into(user_exams::table)
             .values(
