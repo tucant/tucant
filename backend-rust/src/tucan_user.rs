@@ -1306,12 +1306,49 @@ impl TucanUser {
                 .await?;
 
             if exams_already_fetched.is_some() {
-                let a = user_exams::table
+                let modules = user_exams::table
                     .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                    .inner_join(exams_unfinished::table)
-                    .select(exams_unfinished::all_columns)
-                    .load::<Exam>(&mut connection)
+                    .inner_join(
+                        exams_unfinished::table
+                            .inner_join(module_exams::table.inner_join(modules_unfinished::table)),
+                    )
+                    .select((
+                        (
+                            modules_unfinished::tucan_id,
+                            modules_unfinished::tucan_last_checked,
+                            modules_unfinished::title,
+                            modules_unfinished::module_id,
+                            modules_unfinished::credits,
+                            modules_unfinished::content,
+                            modules_unfinished::done,
+                        ),
+                        exams_unfinished::all_columns,
+                    ))
+                    .load::<(Module, Exam)>(&mut connection)
                     .await?;
+
+                let courses = user_exams::table
+                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                    .inner_join(
+                        exams_unfinished::table
+                            .inner_join(course_exams::table.inner_join(courses_unfinished::table)),
+                    )
+                    .select((
+                        (
+                            courses_unfinished::tucan_id,
+                            courses_unfinished::tucan_last_checked,
+                            courses_unfinished::title,
+                            courses_unfinished::course_id,
+                            courses_unfinished::sws,
+                            courses_unfinished::content,
+                            courses_unfinished::done,
+                        ),
+                        exams_unfinished::all_columns,
+                    ))
+                    .load::<(Course, Exam)>(&mut connection)
+                    .await?;
+
+                return Ok((modules, courses));
             }
         }
 
