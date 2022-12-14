@@ -3295,6 +3295,7 @@ dependencies = [
  "regex",
  "reqwest",
  "scraper",
+ "selectors",
  "serde",
  "serde_json",
  "tokio",

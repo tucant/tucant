@@ -33,6 +33,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
+use selectors::{attr::CaseSensitivity, Element};
 
 use crate::schema::*;
 use diesel::BelongingToDsl;
@@ -273,6 +274,8 @@ impl TucanUser {
     ) -> anyhow::Result<Course> {
         use diesel_async::RunQueryDsl;
 
+        // TODO FIXME move caching here and not in course_or_course_group
+
         let (course, course_groups) = {
             let document = self.parse_document(&document)?;
 
@@ -295,6 +298,31 @@ impl TucanUser {
                 .next()
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
+
+            let events_tbody = document
+                .select(&s(r#"caption"#))
+                .find(|e| e.inner_html() == "Termine")
+                .unwrap()
+                .next_sibling_element()
+                .unwrap();
+
+            let selector = s("tr");
+            let events = events_tbody
+                .select(&selector)
+                .filter(|e| !e.value().has_class("rw-hide", CaseSensitivity::CaseSensitive));
+
+            events.map(|event| {
+                let selector = s(r#"td"#);
+                let mut tds = event.select(&selector);
+                let id_column = tds.next().unwrap();
+                let date_column = tds.next().unwrap();
+                let start_time_column = tds.next().unwrap();
+                let end_time_column = tds.next().unwrap();
+                let room_column = tds.next().unwrap();
+                let lecturer_column = tds.next().unwrap();
+
+                println!("{}", date_column.inner_html());
+            }).collect_vec();
 
             let course = Course {
                 tucan_id: url.id.clone(),
