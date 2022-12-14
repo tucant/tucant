@@ -11,7 +11,11 @@ use opensearch::{
 use rand::Rng;
 
 use serde_json::{json, Value};
-use tucant::{models::Module, schema::modules_unfinished, tucan::Tucan};
+use tucant::{
+    models::{Module, MODULES_UNFINISHED},
+    schema::modules_unfinished,
+    tucan::Tucan,
+};
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[tokio::main]
@@ -183,15 +187,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut connection = tucan.pool.get().await?;
     let modules: Vec<Module> = modules_unfinished::table
-        .select((
-            modules_unfinished::tucan_id,
-            modules_unfinished::tucan_last_checked,
-            modules_unfinished::title,
-            modules_unfinished::module_id,
-            modules_unfinished::credits,
-            modules_unfinished::content,
-            modules_unfinished::done,
-        ))
+        .select(MODULES_UNFINISHED)
         .load::<Module>(&mut connection)
         .await?;
 

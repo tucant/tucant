@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::HashMap;
-use std::collections::VecDeque;
-
+use crate::utils::calculate_paths;
 use crate::WithTucanUrl;
 use tucant::MyError;
 
@@ -27,7 +25,6 @@ use tucant::url::RootRegistration;
 use tucant::url::TucanProgram;
 use tucant_derive::ts;
 
-// trailing slash is menu
 #[ts]
 pub async fn get_modules(
     session: TucanSession,
@@ -59,7 +56,7 @@ pub async fn get_modules(
 
             let mut connection = tucan.tucan.pool.get().await?;
 
-            let path_to_root = sql_query(
+            let path_to_root: Vec<ModuleMenuPathPart> = sql_query(
                 r#"
                         WITH RECURSIVE search_tree AS (
                             SELECT t.parent, t.tucan_id, t.name, true as leaf
@@ -76,30 +73,7 @@ pub async fn get_modules(
             .load::<ModuleMenuPathPart>(&mut connection)
             .await?;
 
-            let leaves = path_to_root.iter().take_while(|v| v.leaf);
-
-            let nonleaves = path_to_root
-                .iter()
-                .rev()
-                .take_while(|v| !v.leaf)
-                .map(|v| (&v.tucan_id, v))
-                .collect::<HashMap<_, _>>();
-
-            let paths = leaves
-                .map(|l| {
-                    let mut current = Some(&l);
-                    let mut path = VecDeque::new();
-                    while let Some(curr) = current {
-                        path.push_front(curr.to_owned().to_owned());
-                        if let Some(parent) = &curr.parent {
-                            current = nonleaves.get(&parent);
-                        } else {
-                            break;
-                        }
-                    }
-                    path
-                })
-                .collect::<Vec<_>>();
+            let paths = calculate_paths(path_to_root);
 
             ModuleMenuResponse {
                 module_menu,

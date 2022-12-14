@@ -5,6 +5,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 
 type buttonVariantType = "primary" | "warning" | "success";
+
 export default function InitialFetch() {
   const [data, setData] = useState<string>("");
   const [isLoading, setLoading] = useState(false);

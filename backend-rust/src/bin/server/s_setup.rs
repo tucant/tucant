@@ -40,7 +40,6 @@ enum ModuleOrCourse {
     Course(Course),
 }
 
-// https://docs.rs/tracing-futures/0.2.5/tracing_futures/
 #[async_recursion::async_recursion]
 async fn fetch_registration(
     stream: &mut Stream<Bytes>,

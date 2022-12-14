@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::{HashMap, VecDeque};
-
+use crate::utils::calculate_paths;
 use crate::AppState;
 use crate::WithTucanUrl;
 use tucant::MyError;
@@ -43,7 +42,7 @@ pub async fn module(
         .await?
         .0;
 
-    let path_to_root = sql_query(
+    let path_to_root: Vec<ModuleMenuPathPart> = sql_query(
             r#"
                 WITH RECURSIVE search_tree AS (
                     SELECT t.parent, t.tucan_id, t.name, true as leaf
@@ -60,30 +59,7 @@ pub async fn module(
         .load::<ModuleMenuPathPart>(&mut connection)
         .await?;
 
-    let leaves = path_to_root.iter().take_while(|v| v.leaf);
-
-    let nonleaves = path_to_root
-        .iter()
-        .rev()
-        .take_while(|v| !v.leaf)
-        .map(|v| (&v.tucan_id, v))
-        .collect::<HashMap<_, _>>();
-
-    let paths = leaves
-        .map(|l| {
-            let mut current = Some(&l);
-            let mut path = VecDeque::new();
-            while let Some(curr) = current {
-                path.push_front(curr.to_owned().to_owned());
-                if let Some(parent) = &curr.parent {
-                    current = nonleaves.get(&parent);
-                } else {
-                    break;
-                }
-            }
-            path
-        })
-        .collect::<Vec<_>>();
+    let paths = calculate_paths(path_to_root);
 
     let result = ModuleResponse {
         module: result,

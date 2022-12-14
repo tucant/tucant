@@ -81,7 +81,6 @@ where
     }
 }
 
-// order needs to be equal to the table definition
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
@@ -90,7 +89,6 @@ where
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-//#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
 pub struct Module {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -172,39 +170,6 @@ pub struct ModuleMenu {
     pub parent: Option<Vec<u8>>,
 }
 
-#[cfg_attr(feature = "server", derive(AsChangeset, Debug, Insertable))]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-pub struct ModuleMenuChangeset {
-    pub tucan_id: Vec<u8>,
-    pub tucan_last_checked: NaiveDateTime,
-    pub name: String,
-    pub done: bool,
-    pub parent: Option<Option<Vec<u8>>>,
-}
-
-#[derive(Serialize, Debug)]
-#[cfg_attr(
-    feature = "server",
-    derive(Identifiable, Queryable, AsChangeset, Insertable,)
-)]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-pub struct ModuleMenuRef<'a> {
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub tucan_id: &'a [u8],
-    pub tucan_last_checked: &'a NaiveDateTime,
-    pub name: &'a str,
-    pub done: bool,
-    #[serde(
-        serialize_with = "as_option_base64",
-        deserialize_with = "from_option_base64"
-    )]
-    pub parent: Option<&'a [u8]>,
-}
-
 #[derive(Serialize, Debug)]
 #[cfg_attr(
     feature = "server",
@@ -219,22 +184,6 @@ pub struct ModuleMenuEntryModule {
     pub module_menu_id: Vec<u8>,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_id: Vec<u8>,
-}
-
-#[derive(Serialize, Debug)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
-)]
-#[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
-#[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
-pub struct ModuleMenuEntryModuleRef<'a> {
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_menu_id: &'a [u8],
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    pub module_id: &'a [u8],
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
@@ -301,7 +250,6 @@ pub struct CourseGroup {
 #[cfg_attr(feature = "server", diesel(table_name = module_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 #[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module)))]
-//#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module: Vec<u8>,
@@ -337,6 +285,7 @@ pub struct User {
     done: bool,
 }
 
+// TODO FIXME maybe we can convert this to a user enum with undone and done
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "server", diesel(primary_key(matriculation_number)))]
@@ -500,3 +449,39 @@ pub struct UserExam {
     #[cfg_attr(feature = "server", ts_type(String))]
     pub exam: Vec<u8>,
 }
+
+pub const MODULES_UNFINISHED: (
+    modules_unfinished::columns::tucan_id,
+    modules_unfinished::columns::tucan_last_checked,
+    modules_unfinished::columns::title,
+    modules_unfinished::columns::module_id,
+    modules_unfinished::columns::credits,
+    modules_unfinished::columns::content,
+    modules_unfinished::columns::done,
+) = (
+    modules_unfinished::tucan_id,
+    modules_unfinished::tucan_last_checked,
+    modules_unfinished::title,
+    modules_unfinished::module_id,
+    modules_unfinished::credits,
+    modules_unfinished::content,
+    modules_unfinished::done,
+);
+
+pub const COURSES_UNFINISHED: (
+    courses_unfinished::columns::tucan_id,
+    courses_unfinished::columns::tucan_last_checked,
+    courses_unfinished::columns::title,
+    courses_unfinished::columns::course_id,
+    courses_unfinished::columns::sws,
+    courses_unfinished::columns::content,
+    courses_unfinished::columns::done,
+) = (
+    courses_unfinished::tucan_id,
+    courses_unfinished::tucan_last_checked,
+    courses_unfinished::title,
+    courses_unfinished::course_id,
+    courses_unfinished::sws,
+    courses_unfinished::content,
+    courses_unfinished::done,
+);

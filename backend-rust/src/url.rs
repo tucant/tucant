@@ -370,7 +370,6 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             program
         }
         "COURSEDETAILS" => {
-            // TODO FIXME this now also parses subgroups of courses as courses
             number(&mut arguments);
             assert!([0, 376333755785484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
@@ -443,15 +442,6 @@ mod tests {
 
     #[test]
     fn test_sample_urls() -> anyhow::Result<()> {
-        /*let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")?;
-        assert_eq!(
-            TucanUrl::MaybeAuthenticated {
-                url: MaybeAuthenticatedTucanUrl::StartpageDispatch,
-                session_nr: None
-            },
-            url
-        );*/
-
         // unauthenticated start page
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome");
 
@@ -500,18 +490,6 @@ mod tests {
 
         // Kursdetails
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N967307082288504,-N000311,-N0,-N379144023730730,-N379144023752731,-N0,-N0");
-
-        // urls we still need to reverse
-
-        // https://cryptii.com/pipes/text-to-base64
-        // Nachrichten
-        // likely base64 with ~- and _ as padding
-
-        // per session urls but inside a session potentially consistent
-        //let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AkaTs6g9bP0R3xzedtop4miuoi56H3Qg425njHHR6KzEmalVi4oDtkK6~xkg9cRLwvmeiajCHw3PN266Zf3GOdaSKKSxNL-p6ZaQI~5oVIcIdkWSynh328JX-tBVvFclUzM2edYwexy0VrWXCiHjX7-Mr3oU_")?;
-
-        // Vorlesungsverzeichnis
-        //let url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AhFucMz0tWte~bVYvS7ZXP5dvkkE-wxWuME0Wqlj3rB-iwNGmsluzwhK5irFXFH0SgStfWj6FpAVtU2MQ32Ym4VKspT-EJN252qy~QgsOsLLZU7b~VRfzznhHKnzAJuhARdmMM1nx~31tKkgN6ETdcmIeCTfaeM874hp8aM3ass8q8PkZovZFJHWUlQ__")?;
 
         Ok(())
     }

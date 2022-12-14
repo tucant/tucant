@@ -76,10 +76,6 @@ impl Tucan {
     }
 
     pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
-        let _url = "https://www.tucan.tu-darmstadt.de/scripts"
-            .parse::<Url>()
-            .unwrap();
-
         Ok(TucanUser {
             tucan: self.clone(),
             session,
