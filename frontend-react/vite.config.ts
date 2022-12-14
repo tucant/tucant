@@ -19,7 +19,6 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
-    // https://github.com/vitejs/vite/issues/3301
     proxy: {
       "/redirect": "http://127.0.0.1:8080/",
     },

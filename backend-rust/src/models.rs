@@ -170,18 +170,6 @@ pub struct ModuleMenu {
     pub parent: Option<Vec<u8>>,
 }
 
-#[cfg_attr(feature = "server", derive(AsChangeset, Debug, Insertable))]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = module_menu_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-pub struct ModuleMenuChangeset {
-    pub tucan_id: Vec<u8>,
-    pub tucan_last_checked: NaiveDateTime,
-    pub name: String,
-    pub done: bool,
-    pub parent: Option<Option<Vec<u8>>>,
-}
-
 #[derive(Serialize, Debug)]
 #[cfg_attr(
     feature = "server",

@@ -177,18 +177,12 @@ impl TucanUser {
                 .as_text()
                 .unwrap();
 
-            // Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.
             let credits = credits
                 .trim()
                 .strip_suffix(",0")
                 .and_then(|v| v.parse::<i32>().ok())
                 .unwrap_or(0);
 
-            /* let responsible_person = document
-            .select(&s("#dozenten"))
-            .next()
-            .unwrap()
-            .inner_html();*/
             let content = document
                 .select(&s("#contentlayoutleft tr.tbdata"))
                 .next()
@@ -458,7 +452,6 @@ impl TucanUser {
         let document = self.fetch_document(&url.clone().into()).await?;
         let connection = self.tucan.pool.get().await?;
 
-        // we parse it twice because it was so nice
         let is_course_group =
             element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
 
@@ -514,7 +507,6 @@ impl TucanUser {
         &self,
         url: Registration,
     ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
-        // tendril::tendril::NonAtomic not Send
         let self_cloned = self.clone();
         use diesel_async::RunQueryDsl;
 
@@ -637,7 +629,6 @@ impl TucanUser {
                                 )
                                 .unwrap()
                                 .id,
-                                //expect(&Into::<TucanProgram>::into(url.clone()).to_tucan_url(None))
                                 tucan_last_checked: Utc::now().naive_utc(),
                                 module_id: text
                                     .next()
@@ -725,7 +716,6 @@ impl TucanUser {
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
             .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
-            // I think there is a bug here when using ModuleMenuChangeset in set() the types are wrong.
             .get_result::<ModuleMenu>(&mut connection)
             .await?;
 
@@ -1311,17 +1301,6 @@ impl TucanUser {
 
                     let examdetails = TryInto::<Examdetails>::try_into(name_program).unwrap();
 
-                    /*
-                                if let Some(date_link) = date_link {
-                                    let date_program = parse_tucan_url(&format!(
-                                        "https://www.tucan.tu-darmstadt.de{}",
-                                        date_link.value().attr("href").unwrap()
-                                    ))
-                                    .program;
-                                    let date_document = self.fetch_document(&date_program.into()).await?;
-                                    let date_document = self.parse_document(&date_document)?;
-                                }
-                    */
                     (
                         module_program,
                         Exam {
