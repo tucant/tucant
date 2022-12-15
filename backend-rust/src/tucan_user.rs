@@ -307,22 +307,29 @@ impl TucanUser {
                 .unwrap();
 
             let selector = s("tr");
-            let events = events_tbody
-                .select(&selector)
-                .filter(|e| !e.value().has_class("rw-hide", CaseSensitivity::CaseSensitive));
+            let events = events_tbody.select(&selector).filter(|e| {
+                !e.value()
+                    .has_class("rw-hide", CaseSensitivity::CaseSensitive)
+            });
 
-            events.map(|event| {
-                let selector = s(r#"td"#);
-                let mut tds = event.select(&selector);
-                let id_column = tds.next().unwrap();
-                let date_column = tds.next().unwrap();
-                let start_time_column = tds.next().unwrap();
-                let end_time_column = tds.next().unwrap();
-                let room_column = tds.next().unwrap();
-                let lecturer_column = tds.next().unwrap();
+            events
+                .map(|event| {
+                    let selector = s(r#"td"#);
+                    let mut tds = event.select(&selector);
+                    let id_column = tds.next().unwrap();
+                    println!("{}", id_column.inner_html());
+                    if id_column.inner_html() == "Es liegen keine Termine vor." {
+                        return;
+                    }
+                    let date_column = tds.next().unwrap(); // here
+                    let start_time_column = tds.next().unwrap();
+                    let end_time_column = tds.next().unwrap();
+                    let room_column = tds.next().unwrap();
+                    let lecturer_column = tds.next().unwrap();
 
-                println!("{}", date_column.inner_html());
-            }).collect_vec();
+                    println!("{}", date_column.inner_html());
+                })
+                .collect_vec();
 
             let course = Course {
                 tucan_id: url.id.clone(),
@@ -424,6 +431,24 @@ impl TucanUser {
         };
 
         debug!("[+] course group {:?}", course_group);
+
+        let course = Course {
+            tucan_id: course_group.course.clone(),
+            tucan_last_checked: Utc::now().naive_utc(),
+            title: "".to_string(),
+            sws: 0,
+            course_id: "".to_string(),
+            content: "".to_string(),
+            done: false,
+        };
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(&course)
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_update()
+            .set(&course)
+            .execute(&mut connection)
+            .await?;
 
         diesel::insert_into(course_groups_unfinished::table)
             .values(&course_group)

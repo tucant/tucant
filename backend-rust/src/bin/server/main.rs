@@ -60,6 +60,9 @@ use s_search_module::SearchModuleOpensearchTs;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
+use std::time::Duration;
+use tower_http::classify::ServerErrorsFailureClass;
+use tracing::Span;
 
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
