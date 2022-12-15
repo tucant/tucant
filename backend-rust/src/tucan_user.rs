@@ -944,6 +944,7 @@ impl TucanUser {
     }
 
     pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
+        /*
         {
             let mut connection = self.tucan.pool.get().await?;
             let matriculation_number = self.session.matriculation_number;
@@ -980,6 +981,7 @@ impl TucanUser {
                 return Ok(courses);
             }
         }
+        */
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
@@ -1004,15 +1006,16 @@ impl TucanUser {
         let results: Vec<anyhow::Result<CourseOrCourseGroup>> = my_courses.collect().await;
 
         let results: anyhow::Result<Vec<CourseOrCourseGroup>> = results.into_iter().collect();
-
+/* 
         let results: Vec<Course> = results?
             .into_iter()
             .filter_map(|v| match v {
                 CourseOrCourseGroup::Course(course) => Some(course),
+                // aaaah we filter out the course groups and may things in "my courses" are course groups
                 CourseOrCourseGroup::CourseGroup(_) => None,
             })
             .collect_vec();
-
+*/
         let my_user_studies = results
             .iter()
             .map(|c| UserCourse {
