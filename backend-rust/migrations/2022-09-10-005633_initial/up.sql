@@ -152,6 +152,12 @@ CREATE TABLE user_courses (
     PRIMARY KEY (user_id, course_id)
 );
 
+CREATE TABLE user_course_groups (
+    user_id INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
+    course_group_id BYTEA NOT NULL REFERENCES course_groups_unfinished (tucan_id),
+    PRIMARY KEY (user_id, course_group_id)
+);
+
 CREATE TABLE exams_unfinished (
     tucan_id BYTEA NOT NULL PRIMARY KEY,
     exam_type TEXT NOT NULL,

@@ -10,7 +10,7 @@ use std::{
 use crate::{
     models::{
         Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
-        ModuleMenuEntryModule, UndoneUser, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        ModuleMenuEntryModule, UndoneUser, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED, UserCourseGroup,
     },
     tucan::Tucan,
     url::{
@@ -943,7 +943,7 @@ impl TucanUser {
         Ok(results.into_iter().map(|r| r.0).collect())
     }
 
-    pub async fn my_courses(&self) -> anyhow::Result<Vec<Course>> {
+    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
         /*
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -1006,23 +1006,23 @@ impl TucanUser {
         let results: Vec<anyhow::Result<CourseOrCourseGroup>> = my_courses.collect().await;
 
         let results: anyhow::Result<Vec<CourseOrCourseGroup>> = results.into_iter().collect();
-/* 
-        let results: Vec<Course> = results?
-            .into_iter()
-            .filter_map(|v| match v {
-                CourseOrCourseGroup::Course(course) => Some(course),
-                // aaaah we filter out the course groups and may things in "my courses" are course groups
-                CourseOrCourseGroup::CourseGroup(_) => None,
-            })
-            .collect_vec();
-*/
-        let my_user_studies = results
-            .iter()
-            .map(|c| UserCourse {
-                user_id: self.session.matriculation_number,
-                course_id: c.tucan_id.clone(),
-            })
-            .collect::<Vec<_>>();
+
+        let my_user_studies2: (Vec<_>, Vec<_>) = results?.iter().partition_map(|value| {
+            match value {
+                CourseOrCourseGroup::Course(c) => {
+                    Either::Left(UserCourse {
+                        user_id: self.session.matriculation_number,
+                        course_id: c.tucan_id.clone(),
+                    })
+                },
+                CourseOrCourseGroup::CourseGroup(cg) => {
+                    Either::Right(UserCourseGroup {
+                        user_id: self.session.matriculation_number,
+                        course_group_id: cg.tucan_id.clone(),
+                    })
+                },
+            }
+        });
 
         use diesel_async::RunQueryDsl;
 

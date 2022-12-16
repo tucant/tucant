@@ -28,7 +28,7 @@ use tucant_derive::Typescriptable;
 use crate::schema::{
     course_exams, course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
     module_exams, module_menu_module, module_menu_unfinished, modules_unfinished, sessions,
-    user_courses, user_exams, user_modules, users_unfinished,
+    user_courses, user_exams, user_modules, users_unfinished, user_course_groups
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -374,6 +374,21 @@ pub struct UserModule {
 pub struct UserCourse {
     pub user_id: i32,
     pub course_id: Vec<u8>,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(user_id, course_group_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = user_course_groups))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
+pub struct UserCourseGroup {
+    pub user_id: i32,
+    pub course_group_id: Vec<u8>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
