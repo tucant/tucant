@@ -21,8 +21,8 @@ export async function logout(input: null): Promise<null> {
 export async function module(input: string): Promise<WithTucanUrlTW9kdWxlUmVzcG9uc2U> {
         return await genericFetch("http://localhost:8080/module", input) as WithTucanUrlTW9kdWxlUmVzcG9uc2U
 }
-export async function my_courses(input: null): Promise<WithTucanUrlQ291cnNlW10> {
-        return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlQ291cnNlW10
+export async function my_courses(input: null): Promise<WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd> {
+        return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd
 }
 export async function my_exams(input: null): Promise<WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d> {
         return await genericFetch("http://localhost:8080/my-exams", input) as WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d
@@ -49,6 +49,17 @@ export type Course =
   content: string,
   done: boolean,
 }
+export type CourseGroup =
+{
+  tucan_id: string,
+  course: string,
+  title: string,
+  done: boolean,
+}
+export type CourseOrCourseGroup =
+ | { type: "Course", value: Course }
+ | { type: "CourseGroup", value: CourseGroup }
+
 export type Exam =
 {
   tucan_id: string,
@@ -126,10 +137,10 @@ export type WithTucanUrlQ291cnNl =
   tucan_url: string,
   inner: Course,
 }
-export type WithTucanUrlQ291cnNlW10 =
+export type WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd =
 {
   tucan_url: string,
-  inner: Course[],
+  inner: CourseOrCourseGroup[],
 }
 export type WithTucanUrlRXhhbQ =
 {

@@ -26,11 +26,11 @@ export default function MyCourses() {
             <TucanUrlLink data={data} />
             {data.inner.map((e) => (
               <Link
-                key={e.tucan_id}
+                key={e.value.tucan_id}
                 className="list-group-item list-group-item-action"
-                to={`/course/${e.tucan_id}`}
+                to={`/course/${e.value.tucan_id}`}
               >
-                {e.title}
+                {e.value.title}
               </Link>
             ))}
           </>

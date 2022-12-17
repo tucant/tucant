@@ -40,6 +40,7 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
 
 impl IntoResponse for MyError {
     fn into_response(self) -> Response {
+        println!("{:?}", self.err);
         (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", self.err)).into_response()
     }
 }

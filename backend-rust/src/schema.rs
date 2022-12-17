@@ -158,6 +158,16 @@ diesel::table! {
     use diesel::sql_types::*;
     use diesel_full_text_search::*;
 
+    user_course_groups (user_id, course_group_id) {
+        user_id -> Int4,
+        course_group_id -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
     user_courses (user_id, course_id) {
         user_id -> Int4,
         course_id -> Bytea,
@@ -227,6 +237,8 @@ diesel::joinable!(module_exams -> modules_unfinished (module_id));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
 diesel::joinable!(sessions -> users_unfinished (matriculation_number));
+diesel::joinable!(user_course_groups -> course_groups_unfinished (course_group_id));
+diesel::joinable!(user_course_groups -> users_unfinished (user_id));
 diesel::joinable!(user_courses -> courses_unfinished (course_id));
 diesel::joinable!(user_courses -> users_unfinished (user_id));
 diesel::joinable!(user_exams -> exams_unfinished (exam));
@@ -247,6 +259,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     module_menu_unfinished,
     modules_unfinished,
     sessions,
+    user_course_groups,
     user_courses,
     user_exams,
     user_modules,
