@@ -28,7 +28,7 @@ use tucant_derive::Typescriptable;
 use crate::schema::{
     course_exams, course_groups_unfinished, courses_unfinished, exams_unfinished, module_courses,
     module_exams, module_menu_module, module_menu_unfinished, modules_unfinished, sessions,
-    user_course_groups, user_courses, user_exams, user_modules, users_unfinished,
+    user_course_groups, user_courses, user_exams, user_modules, users_unfinished, course_events, course_groups_events
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -467,6 +467,38 @@ pub struct UserExam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
     pub exam: Vec<u8>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(course, timestamp_start, timestamp_end, room)))]
+#[cfg_attr(feature = "server", diesel(table_name = course_events))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct CourseEvent {
+    course: Vec<u8>,
+    timestamp_start: NaiveDateTime,
+    timestamp_end: NaiveDateTime,
+    room: String,
+    teachers: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, Typescriptable)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(course, timestamp_start, timestamp_end, room)))]
+#[cfg_attr(feature = "server", diesel(table_name = course_groups_events))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct CourseGroupEvent {
+    course: Vec<u8>,
+    timestamp_start: NaiveDateTime,
+    timestamp_end: NaiveDateTime,
+    room: String,
+    teachers: String,
 }
 
 pub const MODULES_UNFINISHED: (

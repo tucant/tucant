@@ -11,7 +11,7 @@ use crate::{
     models::{
         Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
         ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
-        MODULES_UNFINISHED,
+        MODULES_UNFINISHED, CourseEvent,
     },
     tucan::Tucan,
     url::{
@@ -336,6 +336,14 @@ impl TucanUser {
                     println!("{:?}", date);
                     println!("{}", room_column.select(&s("a")).next().unwrap().inner_html());
                     println!("{}", lecturer_column.inner_html().trim());
+
+                    CourseEvent {
+                        course: todo!(),
+                        timestamp_start: todo!(),
+                        timestamp_end: todo!(),
+                        room: todo!(),
+                        teachers: todo!(),
+                    }
                 })
                 .collect_vec();
 
