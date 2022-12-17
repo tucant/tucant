@@ -321,7 +321,6 @@ impl TucanUser {
                     let selector = s(r#"td"#);
                     let mut tds = event.select(&selector);
                     let id_column = tds.next().unwrap();
-                    println!("{}", id_column.inner_html());
                     if id_column.inner_html() == "Es liegen keine Termine vor." {
                         return;
                     }
@@ -331,7 +330,12 @@ impl TucanUser {
                     let room_column = tds.next().unwrap();
                     let lecturer_column = tds.next().unwrap();
 
-                    println!("{}", date_column.inner_html());
+                    let date = Self::parse_datetime(&format!("{} {}-{}", date_column.inner_html(), start_time_column.inner_html(), end_time_column.inner_html()));
+
+                    println!("{}", id_column.inner_html());
+                    println!("{:?}", date);
+                    println!("{}", room_column.select(&s("a")).next().unwrap().inner_html());
+                    println!("{}", lecturer_column.inner_html().trim());
                 })
                 .collect_vec();
 
@@ -470,7 +474,7 @@ impl TucanUser {
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
         use diesel_async::RunQueryDsl;
-
+/*
         let mut connection = self.tucan.pool.get().await?;
 
         let existing = courses_unfinished::table
@@ -505,7 +509,7 @@ impl TucanUser {
         }
 
         drop(connection);
-
+*/
         let document = self.fetch_document(&url.clone().into()).await?;
         let connection = self.tucan.pool.get().await?;
 
@@ -1203,7 +1207,7 @@ impl TucanUser {
                 .select(&s("table td b"))
                 .find(|e| e.inner_html() == "Termin")
                 .map(|exam_time| {
-                    Self::parse_date(
+                    Self::parse_datetime(
                         exam_time
                             .next_sibling()
                             .unwrap()
@@ -1244,7 +1248,7 @@ impl TucanUser {
         Ok(exam)
     }
 
-    fn parse_date(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
+    fn parse_datetime(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
         let re = Regex::new(
             r"([[:alpha:]]{2}), (\d{1,2})\. ([[^.]]{3})\. (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})",
         )
