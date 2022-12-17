@@ -13,6 +13,7 @@ use tucant::models::TucanSession;
 use tucant::models::UserCourse;
 use tucant::models::UserCourseGroup;
 use tucant::tucan::Tucan;
+use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Profcourses;
 use tucant::url::TucanProgram;
 use tucant_derive::ts;
@@ -23,7 +24,7 @@ pub async fn my_courses(
     session: TucanSession,
     tucan: State<Tucan>,
     _input: Json<()>,
-) -> Result<Json<WithTucanUrl<(Vec<UserCourse>, Vec<UserCourseGroup>)>>, MyError> {
+) -> Result<Json<WithTucanUrl<Vec<CourseOrCourseGroup>>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();
 
     let result = tucan.my_courses().await?;
