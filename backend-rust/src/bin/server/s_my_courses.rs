@@ -10,6 +10,8 @@ use axum::extract::State;
 use axum::Json;
 use tucant::models::Course;
 use tucant::models::TucanSession;
+use tucant::models::UserCourse;
+use tucant::models::UserCourseGroup;
 use tucant::tucan::Tucan;
 use tucant::url::Profcourses;
 use tucant::url::TucanProgram;
@@ -21,7 +23,7 @@ pub async fn my_courses(
     session: TucanSession,
     tucan: State<Tucan>,
     _input: Json<()>,
-) -> Result<Json<WithTucanUrl<Vec<Course>>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Vec<UserCourse>, Vec<UserCourseGroup>)>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await.unwrap();
 
     let result = tucan.my_courses().await?;

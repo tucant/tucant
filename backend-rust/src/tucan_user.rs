@@ -10,7 +10,8 @@ use std::{
 use crate::{
     models::{
         Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
-        ModuleMenuEntryModule, UndoneUser, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED, UserCourseGroup,
+        ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
+        MODULES_UNFINISHED,
     },
     tucan::Tucan,
     url::{
@@ -943,7 +944,7 @@ impl TucanUser {
         Ok(results.into_iter().map(|r| r.0).collect())
     }
 
-    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+    pub async fn my_courses(&self) -> anyhow::Result<(Vec<UserCourse>, Vec<UserCourseGroup>)> {
         /*
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -1007,27 +1008,23 @@ impl TucanUser {
 
         let results: anyhow::Result<Vec<CourseOrCourseGroup>> = results.into_iter().collect();
 
-        let my_user_studies2: (Vec<_>, Vec<_>) = results?.iter().partition_map(|value| {
-            match value {
-                CourseOrCourseGroup::Course(c) => {
-                    Either::Left(UserCourse {
-                        user_id: self.session.matriculation_number,
-                        course_id: c.tucan_id.clone(),
-                    })
-                },
-                CourseOrCourseGroup::CourseGroup(cg) => {
-                    Either::Right(UserCourseGroup {
-                        user_id: self.session.matriculation_number,
-                        course_group_id: cg.tucan_id.clone(),
-                    })
-                },
-            }
-        });
+        let my_user_studies: (Vec<_>, Vec<_>) =
+            results?.iter().partition_map(|value| match value {
+                CourseOrCourseGroup::Course(c) => Either::Left(UserCourse {
+                    user_id: self.session.matriculation_number,
+                    course_id: c.tucan_id.clone(),
+                }),
+                CourseOrCourseGroup::CourseGroup(cg) => Either::Right(UserCourseGroup {
+                    user_id: self.session.matriculation_number,
+                    course_group_id: cg.tucan_id.clone(),
+                }),
+            });
 
         use diesel_async::RunQueryDsl;
 
         {
             let mut connection = self.tucan.pool.get().await?;
+            let my_user_studies = my_user_studies.clone();
 
             let tu_id = self.session.matriculation_number;
             connection
@@ -1035,8 +1032,18 @@ impl TucanUser {
                 .run(|mut connection| {
                     Box::pin(async move {
                         diesel::insert_into(user_courses::table)
-                            .values(my_user_studies)
+                            .values(my_user_studies.0)
                             .on_conflict((user_courses::user_id, user_courses::course_id))
+                            .do_nothing()
+                            .execute(&mut connection)
+                            .await?;
+
+                        diesel::insert_into(user_course_groups::table)
+                            .values(my_user_studies.1)
+                            .on_conflict((
+                                user_course_groups::user_id,
+                                user_course_groups::course_group_id,
+                            ))
                             .do_nothing()
                             .execute(&mut connection)
                             .await?;
@@ -1056,7 +1063,7 @@ impl TucanUser {
                 .await?;
         }
 
-        Ok(results)
+        Ok(my_user_studies)
     }
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
