@@ -9,9 +9,9 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam, ModuleMenu,
-        ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
-        MODULES_UNFINISHED, CourseEvent,
+        Course, CourseEvent, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam,
+        ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
+        COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     tucan::Tucan,
     url::{
@@ -280,7 +280,7 @@ impl TucanUser {
 
         // TODO FIXME move caching here and not in course_or_course_group
 
-        let (course, course_groups) = {
+        let (course, course_groups, events) = {
             let document = self.parse_document(&document)?;
 
             let name = element_by_selector(&document, "h1").unwrap();
@@ -316,13 +316,13 @@ impl TucanUser {
                     .has_class("rw-hide", CaseSensitivity::CaseSensitive)
             });
 
-            events
-                .map(|event| {
+            let events = events
+                .filter_map(|event| {
                     let selector = s(r#"td"#);
                     let mut tds = event.select(&selector);
                     let id_column = tds.next().unwrap();
                     if id_column.inner_html() == "Es liegen keine Termine vor." {
-                        return;
+                        return None;
                     }
                     let date_column = tds.next().unwrap(); // here
                     let start_time_column = tds.next().unwrap();
@@ -330,20 +330,24 @@ impl TucanUser {
                     let room_column = tds.next().unwrap();
                     let lecturer_column = tds.next().unwrap();
 
-                    let date = Self::parse_datetime(&format!("{} {}-{}", date_column.inner_html(), start_time_column.inner_html(), end_time_column.inner_html()));
+                    let val = format!(
+                        "{} {}-{}",
+                        date_column.inner_html(),
+                        start_time_column.inner_html(),
+                        end_time_column.inner_html()
+                    );
+                    println!("{}", val);
+                    let date = Self::parse_datetime(&val);
+                    let room = room_column.select(&s("a")).next().unwrap().inner_html();
+                    let lecturers = lecturer_column.inner_html().trim().to_string();
 
-                    println!("{}", id_column.inner_html());
-                    println!("{:?}", date);
-                    println!("{}", room_column.select(&s("a")).next().unwrap().inner_html());
-                    println!("{}", lecturer_column.inner_html().trim());
-
-                    CourseEvent {
-                        course: todo!(),
-                        timestamp_start: todo!(),
-                        timestamp_end: todo!(),
-                        room: todo!(),
-                        teachers: todo!(),
-                    }
+                    Some(CourseEvent {
+                        course: url.id.clone(),
+                        timestamp_start: date.0,
+                        timestamp_end: date.1,
+                        room,
+                        teachers: lecturers,
+                    })
                 })
                 .collect_vec();
 
@@ -385,11 +389,10 @@ impl TucanUser {
                 })
                 .collect();
 
-            (course, course_groups)
+            (course, course_groups, events)
         };
 
         debug!("[+] course {:?}", course);
-
         diesel::insert_into(courses_unfinished::table)
             .values(&course)
             .on_conflict(courses_unfinished::tucan_id)
@@ -402,6 +405,19 @@ impl TucanUser {
             .values(&course_groups)
             .on_conflict(course_groups_unfinished::tucan_id)
             .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(course_events::table)
+            .values(&events)
+            .on_conflict((
+                course_events::course,
+                course_events::timestamp_start,
+                course_events::timestamp_end,
+                course_events::room,
+            ))
+            .do_update()
+            .set(course_events::teachers.eq(excluded(course_events::teachers)))
             .execute(&mut connection)
             .await?;
 
@@ -482,42 +498,42 @@ impl TucanUser {
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
         use diesel_async::RunQueryDsl;
-/*
-        let mut connection = self.tucan.pool.get().await?;
+        /*
+                let mut connection = self.tucan.pool.get().await?;
 
-        let existing = courses_unfinished::table
-            .filter(courses_unfinished::tucan_id.eq(&url.id))
-            .filter(courses_unfinished::done)
-            .select(COURSES_UNFINISHED)
-            .get_result::<Course>(&mut connection)
-            .await
-            .optional()?;
+                let existing = courses_unfinished::table
+                    .filter(courses_unfinished::tucan_id.eq(&url.id))
+                    .filter(courses_unfinished::done)
+                    .select(COURSES_UNFINISHED)
+                    .get_result::<Course>(&mut connection)
+                    .await
+                    .optional()?;
 
-        if let Some(existing) = existing {
-            debug!("[~] course {:?}", existing);
-            return Ok(CourseOrCourseGroup::Course(existing));
-        }
+                if let Some(existing) = existing {
+                    debug!("[~] course {:?}", existing);
+                    return Ok(CourseOrCourseGroup::Course(existing));
+                }
 
-        let existing = course_groups_unfinished::table
-            .filter(course_groups_unfinished::tucan_id.eq(&url.id))
-            .filter(course_groups_unfinished::done)
-            .select((
-                course_groups_unfinished::tucan_id,
-                course_groups_unfinished::course,
-                course_groups_unfinished::title,
-                course_groups_unfinished::done,
-            ))
-            .get_result::<CourseGroup>(&mut connection)
-            .await
-            .optional()?;
+                let existing = course_groups_unfinished::table
+                    .filter(course_groups_unfinished::tucan_id.eq(&url.id))
+                    .filter(course_groups_unfinished::done)
+                    .select((
+                        course_groups_unfinished::tucan_id,
+                        course_groups_unfinished::course,
+                        course_groups_unfinished::title,
+                        course_groups_unfinished::done,
+                    ))
+                    .get_result::<CourseGroup>(&mut connection)
+                    .await
+                    .optional()?;
 
-        if let Some(existing) = existing {
-            debug!("[~] coursegroup {:?}", existing);
-            return Ok(CourseOrCourseGroup::CourseGroup(existing));
-        }
+                if let Some(existing) = existing {
+                    debug!("[~] coursegroup {:?}", existing);
+                    return Ok(CourseOrCourseGroup::CourseGroup(existing));
+                }
 
-        drop(connection);
-*/
+                drop(connection);
+        */
         let document = self.fetch_document(&url.clone().into()).await?;
         let connection = self.tucan.pool.get().await?;
 
@@ -1258,7 +1274,7 @@ impl TucanUser {
 
     fn parse_datetime(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
         let re = Regex::new(
-            r"([[:alpha:]]{2}), (\d{1,2})\. ([[^.]]{3})\. (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})",
+            r"([[:alpha:]]{2}), (\d{1,2})\. ([[^ ]]{3,4}) (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})",
         )
         .unwrap()
         .captures_iter(date_string)
@@ -1271,7 +1287,8 @@ impl TucanUser {
         let day_of_month = captures.next().unwrap().unwrap().as_str().parse().unwrap();
         let month_name = captures.next().unwrap().unwrap().as_str();
         let month_id = [
-            "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
+            "Jan.", "Feb.", "Mär.", "Apr.", "Mai", "Jun.", "Jul.", "Aug.", "Sep.", "Okt.", "Nov.",
+            "Dez.",
         ]
         .into_iter()
         .position(|v| v == month_name)
