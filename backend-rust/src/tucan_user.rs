@@ -497,7 +497,6 @@ impl TucanUser {
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
-        use diesel_async::RunQueryDsl;
         /*
                 let mut connection = self.tucan.pool.get().await?;
 

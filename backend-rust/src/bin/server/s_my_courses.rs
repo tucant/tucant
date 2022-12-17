@@ -8,10 +8,9 @@ use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
-use tucant::models::Course;
+
 use tucant::models::TucanSession;
-use tucant::models::UserCourse;
-use tucant::models::UserCourseGroup;
+
 use tucant::tucan::Tucan;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Profcourses;
