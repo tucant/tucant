@@ -180,6 +180,7 @@ cargo install cargo-machete
 cargo machete
 
 cargo install --locked cargo-deny
+cargo deny check
 ```
 
 ## Search

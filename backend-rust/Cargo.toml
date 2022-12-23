@@ -9,6 +9,7 @@ edition = "2021"
 authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
 description = "Test"
 default-run = "server"
+license = "AGPL-3.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -33,7 +34,7 @@ chrono = { version = "0.4", features = ["serde"] }
 deadpool = { version = "0.9", optional = true }
 url = { version = "2", optional = true }
 log = { version = "0.4", optional = true }
-env_logger = { version = "0.9", optional = true }
+env_logger = { version = "0.10", optional = true }
 derive_more = { version = "0.99", optional = true }
 itertools = { version = "0.10", optional = true }
 either = { version = "1", optional = true }
