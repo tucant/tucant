@@ -35,7 +35,7 @@ chrono = { version = "0.4", features = ["serde"] }
 deadpool = { version = "0.9", optional = true }
 url = { version = "2", optional = true }
 log = { version = "0.4", optional = true }
-env_logger = { version = "0.9", optional = true }
+env_logger = { version = "0.10", optional = true }
 enum_dispatch = { version = "0.3", optional = true }
 derive_more = { version = "0.99", optional = true }
 itertools = { version = "0.10", optional = true }
