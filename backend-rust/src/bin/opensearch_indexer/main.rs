@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
         })
         .collect();
 
-    let index_name: String = format!("tucant_modules_{}", rand_string);
+    let index_name: String = format!("tucant_modules_{rand_string}");
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-htmlstrip-charfilter.html
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html#english-analyzer

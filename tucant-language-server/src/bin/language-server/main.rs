@@ -135,7 +135,7 @@ impl Server {
         let found_element = hover_visitor(value.clone(), &request.params.variant0.position);
 
         let response = found_element.and_then(|found_element| {
-            println!("found element {:?}", found_element);
+            println!("found element {found_element:?}");
             let typecheck = typecheck(value).1;
 
             typecheck
@@ -800,7 +800,7 @@ impl Decoder for MyStringDecoder {
             let return_value = std::str::from_utf8(contents).unwrap().to_string();
             buf.advance(position + length + 1);
 
-            println!("{}", return_value);
+            println!("{return_value}");
             return Ok(Some(return_value));
 
             //start = position;

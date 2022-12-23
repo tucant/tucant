@@ -324,6 +324,6 @@ mod tests {
         let output = typescriptable_impl(input).unwrap();
         let output = syn::parse2::<syn::File>(output).unwrap();
         let output = prettyplease::unparse(&output);
-        println!("{}", output);
+        println!("{output}");
     }
 }

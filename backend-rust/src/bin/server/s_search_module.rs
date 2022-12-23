@@ -106,7 +106,7 @@ pub async fn search_module_opensearch(
         .await?;
 
     let response_body = response.json::<Value>().await?;
-    println!("{}", response_body);
+    println!("{response_body}");
 
     let _took = response_body["took"].as_i64().unwrap();
     for _hit in response_body["hits"]["hits"].as_array().unwrap() {

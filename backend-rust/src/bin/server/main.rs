@@ -163,7 +163,7 @@ async fn login_hack(
     tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
-    println!("{:?}", input);
+    println!("{input:?}");
 
     use diesel_async::RunQueryDsl;
 
@@ -248,7 +248,7 @@ async fn login_hack(
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
         other => {
-            println!("{:?}", other);
+            println!("{other:?}");
             return Ok(StatusCode::NOT_FOUND.into_response());
         }
     };
@@ -314,7 +314,7 @@ async fn main() -> anyhow::Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let migrations = FileBasedMigrations::find_migrations_directory()?;
     let mut connection = PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+        .unwrap_or_else(|_| panic!("Error connecting to {database_url}"));
     connection.run_pending_migrations(migrations).unwrap();
 
     let random_secret_key = Key::generate();
@@ -396,7 +396,7 @@ async fn main() -> anyhow::Result<()> {
         lock_for_writing,
     ) {
         Ok(lock) => lock,
-        Err(err) => panic!("Error getting write lock: {}", err),
+        Err(err) => panic!("Error getting write lock: {err}"),
     };
 
     filelock
