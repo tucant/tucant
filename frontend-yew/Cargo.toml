@@ -14,5 +14,4 @@ categories = ["gui", "wasm", "web-programming"]
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr", "tokio"] }
 yew-router = { git = "https://github.com/yewstack/yew.git" }
 gloo-net = "0.2"
-wasm-bindgen-futures = "0.4"
 tucant = { path = "../backend-rust", default-features = false }

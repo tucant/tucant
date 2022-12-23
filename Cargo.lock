@@ -2892,8 +2892,6 @@ dependencies = [
  "env_logger",
  "file-lock",
  "futures",
- "futures-util",
- "html5ever",
  "itertools",
  "log",
  "once_cell",
@@ -2923,14 +2921,10 @@ dependencies = [
  "env_logger",
  "futures-util",
  "itertools",
- "log",
  "once_cell",
  "rand 0.8.5",
- "regex",
  "serde",
  "serde_json",
- "serde_repr",
- "serde_with 2.1.0",
  "tokio",
  "tokio-tungstenite",
  "tokio-util",
@@ -2959,7 +2953,6 @@ dependencies = [
 name = "tucant_language_server_derive"
 version = "0.1.0"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn",
  "tucant_language_server_derive_internal",
@@ -2990,9 +2983,6 @@ name = "tucant_language_server_derive_output"
 version = "0.1.0"
 dependencies = [
  "prettyplease",
- "serde",
- "serde_repr",
- "serde_with 2.1.0",
  "syn",
  "tucant_language_server_derive",
  "tucant_language_server_derive_internal",

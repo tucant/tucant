@@ -12,4 +12,3 @@ proc-macro = true
 tucant_language_server_derive_internal = { path = "../tucant-language-server-derive-internal" }
 syn = { version = "1", features = ["full", "extra-traits"] }
 quote = "1"
-proc-macro2 = "1"

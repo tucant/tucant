@@ -15,7 +15,6 @@ default-run = "server"
 [dependencies]
 reqwest = { version = "0.11", features = ["cookies"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
-html5ever = { version = "0.26", optional = true }
 scraper = { version = "0.13", optional = true }
 ego-tree = { version = "0.6", optional = true }
 futures = { version = "0.3", optional = true }
@@ -27,7 +26,6 @@ regex = { version = "1", optional = true}
 axum = { version = "0.6", features = ["macros"] }
 axum-extra = { version = "0.4", features = ["cookie", "cookie-private"] }
 tower-http = { version = "0.3", features = ["cors","trace","compression-br","compression-deflate","compression-gzip"] }
-futures-util = { version = "0.3", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = {version = "1", optional = true }
 async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro", optional = true }
@@ -56,7 +54,6 @@ selectors = "0.22"
 default = ["server"]
 server = ["reqwest",
 "tokio",
-"html5ever",
 "scraper",
 "ego-tree",
 "futures",
@@ -65,7 +62,6 @@ server = ["reqwest",
 "dotenvy",
 "anyhow",
 "regex",
-"futures-util",
 "serde_json",
 "async-stream",
 "deadpool",
