@@ -381,9 +381,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.29"
+version = "4.0.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d63b9e9c07271b9957ad22c173bae2a4d9a81127680962039296abcd2f8251d"
+checksum = "a7db700bc935f9e43e88d00b0850dae18a63773cfbec6d8e070fccf7fef89a39"
 dependencies = [
  "bitflags",
  "clap_derive",
@@ -725,7 +725,7 @@ dependencies = [
 [[package]]
 name = "diesel"
 version = "2.0.2"
-source = "git+https://github.com/diesel-rs/diesel.git#eff47cc11983bb93adf00afc3b11fd024bdbc541"
+source = "git+https://github.com/diesel-rs/diesel.git#0fe61670898098e3b9a23abffa022049b5a3cfb4"
 dependencies = [
  "bitflags",
  "byteorder",
@@ -752,7 +752,7 @@ dependencies = [
 [[package]]
 name = "diesel_derives"
 version = "2.0.1"
-source = "git+https://github.com/diesel-rs/diesel.git#eff47cc11983bb93adf00afc3b11fd024bdbc541"
+source = "git+https://github.com/diesel-rs/diesel.git#0fe61670898098e3b9a23abffa022049b5a3cfb4"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
