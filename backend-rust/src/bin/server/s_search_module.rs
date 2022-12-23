@@ -119,8 +119,14 @@ pub async fn search_module_opensearch(
         .unwrap()
         .iter()
         .map(|hit| SearchResult {
-            tucan_id: base64::decode_config(hit["_id"].as_str().unwrap(), base64::URL_SAFE_NO_PAD)
-                .unwrap(),
+            tucan_id: base64::decode_engine(
+                hit["_id"].as_str().unwrap(),
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD,
+                ),
+            )
+            .unwrap(),
             title: hit["highlight"]["title"]
                 .as_array()
                 .unwrap_or(&vec![hit["_source"]["title"].clone()])

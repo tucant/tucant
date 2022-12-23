@@ -16,11 +16,11 @@ license = "AGPL-3.0-or-later"
 [dependencies]
 reqwest = { version = "0.11", features = ["cookies"], optional = true }
 tokio = { version = "1", features = ["full"], optional = true }
-scraper = { version = "0.13", optional = true }
+scraper = { version = "0.14", optional = true }
 ego-tree = { version = "0.6", optional = true }
 futures = { version = "0.3", optional = true }
 diesel = { version = "2", features = ["postgres", "chrono"], optional = true }
-diesel-async = { version = "0.1", features = ["postgres", "deadpool"], optional = true }
+diesel-async = { version = "0.2", features = ["postgres", "deadpool"], optional = true }
 dotenvy = { version = "0.15", optional = true }
 anyhow = { version = "1", features = ["backtrace"], optional = true }
 regex = { version = "1", optional = true}
@@ -40,7 +40,7 @@ itertools = { version = "0.10", optional = true }
 either = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search.git", branch = "setweight", optional = true }
-base64 = { version = "0.13" }
+base64 = { version = "0.20" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
 file-lock = { version = "2", optional = true }
 tracing = "0.1"
@@ -49,7 +49,7 @@ rand = "0.8"
 tucant_derive_lib = { path = "../backend-rust-derive-lib" }
 diesel_migrations = "2"
 async-recursion = "1"
-selectors = "0.22"
+selectors = "0.23"
 
 [features]
 default = ["server"]

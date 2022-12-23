@@ -194,7 +194,13 @@ async fn main() -> anyhow::Result<()> {
     let body: Vec<JsonBody<_>> = modules
         .into_iter()
         .flat_map(|m| {
-            let base64_tucan_id = base64::encode_config(&m.tucan_id, base64::URL_SAFE_NO_PAD);
+            let base64_tucan_id = base64::encode_engine(
+                &m.tucan_id,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD,
+                ),
+            );
             [
                 json!({"index": {"_id": base64_tucan_id}}).into(),
                 json!({

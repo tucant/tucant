@@ -181,6 +181,9 @@ cargo machete
 
 cargo install --locked cargo-deny
 cargo deny check
+
+cargo install --locked cargo-outdated
+cargo outdated
 ```
 
 ## Search
