@@ -568,55 +568,55 @@ fn test_parse_number() {
 
     let mut span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "notendingwithanumber");
 
     let mut span = TokenizerBuilder::from_string(r#"3"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"3z9"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "z9");
 
     let mut span = TokenizerBuilder::from_string(r#"3546z945"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3546)));
     //assert_eq!(number.0.string, "3546");
     //assert_eq!(number.1.string, "z945");
 
     let mut span = TokenizerBuilder::from_string(r#"345345"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(345345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert!(matches!(number.0, Token::Number(345345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "sdfasd");
 
     let mut span = TokenizerBuilder::from_string(r#"n32otanumber"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
@@ -624,7 +624,7 @@ fn test_parse_number() {
         r#"70708777897986976707598759785978698752otanumber"#.to_string(),
     );
     let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", number);
+    println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     /*assert_eq!(
         number.location.string,
@@ -639,26 +639,26 @@ fn test_parse_string() {
 
     let mut span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
     let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert_eq!(string.reason, r#"Expected a `"`"#);
     //assert_eq!(string.location.string, "n");
 
     let mut span = TokenizerBuilder::from_string(r#""unterminated"#.to_string());
     let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert_eq!(string.reason, r#"Unterminated string literal"#);
     //assert_eq!(string.location.string, r#""unterminated"#);
 
     let mut span = TokenizerBuilder::from_string(r#""astring"jojo"#.to_string());
     let string = parse_string(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);
     //assert_eq!(string.1.string, "jojo");
 
     let mut span = TokenizerBuilder::from_string(r#""astring""#.to_string());
     let string = parse_string(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);
     //assert_eq!(string.1.string, "");
@@ -671,26 +671,26 @@ fn test_parse_identifier() {
 
     let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
     let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
     let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
     let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert!(matches!(string.0, Token::Identifier(v) if v == "anidentifier"));
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
     let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     assert!(matches!(string.0, Token::Identifier(v) if v == "anidentifier"));
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "    jlih");
@@ -707,13 +707,13 @@ fn test_parse_whitespace() {
 
     let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#.to_string());
     let string = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     //assert_eq!(string.0.string, "  ");
     //assert_eq!(string.1.string, "f  fwwe wef");
 
     let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#.to_string());
     let string = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", string);
+    println!("{string:?}");
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "dsfsdf dsf  ");
 }
@@ -729,14 +729,14 @@ fn test_parse_list() {
 
     let span = TokenizerBuilder::from_string(r#"()"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", value);
+    println!("{value:?}");
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert!(matches!(value.0, Ast::List(list) if matches!(list.as_slice(), [])));
 
     let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", value);
+    println!("{value:?}");
     //assert_eq!(value.0.string, "(  1    2   3    )");
     //assert_eq!(value.1.string, "");
     assert!(
@@ -750,14 +750,14 @@ fn test_parse_ast() {
 
     let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", value);
+    println!("{value:?}");
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert!(matches!(value.0, Ast::List(list) if matches!(list.as_slice(), [])));
 
     let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#.to_string());
     let value = parse(&mut span.peekable()).unwrap();
-    println!("{:?}", value);
+    println!("{value:?}");
     //assert_eq!(value.0.string, "(  1    2   3    )");
     //assert_eq!(value.1.string, "");
     assert!(

@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exams = tucan.my_exams().await?;
 
-    println!("{:#?}", exams);
+    println!("{exams:#?}");
 
     Ok(())
 }

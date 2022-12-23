@@ -163,7 +163,7 @@ async fn login_hack(
     tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
-    println!("{:?}", input);
+    println!("{input:?}");
 
     use diesel_async::RunQueryDsl;
 
@@ -215,22 +215,40 @@ async fn login_hack(
     let url = match parse_tucan_url(&input.redirect).program {
         tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
             "http://localhost:5173/modules/{}",
-            base64::encode_config(registration.path, base64::URL_SAFE_NO_PAD,)
+            base64::encode_engine(
+                registration.path,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD
+                )
+            )
         )),
         tucant::url::TucanProgram::RootRegistration(_) => {
             Redirect::to("http://localhost:5173/modules/")
         }
         tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
             "http://localhost:5173/module/{}",
-            base64::encode_config(module_details.id, base64::URL_SAFE_NO_PAD,)
+            base64::encode_engine(
+                module_details.id,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD
+                )
+            )
         )),
         tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
             "http://localhost:5173/course/{}",
-            base64::encode_config(course_details.id, base64::URL_SAFE_NO_PAD,)
+            base64::encode_engine(
+                course_details.id,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD
+                )
+            )
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
         other => {
-            println!("{:?}", other);
+            println!("{other:?}");
             return Ok(StatusCode::NOT_FOUND.into_response());
         }
     };
@@ -296,7 +314,7 @@ async fn main() -> anyhow::Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let migrations = FileBasedMigrations::find_migrations_directory()?;
     let mut connection = PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+        .unwrap_or_else(|_| panic!("Error connecting to {database_url}"));
     connection.run_pending_migrations(migrations).unwrap();
 
     let random_secret_key = Key::generate();
@@ -378,7 +396,7 @@ async fn main() -> anyhow::Result<()> {
         lock_for_writing,
     ) {
         Ok(lock) => lock,
-        Err(err) => panic!("Error getting write lock: {}", err),
+        Err(err) => panic!("Error getting write lock: {err}"),
     };
 
     filelock

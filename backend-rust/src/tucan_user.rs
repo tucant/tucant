@@ -34,7 +34,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::{ElementRef, Html};
-use selectors::{attr::CaseSensitivity, Element};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
 
@@ -47,7 +46,6 @@ use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use log::debug;
-
 use scraper::Selector;
 
 fn s(selector: &str) -> Selector {
@@ -74,7 +72,14 @@ pub enum CourseOrCourseGroup {
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
 
 static TUCANSCHEISS: Lazy<Module> = Lazy::new(|| Module {
-    tucan_id: base64::decode_config("TUCANSCHEISS", base64::URL_SAFE_NO_PAD).unwrap(),
+    tucan_id: base64::decode_engine(
+        "TUCANSCHEISS",
+        &base64::engine::fast_portable::FastPortable::from(
+            &base64::alphabet::URL_SAFE,
+            base64::engine::fast_portable::NO_PAD,
+        ),
+    )
+    .unwrap(),
     tucan_last_checked: Utc::now().naive_utc(),
     title: "TUCANSCHEISS".to_string(),
     module_id: "TUCANSCHEISS".to_string(),
@@ -303,18 +308,20 @@ impl TucanUser {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let events_tbody = document
-                .select(&s(r#"caption"#))
-                .find(|e| e.inner_html() == "Termine")
-                .unwrap()
-                .next_sibling_element()
-                .unwrap();
+            let events_tbody = ElementRef::wrap(
+                document
+                    .select(&s(r#"caption"#))
+                    .find(|e| e.inner_html() == "Termine")
+                    .unwrap()
+                    .next_sibling()
+                    .unwrap(),
+            )
+            .unwrap();
 
             let selector = s("tr");
-            let events = events_tbody.select(&selector).filter(|e| {
-                !e.value()
-                    .has_class("rw-hide", CaseSensitivity::CaseSensitive)
-            });
+            let events = events_tbody
+                .select(&selector)
+                .filter(|e| !e.value().classes().contains(&"rw-hide"));
 
             let events = events
                 .filter_map(|event| {
@@ -336,7 +343,7 @@ impl TucanUser {
                         start_time_column.inner_html(),
                         end_time_column.inner_html()
                     );
-                    println!("{}", val);
+                    println!("{val}");
                     let date = Self::parse_datetime(&val);
                     let room = room_column.select(&s("a")).next().unwrap().inner_html();
                     let lecturers = lecturer_column.inner_html().trim().to_string();
@@ -539,7 +546,7 @@ impl TucanUser {
         let is_course_group =
             element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
 
-        println!("is_course_group {}", is_course_group);
+        println!("is_course_group {is_course_group}");
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup(

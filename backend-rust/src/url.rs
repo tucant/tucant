@@ -233,8 +233,8 @@ impl<'a> TucanArgument<'a> {
 impl Display for TucanArgument<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TucanArgument::Number(v) => write!(f, "-N{}", v),
-            TucanArgument::String(v) => write!(f, "-A{}", v),
+            TucanArgument::Number(v) => write!(f, "-N{v}"),
+            TucanArgument::String(v) => write!(f, "-A{v}"),
         }
     }
 }
@@ -418,7 +418,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             })
         }
         other => {
-            panic!("invalid appname: {}", other);
+            panic!("invalid appname: {other}");
         }
     };
 

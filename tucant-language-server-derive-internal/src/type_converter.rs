@@ -72,7 +72,7 @@ pub fn handle_type(
         ))*/,
         Type::Or(OrType { items }) => {
             let mut hasher = Sha3_224::new();
-            hasher.update(format!("{:?}", items));
+            hasher.update(format!("{items:?}"));
             hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);
@@ -131,7 +131,7 @@ pub fn handle_type(
         }
         Type::StructureLiteral(StructureLiteralType { value }) => {
             let mut hasher = Sha3_224::new();
-            hasher.update(format!("{:?}", value));
+            hasher.update(format!("{value:?}"));
             hasher.update(random.gen::<[u8; 32]>());
             let result = hasher.finalize();
             let result = hex::encode(result);

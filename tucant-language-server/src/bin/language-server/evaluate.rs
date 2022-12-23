@@ -85,7 +85,7 @@ fn expect_n<'a, T: 'static, const N: usize>(
         Err(_err) => {
             trace.push(Err(EvaluateError {
                 location: args.1,
-                reason: format!("expected exactly {} arguments", N),
+                reason: format!("expected exactly {N} arguments"),
             }));
             Err(())
         }
@@ -218,8 +218,7 @@ impl Type for AddLambdaType {
                         trace.push(Err(EvaluateError {
                             location: args.1.clone(),
                             reason: format!(
-                                "integer overflow, adding {:?} and {:?}",
-                                left_value, right_value
+                                "integer overflow, adding {left_value:?} and {right_value:?}"
                             ),
                         }));
                     })

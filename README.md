@@ -75,7 +75,7 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 cd backend-rust
 
 # We recommend using podman (with docker compat)
-sudo docker build . -f Dockerfile-postgres --tag postgres-hunspell
+sudo docker build . --pull -f Dockerfile-postgres --tag postgres-hunspell
 sudo docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
 
@@ -85,6 +85,7 @@ sudo docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_I
 cd backend-rust
 
 cargo install diesel_cli --no-default-features --features postgres
+cp .env.sample .env
 $HOME/.cargo/bin/diesel setup
 
 # run this each time you want to run the backend
@@ -168,6 +169,21 @@ Add license headers
 
 ```bash
 reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-later --exclude-year --recursive --skip-unrecognised .
+```
+
+Optimize dependencies:
+
+```bash
+cargo tree --duplicates
+
+cargo install cargo-machete
+cargo machete
+
+cargo install --locked cargo-deny
+cargo deny check
+
+cargo install --locked cargo-outdated
+cargo outdated
 ```
 
 ## Search

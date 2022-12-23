@@ -24,7 +24,14 @@ pub async fn exam(
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<Exam>>, MyError> {
-    let binary_path = base64::decode_config(input.as_bytes(), base64::URL_SAFE_NO_PAD).unwrap();
+    let binary_path = base64::decode_engine(
+        input.as_bytes(),
+        &base64::engine::fast_portable::FastPortable::from(
+            &base64::alphabet::URL_SAFE,
+            base64::engine::fast_portable::NO_PAD,
+        ),
+    )
+    .unwrap();
 
     let tucan = tucan.continue_session(session.clone()).await.unwrap();
 

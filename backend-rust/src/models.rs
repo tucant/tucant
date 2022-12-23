@@ -37,9 +37,12 @@ where
     T: AsRef<[u8]>,
     S: Serializer,
 {
-    serializer.serialize_str(&base64::encode_config(
+    serializer.serialize_str(&base64::encode_engine(
         buffer.as_ref(),
-        base64::URL_SAFE_NO_PAD,
+        &base64::engine::fast_portable::FastPortable::from(
+            &base64::alphabet::URL_SAFE,
+            base64::engine::fast_portable::NO_PAD,
+        ),
     ))
 }
 
@@ -49,8 +52,14 @@ where
 {
     use serde::de::Error;
     String::deserialize(deserializer).and_then(|string| {
-        base64::decode_config(string, base64::URL_SAFE_NO_PAD)
-            .map_err(|err| Error::custom(err.to_string()))
+        base64::decode_engine(
+            string,
+            &base64::engine::fast_portable::FastPortable::from(
+                &base64::alphabet::URL_SAFE,
+                base64::engine::fast_portable::NO_PAD,
+            ),
+        )
+        .map_err(|err| Error::custom(err.to_string()))
     })
 }
 
@@ -74,9 +83,15 @@ where
     let string: Option<String> = Option::deserialize(deserializer)?;
 
     if let Some(string) = string {
-        base64::decode_config(string, base64::URL_SAFE_NO_PAD)
-            .map(Option::Some)
-            .map_err(|err| Error::custom(err.to_string()))
+        base64::decode_engine(
+            string,
+            &base64::engine::fast_portable::FastPortable::from(
+                &base64::alphabet::URL_SAFE,
+                base64::engine::fast_portable::NO_PAD,
+            ),
+        )
+        .map(Option::Some)
+        .map_err(|err| Error::custom(err.to_string()))
     } else {
         Ok(None)
     }
