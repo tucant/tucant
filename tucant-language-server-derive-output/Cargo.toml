@@ -6,6 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_repr = "0.1"
+serde_with = "2"
 tucant_language_server_derive = { path = "../tucant-language-server-derive" }
 
 [build-dependencies]

@@ -5,4 +5,5 @@
 
 // https://doc.rust-lang.org/stable/core/macro.stringify.html
 
-tucant_language_server_derive::magic_include!();
+//tucant_language_server_derive::magic_include!();
+tucant_language_server_derive::magic!();

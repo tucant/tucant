@@ -1,8 +1,6 @@
 mod schema;
 mod type_converter;
 
-use std::fs;
-
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
@@ -500,8 +498,10 @@ pub fn parse_notifications(
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
 pub fn handle_magic() -> syn::Result<TokenStream> {
-    let file = fs::File::open("src/metaModel.json").expect("file should open read only");
-    let meta_model: MetaModel = serde_json::from_reader(file).expect("file should be proper JSON");
+    //let file = fs::File::open("metaModel.json").expect("file should open read only");
+    let meta_model_json = include_str!("./metaModel.json");
+    let meta_model: MetaModel =
+        serde_json::from_str(meta_model_json).expect("file should be proper JSON");
 
     let mut random = ChaCha20Rng::seed_from_u64(42);
 

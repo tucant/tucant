@@ -336,7 +336,7 @@ impl TucanUser {
                         start_time_column.inner_html(),
                         end_time_column.inner_html()
                     );
-                    println!("{}", val);
+                    println!("{val}");
                     let date = Self::parse_datetime(&val);
                     let room = room_column.select(&s("a")).next().unwrap().inner_html();
                     let lecturers = lecturer_column.inner_html().trim().to_string();
@@ -539,7 +539,7 @@ impl TucanUser {
         let is_course_group =
             element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
 
-        println!("is_course_group {}", is_course_group);
+        println!("is_course_group {is_course_group}");
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup(
