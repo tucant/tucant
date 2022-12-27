@@ -6,20 +6,17 @@ import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { setLoggedIn } from "../redux/user/userSlice";
+import { isLoggedIn as getIsLoggedIn } from "../api_base";
 
 export default function SignIn() {
   const navigate = useNavigate();
 
-  const isLoggedIn = useAppSelector((state) => state.user.loggedIn);
+  const isLoggedIn = getIsLoggedIn();
 
   // if cookie id is set, redirect to home
   React.useEffect(() => {
     if (isLoggedIn) navigate("/");
   }, [isLoggedIn]);
-
-  const dispatch = useAppDispatch();
 
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +49,6 @@ export default function SignIn() {
       const response = await login(form);
       if (response.success) {
         React.startTransition(() => {
-          dispatch(setLoggedIn(true));
           navigate("/");
         });
       } else {

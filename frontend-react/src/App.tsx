@@ -5,8 +5,6 @@
 import React, { useTransition } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "./redux/store";
 import "./scss/styles.scss";
 import Navigation from "./Navigation";
 import Modules from "./routes/Modules";
@@ -33,45 +31,43 @@ function App() {
   return (
     <React.StrictMode>
       <SWRConfig value={{ suspense: true }}>
-        <Provider store={store}>
-          <NavigationContext.Provider value={startTransition}>
-            <BrowserRouter>
-              <Routes>
+        <NavigationContext.Provider value={startTransition}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/"
+                element={<Navigation isLoading={isLoading}></Navigation>}
+              >
+                <Route path="modules/" element={<Modules />} />
+                <Route path="modules/:id" element={<Modules />} />
+                <Route path="login" element={<Login />} />
+                <Route path="my-modules" element={<MyModules />} />
+                <Route path="my-courses" element={<MyCourses />} />
+                <Route path="search-courses" element={<SearchCourses />} />
+                <Route path="logout" element={<Logout />} />
+                <Route path="search-modules" element={<SearchModules />} />
+                <Route path="my-exams" element={<MyExams />} />
                 <Route
-                  path="/"
-                  element={<Navigation isLoading={isLoading}></Navigation>}
-                >
-                  <Route path="modules/" element={<Modules />} />
-                  <Route path="modules/:id" element={<Modules />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="my-modules" element={<MyModules />} />
-                  <Route path="my-courses" element={<MyCourses />} />
-                  <Route path="search-courses" element={<SearchCourses />} />
-                  <Route path="logout" element={<Logout />} />
-                  <Route path="search-modules" element={<SearchModules />} />
-                  <Route path="my-exams" element={<MyExams />} />
-                  <Route
-                    path="search-modules-opensearch"
-                    element={<SearchModulesOpenSearch />}
-                  />
-                  <Route path="module/:id" element={<Module />} />
-                  <Route path="course/:id" element={<Course />} />
-                  <Route path="exam/:id" element={<Exam />} />
-                  <Route path="credits" element={<Credits />} />
-                  <Route index element={<Welcome />} />
-                  <Route
-                    path="*"
-                    element={
-                      <main style={{ padding: "1rem" }}>
-                        <p>Seite nicht gefunden!</p>
-                      </main>
-                    }
-                  />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </NavigationContext.Provider>
-        </Provider>
+                  path="search-modules-opensearch"
+                  element={<SearchModulesOpenSearch />}
+                />
+                <Route path="module/:id" element={<Module />} />
+                <Route path="course/:id" element={<Course />} />
+                <Route path="exam/:id" element={<Exam />} />
+                <Route path="credits" element={<Credits />} />
+                <Route index element={<Welcome />} />
+                <Route
+                  path="*"
+                  element={
+                    <main style={{ padding: "1rem" }}>
+                      <p>Seite nicht gefunden!</p>
+                    </main>
+                  }
+                />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </NavigationContext.Provider>
       </SWRConfig>
     </React.StrictMode>
   );

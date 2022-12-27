@@ -29,3 +29,9 @@ export async function genericFetch(
   }
   return (await response.json()) as unknown;
 }
+
+export function isLoggedIn() {
+  return document.cookie
+    .split(";")
+    .some((item) => item.trim().startsWith("id="));
+}

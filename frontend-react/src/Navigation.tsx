@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NavigationContext } from "./NavigationContext";
-import { useAppSelector } from "./redux/hooks";
+import { isLoggedIn as getIsLoggedIn } from "./api_base";
 
 export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
   const startTransition = useContext(NavigationContext);
@@ -31,7 +31,7 @@ export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
 }
 
 export default function Navigation({ isLoading }: { isLoading: boolean }) {
-  const isLoggedIn = useAppSelector((state) => state.user.loggedIn);
+  const isLoggedIn = getIsLoggedIn();
 
   return (
     <div className="vh-100 position-relative">
