@@ -94,7 +94,7 @@ async fn fetch_registration(
                     {
                         tucant::tucan_user::CourseOrCourseGroup::Course(course) => {
                             stream
-                                .yield_item(Bytes::from(format!("\ncourse {:?}", course.title)))
+                                .yield_item(Bytes::from(format!("\ncourse {:?}", course.0.title)))
                                 .await;
                         }
                         tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),

@@ -10,6 +10,7 @@ use crate::WithTucanUrl;
 use axum::extract::State;
 use axum::Json;
 
+use tucant::models::CourseGroup;
 use tucant::models::TucanSession;
 use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Coursedetails;
@@ -24,7 +25,7 @@ pub async fn course(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<Course>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Course, Vec<CourseGroup>)>>, MyError> {
     let binary_path = base64::decode_engine(
         input.as_bytes(),
         &base64::engine::fast_portable::FastPortable::from(

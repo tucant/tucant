@@ -65,7 +65,7 @@ pub struct TucanUser {
 #[derive(Debug, Typescriptable, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum CourseOrCourseGroup {
-    Course(Course),
+    Course((Course, Vec<CourseGroup>)),
     CourseGroup(CourseGroup),
 }
 
@@ -280,7 +280,7 @@ impl TucanUser {
         url: Coursedetails,
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
-    ) -> anyhow::Result<Course> {
+    ) -> anyhow::Result<(Course, Vec<CourseGroup>)> {
         // https://github.com/rust-lang/rust/issues/41159
         let unwrap_handler = || -> ! {
             panic!(
@@ -446,7 +446,7 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(course)
+        Ok((course, course_groups))
     }
 
     async fn course_group(
@@ -572,7 +572,7 @@ impl TucanUser {
             ))
         } else {
             Ok(CourseOrCourseGroup::Course(
-                self.course(url, document, connection).await?,
+                self.course(url, document, connection).await?, // TODO FIXME return everything
             ))
         }
     }
@@ -1071,7 +1071,7 @@ impl TucanUser {
                 .partition_map(|value| match value {
                     CourseOrCourseGroup::Course(c) => Either::Left(UserCourse {
                         user_id: self.session.matriculation_number,
-                        course_id: c.tucan_id.clone(),
+                        course_id: c.0.tucan_id.clone(),
                     }),
                     CourseOrCourseGroup::CourseGroup(cg) => Either::Right(UserCourseGroup {
                         user_id: self.session.matriculation_number,

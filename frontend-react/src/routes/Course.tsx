@@ -8,6 +8,7 @@ import { course } from "../api";
 import useSWR from "swr";
 import SignOut from "./Logout";
 import { TucanUrlLink } from "../components/TucanUrlLink";
+import { Link } from "../Navigation";
 
 export default function CourseRoute() {
   const { id } = useParams();
@@ -26,14 +27,25 @@ export default function CourseRoute() {
       {data && (
         <>
           <h3 className="text-center">
-            {data.inner.course_id} {data.inner.title}
+            {data.inner[0].course_id} {data.inner[0].title}
           </h3>
           <TucanUrlLink data={data} />
           <div
             dangerouslySetInnerHTML={{
-              __html: dompurify.sanitize(data.inner.content),
+              __html: dompurify.sanitize(data.inner[0].content),
             }}
           ></div>
+          <div className="list-group">
+            {data.inner[1].map((e) => (
+              <Link
+                key={e.tucan_id}
+                className="list-group-item list-group-item-action"
+                to={`/course-group/${e.tucan_id}`}
+              >
+                {e.title}
+              </Link>
+            ))}
+          </div>
         </>
       )}
     </main>

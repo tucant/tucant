@@ -24,17 +24,25 @@ export default function MyCourses() {
         {data != null && (
           <>
             <TucanUrlLink data={data} />
-            {data.inner.map((e) => (
-              <Link
-                key={e.value.tucan_id}
-                className="list-group-item list-group-item-action"
-                to={`/${e.type == "Course" ? "course" : "course-group"}/${
-                  e.value.tucan_id
-                }`}
-              >
-                {e.value.title}
-              </Link>
-            ))}
+            {data.inner.map((e) =>
+              e.type == "Course" ? (
+                <Link
+                  key={e.value[0].tucan_id}
+                  className="list-group-item list-group-item-action"
+                  to={`/course/${e.value[0].tucan_id}`}
+                >
+                  {e.value[0].title}
+                </Link>
+              ) : (
+                <Link
+                  key={e.value.tucan_id}
+                  className="list-group-item list-group-item-action"
+                  to={`/course-group/${e.value.tucan_id}`}
+                >
+                  {e.value.title}
+                </Link>
+              )
+            )}
           </>
         )}
       </div>
