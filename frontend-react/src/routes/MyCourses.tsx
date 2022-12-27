@@ -28,7 +28,9 @@ export default function MyCourses() {
               <Link
                 key={e.value.tucan_id}
                 className="list-group-item list-group-item-action"
-                to={`/course/${e.value.tucan_id}`}
+                to={`/${e.type == "Course" ? "course" : "course-group"}/${
+                  e.value.tucan_id
+                }`}
               >
                 {e.value.title}
               </Link>
