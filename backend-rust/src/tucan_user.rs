@@ -281,6 +281,15 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<Course> {
+        // https://github.com/rust-lang/rust/issues/41159
+        let unwrap_handler = || -> ! {
+            panic!(
+                "{}",
+                Into::<TucanProgram>::into(url.clone())
+                    .to_tucan_url(Some(self.session.session_nr.try_into().unwrap()))
+            );
+        };
+
         use diesel_async::RunQueryDsl;
 
         // TODO FIXME move caching here and not in course_or_course_group
@@ -288,17 +297,23 @@ impl TucanUser {
         let (course, course_groups, events) = {
             let document = self.parse_document(&document)?;
 
-            let name = element_by_selector(&document, "h1").unwrap();
+            let name = element_by_selector(&document, "h1").unwrap_or_else(|| unwrap_handler());
 
             let text = name.inner_html();
             let mut fs = text.trim().split('\n');
-            let course_id = fs.next().unwrap().trim();
+            let course_id = fs.next().unwrap_or_else(|| unwrap_handler()).trim();
             let course_name = fs.next().map(str::trim);
 
             let sws = document
                 .select(&s(r#"#contentlayoutleft b"#))
                 .find(|e| e.inner_html() == "Semesterwochenstunden: ")
-                .map(|v| v.next_sibling().unwrap().value().as_text().unwrap());
+                .map(|v| {
+                    v.next_sibling()
+                        .unwrap_or_else(|| unwrap_handler())
+                        .value()
+                        .as_text()
+                        .unwrap_or_else(|| unwrap_handler())
+                });
 
             let sws = sws.and_then(|v| v.trim().parse::<i16>().ok()).unwrap_or(0);
 
@@ -308,15 +323,14 @@ impl TucanUser {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let events_tbody = ElementRef::wrap(
-                document
-                    .select(&s(r#"caption"#))
-                    .find(|e| e.inner_html() == "Termine")
-                    .unwrap()
-                    .next_sibling()
-                    .unwrap(),
-            )
-            .unwrap();
+            let events_tbody = document
+                .select(&s(r#"caption"#))
+                .find(|e| e.inner_html() == "Termine")
+                .unwrap_or_else(|| unwrap_handler())
+                .next_siblings()
+                .filter_map(ElementRef::wrap)
+                .next()
+                .unwrap_or_else(|| unwrap_handler());
 
             let selector = s("tr");
             let events = events_tbody
@@ -327,12 +341,12 @@ impl TucanUser {
                 .filter_map(|event| {
                     let selector = s(r#"td"#);
                     let mut tds = event.select(&selector);
-                    let id_column = tds.next().unwrap();
+                    let id_column = tds.next().unwrap_or_else(|| unwrap_handler());
                     if id_column.inner_html() == "Es liegen keine Termine vor." {
                         return None;
                     }
-                    let date_column = tds.next().unwrap(); // here
-                    let start_time_column = tds.next().unwrap();
+                    let date_column = tds.next().unwrap_or_else(|| unwrap_handler()); // here
+                    let start_time_column = tds.next().unwrap_or_else(|| unwrap_handler());
                     let end_time_column = tds.next().unwrap();
                     let room_column = tds.next().unwrap();
                     let lecturer_column = tds.next().unwrap();
@@ -345,7 +359,11 @@ impl TucanUser {
                     );
                     println!("{val}");
                     let date = Self::parse_datetime(&val);
-                    let room = room_column.select(&s("a")).next().unwrap().inner_html();
+                    let room = room_column
+                        .select(&s("a"))
+                        .next()
+                        .unwrap_or_else(|| unwrap_handler())
+                        .inner_html();
                     let lecturers = lecturer_column.inner_html().trim().to_string();
 
                     Some(CourseEvent {
@@ -361,7 +379,7 @@ impl TucanUser {
             let course = Course {
                 tucan_id: url.id.clone(),
                 tucan_last_checked: Utc::now().naive_utc(),
-                title: course_name.unwrap().to_string(),
+                title: course_name.unwrap_or_else(|| unwrap_handler()).to_string(),
                 sws,
                 course_id: TucanUser::normalize(course_id),
                 content,
@@ -375,21 +393,21 @@ impl TucanUser {
                         "https://www.tucan.tu-darmstadt.de{}",
                         e.select(&s(".img_arrowLeft"))
                             .next()
-                            .unwrap()
+                            .unwrap_or_else(|| unwrap_handler())
                             .value()
                             .attr("href")
-                            .unwrap()
+                            .unwrap_or_else(|| unwrap_handler())
                     ))
                     .program
                     .try_into()
-                    .unwrap();
+                    .unwrap_or_else(|_| unwrap_handler());
                     CourseGroup {
                         tucan_id: coursegroupdetails.id,
                         course: url.id.clone(),
                         title: e
                             .select(&s(".dl-ul-li-headline strong"))
                             .next()
-                            .unwrap()
+                            .unwrap_or_else(|| unwrap_handler())
                             .inner_html(),
                         done: false,
                     }
@@ -1215,7 +1233,9 @@ impl TucanUser {
                 .select(&s("table td b"))
                 .find(|e| e.inner_html() == "Raum")
                 .map(|room| {
-                    ElementRef::wrap(room.next_sibling().unwrap().next_sibling().unwrap())
+                    room.next_siblings()
+                        .filter_map(ElementRef::wrap)
+                        .next()
                         .unwrap()
                         .inner_html()
                 });

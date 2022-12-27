@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //#![deny(unused_results)]
+#![feature(never_type)]
 
 use std::fmt::Display;
 
