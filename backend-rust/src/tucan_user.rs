@@ -1492,7 +1492,7 @@ impl TucanUser {
                 .load::<(Course, Exam)>(&mut connection)
                 .await?;
 
-            return Ok(Some((modules, courses)));
+            Ok(Some((modules, courses)))
         } else {
             Ok(None)
         }
