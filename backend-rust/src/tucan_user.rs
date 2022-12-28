@@ -308,8 +308,6 @@ impl TucanUser {
 
         use diesel_async::RunQueryDsl;
 
-        // TODO FIXME move caching here and not in course_or_course_group
-
         let (course, course_groups, events) = {
             let document = self.parse_document(&document)?;
 
@@ -651,6 +649,8 @@ impl TucanUser {
     }
 
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
+        // TODO FIXME cache this
+
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
         let document = self.parse_document(&document)?;
 
@@ -1088,6 +1088,8 @@ impl TucanUser {
     }
 
     pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+        // TODO FIXME cache this
+
         /*
         {
             let mut connection = self.tucan.pool.get().await?;
