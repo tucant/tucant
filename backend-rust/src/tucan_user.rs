@@ -136,7 +136,7 @@ impl TucanUser {
         Ok(html_doc)
     }
 
-    async fn fetch_async_module(
+    async fn cached_module(
         &self,
         url: Moduledetails,
     ) -> anyhow::Result<Option<(Module, Vec<Course>)>> {
@@ -167,12 +167,8 @@ impl TucanUser {
         }
     }
 
-    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+    pub async fn fetch_module(&self, url: Moduledetails) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
-
-        if let Some(value) = self.fetch_async_module(url.clone()).await? {
-            return Ok(value);
-        }
 
         let document = self.fetch_document(&url.clone().into()).await?;
         let mut connection = self.tucan.pool.get().await?;
@@ -283,7 +279,17 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(self.fetch_async_module(url).await?.unwrap())
+        Ok(())
+    }
+
+    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+        if let Some(value) = self.cached_module(url.clone()).await? {
+            return Ok(value);
+        }
+
+        self.fetch_module(url.clone()).await?;
+
+        Ok(self.cached_module(url).await?.unwrap())
     }
 
     async fn course(
