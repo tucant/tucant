@@ -23,11 +23,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
   TUCaN't
 
 [![GitHub license](https://img.shields.io/github/license/mohe2015/tucant.svg)](https://github.com/mohe2015/tucant/blob/main/LICENSE)
-[![GitHub commits](https://badgen.net/github/commits/mohe2015/tucant/main)](https://GitHub.com/mohe2015/tucant/commit/)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/mohe2015/tucant)
 [![Github stars](https://img.shields.io/github/stars/mohe2015/tucant.svg)](https://GitHub.com/mohe2015/tucant/stargazers/)
-[![CodeQL](https://img.shields.io/github/workflow/status/mohe2015/tucant/CodeQL?label=CodeQL)](https://github.com/mohe2015/tucant/actions/workflows/CodeQL.yml)
-[![Node.js CI](https://img.shields.io/github/workflow/status/mohe2015/tucant/Node.js%20CI?label=Node.js%20CI)](https://github.com/mohe2015/tucant/actions/workflows/node.js.yml)
-[![Rust](https://img.shields.io/github/workflow/status/mohe2015/tucant/Rust?label=Rust)](https://github.com/mohe2015/tucant/actions/workflows/rust.yml)
+[![Node.js CI](https://github.com/mohe2015/tucant/actions/workflows/frontend-react.yml/badge.svg)](https://github.com/mohe2015/tucant/actions/workflows/frontend-react.yml)
+[![Rust](https://github.com/mohe2015/tucant/actions/workflows/tucant-language-server-derive-output.yml/badge.svg)](https://github.com/mohe2015/tucant/actions/workflows/tucant-language-server-derive-output.yml)
 
 </h1>
 
