@@ -592,6 +592,33 @@ impl TucanUser {
         Ok(None)
     }
 
+    pub async fn course(&self, url: Coursedetails) -> anyhow::Result<(Course, Vec<CourseGroup>)> {
+        if let Some(value) = self.cached_course(url.clone()).await? {
+            return Ok(value);
+        }
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let connection = self.tucan.pool.get().await?;
+
+        self.fetch_course(url.clone(), document, connection).await?;
+
+        Ok(self.cached_course(url).await?.unwrap())
+    }
+
+    pub async fn course_group(&self, url: Coursedetails) -> anyhow::Result<CourseGroup> {
+        if let Some(value) = self.cached_course_group(url.clone()).await? {
+            return Ok(value);
+        }
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let connection = self.tucan.pool.get().await?;
+
+        self.fetch_course_group(url.clone(), document, connection)
+            .await?;
+
+        Ok(self.cached_course_group(url).await?.unwrap())
+    }
+
     pub async fn course_or_course_group(
         &self,
         url: Coursedetails,
