@@ -136,7 +136,10 @@ impl TucanUser {
         Ok(html_doc)
     }
 
-    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+    async fn fetch_async_module(
+        &self,
+        url: Moduledetails,
+    ) -> anyhow::Result<Option<(Module, Vec<Course>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -158,10 +161,18 @@ impl TucanUser {
                 .load::<Course>(&mut connection)
                 .await?;
 
-            return Ok((existing_module, course_list));
+            Ok(Some((existing_module, course_list)))
+        } else {
+            Ok(None)
         }
+    }
 
-        drop(connection);
+    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+        use diesel_async::RunQueryDsl;
+
+        if let Some(value) = self.fetch_async_module(url.clone()).await? {
+            return Ok(value);
+        }
 
         let document = self.fetch_document(&url.clone().into()).await?;
         let mut connection = self.tucan.pool.get().await?;
@@ -228,7 +239,7 @@ impl TucanUser {
                 .collect::<Vec<_>>();
 
             let module = Module {
-                tucan_id: url.id,
+                tucan_id: url.clone().id,
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
                 credits: Some(credits),
@@ -272,7 +283,7 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok((module, courses))
+        Ok(self.fetch_async_module(url).await?.unwrap())
     }
 
     async fn course(
