@@ -292,7 +292,7 @@ impl TucanUser {
         Ok(self.cached_module(url).await?.unwrap())
     }
 
-    async fn course(
+    async fn fetch_course(
         &self,
         url: Coursedetails,
         document: String,
@@ -465,7 +465,7 @@ impl TucanUser {
         Ok((course, course_groups))
     }
 
-    async fn course_group(
+    async fn fetch_course_group(
         &self,
         url: Coursedetails,
         document: String,
@@ -534,46 +534,76 @@ impl TucanUser {
         Ok(course_group)
     }
 
+    async fn cached_course(
+        &self,
+        url: Coursedetails,
+    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>)>> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        let existing = courses_unfinished::table
+            .filter(courses_unfinished::tucan_id.eq(&url.id))
+            .filter(courses_unfinished::done)
+            .select(COURSES_UNFINISHED)
+            .get_result::<Course>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(existing) = existing {
+            debug!("[~] course {:?}", existing);
+
+            // TODO FIXME fetch course groups
+
+            //let course_groups = todo!();
+
+            //return Ok(Some((existing, course_groups)));
+        }
+
+        Ok(None)
+    }
+
+    pub async fn cached_course_group(
+        &self,
+        url: Coursedetails,
+    ) -> anyhow::Result<Option<CourseGroup>> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.tucan.pool.get().await?;
+
+        let existing = course_groups_unfinished::table
+            .filter(course_groups_unfinished::tucan_id.eq(&url.id))
+            .filter(course_groups_unfinished::done)
+            .select((
+                course_groups_unfinished::tucan_id,
+                course_groups_unfinished::course,
+                course_groups_unfinished::title,
+                course_groups_unfinished::done,
+            ))
+            .get_result::<CourseGroup>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(existing) = existing {
+            debug!("[~] coursegroup {:?}", existing);
+            return Ok(Some(existing));
+        }
+
+        Ok(None)
+    }
+
     pub async fn course_or_course_group(
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
-        /*
-                let mut connection = self.tucan.pool.get().await?;
+        if let Some(value) = self.cached_course(url.clone()).await? {
+            return Ok(CourseOrCourseGroup::Course(value));
+        }
 
-                let existing = courses_unfinished::table
-                    .filter(courses_unfinished::tucan_id.eq(&url.id))
-                    .filter(courses_unfinished::done)
-                    .select(COURSES_UNFINISHED)
-                    .get_result::<Course>(&mut connection)
-                    .await
-                    .optional()?;
+        if let Some(value) = self.cached_course_group(url.clone()).await? {
+            return Ok(CourseOrCourseGroup::CourseGroup(value));
+        }
 
-                if let Some(existing) = existing {
-                    debug!("[~] course {:?}", existing);
-                    return Ok(CourseOrCourseGroup::Course(existing));
-                }
-
-                let existing = course_groups_unfinished::table
-                    .filter(course_groups_unfinished::tucan_id.eq(&url.id))
-                    .filter(course_groups_unfinished::done)
-                    .select((
-                        course_groups_unfinished::tucan_id,
-                        course_groups_unfinished::course,
-                        course_groups_unfinished::title,
-                        course_groups_unfinished::done,
-                    ))
-                    .get_result::<CourseGroup>(&mut connection)
-                    .await
-                    .optional()?;
-
-                if let Some(existing) = existing {
-                    debug!("[~] coursegroup {:?}", existing);
-                    return Ok(CourseOrCourseGroup::CourseGroup(existing));
-                }
-
-                drop(connection);
-        */
         let document = self.fetch_document(&url.clone().into()).await?;
         let connection = self.tucan.pool.get().await?;
 
@@ -584,11 +614,11 @@ impl TucanUser {
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup(
-                self.course_group(url, document, connection).await?,
+                self.fetch_course_group(url, document, connection).await?,
             ))
         } else {
             Ok(CourseOrCourseGroup::Course(
-                self.course(url, document, connection).await?, // TODO FIXME return everything
+                self.fetch_course(url, document, connection).await?, // TODO FIXME return everything
             ))
         }
     }
