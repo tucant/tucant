@@ -741,13 +741,13 @@ impl TucanUser {
                 .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect_vec()))
                 .collect();
 
-            return Ok(Some((
+            Ok(Some((
                 module_menu,
                 crate::models::Registration {
                     submenus,
                     modules_and_courses,
                 },
-            )));
+            )))
         } else {
             Ok(None)
         }
@@ -896,7 +896,7 @@ impl TucanUser {
             (module_menu, submenus, modules)
         };
 
-        let module_menu = diesel::insert_into(module_menu_unfinished::table)
+        diesel::insert_into(module_menu_unfinished::table)
             .values(&module_menu)
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
