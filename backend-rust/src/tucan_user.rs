@@ -1228,7 +1228,7 @@ impl TucanUser {
         Ok(UndoneUser::new(matriculation_number))
     }
 
-    pub async fn exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Exam> {
+    async fn cached_exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Option<Exam>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1240,11 +1240,11 @@ impl TucanUser {
             .await
             .optional()?;
 
-        drop(connection);
+        Ok(existing)
+    }
 
-        if let Some(exam) = existing {
-            return Ok(exam);
-        }
+    pub async fn fetch_exam_details(&self, exam_details: Examdetails) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
 
         let exam = {
             let name_document = self.fetch_document(&exam_details.clone().into()).await?;
@@ -1383,7 +1383,20 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(exam)
+        Ok(())
+    }
+
+    pub async fn exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Exam> {
+        if let Some(value) = self.cached_exam_details(exam_details.clone()).await? {
+            return Ok(value);
+        }
+
+        self.fetch_exam_details(exam_details.clone()).await?;
+
+        Ok(self
+            .cached_exam_details(exam_details.clone())
+            .await?
+            .unwrap())
     }
 
     fn parse_datetime(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
@@ -1441,44 +1454,52 @@ impl TucanUser {
         (start_datetime.naive_utc(), end_datetime.naive_utc())
     }
 
-    pub async fn my_exams(&self) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
+    pub async fn cached_my_exams(
+        &self,
+    ) -> anyhow::Result<Option<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)>> {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.session.matriculation_number;
 
-        {
-            let mut connection = self.tucan.pool.get().await?;
+        let mut connection = self.tucan.pool.get().await?;
 
-            let exams_already_fetched = users_unfinished::table
-                .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-                .select(users_unfinished::user_exams_last_checked)
-                .get_result::<Option<NaiveDateTime>>(&mut connection)
+        let exams_already_fetched = users_unfinished::table
+            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+            .select(users_unfinished::user_exams_last_checked)
+            .get_result::<Option<NaiveDateTime>>(&mut connection)
+            .await?;
+
+        if exams_already_fetched.is_some() {
+            let modules = user_exams::table
+                .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                .inner_join(
+                    exams_unfinished::table
+                        .inner_join(module_exams::table.inner_join(modules_unfinished::table)),
+                )
+                .select((MODULES_UNFINISHED, exams_unfinished::all_columns))
+                .load::<(Module, Exam)>(&mut connection)
                 .await?;
 
-            if exams_already_fetched.is_some() {
-                let modules = user_exams::table
-                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                    .inner_join(
-                        exams_unfinished::table
-                            .inner_join(module_exams::table.inner_join(modules_unfinished::table)),
-                    )
-                    .select((MODULES_UNFINISHED, exams_unfinished::all_columns))
-                    .load::<(Module, Exam)>(&mut connection)
-                    .await?;
+            let courses = user_exams::table
+                .filter(user_exams::matriculation_number.eq(&matriculation_number))
+                .inner_join(
+                    exams_unfinished::table
+                        .inner_join(course_exams::table.inner_join(courses_unfinished::table)),
+                )
+                .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
+                .load::<(Course, Exam)>(&mut connection)
+                .await?;
 
-                let courses = user_exams::table
-                    .filter(user_exams::matriculation_number.eq(&matriculation_number))
-                    .inner_join(
-                        exams_unfinished::table
-                            .inner_join(course_exams::table.inner_join(courses_unfinished::table)),
-                    )
-                    .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
-                    .load::<(Course, Exam)>(&mut connection)
-                    .await?;
-
-                return Ok((modules, courses));
-            }
+            return Ok(Some((modules, courses)));
+        } else {
+            Ok(None)
         }
+    }
+
+    async fn fetch_my_exams(&self) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+
+        let matriculation_number = self.session.matriculation_number;
 
         let exams = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
@@ -1641,6 +1662,16 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok((module_exams, course_exams))
+        Ok(())
+    }
+
+    pub async fn my_exams(&self) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
+        if let Some(value) = self.cached_my_exams().await? {
+            return Ok(value);
+        }
+
+        self.fetch_my_exams().await?;
+
+        Ok(self.cached_my_exams().await?.unwrap())
     }
 }
