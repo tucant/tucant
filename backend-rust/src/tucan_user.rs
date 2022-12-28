@@ -281,7 +281,6 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<(Course, Vec<CourseGroup>)> {
-        // https://github.com/rust-lang/rust/issues/41159
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
