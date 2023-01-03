@@ -26,7 +26,6 @@ import Exam from "./routes/Exam";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
-  console.log("App updated", isLoading);
 
   return (
     <React.StrictMode>
