@@ -30,7 +30,7 @@
     "@vitejs/plugin-react": "^3.0.0",
     "@vitejs/plugin-react-swc": "^3.0.1",
     "eslint": "^8.30.0",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-react": "^7.31.11",
     "prettier": "2.8.1",
     "rollup-plugin-visualizer": "^5.8.3",
