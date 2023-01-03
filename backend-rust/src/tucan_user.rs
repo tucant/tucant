@@ -551,11 +551,14 @@ impl TucanUser {
         if let Some(existing) = existing {
             debug!("[~] course {:?}", existing);
 
-            // TODO FIXME fetch course groups
+            let course_groups = courses_unfinished::table
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
+                .inner_join(course_groups_unfinished::table)
+                .select(course_groups_unfinished::all_columns)
+                .load::<CourseGroup>(&mut connection)
+                .await?;
 
-            //let course_groups = todo!();
-
-            //return Ok(Some((existing, course_groups)));
+            return Ok(Some((existing, course_groups)));
         }
 
         Ok(None)

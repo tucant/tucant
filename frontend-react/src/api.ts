@@ -3,6 +3,9 @@ import { genericFetch } from "./api_base"
 export async function course(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXV0> {
         return await genericFetch("http://localhost:8080/course", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXV0
 }
+export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd> {
+        return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd
+}
 export async function exam(input: string): Promise<WithTucanUrlRXhhbQ> {
         return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlRXhhbQ
 }
@@ -161,6 +164,11 @@ export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXV0 =
 {
   tucan_url: string,
   inner: [Course, CourseGroup[]],
+}
+export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd =
+{
+  tucan_url: string,
+  inner: [Course, CourseGroup],
 }
 export type WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d =
 {

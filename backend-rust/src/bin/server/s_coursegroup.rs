@@ -19,11 +19,11 @@ use tucant_derive::ts;
 
 #[ts]
 #[axum::debug_handler(state=AppState)]
-pub async fn course(
+pub async fn course_group(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<(Course, Vec<CourseGroup>)>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Course, CourseGroup)>>, MyError> {
     let binary_path = base64::decode_engine(
         input.as_bytes(),
         &base64::engine::fast_portable::FastPortable::from(
@@ -39,11 +39,16 @@ pub async fn course(
         id: binary_path.clone(),
     };
 
-    let result = tucan.course(url.clone()).await?;
+    let course_group = tucan.course_group(url.clone()).await?;
+    let course = tucan
+        .course(Coursedetails {
+            id: course_group.course.clone(),
+        })
+        .await?;
 
     Ok(Json(WithTucanUrl {
         tucan_url: Into::<TucanProgram>::into(url)
             .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
-        inner: result,
+        inner: (course.0, course_group),
     }))
 }
