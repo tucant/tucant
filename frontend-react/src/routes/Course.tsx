@@ -35,6 +35,20 @@ export default function CourseRoute() {
               __html: dompurify.sanitize(data.inner[0].content),
             }}
           ></div>
+          <h4>Termine</h4>
+          <div className="list-group">
+            {data.inner[2].map((e) => (
+              <div
+                key={e.timestamp_start + e.timestamp_end + e.room}
+                className="list-group-item list-group-item-action"
+              >
+                von {new Date(e.timestamp_start).toLocaleString()} bis{" "}
+                {new Date(e.timestamp_end).toLocaleString()} in {e.room} bei{" "}
+                {e.teachers}
+              </div>
+            ))}
+          </div>
+          <h4>Übungsgruppen</h4>
           <div className="list-group">
             {data.inner[1].map((e) => (
               <Link

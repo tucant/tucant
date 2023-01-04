@@ -98,6 +98,18 @@ impl<T1: Typescriptable, T2: Typescriptable> Typescriptable for (T1, T2) {
     }
 }
 
+impl<T1: Typescriptable, T2: Typescriptable, T3: Typescriptable> Typescriptable for (T1, T2, T3) {
+    fn name() -> String {
+        "[".to_string() + &T1::name() + ", " + &T2::name() + ", " + &T3::name() + "]"
+    }
+    fn code() -> BTreeSet<String> {
+        let mut val = T1::code();
+        val.extend(T2::code());
+        val.extend(T3::code());
+        val
+    }
+}
+
 impl<T: Typescriptable> Typescriptable for Vec<T> {
     fn name() -> String {
         T::name() + "[]"

@@ -23,10 +23,10 @@ import MyCourses from "./routes/MyCourses";
 import { SearchModulesOpenSearch } from "./routes/SearchModulesOpenSearch";
 import MyExams from "./routes/MyExams";
 import Exam from "./routes/Exam";
+import CourseGroup from "./routes/CourseGroup";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
-  console.log("App updated", isLoading);
 
   return (
     <React.StrictMode>
@@ -53,6 +53,7 @@ function App() {
                 />
                 <Route path="module/:id" element={<Module />} />
                 <Route path="course/:id" element={<Course />} />
+                <Route path="course-group/:id" element={<CourseGroup />} />
                 <Route path="exam/:id" element={<Exam />} />
                 <Route path="credits" element={<Credits />} />
                 <Route index element={<Welcome />} />
