@@ -65,7 +65,7 @@ pub struct TucanUser {
 #[derive(Debug, Typescriptable, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum CourseOrCourseGroup {
-    Course((Course, Vec<CourseGroup>)),
+    Course((Course, Vec<CourseGroup>, Vec<CourseEvent>)),
     CourseGroup(CourseGroup),
 }
 
@@ -297,7 +297,7 @@ impl TucanUser {
         url: Coursedetails,
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
-    ) -> anyhow::Result<(Course, Vec<CourseGroup>)> {
+    ) -> anyhow::Result<()> {
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
@@ -460,7 +460,7 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok((course, course_groups))
+        Ok(())
     }
 
     async fn fetch_course_group(
@@ -468,7 +468,7 @@ impl TucanUser {
         url: Coursedetails,
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
-    ) -> anyhow::Result<CourseGroup> {
+    ) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
         let course_group = {
@@ -529,13 +529,13 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        Ok(course_group)
+        Ok(())
     }
 
     async fn cached_course(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>)>> {
+    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>, Vec<CourseEvent>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -558,7 +558,14 @@ impl TucanUser {
                 .load::<CourseGroup>(&mut connection)
                 .await?;
 
-            return Ok(Some((existing, course_groups)));
+            let course_events = courses_unfinished::table
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
+                .inner_join(course_events::table)
+                .select(course_events::all_columns)
+                .load::<CourseEvent>(&mut connection)
+                .await?;
+
+            return Ok(Some((existing, course_groups, course_events)));
         }
 
         Ok(None)
@@ -593,7 +600,10 @@ impl TucanUser {
         Ok(None)
     }
 
-    pub async fn course(&self, url: Coursedetails) -> anyhow::Result<(Course, Vec<CourseGroup>)> {
+    pub async fn course(
+        &self,
+        url: Coursedetails,
+    ) -> anyhow::Result<(Course, Vec<CourseGroup>, Vec<CourseEvent>)> {
         if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(value);
         }
@@ -641,13 +651,16 @@ impl TucanUser {
         println!("is_course_group {is_course_group}");
 
         if is_course_group {
-            Ok(CourseOrCourseGroup::CourseGroup(
-                self.fetch_course_group(url, document, connection).await?,
-            ))
+            Ok(CourseOrCourseGroup::CourseGroup({
+                self.fetch_course_group(url.clone(), document, connection)
+                    .await?;
+                self.cached_course_group(url.clone()).await?.unwrap()
+            }))
         } else {
-            Ok(CourseOrCourseGroup::Course(
-                self.fetch_course(url, document, connection).await?, // TODO FIXME return everything
-            ))
+            Ok(CourseOrCourseGroup::Course({
+                self.fetch_course(url.clone(), document, connection).await?;
+                self.cached_course(url.clone()).await?.unwrap()
+            }))
         }
     }
 
