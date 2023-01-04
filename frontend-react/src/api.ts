@@ -3,8 +3,8 @@ import { genericFetch } from "./api_base"
 export async function course(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXV0> {
         return await genericFetch("http://localhost:8080/course", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXV0
 }
-export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd> {
-        return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd
+export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0> {
+        return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0
 }
 export async function exam(input: string): Promise<WithTucanUrlRXhhbQ> {
         return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlRXhhbQ
@@ -67,9 +67,17 @@ export type CourseGroup =
   title: string,
   done: boolean,
 }
+export type CourseGroupEvent =
+{
+  course: number[],
+  timestamp_start: string,
+  timestamp_end: string,
+  room: string,
+  teachers: string,
+}
 export type CourseOrCourseGroup =
  | { type: "Course", value: [Course, CourseGroup[], CourseEvent[]] }
- | { type: "CourseGroup", value: CourseGroup }
+ | { type: "CourseGroup", value: [CourseGroup, CourseGroupEvent[]] }
 
 export type Exam =
 {
@@ -168,15 +176,15 @@ export type WithTucanUrlTW9kdWxlW10 =
   tucan_url: string,
   inner: Module[],
 }
+export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0 =
+{
+  tucan_url: string,
+  inner: [Course, CourseGroup, CourseGroupEvent[]],
+}
 export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXV0 =
 {
   tucan_url: string,
   inner: [Course, CourseGroup[], CourseEvent[]],
-}
-export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBd =
-{
-  tucan_url: string,
-  inner: [Course, CourseGroup],
 }
 export type WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d =
 {

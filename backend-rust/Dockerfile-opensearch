@@ -16,4 +16,4 @@ USER opensearch
 RUN ls -R /usr/share/opensearch/hunspell
 RUN ls -R /usr/share/opensearch/config/hunspell
 
-# docker build --tag=opensearch-custom . -f Dockerfile-opensearch
+# docker build . --pull --tag=opensearch-custom -f Dockerfile-opensearch
