@@ -35,11 +35,11 @@ export default function MyCourses() {
                 </Link>
               ) : (
                 <Link
-                  key={e.value.tucan_id}
+                  key={e.value[0].tucan_id}
                   className="list-group-item list-group-item-action"
-                  to={`/course-group/${e.value.tucan_id}`}
+                  to={`/course-group/${e.value[0].tucan_id}`}
                 >
-                  {e.value.title}
+                  {e.value[0].title}
                 </Link>
               )
             )}

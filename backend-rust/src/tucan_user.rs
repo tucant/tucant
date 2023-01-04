@@ -9,8 +9,8 @@ use std::{
 
 use crate::{
     models::{
-        Course, CourseEvent, CourseExam, CourseGroup, Exam, Module, ModuleCourse, ModuleExam,
-        ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
+        Course, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent, Exam, Module, ModuleCourse,
+        ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     tucan::Tucan,
@@ -66,7 +66,7 @@ pub struct TucanUser {
 #[serde(tag = "type", content = "value")]
 pub enum CourseOrCourseGroup {
     Course((Course, Vec<CourseGroup>, Vec<CourseEvent>)),
-    CourseGroup(CourseGroup),
+    CourseGroup((CourseGroup, Vec<CourseGroupEvent>)),
 }
 
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
@@ -292,6 +292,73 @@ impl TucanUser {
         Ok(self.cached_module(url).await?.unwrap())
     }
 
+    fn extract_events(&self, url: Coursedetails, document: &Html) -> Vec<CourseEvent> {
+        let unwrap_handler = || -> ! {
+            panic!(
+                "{}",
+                Into::<TucanProgram>::into(url.clone())
+                    .to_tucan_url(Some(self.session.session_nr.try_into().unwrap()))
+            );
+        };
+
+        let events_tbody = document
+            .select(&s(r#"caption"#))
+            .find(|e| e.inner_html() == "Termine")
+            .unwrap_or_else(|| unwrap_handler())
+            .next_siblings()
+            .filter_map(ElementRef::wrap)
+            .next()
+            .unwrap_or_else(|| unwrap_handler());
+
+        let selector = s("tr");
+        let events = events_tbody
+            .select(&selector)
+            .filter(|e| !e.value().classes().contains(&"rw-hide"));
+
+        events
+            .filter_map(|event| {
+                let selector = s(r#"td"#);
+                let mut tds = event.select(&selector);
+                let id_column = tds.next().unwrap_or_else(|| unwrap_handler());
+                if id_column.inner_html() == "Es liegen keine Termine vor." {
+                    return None;
+                }
+                let date_column = tds.next().unwrap_or_else(|| unwrap_handler()); // here
+                let start_time_column = tds.next().unwrap_or_else(|| unwrap_handler());
+                let end_time_column = tds.next().unwrap();
+                let room_column = tds.next().unwrap();
+                let lecturer_column = tds.next().unwrap();
+
+                let val = format!(
+                    "{} {}-{}",
+                    date_column.inner_html(),
+                    start_time_column.inner_html(),
+                    end_time_column.inner_html()
+                );
+                println!("{val}");
+                let date = Self::parse_datetime(&val);
+                let room = room_column
+                    .select(&s("a"))
+                    .next()
+                    .unwrap_or_else(|| unwrap_handler())
+                    .inner_html();
+                let lecturers = lecturer_column.inner_html().trim().to_string();
+
+                if !date.0 {
+                    Some(CourseEvent {
+                        course: url.id.clone(),
+                        timestamp_start: date.1,
+                        timestamp_end: date.2,
+                        room,
+                        teachers: lecturers,
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect_vec()
+    }
+
     async fn fetch_course(
         &self,
         url: Coursedetails,
@@ -337,58 +404,7 @@ impl TucanUser {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let events_tbody = document
-                .select(&s(r#"caption"#))
-                .find(|e| e.inner_html() == "Termine")
-                .unwrap_or_else(|| unwrap_handler())
-                .next_siblings()
-                .filter_map(ElementRef::wrap)
-                .next()
-                .unwrap_or_else(|| unwrap_handler());
-
-            let selector = s("tr");
-            let events = events_tbody
-                .select(&selector)
-                .filter(|e| !e.value().classes().contains(&"rw-hide"));
-
-            let events = events
-                .filter_map(|event| {
-                    let selector = s(r#"td"#);
-                    let mut tds = event.select(&selector);
-                    let id_column = tds.next().unwrap_or_else(|| unwrap_handler());
-                    if id_column.inner_html() == "Es liegen keine Termine vor." {
-                        return None;
-                    }
-                    let date_column = tds.next().unwrap_or_else(|| unwrap_handler()); // here
-                    let start_time_column = tds.next().unwrap_or_else(|| unwrap_handler());
-                    let end_time_column = tds.next().unwrap();
-                    let room_column = tds.next().unwrap();
-                    let lecturer_column = tds.next().unwrap();
-
-                    let val = format!(
-                        "{} {}-{}",
-                        date_column.inner_html(),
-                        start_time_column.inner_html(),
-                        end_time_column.inner_html()
-                    );
-                    println!("{val}");
-                    let date = Self::parse_datetime(&val);
-                    let room = room_column
-                        .select(&s("a"))
-                        .next()
-                        .unwrap_or_else(|| unwrap_handler())
-                        .inner_html();
-                    let lecturers = lecturer_column.inner_html().trim().to_string();
-
-                    Some(CourseEvent {
-                        course: url.id.clone(),
-                        timestamp_start: date.0,
-                        timestamp_end: date.1,
-                        room,
-                        teachers: lecturers,
-                    })
-                })
-                .collect_vec();
+            let events = self.extract_events(url.clone(), &document);
 
             let course = Course {
                 tucan_id: url.id.clone(),
@@ -471,7 +487,7 @@ impl TucanUser {
     ) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
-        let course_group = {
+        let (course_group, events) = {
             let document = self.parse_document(&document)?;
 
             let plenum_element = document
@@ -493,12 +509,27 @@ impl TucanUser {
             .unwrap()
             .inner_html();
 
-            CourseGroup {
-                tucan_id: url.id,
-                course: course_details.id,
-                title: name,
-                done: true,
-            }
+            let events = self
+                .extract_events(url.clone(), &document)
+                .into_iter()
+                .map(|ce| CourseGroupEvent {
+                    course: ce.course,
+                    timestamp_start: ce.timestamp_start,
+                    timestamp_end: ce.timestamp_end,
+                    room: ce.room,
+                    teachers: ce.teachers,
+                })
+                .collect_vec();
+
+            (
+                CourseGroup {
+                    tucan_id: url.id,
+                    course: course_details.id,
+                    title: name,
+                    done: true,
+                },
+                events,
+            )
         };
 
         debug!("[+] course group {:?}", course_group);
@@ -526,6 +557,19 @@ impl TucanUser {
             .on_conflict(course_groups_unfinished::tucan_id)
             .do_update()
             .set(&course_group)
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(course_groups_events::table)
+            .values(&events)
+            .on_conflict((
+                course_groups_events::course,
+                course_groups_events::timestamp_start,
+                course_groups_events::timestamp_end,
+                course_groups_events::room,
+            ))
+            .do_update()
+            .set(course_groups_events::teachers.eq(excluded(course_groups_events::teachers)))
             .execute(&mut connection)
             .await?;
 
@@ -574,7 +618,7 @@ impl TucanUser {
     pub async fn cached_course_group(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<Option<CourseGroup>> {
+    ) -> anyhow::Result<Option<(CourseGroup, Vec<CourseGroupEvent>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -594,7 +638,14 @@ impl TucanUser {
 
         if let Some(existing) = existing {
             debug!("[~] coursegroup {:?}", existing);
-            return Ok(Some(existing));
+
+            let course_group_events: Vec<CourseGroupEvent> = course_groups_events::table
+                .filter(course_groups_events::course.eq(&existing.tucan_id))
+                .select(course_groups_events::all_columns)
+                .load::<CourseGroupEvent>(&mut connection)
+                .await?;
+
+            return Ok(Some((existing, course_group_events)));
         }
 
         Ok(None)
@@ -616,7 +667,10 @@ impl TucanUser {
         Ok(self.cached_course(url).await?.unwrap())
     }
 
-    pub async fn course_group(&self, url: Coursedetails) -> anyhow::Result<CourseGroup> {
+    pub async fn course_group(
+        &self,
+        url: Coursedetails,
+    ) -> anyhow::Result<(CourseGroup, Vec<CourseGroupEvent>)> {
         if let Some(value) = self.cached_course_group(url.clone()).await? {
             return Ok(value);
         }
@@ -1181,7 +1235,7 @@ impl TucanUser {
                     }),
                     CourseOrCourseGroup::CourseGroup(cg) => Either::Right(UserCourseGroup {
                         user_id: self.session.matriculation_number,
-                        course_group_id: cg.tucan_id.clone(),
+                        course_group_id: cg.0.tucan_id.clone(),
                     }),
                 });
 
@@ -1379,8 +1433,8 @@ impl TucanUser {
                 tucan_id: exam_details.id,
                 exam_type,
                 semester,
-                exam_time_start: exam_time.map(|v| v.0),
-                exam_time_end: exam_time.map(|v| v.1),
+                exam_time_start: exam_time.map(|v| v.1),
+                exam_time_end: exam_time.map(|v| v.2),
                 registration_start,
                 registration_end,
                 unregistration_start,
@@ -1417,9 +1471,9 @@ impl TucanUser {
             .unwrap())
     }
 
-    fn parse_datetime(date_string: &str) -> (NaiveDateTime, NaiveDateTime) {
+    fn parse_datetime(date_string: &str) -> (bool, NaiveDateTime, NaiveDateTime) {
         let re = Regex::new(
-            r"([[:alpha:]]{2}), (\d{1,2})\. ([[^ ]]{3,4}) (\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})",
+            r"([[:alpha:]]{2}), (\d{1,2})\. ([[^ ]]{3,4}) (\d{4})(\*)? (\d{2}):(\d{2})-(\d{2}):(\d{2})",
         )
         .unwrap()
         .captures_iter(date_string)
@@ -1440,6 +1494,8 @@ impl TucanUser {
         .unwrap()
             + 1;
         let year = captures.next().unwrap().unwrap().as_str().parse().unwrap();
+        let is_star_event = captures.next().unwrap();
+
         let start_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
         let start_minute = captures.next().unwrap().unwrap().as_str().parse().unwrap();
         let mut end_hour = captures.next().unwrap().unwrap().as_str().parse().unwrap();
@@ -1469,7 +1525,11 @@ impl TucanUser {
             )
             .unwrap();
 
-        (start_datetime.naive_utc(), end_datetime.naive_utc())
+        (
+            is_star_event.is_some(),
+            start_datetime.naive_utc(),
+            end_datetime.naive_utc(),
+        )
     }
 
     pub async fn cached_my_exams(

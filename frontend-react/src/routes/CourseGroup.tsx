@@ -31,6 +31,19 @@ export default function CourseGroupRoute() {
           <a href={`/course/${data.inner[1].course}`}>
             zugehörige Veranstaltung
           </a>
+          <h4>Termine</h4>
+          <div className="list-group">
+            {data.inner[2].map((e) => (
+              <div
+                key={e.timestamp_start + e.timestamp_end + e.room}
+                className="list-group-item list-group-item-action"
+              >
+                von {new Date(e.timestamp_start).toLocaleString()} bis{" "}
+                {new Date(e.timestamp_end).toLocaleString()} in {e.room} bei{" "}
+                {e.teachers}
+              </div>
+            ))}
+          </div>
         </>
       )}
     </main>

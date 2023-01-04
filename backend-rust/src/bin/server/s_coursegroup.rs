@@ -9,6 +9,7 @@ use axum::extract::State;
 use axum::Json;
 
 use tucant::models::CourseGroup;
+use tucant::models::CourseGroupEvent;
 use tucant::models::TucanSession;
 
 use tucant::url::Coursedetails;
@@ -23,7 +24,7 @@ pub async fn course_group(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<(Course, CourseGroup)>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Course, CourseGroup, Vec<CourseGroupEvent>)>>, MyError> {
     let binary_path = base64::decode_engine(
         input.as_bytes(),
         &base64::engine::fast_portable::FastPortable::from(
@@ -42,13 +43,13 @@ pub async fn course_group(
     let course_group = tucan.course_group(url.clone()).await?;
     let course = tucan
         .course(Coursedetails {
-            id: course_group.course.clone(),
+            id: course_group.0.course.clone(),
         })
         .await?;
 
     Ok(Json(WithTucanUrl {
         tucan_url: Into::<TucanProgram>::into(url)
             .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
-        inner: (course.0, course_group),
+        inner: (course.0, course_group.0, course_group.1),
     }))
 }
