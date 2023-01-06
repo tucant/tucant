@@ -37,7 +37,12 @@ use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
 
-use crate::schema::*;
+use crate::schema::{
+    course_events, course_exams, course_groups_events, course_groups_unfinished,
+    courses_unfinished, exams_unfinished, module_courses, module_exams, module_menu_module,
+    module_menu_unfinished, modules_unfinished, user_course_groups, user_courses, user_exams,
+    user_modules, users_unfinished,
+};
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
@@ -228,7 +233,7 @@ impl TucanUser {
                         .unwrap()
                         .id,
                         sws: 0,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     }
                 })
@@ -306,8 +311,7 @@ impl TucanUser {
             .find(|e| e.inner_html() == "Termine")
             .unwrap_or_else(|| unwrap_handler())
             .next_siblings()
-            .filter_map(ElementRef::wrap)
-            .next()
+            .find_map(ElementRef::wrap)
             .unwrap_or_else(|| unwrap_handler());
 
         let selector = s("tr");
@@ -537,10 +541,10 @@ impl TucanUser {
         let course = Course {
             tucan_id: course_group.course.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
-            title: "".to_string(),
+            title: String::new(),
             sws: 0,
-            course_id: "".to_string(),
-            content: "".to_string(),
+            course_id: String::new(),
+            content: String::new(),
             done: false,
         };
 
@@ -894,7 +898,7 @@ impl TucanUser {
                                     .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
                                     .to_string(),
                                 credits: None,
-                                content: "".to_string(),
+                                content: String::new(),
                                 done: false,
                             }
                         })
@@ -929,7 +933,7 @@ impl TucanUser {
                                         })
                                         .to_string(),
                                     sws: 0,
-                                    content: "".to_string(),
+                                    content: String::new(),
                                     done: false,
                                 }
                             })
@@ -1394,8 +1398,7 @@ impl TucanUser {
                 .find(|e| e.inner_html() == "Raum")
                 .map(|room| {
                     room.next_siblings()
-                        .filter_map(ElementRef::wrap)
-                        .next()
+                        .find_map(ElementRef::wrap)
                         .unwrap()
                         .inner_html()
                 });
@@ -1616,8 +1619,8 @@ impl TucanUser {
                         module_program,
                         Exam {
                             tucan_id: examdetails.id,
-                            exam_type: "".to_string(),
-                            semester: "".to_string(),
+                            exam_type: String::new(),
+                            semester: String::new(),
                             exam_time_start: None,
                             exam_time_end: None,
                             registration_start: Utc::now().naive_utc(), // TODO FIXME
@@ -1667,10 +1670,10 @@ impl TucanUser {
                     Module {
                         tucan_id: moduledetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
-                        module_id: "".to_string(),
+                        module_id: String::new(),
                         title: v.2,
                         credits: None,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     },
                     v.1,
@@ -1679,10 +1682,10 @@ impl TucanUser {
                     Course {
                         tucan_id: coursedetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
-                        course_id: "".to_string(),
+                        course_id: String::new(),
                         title: v.2,
                         sws: 0,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     },
                     v.1,

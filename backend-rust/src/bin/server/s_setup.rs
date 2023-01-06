@@ -55,7 +55,7 @@ async fn fetch_registration(
 
     let tucan_clone = tucan.clone();
 
-    for menu in value.1.submenus.into_iter() {
+    for menu in value.1.submenus {
         fetch_registration(
             stream,
             tucan_clone.clone(),

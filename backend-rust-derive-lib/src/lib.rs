@@ -3,6 +3,7 @@ use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, VecDeque};
 pub trait Typescriptable {
     fn name() -> String;
+    #[must_use]
     fn code() -> BTreeSet<String> {
         BTreeSet::new()
     }

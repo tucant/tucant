@@ -108,6 +108,7 @@ impl<I: Iterator<Item = char> + Clone> Tokenizer<I> {
 pub struct TokenizerBuilder;
 
 impl TokenizerBuilder {
+    #[must_use]
     pub fn from_string(string: String) -> Tokenizer<std::vec::IntoIter<char>> {
         Tokenizer::new(string.chars().collect::<Vec<_>>().into_iter())
     }
@@ -138,7 +139,7 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
                     end: position,
                 },
             },
-            reason: "".to_string(),
+            reason: String::new(),
             partial_parse: (),
         })),
     }
@@ -171,7 +172,7 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
                     end: position,
                 },
             },
-            reason: "".to_string(),
+            reason: String::new(),
             partial_parse: (),
         })),
     }
@@ -485,6 +486,7 @@ pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRang
     }
 }
 
+#[must_use]
 pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
@@ -502,14 +504,13 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
             if &element.1.range.start == position || position == &element.1.range.end {
                 Some(element)
             } else {
-                list.iter()
-                    .filter_map(|l| hover_visitor(l.clone(), position))
-                    .next()
+                list.iter().find_map(|l| hover_visitor(l.clone(), position))
             }
         }
     }
 }
 
+#[must_use]
 pub fn highlight_visitor(element: (Ast, Span), position: &Position) -> Vec<Span> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
@@ -603,14 +604,14 @@ fn test_parse_number() {
     let mut span = TokenizerBuilder::from_string(r#"345345"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{number:?}");
-    assert!(matches!(number.0, Token::Number(345345)));
+    assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
     let number = parse_number(&mut span.iterator).unwrap().unwrap();
     println!("{number:?}");
-    assert!(matches!(number.0, Token::Number(345345)));
+    assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "sdfasd");
 
@@ -700,7 +701,7 @@ fn test_parse_identifier() {
 fn test_parse_whitespace() {
     init();
 
-    let mut span = TokenizerBuilder::from_string(r#""#.to_string());
+    let mut span = TokenizerBuilder::from_string(String::new());
     assert_eq!(span.iterator.next(), None);
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "");

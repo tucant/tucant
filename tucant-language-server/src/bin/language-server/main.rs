@@ -17,7 +17,32 @@ use tokio::{
 };
 use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
-use tucant_language_server_derive_output::*;
+use tucant_language_server_derive_output::{
+    CompletionOptions, Diagnostic, DiagnosticSeverity, DocumentHighlight, DocumentHighlightKind,
+    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
+    H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,
+    H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d,
+    H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
+    H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
+    H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
+    H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
+    H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13,
+    H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7,
+    H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4,
+    Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
+    Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483,
+    He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
+    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2, Hover, HoverOptions, IncomingStuff,
+    InitializeRequest, InitializeResult, InitializedNotification, MarkupContent, MarkupKind,
+    Position, PublishDiagnosticsParams, Receivable, SemanticTokens, SemanticTokensLegend,
+    SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities, ShutdownRequest,
+    StringOrNumber, TextDocumentCompletionRequest, TextDocumentDidChangeNotification,
+    TextDocumentDidCloseNotification, TextDocumentDidOpenNotification,
+    TextDocumentDocumentHighlightRequest, TextDocumentFoldingRangeRequest,
+    TextDocumentHoverRequest, TextDocumentPublishDiagnosticsNotification,
+    TextDocumentSemanticTokensFullRequest, TextDocumentSyncKind, TextDocumentSyncOptions,
+    WorkDoneProgressOptions,
+};
 
 use crate::{
     evaluate::typecheck,
@@ -140,7 +165,7 @@ impl Server {
 
             typecheck
                 .into_iter()
-                .filter_map(|e| e.ok())
+                .filter_map(std::result::Result::ok)
                 .find(|t| t.1.range.start == found_element.1.range.start)
                 .map(|found_type| {
                     println!("found type {:?}", found_type.0);
@@ -263,42 +288,43 @@ impl Server {
         uri: String,
         version: i64,
     ) -> anyhow::Result<()> {
-        let vec =
-            {
-                let value = parse_from_str(content);
+        let vec = {
+            let value = parse_from_str(content);
 
-                let diagnostics: Box<dyn Iterator<Item = Diagnostic>> =
-                    if let Err(ref error) = value {
-                        Box::new(std::iter::once(Diagnostic {
-                            range: error.location.range.clone(),
+            let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
+                Box::new(std::iter::once(Diagnostic {
+                    range: error.location.range.clone(),
+                    severity: Some(DiagnosticSeverity::Error),
+                    code: None,
+                    code_description: None,
+                    source: Some("tucant".to_string()),
+                    message: error.reason.to_string(),
+                    tags: None,
+                    related_information: None,
+                    data: None,
+                }))
+            } else {
+                let typecheck = typecheck(value.unwrap()).1;
+                Box::new(
+                    typecheck
+                        .into_iter()
+                        .filter_map(std::result::Result::err)
+                        .map(|e| Diagnostic {
+                            range: e.location.range,
                             severity: Some(DiagnosticSeverity::Error),
                             code: None,
                             code_description: None,
                             source: Some("tucant".to_string()),
-                            message: error.reason.to_string(),
+                            message: e.reason,
                             tags: None,
                             related_information: None,
                             data: None,
-                        }))
-                    } else {
-                        let typecheck = typecheck(value.unwrap()).1;
-                        Box::new(typecheck.into_iter().filter_map(|e| e.err()).map(|e| {
-                            Diagnostic {
-                                range: e.location.range,
-                                severity: Some(DiagnosticSeverity::Error),
-                                code: None,
-                                code_description: None,
-                                source: Some("tucant".to_string()),
-                                message: e.reason,
-                                tags: None,
-                                related_information: None,
-                                data: None,
-                            }
-                        }))
-                    };
-
-                diagnostics.collect_vec()
+                        }),
+                )
             };
+
+            diagnostics.collect_vec()
+        };
 
         let response = PublishDiagnosticsParams {
             uri,
@@ -402,6 +428,7 @@ impl Server {
         Ok(())
     }
 
+    #[must_use]
     pub fn line_column_to_offset(string: &str, position: Position) -> usize {
         let the_line = string
             .lines()
@@ -410,8 +437,7 @@ impl Server {
         let line_offset = the_line
             .char_indices()
             .nth(position.character.try_into().unwrap())
-            .map(|(offset, _)| offset)
-            .unwrap_or(the_line.len());
+            .map_or(the_line.len(), |(offset, _)| offset);
         the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
     }
 
@@ -426,7 +452,7 @@ impl Server {
             .unwrap()
             .clone();
 
-        for change in notification.params.content_changes.iter() {
+        for change in &notification.params.content_changes {
             match change {
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
                     let start_offset = Self::line_column_to_offset(&document, incremental_changes.range.start.clone());
@@ -795,7 +821,7 @@ impl Decoder for MyStringDecoder {
             if position + length + 1 > buf.len() {
                 return Ok(None);
             }
-            let contents = &buf[position..position + length + 1];
+            let contents = &buf[position..=(position + length)];
 
             let return_value = std::str::from_utf8(contents).unwrap().to_string();
             buf.advance(position + length + 1);

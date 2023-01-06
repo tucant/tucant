@@ -279,7 +279,7 @@ async fn index(
 ) -> Result<Json<String>, MyError> {
     Ok(Json(format!(
         "Welcome! {}",
-        session.map(|v| v.matriculation_number).unwrap_or(-1)
+        session.map_or(-1, |v| v.matriculation_number)
     )))
 }
 

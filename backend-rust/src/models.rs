@@ -313,6 +313,7 @@ pub struct UndoneUser {
 }
 
 impl UndoneUser {
+    #[must_use]
     pub fn new(matriculation_number: i32) -> Self {
         Self {
             matriculation_number,
@@ -349,7 +350,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
             .await
-            .map_err(|err| err.into_response())?;
+            .map_err(axum::response::IntoResponse::into_response)?;
 
         let session: TucanSession = serde_json::from_str(
             cookie_jar

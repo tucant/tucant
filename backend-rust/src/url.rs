@@ -101,6 +101,7 @@ pub enum TucanProgram {
 }
 
 impl TucanProgram {
+    #[must_use]
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
             TucanProgram::Mlsstart(_) => todo!(),
@@ -215,6 +216,7 @@ pub enum TucanArgument<'a> {
 }
 
 impl<'a> TucanArgument<'a> {
+    #[must_use]
     pub fn number(&self) -> u64 {
         match self {
             TucanArgument::Number(number) => *number,
@@ -222,6 +224,7 @@ impl<'a> TucanArgument<'a> {
         }
     }
 
+    #[must_use]
     pub fn string(&self) -> &'a str {
         match self {
             TucanArgument::String(string) => string,
@@ -262,6 +265,7 @@ fn string<'a>(
     arguments.next().unwrap().string()
 }
 
+#[must_use]
 pub fn parse_tucan_url(url: &str) -> TucanUrl {
     let url = Url::parse(url).unwrap();
     assert_eq!(
@@ -371,7 +375,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "COURSEDETAILS" => {
             number(&mut arguments);
-            assert!([0, 376333755785484].contains(&number(&mut arguments)));
+            assert!([0, 376_333_755_785_484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
                     number(&mut arguments).to_be_bytes(), // this *should* be unique per course
@@ -422,13 +426,12 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
     };
 
-    if arguments.peek().is_some() {
-        panic!(
-            "too many arguments while parsing {} {:?}",
-            prgname,
-            arguments.collect::<Vec<_>>()
-        )
-    }
+    assert!(
+        arguments.peek().is_none(),
+        "too many arguments while parsing {} {:?}",
+        prgname,
+        arguments.collect::<Vec<_>>()
+    );
 
     TucanUrl {
         session_nr,

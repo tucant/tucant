@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Text, Timestamptz};
     use diesel_full_text_search::*;
 
     course_events (course, timestamp_start, timestamp_end, room) {
@@ -14,7 +14,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::Bytea;
     use diesel_full_text_search::*;
 
     course_exams (course_id, exam) {
@@ -24,7 +24,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Text, Timestamptz};
     use diesel_full_text_search::*;
 
     course_groups_events (course, timestamp_start, timestamp_end, room) {
@@ -37,7 +37,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bool, Bytea, Text};
     use diesel_full_text_search::*;
 
     course_groups_unfinished (tucan_id) {
@@ -49,8 +49,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::{Bool, Bytea, Int2, Text, Timestamptz};
+    use diesel_full_text_search::Tsvector;
 
     courses_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -65,7 +65,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bool, Bytea, Nullable, Text, Timestamptz};
     use diesel_full_text_search::*;
 
     exams_unfinished (tucan_id) {
@@ -85,7 +85,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::Bytea;
     use diesel_full_text_search::*;
 
     module_courses (module, course) {
@@ -95,7 +95,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::Bytea;
     use diesel_full_text_search::*;
 
     module_exams (module_id, exam) {
@@ -105,7 +105,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::Bytea;
     use diesel_full_text_search::*;
 
     module_menu_module (module_id, module_menu_id) {
@@ -115,7 +115,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bool, Bytea, Nullable, Text, Timestamptz};
     use diesel_full_text_search::*;
 
     module_menu_unfinished (tucan_id) {
@@ -128,8 +128,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::{Bool, Bytea, Int4, Nullable, Text, Timestamptz};
+    use diesel_full_text_search::Tsvector;
 
     modules_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -144,7 +144,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Int4, Int8, Text};
     use diesel_full_text_search::*;
 
     sessions (matriculation_number, session_nr, session_id) {
@@ -155,7 +155,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Int4};
     use diesel_full_text_search::*;
 
     user_course_groups (user_id, course_group_id) {
@@ -165,7 +165,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Int4};
     use diesel_full_text_search::*;
 
     user_courses (user_id, course_id) {
@@ -175,7 +175,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Int4};
     use diesel_full_text_search::*;
 
     user_exams (matriculation_number, exam) {
@@ -185,7 +185,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bytea, Int4};
     use diesel_full_text_search::*;
 
     user_modules (user_id, module_id) {
@@ -195,7 +195,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
+    use diesel::sql_types::{Bool, Int4, Nullable, Text, Timestamptz};
     use diesel_full_text_search::*;
 
     users_unfinished (matriculation_number) {

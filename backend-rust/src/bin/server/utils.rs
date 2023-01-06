@@ -17,7 +17,7 @@ pub fn calculate_paths(path_to_root: Vec<ModuleMenuPathPart>) -> Vec<VecDeque<Mo
             let mut current = Some(&l);
             let mut path = VecDeque::new();
             while let Some(curr) = current {
-                path.push_front(curr.to_owned().to_owned());
+                path.push_front(curr.to_owned().clone());
                 if let Some(parent) = &curr.parent {
                     current = nonleaves.get(&parent);
                 } else {
