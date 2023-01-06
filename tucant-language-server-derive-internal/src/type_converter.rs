@@ -13,17 +13,14 @@ use sha3::Sha3_224;
 
 pub fn handle_type(
     random: &mut ChaCha20Rng,
-    _type: &Type,
+    the_type: &Type,
 ) -> syn::Result<(TokenStream, TokenStream)> {
-    match _type {
+    match the_type {
         Type::Base(BaseType { name }) => match name {
-            BaseTypes::Uri => Ok((quote! { String }, quote! {})),
-            BaseTypes::DocumentUri => Ok((quote! { String }, quote! {})),
+            BaseTypes::Uri | BaseTypes::DocumentUri | BaseTypes::RegExp | BaseTypes::String => Ok((quote! { String }, quote! {})),
             BaseTypes::Integer => Ok((quote! { i64 }, quote! {})),
             BaseTypes::UnsignedInteger => Ok((quote! { u64 }, quote! {})),
             BaseTypes::Decimal => Ok((quote! { f64 }, quote! {})),
-            BaseTypes::RegExp => Ok((quote! { String }, quote! {})),
-            BaseTypes::String => Ok((quote! { String }, quote! {})),
             BaseTypes::Boolean => Ok((quote! { bool }, quote! {})),
             BaseTypes::Null => Ok((quote! { () }, quote! {})),
         },

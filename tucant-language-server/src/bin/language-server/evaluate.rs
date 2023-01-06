@@ -417,7 +417,7 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
             ),
         ),
     ];
-    evaluate_with_context(&mut context, value)
+    evaluate_with_context(&mut context, &value)
 }
 
 pub fn typecheck(value: (Ast, Span)) -> (TypecheckCall, TypeTrace) {
@@ -535,32 +535,32 @@ fn resolve_identifier_type(
 
 pub fn typecheck_with_context(
     context: &mut Vec<(String, (RcType, Span))>,
-    _type: (Ast, Span),
+    the_type: (Ast, Span),
     trace: &mut TypeTrace,
 ) -> TypecheckCall {
-    match &_type.0 {
+    match &the_type.0 {
         Ast::Number(number) => {
-            let rc = (Rc::new(IntegerType(Some(*number))) as RcType, _type.1);
+            let rc = (Rc::new(IntegerType(Some(*number))) as RcType, the_type.1);
             trace.push(Ok(rc.clone()));
             Ok(rc.clone())
         }
         Ast::String(string) => {
             let rc = (
                 Rc::new(StringType(Some(string.to_string()))) as RcType,
-                _type.1,
+                the_type.1,
             );
             trace.push(Ok(rc.clone()));
             Ok(rc.clone())
         }
         Ast::Identifier(identifier) => {
-            resolve_identifier_type(context, (identifier.to_string(), _type.1), trace)
+            resolve_identifier_type(context, (identifier.to_string(), the_type.1), trace)
         }
         Ast::List(elements) => {
             let (callable, args) = match elements.split_first() {
                 Some(v) => v,
                 None => {
                     let err = Err(EvaluateError {
-                        location: _type.1,
+                        location: the_type.1,
                         reason: "can't call an empty list".to_string(),
                     });
                     trace.push(err);
@@ -576,14 +576,16 @@ pub fn typecheck_with_context(
                 Ast::List(_) => typecheck_with_context(context, callable.clone(), trace)?,
                 _ => {
                     let val = Err(EvaluateError {
-                        location: _type.1,
+                        location: the_type.1,
                         reason: "can't call a string or number".to_string(),
                     });
                     trace.push(val);
                     return Err(());
                 }
             };
-            let return_value = callable.0.typecheck_call(context, (args, _type.1), trace)?;
+            let return_value = callable
+                .0
+                .typecheck_call(context, (args, the_type.1), trace)?;
             trace.push(Ok(return_value.clone()));
             Ok(return_value)
         }
@@ -593,7 +595,7 @@ pub fn typecheck_with_context(
 #[allow(clippy::all)]
 pub fn evaluate_with_context(
     _context: &mut Vec<(String, (RcValue, Span))>,
-    _value: (Ast, Span),
+    _value: &(Ast, Span),
 ) -> EvaluateCall {
     todo!()
     /*

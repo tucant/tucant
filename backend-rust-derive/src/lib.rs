@@ -19,22 +19,17 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
-    let arg_type = node
-        .sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            syn::FnArg::Receiver(_) => None,
-            syn::FnArg::Typed(PatType { pat, ty, .. }) => {
-                if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
-                    if *ident == "input" || *ident == "_input" {
-                        return Some(ty.to_token_stream());
-                    }
+    let arg_type = node.sig.inputs.iter().find_map(|arg| match arg {
+        syn::FnArg::Receiver(_) => None,
+        syn::FnArg::Typed(PatType { pat, ty, .. }) => {
+            if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
+                if *ident == "input" || *ident == "_input" {
+                    return Some(ty.to_token_stream());
                 }
-                None
             }
-        })
-        .next();
+            None
+        }
+    });
 
     if let Some(arg_type) = arg_type {
         let name = &node.sig.ident;
@@ -88,7 +83,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     }
 }
 
-fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
+fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
     let name_string = input.ident.to_string();
 
@@ -113,7 +108,6 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                         match ts_type_attr.parse_meta()? {
                             Meta::List(meta_list) => match meta_list.nested.iter().next() {
                                 Some(NestedMeta::Meta(Meta::Path(path))) => path.to_token_stream(),
-                                None => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
                                 _ => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
                             },
                             err => return Err(Error::new(err.span(), r#"expected a list"#)),
@@ -307,7 +301,7 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     let input = parse_macro_input!(input as DeriveInput);
 
     proc_macro::TokenStream::from(
-        typescriptable_impl(input).unwrap_or_else(Error::into_compile_error),
+        typescriptable_impl(&input).unwrap_or_else(Error::into_compile_error),
     )
 }
 

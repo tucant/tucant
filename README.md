@@ -199,3 +199,5 @@ https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
 https://opensearch.org/docs/latest/api-reference/explain/
 
 https://opensearch.org/docs/latest/api-reference/search/
+
+cargo clippy -- --warn clippy::pedantic --allow clippy::missing_errors_doc --allow clippy::missing_panics_doc --allow clippy::too_many_lines

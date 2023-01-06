@@ -34,13 +34,14 @@ use tucant_language_server_derive_output::{
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
     Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2, Hover, HoverOptions, IncomingStuff,
     InitializeRequest, InitializeResult, InitializedNotification, MarkupContent, MarkupKind,
-    Position, PublishDiagnosticsParams, Receivable, SemanticTokens, SemanticTokensLegend,
-    SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities, ShutdownRequest,
-    StringOrNumber, TextDocumentCompletionRequest, TextDocumentDidChangeNotification,
-    TextDocumentDidCloseNotification, TextDocumentDidOpenNotification,
-    TextDocumentDocumentHighlightRequest, TextDocumentFoldingRangeRequest,
-    TextDocumentHoverRequest, TextDocumentPublishDiagnosticsNotification,
-    TextDocumentSemanticTokensFullRequest, TextDocumentSyncKind, TextDocumentSyncOptions,
+    MessageType, Position, PublishDiagnosticsParams, Receivable, SemanticTokens,
+    SemanticTokensLegend, SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities,
+    ShowMessageParams, ShutdownRequest, StringOrNumber, TextDocumentCompletionRequest,
+    TextDocumentDidChangeNotification, TextDocumentDidCloseNotification,
+    TextDocumentDidOpenNotification, TextDocumentDocumentHighlightRequest,
+    TextDocumentFoldingRangeRequest, TextDocumentHoverRequest,
+    TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullRequest,
+    TextDocumentSyncKind, TextDocumentSyncOptions, WindowShowMessageNotification,
     WorkDoneProgressOptions,
 };
 
@@ -92,7 +93,7 @@ impl Server {
                     .await
                     .unwrap(),
                 IncomingStuff::ShutdownRequest(request) => {
-                    cloned_self.handle_shutdown_request(request).await.unwrap()
+                    cloned_self.handle_shutdown_request(request).await.unwrap();
                 }
                 IncomingStuff::TextDocumentDidOpenNotification(notification) => cloned_self
                     .handle_text_document_did_open_notification(notification)
@@ -107,7 +108,7 @@ impl Server {
                     .await
                     .unwrap(),
                 IncomingStuff::InitializeRequest(request) => {
-                    cloned_self.handle_initialize(request).await.unwrap()
+                    cloned_self.handle_initialize(request).await.unwrap();
                 }
                 IncomingStuff::InitializedNotification(notification) => cloned_self
                     .handle_initialized_notification(notification)
@@ -189,7 +190,7 @@ impl Server {
                 request,
                 H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant1(()),
             )
-            .await?
+            .await?;
         }
 
         Ok(())
@@ -429,7 +430,7 @@ impl Server {
     }
 
     #[must_use]
-    pub fn line_column_to_offset(string: &str, position: Position) -> usize {
+    pub fn line_column_to_offset(string: &str, position: &Position) -> usize {
         let the_line = string
             .lines()
             .nth(position.line.try_into().unwrap())
@@ -455,8 +456,8 @@ impl Server {
         for change in &notification.params.content_changes {
             match change {
                 tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
-                    let start_offset = Self::line_column_to_offset(&document, incremental_changes.range.start.clone());
-                    let end_offset = Self::line_column_to_offset(&document, incremental_changes.range.end.clone());
+                    let start_offset = Self::line_column_to_offset(&document, &incremental_changes.range.start);
+                    let end_offset = Self::line_column_to_offset(&document, &incremental_changes.range.end);
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
 
@@ -526,13 +527,13 @@ impl Server {
         self: Arc<Self>,
         _notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        /*let notification = ShowMessageParams {
+        let notification = ShowMessageParams {
             r#type: MessageType::Error,
             message: "This is a test error".to_string(),
         };
 
         self.send_notification::<WindowShowMessageNotification>(notification)
-            .await?;*/
+            .await?;
 
         Ok(())
     }
@@ -660,7 +661,7 @@ impl Server {
             .collect();
 
         #[derive(Serialize, Debug)]
-        struct TestRequest<T: Serialize> {
+        struct TestRequest<T> {
             jsonrpc: String,
             id: String,
             method: String,
@@ -689,7 +690,7 @@ impl Server {
         request: R::Request,
     ) -> anyhow::Result<()> {
         #[derive(Serialize, Debug)]
-        struct TestNotification<T: Serialize> {
+        struct TestNotification<T> {
             jsonrpc: String,
             method: String,
             params: T,
@@ -714,7 +715,7 @@ impl Server {
         response: R::Response,
     ) -> anyhow::Result<()> {
         #[derive(Serialize, Debug)]
-        struct TestResponse<T: Serialize> {
+        struct TestResponse<T> {
             jsonrpc: String,
             id: StringOrNumber,
             result: T,

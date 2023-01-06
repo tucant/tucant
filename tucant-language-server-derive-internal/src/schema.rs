@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-/// Represents an `and`type (e.g. TextDocumentParams & WorkDoneProgressParams`).
+/// Represents an `and` type (e.g. `TextDocumentParams & WorkDoneProgressParams`).
 /// kind = "and"
 pub struct AndType {
     pub items: Vec<Type>,
