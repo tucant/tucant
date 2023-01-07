@@ -41,7 +41,7 @@ export default function MyCourses() {
                 >
                   {e.value[0].title}
                 </Link>
-              )
+              ),
             )}
           </>
         )}

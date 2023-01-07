@@ -1,6 +1,6 @@
 export async function genericFetch(
   url: string,
-  input: unknown
+  input: unknown,
 ): Promise<unknown> {
   const response = await fetch(url, {
     credentials: "include",

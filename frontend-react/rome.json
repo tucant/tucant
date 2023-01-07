@@ -1,5 +1,9 @@
 {
   "$schema": "./node_modules/rome/configuration_schema.json",
+  "formatter": {
+    "indentStyle": "space",
+    "ignore": ["./src/api.ts"]
+  },
   "linter": {
     "enabled": true,
     "rules": {
