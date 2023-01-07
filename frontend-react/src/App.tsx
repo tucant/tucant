@@ -34,10 +34,7 @@ function App() {
         <NavigationContext.Provider value={startTransition}>
           <BrowserRouter>
             <Routes>
-              <Route
-                path="/"
-                element={<Navigation isLoading={isLoading}></Navigation>}
-              >
+              <Route path="/" element={<Navigation isLoading={isLoading} />}>
                 <Route path="modules/" element={<Modules />} />
                 <Route path="modules/:id" element={<Modules />} />
                 <Route path="login" element={<Login />} />
@@ -75,6 +72,6 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 root.render(<App />);

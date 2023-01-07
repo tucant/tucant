@@ -30,7 +30,7 @@ export default function SignIn() {
     const target = event.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
 
-    if (target.name != "username" && target.name != "password") {
+    if (target.name !== "username" && target.name !== "password") {
       throw new Error("unexpected input name");
     }
     setForm({
@@ -108,7 +108,7 @@ export default function SignIn() {
                 className="spinner-border spinner-border-sm"
                 role="status"
                 aria-hidden="true"
-              ></span>
+              />
             )}{" "}
             Sign in
           </button>

@@ -24,22 +24,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - run: sudo apt update && sudo apt-get install -y protobuf-compiler
-      - uses: dtolnay/rust-toolchain@stable
-        id: toolchain
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: stable
           components: rustfmt,clippy
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ${{ inputs.path }}/target/
-          key: new_${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}-${{ github.run_id }} # https://github.com/actions/cache/blob/main/workarounds.md#update-a-cache
-          restore-keys: |
-            new_${{ inputs.path }}-${{steps.toolchain.outputs.cachekey}}
+      - uses: Swatinem/rust-cache@v2
       - name: Formatting
         run: cargo fmt --check
       - name: Clippy

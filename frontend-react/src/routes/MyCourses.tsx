@@ -25,7 +25,7 @@ export default function MyCourses() {
           <>
             <TucanUrlLink data={data} />
             {data.inner.map((e) =>
-              e.type == "Course" ? (
+              e.type === "Course" ? (
                 <Link
                   key={e.value[0].tucan_id}
                   className="list-group-item list-group-item-action"
@@ -41,7 +41,7 @@ export default function MyCourses() {
                 >
                   {e.value[0].title}
                 </Link>
-              )
+              ),
             )}
           </>
         )}

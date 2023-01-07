@@ -1,6 +1,6 @@
 export async function genericFetch(
   url: string,
-  input: unknown
+  input: unknown,
 ): Promise<unknown> {
   const response = await fetch(url, {
     credentials: "include",
@@ -12,7 +12,7 @@ export async function genericFetch(
     body: JSON.stringify(input),
   });
   if (!response.ok) {
-    if (response.status == 401) {
+    if (response.status === 401) {
       return null;
     }
     let errorMessage;

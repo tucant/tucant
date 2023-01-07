@@ -11,6 +11,6 @@ export function SearchModules() {
       title="Modulsuche"
       base_path="module"
       function={search_module}
-    ></SearchPage>
+    />
   );
 }

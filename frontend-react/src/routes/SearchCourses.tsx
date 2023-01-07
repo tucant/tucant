@@ -11,6 +11,6 @@ export function SearchCourses() {
       title="Veranstaltungssuche"
       base_path="course"
       function={search_course}
-    ></SearchPage>
+    />
   );
 }

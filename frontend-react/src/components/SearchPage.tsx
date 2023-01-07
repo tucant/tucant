@@ -25,7 +25,7 @@ export default function SearchPage(props: {
     const target = event.target;
     const value = target.value;
 
-    if (target.name != "q") {
+    if (target.name !== "q") {
       throw new Error("unexpected input name");
     }
     startTransition(() => {
@@ -79,7 +79,7 @@ export default function SearchPage(props: {
                   className="spinner-border spinner-border-sm"
                   role="status"
                   aria-hidden="true"
-                ></span>
+                />
               )}{" "}
               Suchen
             </button>
@@ -110,32 +110,33 @@ export default function SearchPage(props: {
       </form>
 
       <div className="list-group">
-        {data != null &&
-          data.map((e) => (
-            <Link
-              key={e.tucan_id}
-              className="list-group-item list-group-item-action"
-              to={`/${props.base_path}/${e.tucan_id}`}
-            >
-              <div className="d-flex w-100 justify-content-between align-items-center">
-                <h5
-                  className="mb-1"
-                  dangerouslySetInnerHTML={{
-                    __html: dompurify.sanitize(e.title),
-                  }}
-                ></h5>
-                <span className="badge bg-primary rounded-pill">
-                  {e.rank.toFixed(3)}
-                </span>
-              </div>
-              <p
+        {data?.map((e) => (
+          <Link
+            key={e.tucan_id}
+            className="list-group-item list-group-item-action"
+            to={`/${props.base_path}/${e.tucan_id}`}
+          >
+            <div className="d-flex w-100 justify-content-between align-items-center">
+              <h5
                 className="mb-1"
+                // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
                 dangerouslySetInnerHTML={{
-                  __html: dompurify.sanitize(e.excerpt),
+                  __html: dompurify.sanitize(e.title),
                 }}
-              ></p>
-            </Link>
-          ))}
+              />
+              <span className="badge bg-primary rounded-pill">
+                {e.rank.toFixed(3)}
+              </span>
+            </div>
+            <p
+              className="mb-1"
+              // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
+              dangerouslySetInnerHTML={{
+                __html: dompurify.sanitize(e.excerpt),
+              }}
+            />
+          </Link>
+        ))}
       </div>
     </main>
   );
