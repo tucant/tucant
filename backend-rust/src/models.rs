@@ -12,7 +12,10 @@ use axum_extra::extract::PrivateCookieJar;
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
 #[cfg(feature = "server")]
-use diesel::prelude::*;
+use diesel::prelude::{
+    AsChangeset, Associations, ExpressionMethods, Identifiable, Insertable, Queryable,
+    QueryableByName,
+};
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
 #[cfg(feature = "server")]

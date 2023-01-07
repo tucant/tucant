@@ -441,7 +441,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::parse_tucan_url;
 
     #[test]
     fn test_sample_urls() -> anyhow::Result<()> {
