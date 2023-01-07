@@ -241,7 +241,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
 
 pub fn parse_number<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.peek().unwrap() {
         ('0'..='9', start_pos) => {
             let start_pos = start_pos.clone();
@@ -267,15 +267,15 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 },
             };
             match number.parse() {
-                Ok(n) => Some(Ok((Token::Number(n), span))),
-                Err(_err) => Some(Err(Error {
+                Ok(n) => Ok((Token::Number(n), span)),
+                Err(_err) => Err(Error {
                     location: span,
                     reason: "Failed to parse number".to_string(),
                     partial_parse: (),
-                })),
+                }),
             }
         }
-        (_, position) => Some(Err(Error {
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -285,7 +285,7 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
             },
             reason: "Failed to parse number".to_string(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
@@ -342,7 +342,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
             Some(('(', _position)) => Some(parse_paren_open(&mut self.iterator)),
             Some((')', _position)) => Some(parse_paren_close(&mut self.iterator)),
             Some(('"', _start_pos)) => parse_string(&mut self.iterator),
-            Some(('0'..='9', _start_pos)) => parse_number(&mut self.iterator),
+            Some(('0'..='9', _start_pos)) => Some(parse_number(&mut self.iterator)),
             Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => {
                 Some(parse_identifier(&mut self.iterator))
             }
@@ -568,62 +568,62 @@ fn test_parse_number() {
     init();
 
     let mut span = TokenizerBuilder::from_string(r#"notanumber"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "notendingwithanumber");
 
     let mut span = TokenizerBuilder::from_string(r#"3"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"3z9"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "z9");
 
     let mut span = TokenizerBuilder::from_string(r#"3546z945"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3546)));
     //assert_eq!(number.0.string, "3546");
     //assert_eq!(number.1.string, "z945");
 
     let mut span = TokenizerBuilder::from_string(r#"345345"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "");
 
     let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "sdfasd");
 
     let mut span = TokenizerBuilder::from_string(r#"n32otanumber"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
     let mut span =
         TokenizerBuilder::from_string(r#"70708777897986976707598759785978698752otanumber"#);
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     /*assert_eq!(

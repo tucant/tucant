@@ -611,7 +611,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         use serde::{Deserialize, Serialize};
 
         pub trait Sendable {
-            type Request: ::serde::Serialize;
+            type Request: ::serde::Serialize + std::marker::Send;
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
 
             fn get_request_data(self) -> Self::Request;
@@ -622,7 +622,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         pub trait SendableAndForget {
-            type Request: ::serde::Serialize;
+            type Request: ::serde::Serialize + std::marker::Send;
 
             fn get_request_data(self) -> Self::Request;
 
