@@ -185,6 +185,11 @@ cargo install --locked cargo-outdated
 cargo outdated
 ```
 
+Clippy
+```
+clear && cargo clippy -- --warn clippy::pedantic --warn clippy::nursery --warn clippy::cargo --allow clippy::missing_errors_doc --allow clippy::missing_panics_doc --allow clippy::too_many_lines --allow clippy::module_name_repetitions --allow clippy::cognitive-complexity --allow clippy::vec_box --allow clippy::wildcard_imports --allow clippy::multiple_crate_versions
+```
+
 ## Search
 
 https://opensearch.org/docs/latest/opensearch/search-template/
@@ -199,5 +204,3 @@ https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
 https://opensearch.org/docs/latest/api-reference/explain/
 
 https://opensearch.org/docs/latest/api-reference/search/
-
-cargo clippy -- --warn clippy::pedantic --allow clippy::missing_errors_doc --allow clippy::missing_panics_doc --allow clippy::too_many_lines
