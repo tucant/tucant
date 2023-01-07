@@ -19,13 +19,11 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
 use tucant_language_server_derive_output::{
     CompletionOptions, Diagnostic, DiagnosticSeverity, DocumentHighlight, DocumentHighlightKind,
-    H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41,
     H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,
     H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
-    H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222,
     H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13,
     H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7,
     H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4,
@@ -455,7 +453,7 @@ impl Server {
 
         for change in &notification.params.content_changes {
             match change {
-                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
+                tucant_language_server_derive_output::H1e795c7a94f7c86c614f1f1590c41c0496c29d3fe5ac6533d292f0e6::Variant0(incremental_changes) => {
                     let start_offset = Self::line_column_to_offset(&document, &incremental_changes.range.start);
                     let end_offset = Self::line_column_to_offset(&document, &incremental_changes.range.end);
 
@@ -466,7 +464,7 @@ impl Server {
                         document.clone(),
                     );
                 },
-                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
+                tucant_language_server_derive_output::H1e795c7a94f7c86c614f1f1590c41c0496c29d3fe5ac6533d292f0e6::Variant1(changes) => {
                     documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                 },
             }
@@ -622,7 +620,7 @@ impl Server {
                                 ),
                             ),
                             full: Some(
-                                H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222::Variant0(
+                                tucant_language_server_derive_output::Hdf79c273aed7dd582c079302245431a12e1ba3f63722a25e8cef8db0::Variant0(
                                     true,
                                 ),
                             ),
@@ -637,7 +635,7 @@ impl Server {
                 workspace: None,
                 experimental: None,
             },
-            server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 {
+            server_info: Some(tucant_language_server_derive_output::H880c6487247b4175461832601dd88a01930f42d1e56b2956a0727626 {
                 name: "TUCaN't".to_string(),
                 version: Some("0.0.1".to_string()),
             }),

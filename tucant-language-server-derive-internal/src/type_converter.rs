@@ -41,13 +41,7 @@ pub fn handle_type(
             let (value_type, value_rest) = handle_type(random, value)?;
             let key_type = match key {
                 MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::Uri,
-                } => quote! { String },
-                MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::DocumentUri,
-                } => quote! { String },
-                MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::String,
+                    name: UriOrDocumentUriOrStringOrInteger::Uri | UriOrDocumentUriOrStringOrInteger::DocumentUri | UriOrDocumentUriOrStringOrInteger::String,
                 } => quote! { String },
                 MapKeyType::Base {
                     name: UriOrDocumentUriOrStringOrInteger::Integer,
@@ -141,7 +135,7 @@ pub fn handle_type(
                 .map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                     let name_text = &property.name;
                     let name = format_ident!("r#{}", property.name.to_snake_case());
-                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
+                    let (mut converted_type, rest) = handle_type(random, &property.r#type)?;
 
                     if property.optional {
                         converted_type = quote! { Option<#converted_type> }

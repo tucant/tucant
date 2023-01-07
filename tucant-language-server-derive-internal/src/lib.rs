@@ -16,7 +16,7 @@ use type_converter::{handle_type, until_err};
 
 pub fn parse_structures(
     random: &mut ChaCha20Rng,
-    structures: Vec<Structure>,
+    structures: &[Structure],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut structures_err = Ok(());
     let return_type: (Vec<TokenStream>, Vec<TokenStream>) = structures
@@ -34,10 +34,10 @@ pub fn parse_structures(
                 .extends
                 .iter()
                 .enumerate()
-                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                .map(|(i, the_type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", i);
-                    let (converted_type, rest) = handle_type(random, _type)?;
+                    let (converted_type, rest) = handle_type(random, the_type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -55,10 +55,10 @@ pub fn parse_structures(
                 .mixins
                 .iter()
                 .enumerate()
-                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                .map(|(i, the_type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", structure.extends.len() + i);
-                    let (converted_type, rest) = handle_type(random, _type)?;
+                    let (converted_type, rest) = handle_type(random, the_type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -82,7 +82,7 @@ pub fn parse_structures(
                             #[doc = #string]
                         }
                     });
-                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
+                    let (mut converted_type, rest) = handle_type(random, &property.r#type)?;
 
                     if property.optional {
                         converted_type = quote! { Option<#converted_type> }
@@ -126,7 +126,7 @@ pub fn parse_structures(
 
 pub fn parse_enumerations(
     _random: &mut ChaCha20Rng,
-    enumerations: Vec<Enumeration>,
+    enumerations: &[Enumeration],
 ) -> syn::Result<Vec<TokenStream>> {
     let mut enumerations_err = Ok(());
     let enumerations = enumerations
@@ -138,7 +138,7 @@ pub fn parse_enumerations(
                     #[doc = #string]
                 }
             });
-            match enumeration._type {
+            match enumeration.r#type {
                 EnumerationType::Base {
                     name:
                         StringOrIntegerOrUnsignedIntegerLiteral::Integer
@@ -223,14 +223,14 @@ pub fn parse_enumerations(
 
 pub fn parse_type_aliases(
     random: &mut ChaCha20Rng,
-    type_aliases: Vec<TypeAlias>,
+    type_aliases: &[TypeAlias],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut type_aliases_err = Ok(());
     let return_value: (Vec<TokenStream>, Vec<TokenStream>) = type_aliases
         .iter()
         .map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
-            let (converted_type, rest) = handle_type(random, &type_alias._type)?;
+            let (converted_type, rest) = handle_type(random, &type_alias.the_type)?;
             let documentation = type_alias.documentation.as_ref().map(|string| {
                 quote! {
                     #[doc = #string]
@@ -269,8 +269,8 @@ pub fn parse_requests(
                 method.replace('_', " ").to_upper_camel_case()
             );
             let (params, request_rest) = match &request.params {
-                Some(TypeOrVecType::Type(_type)) => {
-                    let (the_type, rest) = handle_type(random, _type)?;
+                Some(TypeOrVecType::Type(the_type)) => {
+                    let (the_type, rest) = handle_type(random, the_type)?;
                     (
                         quote! {
                             #the_type
@@ -282,8 +282,8 @@ pub fn parse_requests(
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
-                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(random, _type)
+                        .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(random, the_type)
                         })
                         .scan(&mut params_err, until_err)
                         .unzip();
@@ -435,13 +435,13 @@ pub fn parse_notifications(
                 method.replace('_', " ").to_upper_camel_case()
             );
             let (params, rest) = match &notification.params {
-                Some(TypeOrVecType::Type(_type)) => handle_type(random, _type)?,
+                Some(TypeOrVecType::Type(the_type)) => handle_type(random, the_type)?,
                 Some(TypeOrVecType::VecType(vec_type)) => {
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
-                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(random, _type)
+                        .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(random, the_type)
                         })
                         .scan(&mut params_err, until_err)
                         .unzip();
@@ -505,12 +505,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut random = ChaCha20Rng::seed_from_u64(42);
 
-    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
+    let (structures, rest_structures) = parse_structures(&mut random, &meta_model.structures)?;
 
-    let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
+    let enumerations = parse_enumerations(&mut random, &meta_model.enumerations)?;
 
     let (type_aliases, rest_type_aliases) =
-        parse_type_aliases(&mut random, meta_model.type_aliases)?;
+        parse_type_aliases(&mut random, &meta_model.type_aliases)?;
 
     let (requests, requests_rest) = parse_requests(&mut random, &meta_model.requests)?;
 

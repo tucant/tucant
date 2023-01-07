@@ -113,6 +113,8 @@ impl Tucan {
     }
 
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
+        use diesel_async::RunQueryDsl;
+
         let params: [(&str, &str); 10] = [
             ("usrname", username),
             ("pass", password),
@@ -162,8 +164,6 @@ impl Tucan {
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
 
-                use diesel_async::RunQueryDsl;
-
                 let mut connection = self.pool.get().await?;
 
                 {
@@ -191,9 +191,8 @@ impl Tucan {
                 }
 
                 return Ok(user);
-            } else {
-                panic!("Failed to extract session_nr");
             }
+            panic!("Failed to extract session_nr");
         }
 
         res_headers.text().await?;

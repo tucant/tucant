@@ -369,6 +369,8 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
@@ -376,8 +378,6 @@ impl TucanUser {
                     .to_tucan_url(Some(self.session.session_nr.try_into().unwrap()))
             );
         };
-
-        use diesel_async::RunQueryDsl;
 
         let (course, course_groups, events) = {
             let document = Self::parse_document(&document)?;
@@ -875,8 +875,9 @@ impl TucanUser {
 
             let modules: Vec<(Module, Vec<Course>)> = d
                 .map(|e| {
-                    let module =
-                        e.0.map(|i| {
+                    let module = e.0.map_or_else(
+                        || TUCANSCHEISS.clone(),
+                        |i| {
                             let mut text = i.text();
                             Module {
                                 tucan_id: TryInto::<Moduledetails>::try_into(
@@ -901,8 +902,8 @@ impl TucanUser {
                                 content: String::new(),
                                 done: false,
                             }
-                        })
-                        .unwrap_or_else(|| TUCANSCHEISS.clone());
+                        },
+                    );
 
                     let courses =
                         e.1.into_iter()
@@ -1162,6 +1163,8 @@ impl TucanUser {
     }
 
     pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+        use diesel_async::RunQueryDsl;
+
         // TODO FIXME cache this
 
         /*
@@ -1242,8 +1245,6 @@ impl TucanUser {
                         course_group_id: cg.0.tucan_id.clone(),
                     }),
                 });
-
-        use diesel_async::RunQueryDsl;
 
         {
             let mut connection = self.tucan.pool.get().await?;
