@@ -55,7 +55,7 @@ async fn fetch_registration(
 
     let tucan_clone = tucan.clone();
 
-    for menu in value.1.submenus.into_iter() {
+    for menu in value.1.submenus {
         fetch_registration(
             stream,
             tucan_clone.clone(),
@@ -115,7 +115,7 @@ pub async fn setup(
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
 
-        let tucan = tucan.continue_session(session).await.unwrap();
+        let tucan = tucan.continue_session(session);
 
         let root = tucan.root_registration().await.unwrap();
 

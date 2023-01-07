@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-/// Represents an `and`type (e.g. TextDocumentParams & WorkDoneProgressParams`).
+/// Represents an `and` type (e.g. `TextDocumentParams & WorkDoneProgressParams`).
 /// kind = "and"
 pub struct AndType {
     pub items: Vec<Type>,
@@ -78,7 +78,7 @@ pub struct Enumeration {
     pub supports_custom_values: bool,
     /// The type of the elements.
     #[serde(rename = "type")]
-    pub _type: EnumerationType,
+    pub r#type: EnumerationType,
     /// The enum values.
     pub values: Vec<EnumerationEntry>,
 }
@@ -268,7 +268,7 @@ pub struct Property {
     pub since: Option<String>,
     /// The type of the property
     #[serde(rename = "type")]
-    pub _type: Type,
+    pub r#type: Type,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -420,7 +420,7 @@ pub struct TypeAlias {
     pub since: Option<String>,
     /// The aliased type.
     #[serde(rename = "type")]
-    pub _type: Type,
+    pub the_type: Type,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

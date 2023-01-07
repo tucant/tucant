@@ -1,3 +1,10 @@
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
+
 mod schema;
 mod type_converter;
 
@@ -14,9 +21,10 @@ use schema::{
 
 use type_converter::{handle_type, until_err};
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_structures(
     random: &mut ChaCha20Rng,
-    structures: Vec<Structure>,
+    structures: &[Structure],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut structures_err = Ok(());
     let return_type: (Vec<TokenStream>, Vec<TokenStream>) = structures
@@ -25,6 +33,7 @@ pub fn parse_structures(
             let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
             let documentation = structure.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -34,10 +43,10 @@ pub fn parse_structures(
                 .extends
                 .iter()
                 .enumerate()
-                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                .map(|(i, the_type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", i);
-                    let (converted_type, rest) = handle_type(random, _type)?;
+                    let (converted_type, rest) = handle_type(random, the_type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -46,7 +55,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut extends_err, until_err)
+                .map_while(until_err(&mut extends_err))
                 .unzip();
 
             // TODO FIXME merge this with above?
@@ -55,10 +64,10 @@ pub fn parse_structures(
                 .mixins
                 .iter()
                 .enumerate()
-                .map(|(i, _type)| -> syn::Result<(TokenStream, TokenStream)> {
+                .map(|(i, the_type)| -> syn::Result<(TokenStream, TokenStream)> {
                     // TODO FIXME would probably be nicer to assert this is a reference type and then use that name
                     let name = format_ident!("r#variant{}", structure.extends.len() + i);
-                    let (converted_type, rest) = handle_type(random, _type)?;
+                    let (converted_type, rest) = handle_type(random, the_type)?;
                     Ok((
                         quote! {
                             #[serde(flatten)]
@@ -67,7 +76,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut mixins_err, until_err)
+                .map_while(until_err(&mut mixins_err))
                 .unzip();
 
             let mut properties_err = Ok(());
@@ -79,10 +88,11 @@ pub fn parse_structures(
                     let name = format_ident!("r#{}", property.name.to_snake_case());
                     let documentation = property.documentation.as_ref().map(|string| {
                         quote! {
+                            #[allow(clippy::doc_markdown)]
                             #[doc = #string]
                         }
                     });
-                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
+                    let (mut converted_type, rest) = handle_type(random, &property.r#type)?;
 
                     if property.optional {
                         converted_type = quote! { Option<#converted_type> }
@@ -97,7 +107,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut properties_err, until_err)
+                .map_while(until_err(&mut properties_err))
                 .unzip();
 
             let return_value = (
@@ -118,15 +128,16 @@ pub fn parse_structures(
             properties_err?;
             Ok(return_value)
         })
-        .scan(&mut structures_err, until_err)
+        .map_while(until_err(&mut structures_err))
         .unzip();
     structures_err?;
     Ok(return_type)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_enumerations(
     _random: &mut ChaCha20Rng,
-    enumerations: Vec<Enumeration>,
+    enumerations: &[Enumeration],
 ) -> syn::Result<Vec<TokenStream>> {
     let mut enumerations_err = Ok(());
     let enumerations = enumerations
@@ -135,10 +146,11 @@ pub fn parse_enumerations(
             let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
             let documentation = enumeration.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
-            match enumeration._type {
+            match enumeration.r#type {
                 EnumerationType::Base {
                     name:
                         StringOrIntegerOrUnsignedIntegerLiteral::Integer
@@ -155,7 +167,7 @@ pub fn parse_enumerations(
                                 #name = #value,
                             })
                         })
-                        .scan(&mut values_err, until_err);
+                        .map_while(until_err(&mut values_err));
 
                     let return_value = quote! {
                         #[allow(clippy::derive_partial_eq_without_eq)]
@@ -180,6 +192,7 @@ pub fn parse_enumerations(
                             let name = format_ident!("r#{}", value.name.to_upper_camel_case());
                             let documentation = value.documentation.as_ref().map(|string| {
                                 quote! {
+                                    #[allow(clippy::doc_markdown)]
                                     #[doc = #string]
                                 }
                             });
@@ -190,7 +203,7 @@ pub fn parse_enumerations(
                                 #name,
                             })
                         })
-                        .scan(&mut values_err, until_err);
+                        .map_while(until_err(&mut values_err));
 
                     let supports_custom_value = if enumeration.supports_custom_values {
                         Some(quote! {
@@ -215,7 +228,7 @@ pub fn parse_enumerations(
                 }
             }
         })
-        .scan(&mut enumerations_err, until_err)
+        .map_while(until_err(&mut enumerations_err))
         .collect();
     enumerations_err?;
     Ok(enumerations)
@@ -223,16 +236,17 @@ pub fn parse_enumerations(
 
 pub fn parse_type_aliases(
     random: &mut ChaCha20Rng,
-    type_aliases: Vec<TypeAlias>,
+    type_aliases: &[TypeAlias],
 ) -> syn::Result<(Vec<TokenStream>, Vec<TokenStream>)> {
     let mut type_aliases_err = Ok(());
     let return_value: (Vec<TokenStream>, Vec<TokenStream>) = type_aliases
         .iter()
         .map(|type_alias| -> syn::Result<(TokenStream, TokenStream)> {
             let name = format_ident!("r#{}", type_alias.name.to_upper_camel_case());
-            let (converted_type, rest) = handle_type(random, &type_alias._type)?;
+            let (converted_type, rest) = handle_type(random, &type_alias.the_type)?;
             let documentation = type_alias.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -244,12 +258,14 @@ pub fn parse_type_aliases(
                 rest,
             ))
         })
-        .scan(&mut type_aliases_err, until_err)
+        .map_while(until_err(&mut type_aliases_err))
         .unzip();
     type_aliases_err?;
     Ok(return_value)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
+#[allow(clippy::too_many_lines)]
 pub fn parse_requests(
     random: &mut ChaCha20Rng,
     requests: &[Request],
@@ -261,6 +277,7 @@ pub fn parse_requests(
             let method = &request.method;
             let documentation = request.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -269,8 +286,8 @@ pub fn parse_requests(
                 method.replace('_', " ").to_upper_camel_case()
             );
             let (params, request_rest) = match &request.params {
-                Some(TypeOrVecType::Type(_type)) => {
-                    let (the_type, rest) = handle_type(random, _type)?;
+                Some(TypeOrVecType::Type(the_type)) => {
+                    let (the_type, rest) = handle_type(random, the_type)?;
                     (
                         quote! {
                             #the_type
@@ -282,10 +299,10 @@ pub fn parse_requests(
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
-                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(random, _type)
+                        .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(random, the_type)
                         })
-                        .scan(&mut params_err, until_err)
+                        .map_while(until_err(&mut params_err))
                         .unzip();
                     let return_value = (
                         quote! {
@@ -343,6 +360,8 @@ pub fn parse_requests(
 
                         type Response = #result_type;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
@@ -368,6 +387,8 @@ pub fn parse_requests(
 
                         type Response = #result_type;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
@@ -410,12 +431,13 @@ pub fn parse_requests(
                 },
             ))
         })
-        .scan(&mut requests_err, until_err)
+        .map_while(until_err(&mut requests_err))
         .unzip();
     requests_err?;
     Ok(return_value)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_notifications(
     random: &mut ChaCha20Rng,
     notifications: &[Notification],
@@ -426,6 +448,7 @@ pub fn parse_notifications(
         .map(|notification| -> syn::Result<(TokenStream, TokenStream)> {
             let documentation = notification.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -435,15 +458,15 @@ pub fn parse_notifications(
                 method.replace('_', " ").to_upper_camel_case()
             );
             let (params, rest) = match &notification.params {
-                Some(TypeOrVecType::Type(_type)) => handle_type(random, _type)?,
+                Some(TypeOrVecType::Type(the_type)) => handle_type(random, the_type)?,
                 Some(TypeOrVecType::VecType(vec_type)) => {
                     let mut params_err = Ok(());
                     let (types, rest): (Vec<TokenStream>, Vec<TokenStream>) = vec_type
                         .iter()
-                        .map(|_type| -> syn::Result<(TokenStream, TokenStream)> {
-                            handle_type(random, _type)
+                        .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
+                            handle_type(random, the_type)
                         })
-                        .scan(&mut params_err, until_err)
+                        .map_while(until_err(&mut params_err))
                         .unzip();
                     let return_value = (
                         quote! {
@@ -463,6 +486,8 @@ pub fn parse_notifications(
                     impl SendableAndForget for #name {
                         type Request = #params;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
@@ -491,12 +516,15 @@ pub fn parse_notifications(
                 rest,
             ))
         })
-        .scan(&mut requests_err, until_err)
+        .map_while(until_err(&mut requests_err))
         .multiunzip();
+    requests_err?;
     Ok(return_type)
 }
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn handle_magic() -> syn::Result<TokenStream> {
     //let file = fs::File::open("metaModel.json").expect("file should open read only");
     let meta_model_json = include_str!("./metaModel.json");
@@ -505,12 +533,12 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     let mut random = ChaCha20Rng::seed_from_u64(42);
 
-    let (structures, rest_structures) = parse_structures(&mut random, meta_model.structures)?;
+    let (structures, rest_structures) = parse_structures(&mut random, &meta_model.structures)?;
 
-    let enumerations = parse_enumerations(&mut random, meta_model.enumerations)?;
+    let enumerations = parse_enumerations(&mut random, &meta_model.enumerations)?;
 
     let (type_aliases, rest_type_aliases) =
-        parse_type_aliases(&mut random, meta_model.type_aliases)?;
+        parse_type_aliases(&mut random, &meta_model.type_aliases)?;
 
     let (requests, requests_rest) = parse_requests(&mut random, &meta_model.requests)?;
 
@@ -569,6 +597,9 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         .collect();
 
     Ok(quote! {
+        #![allow(clippy::vec_box)]
+        #![allow(clippy::module_name_repetitions)]
+
         #(#structures)*
         #(#enumerations)*
         #(#type_aliases)*
@@ -598,7 +629,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         use serde::{Deserialize, Serialize};
 
         pub trait Sendable {
-            type Request: ::serde::Serialize;
+            type Request: ::serde::Serialize + std::marker::Send;
             type Response: ::core::any::Any + Send + Sync + ::serde::Serialize + ::serde::de::DeserializeOwned + 'static;
 
             fn get_request_data(self) -> Self::Request;
@@ -609,7 +640,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         pub trait SendableAndForget {
-            type Request: ::serde::Serialize;
+            type Request: ::serde::Serialize + std::marker::Send;
 
             fn get_request_data(self) -> Self::Request;
 
@@ -634,7 +665,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         impl<T> Notification<T> {
-            pub fn new(value: T) -> Self {
+            pub const fn new(value: T) -> Self {
                 Self {
                     params: value
                 }

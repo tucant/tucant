@@ -334,31 +334,28 @@ impl Type for DefineLambdaType {
         args: (&[(Ast, Span)], Span),
         trace: &mut TypeTrace,
     ) -> TypecheckCall {
-        let [variable, _type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
-        let variable = match &variable.0 {
-            Ast::Identifier(identifier) => identifier,
-            _ => {
-                let err = Err(EvaluateError {
-                    location: variable.1.clone(),
-                    reason: "expected argument identifier".to_string(),
-                });
-                trace.push(err);
-                return Err(());
-            }
+        let [variable, the_type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
+        let Ast::Identifier(variable) = &variable.0 else {
+            let err = Err(EvaluateError {
+                location: variable.1.clone(),
+                reason: "expected argument identifier".to_string(),
+            });
+            trace.push(err);
+            return Err(());
         };
-        let type_identifier = match &_type.0 {
-            Ast::Identifier(identifier) => identifier,
-            _ => {
-                let err = Err(EvaluateError {
-                    location: _type.1.clone(),
-                    reason: "expected argument type".to_string(),
-                });
-                trace.push(err);
-                return Err(());
-            }
+        let Ast::Identifier(type_identifier) = &the_type.0 else {
+            let err = Err(EvaluateError {
+                location: the_type.1.clone(),
+                reason: "expected argument type".to_string(),
+            });
+            trace.push(err);
+            return Err(());
         };
-        let param_type =
-            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()), trace)?;
+        let param_type = resolve_identifier_type(
+            context,
+            (type_identifier.clone(), the_type.1.clone()),
+            trace,
+        )?;
         context.push((variable.clone(), param_type));
         let return_value = typecheck_with_context(context, body.clone(), trace);
         context.pop();
@@ -376,7 +373,7 @@ impl Type for DefineLambdaType {
     }
 }
 
-pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
+pub fn evaluate(value: &(Ast, Span)) -> EvaluateCall {
     let mut context: Vec<(String, (RcValue, Span))> = vec![
         (
             "lambda".to_string(),
@@ -512,60 +509,54 @@ fn resolve_identifier_type(
     identifier: (String, Span),
     trace: &mut TypeTrace,
 ) -> TypecheckCall {
-    match context
+    if let Some(value) = context
         .iter()
         .rev()
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => {
-            let val = (value.0.clone(), identifier.1);
-            trace.push(Ok(val.clone()));
-            Ok(val)
-        }
-        None => {
-            trace.push(Err(EvaluateError {
-                location: identifier.1,
-                reason: format!("could not find identifier {}", identifier.0),
-            }));
-            Err(())
-        }
+        let val = (value.0.clone(), identifier.1);
+        trace.push(Ok(val.clone()));
+        Ok(val)
+    } else {
+        trace.push(Err(EvaluateError {
+            location: identifier.1,
+            reason: format!("could not find identifier {}", identifier.0),
+        }));
+        Err(())
     }
 }
 
 pub fn typecheck_with_context(
     context: &mut Vec<(String, (RcType, Span))>,
-    _type: (Ast, Span),
+    the_type: (Ast, Span),
     trace: &mut TypeTrace,
 ) -> TypecheckCall {
-    match &_type.0 {
+    match &the_type.0 {
         Ast::Number(number) => {
-            let rc = (Rc::new(IntegerType(Some(*number))) as RcType, _type.1);
+            let rc = (Rc::new(IntegerType(Some(*number))) as RcType, the_type.1);
             trace.push(Ok(rc.clone()));
             Ok(rc.clone())
         }
         Ast::String(string) => {
             let rc = (
                 Rc::new(StringType(Some(string.to_string()))) as RcType,
-                _type.1,
+                the_type.1,
             );
             trace.push(Ok(rc.clone()));
             Ok(rc.clone())
         }
         Ast::Identifier(identifier) => {
-            resolve_identifier_type(context, (identifier.to_string(), _type.1), trace)
+            resolve_identifier_type(context, (identifier.to_string(), the_type.1), trace)
         }
         Ast::List(elements) => {
-            let (callable, args) = match elements.split_first() {
-                Some(v) => v,
-                None => {
-                    let err = Err(EvaluateError {
-                        location: _type.1,
-                        reason: "can't call an empty list".to_string(),
-                    });
-                    trace.push(err);
-                    return Err(());
-                }
+            let Some((callable, args)) = elements.split_first() else {
+                let err = Err(EvaluateError {
+                    location: the_type.1,
+                    reason: "can't call an empty list".to_string(),
+                });
+                trace.push(err);
+                return Err(());
             };
             let callable = match &callable.0 {
                 Ast::Identifier(identifier) => resolve_identifier_type(
@@ -576,14 +567,16 @@ pub fn typecheck_with_context(
                 Ast::List(_) => typecheck_with_context(context, callable.clone(), trace)?,
                 _ => {
                     let val = Err(EvaluateError {
-                        location: _type.1,
+                        location: the_type.1,
                         reason: "can't call a string or number".to_string(),
                     });
                     trace.push(val);
                     return Err(());
                 }
             };
-            let return_value = callable.0.typecheck_call(context, (args, _type.1), trace)?;
+            let return_value = callable
+                .0
+                .typecheck_call(context, (args, the_type.1), trace)?;
             trace.push(Ok(return_value.clone()));
             Ok(return_value)
         }
@@ -593,7 +586,7 @@ pub fn typecheck_with_context(
 #[allow(clippy::all)]
 pub fn evaluate_with_context(
     _context: &mut Vec<(String, (RcValue, Span))>,
-    _value: (Ast, Span),
+    _value: &(Ast, Span),
 ) -> EvaluateCall {
     todo!()
     /*
@@ -645,7 +638,7 @@ pub fn evaluate_with_context(
 // cargo test -- --show-output evaluate
 #[test]
 #[ignore = "not yet implemented"]
-fn test_primitives() {
+const fn test_primitives() {
     /*
     use crate::parser::parse_from_str;
 

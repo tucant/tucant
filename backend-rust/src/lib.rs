@@ -2,6 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //#![deny(unused_results)]
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
 
 use std::fmt::Display;
 
@@ -33,8 +39,8 @@ impl Display for MyError {
 }
 
 impl<E: Into<anyhow::Error>> From<E> for MyError {
-    fn from(err: E) -> MyError {
-        MyError { err: err.into() }
+    fn from(err: E) -> Self {
+        Self { err: err.into() }
     }
 }
 

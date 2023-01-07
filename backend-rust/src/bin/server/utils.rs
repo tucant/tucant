@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 
 use tucant::models::ModuleMenuPathPart;
 
-pub fn calculate_paths(path_to_root: Vec<ModuleMenuPathPart>) -> Vec<VecDeque<ModuleMenuPathPart>> {
+pub fn calculate_paths(path_to_root: &[ModuleMenuPathPart]) -> Vec<VecDeque<ModuleMenuPathPart>> {
     let leaves = path_to_root.iter().take_while(|v| v.leaf);
 
     let nonleaves = path_to_root
@@ -17,7 +17,7 @@ pub fn calculate_paths(path_to_root: Vec<ModuleMenuPathPart>) -> Vec<VecDeque<Mo
             let mut current = Some(&l);
             let mut path = VecDeque::new();
             while let Some(curr) = current {
-                path.push_front(curr.to_owned().to_owned());
+                path.push_front(curr.to_owned().clone());
                 if let Some(parent) = &curr.parent {
                     current = nonleaves.get(&parent);
                 } else {

@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use diesel::dsl::sql;
+use diesel::sql_types::Double;
 use tucant::MyError;
 
 use axum::extract::State;
@@ -31,7 +33,7 @@ pub struct SearchResult {
     pub tucan_id: Vec<u8>,
     pub title: String,
     pub excerpt: String,
-    pub rank: f32,
+    pub rank: f64,
 }
 
 #[ts]
@@ -61,7 +63,7 @@ pub async fn search_course(
                     .concat(courses_unfinished::content),
                 tsquery,
             ),
-            rank,
+            sql::<Double>("CAST(").bind(rank).sql(" as FLOAT8)"),
         ));
 
     let result = sql_query.load::<SearchResult>(&mut connection).await?;

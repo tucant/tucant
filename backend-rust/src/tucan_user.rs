@@ -37,7 +37,12 @@ use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
 
-use crate::schema::*;
+use crate::schema::{
+    course_events, course_exams, course_groups_events, course_groups_unfinished,
+    courses_unfinished, exams_unfinished, module_courses, module_exams, module_menu_module,
+    module_menu_unfinished, modules_unfinished, user_course_groups, user_courses, user_exams,
+    user_modules, users_unfinished,
+};
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
@@ -123,7 +128,7 @@ impl TucanUser {
         Ok(resp)
     }
 
-    pub(crate) fn parse_document(&self, resp: &str) -> anyhow::Result<Html> {
+    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
         let html_doc = Html::parse_document(resp);
 
         if html_doc
@@ -174,7 +179,7 @@ impl TucanUser {
         let mut connection = self.tucan.pool.get().await?;
 
         let (module, courses) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let name = element_by_selector(&document, "h1").unwrap();
 
@@ -228,7 +233,7 @@ impl TucanUser {
                         .unwrap()
                         .id,
                         sws: 0,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     }
                 })
@@ -239,7 +244,7 @@ impl TucanUser {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
                 credits: Some(credits),
-                module_id: TucanUser::normalize(module_id),
+                module_id: Self::normalize(module_id),
                 content,
                 done: true,
             };
@@ -292,7 +297,7 @@ impl TucanUser {
         Ok(self.cached_module(url).await?.unwrap())
     }
 
-    fn extract_events(&self, url: Coursedetails, document: &Html) -> Vec<CourseEvent> {
+    fn extract_events(&self, url: &Coursedetails, document: &Html) -> Vec<CourseEvent> {
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
@@ -306,8 +311,7 @@ impl TucanUser {
             .find(|e| e.inner_html() == "Termine")
             .unwrap_or_else(|| unwrap_handler())
             .next_siblings()
-            .filter_map(ElementRef::wrap)
-            .next()
+            .find_map(ElementRef::wrap)
             .unwrap_or_else(|| unwrap_handler());
 
         let selector = s("tr");
@@ -344,7 +348,9 @@ impl TucanUser {
                     .inner_html();
                 let lecturers = lecturer_column.inner_html().trim().to_string();
 
-                if !date.0 {
+                if date.0 {
+                    None
+                } else {
                     Some(CourseEvent {
                         course: url.id.clone(),
                         timestamp_start: date.1,
@@ -352,8 +358,6 @@ impl TucanUser {
                         room,
                         teachers: lecturers,
                     })
-                } else {
-                    None
                 }
             })
             .collect_vec()
@@ -365,6 +369,8 @@ impl TucanUser {
         document: String,
         mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
     ) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
@@ -373,10 +379,8 @@ impl TucanUser {
             );
         };
 
-        use diesel_async::RunQueryDsl;
-
         let (course, course_groups, events) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let name = element_by_selector(&document, "h1").unwrap_or_else(|| unwrap_handler());
 
@@ -404,14 +408,14 @@ impl TucanUser {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let events = self.extract_events(url.clone(), &document);
+            let events = self.extract_events(&url, &document);
 
             let course = Course {
                 tucan_id: url.id.clone(),
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: course_name.unwrap_or_else(|| unwrap_handler()).to_string(),
                 sws,
-                course_id: TucanUser::normalize(course_id),
+                course_id: Self::normalize(course_id),
                 content,
                 done: true,
             };
@@ -488,7 +492,7 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let (course_group, events) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let plenum_element = document
                 .select(&s(".img_arrowLeft"))
@@ -510,7 +514,7 @@ impl TucanUser {
             .inner_html();
 
             let events = self
-                .extract_events(url.clone(), &document)
+                .extract_events(&url, &document)
                 .into_iter()
                 .map(|ce| CourseGroupEvent {
                     course: ce.course,
@@ -537,10 +541,10 @@ impl TucanUser {
         let course = Course {
             tucan_id: course_group.course.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
-            title: "".to_string(),
+            title: String::new(),
             sws: 0,
-            course_id: "".to_string(),
-            content: "".to_string(),
+            course_id: String::new(),
+            content: String::new(),
             done: false,
         };
 
@@ -700,7 +704,7 @@ impl TucanUser {
         let connection = self.tucan.pool.get().await?;
 
         let is_course_group =
-            element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
+            element_by_selector(&Self::parse_document(&document)?, "form h1 + h2").is_some();
 
         println!("is_course_group {is_course_group}");
 
@@ -722,7 +726,7 @@ impl TucanUser {
         // TODO FIXME cache this
 
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
-        let document = self.parse_document(&document)?;
+        let document = Self::parse_document(&document)?;
 
         let url_element = document
             .select(&s("h2 a"))
@@ -735,16 +739,13 @@ impl TucanUser {
             url_element.value().attr("href").unwrap()
         ));
 
-        let url = match url {
-            TucanUrl {
-                program: TucanProgram::Registration(r),
-                ..
-            } => r,
-            _ => panic!(),
-        };
+        let TucanUrl {
+            program: TucanProgram::Registration(url),
+            ..
+        } = url else { panic!() };
 
         let name = url_element.inner_html();
-        let _normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = Self::normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
@@ -823,6 +824,8 @@ impl TucanUser {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::unused_peekable)]
     pub async fn fetch_registration(&self, url: Registration) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -830,7 +833,7 @@ impl TucanUser {
         let mut connection = self.tucan.pool.get().await?;
 
         let (module_menu, submenus, modules) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let (_name, module_menu) = {
                 let url_element = document
@@ -854,13 +857,14 @@ impl TucanUser {
             debug!("[+] menu {:?}", module_menu);
 
             let selector = s("table.tbcoursestatus strong a[href]");
+
             let a = document.select(&selector).fuse().peekable();
 
             let d = a.batching(|f| {
-                let title = if f.peek()?.value().attr("name") != Some("eventLink") {
-                    f.next()
-                } else {
+                let title = if f.peek()?.value().attr("name") == Some("eventLink") {
                     None
+                } else {
+                    f.next()
                 };
                 let sub_elements: Vec<ElementRef> = f
                     .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
@@ -871,8 +875,9 @@ impl TucanUser {
 
             let modules: Vec<(Module, Vec<Course>)> = d
                 .map(|e| {
-                    let module =
-                        e.0.map(|i| {
+                    let module = e.0.map_or_else(
+                        || TUCANSCHEISS.clone(),
+                        |i| {
                             let mut text = i.text();
                             Module {
                                 tucan_id: TryInto::<Moduledetails>::try_into(
@@ -894,11 +899,11 @@ impl TucanUser {
                                     .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
                                     .to_string(),
                                 credits: None,
-                                content: "".to_string(),
+                                content: String::new(),
                                 done: false,
                             }
-                        })
-                        .unwrap_or_else(|| TUCANSCHEISS.clone());
+                        },
+                    );
 
                     let courses =
                         e.1.into_iter()
@@ -929,7 +934,7 @@ impl TucanUser {
                                         })
                                         .to_string(),
                                     sws: 0,
-                                    content: "".to_string(),
+                                    content: String::new(),
                                     done: false,
                                 }
                             })
@@ -1087,7 +1092,7 @@ impl TucanUser {
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
         let my_modules = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("tbody tr a"))
@@ -1158,6 +1163,8 @@ impl TucanUser {
     }
 
     pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+        use diesel_async::RunQueryDsl;
+
         // TODO FIXME cache this
 
         /*
@@ -1201,7 +1208,7 @@ impl TucanUser {
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("tbody tr a"))
@@ -1238,8 +1245,6 @@ impl TucanUser {
                         course_group_id: cg.0.tucan_id.clone(),
                     }),
                 });
-
-        use diesel_async::RunQueryDsl;
 
         {
             let mut connection = self.tucan.pool.get().await?;
@@ -1286,7 +1291,7 @@ impl TucanUser {
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+        let document = Self::parse_document(&document)?;
 
         let matriculation_number: i32 = document
             .select(&s(r#"td[name="matriculationNumber"]"#))
@@ -1315,12 +1320,13 @@ impl TucanUser {
         Ok(existing)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub async fn fetch_exam_details(&self, exam_details: Examdetails) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
         let exam = {
             let name_document = self.fetch_document(&exam_details.clone().into()).await?;
-            let name_document = self.parse_document(&name_document)?;
+            let name_document = Self::parse_document(&name_document)?;
 
             let registration_range_element = name_document
                 .select(&s("table td b"))
@@ -1394,8 +1400,7 @@ impl TucanUser {
                 .find(|e| e.inner_html() == "Raum")
                 .map(|room| {
                     room.next_siblings()
-                        .filter_map(ElementRef::wrap)
-                        .next()
+                        .find_map(ElementRef::wrap)
                         .unwrap()
                         .inner_html()
                 });
@@ -1574,14 +1579,18 @@ impl TucanUser {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn fetch_my_exams(&self) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
+
+        type ModuleExams = Vec<(Module, Exam)>;
+        type CourseExams = Vec<(Course, Exam)>;
 
         let matriculation_number = self.session.matriculation_number;
 
         let exams = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("table tbody tr"))
@@ -1616,8 +1625,8 @@ impl TucanUser {
                         module_program,
                         Exam {
                             tucan_id: examdetails.id,
-                            exam_type: "".to_string(),
-                            semester: "".to_string(),
+                            exam_type: String::new(),
+                            semester: String::new(),
                             exam_time_start: None,
                             exam_time_end: None,
                             registration_start: Utc::now().naive_utc(), // TODO FIXME
@@ -1658,19 +1667,16 @@ impl TucanUser {
             .execute(&mut connection)
             .await?;
 
-        type ModuleExams = Vec<(Module, Exam)>;
-        type CourseExams = Vec<(Course, Exam)>;
-
         let (module_exams, course_exams): (ModuleExams, CourseExams) =
             exams.into_iter().partition_map(|v| match v.0 {
                 TucanProgram::Moduledetails(moduledetails) => Either::Left((
                     Module {
                         tucan_id: moduledetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
-                        module_id: "".to_string(),
+                        module_id: String::new(),
                         title: v.2,
                         credits: None,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     },
                     v.1,
@@ -1679,10 +1685,10 @@ impl TucanUser {
                     Course {
                         tucan_id: coursedetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
-                        course_id: "".to_string(),
+                        course_id: String::new(),
                         title: v.2,
                         sws: 0,
-                        content: "".to_string(),
+                        content: String::new(),
                         done: false,
                     },
                     v.1,

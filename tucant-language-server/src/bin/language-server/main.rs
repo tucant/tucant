@@ -1,4 +1,11 @@
-pub mod evaluate;
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
+
+pub mod evaluator;
 pub mod parser;
 
 use std::{collections::HashMap, sync::Arc, vec};
@@ -17,10 +24,34 @@ use tokio::{
 };
 use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
-use tucant_language_server_derive_output::*;
+use tucant_language_server_derive_output::{
+    CompletionOptions, Diagnostic, DiagnosticSeverity, DocumentHighlight, DocumentHighlightKind,
+    H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,
+    H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d,
+    H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
+    H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
+    H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
+    H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13,
+    H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7,
+    H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4,
+    Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
+    Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483,
+    He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
+    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2, Hover, HoverOptions, IncomingStuff,
+    InitializeRequest, InitializeResult, InitializedNotification, MarkupContent, MarkupKind,
+    MessageType, Position, PublishDiagnosticsParams, Receivable, SemanticTokens,
+    SemanticTokensLegend, SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities,
+    ShowMessageParams, ShutdownRequest, StringOrNumber, TextDocumentCompletionRequest,
+    TextDocumentDidChangeNotification, TextDocumentDidCloseNotification,
+    TextDocumentDidOpenNotification, TextDocumentDocumentHighlightRequest,
+    TextDocumentFoldingRangeRequest, TextDocumentHoverRequest,
+    TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullRequest,
+    TextDocumentSyncKind, TextDocumentSyncOptions, WindowShowMessageNotification,
+    WorkDoneProgressOptions,
+};
 
 use crate::{
-    evaluate::typecheck,
+    evaluator::typecheck,
     parser::{visitor, Error},
 };
 
@@ -49,7 +80,7 @@ pub struct Server {
 
 impl Server {
     async fn handle_receiving<
-        R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Unpin,
+        R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
     >(
         self: Arc<Self>,
         mut reader: R,
@@ -67,7 +98,7 @@ impl Server {
                     .await
                     .unwrap(),
                 IncomingStuff::ShutdownRequest(request) => {
-                    cloned_self.handle_shutdown_request(request).await.unwrap()
+                    cloned_self.handle_shutdown_request(request).await.unwrap();
                 }
                 IncomingStuff::TextDocumentDidOpenNotification(notification) => cloned_self
                     .handle_text_document_did_open_notification(notification)
@@ -82,7 +113,7 @@ impl Server {
                     .await
                     .unwrap(),
                 IncomingStuff::InitializeRequest(request) => {
-                    cloned_self.handle_initialize(request).await.unwrap()
+                    cloned_self.handle_initialize(request).await.unwrap();
                 }
                 IncomingStuff::InitializedNotification(notification) => cloned_self
                     .handle_initialized_notification(notification)
@@ -140,7 +171,7 @@ impl Server {
 
             typecheck
                 .into_iter()
-                .filter_map(|e| e.ok())
+                .filter_map(std::result::Result::ok)
                 .find(|t| t.1.range.start == found_element.1.range.start)
                 .map(|found_type| {
                     println!("found type {:?}", found_type.0);
@@ -164,7 +195,7 @@ impl Server {
                 request,
                 H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4::Variant1(()),
             )
-            .await?
+            .await?;
         }
 
         Ok(())
@@ -263,42 +294,43 @@ impl Server {
         uri: String,
         version: i64,
     ) -> anyhow::Result<()> {
-        let vec =
-            {
-                let value = parse_from_str(content);
+        let vec = {
+            let value = parse_from_str(content);
 
-                let diagnostics: Box<dyn Iterator<Item = Diagnostic>> =
-                    if let Err(ref error) = value {
-                        Box::new(std::iter::once(Diagnostic {
-                            range: error.location.range.clone(),
+            let diagnostics: Box<dyn Iterator<Item = Diagnostic>> = if let Err(ref error) = value {
+                Box::new(std::iter::once(Diagnostic {
+                    range: error.location.range.clone(),
+                    severity: Some(DiagnosticSeverity::Error),
+                    code: None,
+                    code_description: None,
+                    source: Some("tucant".to_string()),
+                    message: error.reason.to_string(),
+                    tags: None,
+                    related_information: None,
+                    data: None,
+                }))
+            } else {
+                let typecheck = typecheck(value.unwrap()).1;
+                Box::new(
+                    typecheck
+                        .into_iter()
+                        .filter_map(std::result::Result::err)
+                        .map(|e| Diagnostic {
+                            range: e.location.range,
                             severity: Some(DiagnosticSeverity::Error),
                             code: None,
                             code_description: None,
                             source: Some("tucant".to_string()),
-                            message: error.reason.to_string(),
+                            message: e.reason,
                             tags: None,
                             related_information: None,
                             data: None,
-                        }))
-                    } else {
-                        let typecheck = typecheck(value.unwrap()).1;
-                        Box::new(typecheck.into_iter().filter_map(|e| e.err()).map(|e| {
-                            Diagnostic {
-                                range: e.location.range,
-                                severity: Some(DiagnosticSeverity::Error),
-                                code: None,
-                                code_description: None,
-                                source: Some("tucant".to_string()),
-                                message: e.reason,
-                                tags: None,
-                                related_information: None,
-                                data: None,
-                            }
-                        }))
-                    };
-
-                diagnostics.collect_vec()
+                        }),
+                )
             };
+
+            diagnostics.collect_vec()
+        };
 
         let response = PublishDiagnosticsParams {
             uri,
@@ -402,7 +434,8 @@ impl Server {
         Ok(())
     }
 
-    pub fn line_column_to_offset(string: &str, position: Position) -> usize {
+    #[must_use]
+    pub fn line_column_to_offset(string: &str, position: &Position) -> usize {
         let the_line = string
             .lines()
             .nth(position.line.try_into().unwrap())
@@ -410,8 +443,7 @@ impl Server {
         let line_offset = the_line
             .char_indices()
             .nth(position.character.try_into().unwrap())
-            .map(|(offset, _)| offset)
-            .unwrap_or(the_line.len());
+            .map_or(the_line.len(), |(offset, _)| offset);
         the_line.as_ptr() as usize - string.as_ptr() as usize + line_offset
     }
 
@@ -426,11 +458,11 @@ impl Server {
             .unwrap()
             .clone();
 
-        for change in notification.params.content_changes.iter() {
+        for change in &notification.params.content_changes {
             match change {
-                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant0(incremental_changes) => {
-                    let start_offset = Self::line_column_to_offset(&document, incremental_changes.range.start.clone());
-                    let end_offset = Self::line_column_to_offset(&document, incremental_changes.range.end.clone());
+                tucant_language_server_derive_output::H1e795c7a94f7c86c614f1f1590c41c0496c29d3fe5ac6533d292f0e6::Variant0(incremental_changes) => {
+                    let start_offset = Self::line_column_to_offset(&document, &incremental_changes.range.start);
+                    let end_offset = Self::line_column_to_offset(&document, &incremental_changes.range.end);
 
                     document = format!("{}{}{}", &document[..start_offset], incremental_changes.text, &document[end_offset..]);
 
@@ -439,7 +471,7 @@ impl Server {
                         document.clone(),
                     );
                 },
-                tucant_language_server_derive_output::H25fd6c7696dff041d913d0a9d3ce2232683e5362f0d4c6ca6179cf92::Variant1(changes) => {
+                tucant_language_server_derive_output::H1e795c7a94f7c86c614f1f1590c41c0496c29d3fe5ac6533d292f0e6::Variant1(changes) => {
                     documents.insert(notification.params.text_document.variant0.uri.clone(), changes.text.clone());
                 },
             }
@@ -500,17 +532,18 @@ impl Server {
         self: Arc<Self>,
         _notification: InitializedNotification,
     ) -> anyhow::Result<()> {
-        /*let notification = ShowMessageParams {
+        let notification = ShowMessageParams {
             r#type: MessageType::Error,
             message: "This is a test error".to_string(),
         };
 
         self.send_notification::<WindowShowMessageNotification>(notification)
-            .await?;*/
+            .await?;
 
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         let result = InitializeResult {
             capabilities: ServerCapabilities {
@@ -595,7 +628,7 @@ impl Server {
                                 ),
                             ),
                             full: Some(
-                                H560683c9a528918bcd8e6562ca5d336a5b02f2a471cc7f47a6952222::Variant0(
+                                tucant_language_server_derive_output::Hdf79c273aed7dd582c079302245431a12e1ba3f63722a25e8cef8db0::Variant0(
                                     true,
                                 ),
                             ),
@@ -610,7 +643,7 @@ impl Server {
                 workspace: None,
                 experimental: None,
             },
-            server_info: Some(H07206713e0ac2e546d7755e84916a71622d6302f44063c913d615b41 {
+            server_info: Some(tucant_language_server_derive_output::H880c6487247b4175461832601dd88a01930f42d1e56b2956a0727626 {
                 name: "TUCaN't".to_string(),
                 version: Some("0.0.1".to_string()),
             }),
@@ -625,6 +658,14 @@ impl Server {
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {
+        #[derive(Serialize, Debug)]
+        struct TestRequest<T> {
+            jsonrpc: String,
+            id: String,
+            method: String,
+            params: T,
+        }
+
         let (tx, rx) = oneshot::channel::<Value>();
 
         let id: String = thread_rng()
@@ -632,14 +673,6 @@ impl Server {
             .take(30)
             .map(char::from)
             .collect();
-
-        #[derive(Serialize, Debug)]
-        struct TestRequest<T: Serialize> {
-            jsonrpc: String,
-            id: String,
-            method: String,
-            params: T,
-        }
 
         let request = TestRequest::<R::Request> {
             jsonrpc: "2.0".to_string(),
@@ -663,7 +696,7 @@ impl Server {
         request: R::Request,
     ) -> anyhow::Result<()> {
         #[derive(Serialize, Debug)]
-        struct TestNotification<T: Serialize> {
+        struct TestNotification<T> {
             jsonrpc: String,
             method: String,
             params: T,
@@ -682,13 +715,13 @@ impl Server {
         Ok(())
     }
 
-    async fn send_response<R: Receivable>(
+    async fn send_response<R: Receivable + std::marker::Send>(
         self: Arc<Self>,
         request: R,
         response: R::Response,
     ) -> anyhow::Result<()> {
         #[derive(Serialize, Debug)]
-        struct TestResponse<T: Serialize> {
+        struct TestResponse<T> {
             jsonrpc: String,
             id: StringOrNumber,
             result: T,
@@ -707,7 +740,9 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_sending<W: Sink<String, Error = anyhow::Error> + std::marker::Unpin>(
+    async fn handle_sending<
+        W: Sink<String, Error = anyhow::Error> + std::marker::Send + std::marker::Unpin,
+    >(
         self: Arc<Self>,
         mut sender: W,
         mut rx: mpsc::Receiver<String>,
@@ -795,7 +830,7 @@ impl Decoder for MyStringDecoder {
             if position + length + 1 > buf.len() {
                 return Ok(None);
             }
-            let contents = &buf[position..position + length + 1];
+            let contents = &buf[position..=(position + length)];
 
             let return_value = std::str::from_utf8(contents).unwrap().to_string();
             buf.advance(position + length + 1);

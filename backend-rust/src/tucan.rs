@@ -56,7 +56,7 @@ impl std::fmt::Debug for Tucan {
 }
 
 impl Tucan {
-    pub async fn new() -> anyhow::Result<Self> {
+    pub fn new() -> anyhow::Result<Self> {
         let pool = create_pool();
 
         let url = Url::parse("https://localhost:9200")?;
@@ -75,11 +75,12 @@ impl Tucan {
         })
     }
 
-    pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
-        Ok(TucanUser {
+    #[must_use]
+    pub fn continue_session(&self, session: TucanSession) -> TucanUser {
+        TucanUser {
             tucan: self.clone(),
             session,
-        })
+        }
     }
 
     pub async fn tucan_session_from_session_data(
@@ -113,6 +114,8 @@ impl Tucan {
     }
 
     pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
+        use diesel_async::RunQueryDsl;
+
         let params: [(&str, &str); 10] = [
             ("usrname", username),
             ("pass", password),
@@ -162,8 +165,6 @@ impl Tucan {
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
 
-                use diesel_async::RunQueryDsl;
-
                 let mut connection = self.pool.get().await?;
 
                 {
@@ -191,9 +192,8 @@ impl Tucan {
                 }
 
                 return Ok(user);
-            } else {
-                panic!("Failed to extract session_nr");
             }
+            panic!("Failed to extract session_nr");
         }
 
         res_headers.text().await?;

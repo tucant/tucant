@@ -185,6 +185,12 @@ cargo install --locked cargo-outdated
 cargo outdated
 ```
 
+Clippy
+
+```
+cargo clippy --all-targets --all-features
+```
+
 ## Search
 
 https://opensearch.org/docs/latest/opensearch/search-template/

@@ -57,7 +57,7 @@ pub struct LineColumnIterator<I: Iterator<Item = char> + Clone> {
 }
 
 impl<I: Iterator<Item = char> + Clone> LineColumnIterator<I> {
-    pub fn new(iterator: I) -> Self {
+    pub const fn new(iterator: I) -> Self {
         Self {
             iterator,
             position: Position {
@@ -108,16 +108,17 @@ impl<I: Iterator<Item = char> + Clone> Tokenizer<I> {
 pub struct TokenizerBuilder;
 
 impl TokenizerBuilder {
-    pub fn from_string(string: String) -> Tokenizer<std::vec::IntoIter<char>> {
+    #[must_use]
+    pub fn from_string(string: &str) -> Tokenizer<std::vec::IntoIter<char>> {
         Tokenizer::new(string.chars().collect::<Vec<_>>().into_iter())
     }
 }
 
 fn parse_paren_open<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.next().unwrap() {
-        ('(', position) => Some(Ok((
+        ('(', position) => Ok((
             Token::ParenOpen,
             Span {
                 filename: "<stdin>".to_string(),
@@ -129,8 +130,8 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
                     },
                 },
             },
-        ))),
-        (_, position) => Some(Err(Error {
+        )),
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -138,18 +139,18 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
                     end: position,
                 },
             },
-            reason: "".to_string(),
+            reason: String::new(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
 fn parse_paren_close<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     // TODO FIXME duplication
     match iterator.next().unwrap() {
-        (')', position) => Some(Ok((
+        (')', position) => Ok((
             // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenClose,
             Span {
@@ -162,8 +163,8 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
                     },
                 },
             },
-        ))),
-        (_, position) => Some(Err(Error {
+        )),
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -171,15 +172,15 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
                     end: position,
                 },
             },
-            reason: "".to_string(),
+            reason: String::new(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
 pub fn parse_string<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.next().unwrap() {
         ('"', start_pos) => {
             let end: String = iterator
@@ -187,7 +188,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                 .map(|(char, _pos)| char)
                 .collect();
             match iterator.next() {
-                Some(('"', end_pos)) => Some(Ok((
+                Some(('"', end_pos)) => Ok((
                     Token::String(end),
                     Span {
                         filename: "<stdin>".to_string(),
@@ -199,8 +200,8 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                             },
                         },
                     },
-                ))),
-                Some((_, end_pos)) => Some(Err(Error {
+                )),
+                Some((_, end_pos)) => Err(Error {
                     location: Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
@@ -210,8 +211,8 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                     },
                     reason: r#"Expected a `"`"#.to_string(),
                     partial_parse: (),
-                })),
-                None => Some(Err(Error {
+                }),
+                None => Err(Error {
                     location: Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
@@ -221,10 +222,10 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                     },
                     reason: r#"Unterminated string literal"#.to_string(),
                     partial_parse: (),
-                })),
+                }),
             }
         }
-        (_, position) => Some(Err(Error {
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -234,13 +235,13 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
             },
             reason: r#"Expected a `"`"#.to_string(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
 pub fn parse_number<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.peek().unwrap() {
         ('0'..='9', start_pos) => {
             let start_pos = start_pos.clone();
@@ -266,15 +267,15 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
                 },
             };
             match number.parse() {
-                Ok(n) => Some(Ok((Token::Number(n), span))),
-                Err(_err) => Some(Err(Error {
+                Ok(n) => Ok((Token::Number(n), span)),
+                Err(_err) => Err(Error {
                     location: span,
                     reason: "Failed to parse number".to_string(),
                     partial_parse: (),
-                })),
+                }),
             }
         }
-        (_, position) => Some(Err(Error {
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -284,13 +285,13 @@ pub fn parse_number<I: Iterator<Item = char> + Clone>(
             },
             reason: "Failed to parse number".to_string(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
 fn parse_identifier<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.peek().unwrap() {
         ('a'..='z' | 'A'..='Z' | '_', start_pos) => {
             let start_pos = start_pos.clone();
@@ -305,7 +306,7 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                 .map(|(char, _pos)| char)
                 .collect();
 
-            Some(Ok((
+            Ok((
                 Token::Identifier(number),
                 Span {
                     filename: "<stdin>".to_string(),
@@ -317,9 +318,9 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
                         },
                     },
                 },
-            )))
+            ))
         }
-        (_, position) => Some(Err(Error {
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -329,7 +330,7 @@ fn parse_identifier<I: Iterator<Item = char> + Clone>(
             },
             reason: "Expected an identifier".to_string(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
@@ -338,11 +339,13 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
-            Some(('(', _position)) => parse_paren_open(&mut self.iterator),
-            Some((')', _position)) => parse_paren_close(&mut self.iterator),
-            Some(('"', _start_pos)) => parse_string(&mut self.iterator),
-            Some(('0'..='9', _start_pos)) => parse_number(&mut self.iterator),
-            Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => parse_identifier(&mut self.iterator),
+            Some(('(', _position)) => Some(parse_paren_open(&mut self.iterator)),
+            Some((')', _position)) => Some(parse_paren_close(&mut self.iterator)),
+            Some(('"', _start_pos)) => Some(parse_string(&mut self.iterator)),
+            Some(('0'..='9', _start_pos)) => Some(parse_number(&mut self.iterator)),
+            Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => {
+                Some(parse_identifier(&mut self.iterator))
+            }
             Some((' ' | '\t' | '\n' | '\r', _)) => {
                 self.iterator.next();
                 // whitespace
@@ -400,7 +403,7 @@ pub fn parse<I: Iterator<Item = char> + Clone>(
 }
 
 pub fn parse_from_str(string: &str) -> Result<(Ast, Span), Error<()>> {
-    let span = TokenizerBuilder::from_string(string.to_string());
+    let span = TokenizerBuilder::from_string(string);
     parse(&mut span.peekable())
 }
 
@@ -409,7 +412,7 @@ pub fn parse_from_str(string: &str) -> Result<(Ast, Span), Error<()>> {
 pub fn test_tokenize() {
     println!(
         "{:#?}",
-        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#.to_string()).collect_vec()
+        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#).collect_vec()
     );
 }
 
@@ -468,9 +471,7 @@ pub fn visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = (u64, u64, u64, 
 
 pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRange>> {
     match element.0 {
-        Ast::Identifier(_) => Box::new(std::iter::empty()),
-        Ast::Number(_) => Box::new(std::iter::empty()),
-        Ast::String(_) => Box::new(std::iter::empty()),
+        Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => Box::new(std::iter::empty()),
         Ast::List(list) => Box::new(
             std::iter::once(FoldingRange {
                 start_line: element.1.range.start.line,
@@ -485,6 +486,7 @@ pub fn list_visitor(element: (Ast, Span)) -> Box<dyn Iterator<Item = FoldingRang
     }
 }
 
+#[must_use]
 pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, Span)> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
@@ -502,14 +504,13 @@ pub fn hover_visitor(element: (Ast, Span), position: &Position) -> Option<(Ast, 
             if &element.1.range.start == position || position == &element.1.range.end {
                 Some(element)
             } else {
-                list.iter()
-                    .filter_map(|l| hover_visitor(l.clone(), position))
-                    .next()
+                list.iter().find_map(|l| hover_visitor(l.clone(), position))
             }
         }
     }
 }
 
+#[must_use]
 pub fn highlight_visitor(element: (Ast, Span), position: &Position) -> Vec<Span> {
     match element.0 {
         Ast::Identifier(_) | Ast::Number(_) | Ast::String(_) => {
@@ -566,64 +567,63 @@ fn init() {
 fn test_parse_number() {
     init();
 
-    let mut span = TokenizerBuilder::from_string(r#"notanumber"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"notanumber"#);
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3notendingwithanumber"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "notendingwithanumber");
 
-    let mut span = TokenizerBuilder::from_string(r#"3"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#"3z9"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3z9"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3)));
     //assert_eq!(number.0.string, "3");
     //assert_eq!(number.1.string, "z9");
 
-    let mut span = TokenizerBuilder::from_string(r#"3546z945"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"3546z945"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
     assert!(matches!(number.0, Token::Number(3546)));
     //assert_eq!(number.0.string, "3546");
     //assert_eq!(number.1.string, "z945");
 
-    let mut span = TokenizerBuilder::from_string(r#"345345"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"345345"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
-    assert!(matches!(number.0, Token::Number(345345)));
+    assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"345345sdfasd"#);
+    let number = parse_number(&mut span.iterator).unwrap();
     println!("{number:?}");
-    assert!(matches!(number.0, Token::Number(345345)));
+    assert!(matches!(number.0, Token::Number(345_345)));
     //assert_eq!(number.0.string, "345345");
     //assert_eq!(number.1.string, "sdfasd");
 
-    let mut span = TokenizerBuilder::from_string(r#"n32otanumber"#.to_string());
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"n32otanumber"#);
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     //assert_eq!(number.location.string, "");
 
-    let mut span = TokenizerBuilder::from_string(
-        r#"70708777897986976707598759785978698752otanumber"#.to_string(),
-    );
-    let number = parse_number(&mut span.iterator).unwrap().unwrap_err();
+    let mut span =
+        TokenizerBuilder::from_string(r#"70708777897986976707598759785978698752otanumber"#);
+    let number = parse_number(&mut span.iterator).unwrap_err();
     println!("{number:?}");
     assert_eq!(number.reason, "Failed to parse number");
     /*assert_eq!(
@@ -637,27 +637,27 @@ fn test_parse_number() {
 fn test_parse_string() {
     init();
 
-    let mut span = TokenizerBuilder::from_string(r#"notastring"#.to_string());
-    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"notastring"#);
+    let string = parse_string(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Expected a `"`"#);
     //assert_eq!(string.location.string, "n");
 
-    let mut span = TokenizerBuilder::from_string(r#""unterminated"#.to_string());
-    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#""unterminated"#);
+    let string = parse_string(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Unterminated string literal"#);
     //assert_eq!(string.location.string, r#""unterminated"#);
 
-    let mut span = TokenizerBuilder::from_string(r#""astring"jojo"#.to_string());
-    let string = parse_string(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#""astring"jojo"#);
+    let string = parse_string(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);
     //assert_eq!(string.1.string, "jojo");
 
-    let mut span = TokenizerBuilder::from_string(r#""astring""#.to_string());
-    let string = parse_string(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#""astring""#);
+    let string = parse_string(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);
@@ -669,27 +669,27 @@ fn test_parse_string() {
 fn test_parse_identifier() {
     init();
 
-    let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#.to_string());
-    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#"7notanidentifier"#);
+    let string = parse_identifier(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#""notanidentifier"#.to_string());
-    let string = parse_identifier(&mut span.iterator).unwrap().unwrap_err();
+    let mut span = TokenizerBuilder::from_string(r#""notanidentifier"#);
+    let string = parse_identifier(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Expected an identifier"#);
     //assert_eq!(string.location.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#"anidentifier"#.to_string());
-    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier"#);
+    let string = parse_identifier(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::Identifier(v) if v == "anidentifier"));
     //assert_eq!(string.0.string, "anidentifier");
     //assert_eq!(string.1.string, "");
 
-    let mut span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#.to_string());
-    let string = parse_identifier(&mut span.iterator).unwrap().unwrap();
+    let mut span = TokenizerBuilder::from_string(r#"anidentifier    jlih"#);
+    let string = parse_identifier(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::Identifier(v) if v == "anidentifier"));
     //assert_eq!(string.0.string, "anidentifier");
@@ -700,18 +700,18 @@ fn test_parse_identifier() {
 fn test_parse_whitespace() {
     init();
 
-    let mut span = TokenizerBuilder::from_string(r#""#.to_string());
+    let mut span = TokenizerBuilder::from_string("");
     assert_eq!(span.iterator.next(), None);
     //assert_eq!(string.0.string, "");
     //assert_eq!(string.1.string, "");
 
-    let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#.to_string());
+    let span = TokenizerBuilder::from_string(r#"  f  fwwe wef"#);
     let string = parse(&mut span.peekable()).unwrap();
     println!("{string:?}");
     //assert_eq!(string.0.string, "  ");
     //assert_eq!(string.1.string, "f  fwwe wef");
 
-    let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#.to_string());
+    let span = TokenizerBuilder::from_string(r#"dsfsdf dsf  "#);
     let string = parse(&mut span.peekable()).unwrap();
     println!("{string:?}");
     //assert_eq!(string.0.string, "");
@@ -724,17 +724,17 @@ fn test_parse_list() {
 
     println!(
         "{:?}",
-        TokenizerBuilder::from_string(r#"()"#.to_string()).collect::<Vec<_>>()
+        TokenizerBuilder::from_string(r#"()"#).collect::<Vec<_>>()
     );
 
-    let span = TokenizerBuilder::from_string(r#"()"#.to_string());
+    let span = TokenizerBuilder::from_string(r#"()"#);
     let value = parse(&mut span.peekable()).unwrap();
     println!("{value:?}");
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert!(matches!(value.0, Ast::List(list) if matches!(list.as_slice(), [])));
 
-    let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#.to_string());
+    let span = TokenizerBuilder::from_string(r#"(  1    2   3    )"#);
     let value = parse(&mut span.peekable()).unwrap();
     println!("{value:?}");
     //assert_eq!(value.0.string, "(  1    2   3    )");
@@ -748,14 +748,14 @@ fn test_parse_list() {
 fn test_parse_ast() {
     init();
 
-    let span = TokenizerBuilder::from_string(r#"   ()"#.to_string());
+    let span = TokenizerBuilder::from_string(r#"   ()"#);
     let value = parse(&mut span.peekable()).unwrap();
     println!("{value:?}");
     //assert_eq!(value.0.string, "()");
     //assert_eq!(value.1.string, "");
     assert!(matches!(value.0, Ast::List(list) if matches!(list.as_slice(), [])));
 
-    let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#.to_string());
+    let span = TokenizerBuilder::from_string(r#"  (  1    2   3    )"#);
     let value = parse(&mut span.peekable()).unwrap();
     println!("{value:?}");
     //assert_eq!(value.0.string, "(  1    2   3    )");

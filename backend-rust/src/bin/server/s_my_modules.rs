@@ -22,7 +22,7 @@ pub async fn my_modules(
     tucan: State<Tucan>,
     _input: Json<()>,
 ) -> Result<Json<WithTucanUrl<Vec<Module>>>, MyError> {
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone());
 
     let result = tucan.my_modules().await?;
 

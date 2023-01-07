@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::s_search_course::SearchResult;
+use diesel::dsl::sql;
+use diesel::sql_types::Double;
 use tucant::MyError;
 
 use axum::extract::State;
@@ -51,7 +53,7 @@ pub async fn search_module(
                     .concat(modules_unfinished::content),
                 tsquery,
             ),
-            rank,
+            sql::<Double>("CAST(").bind(rank).sql(" as FLOAT8)"),
         ));
 
     let result = sql_query.load::<SearchResult>(&mut connection).await?;
@@ -139,7 +141,7 @@ pub async fn search_module_opensearch(
                 .iter()
                 .map(|e| e.as_str().unwrap())
                 .join("[...]"),
-            rank: hit["_score"].as_f64().unwrap() as f32,
+            rank: hit["_score"].as_f64().unwrap(),
         })
         .collect_vec();
 

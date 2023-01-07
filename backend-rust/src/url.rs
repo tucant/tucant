@@ -9,6 +9,7 @@ use derive_more::{From, TryInto};
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct TucanUrl {
     pub session_nr: Option<u64>,
@@ -101,19 +102,21 @@ pub enum TucanProgram {
 }
 
 impl TucanProgram {
+    #[allow(clippy::too_many_lines)]
+    #[must_use]
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
-            TucanProgram::Mlsstart(_) => todo!(),
-            TucanProgram::Mymodules(_) => (
+            Self::Mlsstart(_) => todo!(),
+            Self::Mymodules(_) => (
                 "MYMODULES",
                 Box::new([TucanArgument::Number(275), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Profcourses(_) => (
+            Self::Profcourses(_) => (
                 "PROFCOURSES",
                 Box::new([TucanArgument::Number(274), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Studentchoicecourses(_) => todo!(),
-            TucanProgram::Registration(Registration { path }) => {
+            Self::Studentchoicecourses(_) => todo!(),
+            Self::Registration(Registration { path }) => {
                 let mut a = path.chunks(std::mem::size_of::<u64>());
                 (
                     "REGISTRATION",
@@ -135,18 +138,18 @@ impl TucanProgram {
                     ),
                 )
             }
-            TucanProgram::RootRegistration(_) => (
+            Self::RootRegistration(_) => (
                 "REGISTRATION",
                 Box::new([TucanArgument::Number(311), TucanArgument::String("")].into_iter()),
             ),
-            TucanProgram::Myexams(_) => (
+            Self::Myexams(_) => (
                 "MYEXAMS",
                 Box::new([TucanArgument::Number(318), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Courseresults(_) => todo!(),
-            TucanProgram::Examresults(_) => todo!(),
-            TucanProgram::StudentResult(_) => todo!(),
-            TucanProgram::Moduledetails(Moduledetails { id }) => (
+            Self::Courseresults(_) => todo!(),
+            Self::Examresults(_) => todo!(),
+            Self::StudentResult(_) => todo!(),
+            Self::Moduledetails(Moduledetails { id }) => (
                 "MODULEDETAILS",
                 Box::new(
                     [
@@ -158,7 +161,7 @@ impl TucanProgram {
                     .into_iter(),
                 ),
             ),
-            TucanProgram::Coursedetails(Coursedetails { id }) => (
+            Self::Coursedetails(Coursedetails { id }) => (
                 "COURSEDETAILS",
                 Box::new(
                     [TucanArgument::Number(311), TucanArgument::Number(0)]
@@ -169,13 +172,13 @@ impl TucanProgram {
                         .chain([TucanArgument::Number(0), TucanArgument::Number(0)].into_iter()),
                 ),
             ),
-            TucanProgram::Persaddress(_) => (
+            Self::Persaddress(_) => (
                 "PERSADDRESS",
-                Box::new([TucanArgument::Number(339)].into_iter()),
+                Box::new(std::iter::once(TucanArgument::Number(339))),
             ),
-            TucanProgram::StartpageDispatch(_) => todo!(),
-            TucanProgram::Externalpages(_) => todo!(),
-            TucanProgram::Examdetails(Examdetails { id }) => {
+            Self::StartpageDispatch(_) => todo!(),
+            Self::Externalpages(_) => todo!(),
+            Self::Examdetails(Examdetails { id }) => {
                 let mut a = id.chunks(std::mem::size_of::<u64>());
                 (
                     "EXAMDETAILS",
@@ -190,7 +193,7 @@ impl TucanProgram {
                     ),
                 )
             }
-            TucanProgram::Courseprep(Courseprep { id }) => (
+            Self::Courseprep(Courseprep { id }) => (
                 "COURSEPREP",
                 Box::new(
                     [
@@ -215,17 +218,19 @@ pub enum TucanArgument<'a> {
 }
 
 impl<'a> TucanArgument<'a> {
+    #[must_use]
     pub fn number(&self) -> u64 {
         match self {
             TucanArgument::Number(number) => *number,
-            _ => panic!(),
+            TucanArgument::String(_) => panic!(),
         }
     }
 
+    #[must_use]
     pub fn string(&self) -> &'a str {
         match self {
             TucanArgument::String(string) => string,
-            _ => panic!(),
+            TucanArgument::Number(_) => panic!(),
         }
     }
 }
@@ -262,6 +267,10 @@ fn string<'a>(
     arguments.next().unwrap().string()
 }
 
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::cognitive_complexity)]
+#[allow(clippy::module_name_repetitions)]
+#[must_use]
 pub fn parse_tucan_url(url: &str) -> TucanUrl {
     let url = Url::parse(url).unwrap();
     assert_eq!(
@@ -371,7 +380,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "COURSEDETAILS" => {
             number(&mut arguments);
-            assert!([0, 376333755785484].contains(&number(&mut arguments)));
+            assert!([0, 376_333_755_785_484].contains(&number(&mut arguments)));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
                     number(&mut arguments).to_be_bytes(), // this *should* be unique per course
@@ -422,13 +431,12 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
     };
 
-    if arguments.peek().is_some() {
-        panic!(
-            "too many arguments while parsing {} {:?}",
-            prgname,
-            arguments.collect::<Vec<_>>()
-        )
-    }
+    assert!(
+        arguments.peek().is_none(),
+        "too many arguments while parsing {} {:?}",
+        prgname,
+        arguments.collect::<Vec<_>>()
+    );
 
     TucanUrl {
         session_nr,
@@ -438,10 +446,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::parse_tucan_url;
 
     #[test]
-    fn test_sample_urls() -> anyhow::Result<()> {
+    fn test_sample_urls() {
         // unauthenticated start page
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome");
 
@@ -490,7 +498,5 @@ mod tests {
 
         // Kursdetails
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N967307082288504,-N000311,-N0,-N379144023730730,-N379144023752731,-N0,-N0");
-
-        Ok(())
     }
 }

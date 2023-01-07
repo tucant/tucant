@@ -18,8 +18,11 @@ use tucant::{
 };
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
+#[allow(clippy::too_many_lines)]
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+
     // Dashboard index pattern needs to not include timestamp
 
     env_logger::init();
@@ -28,9 +31,8 @@ async fn main() -> anyhow::Result<()> {
     // https://opensearch.org/docs/latest/opensearch/query-dsl/full-text/
     // https://opensearch.org/docs/latest/opensearch/query-dsl/text-analyzers
 
-    let tucan = Tucan::new().await?;
+    let tucan = Tucan::new()?;
 
-    const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut rng = rand::thread_rng();
 
     let rand_string: String = (0..10)
@@ -179,7 +181,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     // let response_body = response.json::<Value>().await?;
@@ -227,7 +229,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
@@ -257,7 +259,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     let response = tucan

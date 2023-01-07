@@ -1,8 +1,16 @@
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
+
 use axum::Json;
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, VecDeque};
 pub trait Typescriptable {
     fn name() -> String;
+    #[must_use]
     fn code() -> BTreeSet<String> {
         BTreeSet::new()
     }

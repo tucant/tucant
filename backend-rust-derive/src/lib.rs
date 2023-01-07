@@ -1,3 +1,10 @@
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
+
 use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
@@ -19,24 +26,22 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         syn::ReturnType::Type(_, ref path) => path.to_token_stream(),
     };
 
-    let arg_type = node
-        .sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            syn::FnArg::Receiver(_) => None,
-            syn::FnArg::Typed(PatType { pat, ty, .. }) => {
-                if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
-                    if *ident == "input" || *ident == "_input" {
-                        return Some(ty.to_token_stream());
-                    }
+    let arg_type = node.sig.inputs.iter().find_map(|arg| match arg {
+        syn::FnArg::Receiver(_) => None,
+        syn::FnArg::Typed(PatType { pat, ty, .. }) => {
+            if let Pat::Ident(PatIdent { ident, .. }) = &**pat {
+                if *ident == "input" || *ident == "_input" {
+                    return Some(ty.to_token_stream());
                 }
-                None
             }
-        })
-        .next();
+            None
+        }
+    });
 
-    if let Some(arg_type) = arg_type {
+    arg_type.map_or_else(|| Err(Error::new(
+            node.sig.inputs.span(),
+            r#"name one of the parameters `input` or `_input`"#,
+        )), |arg_type| {
         let name = &node.sig.ident;
 
         let (impl_generics, ty_generics, where_clause) = node.sig.generics.split_for_impl();
@@ -80,15 +85,11 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                 }
             }
         })
-    } else {
-        Err(Error::new(
-            node.sig.inputs.span(),
-            r#"name one of the parameters `input` or `_input`"#,
-        ))
-    }
+    })
 }
 
-fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
+#[allow(clippy::too_many_lines)]
+fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
     let name_string = input.ident.to_string();
 
@@ -113,7 +114,6 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                         match ts_type_attr.parse_meta()? {
                             Meta::List(meta_list) => match meta_list.nested.iter().next() {
                                 Some(NestedMeta::Meta(Meta::Path(path))) => path.to_token_stream(),
-                                None => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
                                 _ => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
                             },
                             err => return Err(Error::new(err.span(), r#"expected a list"#)),
@@ -191,21 +191,13 @@ fn typescriptable_impl(input: DeriveInput) -> syn::Result<TokenStream> {
                 )),
                 syn::Fields::Unnamed(fields) => {
                     let mut iter = fields.unnamed.iter();
-                    if let Some(field) = iter.next() {
-                        if let Some(field) = iter.next() {
-                            Err(Error::new(
-                                field.span(),
-                                r#"exactly one field in enum allowed"#,
-                            ))
-                        } else {
-                            Ok((variant, field))
-                        }
-                    } else {
-                        Err(Error::new(
+                    iter.next().map_or_else(|| Err(Error::new(
                             variant.fields.span(),
                             r#"exactly one field in enum allowed"#,
-                        ))
-                    }
+                        )), |field| iter.next().map_or(Ok((variant, field)), |field| Err(Error::new(
+                                field.span(),
+                                r#"exactly one field in enum allowed"#,
+                            ))))
                 }
                 syn::Fields::Unit => Err(Error::new(
                     variant.fields.span(),
@@ -307,7 +299,7 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     let input = parse_macro_input!(input as DeriveInput);
 
     proc_macro::TokenStream::from(
-        typescriptable_impl(input).unwrap_or_else(Error::into_compile_error),
+        typescriptable_impl(&input).unwrap_or_else(Error::into_compile_error),
     )
 }
 
@@ -321,7 +313,7 @@ mod tests {
     #[test]
     fn it_works() {
         let input: DeriveInput = syn::parse_str("struct Test<T> { inner: T }").unwrap();
-        let output = typescriptable_impl(input).unwrap();
+        let output = typescriptable_impl(&input).unwrap();
         let output = syn::parse2::<syn::File>(output).unwrap();
         let output = prettyplease::unparse(&output);
         println!("{output}");

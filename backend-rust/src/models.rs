@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)] // inside diesel macro
+
 use std::collections::VecDeque;
 
 use axum::extract::FromRef;
@@ -12,7 +14,9 @@ use axum_extra::extract::PrivateCookieJar;
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
 #[cfg(feature = "server")]
-use diesel::prelude::*;
+use diesel::prelude::{
+    AsChangeset, Associations, Identifiable, Insertable, Queryable, QueryableByName,
+};
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
 #[cfg(feature = "server")]
@@ -82,19 +86,20 @@ where
     use serde::de::Error;
     let string: Option<String> = Option::deserialize(deserializer)?;
 
-    if let Some(string) = string {
-        base64::decode_engine(
-            string,
-            &base64::engine::fast_portable::FastPortable::from(
-                &base64::alphabet::URL_SAFE,
-                base64::engine::fast_portable::NO_PAD,
-            ),
-        )
-        .map(Option::Some)
-        .map_err(|err| Error::custom(err.to_string()))
-    } else {
-        Ok(None)
-    }
+    string.map_or_else(
+        || Ok(None),
+        |string| {
+            base64::decode_engine(
+                string,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD,
+                ),
+            )
+            .map(Option::Some)
+            .map_err(|err| Error::custom(err.to_string()))
+        },
+    )
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
@@ -313,7 +318,8 @@ pub struct UndoneUser {
 }
 
 impl UndoneUser {
-    pub fn new(matriculation_number: i32) -> Self {
+    #[must_use]
+    pub const fn new(matriculation_number: i32) -> Self {
         Self {
             matriculation_number,
             done: false,
@@ -349,9 +355,9 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
             .await
-            .map_err(|err| err.into_response())?;
+            .map_err(axum::response::IntoResponse::into_response)?;
 
-        let session: TucanSession = serde_json::from_str(
+        let session: Self = serde_json::from_str(
             cookie_jar
                 .get("session")
                 .ok_or_else(|| {

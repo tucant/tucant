@@ -31,7 +31,7 @@ pub async fn get_modules(
     tucan: State<Tucan>,
     input: Json<Option<String>>,
 ) -> Result<Json<WithTucanUrl<ModuleMenuResponse>>, MyError> {
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone());
 
     let value = match input.0 {
         None => {
@@ -79,7 +79,7 @@ pub async fn get_modules(
             .load::<ModuleMenuPathPart>(&mut connection)
             .await?;
 
-            let paths = calculate_paths(path_to_root);
+            let paths = calculate_paths(&path_to_root);
 
             ModuleMenuResponse {
                 module_menu,
@@ -89,8 +89,9 @@ pub async fn get_modules(
         }
     };
 
-    let url: TucanProgram = match input.0 {
-        Some(ref input) => {
+    let url: TucanProgram = input.0.as_ref().map_or_else(
+        || RootRegistration {}.into(),
+        |input| {
             let binary_path = base64::decode_engine(
                 input.as_bytes(),
                 &base64::engine::fast_portable::FastPortable::from(
@@ -100,9 +101,8 @@ pub async fn get_modules(
             )
             .unwrap();
             Registration { path: binary_path }.into()
-        }
-        None => RootRegistration {}.into(),
-    };
+        },
+    );
 
     Ok(Json(WithTucanUrl {
         tucan_url: url.to_tucan_url(Some(session.session_nr.try_into().unwrap())),

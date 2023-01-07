@@ -99,7 +99,7 @@ use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::setup;
 
 #[derive(Serialize, Typescriptable)]
-pub struct WithTucanUrl<T: Serialize + Typescriptable> {
+pub struct WithTucanUrl<T: Typescriptable> {
     pub tucan_url: String,
     //#[serde(flatten)] // not supported by Typescriptable
     pub inner: T,
@@ -166,9 +166,9 @@ async fn login_hack(
     tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
-    println!("{input:?}");
-
     use diesel_async::RunQueryDsl;
+
+    println!("{input:?}");
 
     let mut connection = tucan.pool.get().await?;
 
@@ -260,6 +260,7 @@ async fn login_hack(
 }
 
 #[ts]
+#[allow(clippy::unused_async)]
 async fn logout(
     cookie_jar: PrivateCookieJar,
     _input: Json<()>,
@@ -272,6 +273,7 @@ async fn logout(
 }
 
 #[ts]
+#[allow(clippy::unused_async)]
 async fn index(
     session: Option<TucanSession>,
     _cookie_jar: PrivateCookieJar,
@@ -279,7 +281,7 @@ async fn index(
 ) -> Result<Json<String>, MyError> {
     Ok(Json(format!(
         "Welcome! {}",
-        session.map(|v| v.matriculation_number).unwrap_or(-1)
+        session.map_or(-1, |v| v.matriculation_number)
     )))
 }
 
@@ -330,13 +332,13 @@ async fn main() -> anyhow::Result<()> {
         .await;
     if let Ok(mut file) = file {
         file.write_all(random_secret_key.master()).await?;
-        drop(file)
+        drop(file);
     }
 
     let secret_key_raw = fs::read("sessions.key").await?;
     let secret_key = Key::from(&secret_key_raw);
 
-    let tucan = Tucan::new().await?;
+    let tucan = Tucan::new()?;
 
     let app_state = AppState {
         key: secret_key,

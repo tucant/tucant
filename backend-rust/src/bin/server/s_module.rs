@@ -40,7 +40,7 @@ pub async fn module(
     )
     .unwrap();
 
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone());
 
     let result = tucan
         .module(Moduledetails {
@@ -66,7 +66,7 @@ pub async fn module(
         .load::<ModuleMenuPathPart>(&mut connection)
         .await?;
 
-    let paths = calculate_paths(path_to_root);
+    let paths = calculate_paths(&path_to_root);
 
     let result = ModuleResponse {
         module: result,

@@ -11,19 +11,18 @@ use rand_chacha::ChaCha20Rng;
 use sha3::Digest;
 use sha3::Sha3_224;
 
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn handle_type(
     random: &mut ChaCha20Rng,
-    _type: &Type,
+    the_type: &Type,
 ) -> syn::Result<(TokenStream, TokenStream)> {
-    match _type {
+    match the_type {
         Type::Base(BaseType { name }) => match name {
-            BaseTypes::Uri => Ok((quote! { String }, quote! {})),
-            BaseTypes::DocumentUri => Ok((quote! { String }, quote! {})),
+            BaseTypes::Uri | BaseTypes::DocumentUri | BaseTypes::RegExp | BaseTypes::String => Ok((quote! { String }, quote! {})),
             BaseTypes::Integer => Ok((quote! { i64 }, quote! {})),
             BaseTypes::UnsignedInteger => Ok((quote! { u64 }, quote! {})),
             BaseTypes::Decimal => Ok((quote! { f64 }, quote! {})),
-            BaseTypes::RegExp => Ok((quote! { String }, quote! {})),
-            BaseTypes::String => Ok((quote! { String }, quote! {})),
             BaseTypes::Boolean => Ok((quote! { bool }, quote! {})),
             BaseTypes::Null => Ok((quote! { () }, quote! {})),
         },
@@ -44,13 +43,7 @@ pub fn handle_type(
             let (value_type, value_rest) = handle_type(random, value)?;
             let key_type = match key {
                 MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::Uri,
-                } => quote! { String },
-                MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::DocumentUri,
-                } => quote! { String },
-                MapKeyType::Base {
-                    name: UriOrDocumentUriOrStringOrInteger::String,
+                    name: UriOrDocumentUriOrStringOrInteger::Uri | UriOrDocumentUriOrStringOrInteger::DocumentUri | UriOrDocumentUriOrStringOrInteger::String,
                 } => quote! { String },
                 MapKeyType::Base {
                     name: UriOrDocumentUriOrStringOrInteger::Integer,
@@ -92,7 +85,7 @@ pub fn handle_type(
                         quote! { #item_rest },
                     ))
                 })
-                .scan(&mut err, until_err)
+                .map_while(until_err(&mut err))
                 .unzip();
             let return_value = Ok((
                 quote! {
@@ -116,7 +109,7 @@ pub fn handle_type(
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items
                 .iter()
                 .map(|v| handle_type(random, v))
-                .scan(&mut err, until_err)
+                .map_while(until_err(&mut err))
                 .unzip();
             let return_value = Ok((
                 quote! {
@@ -144,7 +137,7 @@ pub fn handle_type(
                 .map(|property| -> syn::Result<(TokenStream, TokenStream)> {
                     let name_text = &property.name;
                     let name = format_ident!("r#{}", property.name.to_snake_case());
-                    let (mut converted_type, rest) = handle_type(random, &property._type)?;
+                    let (mut converted_type, rest) = handle_type(random, &property.r#type)?;
 
                     if property.optional {
                         converted_type = quote! { Option<#converted_type> }
@@ -158,7 +151,7 @@ pub fn handle_type(
                         rest,
                     ))
                 })
-                .scan(&mut properties_err, until_err)
+                .map_while(until_err(&mut properties_err))
                 .unzip();
 
             let return_value = (
@@ -184,11 +177,13 @@ pub fn handle_type(
     }
 }
 
-pub fn until_err<T, E>(err: &mut &mut Result<(), E>, item: Result<T, E>) -> Option<T> {
-    match item {
+pub fn until_err<T, E>(
+    err: &'_ mut Result<(), E>,
+) -> impl FnMut(Result<T, E>) -> std::option::Option<T> + '_ {
+    |item: Result<T, E>| match item {
         Ok(item) => Some(item),
         Err(e) => {
-            **err = Err(e);
+            *err = Err(e);
             None
         }
     }

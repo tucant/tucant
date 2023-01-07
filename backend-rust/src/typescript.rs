@@ -9,6 +9,7 @@ pub struct TypescriptableApp<S: Clone + Send + Sync + 'static = ()> {
 }
 
 impl<S: Clone + Send + Sync> TypescriptableApp<S> {
+    #[must_use]
     pub fn route<TR: TypescriptRoute>(
         mut self,
         path: &str,
