@@ -583,6 +583,8 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         .collect();
 
     Ok(quote! {
+        #![allow(clippy::vec_box)]
+
         #(#structures)*
         #(#enumerations)*
         #(#type_aliases)*
