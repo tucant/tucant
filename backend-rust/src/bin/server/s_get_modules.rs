@@ -79,7 +79,7 @@ pub async fn get_modules(
             .load::<ModuleMenuPathPart>(&mut connection)
             .await?;
 
-            let paths = calculate_paths(path_to_root);
+            let paths = calculate_paths(&path_to_root);
 
             ModuleMenuResponse {
                 module_menu,

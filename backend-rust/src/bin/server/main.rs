@@ -99,7 +99,7 @@ use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::setup;
 
 #[derive(Serialize, Typescriptable)]
-pub struct WithTucanUrl<T: Serialize + Typescriptable> {
+pub struct WithTucanUrl<T: Typescriptable> {
     pub tucan_url: String,
     //#[serde(flatten)] // not supported by Typescriptable
     pub inner: T,
@@ -330,7 +330,7 @@ async fn main() -> anyhow::Result<()> {
         .await;
     if let Ok(mut file) = file {
         file.write_all(random_secret_key.master()).await?;
-        drop(file)
+        drop(file);
     }
 
     let secret_key_raw = fs::read("sessions.key").await?;

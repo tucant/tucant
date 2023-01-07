@@ -179,7 +179,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     // let response_body = response.json::<Value>().await?;
@@ -227,7 +227,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-suggesters.html#completion-suggester
@@ -257,7 +257,7 @@ async fn main() -> anyhow::Result<()> {
 
     let exception = response.exception().await?;
     if let Some(exception) = exception {
-        Err(anyhow::anyhow!("{:?}", exception))?
+        Err(anyhow::anyhow!("{:?}", exception))?;
     }
 
     let response = tucan
