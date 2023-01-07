@@ -27,6 +27,7 @@ jobs:
         with:
           node-version: 19
           cache: 'npm'
+          cache-dependency-path: frontend-react/package-lock.json
       - run: npm ci
       - run: npm audit
       - run: npm run build
