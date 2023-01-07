@@ -31,10 +31,11 @@ export default function CourseRoute() {
           </h3>
           <TucanUrlLink data={data} />
           <div
+            // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{
               __html: dompurify.sanitize(data.inner[0].content),
             }}
-          ></div>
+          />
           <h4>Termine</h4>
           <div className="list-group">
             {data.inner[2].map((e) => (

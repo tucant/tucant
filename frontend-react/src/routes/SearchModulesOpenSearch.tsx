@@ -11,6 +11,6 @@ export function SearchModulesOpenSearch() {
       title="Modulsuche (OpenSearch)"
       base_path="module"
       function={search_module_opensearch}
-    ></SearchPage>
+    />
   );
 }

@@ -28,7 +28,7 @@ export default function Modules() {
         <>
           {data.inner.path.map((p, i) => (
             <nav
-              key={i}
+              key={p.map((pe) => pe.tucan_id).join()}
               style={{ "--bs-breadcrumb-divider": "'>'" }}
               aria-label="breadcrumb"
             >

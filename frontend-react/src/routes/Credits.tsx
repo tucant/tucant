@@ -64,7 +64,7 @@ export default function Credits() {
             style={{ borderWidth: 0 }}
             src="http://i.creativecommons.org/l/by-nc-sa/3.0/de/88x31.png"
             alt="Creative Commons Lizenzvertrag"
-          ></img>
+          />
         </a>
         <br />
         <span>Das „TUCaN&apos;t“-Logo</span> von{" "}

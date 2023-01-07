@@ -29,7 +29,10 @@ export default function Module() {
             {data.inner.module.module_id} {data.inner.module.title}
           </h1>
           {data.inner.path.map((p, i) => (
-            <nav key={i} aria-label="breadcrumb">
+            <nav
+              key={p.map((pe) => pe.tucan_id).join()}
+              aria-label="breadcrumb"
+            >
               <ol className="breadcrumb">
                 {p.map((pe) => (
                   <li key={pe.tucan_id} className="breadcrumb-item">
@@ -44,10 +47,11 @@ export default function Module() {
           } Credits`}</span>
           <TucanUrlLink data={data} />
           <div
+            // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{
               __html: dompurify.sanitize(data.inner.module.content),
             }}
-          ></div>
+          />
         </>
       )}
     </main>
