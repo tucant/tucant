@@ -84,19 +84,20 @@ where
     use serde::de::Error;
     let string: Option<String> = Option::deserialize(deserializer)?;
 
-    if let Some(string) = string {
-        base64::decode_engine(
-            string,
-            &base64::engine::fast_portable::FastPortable::from(
-                &base64::alphabet::URL_SAFE,
-                base64::engine::fast_portable::NO_PAD,
-            ),
-        )
-        .map(Option::Some)
-        .map_err(|err| Error::custom(err.to_string()))
-    } else {
-        Ok(None)
-    }
+    string.map_or_else(
+        || Ok(None),
+        |string| {
+            base64::decode_engine(
+                string,
+                &base64::engine::fast_portable::FastPortable::from(
+                    &base64::alphabet::URL_SAFE,
+                    base64::engine::fast_portable::NO_PAD,
+                ),
+            )
+            .map(Option::Some)
+            .map_err(|err| Error::custom(err.to_string()))
+        },
+    )
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

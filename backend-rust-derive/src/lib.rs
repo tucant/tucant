@@ -31,7 +31,10 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
         }
     });
 
-    if let Some(arg_type) = arg_type {
+    arg_type.map_or_else(|| Err(Error::new(
+            node.sig.inputs.span(),
+            r#"name one of the parameters `input` or `_input`"#,
+        )), |arg_type| {
         let name = &node.sig.ident;
 
         let (impl_generics, ty_generics, where_clause) = node.sig.generics.split_for_impl();
@@ -75,12 +78,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
                 }
             }
         })
-    } else {
-        Err(Error::new(
-            node.sig.inputs.span(),
-            r#"name one of the parameters `input` or `_input`"#,
-        ))
-    }
+    })
 }
 
 fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
@@ -185,21 +183,13 @@ fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                 )),
                 syn::Fields::Unnamed(fields) => {
                     let mut iter = fields.unnamed.iter();
-                    if let Some(field) = iter.next() {
-                        if let Some(field) = iter.next() {
-                            Err(Error::new(
-                                field.span(),
-                                r#"exactly one field in enum allowed"#,
-                            ))
-                        } else {
-                            Ok((variant, field))
-                        }
-                    } else {
-                        Err(Error::new(
+                    iter.next().map_or_else(|| Err(Error::new(
                             variant.fields.span(),
                             r#"exactly one field in enum allowed"#,
-                        ))
-                    }
+                        )), |field| iter.next().map_or(Ok((variant, field)), |field| Err(Error::new(
+                                field.span(),
+                                r#"exactly one field in enum allowed"#,
+                            ))))
                 }
                 syn::Fields::Unit => Err(Error::new(
                     variant.fields.span(),

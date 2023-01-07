@@ -89,8 +89,9 @@ pub async fn get_modules(
         }
     };
 
-    let url: TucanProgram = match input.0 {
-        Some(ref input) => {
+    let url: TucanProgram = input.0.as_ref().map_or_else(
+        || RootRegistration {}.into(),
+        |input| {
             let binary_path = base64::decode_engine(
                 input.as_bytes(),
                 &base64::engine::fast_portable::FastPortable::from(
@@ -100,9 +101,8 @@ pub async fn get_modules(
             )
             .unwrap();
             Registration { path: binary_path }.into()
-        }
-        None => RootRegistration {}.into(),
-    };
+        },
+    );
 
     Ok(Json(WithTucanUrl {
         tucan_url: url.to_tucan_url(Some(session.session_nr.try_into().unwrap())),
