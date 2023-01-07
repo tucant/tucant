@@ -104,17 +104,17 @@ impl TucanProgram {
     #[must_use]
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
-            TucanProgram::Mlsstart(_) => todo!(),
-            TucanProgram::Mymodules(_) => (
+            Self::Mlsstart(_) => todo!(),
+            Self::Mymodules(_) => (
                 "MYMODULES",
                 Box::new([TucanArgument::Number(275), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Profcourses(_) => (
+            Self::Profcourses(_) => (
                 "PROFCOURSES",
                 Box::new([TucanArgument::Number(274), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Studentchoicecourses(_) => todo!(),
-            TucanProgram::Registration(Registration { path }) => {
+            Self::Studentchoicecourses(_) => todo!(),
+            Self::Registration(Registration { path }) => {
                 let mut a = path.chunks(std::mem::size_of::<u64>());
                 (
                     "REGISTRATION",
@@ -136,18 +136,18 @@ impl TucanProgram {
                     ),
                 )
             }
-            TucanProgram::RootRegistration(_) => (
+            Self::RootRegistration(_) => (
                 "REGISTRATION",
                 Box::new([TucanArgument::Number(311), TucanArgument::String("")].into_iter()),
             ),
-            TucanProgram::Myexams(_) => (
+            Self::Myexams(_) => (
                 "MYEXAMS",
                 Box::new([TucanArgument::Number(318), TucanArgument::Number(999)].into_iter()),
             ),
-            TucanProgram::Courseresults(_) => todo!(),
-            TucanProgram::Examresults(_) => todo!(),
-            TucanProgram::StudentResult(_) => todo!(),
-            TucanProgram::Moduledetails(Moduledetails { id }) => (
+            Self::Courseresults(_) => todo!(),
+            Self::Examresults(_) => todo!(),
+            Self::StudentResult(_) => todo!(),
+            Self::Moduledetails(Moduledetails { id }) => (
                 "MODULEDETAILS",
                 Box::new(
                     [
@@ -159,7 +159,7 @@ impl TucanProgram {
                     .into_iter(),
                 ),
             ),
-            TucanProgram::Coursedetails(Coursedetails { id }) => (
+            Self::Coursedetails(Coursedetails { id }) => (
                 "COURSEDETAILS",
                 Box::new(
                     [TucanArgument::Number(311), TucanArgument::Number(0)]
@@ -170,13 +170,13 @@ impl TucanProgram {
                         .chain([TucanArgument::Number(0), TucanArgument::Number(0)].into_iter()),
                 ),
             ),
-            TucanProgram::Persaddress(_) => (
+            Self::Persaddress(_) => (
                 "PERSADDRESS",
                 Box::new([TucanArgument::Number(339)].into_iter()),
             ),
-            TucanProgram::StartpageDispatch(_) => todo!(),
-            TucanProgram::Externalpages(_) => todo!(),
-            TucanProgram::Examdetails(Examdetails { id }) => {
+            Self::StartpageDispatch(_) => todo!(),
+            Self::Externalpages(_) => todo!(),
+            Self::Examdetails(Examdetails { id }) => {
                 let mut a = id.chunks(std::mem::size_of::<u64>());
                 (
                     "EXAMDETAILS",
@@ -191,7 +191,7 @@ impl TucanProgram {
                     ),
                 )
             }
-            TucanProgram::Courseprep(Courseprep { id }) => (
+            Self::Courseprep(Courseprep { id }) => (
                 "COURSEPREP",
                 Box::new(
                     [

@@ -33,8 +33,8 @@ impl Display for MyError {
 }
 
 impl<E: Into<anyhow::Error>> From<E> for MyError {
-    fn from(err: E) -> MyError {
-        MyError { err: err.into() }
+    fn from(err: E) -> Self {
+        Self { err: err.into() }
     }
 }
 

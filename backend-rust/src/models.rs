@@ -352,7 +352,7 @@ where
             .await
             .map_err(axum::response::IntoResponse::into_response)?;
 
-        let session: TucanSession = serde_json::from_str(
+        let session: Self = serde_json::from_str(
             cookie_jar
                 .get("session")
                 .ok_or_else(|| {

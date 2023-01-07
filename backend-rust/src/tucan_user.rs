@@ -244,7 +244,7 @@ impl TucanUser {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
                 credits: Some(credits),
-                module_id: TucanUser::normalize(module_id),
+                module_id: Self::normalize(module_id),
                 content,
                 done: true,
             };
@@ -415,7 +415,7 @@ impl TucanUser {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: course_name.unwrap_or_else(|| unwrap_handler()).to_string(),
                 sws,
-                course_id: TucanUser::normalize(course_id),
+                course_id: Self::normalize(course_id),
                 content,
                 done: true,
             };
@@ -748,7 +748,7 @@ impl TucanUser {
         };
 
         let name = url_element.inner_html();
-        let _normalized_name = TucanUser::normalize(&name);
+        let _normalized_name = Self::normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
