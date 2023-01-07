@@ -12,7 +12,6 @@
     "lint-fix": "eslint --fix ."
   },
   "dependencies": {
-    "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
     "dompurify": "^2.4.3",
     "react": "^18.2.0",
@@ -25,16 +24,8 @@
     "@types/dompurify": "^2.4.0",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
-    "@typescript-eslint/eslint-plugin": "^5.48.0",
-    "@typescript-eslint/parser": "^5.48.0",
-    "@vitejs/plugin-react": "^3.0.1",
     "@vitejs/plugin-react-swc": "^3.0.1",
-    "eslint": "^8.31.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-react": "^7.31.11",
-    "prettier": "2.8.2",
-    "rollup-plugin-visualizer": "^5.9.0",
-    "sass": "^1.57.1",
+    "rome": "^11.0.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.4"
   }

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { defineConfig } from "vite";
-import { visualizer } from "rollup-plugin-visualizer";
 import react from "@vitejs/plugin-react-swc";
 
 // https://vitejs.dev/config/
