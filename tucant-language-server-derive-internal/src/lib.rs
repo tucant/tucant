@@ -46,7 +46,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut extends_err, until_err)
+                .map_while(until_err(&mut extends_err))
                 .unzip();
 
             // TODO FIXME merge this with above?
@@ -67,7 +67,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut mixins_err, until_err)
+                .map_while(until_err(&mut mixins_err))
                 .unzip();
 
             let mut properties_err = Ok(());
@@ -97,7 +97,7 @@ pub fn parse_structures(
                         rest,
                     ))
                 })
-                .scan(&mut properties_err, until_err)
+                .map_while(until_err(&mut properties_err))
                 .unzip();
 
             let return_value = (
@@ -118,7 +118,7 @@ pub fn parse_structures(
             properties_err?;
             Ok(return_value)
         })
-        .scan(&mut structures_err, until_err)
+        .map_while(until_err(&mut structures_err))
         .unzip();
     structures_err?;
     Ok(return_type)
@@ -155,7 +155,7 @@ pub fn parse_enumerations(
                                 #name = #value,
                             })
                         })
-                        .scan(&mut values_err, until_err);
+                        .map_while(until_err(&mut values_err));
 
                     let return_value = quote! {
                         #[allow(clippy::derive_partial_eq_without_eq)]
@@ -190,7 +190,7 @@ pub fn parse_enumerations(
                                 #name,
                             })
                         })
-                        .scan(&mut values_err, until_err);
+                        .map_while(until_err(&mut values_err));
 
                     let supports_custom_value = if enumeration.supports_custom_values {
                         Some(quote! {
@@ -215,7 +215,7 @@ pub fn parse_enumerations(
                 }
             }
         })
-        .scan(&mut enumerations_err, until_err)
+        .map_while(until_err(&mut enumerations_err))
         .collect();
     enumerations_err?;
     Ok(enumerations)
@@ -244,7 +244,7 @@ pub fn parse_type_aliases(
                 rest,
             ))
         })
-        .scan(&mut type_aliases_err, until_err)
+        .map_while(until_err(&mut type_aliases_err))
         .unzip();
     type_aliases_err?;
     Ok(return_value)
@@ -285,7 +285,7 @@ pub fn parse_requests(
                         .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
                             handle_type(random, the_type)
                         })
-                        .scan(&mut params_err, until_err)
+                        .map_while(until_err(&mut params_err))
                         .unzip();
                     let return_value = (
                         quote! {
@@ -410,7 +410,7 @@ pub fn parse_requests(
                 },
             ))
         })
-        .scan(&mut requests_err, until_err)
+        .map_while(until_err(&mut requests_err))
         .unzip();
     requests_err?;
     Ok(return_value)
@@ -443,7 +443,7 @@ pub fn parse_notifications(
                         .map(|the_type| -> syn::Result<(TokenStream, TokenStream)> {
                             handle_type(random, the_type)
                         })
-                        .scan(&mut params_err, until_err)
+                        .map_while(until_err(&mut params_err))
                         .unzip();
                     let return_value = (
                         quote! {
@@ -491,7 +491,7 @@ pub fn parse_notifications(
                 rest,
             ))
         })
-        .scan(&mut requests_err, until_err)
+        .map_while(until_err(&mut requests_err))
         .multiunzip();
     Ok(return_type)
 }

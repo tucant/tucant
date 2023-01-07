@@ -83,7 +83,7 @@ pub fn handle_type(
                         quote! { #item_rest },
                     ))
                 })
-                .scan(&mut err, until_err)
+                .map_while(until_err(&mut err))
                 .unzip();
             let return_value = Ok((
                 quote! {
@@ -107,7 +107,7 @@ pub fn handle_type(
             let (items, rests): (Vec<TokenStream>, Vec<TokenStream>) = items
                 .iter()
                 .map(|v| handle_type(random, v))
-                .scan(&mut err, until_err)
+                .map_while(until_err(&mut err))
                 .unzip();
             let return_value = Ok((
                 quote! {
@@ -149,7 +149,7 @@ pub fn handle_type(
                         rest,
                     ))
                 })
-                .scan(&mut properties_err, until_err)
+                .map_while(until_err(&mut properties_err))
                 .unzip();
 
             let return_value = (
@@ -175,11 +175,13 @@ pub fn handle_type(
     }
 }
 
-pub fn until_err<T, E>(err: &mut &mut Result<(), E>, item: Result<T, E>) -> Option<T> {
-    match item {
+pub fn until_err<'a, T, E>(
+    err: &'a mut Result<(), E>,
+) -> impl FnMut(Result<T, E>) -> std::option::Option<T> + 'a {
+    |item: Result<T, E>| match item {
         Ok(item) => Some(item),
         Err(e) => {
-            **err = Err(e);
+            *err = Err(e);
             None
         }
     }
