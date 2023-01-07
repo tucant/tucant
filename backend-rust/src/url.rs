@@ -444,7 +444,7 @@ mod tests {
     use super::parse_tucan_url;
 
     #[test]
-    fn test_sample_urls() -> anyhow::Result<()> {
+    fn test_sample_urls() {
         // unauthenticated start page
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome");
 
@@ -493,7 +493,5 @@ mod tests {
 
         // Kursdetails
         let _url = parse_tucan_url("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N967307082288504,-N000311,-N0,-N379144023730730,-N379144023752731,-N0,-N0");
-
-        Ok(())
     }
 }

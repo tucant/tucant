@@ -28,7 +28,7 @@ pub fn handle_type(
             let name = format_ident!("r#{}", name.to_upper_camel_case());
             // TODO FIXME decide Boxed - this is still not optimal, only the parent place needs to me non-recursive
             if name == "r#SelectionRange" {
-                Ok((quote! { Box<#name> }, quote! {}))
+                Ok((quote! { #[allow(clippy::vec_box)] Box<#name> }, quote! {}))
             } else {
                 Ok((quote! { #name }, quote! {}))
             }
