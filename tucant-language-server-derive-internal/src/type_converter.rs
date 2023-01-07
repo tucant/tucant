@@ -175,9 +175,9 @@ pub fn handle_type(
     }
 }
 
-pub fn until_err<'a, T, E>(
-    err: &'a mut Result<(), E>,
-) -> impl FnMut(Result<T, E>) -> std::option::Option<T> + 'a {
+pub fn until_err<T, E>(
+    err: &'_ mut Result<(), E>,
+) -> impl FnMut(Result<T, E>) -> std::option::Option<T> + '_ {
     |item: Result<T, E>| match item {
         Ok(item) => Some(item),
         Err(e) => {

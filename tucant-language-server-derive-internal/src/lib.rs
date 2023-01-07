@@ -25,6 +25,7 @@ pub fn parse_structures(
             let name = format_ident!("r#{}", structure.name.to_upper_camel_case());
             let documentation = structure.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -79,6 +80,7 @@ pub fn parse_structures(
                     let name = format_ident!("r#{}", property.name.to_snake_case());
                     let documentation = property.documentation.as_ref().map(|string| {
                         quote! {
+                            #[allow(clippy::doc_markdown)]
                             #[doc = #string]
                         }
                     });
@@ -135,6 +137,7 @@ pub fn parse_enumerations(
             let name = format_ident!("r#{}", enumeration.name.to_upper_camel_case());
             let documentation = enumeration.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -180,6 +183,7 @@ pub fn parse_enumerations(
                             let name = format_ident!("r#{}", value.name.to_upper_camel_case());
                             let documentation = value.documentation.as_ref().map(|string| {
                                 quote! {
+                                    #[allow(clippy::doc_markdown)]
                                     #[doc = #string]
                                 }
                             });
@@ -233,6 +237,7 @@ pub fn parse_type_aliases(
             let (converted_type, rest) = handle_type(random, &type_alias.the_type)?;
             let documentation = type_alias.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -261,6 +266,7 @@ pub fn parse_requests(
             let method = &request.method;
             let documentation = request.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -343,6 +349,8 @@ pub fn parse_requests(
 
                         type Response = #result_type;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
@@ -368,6 +376,8 @@ pub fn parse_requests(
 
                         type Response = #result_type;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
@@ -426,6 +436,7 @@ pub fn parse_notifications(
         .map(|notification| -> syn::Result<(TokenStream, TokenStream)> {
             let documentation = notification.documentation.as_ref().map(|string| {
                 quote! {
+                    #[allow(clippy::doc_markdown)]
                     #[doc = #string]
                 }
             });
@@ -463,6 +474,8 @@ pub fn parse_notifications(
                     impl SendableAndForget for #name {
                         type Request = #params;
 
+                        // sometimes () type
+                        #[allow(clippy::semicolon_if_nothing_returned)]
                         fn get_request_data(self) -> Self::Request {
                             self.params
                         }
