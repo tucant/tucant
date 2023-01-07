@@ -53,7 +53,7 @@ pub async fn search_module(
                     .concat(modules_unfinished::content),
                 tsquery,
             ),
-            sql::<Double>("CAST(? as FLOAT8)").bind(rank),
+            sql::<Double>("CAST(").bind(rank).sql(" as FLOAT8)"),
         ));
 
     let result = sql_query.load::<SearchResult>(&mut connection).await?;

@@ -186,6 +186,7 @@ cargo outdated
 ```
 
 Clippy
+
 ```
 cargo clippy --all-targets --all-features
 ```
