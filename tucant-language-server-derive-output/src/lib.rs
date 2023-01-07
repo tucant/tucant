@@ -1,3 +1,10 @@
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
+
 //include!(concat!(env!("OUT_DIR"), "/lsp.rs"));
 
 // https://github.com/rust-lang/rust/issues/48250
