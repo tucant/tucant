@@ -335,9 +335,7 @@ impl Type for DefineLambdaType {
         trace: &mut TypeTrace,
     ) -> TypecheckCall {
         let [variable, the_type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
-        let variable = if let Ast::Identifier(identifier) = &variable.0 {
-            identifier
-        } else {
+        let Ast::Identifier(variable) = &variable.0 else {
             let err = Err(EvaluateError {
                 location: variable.1.clone(),
                 reason: "expected argument identifier".to_string(),
@@ -345,9 +343,7 @@ impl Type for DefineLambdaType {
             trace.push(err);
             return Err(());
         };
-        let type_identifier = if let Ast::Identifier(identifier) = &the_type.0 {
-            identifier
-        } else {
+        let Ast::Identifier(type_identifier) = &the_type.0 else {
             let err = Err(EvaluateError {
                 location: the_type.1.clone(),
                 reason: "expected argument type".to_string(),
@@ -554,9 +550,7 @@ pub fn typecheck_with_context(
             resolve_identifier_type(context, (identifier.to_string(), the_type.1), trace)
         }
         Ast::List(elements) => {
-            let (callable, args) = if let Some(v) = elements.split_first() {
-                v
-            } else {
+            let Some((callable, args)) = elements.split_first() else {
                 let err = Err(EvaluateError {
                     location: the_type.1,
                     reason: "can't call an empty list".to_string(),

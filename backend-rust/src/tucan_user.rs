@@ -739,13 +739,10 @@ impl TucanUser {
             url_element.value().attr("href").unwrap()
         ));
 
-        let url = match url {
-            TucanUrl {
-                program: TucanProgram::Registration(r),
-                ..
-            } => r,
-            _ => panic!(),
-        };
+        let TucanUrl {
+            program: TucanProgram::Registration(url),
+            ..
+        } = url else { panic!() };
 
         let name = url_element.inner_html();
         let _normalized_name = Self::normalize(&name);
