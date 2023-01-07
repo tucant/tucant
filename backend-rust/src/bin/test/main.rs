@@ -9,7 +9,7 @@ use tucant::tucan::Tucan;
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let tucan = Tucan::new().await?;
+    let tucan = Tucan::new()?;
     let tucan = tucan
         .login(
             &std::env::var("TUCAN_USERNAME").unwrap(),

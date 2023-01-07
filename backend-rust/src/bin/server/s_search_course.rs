@@ -4,7 +4,6 @@
 
 use diesel::dsl::sql;
 use diesel::sql_types::Double;
-use diesel::IntoSql;
 use tucant::MyError;
 
 use axum::extract::State;

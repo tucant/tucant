@@ -56,7 +56,7 @@ impl std::fmt::Debug for Tucan {
 }
 
 impl Tucan {
-    pub async fn new() -> anyhow::Result<Self> {
+    pub fn new() -> anyhow::Result<Self> {
         let pool = create_pool();
 
         let url = Url::parse("https://localhost:9200")?;
@@ -75,7 +75,7 @@ impl Tucan {
         })
     }
 
-    pub async fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
+    pub fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
         Ok(TucanUser {
             tucan: self.clone(),
             session,

@@ -147,10 +147,10 @@ fn parse_paren_open<I: Iterator<Item = char> + Clone>(
 
 fn parse_paren_close<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     // TODO FIXME duplication
     match iterator.next().unwrap() {
-        (')', position) => Some(Ok((
+        (')', position) => Ok((
             // TODO FIXME this is already checked in the caller, maybe clone iterators and just try parsing?
             Token::ParenClose,
             Span {
@@ -163,8 +163,8 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
                     },
                 },
             },
-        ))),
-        (_, position) => Some(Err(Error {
+        )),
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -174,7 +174,7 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
             },
             reason: String::new(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
@@ -340,7 +340,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.iterator.peek() {
             Some(('(', _position)) => Some(parse_paren_open(&mut self.iterator)),
-            Some((')', _position)) => parse_paren_close(&mut self.iterator),
+            Some((')', _position)) => Some(parse_paren_close(&mut self.iterator)),
             Some(('"', _start_pos)) => parse_string(&mut self.iterator),
             Some(('0'..='9', _start_pos)) => parse_number(&mut self.iterator),
             Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => {

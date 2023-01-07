@@ -334,31 +334,32 @@ impl Type for DefineLambdaType {
         args: (&[(Ast, Span)], Span),
         trace: &mut TypeTrace,
     ) -> TypecheckCall {
-        let [variable, _type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
-        let variable = match &variable.0 {
-            Ast::Identifier(identifier) => identifier,
-            _ => {
-                let err = Err(EvaluateError {
-                    location: variable.1.clone(),
-                    reason: "expected argument identifier".to_string(),
-                });
-                trace.push(err);
-                return Err(());
-            }
+        let [variable, the_type, body]: &[(Ast, Span); 3] = expect_n(args.clone(), trace)?;
+        let variable = if let Ast::Identifier(identifier) = &variable.0 {
+            identifier
+        } else {
+            let err = Err(EvaluateError {
+                location: variable.1.clone(),
+                reason: "expected argument identifier".to_string(),
+            });
+            trace.push(err);
+            return Err(());
         };
-        let type_identifier = match &_type.0 {
-            Ast::Identifier(identifier) => identifier,
-            _ => {
-                let err = Err(EvaluateError {
-                    location: _type.1.clone(),
-                    reason: "expected argument type".to_string(),
-                });
-                trace.push(err);
-                return Err(());
-            }
+        let type_identifier = if let Ast::Identifier(identifier) = &the_type.0 {
+            identifier
+        } else {
+            let err = Err(EvaluateError {
+                location: the_type.1.clone(),
+                reason: "expected argument type".to_string(),
+            });
+            trace.push(err);
+            return Err(());
         };
-        let param_type =
-            resolve_identifier_type(context, (type_identifier.clone(), _type.1.clone()), trace)?;
+        let param_type = resolve_identifier_type(
+            context,
+            (type_identifier.clone(), the_type.1.clone()),
+            trace,
+        )?;
         context.push((variable.clone(), param_type));
         let return_value = typecheck_with_context(context, body.clone(), trace);
         context.pop();
@@ -376,7 +377,7 @@ impl Type for DefineLambdaType {
     }
 }
 
-pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
+pub fn evaluate(value: &(Ast, Span)) -> EvaluateCall {
     let mut context: Vec<(String, (RcValue, Span))> = vec![
         (
             "lambda".to_string(),
@@ -417,7 +418,7 @@ pub fn evaluate(value: (Ast, Span)) -> EvaluateCall {
             ),
         ),
     ];
-    evaluate_with_context(&mut context, &value)
+    evaluate_with_context(&mut context, value)
 }
 
 pub fn typecheck(value: (Ast, Span)) -> (TypecheckCall, TypeTrace) {
@@ -512,24 +513,21 @@ fn resolve_identifier_type(
     identifier: (String, Span),
     trace: &mut TypeTrace,
 ) -> TypecheckCall {
-    match context
+    if let Some(value) = context
         .iter()
         .rev()
         .find(|(ident, _)| &identifier.0 == ident)
         .map(|(_ident, value)| value)
     {
-        Some(value) => {
-            let val = (value.0.clone(), identifier.1);
-            trace.push(Ok(val.clone()));
-            Ok(val)
-        }
-        None => {
-            trace.push(Err(EvaluateError {
-                location: identifier.1,
-                reason: format!("could not find identifier {}", identifier.0),
-            }));
-            Err(())
-        }
+        let val = (value.0.clone(), identifier.1);
+        trace.push(Ok(val.clone()));
+        Ok(val)
+    } else {
+        trace.push(Err(EvaluateError {
+            location: identifier.1,
+            reason: format!("could not find identifier {}", identifier.0),
+        }));
+        Err(())
     }
 }
 
@@ -556,16 +554,15 @@ pub fn typecheck_with_context(
             resolve_identifier_type(context, (identifier.to_string(), the_type.1), trace)
         }
         Ast::List(elements) => {
-            let (callable, args) = match elements.split_first() {
-                Some(v) => v,
-                None => {
-                    let err = Err(EvaluateError {
-                        location: the_type.1,
-                        reason: "can't call an empty list".to_string(),
-                    });
-                    trace.push(err);
-                    return Err(());
-                }
+            let (callable, args) = if let Some(v) = elements.split_first() {
+                v
+            } else {
+                let err = Err(EvaluateError {
+                    location: the_type.1,
+                    reason: "can't call an empty list".to_string(),
+                });
+                trace.push(err);
+                return Err(());
             };
             let callable = match &callable.0 {
                 Ast::Identifier(identifier) => resolve_identifier_type(

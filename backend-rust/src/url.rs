@@ -220,7 +220,7 @@ impl<'a> TucanArgument<'a> {
     pub fn number(&self) -> u64 {
         match self {
             TucanArgument::Number(number) => *number,
-            _ => panic!(),
+            TucanArgument::String(_) => panic!(),
         }
     }
 
@@ -228,7 +228,7 @@ impl<'a> TucanArgument<'a> {
     pub fn string(&self) -> &'a str {
         match self {
             TucanArgument::String(string) => string,
-            _ => panic!(),
+            TucanArgument::Number(_) => panic!(),
         }
     }
 }

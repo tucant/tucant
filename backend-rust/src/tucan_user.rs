@@ -128,7 +128,7 @@ impl TucanUser {
         Ok(resp)
     }
 
-    pub(crate) fn parse_document(&self, resp: &str) -> anyhow::Result<Html> {
+    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
         let html_doc = Html::parse_document(resp);
 
         if html_doc
@@ -179,7 +179,7 @@ impl TucanUser {
         let mut connection = self.tucan.pool.get().await?;
 
         let (module, courses) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let name = element_by_selector(&document, "h1").unwrap();
 
@@ -297,7 +297,7 @@ impl TucanUser {
         Ok(self.cached_module(url).await?.unwrap())
     }
 
-    fn extract_events(&self, url: Coursedetails, document: &Html) -> Vec<CourseEvent> {
+    fn extract_events(&self, url: &Coursedetails, document: &Html) -> Vec<CourseEvent> {
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
@@ -348,7 +348,9 @@ impl TucanUser {
                     .inner_html();
                 let lecturers = lecturer_column.inner_html().trim().to_string();
 
-                if !date.0 {
+                if date.0 {
+                    None
+                } else {
                     Some(CourseEvent {
                         course: url.id.clone(),
                         timestamp_start: date.1,
@@ -356,8 +358,6 @@ impl TucanUser {
                         room,
                         teachers: lecturers,
                     })
-                } else {
-                    None
                 }
             })
             .collect_vec()
@@ -380,7 +380,7 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let (course, course_groups, events) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let name = element_by_selector(&document, "h1").unwrap_or_else(|| unwrap_handler());
 
@@ -408,7 +408,7 @@ impl TucanUser {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let events = self.extract_events(url.clone(), &document);
+            let events = self.extract_events(&url, &document);
 
             let course = Course {
                 tucan_id: url.id.clone(),
@@ -492,7 +492,7 @@ impl TucanUser {
         use diesel_async::RunQueryDsl;
 
         let (course_group, events) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let plenum_element = document
                 .select(&s(".img_arrowLeft"))
@@ -514,7 +514,7 @@ impl TucanUser {
             .inner_html();
 
             let events = self
-                .extract_events(url.clone(), &document)
+                .extract_events(&url, &document)
                 .into_iter()
                 .map(|ce| CourseGroupEvent {
                     course: ce.course,
@@ -704,7 +704,7 @@ impl TucanUser {
         let connection = self.tucan.pool.get().await?;
 
         let is_course_group =
-            element_by_selector(&self.parse_document(&document)?, "form h1 + h2").is_some();
+            element_by_selector(&Self::parse_document(&document)?, "form h1 + h2").is_some();
 
         println!("is_course_group {is_course_group}");
 
@@ -726,7 +726,7 @@ impl TucanUser {
         // TODO FIXME cache this
 
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
-        let document = self.parse_document(&document)?;
+        let document = Self::parse_document(&document)?;
 
         let url_element = document
             .select(&s("h2 a"))
@@ -834,7 +834,7 @@ impl TucanUser {
         let mut connection = self.tucan.pool.get().await?;
 
         let (module_menu, submenus, modules) = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             let (_name, module_menu) = {
                 let url_element = document
@@ -861,10 +861,10 @@ impl TucanUser {
             let a = document.select(&selector).fuse().peekable();
 
             let d = a.batching(|f| {
-                let title = if f.peek()?.value().attr("name") != Some("eventLink") {
-                    f.next()
-                } else {
+                let title = if f.peek()?.value().attr("name") == Some("eventLink") {
                     None
+                } else {
+                    f.next()
                 };
                 let sub_elements: Vec<ElementRef> = f
                     .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
@@ -1091,7 +1091,7 @@ impl TucanUser {
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
         let my_modules = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("tbody tr a"))
@@ -1205,7 +1205,7 @@ impl TucanUser {
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("tbody tr a"))
@@ -1290,7 +1290,7 @@ impl TucanUser {
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
-        let document = self.parse_document(&document)?;
+        let document = Self::parse_document(&document)?;
 
         let matriculation_number: i32 = document
             .select(&s(r#"td[name="matriculationNumber"]"#))
@@ -1324,7 +1324,7 @@ impl TucanUser {
 
         let exam = {
             let name_document = self.fetch_document(&exam_details.clone().into()).await?;
-            let name_document = self.parse_document(&name_document)?;
+            let name_document = Self::parse_document(&name_document)?;
 
             let registration_range_element = name_document
                 .select(&s("table td b"))
@@ -1580,11 +1580,14 @@ impl TucanUser {
     async fn fetch_my_exams(&self) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
+        type ModuleExams = Vec<(Module, Exam)>;
+        type CourseExams = Vec<(Course, Exam)>;
+
         let matriculation_number = self.session.matriculation_number;
 
         let exams = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
-            let document = self.parse_document(&document)?;
+            let document = Self::parse_document(&document)?;
 
             document
                 .select(&s("table tbody tr"))
@@ -1660,9 +1663,6 @@ impl TucanUser {
             .do_nothing()
             .execute(&mut connection)
             .await?;
-
-        type ModuleExams = Vec<(Module, Exam)>;
-        type CourseExams = Vec<(Course, Exam)>;
 
         let (module_exams, course_exams): (ModuleExams, CourseExams) =
             exams.into_iter().partition_map(|v| match v.0 {

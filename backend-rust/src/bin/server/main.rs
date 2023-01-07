@@ -166,9 +166,9 @@ async fn login_hack(
     tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
-    println!("{input:?}");
-
     use diesel_async::RunQueryDsl;
+
+    println!("{input:?}");
 
     let mut connection = tucan.pool.get().await?;
 
@@ -260,6 +260,7 @@ async fn login_hack(
 }
 
 #[ts]
+#[allow(clippy::unused_async)]
 async fn logout(
     cookie_jar: PrivateCookieJar,
     _input: Json<()>,
@@ -272,6 +273,7 @@ async fn logout(
 }
 
 #[ts]
+#[allow(clippy::unused_async)]
 async fn index(
     session: Option<TucanSession>,
     _cookie_jar: PrivateCookieJar,
@@ -336,7 +338,7 @@ async fn main() -> anyhow::Result<()> {
     let secret_key_raw = fs::read("sessions.key").await?;
     let secret_key = Key::from(&secret_key_raw);
 
-    let tucan = Tucan::new().await?;
+    let tucan = Tucan::new()?;
 
     let app_state = AppState {
         key: secret_key,

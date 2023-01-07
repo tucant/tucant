@@ -40,7 +40,7 @@ pub async fn module(
     )
     .unwrap();
 
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone()).unwrap();
 
     let result = tucan
         .module(Moduledetails {

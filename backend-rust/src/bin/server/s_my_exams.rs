@@ -24,7 +24,7 @@ pub async fn my_exams(
     tucan: State<Tucan>,
     _input: Json<()>,
 ) -> Result<Json<WithTucanUrl<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)>>, MyError> {
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone()).unwrap();
 
     let result = tucan.my_exams().await?;
 

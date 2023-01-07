@@ -34,7 +34,7 @@ pub async fn course(
     )
     .unwrap();
 
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone()).unwrap();
 
     let url = Coursedetails {
         id: binary_path.clone(),

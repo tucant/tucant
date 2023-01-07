@@ -24,7 +24,7 @@ pub async fn my_courses(
     tucan: State<Tucan>,
     _input: Json<()>,
 ) -> Result<Json<WithTucanUrl<Vec<CourseOrCourseGroup>>>, MyError> {
-    let tucan = tucan.continue_session(session.clone()).await.unwrap();
+    let tucan = tucan.continue_session(session.clone()).unwrap();
 
     let result = tucan.my_courses().await?;
 

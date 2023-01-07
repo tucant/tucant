@@ -652,14 +652,6 @@ impl Server {
         self: Arc<Self>,
         request: R::Request,
     ) -> anyhow::Result<R::Response> {
-        let (tx, rx) = oneshot::channel::<Value>();
-
-        let id: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(30)
-            .map(char::from)
-            .collect();
-
         #[derive(Serialize, Debug)]
         struct TestRequest<T> {
             jsonrpc: String,
@@ -667,6 +659,14 @@ impl Server {
             method: String,
             params: T,
         }
+
+        let (tx, rx) = oneshot::channel::<Value>();
+
+        let id: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(30)
+            .map(char::from)
+            .collect();
 
         let request = TestRequest::<R::Request> {
             jsonrpc: "2.0".to_string(),

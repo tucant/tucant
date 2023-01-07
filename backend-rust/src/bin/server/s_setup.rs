@@ -115,7 +115,7 @@ pub async fn setup(
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
 
-        let tucan = tucan.continue_session(session).await.unwrap();
+        let tucan = tucan.continue_session(session).unwrap();
 
         let root = tucan.root_registration().await.unwrap();
 
