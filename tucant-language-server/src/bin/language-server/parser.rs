@@ -57,7 +57,7 @@ pub struct LineColumnIterator<I: Iterator<Item = char> + Clone> {
 }
 
 impl<I: Iterator<Item = char> + Clone> LineColumnIterator<I> {
-    pub fn new(iterator: I) -> Self {
+    pub const fn new(iterator: I) -> Self {
         Self {
             iterator,
             position: Position {
@@ -180,7 +180,7 @@ fn parse_paren_close<I: Iterator<Item = char> + Clone>(
 
 pub fn parse_string<I: Iterator<Item = char> + Clone>(
     iterator: &mut Peekable<LineColumnIterator<I>>,
-) -> Option<Result<(Token, Span), Error<()>>> {
+) -> Result<(Token, Span), Error<()>> {
     match iterator.next().unwrap() {
         ('"', start_pos) => {
             let end: String = iterator
@@ -188,7 +188,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                 .map(|(char, _pos)| char)
                 .collect();
             match iterator.next() {
-                Some(('"', end_pos)) => Some(Ok((
+                Some(('"', end_pos)) => Ok((
                     Token::String(end),
                     Span {
                         filename: "<stdin>".to_string(),
@@ -200,8 +200,8 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                             },
                         },
                     },
-                ))),
-                Some((_, end_pos)) => Some(Err(Error {
+                )),
+                Some((_, end_pos)) => Err(Error {
                     location: Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
@@ -211,8 +211,8 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                     },
                     reason: r#"Expected a `"`"#.to_string(),
                     partial_parse: (),
-                })),
-                None => Some(Err(Error {
+                }),
+                None => Err(Error {
                     location: Span {
                         filename: "<stdin>".to_string(),
                         range: Range {
@@ -222,10 +222,10 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
                     },
                     reason: r#"Unterminated string literal"#.to_string(),
                     partial_parse: (),
-                })),
+                }),
             }
         }
-        (_, position) => Some(Err(Error {
+        (_, position) => Err(Error {
             location: Span {
                 filename: "<stdin>".to_string(),
                 range: Range {
@@ -235,7 +235,7 @@ pub fn parse_string<I: Iterator<Item = char> + Clone>(
             },
             reason: r#"Expected a `"`"#.to_string(),
             partial_parse: (),
-        })),
+        }),
     }
 }
 
@@ -341,7 +341,7 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Tokenizer<I> {
         match self.iterator.peek() {
             Some(('(', _position)) => Some(parse_paren_open(&mut self.iterator)),
             Some((')', _position)) => Some(parse_paren_close(&mut self.iterator)),
-            Some(('"', _start_pos)) => parse_string(&mut self.iterator),
+            Some(('"', _start_pos)) => Some(parse_string(&mut self.iterator)),
             Some(('0'..='9', _start_pos)) => Some(parse_number(&mut self.iterator)),
             Some(('a'..='z' | 'A'..='Z' | '_', _start_pos)) => {
                 Some(parse_identifier(&mut self.iterator))
@@ -638,26 +638,26 @@ fn test_parse_string() {
     init();
 
     let mut span = TokenizerBuilder::from_string(r#"notastring"#);
-    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
+    let string = parse_string(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Expected a `"`"#);
     //assert_eq!(string.location.string, "n");
 
     let mut span = TokenizerBuilder::from_string(r#""unterminated"#);
-    let string = parse_string(&mut span.iterator).unwrap().unwrap_err();
+    let string = parse_string(&mut span.iterator).unwrap_err();
     println!("{string:?}");
     assert_eq!(string.reason, r#"Unterminated string literal"#);
     //assert_eq!(string.location.string, r#""unterminated"#);
 
     let mut span = TokenizerBuilder::from_string(r#""astring"jojo"#);
-    let string = parse_string(&mut span.iterator).unwrap().unwrap();
+    let string = parse_string(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);
     //assert_eq!(string.1.string, "jojo");
 
     let mut span = TokenizerBuilder::from_string(r#""astring""#);
-    let string = parse_string(&mut span.iterator).unwrap().unwrap();
+    let string = parse_string(&mut span.iterator).unwrap();
     println!("{string:?}");
     assert!(matches!(string.0, Token::String(v) if v == "astring"));
     //assert_eq!(string.0.string, r#""astring""#);

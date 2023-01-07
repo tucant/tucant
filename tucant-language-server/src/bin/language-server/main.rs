@@ -732,7 +732,9 @@ impl Server {
         Ok(())
     }
 
-    async fn handle_sending<W: Sink<String, Error = anyhow::Error> + std::marker::Send + std::marker::Unpin>(
+    async fn handle_sending<
+        W: Sink<String, Error = anyhow::Error> + std::marker::Send + std::marker::Unpin,
+    >(
         self: Arc<Self>,
         mut sender: W,
         mut rx: mpsc::Receiver<String>,

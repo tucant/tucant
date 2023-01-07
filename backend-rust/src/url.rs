@@ -172,7 +172,7 @@ impl TucanProgram {
             ),
             Self::Persaddress(_) => (
                 "PERSADDRESS",
-                Box::new([TucanArgument::Number(339)].into_iter()),
+                Box::new(std::iter::once(TucanArgument::Number(339))),
             ),
             Self::StartpageDispatch(_) => todo!(),
             Self::Externalpages(_) => todo!(),

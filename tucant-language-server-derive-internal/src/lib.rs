@@ -506,6 +506,7 @@ pub fn parse_notifications(
         })
         .map_while(until_err(&mut requests_err))
         .multiunzip();
+    requests_err?;
     Ok(return_type)
 }
 
@@ -647,7 +648,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
         }
 
         impl<T> Notification<T> {
-            pub fn new(value: T) -> Self {
+            pub const fn new(value: T) -> Self {
                 Self {
                     params: value
                 }

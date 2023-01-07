@@ -33,7 +33,7 @@ pub async fn exam(
     )
     .unwrap();
 
-    let tucan = tucan.continue_session(session.clone()).unwrap();
+    let tucan = tucan.continue_session(session.clone());
 
     let url = Examdetails {
         id: binary_path.clone(),

@@ -75,11 +75,12 @@ impl Tucan {
         })
     }
 
-    pub fn continue_session(&self, session: TucanSession) -> anyhow::Result<TucanUser> {
-        Ok(TucanUser {
+    #[must_use]
+    pub fn continue_session(&self, session: TucanSession) -> TucanUser {
+        TucanUser {
             tucan: self.clone(),
             session,
-        })
+        }
     }
 
     pub async fn tucan_session_from_session_data(

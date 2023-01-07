@@ -13,8 +13,7 @@ use axum_extra::extract::PrivateCookieJar;
 use chrono::NaiveDateTime;
 #[cfg(feature = "server")]
 use diesel::prelude::{
-    AsChangeset, Associations, ExpressionMethods, Identifiable, Insertable, Queryable,
-    QueryableByName,
+    AsChangeset, Associations, Identifiable, Insertable, Queryable, QueryableByName,
 };
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
@@ -317,7 +316,7 @@ pub struct UndoneUser {
 
 impl UndoneUser {
     #[must_use]
-    pub fn new(matriculation_number: i32) -> Self {
+    pub const fn new(matriculation_number: i32) -> Self {
         Self {
             matriculation_number,
             done: false,

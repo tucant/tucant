@@ -827,6 +827,7 @@ impl TucanUser {
         }
     }
 
+    #[allow(clippy::unused_peekable)]
     pub async fn fetch_registration(&self, url: Registration) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -858,6 +859,7 @@ impl TucanUser {
             debug!("[+] menu {:?}", module_menu);
 
             let selector = s("table.tbcoursestatus strong a[href]");
+
             let a = document.select(&selector).fuse().peekable();
 
             let d = a.batching(|f| {
