@@ -827,6 +827,7 @@ impl TucanUser {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_registration(&self, url: Registration) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
@@ -1322,6 +1323,7 @@ impl TucanUser {
         Ok(existing)
     }
 
+    #[allow(clippy::too_many_lines)]
     pub async fn fetch_exam_details(&self, exam_details: Examdetails) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -1580,6 +1582,7 @@ impl TucanUser {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn fetch_my_exams(&self) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 

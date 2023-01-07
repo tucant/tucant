@@ -1,4 +1,4 @@
-pub mod evaluate;
+pub mod evaluator;
 pub mod parser;
 
 use std::{collections::HashMap, sync::Arc, vec};
@@ -44,7 +44,7 @@ use tucant_language_server_derive_output::{
 };
 
 use crate::{
-    evaluate::typecheck,
+    evaluator::typecheck,
     parser::{visitor, Error},
 };
 
@@ -536,6 +536,7 @@ impl Server {
         Ok(())
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         let result = InitializeResult {
             capabilities: ServerCapabilities {

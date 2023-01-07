@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)] // inside diesel macro
+
 use std::collections::VecDeque;
 
 use axum::extract::FromRef;

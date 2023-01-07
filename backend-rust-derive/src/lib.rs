@@ -81,6 +81,7 @@ fn handle_item_fn(node: &ItemFn) -> syn::Result<TokenStream> {
     })
 }
 
+#[allow(clippy::too_many_lines)]
 fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
     let name_string = input.ident.to_string();

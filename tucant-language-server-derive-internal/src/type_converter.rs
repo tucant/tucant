@@ -11,6 +11,8 @@ use rand_chacha::ChaCha20Rng;
 use sha3::Digest;
 use sha3::Sha3_224;
 
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn handle_type(
     random: &mut ChaCha20Rng,
     the_type: &Type,

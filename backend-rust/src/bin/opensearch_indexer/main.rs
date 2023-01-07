@@ -18,6 +18,7 @@ use tucant::{
 };
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
+#[allow(clippy::too_many_lines)]
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     const CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";

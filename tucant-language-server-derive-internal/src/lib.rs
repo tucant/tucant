@@ -14,6 +14,7 @@ use schema::{
 
 use type_converter::{handle_type, until_err};
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_structures(
     random: &mut ChaCha20Rng,
     structures: &[Structure],
@@ -126,6 +127,7 @@ pub fn parse_structures(
     Ok(return_type)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_enumerations(
     _random: &mut ChaCha20Rng,
     enumerations: &[Enumeration],
@@ -255,6 +257,8 @@ pub fn parse_type_aliases(
     Ok(return_value)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
+#[allow(clippy::too_many_lines)]
 pub fn parse_requests(
     random: &mut ChaCha20Rng,
     requests: &[Request],
@@ -426,6 +430,7 @@ pub fn parse_requests(
     Ok(return_value)
 }
 
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn parse_notifications(
     random: &mut ChaCha20Rng,
     notifications: &[Notification],
@@ -511,6 +516,8 @@ pub fn parse_notifications(
 }
 
 // a totally different approach which would give us line number information would be to have a magic!{} macro inside which the json is *not* inside a string. so the json would be parsed into actual tokens. possibly this could be done with serde.
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::wildcard_imports)] // false positive
 pub fn handle_magic() -> syn::Result<TokenStream> {
     //let file = fs::File::open("metaModel.json").expect("file should open read only");
     let meta_model_json = include_str!("./metaModel.json");
@@ -584,6 +591,7 @@ pub fn handle_magic() -> syn::Result<TokenStream> {
 
     Ok(quote! {
         #![allow(clippy::vec_box)]
+        #![allow(clippy::module_name_repetitions)]
 
         #(#structures)*
         #(#enumerations)*

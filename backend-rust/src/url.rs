@@ -9,6 +9,7 @@ use derive_more::{From, TryInto};
 use serde::{Deserialize, Serialize};
 use url::{Host, Origin, Url};
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct TucanUrl {
     pub session_nr: Option<u64>,
@@ -101,6 +102,7 @@ pub enum TucanProgram {
 }
 
 impl TucanProgram {
+    #[allow(clippy::too_many_lines)]
     #[must_use]
     pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
@@ -265,6 +267,9 @@ fn string<'a>(
     arguments.next().unwrap().string()
 }
 
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::cognitive_complexity)]
+#[allow(clippy::module_name_repetitions)]
 #[must_use]
 pub fn parse_tucan_url(url: &str) -> TucanUrl {
     let url = Url::parse(url).unwrap();
