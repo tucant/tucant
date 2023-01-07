@@ -8,8 +8,10 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH"
 
-./frontend-react/node_modules/.bin/prettier --ignore-unknown --write .
-./frontend-react/node_modules/.bin/eslint --fix frontend-react
+cd frontend-react
+./node_modules/.bin/rome check --apply .
+./node_modules/.bin/rome format --write .
+cd ..
 
 FILES=$(git diff --name-only --cached)
 echo "$FILES" | xargs git add
