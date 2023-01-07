@@ -2,12 +2,12 @@
 name = "trunk-template"
 version = "0.1.0"
 edition = "2021"
-description = "Template for starting a Yew project using Trunk"
 readme = "README.md"
-repository = "https://github.com/yewstack/yew-trunk-minimal-template"
+repository = "https://github.com/mohe2015/tucant"
+description = "A nicer, faster and more featureful frontend to TUCaN"
 license = "AGPL-3.0-or-later"
-keywords = ["yew", "trunk"]
-categories = ["gui", "wasm", "web-programming"]
+keywords = ["tucan"]
+categories = ["accessibility", "api-bindings", "caching"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
