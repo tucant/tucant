@@ -1,0 +1,23 @@
+[package]
+name = "debug-adapter-protocol-derive"
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
+description = "A nicer, faster and more featureful frontend to TUCaN"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/mohe2015/tucant"
+keywords = ["tucan"]
+categories = ["accessibility", "api-bindings", "caching"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+debug-adapter-protocol = { path = "../debug-adapter-protocol" }
+syn = { version = "1", features = ["full", "extra-traits"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
+quote = "1"
+anyhow = "1.0.68"
