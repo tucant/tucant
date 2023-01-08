@@ -5,11 +5,11 @@
     clippy::multiple_crate_versions
 )]
 
-use debug_adapter_protocol::{JSONValue, JSONSchema};
+use debug_adapter_protocol_macro_impl::{JSONValue, JSONSchema};
 use quote::quote;
 use syn::parse_macro_input;
 
-fn internal_debug_adapter_protocol_macro(input: JSONValue) -> Result<proc_macro2::TokenStream, syn::Error> {
+fn debug_adapter_protocol_macro_impl(input: JSONValue) -> Result<proc_macro2::TokenStream, syn::Error> {
     let input: JSONSchema = input.try_into()?;
 
     Ok(quote!())
@@ -20,6 +20,6 @@ pub fn debug_adapter_protocol_macro(input: proc_macro::TokenStream) -> proc_macr
     let input = parse_macro_input!(input as JSONValue);
 
     proc_macro::TokenStream::from(
-        internal_debug_adapter_protocol_macro(input).unwrap_or_else(syn::Error::into_compile_error),
+        debug_adapter_protocol_macro_impl(input).unwrap_or_else(syn::Error::into_compile_error),
     )
 }

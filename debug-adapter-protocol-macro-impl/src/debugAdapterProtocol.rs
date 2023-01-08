@@ -1,7 +1,7 @@
-use debug_adapter_protocol_macro::debug_adapter_protocol_macro;
+use proc_macro2::TokenStream;
 
-pub fn get_debug_adapter_protocol_json() {
-    debug_adapter_protocol_macro!({
+pub fn get_debug_adapter_protocol_json() -> TokenStream {
+    quote::quote! {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "Debug Adapter Protocol",
         "description": "The Debug Adapter Protocol defines the protocol used between an editor or IDE and a debugger or runtime.",
@@ -4186,5 +4186,5 @@ pub fn get_debug_adapter_protocol_json() {
             }
 
         }
-    })
+    }
 }
