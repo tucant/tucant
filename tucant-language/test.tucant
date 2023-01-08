@@ -1,4 +1,4 @@
 (lambda test integer-type
     (add test
-        5)
+        (add 7 5))
 )
