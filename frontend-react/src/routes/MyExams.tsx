@@ -4,6 +4,7 @@
 
 import useSWR from "swr";
 import { my_exams } from "../api";
+import { formatLocalDate } from "../api_base";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
@@ -31,9 +32,9 @@ export default function MyExams() {
                 to={`/exam/${e[1].tucan_id}`}
               >
                 {e[0].title} ({e[1].exam_type}){" "}
-                {e[1].exam_time_start
+                {formatLocalDate(e[1].exam_time_start)
                   ?.concat("-")
-                  .concat(e[1].exam_time_end ?? "")}
+                  .concat(formatLocalDate(e[1].exam_time_end) ?? "")}
               </Link>
             ))}
             {data.inner[1].map((e) => (
@@ -43,9 +44,9 @@ export default function MyExams() {
                 to={`/exam/${e[1].tucan_id}`}
               >
                 {e[0].title} ({e[1].exam_type}){" "}
-                {e[1].exam_time_start
+                {formatLocalDate(e[1].exam_time_start)
                   ?.concat("-")
-                  .concat(e[1].exam_time_end ?? "")}
+                  .concat(formatLocalDate(e[1].exam_time_end) ?? "")}
               </Link>
             ))}
           </div>

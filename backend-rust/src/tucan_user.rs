@@ -1305,7 +1305,10 @@ impl TucanUser {
         Ok(UndoneUser::new(matriculation_number))
     }
 
-    async fn cached_exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Option<Exam>> {
+    async fn cached_exam_details(
+        &self,
+        exam_details: Examdetails,
+    ) -> anyhow::Result<Option<(Exam, Vec<Module>, Vec<Course>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1317,7 +1320,25 @@ impl TucanUser {
             .await
             .optional()?;
 
-        Ok(existing)
+        if let Some(existing) = existing {
+            let module_exams: Vec<Module> = module_exams::table
+                .filter(module_exams::exam.eq(&exam_details.id))
+                .inner_join(modules_unfinished::table)
+                .select(MODULES_UNFINISHED)
+                .load(&mut connection)
+                .await?;
+
+            let course_exams: Vec<Course> = course_exams::table
+                .filter(course_exams::exam.eq(&exam_details.id))
+                .inner_join(courses_unfinished::table)
+                .select(COURSES_UNFINISHED)
+                .load(&mut connection)
+                .await?;
+
+            Ok(Some((existing, module_exams, course_exams)))
+        } else {
+            Ok(None)
+        }
     }
 
     #[allow(clippy::too_many_lines)]
@@ -1463,7 +1484,10 @@ impl TucanUser {
         Ok(())
     }
 
-    pub async fn exam_details(&self, exam_details: Examdetails) -> anyhow::Result<Exam> {
+    pub async fn exam_details(
+        &self,
+        exam_details: Examdetails,
+    ) -> anyhow::Result<(Exam, Vec<Module>, Vec<Course>)> {
         if let Some(value) = self.cached_exam_details(exam_details.clone()).await? {
             return Ok(value);
         }
