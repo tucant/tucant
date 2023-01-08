@@ -26,8 +26,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>. -->
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/mohe2015/tucant)
 [![Github stars](https://img.shields.io/github/stars/mohe2015/tucant.svg)](https://GitHub.com/mohe2015/tucant/stargazers/)
 [![Node.js CI](https://github.com/mohe2015/tucant/actions/workflows/frontend-react.yml/badge.svg)](https://github.com/mohe2015/tucant/actions/workflows/frontend-react.yml)
-[![Rust](https://github.com/mohe2015/tucant/actions/workflows/tucant-language-server-derive-output.yml/badge.svg)](https://github.com/mohe2015/tucant/actions/workflows/tucant-language-server-derive-output.yml)
-
+[![Rust](https://github.com/mohe2015/tucant/actions/workflows/rust.yml/badge.svg)](https://github.com/mohe2015/tucant/actions/workflows/rust.yml)
 </h1>
 
 A **nicer**, **faster** and more **featureful** frontend to <a href="https://www.tucan.tu-darmstadt.de/" target="_blank">TUCaN</a>.
