@@ -1,0 +1,12 @@
+diff --git a/backend-rust/src/schema.rs b/backend-rust/src/schema.rs
+index cf2f864..7d57292 100644
+--- a/backend-rust/src/schema.rs
++++ b/backend-rust/src/schema.rs
+@@ -1,6 +1,7 @@
++#![allow(clippy::wildcard_imports)]
+ // @generated automatically by Diesel CLI.
+ 
+ diesel::table! {
+     use diesel::sql_types::*;
+     use diesel_full_text_search::*;
+ 

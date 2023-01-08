@@ -1605,7 +1605,7 @@ impl TucanUser {
 
                     let module_link = module_column.select(&s("a")).next().unwrap();
                     let name_link = name_column.select(&s("a")).next().unwrap();
-                    let _date_link = date_column.select(&s("a")).next();
+                    let date_link = date_column.select(&s("a")).next();
 
                     let module_program = parse_tucan_url(&format!(
                         "https://www.tucan.tu-darmstadt.de{}",
@@ -1619,17 +1619,19 @@ impl TucanUser {
                     ))
                     .program;
 
+                    let date = date_link.map(|date| Self::parse_datetime(&date.inner_html()));
+
                     let examdetails = TryInto::<Examdetails>::try_into(name_program).unwrap();
 
                     (
                         module_program,
                         Exam {
                             tucan_id: examdetails.id,
-                            exam_type: String::new(),
+                            exam_type: name_link.inner_html(),
                             semester: String::new(),
-                            exam_time_start: None,
-                            exam_time_end: None,
-                            registration_start: Utc::now().naive_utc(), // TODO FIXME
+                            exam_time_start: date.map(|d| d.1),
+                            exam_time_end: date.map(|d| d.2),
+                            registration_start: Utc::now().naive_utc(), // TODO FIXME remove
                             registration_end: Utc::now().naive_utc(),
                             unregistration_start: Utc::now().naive_utc(),
                             unregistration_end: Utc::now().naive_utc(),

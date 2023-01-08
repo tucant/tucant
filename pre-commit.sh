@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: The tucant Contributors
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+set -e
 
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
