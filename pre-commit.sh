@@ -8,6 +8,10 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH"
 
+cargo fmt --all
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-targets --all-features
+
 cd frontend-react
 npm run check-fix
 cd ..
