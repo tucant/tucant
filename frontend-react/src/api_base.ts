@@ -35,3 +35,7 @@ export function isLoggedIn() {
     .split(";")
     .some((item) => item.trim().startsWith("id="));
 }
+
+export function formatLocalDate(value: string | null) {
+  return value == null ? null : new Date(value).toLocaleString();
+}

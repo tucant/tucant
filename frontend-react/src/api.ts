@@ -6,8 +6,8 @@ export async function course(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ29
 export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0> {
         return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0
 }
-export async function exam(input: string): Promise<WithTucanUrlRXhhbQ> {
-        return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlRXhhbQ
+export async function exam(input: string): Promise<WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0> {
+        return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0
 }
 export async function get_modules(input: string | null): Promise<WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl> {
         return await genericFetch("http://localhost:8080/modules", input) as WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl
@@ -156,11 +156,6 @@ export type WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd =
   tucan_url: string,
   inner: CourseOrCourseGroup[],
 }
-export type WithTucanUrlRXhhbQ =
-{
-  tucan_url: string,
-  inner: Exam,
-}
 export type WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl =
 {
   tucan_url: string,
@@ -185,6 +180,11 @@ export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXV0 =
 {
   tucan_url: string,
   inner: [Course, CourseGroup[], CourseEvent[]],
+}
+export type WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0 =
+{
+  tucan_url: string,
+  inner: [Exam, Module[], Course[]],
 }
 export type WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d =
 {
