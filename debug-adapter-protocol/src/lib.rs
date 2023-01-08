@@ -77,9 +77,12 @@ pub fn parse() -> Result<(), syn::Error> {
     //let json = get_debug_adapter_protocol_json();
     let json_value: JSONValue = syn::parse2(quote::quote! { { "hello": { "test": ["world"] } } })?;
     println!("{:#?}", json_value);
+    let schema: JSONSchema = json_value.try_into()?;
+    println!("{:#?}", schema);
     Ok(())
 }
 
+#[derive(Debug)]
 pub struct JSONSchema {
     schema: LitStr,
     title: LitStr,
@@ -92,22 +95,18 @@ fn extract_keys<const N: usize>(
     (brace, value): (Brace, Punctuated<KeyValue, Comma>),
     keys: [&str; N],
 ) -> Result<[JSONValue; N], syn::Error> {
-    let value_set: HashSet<_> = value.iter().map(|e| e.key.clone()).collect();
-    let keys_set: HashSet<_> = keys
-        .iter()
-        .map(|e| LitStr::new(e, Span::call_site()))
-        .collect();
-    let mut too_many_keys = value_set.difference(&keys_set);
-    if let Some(key) = too_many_keys.next() {
-        return Err(syn::Error::new(key.span(), "Unexpected key"));
-    }
-    let map: HashMap<_, _> = value.into_iter().map(|e| (e.key, e.value)).collect();
+    let mut map: HashMap<_, _> = value.into_iter().map(|e| (e.key, e.value)).collect();
     let result = keys.try_map(|key| {
         let corresponding_value = map.remove(&LitStr::new(key, Span::call_site()));
         corresponding_value
             .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {}", key)))
     });
-
+    if let Some(key) = map.into_iter().next() {
+        return Err(syn::Error::new(
+            key.0.span(),
+            format!("Unexpected key {}", key.0.token()),
+        ));
+    }
     result
 }
 
@@ -116,7 +115,7 @@ impl TryFrom<JSONValue> for JSONSchema {
 
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
         if let JSONValue::Object(value) = value {
-            let schema = extract_keys(value, ["test"]);
+            let schema = extract_keys(value, ["test"])?;
 
             Ok(Self {
                 schema: todo!(),
@@ -137,6 +136,6 @@ mod tests {
 
     #[test]
     fn it_works() {
-        parse().unwrap()
+        parse().unwrap();
     }
 }
