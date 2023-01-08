@@ -20,6 +20,7 @@ use syn::token::{Brace, Comma};
 use syn::parse::Parse;
 use syn::{braced, bracketed, token, LitInt, LitStr, Token};
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum JSONValue {
     String(LitStr),
@@ -31,14 +32,15 @@ pub enum JSONValue {
 impl JSONValue {
     fn span(&self) -> Span {
         match self {
-            JSONValue::String(value) => value.span(),
-            JSONValue::Integer(value) => value.span(),
-            JSONValue::Array((value, _)) => value.span,
-            JSONValue::Object((value, _)) => value.span,
+            Self::String(value) => value.span(),
+            Self::Integer(value) => value.span(),
+            Self::Array((value, _)) => value.span,
+            Self::Object((value, _)) => value.span,
         }
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct KeyValue {
     key: LitStr,
@@ -62,16 +64,16 @@ impl Parse for JSONValue {
         if lookahead.peek(token::Brace) {
             let content;
             let brace = braced!(content in input);
-            Ok(JSONValue::Object((
+            Ok(Self::Object((
                 brace,
                 content.parse_terminated(KeyValue::parse)?,
             )))
         } else if lookahead.peek(token::Bracket) {
             let content;
             let bracket = bracketed!(content in input);
-            Ok(JSONValue::Array((
+            Ok(Self::Array((
                 bracket,
-                content.parse_terminated(JSONValue::parse)?,
+                content.parse_terminated(Self::parse)?,
             )))
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::String)
@@ -92,6 +94,7 @@ pub fn parse() -> Result<(), syn::Error> {
     Ok(())
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct JSONSchema {
     schema: LitStr,
@@ -120,19 +123,46 @@ fn extract_keys<const N: usize>(
     result
 }
 
+impl TryFrom<JSONValue> for LitStr {
+    type Error = syn::Error;
+
+    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
+        if let JSONValue::String(value) = value {
+            Ok(value)
+        } else {
+            Err(syn::Error::new(value.span(), "Expected string"))
+        }
+    }
+}
+
+impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue, token::Comma>) {
+    type Error = syn::Error;
+
+    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
+        if let JSONValue::Object(value) = value {
+            Ok(value)
+        } else {
+            Err(syn::Error::new(value.span(), "Expected object"))
+        }
+    }
+}
+
 impl TryFrom<JSONValue> for JSONSchema {
     type Error = syn::Error;
 
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
         if let JSONValue::Object(value) = value {
-            let _schema = extract_keys(value, ["test"])?;
+            let [schema, title, description, r#type, definitions] = extract_keys(
+                value,
+                ["schema", "title", "description", "type", "definitions"],
+            )?;
 
             Ok(Self {
-                schema: todo!(),
-                title: todo!(),
-                description: todo!(),
-                r#type: todo!(),
-                definitions: todo!(),
+                schema: schema.try_into()?,
+                title: title.try_into()?,
+                description: description.try_into()?,
+                r#type: r#type.try_into()?,
+                definitions: definitions.try_into()?,
             })
         } else {
             Err(syn::Error::new(value.span(), "Expected object"))
@@ -142,7 +172,7 @@ impl TryFrom<JSONValue> for JSONSchema {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::parse;
 
     #[test]
     fn it_works() {
