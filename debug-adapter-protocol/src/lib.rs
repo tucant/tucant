@@ -1,10 +1,20 @@
+// SPDX-FileCopyrightText: The tucant Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//#![deny(unused_results)]
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
 #![feature(array_try_map)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use proc_macro2::Span;
 use syn::punctuated::Punctuated;
-use syn::token::{Brace, Colon, Comma};
+use syn::token::{Brace, Comma};
 //mod debugAdapterProtocol;
 //use crate::debugAdapterProtocol::get_debug_adapter_protocol_json;
 use syn::parse::Parse;
@@ -76,9 +86,9 @@ impl Parse for JSONValue {
 pub fn parse() -> Result<(), syn::Error> {
     //let json = get_debug_adapter_protocol_json();
     let json_value: JSONValue = syn::parse2(quote::quote! { { "hello": { "test": ["world"] } } })?;
-    println!("{:#?}", json_value);
+    println!("{json_value:#?}");
     let schema: JSONSchema = json_value.try_into()?;
-    println!("{:#?}", schema);
+    println!("{schema:#?}");
     Ok(())
 }
 
@@ -99,7 +109,7 @@ fn extract_keys<const N: usize>(
     let result = keys.try_map(|key| {
         let corresponding_value = map.remove(&LitStr::new(key, Span::call_site()));
         corresponding_value
-            .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {}", key)))
+            .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
     });
     if let Some(key) = map.into_iter().next() {
         return Err(syn::Error::new(
@@ -115,7 +125,7 @@ impl TryFrom<JSONValue> for JSONSchema {
 
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
         if let JSONValue::Object(value) = value {
-            let schema = extract_keys(value, ["test"])?;
+            let _schema = extract_keys(value, ["test"])?;
 
             Ok(Self {
                 schema: todo!(),
