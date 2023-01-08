@@ -26,7 +26,7 @@ export default function Modules() {
       <h1 className="text-center">{data?.inner.module_menu.name}</h1>
       {data && (
         <>
-          {data.inner.path.map((p, i) => (
+          {data.inner.path.map((p) => (
             <nav
               key={p.map((pe) => pe.tucan_id).join()}
               style={{ "--bs-breadcrumb-divider": "'>'" }}

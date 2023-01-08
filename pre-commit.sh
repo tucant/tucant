@@ -9,8 +9,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH"
 
 cd frontend-react
-./node_modules/.bin/rome check --apply .
-./node_modules/.bin/rome format --write .
+npm run check-fix
 cd ..
 
 FILES=$(git diff --name-only --cached)

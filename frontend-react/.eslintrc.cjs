@@ -3,30 +3,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 module.exports = {
-  env: {
-    browser: true,
-    es2021: true,
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    project: "./tsconfig.json",
   },
+  ignorePatterns: ["dist/"],
+  plugins: ["react", "@typescript-eslint", "jsx-a11y"],
   extends: [
-    "prettier",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
   ],
-  parser: "@typescript-eslint/parser",
-  overrides: [],
-  parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
-    tsconfigRootDir: __dirname,
-    project: ["./tsconfig.json"],
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
-  plugins: ["react", "@typescript-eslint"],
   rules: {
     "@typescript-eslint/no-unused-vars": [
       "warn", // or "error"
@@ -37,11 +28,9 @@ module.exports = {
       },
     ],
   },
-  root: true,
   settings: {
     react: {
       version: "detect",
     },
   },
-  ignorePatterns: ["dist/"],
 };
