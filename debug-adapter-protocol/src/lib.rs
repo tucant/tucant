@@ -1,5 +1,10 @@
+#![feature(array_try_map)]
+
+use std::collections::{HashMap, HashSet};
+
+use proc_macro2::Span;
 use syn::punctuated::Punctuated;
-use syn::token::Colon;
+use syn::token::{Brace, Colon, Comma};
 //mod debugAdapterProtocol;
 //use crate::debugAdapterProtocol::get_debug_adapter_protocol_json;
 use syn::parse::Parse;
@@ -11,6 +16,17 @@ pub enum JSONValue {
     Integer(LitInt),
     Array((token::Bracket, Punctuated<JSONValue, token::Comma>)),
     Object((token::Brace, Punctuated<KeyValue, token::Comma>)),
+}
+
+impl JSONValue {
+    fn span(&self) -> Span {
+        match self {
+            JSONValue::String(value) => value.span(),
+            JSONValue::Integer(value) => value.span(),
+            JSONValue::Array((value, _)) => value.span,
+            JSONValue::Object((value, _)) => value.span,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -62,6 +78,57 @@ pub fn parse() -> Result<(), syn::Error> {
     let json_value: JSONValue = syn::parse2(quote::quote! { { "hello": { "test": ["world"] } } })?;
     println!("{:#?}", json_value);
     Ok(())
+}
+
+pub struct JSONSchema {
+    schema: LitStr,
+    title: LitStr,
+    description: LitStr,
+    r#type: LitStr,
+    definitions: (token::Brace, Punctuated<KeyValue, token::Comma>),
+}
+
+fn extract_keys<const N: usize>(
+    (brace, value): (Brace, Punctuated<KeyValue, Comma>),
+    keys: [&str; N],
+) -> Result<[JSONValue; N], syn::Error> {
+    let value_set: HashSet<_> = value.iter().map(|e| e.key.clone()).collect();
+    let keys_set: HashSet<_> = keys
+        .iter()
+        .map(|e| LitStr::new(e, Span::call_site()))
+        .collect();
+    let mut too_many_keys = value_set.difference(&keys_set);
+    if let Some(key) = too_many_keys.next() {
+        return Err(syn::Error::new(key.span(), "Unexpected key"));
+    }
+    let map: HashMap<_, _> = value.into_iter().map(|e| (e.key, e.value)).collect();
+    let result = keys.try_map(|key| {
+        let corresponding_value = map.remove(&LitStr::new(key, Span::call_site()));
+        corresponding_value
+            .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {}", key)))
+    });
+
+    result
+}
+
+impl TryFrom<JSONValue> for JSONSchema {
+    type Error = syn::Error;
+
+    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
+        if let JSONValue::Object(value) = value {
+            let schema = extract_keys(value, ["test"]);
+
+            Ok(Self {
+                schema: todo!(),
+                title: todo!(),
+                description: todo!(),
+                r#type: todo!(),
+                definitions: todo!(),
+            })
+        } else {
+            Err(syn::Error::new(value.span(), "Expected object"))
+        }
+    }
 }
 
 #[cfg(test)]
