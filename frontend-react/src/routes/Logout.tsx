@@ -12,7 +12,7 @@ export default function SignOut() {
   React.useEffect(() => {
     document.cookie = "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/login");
-  }, []);
+  }, [navigate]);
 
   return <main className="container">Bitte warten.</main>;
 }

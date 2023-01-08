@@ -28,7 +28,7 @@ export default function Module() {
           <h1>
             {data.inner.module.module_id} {data.inner.module.title}
           </h1>
-          {data.inner.path.map((p, i) => (
+          {data.inner.path.map((p) => (
             <nav
               key={p.map((pe) => pe.tucan_id).join()}
               aria-label="breadcrumb"
