@@ -6,10 +6,7 @@ pub fn get_debug_adapter_protocol_json() {
         "title": "Debug Adapter Protocol",
         "description": "The Debug Adapter Protocol defines the protocol used between an editor or IDE and a debugger or runtime.",
         "type": "object",
-
-
         "definitions": {
-
             "ProtocolMessage": {
                 "type": "object",
                 "title": "Base Protocol",

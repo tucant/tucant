@@ -18,11 +18,12 @@ use syn::token::{Brace, Comma};
 //mod debugAdapterProtocol;
 //use crate::debugAdapterProtocol::get_debug_adapter_protocol_json;
 use syn::parse::Parse;
-use syn::{braced, bracketed, token, LitInt, LitStr, Token};
+use syn::{braced, bracketed, token, LitBool, LitInt, LitStr, Token};
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum JSONValue {
+    Bool(LitBool),
     String(LitStr),
     Integer(LitInt),
     Array((token::Bracket, Punctuated<JSONValue, token::Comma>)),
@@ -32,6 +33,7 @@ pub enum JSONValue {
 impl JSONValue {
     fn span(&self) -> Span {
         match self {
+            Self::Bool(value) => value.span(),
             Self::String(value) => value.span(),
             Self::Integer(value) => value.span(),
             Self::Array((value, _)) => value.span,
@@ -79,6 +81,8 @@ impl Parse for JSONValue {
             input.parse().map(Self::String)
         } else if lookahead.peek(LitInt) {
             input.parse().map(Self::Integer)
+        } else if lookahead.peek(LitBool) {
+            input.parse().map(Self::Bool)
         } else {
             Err(lookahead.error())
         }
