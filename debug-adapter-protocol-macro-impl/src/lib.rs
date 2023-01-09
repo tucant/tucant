@@ -107,7 +107,7 @@ pub struct JSONSchema {
     title: LitStr,
     description: LitStr,
     r#type: LitStr,
-    definitions: (token::Brace, Punctuated<KeyValue, token::Comma>),
+    definitions: ()//(token::Brace, Punctuated<KeyValue, token::Comma>),
 }
 
 #[derive(Eq, PartialEq)]
@@ -192,12 +192,32 @@ impl TryFrom<JSONValue> for JSONSchema {
                 ["$schema", "title", "description", "type", "definitions"],
             )?;
 
+            let (brace, definitions): (Brace, Punctuated<KeyValue, Comma>) = definitions.try_into()?;
+
+            let parsed_definitions = definitions.into_iter().map(|definition| -> Result<(), syn::Error> {
+                let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) = definition.value.try_into()?;
+
+                let mut map: BTreeMap<_, _> = value
+                    .into_iter()
+                    .map(|e| (LitStrOrd(e.key), e.value))
+                    .collect();
+
+                let r#type = map.get(&LitStrOrd(LitStr::new("type", Span::call_site())));
+
+                if let Some(r#type) = r#type {
+                    // TODO FIXME
+                    Ok(())
+                } else {
+                    Err(syn::Error::new(brace.span, "Unknown definition"))
+                }
+            });
+
             Ok(Self {
                 schema: schema.try_into()?,
                 title: title.try_into()?,
                 description: description.try_into()?,
                 r#type: r#type.try_into()?,
-                definitions: definitions.try_into()?,
+                definitions: (),
             })
         } else {
             Err(syn::Error::new(value.span(), "Expected object"))
