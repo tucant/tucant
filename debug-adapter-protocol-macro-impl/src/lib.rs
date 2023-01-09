@@ -10,7 +10,7 @@
 )]
 #![feature(array_try_map)]
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use proc_macro2::Span;
 use syn::punctuated::Punctuated;
@@ -108,20 +108,38 @@ pub struct JSONSchema {
     definitions: (token::Brace, Punctuated<KeyValue, token::Comma>),
 }
 
+#[derive(Eq, PartialEq)]
+pub struct LitStrOrd(LitStr);
+
+impl PartialOrd for LitStrOrd {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.value().partial_cmp(&other.0.value())
+    }
+}
+
+impl Ord for LitStrOrd {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.value().cmp(&other.0.value())
+    }
+}
+
 fn extract_keys<const N: usize>(
     (brace, value): (Brace, Punctuated<KeyValue, Comma>),
     keys: [&str; N],
 ) -> Result<[JSONValue; N], syn::Error> {
-    let mut map: HashMap<_, _> = value.into_iter().map(|e| (e.key, e.value)).collect();
+    let mut map: BTreeMap<_, _> = value
+        .into_iter()
+        .map(|e| (LitStrOrd(e.key), e.value))
+        .collect();
     let result = keys.try_map(|key| {
-        let corresponding_value = map.remove(&LitStr::new(key, Span::call_site()));
+        let corresponding_value = map.remove(&LitStrOrd(LitStr::new(key, Span::call_site())));
         corresponding_value
             .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
     });
     if let Some(key) = map.into_iter().next() {
         return Err(syn::Error::new(
-            key.0.span(),
-            format!("Unexpected key {}", key.0.token()),
+            key.0 .0.span(),
+            format!("Unexpected key {}", key.0 .0.token()),
         ));
     }
     result
