@@ -673,7 +673,7 @@ dependencies = [
 name = "debug-adapter-protocol-macro-impl"
 version = "0.1.0"
 dependencies = [
- "anyhow",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn",

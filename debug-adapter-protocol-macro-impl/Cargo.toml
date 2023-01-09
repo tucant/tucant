@@ -16,4 +16,4 @@ categories = ["accessibility", "api-bindings", "caching"]
 syn = { version = "1", features = ["full", "extra-traits"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
-anyhow = "1.0.68"
+itertools = "0.10"
