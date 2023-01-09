@@ -206,7 +206,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                 ["$schema", "title", "description", "type", "definitions"],
             )?;
 
-            let (brace, definitions): (Brace, Punctuated<KeyValue, Comma>) =
+            let (_, definitions): (Brace, Punctuated<KeyValue, Comma>) =
                 definitions.try_into()?;
 
             let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
@@ -225,8 +225,12 @@ impl TryFrom<JSONValue> for JSONSchema {
                     if let Some(r#type) = r#type {
                         let r#type: LitStr = r#type.try_into()?;
 
-                    
-                        Ok(())
+                        if r#type.value() == "object" {
+                            Ok(())
+
+                        } else {
+                            Err(syn::Error::new(r#type.span(), "Expected \"object\""))
+                        }
                     } else {
                         let all_of= map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
 
@@ -236,7 +240,6 @@ impl TryFrom<JSONValue> for JSONSchema {
 
                             Ok(())
                         } else {
-
                             Err(syn::Error::new(brace.span, "Unknown definition"))
                         }
                     }
