@@ -275,34 +275,71 @@ impl TryFrom<JSONValue> for JSONSchema {
 
                             unexpected_keys(map, Ok(()))
                         } else if r#type.value() == "string" {
+                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                            let r#enum =
+                                map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    );
+
+                            if let Some(r#enum) = r#enum {
+                                let enum_descriptions = map
+                                    .remove(&LitStrOrd(LitStr::new(
+                                        "enumDescriptions",
+                                        Span::call_site(),
+                                    )))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    );
+                            }
+
+                            // additional enum values allowed
+                            let r#enum =
+                                map.remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    );
+
+                            if let Some(r#enum) = r#enum {
+                                let enum_descriptions = map
+                                    .remove(&LitStrOrd(LitStr::new(
+                                        "enumDescriptions",
+                                        Span::call_site(),
+                                    )))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    );
+                            }
+
                             unexpected_keys(map, Ok(()))
                         } else {
                             return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
                         }
                     } else {
-                        let r#enum = map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())));
+                        let all_of =
+                            map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
 
-                        if let Some(r#enum) = r#enum {
-                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                        if let Some(all_of) = all_of {
+                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
 
-                            let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
-                                r#enum.try_into()?;
+                            let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                                all_of.try_into()?;
 
                             unexpected_keys(map, Ok(()))
                         } else {
-                            let all_of =
-                                map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
-
-                            if let Some(all_of) = all_of {
-                                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
-
-                                let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
-                                    all_of.try_into()?;
-
-                                unexpected_keys(map, Ok(()))
-                            } else {
-                                Err(syn::Error::new(brace.span, "Unknown definition"))
-                            }
+                            Err(syn::Error::new(brace.span, "Unknown definition"))
                         }
                     }
                 })
