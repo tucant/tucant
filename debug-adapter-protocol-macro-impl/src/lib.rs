@@ -183,6 +183,19 @@ impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue, token::Comma>) {
     }
 }
 
+
+impl TryFrom<JSONValue> for (token::Bracket, Punctuated<JSONValue, token::Comma>) {
+    type Error = syn::Error;
+
+    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
+        if let JSONValue::Array(value) = value {
+            Ok(value)
+        } else {
+            Err(syn::Error::new(value.span(), "Expected array"))
+        }
+    }
+}
+
 impl TryFrom<JSONValue> for JSONSchema {
     type Error = syn::Error;
 
@@ -213,13 +226,12 @@ impl TryFrom<JSONValue> for JSONSchema {
                         let r#type: LitStr = r#type.try_into()?;
 
                     
-
-                        // TODO FIXME
                         Ok(())
                     } else {
-                        let allOf= map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+                        let all_of= map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
 
-                        if let Some(allOf) = allOf {
+                        if let Some(all_of) = all_of {
+                            let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) = all_of.try_into()?;
 
 
                             Ok(())
