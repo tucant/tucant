@@ -137,9 +137,9 @@ fn extract_keys<const N: usize>(
         corresponding_value
             .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
     });
-    if let Some(key) = map.into_iter().next() {        
+    if let Some(key) = map.into_iter().next() {
         return Err(syn::Error::new(
-            key.0.0.span(),
+            key.0 .0.span(),
             format!("Unexpected key {}", key.0 .0.token()),
         ));
     }

@@ -4,7 +4,6 @@
     clippy::missing_errors_doc,
     clippy::multiple_crate_versions
 )]
-
 #![feature(proc_macro_diagnostic)]
 
 // https://github.com/rust-lang/rfcs/pull/3200
@@ -28,8 +27,6 @@ pub fn debug_adapter_protocol_macro(input: proc_macro::TokenStream) -> proc_macr
     Span::call_site().help("remove this").emit();
 
     let input = parse_macro_input!(input as JSONValue);
-
-    
 
     proc_macro::TokenStream::from(
         debug_adapter_protocol_macro_impl(input).unwrap_or_else(syn::Error::into_compile_error),
