@@ -111,6 +111,11 @@ pub struct JSONSchema {
     definitions: (), //(token::Brace, Punctuated<KeyValue, token::Comma>),
 }
 
+pub enum Definition {
+    AllOf(),
+    Type(),
+}
+
 #[derive(Eq, PartialEq)]
 pub struct LitStrOrd(LitStr);
 
@@ -220,6 +225,115 @@ fn unexpected_keys<T>(
     }
 }
 
+impl TryFrom<JSONValue> for Definition {
+    type Error = syn::Error;
+
+    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
+        let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) =
+            value.try_into()?;
+
+        let mut map: BTreeMap<_, _> = value
+            .into_iter()
+            .map(|e| (LitStrOrd(e.key), e.value))
+            .collect();
+
+        let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
+
+        if let Some(r#type) = r#type {
+            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
+            let r#type: LitStr = r#type.try_into()?;
+
+            let description = map
+                .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
+                .map(TryInto::<LitStr>::try_into)
+                .transpose()?;
+            let title = map
+                .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
+                .map(TryInto::<LitStr>::try_into)
+                .transpose()?;
+
+            // TODO FIXME run partition_result
+
+            // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
+            if r#type.value() == "object" {
+                // TODO FIXME use extract_keys
+                let required = map
+                    .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
+                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                    .transpose()?;
+
+                let (_, properties) = map
+                    .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
+                    .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
+                    .ok_or_else(|| {
+                        syn::Error::new(brace.span, format!("Could not find key \"properties\""))
+                    })??;
+
+                properties.iter().map(|property| {});
+
+                unexpected_keys(map, Ok(Definition::Type()))
+            } else if r#type.value() == "string" {
+                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                let r#enum = map
+                    .remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
+                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                    .transpose()?;
+
+                if let Some(r#enum) = r#enum {
+                    let enum_descriptions = map
+                                    .remove(&LitStrOrd(LitStr::new(
+                                        "enumDescriptions",
+                                        Span::call_site(),
+                                    )))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    ).transpose()?;
+                }
+
+                // additional enum values allowed
+                let r#enum = map
+                    .remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
+                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                    .transpose()?;
+
+                if let Some(r#enum) = r#enum {
+                    let enum_descriptions = map
+                                    .remove(&LitStrOrd(LitStr::new(
+                                        "enumDescriptions",
+                                        Span::call_site(),
+                                    )))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    ).transpose()?;
+                }
+
+                unexpected_keys(map, Ok(Definition::Type()))
+            } else {
+                return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
+            }
+        } else {
+            let all_of = map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+
+            if let Some(all_of) = all_of {
+                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
+
+                let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                    all_of.try_into()?;
+
+                unexpected_keys(map, Ok(Definition::AllOf()))
+            } else {
+                Err(syn::Error::new(brace.span, "Unknown definition"))
+            }
+        }
+    }
+}
+
 impl TryFrom<JSONValue> for JSONSchema {
     type Error = syn::Error;
 
@@ -234,114 +348,8 @@ impl TryFrom<JSONValue> for JSONSchema {
 
             let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
                 .into_iter()
-                .map(|definition| -> Result<(), syn::Error> {
-                    let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) =
-                        definition.value.try_into()?;
-
-                    let mut map: BTreeMap<_, _> = value
-                        .into_iter()
-                        .map(|e| (LitStrOrd(e.key), e.value))
-                        .collect();
-
-                    let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
-
-                    if let Some(r#type) = r#type {
-                        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
-                        let r#type: LitStr = r#type.try_into()?;
-
-                        let description = map
-                            .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
-                            .map(TryInto::<LitStr>::try_into)
-                            .transpose()?;
-                        let title = map
-                            .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
-                            .map(TryInto::<LitStr>::try_into)
-                            .transpose()?;
-
-                        // TODO FIXME run partition_result
-
-                        // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
-                        if r#type.value() == "object" {
-                            // TODO FIXME use extract_keys
-                            let properties = map
-                                .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
-                                .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
-                                .transpose()?;
-
-                            let required = map
-                                .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
-                                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                                .transpose()?;
-
-                            unexpected_keys(map, Ok(()))
-                        } else if r#type.value() == "string" {
-                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
-                            let r#enum =
-                                map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
-                                    .map(
-                                        TryInto::<(
-                                            token::Bracket,
-                                            Punctuated<JSONValue, token::Comma>,
-                                        )>::try_into,
-                                    ).transpose()?;
-
-                            if let Some(r#enum) = r#enum {
-                                let enum_descriptions = map
-                                    .remove(&LitStrOrd(LitStr::new(
-                                        "enumDescriptions",
-                                        Span::call_site(),
-                                    )))
-                                    .map(
-                                        TryInto::<(
-                                            token::Bracket,
-                                            Punctuated<JSONValue, token::Comma>,
-                                        )>::try_into,
-                                    ).transpose()?;
-                            }
-
-                            // additional enum values allowed
-                            let r#enum =
-                                map.remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
-                                    .map(
-                                        TryInto::<(
-                                            token::Bracket,
-                                            Punctuated<JSONValue, token::Comma>,
-                                        )>::try_into,
-                                    ).transpose()?;
-
-                            if let Some(r#enum) = r#enum {
-                                let enum_descriptions = map
-                                    .remove(&LitStrOrd(LitStr::new(
-                                        "enumDescriptions",
-                                        Span::call_site(),
-                                    )))
-                                    .map(
-                                        TryInto::<(
-                                            token::Bracket,
-                                            Punctuated<JSONValue, token::Comma>,
-                                        )>::try_into,
-                                    ).transpose()?;
-                            }
-
-                            unexpected_keys(map, Ok(()))
-                        } else {
-                            return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
-                        }
-                    } else {
-                        let all_of =
-                            map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
-
-                        if let Some(all_of) = all_of {
-                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
-
-                            let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
-                                all_of.try_into()?;
-
-                            unexpected_keys(map, Ok(()))
-                        } else {
-                            Err(syn::Error::new(brace.span, "Unknown definition"))
-                        }
-                    }
+                .map(|definition| -> Result<_, syn::Error> {
+                    TryInto::<Definition>::try_into(definition.value)
                 })
                 .partition_result();
 
