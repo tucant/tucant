@@ -138,22 +138,22 @@ fn extract_keys<const N: usize>(
         corresponding_value
             .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
     });
-    if result.iter().any(Result::is_err) {
-        let results = result
-            .into_iter()
-            .filter_map(|r| r.err())
+    if result.iter().any(Result::is_err) || !map.is_empty() {
+        let unexpected_keys = map.into_iter().map(|key| {
+            return syn::Error::new(
+                key.0 .0.span(),
+                format!("Unexpected key {}", key.0 .0.token()),
+            );
+        });
+
+        let results = unexpected_keys
+            .chain(result.into_iter().filter_map(Result::err))
             .reduce(|mut e1, e2| {
                 e1.combine(e2);
                 e1
             })
             .unwrap();
         return Err(results);
-    }
-    if let Some(key) = map.into_iter().next() {
-        return Err(syn::Error::new(
-            key.0 .0.span(),
-            format!("Unexpected key {}", key.0 .0.token()),
-        ));
     }
     result.try_map(identity)
 }
