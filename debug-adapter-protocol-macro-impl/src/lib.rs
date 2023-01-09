@@ -237,61 +237,73 @@ impl TryFrom<JSONValue> for Definition {
             .map(|e| (LitStrOrd(e.key), e.value))
             .collect();
 
-        let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
+        let r#ref = map.remove(&LitStrOrd(LitStr::new("$ref", Span::call_site())));
 
-        if let Some(r#type) = r#type {
-            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
-            let r#type: LitStr = r#type.try_into()?;
-
+        if let Some(r#ref) = r#ref {
             let description = map
                 .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
                 .map(TryInto::<LitStr>::try_into)
                 .transpose()?;
-            let title = map
-                .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
-                .map(TryInto::<LitStr>::try_into)
-                .transpose()?;
 
-            // TODO FIXME run partition_result
+            unexpected_keys(map, Ok(Definition::Type()))
+        } else {
+            let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
-            // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
-            if r#type.value() == "object" {
-                // TODO FIXME use extract_keys
-                let required = map
+            if let Some(r#type) = r#type {
+                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
+                let r#type: LitStr = r#type.try_into()?;
+
+                let description = map
+                    .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
+                    .map(TryInto::<LitStr>::try_into)
+                    .transpose()?;
+                let title = map
+                    .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
+                    .map(TryInto::<LitStr>::try_into)
+                    .transpose()?;
+
+                // TODO FIXME run partition_result
+
+                // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
+                if r#type.value() == "object" {
+                    // TODO FIXME use extract_keys
+                    let required = map
                     .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
                     .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
                     .transpose()?;
 
-                // this is optional
-                let properties = map
-                    .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
-                    .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
-                    .transpose()?;
+                    // this is optional
+                    let properties = map
+                        .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
+                        .map(
+                            TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into,
+                        )
+                        .transpose()?;
 
-                if let Some((_, properties)) = properties {
-                    let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
-                        .into_iter()
-                        .map(|property| TryInto::<Definition>::try_into(property.value))
-                        .partition_result();
+                    if let Some((_, properties)) = properties {
+                        let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
+                            .into_iter()
+                            .map(|property| TryInto::<Definition>::try_into(property.value))
+                            .partition_result();
 
-                    if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
-                        e1.combine(e2);
-                        e1
-                    }) {
-                        return Err(error);
+                        if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
+                            e1.combine(e2);
+                            e1
+                        }) {
+                            return Err(error);
+                        }
                     }
-                }
 
-                unexpected_keys(map, Ok(Definition::Type()))
-            } else if r#type.value() == "string" {
-                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
-                let r#enum = map
+                    unexpected_keys(map, Ok(Definition::Type()))
+                } else if r#type.value() == "string" {
+                    // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                    let r#enum = map
                     .remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
                     .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
                     .transpose()?;
 
-                if let Some(r#enum) = r#enum {
-                    let enum_descriptions = map
+                    if let Some(r#enum) = r#enum {
+                        let enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -302,16 +314,16 @@ impl TryFrom<JSONValue> for Definition {
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
                                     ).transpose()?;
-                }
+                    }
 
-                // additional enum values allowed
-                let r#enum = map
+                    // additional enum values allowed
+                    let r#enum = map
                     .remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
                     .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
                     .transpose()?;
 
-                if let Some(r#enum) = r#enum {
-                    let enum_descriptions = map
+                    if let Some(r#enum) = r#enum {
+                        let enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -322,24 +334,36 @@ impl TryFrom<JSONValue> for Definition {
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
                                     ).transpose()?;
+                    }
+
+                    unexpected_keys(map, Ok(Definition::Type()))
+                } else if r#type.value() == "integer" {
+                    unexpected_keys(map, Ok(Definition::Type()))
+                } else if r#type.value() == "boolean" {
+                    unexpected_keys(map, Ok(Definition::Type()))
+                } else if r#type.value() == "array" {
+                    let items = map
+                        .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
+                        .map(TryInto::<Definition>::try_into)
+                        .transpose()?;
+
+                    unexpected_keys(map, Ok(Definition::Type()))
+                } else {
+                    return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
                 }
-
-                unexpected_keys(map, Ok(Definition::Type()))
             } else {
-                return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
-            }
-        } else {
-            let all_of = map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+                let all_of = map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
 
-            if let Some(all_of) = all_of {
-                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
+                if let Some(all_of) = all_of {
+                    // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
 
-                let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
-                    all_of.try_into()?;
+                    let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                        all_of.try_into()?;
 
-                unexpected_keys(map, Ok(Definition::AllOf()))
-            } else {
-                Err(syn::Error::new(brace.span, "Unknown definition"))
+                    unexpected_keys(map, Ok(Definition::AllOf()))
+                } else {
+                    Err(syn::Error::new(brace.span, "Unknown definition"))
+                }
             }
         }
     }
