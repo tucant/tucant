@@ -10,3 +10,7 @@ updates:
     directory: "/frontend-react"
     schedule:
       interval: "daily"
+  - package-ecosystem: "npm"
+    directory: "/tucant-vscode-language-client"
+    schedule:
+      interval: "daily"

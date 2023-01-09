@@ -25,6 +25,7 @@ pub type TypecheckCall = GenericCall<RcType>;
 
 pub type TypeTrace = Vec<Result<(RcType, Span), EvaluateError>>;
 
+// TODO FIXME we should directly design this so we can debug this
 pub trait Value: Debug + Any {
     fn evaluate_call(
         self: Rc<Self>,
@@ -54,6 +55,7 @@ pub trait Type: Debug + Any {
         Err(())
     }
 
+    // we could probably add a downcast_any method?
     fn downcast_integer_type(self: Rc<Self>) -> Result<Rc<IntegerType>, ()> {
         Err(())
     }
@@ -130,7 +132,7 @@ pub struct StringType(Option<String>);
 impl Type for StringType {}
 
 #[derive(Debug)]
-pub struct AddLambdaValue; // if this doesn't work maybe just add a span to every one of them and add a methdod that returns the span?
+pub struct AddLambdaValue;
 
 impl Value for AddLambdaValue {
     fn evaluate_call(
@@ -199,7 +201,7 @@ impl Type for AddLambdaType {
                     location: left_value.1.clone(),
                     reason: format!("expected integer type, got {:?}", left_value.0),
                 }));
-            })?;
+            });
         let right_value = right_value
             .0
             .clone()
@@ -209,7 +211,9 @@ impl Type for AddLambdaType {
                     location: right_value.1.clone(),
                     reason: format!("expected integer type, got {:?}", right_value.0),
                 }));
-            })?;
+            });
+        let left_value = left_value?;
+        let right_value = right_value?;
         let val = left_value
             .0
             .and_then(|l| {
@@ -503,7 +507,6 @@ pub fn typecheck(value: (Ast, Span)) -> (TypecheckCall, TypeTrace) {
     )
 }
 
-// TODO FIXME probably return an IdentiferType that also contains the location of the definition
 fn resolve_identifier_type(
     context: &mut [(String, (RcType, Span))],
     identifier: (String, Span),
