@@ -10,7 +10,7 @@
 )]
 #![feature(array_try_map)]
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use proc_macro2::Span;
 use syn::punctuated::Punctuated;
@@ -91,10 +91,11 @@ impl Parse for JSONValue {
 
 pub fn parse() -> Result<(), syn::Error> {
     //let json = get_debug_adapter_protocol_json();
-    let json_value: JSONValue = syn::parse2(quote::quote! { { "hello": { "test": ["world"] } } })?;
+    let json_value: JSONValue =
+        syn::parse2(quote::quote! { { "$schema": { "test": ["world"] } } })?;
     println!("{json_value:#?}");
-    let schema: JSONSchema = json_value.try_into()?;
-    println!("{schema:#?}");
+    //let schema: JSONSchema = json_value.try_into()?;
+    //println!("{schema:#?}");
     Ok(())
 }
 
@@ -176,7 +177,7 @@ impl TryFrom<JSONValue> for JSONSchema {
         if let JSONValue::Object(value) = value {
             let [schema, title, description, r#type, definitions] = extract_keys(
                 value,
-                ["schema", "title", "description", "type", "definitions"],
+                ["$schema", "title", "description", "type", "definitions"],
             )?;
 
             Ok(Self {

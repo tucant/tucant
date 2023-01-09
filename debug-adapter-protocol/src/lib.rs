@@ -1,4 +1,4 @@
-mod debugAdapterProtocol;
+pub mod debug_adapter_protocol;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
