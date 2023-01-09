@@ -252,11 +252,11 @@ impl TryFrom<JSONValue> for JSONSchema {
                         let description = map
                             .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
                             .map(TryInto::<LitStr>::try_into)
-                            .transpose();
+                            .transpose()?;
                         let title = map
                             .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
                             .map(TryInto::<LitStr>::try_into)
-                            .transpose();
+                            .transpose()?;
 
                         // TODO FIXME run partition_result
 
@@ -265,13 +265,13 @@ impl TryFrom<JSONValue> for JSONSchema {
                             // TODO FIXME use extract_keys
                             let properties = map
                                 .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
-                                .map(TryInto::<LitStr>::try_into)
-                                .transpose();
+                                .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
+                                .transpose()?;
 
                             let required = map
                                 .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
-                                .map(TryInto::<LitStr>::try_into)
-                                .transpose();
+                                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                                .transpose()?;
 
                             unexpected_keys(map, Ok(()))
                         } else if r#type.value() == "string" {
@@ -283,7 +283,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    );
+                                    ).transpose()?;
 
                             if let Some(r#enum) = r#enum {
                                 let enum_descriptions = map
@@ -296,7 +296,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    );
+                                    ).transpose()?;
                             }
 
                             // additional enum values allowed
@@ -307,7 +307,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    );
+                                    ).transpose()?;
 
                             if let Some(r#enum) = r#enum {
                                 let enum_descriptions = map
@@ -320,7 +320,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    );
+                                    ).transpose()?;
                             }
 
                             unexpected_keys(map, Ok(()))
