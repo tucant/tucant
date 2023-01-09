@@ -228,6 +228,7 @@ fn unexpected_keys<T>(
 impl TryFrom<JSONValue> for Definition {
     type Error = syn::Error;
 
+    #[allow(clippy::too_many_lines)]
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
         let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) =
             value.try_into()?;
@@ -237,19 +238,19 @@ impl TryFrom<JSONValue> for Definition {
             .map(|e| (LitStrOrd(e.key), e.value))
             .collect();
 
-        let description = map
+        let _description = map
             .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
             .map(TryInto::<LitStr>::try_into)
             .transpose()?;
-        let title = map
+        let _title = map
             .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
             .map(TryInto::<LitStr>::try_into)
             .transpose()?;
 
         let r#ref = map.remove(&LitStrOrd(LitStr::new("$ref", Span::call_site())));
 
-        if let Some(r#ref) = r#ref {
-            unexpected_keys(map, Ok(Definition::Type()))
+        if let Some(_ref) = r#ref {
+            unexpected_keys(map, Ok(Self::Type()))
         } else {
             let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
@@ -262,7 +263,7 @@ impl TryFrom<JSONValue> for Definition {
                         // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
                         if r#type.value() == "object" {
                             // TODO FIXME use extract_keys
-                            let required =
+                            let _required =
                                 map.remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
                                     .map(
                                         TryInto::<(
@@ -281,12 +282,10 @@ impl TryFrom<JSONValue> for Definition {
                         .transpose()?;
 
                             if let Some((_, properties)) = properties {
-                                let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) =
+                                let (_parsed_properties, failed_properties): (Vec<_>, Vec<_>) =
                                     properties
                                         .into_iter()
-                                        .map(|property| {
-                                            TryInto::<Definition>::try_into(property.value)
-                                        })
+                                        .map(|property| TryInto::<Self>::try_into(property.value))
                                         .partition_result();
 
                                 if let Some(error) =
@@ -308,7 +307,7 @@ impl TryFrom<JSONValue> for Definition {
                                 match additional_properties {
                                     JSONValue::Bool(_) => {}
                                     JSONValue::Object(_) => {
-                                        TryInto::<Definition>::try_into(additional_properties)?;
+                                        TryInto::<Self>::try_into(additional_properties)?;
                                     }
                                     value => {
                                         return Err(syn::Error::new(
@@ -319,7 +318,7 @@ impl TryFrom<JSONValue> for Definition {
                                 }
                             }
 
-                            unexpected_keys(map, Ok(Definition::Type()))
+                            unexpected_keys(map, Ok(Self::Type()))
                         } else if r#type.value() == "string" {
                             // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
                             let r#enum =
@@ -332,8 +331,8 @@ impl TryFrom<JSONValue> for Definition {
                                     )
                                     .transpose()?;
 
-                            if let Some(r#enum) = r#enum {
-                                let enum_descriptions = map
+                            if let Some(_enum) = r#enum {
+                                let _enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -358,8 +357,8 @@ impl TryFrom<JSONValue> for Definition {
                                     )
                                     .transpose()?;
 
-                            if let Some(r#enum) = r#enum {
-                                let enum_descriptions = map
+                            if let Some(_enum) = r#enum {
+                                let _enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -373,26 +372,24 @@ impl TryFrom<JSONValue> for Definition {
                                     .transpose()?;
                             }
 
-                            unexpected_keys(map, Ok(Definition::Type()))
-                        } else if r#type.value() == "integer" {
-                            unexpected_keys(map, Ok(Definition::Type()))
-                        } else if r#type.value() == "number" {
-                            unexpected_keys(map, Ok(Definition::Type()))
-                        } else if r#type.value() == "boolean" {
-                            unexpected_keys(map, Ok(Definition::Type()))
+                            unexpected_keys(map, Ok(Self::Type()))
+                        } else if ["integer", "number", "boolean"]
+                            .contains(&r#type.value().as_str())
+                        {
+                            unexpected_keys(map, Ok(Self::Type()))
                         } else if r#type.value() == "array" {
-                            let items = map
+                            let _items = map
                                 .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
-                                .map(TryInto::<Definition>::try_into)
+                                .map(TryInto::<Self>::try_into)
                                 .transpose()?;
 
-                            unexpected_keys(map, Ok(Definition::Type()))
+                            unexpected_keys(map, Ok(Self::Type()))
                         } else {
                             return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
                         }
                     }
-                    JSONValue::Array(r#type) => unexpected_keys(map, Ok(Definition::Type())),
-                    _ => return Err(syn::Error::new(r#type.span(), "Expected string or array")),
+                    JSONValue::Array(_type) => unexpected_keys(map, Ok(Self::Type())),
+                    _ => Err(syn::Error::new(r#type.span(), "Expected string or array")),
                 }
             } else {
                 let all_of = map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
@@ -403,9 +400,9 @@ impl TryFrom<JSONValue> for Definition {
                     let (_, all_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                         all_of.try_into()?;
 
-                    let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = all_of
+                    let (_parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = all_of
                         .into_iter()
-                        .map(|definition| TryInto::<Definition>::try_into(definition))
+                        .map(TryInto::<Self>::try_into)
                         .partition_result();
 
                     if let Some(error) = failed_definitions.into_iter().reduce(|mut e1, e2| {
@@ -415,7 +412,7 @@ impl TryFrom<JSONValue> for Definition {
                         return Err(error);
                     }
 
-                    unexpected_keys(map, Ok(Definition::AllOf()))
+                    unexpected_keys(map, Ok(Self::AllOf()))
                 } else {
                     let one_of = map.remove(&LitStrOrd(LitStr::new("oneOf", Span::call_site())));
 
@@ -425,9 +422,9 @@ impl TryFrom<JSONValue> for Definition {
                         let (_, one_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                             one_of.try_into()?;
 
-                        let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = one_of
+                        let (_parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = one_of
                             .into_iter()
-                            .map(|definition| TryInto::<Definition>::try_into(definition))
+                            .map(TryInto::<Self>::try_into)
                             .partition_result();
 
                         if let Some(error) = failed_definitions.into_iter().reduce(|mut e1, e2| {
@@ -437,7 +434,7 @@ impl TryFrom<JSONValue> for Definition {
                             return Err(error);
                         }
 
-                        unexpected_keys(map, Ok(Definition::AllOf()))
+                        unexpected_keys(map, Ok(Self::AllOf()))
                     } else {
                         Err(syn::Error::new(brace.span, "Unknown definition"))
                     }
@@ -459,7 +456,7 @@ impl TryFrom<JSONValue> for JSONSchema {
 
             let (_, definitions): (Brace, Punctuated<KeyValue, Comma>) = definitions.try_into()?;
 
-            let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
+            let (_parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
                 .into_iter()
                 .map(|definition| -> Result<_, syn::Error> {
                     TryInto::<Definition>::try_into(definition.value)
