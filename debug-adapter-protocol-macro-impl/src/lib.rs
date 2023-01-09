@@ -237,14 +237,18 @@ impl TryFrom<JSONValue> for Definition {
             .map(|e| (LitStrOrd(e.key), e.value))
             .collect();
 
+        let description = map
+            .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
+            .map(TryInto::<LitStr>::try_into)
+            .transpose()?;
+        let title = map
+            .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
+            .map(TryInto::<LitStr>::try_into)
+            .transpose()?;
+
         let r#ref = map.remove(&LitStrOrd(LitStr::new("$ref", Span::call_site())));
 
         if let Some(r#ref) = r#ref {
-            let description = map
-                .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
-                .map(TryInto::<LitStr>::try_into)
-                .transpose()?;
-
             unexpected_keys(map, Ok(Definition::Type()))
         } else {
             let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
@@ -252,15 +256,6 @@ impl TryFrom<JSONValue> for Definition {
             if let Some(r#type) = r#type {
                 // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
                 let r#type: LitStr = r#type.try_into()?;
-
-                let description = map
-                    .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
-                    .map(TryInto::<LitStr>::try_into)
-                    .transpose()?;
-                let title = map
-                    .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
-                    .map(TryInto::<LitStr>::try_into)
-                    .transpose()?;
 
                 // TODO FIXME run partition_result
 
@@ -349,6 +344,8 @@ impl TryFrom<JSONValue> for Definition {
                     unexpected_keys(map, Ok(Definition::Type()))
                 } else if r#type.value() == "integer" {
                     unexpected_keys(map, Ok(Definition::Type()))
+                } else if r#type.value() == "number" {
+                    unexpected_keys(map, Ok(Definition::Type()))
                 } else if r#type.value() == "boolean" {
                     unexpected_keys(map, Ok(Definition::Type()))
                 } else if r#type.value() == "array" {
@@ -384,7 +381,30 @@ impl TryFrom<JSONValue> for Definition {
 
                     unexpected_keys(map, Ok(Definition::AllOf()))
                 } else {
-                    Err(syn::Error::new(brace.span, "Unknown definition"))
+                    let one_of = map.remove(&LitStrOrd(LitStr::new("oneOf", Span::call_site())));
+
+                    if let Some(one_of) = one_of {
+                        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.5
+
+                        let (_, one_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                            one_of.try_into()?;
+
+                        let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = one_of
+                            .into_iter()
+                            .map(|definition| TryInto::<Definition>::try_into(definition))
+                            .partition_result();
+
+                        if let Some(error) = failed_definitions.into_iter().reduce(|mut e1, e2| {
+                            e1.combine(e2);
+                            e1
+                        }) {
+                            return Err(error);
+                        }
+
+                        unexpected_keys(map, Ok(Definition::AllOf()))
+                    } else {
+                        Err(syn::Error::new(brace.span, "Unknown definition"))
+                    }
                 }
             }
         }
