@@ -243,28 +243,52 @@ impl TryFrom<JSONValue> for JSONSchema {
                         .map(|e| (LitStrOrd(e.key), e.value))
                         .collect();
 
-                    let r#enum = map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())));
+                    let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
-                    if let Some(r#enum) = r#enum {
-                        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                    if let Some(r#type) = r#type {
+                        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
+                        let r#type: LitStr = r#type.try_into()?;
 
-                        let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
-                            r#enum.try_into()?;
+                        let description = map
+                            .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
+                            .map(TryInto::<LitStr>::try_into)
+                            .transpose();
+                        let title = map
+                            .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
+                            .map(TryInto::<LitStr>::try_into)
+                            .transpose();
 
-                        unexpected_keys(map, Ok(()))
+                        // TODO FIXME run partition_result
+
+                        // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
+                        if r#type.value() == "object" {
+                            // TODO FIXME use extract_keys
+                            let properties = map
+                                .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
+                                .map(TryInto::<LitStr>::try_into)
+                                .transpose();
+
+                            let required = map
+                                .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
+                                .map(TryInto::<LitStr>::try_into)
+                                .transpose();
+
+                            unexpected_keys(map, Ok(()))
+                        } else if r#type.value() == "string" {
+                            unexpected_keys(map, Ok(()))
+                        } else {
+                            return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
+                        }
                     } else {
-                        let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
+                        let r#enum = map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())));
 
-                        if let Some(r#type) = r#type {
-                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
-                            let r#type: LitStr = r#type.try_into()?;
+                        if let Some(r#enum) = r#enum {
+                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
 
-                            // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
-                            if r#type.value() == "object" {
-                                unexpected_keys(map, Ok(()))
-                            } else {
-                                Err(syn::Error::new(r#type.span(), "Expected \"object\""))
-                            }
+                            let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                                r#enum.try_into()?;
+
+                            unexpected_keys(map, Ok(()))
                         } else {
                             let all_of =
                                 map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
