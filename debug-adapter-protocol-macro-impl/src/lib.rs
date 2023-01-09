@@ -207,13 +207,26 @@ impl TryFrom<JSONValue> for JSONSchema {
                         .map(|e| (LitStrOrd(e.key), e.value))
                         .collect();
 
-                    let r#type = map.get(&LitStrOrd(LitStr::new("type", Span::call_site())));
+                    let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
                     if let Some(r#type) = r#type {
+                        let r#type: LitStr = r#type.try_into()?;
+
+                    
+
                         // TODO FIXME
                         Ok(())
                     } else {
-                        Err(syn::Error::new(brace.span, "Unknown definition"))
+                        let allOf= map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+
+                        if let Some(allOf) = allOf {
+
+
+                            Ok(())
+                        } else {
+
+                            Err(syn::Error::new(brace.span, "Unknown definition"))
+                        }
                     }
                 })
                 .partition_result();
