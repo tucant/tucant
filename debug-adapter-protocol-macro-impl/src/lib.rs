@@ -11,14 +11,15 @@
 #![feature(array_try_map)]
 
 use std::collections::BTreeMap;
+use std::convert::identity;
 
 use proc_macro2::Span;
+use syn::parse::Parse;
 use syn::punctuated::Punctuated;
 use syn::token::{Brace, Comma};
-//mod debugAdapterProtocol;
-//use crate::debugAdapterProtocol::get_debug_adapter_protocol_json;
-use syn::parse::Parse;
 use syn::{braced, bracketed, token, LitBool, LitInt, LitStr, Token};
+
+// https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -132,18 +133,29 @@ fn extract_keys<const N: usize>(
         .into_iter()
         .map(|e| (LitStrOrd(e.key), e.value))
         .collect();
-    let result = keys.try_map(|key| {
+    let result = keys.map(|key| {
         let corresponding_value = map.remove(&LitStrOrd(LitStr::new(key, Span::call_site())));
         corresponding_value
             .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
     });
+    if result.iter().any(Result::is_err) {
+        let results = result
+            .into_iter()
+            .filter_map(|r| r.err())
+            .reduce(|mut e1, e2| {
+                e1.combine(e2);
+                e1
+            })
+            .unwrap();
+        return Err(results);
+    }
     if let Some(key) = map.into_iter().next() {
         return Err(syn::Error::new(
             key.0 .0.span(),
             format!("Unexpected key {}", key.0 .0.token()),
         ));
     }
-    result
+    result.try_map(identity)
 }
 
 impl TryFrom<JSONValue> for LitStr {

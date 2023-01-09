@@ -2,8 +2,9 @@ use debug_adapter_protocol_macro::debug_adapter_protocol_macro;
 
 pub fn get_debug_adapter_protocol_json() {
     debug_adapter_protocol_macro!({
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "Debug Adapter Protocol",
+        "unexpected": "hi",
+        "$schema-missing": "http://json-schema.org/draft-04/schema#",
+        "title-missing": "Debug Adapter Protocol",
         "description": "The Debug Adapter Protocol defines the protocol used between an editor or IDE and a debugger or runtime.",
         "type": "object",
         "definitions": {
@@ -4183,5 +4184,5 @@ pub fn get_debug_adapter_protocol_json() {
             }
 
         }
-    })
+    });
 }

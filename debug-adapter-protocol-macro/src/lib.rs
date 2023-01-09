@@ -14,7 +14,6 @@
 // https://github.com/rust-lang/rust/issues/54140#issuecomment-802701867
 
 use debug_adapter_protocol_macro_impl::{JSONSchema, JSONValue};
-use proc_macro::Span;
 use quote::quote;
 use syn::parse_macro_input;
 
@@ -28,8 +27,6 @@ fn debug_adapter_protocol_macro_impl(
 
 #[proc_macro]
 pub fn debug_adapter_protocol_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    Span::call_site().help(r#"fdsf"#).emit();
-
     let input = parse_macro_input!(input as JSONValue);
 
     proc_macro::TokenStream::from(
