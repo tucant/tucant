@@ -183,7 +183,6 @@ impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue, token::Comma>) {
     }
 }
 
-
 impl TryFrom<JSONValue> for (token::Bracket, Punctuated<JSONValue, token::Comma>) {
     type Error = syn::Error;
 
@@ -206,8 +205,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                 ["$schema", "title", "description", "type", "definitions"],
             )?;
 
-            let (_, definitions): (Brace, Punctuated<KeyValue, Comma>) =
-                definitions.try_into()?;
+            let (_, definitions): (Brace, Punctuated<KeyValue, Comma>) = definitions.try_into()?;
 
             let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
                 .into_iter()
@@ -220,27 +218,36 @@ impl TryFrom<JSONValue> for JSONSchema {
                         .map(|e| (LitStrOrd(e.key), e.value))
                         .collect();
 
-                    let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
+                    let r#enum = map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())));
 
-                    if let Some(r#type) = r#type {
-                        let r#type: LitStr = r#type.try_into()?;
+                    if let Some(r#enum) = r#enum {
+                        let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                            r#enum.try_into()?;
 
-                        if r#type.value() == "object" {
-                            Ok(())
-
-                        } else {
-                            Err(syn::Error::new(r#type.span(), "Expected \"object\""))
-                        }
+                        Ok(())
                     } else {
-                        let all_of= map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+                        let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
-                        if let Some(all_of) = all_of {
-                            let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) = all_of.try_into()?;
+                        if let Some(r#type) = r#type {
+                            let r#type: LitStr = r#type.try_into()?;
 
-
-                            Ok(())
+                            if r#type.value() == "object" {
+                                Ok(())
+                            } else {
+                                Err(syn::Error::new(r#type.span(), "Expected \"object\""))
+                            }
                         } else {
-                            Err(syn::Error::new(brace.span, "Unknown definition"))
+                            let all_of =
+                                map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
+
+                            if let Some(all_of) = all_of {
+                                let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                                    all_of.try_into()?;
+
+                                Ok(())
+                            } else {
+                                Err(syn::Error::new(brace.span, "Unknown definition"))
+                            }
                         }
                     }
                 })
