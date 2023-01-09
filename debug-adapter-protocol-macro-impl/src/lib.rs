@@ -262,14 +262,25 @@ impl TryFrom<JSONValue> for Definition {
                     .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
                     .transpose()?;
 
-                let (_, properties) = map
+                // this is optional
+                let properties = map
                     .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
                     .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
-                    .ok_or_else(|| {
-                        syn::Error::new(brace.span, format!("Could not find key \"properties\""))
-                    })??;
+                    .transpose()?;
 
-                properties.iter().map(|property| {});
+                if let Some((_, properties)) = properties {
+                    let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
+                        .into_iter()
+                        .map(|property| TryInto::<Definition>::try_into(property.value))
+                        .partition_result();
+
+                    if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
+                        e1.combine(e2);
+                        e1
+                    }) {
+                        return Err(error);
+                    }
+                }
 
                 unexpected_keys(map, Ok(Definition::Type()))
             } else if r#type.value() == "string" {
