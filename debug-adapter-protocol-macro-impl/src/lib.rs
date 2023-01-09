@@ -294,6 +294,16 @@ impl TryFrom<JSONValue> for Definition {
                         }
                     }
 
+                    let additional_properties = map
+                        .remove(&LitStrOrd(LitStr::new(
+                            "additionalProperties",
+                            Span::call_site(),
+                        )))
+                        .map(
+                            TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into,
+                        )
+                        .transpose()?;
+
                     unexpected_keys(map, Ok(Definition::Type()))
                 } else if r#type.value() == "string" {
                     // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
@@ -357,8 +367,20 @@ impl TryFrom<JSONValue> for Definition {
                 if let Some(all_of) = all_of {
                     // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
 
-                    let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
+                    let (_, all_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                         all_of.try_into()?;
+
+                    let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = all_of
+                        .into_iter()
+                        .map(|definition| TryInto::<Definition>::try_into(definition))
+                        .partition_result();
+
+                    if let Some(error) = failed_definitions.into_iter().reduce(|mut e1, e2| {
+                        e1.combine(e2);
+                        e1
+                    }) {
+                        return Err(error);
+                    }
 
                     unexpected_keys(map, Ok(Definition::AllOf()))
                 } else {
