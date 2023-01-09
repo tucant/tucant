@@ -246,6 +246,8 @@ impl TryFrom<JSONValue> for JSONSchema {
                     let r#enum = map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())));
 
                     if let Some(r#enum) = r#enum {
+                        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+
                         let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                             r#enum.try_into()?;
 
@@ -254,10 +256,11 @@ impl TryFrom<JSONValue> for JSONSchema {
                         let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
                         if let Some(r#type) = r#type {
+                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
                             let r#type: LitStr = r#type.try_into()?;
 
+                            // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
                             if r#type.value() == "object" {
-
                                 unexpected_keys(map, Ok(()))
                             } else {
                                 Err(syn::Error::new(r#type.span(), "Expected \"object\""))
@@ -267,6 +270,8 @@ impl TryFrom<JSONValue> for JSONSchema {
                                 map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
 
                             if let Some(all_of) = all_of {
+                                // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.3
+
                                 let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                                     all_of.try_into()?;
 
