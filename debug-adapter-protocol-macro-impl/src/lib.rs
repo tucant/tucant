@@ -255,41 +255,51 @@ impl TryFrom<JSONValue> for Definition {
 
             if let Some(r#type) = r#type {
                 // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
-                let r#type: LitStr = r#type.try_into()?;
+                match r#type {
+                    JSONValue::String(r#type) => {
+                        // TODO FIXME run partition_result
 
-                // TODO FIXME run partition_result
+                        // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
+                        if r#type.value() == "object" {
+                            // TODO FIXME use extract_keys
+                            let required =
+                                map.remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    )
+                                    .transpose()?;
 
-                // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
-                if r#type.value() == "object" {
-                    // TODO FIXME use extract_keys
-                    let required = map
-                    .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
-                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                    .transpose()?;
-
-                    // this is optional
-                    let properties = map
+                            // this is optional
+                            let properties = map
                         .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
                         .map(
                             TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into,
                         )
                         .transpose()?;
 
-                    if let Some((_, properties)) = properties {
-                        let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
-                            .into_iter()
-                            .map(|property| TryInto::<Definition>::try_into(property.value))
-                            .partition_result();
+                            if let Some((_, properties)) = properties {
+                                let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) =
+                                    properties
+                                        .into_iter()
+                                        .map(|property| {
+                                            TryInto::<Definition>::try_into(property.value)
+                                        })
+                                        .partition_result();
 
-                        if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
-                            e1.combine(e2);
-                            e1
-                        }) {
-                            return Err(error);
-                        }
-                    }
+                                if let Some(error) =
+                                    failed_properties.into_iter().reduce(|mut e1, e2| {
+                                        e1.combine(e2);
+                                        e1
+                                    })
+                                {
+                                    return Err(error);
+                                }
+                            }
 
-                    let additional_properties = map
+                            let additional_properties = map
                         .remove(&LitStrOrd(LitStr::new(
                             "additionalProperties",
                             Span::call_site(),
@@ -299,16 +309,21 @@ impl TryFrom<JSONValue> for Definition {
                         )
                         .transpose()?;
 
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else if r#type.value() == "string" {
-                    // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
-                    let r#enum = map
-                    .remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
-                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                    .transpose()?;
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else if r#type.value() == "string" {
+                            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+                            let r#enum =
+                                map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    )
+                                    .transpose()?;
 
-                    if let Some(r#enum) = r#enum {
-                        let enum_descriptions = map
+                            if let Some(r#enum) = r#enum {
+                                let enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -318,17 +333,23 @@ impl TryFrom<JSONValue> for Definition {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    ).transpose()?;
-                    }
+                                    )
+                                    .transpose()?;
+                            }
 
-                    // additional enum values allowed
-                    let r#enum = map
-                    .remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
-                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                    .transpose()?;
+                            // additional enum values allowed
+                            let r#enum =
+                                map.remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
+                                    .map(
+                                        TryInto::<(
+                                            token::Bracket,
+                                            Punctuated<JSONValue, token::Comma>,
+                                        )>::try_into,
+                                    )
+                                    .transpose()?;
 
-                    if let Some(r#enum) = r#enum {
-                        let enum_descriptions = map
+                            if let Some(r#enum) = r#enum {
+                                let enum_descriptions = map
                                     .remove(&LitStrOrd(LitStr::new(
                                         "enumDescriptions",
                                         Span::call_site(),
@@ -338,25 +359,30 @@ impl TryFrom<JSONValue> for Definition {
                                             token::Bracket,
                                             Punctuated<JSONValue, token::Comma>,
                                         )>::try_into,
-                                    ).transpose()?;
+                                    )
+                                    .transpose()?;
+                            }
+
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else if r#type.value() == "integer" {
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else if r#type.value() == "number" {
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else if r#type.value() == "boolean" {
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else if r#type.value() == "array" {
+                            let items = map
+                                .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
+                                .map(TryInto::<Definition>::try_into)
+                                .transpose()?;
+
+                            unexpected_keys(map, Ok(Definition::Type()))
+                        } else {
+                            return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
+                        }
                     }
-
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else if r#type.value() == "integer" {
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else if r#type.value() == "number" {
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else if r#type.value() == "boolean" {
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else if r#type.value() == "array" {
-                    let items = map
-                        .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
-                        .map(TryInto::<Definition>::try_into)
-                        .transpose()?;
-
-                    unexpected_keys(map, Ok(Definition::Type()))
-                } else {
-                    return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
+                    JSONValue::Array(r#type) => unexpected_keys(map, Ok(Definition::Type())),
+                    _ => return Err(syn::Error::new(r#type.span(), "Expected string or array")),
                 }
             } else {
                 let all_of = map.remove(&LitStrOrd(LitStr::new("allOf", Span::call_site())));
