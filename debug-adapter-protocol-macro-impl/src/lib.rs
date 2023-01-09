@@ -299,15 +299,25 @@ impl TryFrom<JSONValue> for Definition {
                                 }
                             }
 
-                            let additional_properties = map
-                        .remove(&LitStrOrd(LitStr::new(
-                            "additionalProperties",
-                            Span::call_site(),
-                        )))
-                        .map(
-                            TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into,
-                        )
-                        .transpose()?;
+                            let additional_properties = map.remove(&LitStrOrd(LitStr::new(
+                                "additionalProperties",
+                                Span::call_site(),
+                            )));
+
+                            if let Some(additional_properties) = additional_properties {
+                                match additional_properties {
+                                    JSONValue::Bool(_) => {}
+                                    JSONValue::Object(_) => {
+                                        TryInto::<Definition>::try_into(additional_properties)?;
+                                    }
+                                    value => {
+                                        return Err(syn::Error::new(
+                                            value.span(),
+                                            "Expected boolean of object",
+                                        ))
+                                    }
+                                }
+                            }
 
                             unexpected_keys(map, Ok(Definition::Type()))
                         } else if r#type.value() == "string" {
