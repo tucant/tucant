@@ -195,6 +195,31 @@ impl TryFrom<JSONValue> for (token::Bracket, Punctuated<JSONValue, token::Comma>
     }
 }
 
+fn unexpected_keys<T>(
+    map: BTreeMap<LitStrOrd, JSONValue>,
+    value: Result<T, syn::Error>,
+) -> Result<T, syn::Error> {
+    if value.is_err() || !map.is_empty() {
+        let unexpected_keys = map.into_iter().map(|key| {
+            return syn::Error::new(
+                key.0 .0.span(),
+                format!("Unexpected key {}", key.0 .0.token()),
+            );
+        });
+
+        Err(std::iter::once(value)
+            .filter_map(Result::err)
+            .chain(unexpected_keys)
+            .reduce(|mut e1, e2| {
+                e1.combine(e2);
+                e1
+            })
+            .unwrap())
+    } else {
+        value
+    }
+}
+
 impl TryFrom<JSONValue> for JSONSchema {
     type Error = syn::Error;
 
@@ -224,7 +249,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                         let r#enum: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                             r#enum.try_into()?;
 
-                        Ok(())
+                        unexpected_keys(map, Ok(()))
                     } else {
                         let r#type = map.remove(&LitStrOrd(LitStr::new("type", Span::call_site())));
 
@@ -232,7 +257,8 @@ impl TryFrom<JSONValue> for JSONSchema {
                             let r#type: LitStr = r#type.try_into()?;
 
                             if r#type.value() == "object" {
-                                Ok(())
+
+                                unexpected_keys(map, Ok(()))
                             } else {
                                 Err(syn::Error::new(r#type.span(), "Expected \"object\""))
                             }
@@ -244,7 +270,7 @@ impl TryFrom<JSONValue> for JSONSchema {
                                 let all_of: (token::Bracket, Punctuated<JSONValue, token::Comma>) =
                                     all_of.try_into()?;
 
-                                Ok(())
+                                unexpected_keys(map, Ok(()))
                             } else {
                                 Err(syn::Error::new(brace.span, "Unknown definition"))
                             }
