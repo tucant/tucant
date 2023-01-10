@@ -13,7 +13,7 @@
 // https://internals.rust-lang.org/t/user-defined-quick-fixes/14926
 // https://github.com/rust-lang/rust/issues/54140#issuecomment-802701867
 
-use debug_adapter_protocol_macro_impl::{JSONSchema, JSONValue};
+use debug_adapter_protocol_macro_impl::{json_parser::JSONValue, JSONSchema};
 use quote::quote;
 use syn::parse_macro_input;
 

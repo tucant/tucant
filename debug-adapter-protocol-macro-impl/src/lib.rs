@@ -10,87 +10,23 @@
 )]
 #![feature(array_try_map)]
 
+pub mod json_parser;
+pub mod json_schema;
+
 use std::collections::BTreeMap;
 use std::convert::identity;
 
 use itertools::Itertools;
+use json_parser::KeyValue;
 use proc_macro2::Span;
-use syn::parse::Parse;
+
 use syn::punctuated::Punctuated;
 use syn::token::{Brace, Comma};
-use syn::{braced, bracketed, token, LitBool, LitInt, LitStr, Token};
+use syn::{token, LitStr};
+
+use crate::json_parser::JSONValue;
 
 // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub enum JSONValue {
-    Bool(LitBool),
-    String(LitStr),
-    Integer(LitInt),
-    Array((token::Bracket, Punctuated<JSONValue, token::Comma>)),
-    Object((token::Brace, Punctuated<KeyValue, token::Comma>)),
-}
-
-impl JSONValue {
-    fn span(&self) -> Span {
-        match self {
-            Self::Bool(value) => value.span(),
-            Self::String(value) => value.span(),
-            Self::Integer(value) => value.span(),
-            Self::Array((value, _)) => value.span,
-            Self::Object((value, _)) => value.span,
-        }
-    }
-}
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct KeyValue {
-    key: LitStr,
-    colon: Token![:],
-    value: JSONValue,
-}
-
-impl Parse for KeyValue {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            key: input.parse()?,
-            colon: input.parse()?,
-            value: input.parse()?,
-        })
-    }
-}
-
-impl Parse for JSONValue {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(token::Brace) {
-            let content;
-            let brace = braced!(content in input);
-            Ok(Self::Object((
-                brace,
-                content.parse_terminated(KeyValue::parse)?,
-            )))
-        } else if lookahead.peek(token::Bracket) {
-            let content;
-            let bracket = bracketed!(content in input);
-            Ok(Self::Array((
-                bracket,
-                content.parse_terminated(Self::parse)?,
-            )))
-        } else if lookahead.peek(LitStr) {
-            input.parse().map(Self::String)
-        } else if lookahead.peek(LitInt) {
-            input.parse().map(Self::Integer)
-        } else if lookahead.peek(LitBool) {
-            input.parse().map(Self::Bool)
-        } else {
-            Err(lookahead.error())
-        }
-    }
-}
-
 pub fn parse() -> Result<(), syn::Error> {
     //let json = get_debug_adapter_protocol_json();
     let json_value: JSONValue =
@@ -162,42 +98,6 @@ fn extract_keys<const N: usize>(
         return Err(results);
     }
     result.try_map(identity)
-}
-
-impl TryFrom<JSONValue> for LitStr {
-    type Error = syn::Error;
-
-    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
-        if let JSONValue::String(value) = value {
-            Ok(value)
-        } else {
-            Err(syn::Error::new(value.span(), "Expected string"))
-        }
-    }
-}
-
-impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue, token::Comma>) {
-    type Error = syn::Error;
-
-    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
-        if let JSONValue::Object(value) = value {
-            Ok(value)
-        } else {
-            Err(syn::Error::new(value.span(), "Expected object"))
-        }
-    }
-}
-
-impl TryFrom<JSONValue> for (token::Bracket, Punctuated<JSONValue, token::Comma>) {
-    type Error = syn::Error;
-
-    fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
-        if let JSONValue::Array(value) = value {
-            Ok(value)
-        } else {
-            Err(syn::Error::new(value.span(), "Expected array"))
-        }
-    }
 }
 
 fn unexpected_keys<T>(
