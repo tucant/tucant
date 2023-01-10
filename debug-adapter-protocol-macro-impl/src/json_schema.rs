@@ -340,81 +340,66 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for StringType {
             .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
             .transpose()?;
 
-        if let Some(_enum) = r#enum {
-            let _enum_descriptions = map
-                .remove(&LitStrOrd(LitStr::new(
-                    "enumDescriptions",
-                    Span::call_site(),
-                )))
-                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                .transpose()?;
-
-            return unexpected_keys(
-                map,
-                Ok(Self {
-                    enum_values: Vec::new(),
-                    exhaustive: true,
-                }),
-            );
-        }
-
-        // used if the enum definition is non-exhaustive
-        let r#enum = map
+        let underscore_enum = map
             .remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
             .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
             .transpose()?;
 
-        if let Some(r#enum) = r#enum {
-            let enum_descriptions = map
-                .remove(&LitStrOrd(LitStr::new(
-                    "enumDescriptions",
-                    Span::call_site(),
-                )))
-                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-                .transpose()?
-                .map(|v| v.1.into_iter().map(Some))
-                .into_iter()
-                .flatten();
+        let exhaustive = r#enum.is_some();
 
-            let (enum_values, enum_errors): (Vec<_>, Vec<_>) = r#enum
-                .1
-                .into_iter()
-                .zip(enum_descriptions.chain(std::iter::repeat_with(|| None)))
-                .map(
-                    |(constant, optional_description)| -> Result<_, syn::Error> {
-                        Ok((
-                            TryInto::<LitStr>::try_into(constant)?,
-                            optional_description
-                                .map(TryInto::<LitStr>::try_into)
-                                .transpose()?,
-                        ))
-                    },
+        match (r#enum, underscore_enum) {
+            (Some(the_enum), None) | (None, Some(the_enum)) => {
+                let enum_descriptions = map
+                    .remove(&LitStrOrd(LitStr::new(
+                        "enumDescriptions",
+                        Span::call_site(),
+                    )))
+                    .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                    .transpose()?
+                    .map(|v| v.1.into_iter().map(Some))
+                    .into_iter()
+                    .flatten();
+
+                let (enum_values, enum_errors): (Vec<_>, Vec<_>) = the_enum
+                    .1
+                    .into_iter()
+                    .zip(enum_descriptions.chain(std::iter::repeat_with(|| None)))
+                    .map(
+                        |(constant, optional_description)| -> Result<_, syn::Error> {
+                            Ok((
+                                TryInto::<LitStr>::try_into(constant)?,
+                                optional_description
+                                    .map(TryInto::<LitStr>::try_into)
+                                    .transpose()?,
+                            ))
+                        },
+                    )
+                    .partition_result();
+
+                if let Some(error) = enum_errors.into_iter().reduce(|mut e1, e2| {
+                    e1.combine(e2);
+                    e1
+                }) {
+                    return Err(error);
+                }
+
+                unexpected_keys(
+                    map,
+                    Ok(Self {
+                        enum_values,
+                        exhaustive,
+                    }),
                 )
-                .partition_result();
-
-            if let Some(error) = enum_errors.into_iter().reduce(|mut e1, e2| {
-                e1.combine(e2);
-                e1
-            }) {
-                return Err(error);
             }
-
-            return unexpected_keys(
+            (None, None) => unexpected_keys(
                 map,
                 Ok(Self {
-                    enum_values: enum_values,
+                    enum_values: Vec::new(),
                     exhaustive: false,
                 }),
-            );
+            ),
+            (Some(_), Some(_)) => todo!(),
         }
-
-        unexpected_keys(
-            map,
-            Ok(Self {
-                enum_values: Vec::new(),
-                exhaustive: false,
-            }),
-        )
     }
 }
 
