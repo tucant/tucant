@@ -62,18 +62,17 @@ impl TryFrom<JSONValue> for JSONSchema {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
-pub enum Definition {
-    AllOf(AllOfDefinition),
-    Type(TypeDefinition),
-    OneOf(OneOfDefinition),
-    Ref(),
+pub struct Definition {
+    title: Option<LitStr>,
+    description: Option<LitStr>,
+    definition_type: DefinitionType,
 }
 
 impl TryFrom<JSONValue> for Definition {
     type Error = syn::Error;
 
-    #[allow(clippy::too_many_lines)]
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
         let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) =
             value.try_into()?;
@@ -83,19 +82,40 @@ impl TryFrom<JSONValue> for Definition {
             .map(|e| (LitStrOrd(e.key), e.value))
             .collect();
 
-        let _description = map
-            .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
-            .map(TryInto::<LitStr>::try_into)
-            .transpose()?;
-        let _title = map
+        let title = map
             .remove(&LitStrOrd(LitStr::new("title", Span::call_site())))
             .map(TryInto::<LitStr>::try_into)
             .transpose()?;
 
-        let r#ref = map.remove(&LitStrOrd(LitStr::new("$ref", Span::call_site())));
+        let description = map
+            .remove(&LitStrOrd(LitStr::new("description", Span::call_site())))
+            .map(TryInto::<LitStr>::try_into)
+            .transpose()?;
 
-        if let Some(_ref) = r#ref {
-            unexpected_keys(map, Ok(Self::Ref()))
+        Ok(Self {
+            title,
+            description,
+            definition_type: (brace, map).try_into()?,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub enum DefinitionType {
+    AllOf(AllOfDefinition),
+    Type(TypeDefinition),
+    OneOf(OneOfDefinition),
+    Ref(RefDefinition),
+}
+
+impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
+    type Error = syn::Error;
+
+    fn try_from(
+        (brace, map): (Brace, BTreeMap<LitStrOrd, JSONValue>),
+    ) -> Result<Self, Self::Error> {
+        if map.contains_key(&LitStrOrd(LitStr::new("$ref", Span::call_site()))) {
+            map.try_into().map(Self::Ref)
         } else if map.contains_key(&LitStrOrd(LitStr::new("type", Span::call_site()))) {
             map.try_into().map(Self::Type)
         } else if map.contains_key(&LitStrOrd(LitStr::new("allOf", Span::call_site()))) {
@@ -105,6 +125,26 @@ impl TryFrom<JSONValue> for Definition {
         } else {
             Err(syn::Error::new(brace.span, "Unknown definition"))
         }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct RefDefinition {
+    name: LitStr,
+}
+
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for RefDefinition {
+    type Error = syn::Error;
+
+    fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        let r#ref = map
+            .remove(&LitStrOrd(LitStr::new("$ref", Span::call_site())))
+            .map(TryInto::<LitStr>::try_into)
+            .transpose()?
+            .unwrap();
+
+        unexpected_keys(map, Ok(Self { name: r#ref }))
     }
 }
 
