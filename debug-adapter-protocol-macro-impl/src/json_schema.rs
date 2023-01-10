@@ -149,7 +149,9 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for RefDefinition {
 }
 
 #[derive(Debug)]
-pub struct AllOfDefinition {}
+pub struct AllOfDefinition {
+    definitions: Vec<Definition>,
+}
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for AllOfDefinition {
     type Error = syn::Error;
@@ -163,7 +165,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for AllOfDefinition {
         let (_, all_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
             all_of.try_into()?;
 
-        let (_parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = all_of
+        let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = all_of
             .into_iter()
             .map(TryInto::<Definition>::try_into)
             .partition_result();
@@ -175,12 +177,19 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for AllOfDefinition {
             return Err(error);
         }
 
-        unexpected_keys(map, Ok(Self {}))
+        unexpected_keys(
+            map,
+            Ok(Self {
+                definitions: parsed_definitions,
+            }),
+        )
     }
 }
 
 #[derive(Debug)]
-pub struct OneOfDefinition {}
+pub struct OneOfDefinition {
+    definitions: Vec<Definition>,
+}
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
     type Error = syn::Error;
@@ -194,7 +203,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
         let (_, one_of): (token::Bracket, Punctuated<JSONValue, token::Comma>) =
             one_of.try_into()?;
 
-        let (_parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = one_of
+        let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = one_of
             .into_iter()
             .map(TryInto::<Definition>::try_into)
             .partition_result();
@@ -206,12 +215,44 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
             return Err(error);
         }
 
-        unexpected_keys(map, Ok(Self {}))
+        unexpected_keys(
+            map,
+            Ok(Self {
+                definitions: parsed_definitions,
+            }),
+        )
     }
 }
 
 #[derive(Debug)]
-pub struct TypeDefinition {}
+pub enum TypeDefinition {
+    ObjectType(ObjectType),
+    StringType(StringType),
+    ArrayType(ArrayType),
+    IntegerType(IntegerType),
+    DoubleType(DoubleType),
+    BooleanType(BooleanType),
+}
+
+#[derive(Debug)]
+pub struct ObjectType {}
+
+#[derive(Debug)]
+pub struct StringType {}
+
+#[derive(Debug)]
+pub struct ArrayType {
+    item_type: Option<Box<Definition>>,
+}
+
+#[derive(Debug)]
+pub struct IntegerType {}
+
+#[derive(Debug)]
+pub struct DoubleType {}
+
+#[derive(Debug)]
+pub struct BooleanType {}
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for TypeDefinition {
     type Error = syn::Error;
@@ -282,7 +323,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for TypeDefinition {
                         }
                     }
 
-                    unexpected_keys(map, Ok(Self {}))
+                    unexpected_keys(map, Ok(Self::ObjectType(ObjectType {})))
                 } else if r#type.value() == "string" {
                     // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
                     let r#enum =
@@ -336,21 +377,32 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for TypeDefinition {
                             .transpose()?;
                     }
 
-                    unexpected_keys(map, Ok(Self {}))
-                } else if ["integer", "number", "boolean"].contains(&r#type.value().as_str()) {
-                    unexpected_keys(map, Ok(Self {}))
+                    unexpected_keys(map, Ok(Self::StringType(StringType {})))
+                } else if "integer" == r#type.value() {
+                    unexpected_keys(map, Ok(Self::IntegerType(IntegerType {})))
+                } else if "boolean" == r#type.value() {
+                    unexpected_keys(map, Ok(Self::BooleanType(BooleanType {})))
+                } else if "number" == r#type.value() {
+                    unexpected_keys(map, Ok(Self::DoubleType(DoubleType {})))
                 } else if r#type.value() == "array" {
-                    let _items = map
+                    let item_type = map
                         .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
                         .map(TryInto::<Definition>::try_into)
-                        .transpose()?;
+                        .transpose()?
+                        .map(Box::new);
 
-                    unexpected_keys(map, Ok(Self {}))
+                    unexpected_keys(map, Ok(Self::ArrayType(ArrayType { item_type })))
                 } else {
-                    return Err(syn::Error::new(r#type.span(), "Expected \"object\""));
+                    return Err(syn::Error::new(
+                        r#type.span(),
+                        r#"Expected an array of primitive types or one of the primitive types "object", "string", "integer", "number", "boolean" or "array""#,
+                    ));
                 }
             }
-            JSONValue::Array(_type) => unexpected_keys(map, Ok(Self {})),
+            JSONValue::Array(_type) => {
+                // we're doomed, this is basically a oneOf?
+                unexpected_keys(map, Ok(Self {}))
+            }
             _ => Err(syn::Error::new(r#type.span(), "Expected string or array")),
         }
     }
