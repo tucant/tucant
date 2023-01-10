@@ -22,7 +22,7 @@ fn debug_adapter_protocol_macro_impl(
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
     let _input: JSONSchema = input.try_into()?;
 
-    //println!("{_input:#?}");
+    println!("{_input:#?}");
 
     Ok(quote!())
 }
