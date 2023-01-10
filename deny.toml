@@ -247,16 +247,14 @@ skip-tree = [
     # fixed in https://github.com/snapview/tungstenite-rs/commit/c469214dd3012af6f1641fb7a6754dc186e10677
     { name = "base64", version = "=0.13.1" },
 
-    { name = "base64", version = "=0.11.0" }, # https://github.com/opensearch-project/opensearch-rs/pull/95
-    { name = "serde_with", version = "=1.14.0" }, # https://github.com/opensearch-project/opensearch-rs/pull/91
+    { name = "base64", version = "=0.11.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/af08cfdfd05eb66c0927eb161dd5eb42af6ea4d4
+    { name = "serde_with", version = "=1.14.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/45b69ca2d480888f7e7187a44cc2ccd73a0a324c
 
     { name = "selectors", version = "=0.22.0" }, # https://github.com/causal-agent/scraper/pull/97
 
     { name = "cookie_store", version = "=0.16.1" }, # https://github.com/seanmonstar/reqwest/pull/1674
 
-    { name = "phf", version = "=0.10.1" }, # https://github.com/servo/html5ever/pull/490
-
-    { name = "windows-sys", version = "=0.36.1" }, # https://github.com/steffengy/schannel-rs/pull/82
+    { name = "phf", version = "=0.10.1" }, # https://github.com/servo/html5ever/commit/5fdbd030d70d2bd8624a84f316a8c75eeb3ac18d
 ]
 
 # This section is considered when running `cargo deny check sources`.
