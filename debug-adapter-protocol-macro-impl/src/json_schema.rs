@@ -272,17 +272,31 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
 }
 
 #[derive(Debug)]
-pub struct ObjectType {}
+pub struct ObjectType {
+    properties: Vec<(Definition, bool)>,
+    additional_properties_type: Option<Box<Definition>>,
+}
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
     type Error = syn::Error;
 
     fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
-        // TODO FIXME use extract_keys
-        let _required = map
+        let (required, required_failures): (Vec<_>, Vec<_>) = map
             .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
             .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
-            .transpose()?;
+            .transpose()?
+            .map(|v| v.1.into_iter())
+            .into_iter()
+            .flatten()
+            .map(TryInto::<LitStr>::try_into)
+            .partition_result();
+
+        if let Some(error) = required_failures.into_iter().reduce(|mut e1, e2| {
+            e1.combine(e2);
+            e1
+        }) {
+            return Err(error);
+        }
 
         // this is optional
         let properties = map
@@ -319,7 +333,13 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
             }
         }
 
-        unexpected_keys(map, Ok(Self {}))
+        unexpected_keys(
+            map,
+            Ok(Self {
+                properties: todo!(),
+                additional_properties_type: todo!(),
+            }),
+        )
     }
 }
 
