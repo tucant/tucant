@@ -103,21 +103,66 @@ impl TryFrom<JSONValue> for Definition {
 #[derive(Debug)]
 pub enum DefinitionType {
     AllOf(AllOfDefinition),
-    Type(TypeDefinition),
     OneOf(OneOfDefinition),
     Ref(RefDefinition),
+    ObjectType(ObjectType),
+    StringType(StringType),
+    ArrayType(ArrayType),
+    IntegerType(IntegerType),
+    DoubleType(DoubleType),
+    BooleanType(BooleanType),
 }
 
 impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
     type Error = syn::Error;
 
     fn try_from(
-        (brace, map): (Brace, BTreeMap<LitStrOrd, JSONValue>),
+        (brace, mut map): (Brace, BTreeMap<LitStrOrd, JSONValue>),
     ) -> Result<Self, Self::Error> {
         if map.contains_key(&LitStrOrd(LitStr::new("$ref", Span::call_site()))) {
             map.try_into().map(Self::Ref)
         } else if map.contains_key(&LitStrOrd(LitStr::new("type", Span::call_site()))) {
-            map.try_into().map(Self::Type)
+            let r#type = map
+                .remove(&LitStrOrd(LitStr::new("type", Span::call_site())))
+                .unwrap();
+
+            // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
+
+            match r#type {
+                JSONValue::String(r#type) => {
+                    // TODO FIXME run partition_result
+
+                    // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
+                    if r#type.value() == "object" {
+                        map.try_into().map(Self::ObjectType)
+                    } else if r#type.value() == "string" {
+                        map.try_into().map(Self::StringType)
+                    } else if "integer" == r#type.value() {
+                        map.try_into().map(Self::IntegerType)
+                    } else if "boolean" == r#type.value() {
+                        map.try_into().map(Self::BooleanType)
+                    } else if "number" == r#type.value() {
+                        map.try_into().map(Self::DoubleType)
+                    } else if r#type.value() == "array" {
+                        map.try_into().map(Self::ArrayType)
+                    } else {
+                        return Err(syn::Error::new(
+                            r#type.span(),
+                            r#"Expected an array of primitive types or one of the primitive types "object", "string", "integer", "number", "boolean" or "array""#,
+                        ));
+                    }
+                }
+                JSONValue::Array(_type) => {
+                    // we're doomed, this is basically a oneOf?
+                    unexpected_keys(
+                        map,
+                        Ok(Self::OneOf(OneOfDefinition {
+                            definitions: Vec::new(),
+                        })),
+                    )
+                }
+                _ => Err(syn::Error::new(r#type.span(), "Expected string or array")),
+            }
         } else if map.contains_key(&LitStrOrd(LitStr::new("allOf", Span::call_site()))) {
             map.try_into().map(Self::AllOf)
         } else if map.contains_key(&LitStrOrd(LitStr::new("oneOf", Span::call_site()))) {
@@ -148,6 +193,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for RefDefinition {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct AllOfDefinition {
     definitions: Vec<Definition>,
@@ -186,6 +232,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for AllOfDefinition {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct OneOfDefinition {
     definitions: Vec<Definition>,
@@ -225,185 +272,149 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
 }
 
 #[derive(Debug)]
-pub enum TypeDefinition {
-    ObjectType(ObjectType),
-    StringType(StringType),
-    ArrayType(ArrayType),
-    IntegerType(IntegerType),
-    DoubleType(DoubleType),
-    BooleanType(BooleanType),
-}
-
-#[derive(Debug)]
 pub struct ObjectType {}
+
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
+    type Error = syn::Error;
+
+    fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        // TODO FIXME use extract_keys
+        let _required = map
+            .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
+            .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+            .transpose()?;
+
+        // this is optional
+        let properties = map
+            .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
+            .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
+            .transpose()?;
+
+        if let Some((_, properties)) = properties {
+            let (_parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
+                .into_iter()
+                .map(|property| TryInto::<Definition>::try_into(property.value))
+                .partition_result();
+
+            if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
+                e1.combine(e2);
+                e1
+            }) {
+                return Err(error);
+            }
+        }
+
+        let additional_properties = map.remove(&LitStrOrd(LitStr::new(
+            "additionalProperties",
+            Span::call_site(),
+        )));
+
+        if let Some(additional_properties) = additional_properties {
+            match additional_properties {
+                JSONValue::Bool(_) => {}
+                JSONValue::Object(_) => {
+                    TryInto::<Definition>::try_into(additional_properties)?;
+                }
+                value => return Err(syn::Error::new(value.span(), "Expected boolean of object")),
+            }
+        }
+
+        unexpected_keys(map, Ok(Self {}))
+    }
+}
 
 #[derive(Debug)]
 pub struct StringType {}
 
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for StringType {
+    type Error = syn::Error;
+
+    fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
+        let r#enum = map
+            .remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
+            .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+            .transpose()?;
+
+        if let Some(_enum) = r#enum {
+            let _enum_descriptions = map
+                .remove(&LitStrOrd(LitStr::new(
+                    "enumDescriptions",
+                    Span::call_site(),
+                )))
+                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                .transpose()?;
+        }
+
+        // additional enum values allowed
+        let r#enum = map
+            .remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
+            .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+            .transpose()?;
+
+        if let Some(_enum) = r#enum {
+            let _enum_descriptions = map
+                .remove(&LitStrOrd(LitStr::new(
+                    "enumDescriptions",
+                    Span::call_site(),
+                )))
+                .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
+                .transpose()?;
+        }
+
+        unexpected_keys(map, Ok(Self {}))
+    }
+}
+
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ArrayType {
     item_type: Option<Box<Definition>>,
 }
 
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ArrayType {
+    type Error = syn::Error;
+
+    fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        let item_type = map
+            .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
+            .map(TryInto::<Definition>::try_into)
+            .transpose()?
+            .map(Box::new);
+
+        unexpected_keys(map, Ok(Self { item_type }))
+    }
+}
+
 #[derive(Debug)]
 pub struct IntegerType {}
+
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for IntegerType {
+    type Error = syn::Error;
+
+    fn try_from(map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        unexpected_keys(map, Ok(Self {}))
+    }
+}
 
 #[derive(Debug)]
 pub struct DoubleType {}
 
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for DoubleType {
+    type Error = syn::Error;
+
+    fn try_from(map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        unexpected_keys(map, Ok(Self {}))
+    }
+}
+
 #[derive(Debug)]
 pub struct BooleanType {}
 
-impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for TypeDefinition {
+impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for BooleanType {
     type Error = syn::Error;
 
-    #[allow(clippy::too_many_lines)]
-    fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
-        let r#type = map
-            .remove(&LitStrOrd(LitStr::new("type", Span::call_site())))
-            .unwrap();
-
-        // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.2
-        match r#type {
-            JSONValue::String(r#type) => {
-                // TODO FIXME run partition_result
-
-                // https://datatracker.ietf.org/doc/html/draft-zyp-json-schema-04#section-3.5
-                if r#type.value() == "object" {
-                    // TODO FIXME use extract_keys
-                    let _required =
-                        map.remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
-                            .map(
-                                TryInto::<(
-                                    token::Bracket,
-                                    Punctuated<JSONValue, token::Comma>,
-                                )>::try_into,
-                            )
-                            .transpose()?;
-
-                    // this is optional
-                    let properties = map
-                        .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
-                        .map(
-                            TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into,
-                        )
-                        .transpose()?;
-
-                    if let Some((_, properties)) = properties {
-                        let (_parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
-                            .into_iter()
-                            .map(|property| TryInto::<Definition>::try_into(property.value))
-                            .partition_result();
-
-                        if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
-                            e1.combine(e2);
-                            e1
-                        }) {
-                            return Err(error);
-                        }
-                    }
-
-                    let additional_properties = map.remove(&LitStrOrd(LitStr::new(
-                        "additionalProperties",
-                        Span::call_site(),
-                    )));
-
-                    if let Some(additional_properties) = additional_properties {
-                        match additional_properties {
-                            JSONValue::Bool(_) => {}
-                            JSONValue::Object(_) => {
-                                TryInto::<Definition>::try_into(additional_properties)?;
-                            }
-                            value => {
-                                return Err(syn::Error::new(
-                                    value.span(),
-                                    "Expected boolean of object",
-                                ))
-                            }
-                        }
-                    }
-
-                    unexpected_keys(map, Ok(Self::ObjectType(ObjectType {})))
-                } else if r#type.value() == "string" {
-                    // https://datatracker.ietf.org/doc/html/draft-fge-json-schema-validation-00#section-5.5.1
-                    let r#enum =
-                        map.remove(&LitStrOrd(LitStr::new("enum", Span::call_site())))
-                            .map(
-                                TryInto::<(
-                                    token::Bracket,
-                                    Punctuated<JSONValue, token::Comma>,
-                                )>::try_into,
-                            )
-                            .transpose()?;
-
-                    if let Some(_enum) = r#enum {
-                        let _enum_descriptions = map
-                            .remove(&LitStrOrd(LitStr::new(
-                                "enumDescriptions",
-                                Span::call_site(),
-                            )))
-                            .map(
-                                TryInto::<(
-                                    token::Bracket,
-                                    Punctuated<JSONValue, token::Comma>,
-                                )>::try_into,
-                            )
-                            .transpose()?;
-                    }
-
-                    // additional enum values allowed
-                    let r#enum =
-                        map.remove(&LitStrOrd(LitStr::new("_enum", Span::call_site())))
-                            .map(
-                                TryInto::<(
-                                    token::Bracket,
-                                    Punctuated<JSONValue, token::Comma>,
-                                )>::try_into,
-                            )
-                            .transpose()?;
-
-                    if let Some(_enum) = r#enum {
-                        let _enum_descriptions = map
-                            .remove(&LitStrOrd(LitStr::new(
-                                "enumDescriptions",
-                                Span::call_site(),
-                            )))
-                            .map(
-                                TryInto::<(
-                                    token::Bracket,
-                                    Punctuated<JSONValue, token::Comma>,
-                                )>::try_into,
-                            )
-                            .transpose()?;
-                    }
-
-                    unexpected_keys(map, Ok(Self::StringType(StringType {})))
-                } else if "integer" == r#type.value() {
-                    unexpected_keys(map, Ok(Self::IntegerType(IntegerType {})))
-                } else if "boolean" == r#type.value() {
-                    unexpected_keys(map, Ok(Self::BooleanType(BooleanType {})))
-                } else if "number" == r#type.value() {
-                    unexpected_keys(map, Ok(Self::DoubleType(DoubleType {})))
-                } else if r#type.value() == "array" {
-                    let item_type = map
-                        .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
-                        .map(TryInto::<Definition>::try_into)
-                        .transpose()?
-                        .map(Box::new);
-
-                    unexpected_keys(map, Ok(Self::ArrayType(ArrayType { item_type })))
-                } else {
-                    return Err(syn::Error::new(
-                        r#type.span(),
-                        r#"Expected an array of primitive types or one of the primitive types "object", "string", "integer", "number", "boolean" or "array""#,
-                    ));
-                }
-            }
-            JSONValue::Array(_type) => {
-                // we're doomed, this is basically a oneOf?
-                unexpected_keys(map, Ok(Self {}))
-            }
-            _ => Err(syn::Error::new(r#type.span(), "Expected string or array")),
-        }
+    fn try_from(map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
+        unexpected_keys(map, Ok(Self {}))
     }
 }
