@@ -20,7 +20,9 @@ use syn::parse_macro_input;
 fn debug_adapter_protocol_macro_impl(
     input: JSONValue,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
-    let _input: JSONSchema = input.try_into()?;
+    let input: JSONSchema = input.try_into()?;
+
+    println!("{input:#?}");
 
     Ok(quote!())
 }
