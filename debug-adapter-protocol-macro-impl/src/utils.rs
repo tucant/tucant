@@ -25,7 +25,7 @@ impl Ord for LitStrOrd {
 }
 
 pub fn extract_keys<const N: usize>(
-    (brace, value): (Brace, Punctuated<KeyValue, Comma>),
+    (brace, value): (Brace, Punctuated<KeyValue<JSONValue>, Comma>),
     keys: [&str; N],
 ) -> Result<[JSONValue; N], syn::Error> {
     let mut map: BTreeMap<_, _> = value

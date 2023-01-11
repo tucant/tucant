@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use itertools::Itertools;
 use proc_macro2::Span;
@@ -33,7 +33,8 @@ impl TryFrom<JSONValue> for JSONSchema {
                 ["$schema", "title", "description", "type", "definitions"],
             )?;
 
-            let (_, definitions): (Brace, Punctuated<KeyValue, Comma>) = definitions.try_into()?;
+            let (_, definitions): (Brace, Punctuated<KeyValue<JSONValue>, Comma>) =
+                definitions.try_into()?;
 
             let (parsed_definitions, failed_definitions): (Vec<_>, Vec<_>) = definitions
                 .into_iter()
@@ -74,7 +75,7 @@ impl TryFrom<JSONValue> for Definition {
     type Error = syn::Error;
 
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
-        let (brace, value): (token::Brace, Punctuated<KeyValue, token::Comma>) =
+        let (brace, value): (token::Brace, Punctuated<KeyValue<JSONValue>, token::Comma>) =
             value.try_into()?;
 
         let mut map: BTreeMap<_, _> = value
@@ -271,17 +272,34 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for OneOfDefinition {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ObjectType {
-    properties: Vec<(Definition, bool)>,
-    additional_properties_type: Option<Box<Definition>>,
+    // bool required
+    properties: Vec<KeyValue<(Definition, bool)>>,
+    additional_properties_type: Box<Definition>,
 }
+
+/*
+fn get_any_object_type() -> DefinitionType {
+    DefinitionType::OneOf(OneOfDefinition {
+        definitions: vec![Definition {
+            title: None,
+            description: None,
+            definition_type: DefinitionType::ObjectType(ObjectType {
+                properties: Vec::new(),
+                additional_properties_type: todo!(),
+            }),
+        }],
+    })
+}
+*/
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
     type Error = syn::Error;
 
     fn try_from(mut map: BTreeMap<LitStrOrd, JSONValue>) -> Result<Self, Self::Error> {
-        let (required, required_failures): (Vec<_>, Vec<_>) = map
+        let (required, required_failures): (HashSet<_>, Vec<_>) = map
             .remove(&LitStrOrd(LitStr::new("required", Span::call_site())))
             .map(TryInto::<(token::Bracket, Punctuated<JSONValue, token::Comma>)>::try_into)
             .transpose()?
@@ -298,48 +316,96 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
             return Err(error);
         }
 
-        // this is optional
         let properties = map
             .remove(&LitStrOrd(LitStr::new("properties", Span::call_site())))
-            .map(TryInto::<(token::Brace, Punctuated<KeyValue, token::Comma>)>::try_into)
+            .map(TryInto::<(token::Brace, Punctuated<KeyValue<JSONValue>, token::Comma>)>::try_into)
             .transpose()?;
 
-        if let Some((_, properties)) = properties {
-            let (_parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
+        let properties = if let Some((_, properties)) = properties {
+            let (parsed_properties, failed_properties): (Vec<_>, Vec<_>) = properties
                 .into_iter()
-                .map(|property| TryInto::<Definition>::try_into(property.value))
+                .map(|property| {
+                    Ok(KeyValue {
+                        value: (
+                            TryInto::<Definition>::try_into(property.value)?,
+                            required.contains(&property.key),
+                        ),
+                        key: property.key,
+                    })
+                })
                 .partition_result();
 
-            if let Some(error) = failed_properties.into_iter().reduce(|mut e1, e2| {
-                e1.combine(e2);
-                e1
-            }) {
+            if let Some(error) =
+                failed_properties
+                    .into_iter()
+                    .reduce(|mut e1: syn::Error, e2: syn::Error| {
+                        e1.combine(e2);
+                        e1
+                    })
+            {
                 return Err(error);
             }
-        }
+            Some(parsed_properties)
+        } else {
+            None
+        };
 
         let additional_properties = map.remove(&LitStrOrd(LitStr::new(
             "additionalProperties",
             Span::call_site(),
         )));
 
-        if let Some(additional_properties) = additional_properties {
-            match additional_properties {
-                JSONValue::Bool(_) => {}
-                JSONValue::Object(_) => {
-                    TryInto::<Definition>::try_into(additional_properties)?;
-                }
-                value => return Err(syn::Error::new(value.span(), "Expected boolean of object")),
-            }
-        }
-
-        unexpected_keys(
-            map,
-            Ok(Self {
-                properties: todo!(),
-                additional_properties_type: todo!(),
+        let additional_properties = match additional_properties {
+            Some(JSONValue::Bool(_)) => Some(Definition {
+                title: None,
+                description: None,
+                definition_type: DefinitionType::Ref(RefDefinition {
+                    name: LitStr::new("object", Span::call_site()),
+                }),
             }),
-        )
+            Some(additional_properties @ JSONValue::Object(_)) => {
+                Some(TryInto::<Definition>::try_into(additional_properties)?)
+            }
+            None => None,
+            Some(value) => return Err(syn::Error::new(value.span(), "Expected boolean of object")),
+        };
+
+        let result = match (properties, additional_properties) {
+            // no properties and no additionalProperties (this probably means any object)
+            (None, None) => Self {
+                properties: Vec::new(),
+                additional_properties_type: Box::new(Definition {
+                    title: None,
+                    description: None,
+                    definition_type: DefinitionType::Ref(RefDefinition {
+                        name: LitStr::new("object", Span::call_site()),
+                    }),
+                }),
+            },
+            // no properties and additionalproperties (this means any properties of the type (same as with properties {}))
+            (None, Some(additional_properties)) => Self {
+                properties: Vec::new(),
+                additional_properties_type: Box::new(additional_properties),
+            },
+            // properties and no additionalProperties (this means exactly these properties)
+            (Some(properties), None) => Self {
+                properties,
+                additional_properties_type: Box::new(Definition {
+                    title: None,
+                    description: None,
+                    definition_type: DefinitionType::OneOf(OneOfDefinition {
+                        definitions: Vec::new(),
+                    }),
+                }),
+            },
+            // properties and additionalProperties (this means these properties and the others of the other type)
+            (Some(properties), Some(additional_properties)) => Self {
+                properties,
+                additional_properties_type: Box::new(additional_properties),
+            },
+        };
+
+        unexpected_keys(map, Ok(result))
     }
 }
 

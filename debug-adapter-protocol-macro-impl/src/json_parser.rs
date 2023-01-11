@@ -1,6 +1,10 @@
 use proc_macro2::Span;
 use syn::{
-    braced, bracketed, parse::Parse, punctuated::Punctuated, token, LitBool, LitInt, LitStr, Token,
+    braced, bracketed,
+    parse::Parse,
+    punctuated::Punctuated,
+    token::{self, Colon},
+    LitBool, LitInt, LitStr,
 };
 
 #[allow(dead_code)]
@@ -10,7 +14,7 @@ pub enum JSONValue {
     String(LitStr),
     Integer(LitInt),
     Array((token::Bracket, Punctuated<JSONValue, token::Comma>)),
-    Object((token::Brace, Punctuated<KeyValue, token::Comma>)),
+    Object((token::Brace, Punctuated<KeyValue<JSONValue>, token::Comma>)),
 }
 
 impl JSONValue {
@@ -67,7 +71,7 @@ impl TryFrom<JSONValue> for LitStr {
     }
 }
 
-impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue, token::Comma>) {
+impl TryFrom<JSONValue> for (token::Brace, Punctuated<KeyValue<JSONValue>, token::Comma>) {
     type Error = syn::Error;
 
     fn try_from(value: JSONValue) -> Result<Self, Self::Error> {
@@ -93,18 +97,16 @@ impl TryFrom<JSONValue> for (token::Bracket, Punctuated<JSONValue, token::Comma>
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct KeyValue {
+pub struct KeyValue<T> {
     pub key: LitStr,
-    colon: Token![:],
-    pub value: JSONValue,
+    pub value: T,
 }
 
-impl Parse for KeyValue {
+impl Parse for KeyValue<JSONValue> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            key: input.parse()?,
-            colon: input.parse()?,
-            value: input.parse()?,
-        })
+        let key = input.parse()?;
+        input.parse::<Colon>()?;
+        let value = input.parse()?;
+        Ok(Self { key, value })
     }
 }
