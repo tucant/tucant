@@ -63,7 +63,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             let ref_name =
                 format_ident!("r#{}", t.name.value().trim_start_matches("#/definitions/"));
             quote! {
-                type #name = #ref_name;
+                pub type #name = #ref_name;
             }
         }
         crate::json_schema::DefinitionType::ObjectType(t) => {
@@ -86,7 +86,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
         }
         crate::json_schema::DefinitionType::StringType(t) => {
             quote! {
-                type #name = String;
+                pub type #name = String;
             }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
@@ -94,22 +94,22 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             let code = codegen_definition(&array_name, &t.item_type);
             quote! {
                 #code
-                type #name = Vec<#array_name>;
+                pub type #name = Vec<#array_name>;
             }
         }
         crate::json_schema::DefinitionType::IntegerType(t) => {
             quote! {
-                type #name = i32;
+                pub type #name = i32;
             }
         }
         crate::json_schema::DefinitionType::DoubleType(t) => {
             quote! {
-                type #name = f64;
+                pub type #name = f64;
             }
         }
         crate::json_schema::DefinitionType::BooleanType(t) => {
             quote! {
-                type #name = bool;
+                pub type #name = bool;
             }
         }
     };
