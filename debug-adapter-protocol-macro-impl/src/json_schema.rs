@@ -495,7 +495,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for StringType {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct ArrayType {
-    pub item_type: Option<Box<Definition>>,
+    pub item_type: Box<Definition>,
 }
 
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ArrayType {
@@ -506,7 +506,8 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ArrayType {
             .remove(&LitStrOrd(LitStr::new("items", Span::call_site())))
             .map(TryInto::<Definition>::try_into)
             .transpose()?
-            .map(Box::new);
+            .map(Box::new)
+            .unwrap(); // TODO FIXME
 
         unexpected_keys(map, Ok(Self { item_type }))
     }

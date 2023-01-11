@@ -7,18 +7,18 @@ use crate::{
     json_schema::{Definition, JSONSchema},
 };
 
-pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::TokenStream {
-    let description = definition.description.map(|d| {
+pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2::TokenStream {
+    let description = definition.description.as_ref().map(|d| {
         quote! {
             #[doc = #d]
         }
     });
-    let title = definition.title.map(|t| {
+    let title = definition.title.as_ref().map(|t| {
         quote! {
             #[doc = #t]
         }
     });
-    let result = match definition.definition_type {
+    let result = match &definition.definition_type {
         crate::json_schema::DefinitionType::AllOf(t) => {
             quote! {
                 pub struct #name {
@@ -43,11 +43,11 @@ pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::
         crate::json_schema::DefinitionType::ObjectType(t) => {
             let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
                 .properties
-                .into_iter()
+                .iter()
                 .map(|p| {
-                    let name = format_ident!("r#{}{}", name, p.key.value());
+                    let name = format_ident!("r#{}_{}", name, p.key.value());
                     let key = format_ident!("r#{}", p.key.value());
-                    (codegen_definition(&name, p.value.0), key, name)
+                    (codegen_definition(&name, &p.value.0), key, name)
                 })
                 .multiunzip();
             quote! {
@@ -66,24 +66,21 @@ pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::
             }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
+            let name = format_ident!("r#{}_array", name);
+            let code = codegen_definition(&name, &t.item_type);
             quote! {
-                pub struct #name {
-
-                }
+                #code
+                type #name = Vec<#name>;
             }
         }
         crate::json_schema::DefinitionType::IntegerType(t) => {
             quote! {
-                pub struct #name {
-
-                }
+                type #name = i32;
             }
         }
         crate::json_schema::DefinitionType::DoubleType(t) => {
             quote! {
-                pub struct #name {
-
-                }
+                type #name = f64;
             }
         }
         crate::json_schema::DefinitionType::BooleanType(t) => {
@@ -104,7 +101,7 @@ pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
     let definitions = schema.definitions.into_iter().map(|definition| {
         let name = format_ident!("r#{}", definition.key.value());
-        codegen_definition(&name, definition.value)
+        codegen_definition(&name, &definition.value)
     });
     quote! {
         #(#definitions)*
