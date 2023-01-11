@@ -1,10 +1,10 @@
 use quote::quote;
 
-use crate::JSONValue;
 use crate::{json_schema::JSONSchema, json_schema_codegen::codegen};
+use proc_macro2::TokenStream;
+use crate::json_parser::JSONValue;
 
-#[test]
-pub fn realistic() -> Result<(), syn::Error> {
+pub fn realistic() -> Result<TokenStream, syn::Error> {
     let value = quote! {
         {
             "$schema": "http://json-schema.org/draft-04/schema#",
@@ -4197,9 +4197,5 @@ pub fn realistic() -> Result<(), syn::Error> {
 
     //println!("{_input:#?}");
 
-    let result = codegen(value);
-
-    println!("{}", result);
-
-    Ok(())
+    Ok(codegen(value))
 }
