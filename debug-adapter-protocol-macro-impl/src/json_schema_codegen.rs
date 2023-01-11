@@ -34,10 +34,9 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             }
         }
         crate::json_schema::DefinitionType::Ref(t) => {
+            let ref_name = format_ident!("r#{}", t.name.value().trim_start_matches("#/definitions/"));
             quote! {
-                pub struct #name {
-
-                }
+                type #name = #ref_name;
             }
         }
         crate::json_schema::DefinitionType::ObjectType(t) => {
@@ -60,9 +59,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
         }
         crate::json_schema::DefinitionType::StringType(t) => {
             quote! {
-                pub struct #name {
-
-                }
+                type #name = String;
             }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
