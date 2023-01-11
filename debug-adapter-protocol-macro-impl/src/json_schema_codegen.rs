@@ -20,21 +20,48 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
     });
     let result = match &definition.definition_type {
         crate::json_schema::DefinitionType::AllOf(t) => {
-            quote! {
-                pub struct #name {
+            let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
+                .definitions
+                .iter()
+                .enumerate()
+                .map(|(id, p)| {
+                    let name = format_ident!("r#{}_{}", name, id);
+                    let key = format_ident!("r#_{}", id);
+                    (codegen_definition(&name, &p), key, name)
+                })
+                .multiunzip();
 
+            quote! {
+                #(#properties_code)*
+
+                pub struct #name {
+                    #(#member_names: #member_types),*
                 }
             }
         }
         crate::json_schema::DefinitionType::OneOf(t) => {
-            quote! {
-                pub struct #name {
+            let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
+                .definitions
+                .iter()
+                .enumerate()
+                .map(|(id, p)| {
+                    let name = format_ident!("r#{}_{}", name, id);
+                    let key = format_ident!("r#_{}", id);
+                    (codegen_definition(&name, &p), key, name)
+                })
+                .multiunzip();
 
+            quote! {
+                #(#properties_code)*
+
+                pub enum #name {
+                    #(#member_names(#member_types)),*
                 }
             }
         }
         crate::json_schema::DefinitionType::Ref(t) => {
-            let ref_name = format_ident!("r#{}", t.name.value().trim_start_matches("#/definitions/"));
+            let ref_name =
+                format_ident!("r#{}", t.name.value().trim_start_matches("#/definitions/"));
             quote! {
                 type #name = #ref_name;
             }
