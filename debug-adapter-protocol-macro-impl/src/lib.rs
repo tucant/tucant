@@ -12,6 +12,7 @@
 
 pub mod json_parser;
 pub mod json_schema;
+pub mod json_schema_codegen;
 mod utils;
 
 use crate::json_parser::JSONValue;
