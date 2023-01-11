@@ -16,7 +16,6 @@
 use debug_adapter_protocol_macro_impl::{
     json_parser::JSONValue, json_schema::JSONSchema, json_schema_codegen::codegen,
 };
-use quote::quote;
 use syn::parse_macro_input;
 
 fn debug_adapter_protocol_macro_impl(
@@ -26,7 +25,7 @@ fn debug_adapter_protocol_macro_impl(
 
     //println!("{_input:#?}");
 
-    codegen(input)
+    Ok(codegen(input))
 }
 
 #[proc_macro]
