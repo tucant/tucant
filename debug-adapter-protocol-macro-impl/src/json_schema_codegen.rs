@@ -66,11 +66,11 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
-            let name = format_ident!("r#{}_array", name);
-            let code = codegen_definition(&name, &t.item_type);
+            let array_name = format_ident!("r#{}_array", name);
+            let code = codegen_definition(&array_name, &t.item_type);
             quote! {
                 #code
-                type #name = Vec<#name>;
+                type #name = Vec<#array_name>;
             }
         }
         crate::json_schema::DefinitionType::IntegerType(t) => {
