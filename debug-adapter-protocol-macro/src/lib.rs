@@ -13,7 +13,7 @@
 // https://internals.rust-lang.org/t/user-defined-quick-fixes/14926
 // https://github.com/rust-lang/rust/issues/54140#issuecomment-802701867
 
-use debug_adapter_protocol_macro_impl::{JSONSchema, JSONValue};
+use debug_adapter_protocol_macro_impl::{json_parser::JSONValue, json_schema::JSONSchema};
 use quote::quote;
 use syn::parse_macro_input;
 
@@ -21,6 +21,8 @@ fn debug_adapter_protocol_macro_impl(
     input: JSONValue,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
     let _input: JSONSchema = input.try_into()?;
+
+    //println!("{_input:#?}");
 
     Ok(quote!())
 }
