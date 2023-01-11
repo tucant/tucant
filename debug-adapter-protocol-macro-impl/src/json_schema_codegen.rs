@@ -46,7 +46,8 @@ pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::
                 .into_iter()
                 .map(|p| {
                     let name = format_ident!("r#{}{}", name, p.key.value());
-                    (codegen_definition(&name, p.value.0), p.key, name)
+                    let key = format_ident!("r#{}", p.key.value());
+                    (codegen_definition(&name, p.value.0), key, name)
                 })
                 .multiunzip();
             quote! {
@@ -87,7 +88,7 @@ pub fn codegen_definition(name: &Ident, definition: Definition) -> proc_macro2::
         }
         crate::json_schema::DefinitionType::BooleanType(t) => {
             quote! {
-                type #name = bool
+                type #name = bool;
             }
         }
     };

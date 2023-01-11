@@ -10,6 +10,7 @@
 )]
 #![feature(array_try_map)]
 
+mod debug_adapter_protocol;
 pub mod json_parser;
 pub mod json_schema;
 pub mod json_schema_codegen;
