@@ -82,6 +82,9 @@ docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB
 ```bash
 cd backend-rust
 
+# https://github.com/rust-lang/rust-clippy/issues/10134
+rustup default nightly-2022-12-29
+
 cargo install diesel_cli --no-default-features --features postgres
 cp .env.sample .env
 $HOME/.cargo/bin/diesel setup

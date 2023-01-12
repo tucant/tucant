@@ -250,7 +250,7 @@ skip-tree = [
     { name = "base64", version = "=0.11.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/af08cfdfd05eb66c0927eb161dd5eb42af6ea4d4
     { name = "serde_with", version = "=1.14.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/45b69ca2d480888f7e7187a44cc2ccd73a0a324c
 
-    { name = "selectors", version = "=0.22.0" }, # https://github.com/causal-agent/scraper/pull/97
+    { name = "selectors", version = "=0.22.0" }, # https://github.com/causal-agent/scraper/commit/a1ad314ed61b368e46f8d986fbb15b523ea4d091
 
     { name = "cookie_store", version = "=0.16.1" }, # https://github.com/seanmonstar/reqwest/pull/1674
 

@@ -17,3 +17,4 @@ syn = { version = "1", features = ["full", "extra-traits"] }
 proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
 itertools = "0.10"
+heck = "0.4"
