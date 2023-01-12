@@ -1,13 +1,12 @@
 use itertools::Itertools;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident};
 use quote::{format_ident, quote, quote_spanned};
 
 use crate::{
-    json_parser::KeyValue,
     json_schema::{Definition, JSONSchema},
 };
 
-pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2::TokenStream {
+#[must_use] pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2::TokenStream {
     let description = definition.description.as_ref().map(|d| {
         quote! {
             #[doc = #d]
@@ -27,7 +26,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 .map(|(id, p)| {
                     let name = format_ident!("r#{}_{}", name, id);
                     let key = format_ident!("r#_{}", id);
-                    (codegen_definition(&name, &p), key, name)
+                    (codegen_definition(&name, p), key, name)
                 })
                 .multiunzip();
 
@@ -49,7 +48,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 .map(|(id, p)| {
                     let name = format_ident!("r#{}_{}", name, id);
                     let key = format_ident!("r#_{}", id);
-                    (codegen_definition(&name, &p), key, name)
+                    (codegen_definition(&name, p), key, name)
                 })
                 .multiunzip();
 
@@ -93,7 +92,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 }
             }
         }
-        crate::json_schema::DefinitionType::StringType(t) => {
+        crate::json_schema::DefinitionType::StringType(_t) => {
             quote! {
                 #title
                 #description
@@ -111,21 +110,21 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 pub type #name = Vec<#array_name>;
             }
         }
-        crate::json_schema::DefinitionType::IntegerType(t) => {
+        crate::json_schema::DefinitionType::IntegerType(_t) => {
             quote! {
                 #title
                 #description
                 pub type #name = i32;
             }
         }
-        crate::json_schema::DefinitionType::DoubleType(t) => {
+        crate::json_schema::DefinitionType::DoubleType(_t) => {
             quote! {
                 #title
                 #description
                 pub type #name = f64;
             }
         }
-        crate::json_schema::DefinitionType::BooleanType(t) => {
+        crate::json_schema::DefinitionType::BooleanType(_t) => {
             quote! {
                 #title
                 #description

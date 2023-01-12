@@ -12,7 +12,7 @@ fn main() {
     let output = syn::parse2::<syn::File>(output.clone()).unwrap_or_else(|err| {
         panic!(
             "{} {} {err:#?} {:?}",
-            output.to_string(),
+            output,
             dest_path.to_string_lossy().as_ref(),
             err.span().start()
         )
