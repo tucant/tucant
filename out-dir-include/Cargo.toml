@@ -1,5 +1,5 @@
 [package]
-name = "tucant_language_server_derive"
+name = "out-dir-include"
 version = "0.1.0"
 edition = "2021"
 description = "A nicer, faster and more featureful frontend to TUCaN"
@@ -16,3 +16,4 @@ proc-macro = true
 
 [dependencies]
 quote = "1"
+syn = { version = "1", features = ["full", "extra-traits"] }

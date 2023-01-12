@@ -73,7 +73,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 .map(|p| {
                     let name = format_ident!("r#{}_{}", name, p.key.value());
                     let key = format_ident!("r#{}", p.key.value());
-                    let key = quote_spanned!{p.key.span()=> #key};
+                    let key = quote_spanned! {p.key.span()=> #key};
                     (codegen_definition(&name, &p.value.0), key, name)
                 })
                 .multiunzip();

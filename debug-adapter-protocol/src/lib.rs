@@ -7,11 +7,4 @@
     clippy::module_name_repetitions
 )]
 
-tucant_language_server_derive::magic_include!();
-
-
-fn test() {
-    Request {
-
-    };
-}
+out_dir_include::out_dir_include!("debug-adapter-protocol.rs");

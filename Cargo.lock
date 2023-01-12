@@ -656,6 +656,7 @@ name = "debug-adapter-protocol"
 version = "0.1.0"
 dependencies = [
  "debug-adapter-protocol-macro-impl",
+ "out-dir-include",
  "prettyplease",
  "proc-macro2",
  "syn",
@@ -1677,6 +1678,14 @@ name = "os_str_bytes"
 version = "6.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b7820b9daea5457c9f21c69448905d723fbd21136ccf521748f23fd49e723ee"
+
+[[package]]
+name = "out-dir-include"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "parking_lot"
@@ -2966,13 +2975,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucant_language_server_derive"
-version = "0.1.0"
-dependencies = [
- "quote",
-]
-
-[[package]]
 name = "tucant_language_server_derive_internal"
 version = "0.1.0"
 dependencies = [
@@ -2994,13 +2996,13 @@ dependencies = [
 name = "tucant_language_server_derive_output"
 version = "0.1.0"
 dependencies = [
+ "out-dir-include",
  "prettyplease",
  "proc-macro2",
  "serde",
  "serde_repr",
  "serde_with 2.2.0",
  "syn",
- "tucant_language_server_derive",
  "tucant_language_server_derive_internal",
 ]
 

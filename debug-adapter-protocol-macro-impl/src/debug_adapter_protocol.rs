@@ -1,8 +1,8 @@
 use quote::quote;
 
+use crate::json_parser::JSONValue;
 use crate::{json_schema::JSONSchema, json_schema_codegen::codegen};
 use proc_macro2::TokenStream;
-use crate::json_parser::JSONValue;
 
 pub fn realistic() -> Result<TokenStream, syn::Error> {
     let value = quote! {
