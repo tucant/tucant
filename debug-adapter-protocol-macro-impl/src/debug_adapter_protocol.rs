@@ -4,6 +4,7 @@ use crate::json_parser::JSONValue;
 use crate::{json_schema::JSONSchema, json_schema_codegen::codegen};
 use proc_macro2::TokenStream;
 
+#[allow(clippy::too_many_lines)]
 pub fn realistic() -> Result<TokenStream, syn::Error> {
     let value = quote! {
         {

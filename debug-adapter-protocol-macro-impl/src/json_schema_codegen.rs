@@ -1,19 +1,23 @@
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use itertools::Itertools;
-use proc_macro2::{Ident};
+use proc_macro2::Ident;
 use quote::{format_ident, quote, quote_spanned};
 
-use crate::{
-    json_schema::{Definition, JSONSchema},
-};
+use crate::json_schema::{Definition, JSONSchema};
 
-#[must_use] pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2::TokenStream {
+#[allow(clippy::too_many_lines)]
+#[allow(clippy::wildcard_imports)] // false positive
+#[must_use]
+pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2::TokenStream {
     let description = definition.description.as_ref().map(|d| {
         quote! {
+            #[allow(clippy::doc_markdown)]
             #[doc = #d]
         }
     });
     let title = definition.title.as_ref().map(|t| {
         quote! {
+            #[allow(clippy::doc_markdown)]
             #[doc = #t]
         }
     });
@@ -24,8 +28,9 @@ use crate::{
                 .iter()
                 .enumerate()
                 .map(|(id, p)| {
-                    let name = format_ident!("r#{}_{}", name, id);
-                    let key = format_ident!("r#_{}", id);
+                    let name =
+                        format_ident!("r#{}Struct{}", name, id.to_string().to_upper_camel_case());
+                    let key = format_ident!("r#o{}", id.to_string().to_snake_case());
                     (codegen_definition(&name, p), key, name)
                 })
                 .multiunzip();
@@ -46,8 +51,9 @@ use crate::{
                 .iter()
                 .enumerate()
                 .map(|(id, p)| {
-                    let name = format_ident!("r#{}_{}", name, id);
-                    let key = format_ident!("r#_{}", id);
+                    let name =
+                        format_ident!("r#{}Enum{}", name, id.to_string().to_upper_camel_case());
+                    let key = format_ident!("r#O{}", id);
                     (codegen_definition(&name, p), key, name)
                 })
                 .multiunzip();
@@ -76,8 +82,9 @@ use crate::{
                 .properties
                 .iter()
                 .map(|p| {
-                    let name = format_ident!("r#{}_{}", name, p.key.value());
-                    let key = format_ident!("r#{}", p.key.value());
+                    let name =
+                        format_ident!("r#{}Struct{}", name, p.key.value().to_upper_camel_case());
+                    let key = format_ident!("r#{}", p.key.value().to_snake_case());
                     let key = quote_spanned! {p.key.span()=> #key};
                     (codegen_definition(&name, &p.value.0), key, name)
                 })
@@ -100,7 +107,7 @@ use crate::{
             }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
-            let array_name = format_ident!("r#{}_array", name);
+            let array_name = format_ident!("r#{}Array", name);
             let code = codegen_definition(&array_name, &t.item_type);
             quote! {
                 #code
