@@ -35,7 +35,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 #(#properties_code)*
 
                 pub struct #name {
-                    #(#member_names: #member_types),*
+                    #(pub #member_names: #member_types),*
                 }
             }
         }
@@ -81,7 +81,7 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
                 #(#properties_code)*
 
                 pub struct #name {
-                    #(#member_names: #member_types),*
+                    #(pub #member_names: #member_types),*
                 }
             }
         }

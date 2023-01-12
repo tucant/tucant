@@ -6,5 +6,6 @@
     clippy::vec_box,
     clippy::module_name_repetitions
 )]
+mod test;
 
 out_dir_include::out_dir_include!("debug-adapter-protocol.rs");

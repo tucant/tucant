@@ -2,7 +2,12 @@
 members = ["backend-rust", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol"]
 
 [patch.crates-io]
-diesel = { git = "https://github.com/diesel-rs/diesel.git" }
+diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "49b39fc9f92018b41b48bba2b9401dad953899fe" }
+
+# https://github.com/rust-lang/cargo/issues/5478
+[patch.'https://github.com/diesel-rs/diesel.git']
+diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "49b39fc9f92018b41b48bba2b9401dad953899fe" }
+
 
 [profile.dev]
 split-debuginfo = "unpacked"

@@ -9,9 +9,10 @@ fn main() {
     let dest_path = Path::new(&out_dir).join("debug-adapter-protocol.rs");
     println!("{}", dest_path.to_string_lossy());
     let output = realistic().unwrap();
-    let output = syn::parse2::<syn::File>(output).unwrap_or_else(|err| {
+    let output = syn::parse2::<syn::File>(output.clone()).unwrap_or_else(|err| {
         panic!(
-            "{} {err:#?} {:?}",
+            "{} {} {err:#?} {:?}",
+            output.to_string(),
             dest_path.to_string_lossy().as_ref(),
             err.span().start()
         )
