@@ -34,6 +34,8 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             quote! {
                 #(#properties_code)*
 
+                #title
+                #description
                 pub struct #name {
                     #(pub #member_names: #member_types),*
                 }
@@ -54,6 +56,8 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             quote! {
                 #(#properties_code)*
 
+                #title
+                #description
                 pub enum #name {
                     #(#member_names(#member_types)),*
                 }
@@ -63,6 +67,8 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             let ref_name =
                 format_ident!("r#{}", t.name.value().trim_start_matches("#/definitions/"));
             quote! {
+                #title
+                #description
                 pub type #name = #ref_name;
             }
         }
@@ -80,6 +86,8 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             quote! {
                 #(#properties_code)*
 
+                #title
+                #description
                 pub struct #name {
                     #(pub #member_names: #member_types),*
                 }
@@ -87,6 +95,8 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
         }
         crate::json_schema::DefinitionType::StringType(t) => {
             quote! {
+                #title
+                #description
                 pub type #name = String;
             }
         }
@@ -95,28 +105,35 @@ pub fn codegen_definition(name: &Ident, definition: &Definition) -> proc_macro2:
             let code = codegen_definition(&array_name, &t.item_type);
             quote! {
                 #code
+
+                #title
+                #description
                 pub type #name = Vec<#array_name>;
             }
         }
         crate::json_schema::DefinitionType::IntegerType(t) => {
             quote! {
+                #title
+                #description
                 pub type #name = i32;
             }
         }
         crate::json_schema::DefinitionType::DoubleType(t) => {
             quote! {
+                #title
+                #description
                 pub type #name = f64;
             }
         }
         crate::json_schema::DefinitionType::BooleanType(t) => {
             quote! {
+                #title
+                #description
                 pub type #name = bool;
             }
         }
     };
     quote! {
-        #title
-        #description
         #result
     }
 }
