@@ -3,73 +3,18 @@
 import * as net from "net";
 import * as vscode from 'vscode';
 import {
-  ExtensionContext,
-  commands,
-  window,
-  ProgressLocation,
-  languages,
-  DebugConfigurationProvider,
-  WorkspaceFolder,
-  DebugConfiguration,
-  CancellationToken,
-  ProviderResult,
-} from "vscode";
-import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   StreamInfo,
 } from "vscode-languageclient/node";
-import { Trace } from "vscode-jsonrpc";
 
 let client: LanguageClient;
 
 // https://github.com/microsoft/vscode-mock-debug
 
-class TucantConfigurationProvider implements DebugConfigurationProvider {
-
-	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-    console.log(config)
-		return config;
-	}
-}
-
-class TucantDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
-
-	private server?: net.Server;
-
-	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
-		return new vscode.DebugAdapterServer(6009);
-	}
-
-	dispose() {
-		if (this.server) {
-			this.server.close();
-		}
-	}
-}
 
 export function activate(context: ExtensionContext) {
-  const provider = new TucantConfigurationProvider();
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', provider));
-
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', {
-		provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
-			return [
-				{
-					name: "tucant Launch",
-					request: "launch",
-					type: "tucant",
-				}
-			];
-		}
-	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
-
-  let factory = new TucantDebugAdapterServerDescriptorFactory();
-  context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('tucant', factory));
-	if ('dispose' in factory) {
-		context.subscriptions.push(factory);
-	}
 
   const serverOptions: ServerOptions = () => {
     // Connect to language server via socket
