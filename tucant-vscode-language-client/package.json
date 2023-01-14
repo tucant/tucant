@@ -17,7 +17,8 @@
   },
   "activationEvents": [
     "onLanguage:tucant",
-    "onDebugResolve:tucant"
+    "onDebugResolve:tucant",
+    "onDebugDynamicConfigurations:tucant"
   ],
   "contributes": {
     "languages": [
@@ -47,9 +48,43 @@
     "debuggers": [
       {
         "type": "tucant",
-        "languages": ["tucant"],
-        "label": "tucan't debugger",
-        "program": "sleep 10"
+        "languages": [
+          "tucant"
+        ],
+        "label": "tucant Debug",
+        "program": "./out/debugAdapter.js",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+            ],
+            "properties": {
+            }
+          },
+          "attach": {
+            "required": [
+            ],
+            "properties": {
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "tucant",
+            "request": "launch",
+            "name": "test name"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Tucant Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected markdown file.",
+            "body": {
+              "type": "tucant",
+              "request": "launch",
+              "name": "test name"
+            }
+          }
+        ]
       }
     ]
   },
@@ -57,7 +92,7 @@
   "main": "./out/main.js",
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.mjs --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "build": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch"
   },

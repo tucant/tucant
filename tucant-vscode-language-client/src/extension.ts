@@ -22,62 +22,32 @@ import {
 } from "vscode-languageclient/node";
 import { Trace } from "vscode-jsonrpc";
 
-/** @type {LanguageClient} */
-let client;
+let client: LanguageClient;
 
 // https://github.com/microsoft/vscode-mock-debug
 
-class MockConfigurationProvider implements DebugConfigurationProvider {
+class TucantConfigurationProvider implements DebugConfigurationProvider {
 
-	/**
-	 * Massage a debug configuration just before a debug session is being launched,
-	 * e.g. add all missing attributes to the debug configuration.
-	 */
 	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
-
-		// if launch.json is missing or empty
-		if (!((config.type || config.request ) || config.name)) {
-			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'markdown') {
-				config.type = 'mock';
-				config.name = 'Launch';
-				config.request = 'launch';
-				config.program = '${file}';
-				config.stopOnEntry = true;
-			}
-		}
-
-		if (!config.program) {
-			return vscode.window.showInformationMessage("Cannot find a program to debug").then(_ => {
-				return undefined;	// abort launch
-			});
-		}
-
 		return config;
 	}
 }
 
-export function activate(/** @type {ExtensionContext} */ context) {
-  const provider = new MockConfigurationProvider();
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('mock', provider));
+export function activate(context: ExtensionContext) {
+  const provider = new TucantConfigurationProvider();
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', provider));
 
-
-
-
-  /** @type {ServerOptions} */
-  const serverOptions = () => {
+  const serverOptions: ServerOptions = () => {
     // Connect to language server via socket
     let socket = net.createConnection(6008);
-    /** @type {StreamInfo} */
-    let result = {
+    let result: StreamInfo = {
       writer: socket,
       reader: socket,
     };
     return Promise.resolve(result);
   };
 
-  /** @type {LanguageClientOptions} */
-  const clientOptions = {
+  const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file", language: "tucant" }],
   };
 
