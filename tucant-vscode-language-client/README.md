@@ -8,6 +8,8 @@ https://code.visualstudio.com/api/extension-guides/debugger-extension#using-a-de
 
 https://github.com/microsoft/vscode-mock-debug
 
+npx --package yo --package generator-code --call 'yo code'
+
 ```
 ln --symbolic --verbose --force $PWD ~/.vscode/extensions/tucant-vscode-language-client
 ```
