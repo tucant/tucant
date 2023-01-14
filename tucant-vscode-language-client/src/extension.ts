@@ -33,9 +33,42 @@ class TucantConfigurationProvider implements DebugConfigurationProvider {
 	}
 }
 
+class TucantDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
+
+	private server?: net.Server;
+
+	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+		return new vscode.DebugAdapterServer(6009);
+	}
+
+	dispose() {
+		if (this.server) {
+			this.server.close();
+		}
+	}
+}
+
 export function activate(context: ExtensionContext) {
   const provider = new TucantConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', provider));
+
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', {
+		provideDebugConfigurations(folder: WorkspaceFolder | undefined): ProviderResult<DebugConfiguration[]> {
+			return [
+				{
+					name: "tucant Launch",
+					request: "launch",
+					type: "tucant",
+				}
+			];
+		}
+	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
+
+  let factory = new TucantDebugAdapterServerDescriptorFactory();
+  context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('mock', factory));
+	if ('dispose' in factory) {
+		context.subscriptions.push(factory);
+	}
 
   const serverOptions: ServerOptions = () => {
     // Connect to language server via socket
