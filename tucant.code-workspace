@@ -35,6 +35,9 @@
 		},
 		{
 			"path": "tucant-language-server-derive-output"
+		},
+		{
+			"path": "json-rpc-server"
 		}
 	],
 	"settings": {
