@@ -10,14 +10,83 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:tucant-vscode.helloWorld"
+    "onCommand:tucant-vscode.helloWorld",
+    "onLanguage:tucant",
+    "onDebug",
+    "onDebugResolve:tucant",
+    "onDebugInitialConfigurations",
+    "onDebugDynamicConfigurations:tucant"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "tucant",
+        "aliases": [
+          "TUCaN't Language"
+        ],
+        "extensions": [
+          ".tucant"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
     "commands": [
       {
         "command": "tucant-vscode.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "tucant.restart-language-server",
+        "title": "TUCaN't: Restart language server"
+      }
+    ],
+    "configurationDefaults": {
+      "[tucant]": {
+        "editor.semanticHighlighting.enabled": true,
+        "editor.formatOnType": true
+      }
+    },
+    "debuggers": [
+      {
+        "type": "tucant",
+        "languages": [
+          "tucant"
+        ],
+        "label": "tucant Debug",
+        "program": "./out/debugAdapter.js",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+            ],
+            "properties": {
+            }
+          },
+          "attach": {
+            "required": [
+            ],
+            "properties": {
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "tucant",
+            "request": "launch",
+            "name": "test name"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Tucant Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected markdown file.",
+            "body": {
+              "type": "tucant",
+              "request": "launch",
+              "name": "test name"
+            }
+          }
+        ]
       }
     ]
   },
@@ -28,6 +97,9 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.0.2"
   },
   "devDependencies": {
     "@types/vscode": "^1.74.0",
