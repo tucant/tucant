@@ -7,21 +7,18 @@
     clippy::module_name_repetitions
 )]
 use async_trait::async_trait;
+use futures_util::Stream;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::collections::HashMap;
-use futures_util::Stream;
 
 out_dir_include::out_dir_include!("debug-adapter-protocol.rs");
 
 pub struct Server {
-    pm: ProtocolMessage
+    pm: ProtocolMessage,
 }
 
-impl Server {
-    
-}
-
+impl Server {}
 
 pub fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
