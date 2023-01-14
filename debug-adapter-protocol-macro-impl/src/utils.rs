@@ -1,5 +1,5 @@
-use std::{collections::BTreeMap, convert::identity};
-
+use std::collections::BTreeMap;
+use itertools::Itertools;
 use proc_macro2::Span;
 use syn::{
     punctuated::Punctuated,
@@ -54,7 +54,16 @@ pub fn extract_keys<const N: usize>(
             .unwrap();
         return Err(results);
     }
-    result.try_map(identity)
+    let (success, failures): (Vec<_>, Vec<_>) = result.into_iter().partition_result();
+
+    if let Some(error) = failures.into_iter().reduce(|mut e1, e2| {
+        e1.combine(e2);
+        e1
+    }) {
+        return Err(error);
+    }
+
+    Ok(success.try_into().unwrap())
 }
 
 pub fn unexpected_keys<T>(

@@ -8,7 +8,6 @@
     clippy::missing_errors_doc,
     clippy::multiple_crate_versions
 )]
-#![feature(array_try_map)]
 
 pub mod debug_adapter_protocol;
 pub mod json_parser;

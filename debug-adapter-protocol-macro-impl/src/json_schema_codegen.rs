@@ -3,7 +3,7 @@ use itertools::Itertools;
 use proc_macro2::Ident;
 use quote::{format_ident, quote, quote_spanned};
 
-use crate::json_schema::{Definition, JSONSchema};
+use crate::json_schema::{Definition, JSONSchema, DefinitionType};
 
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::wildcard_imports)] // false positive
@@ -171,12 +171,20 @@ pub fn codegen_definition(
 #[allow(clippy::wildcard_imports)] // false positive
 #[must_use]
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
+    // TODO FIXME all top level things are allOf
+
     let (definitions, _): (Vec<_>, Vec<_>) = schema
         .definitions
         .into_iter()
         .map(|definition| {
-            let name = format_ident!("r#{}", definition.key.value());
-            codegen_definition(&name, &definition.value)
+            match definition.value {
+                Definition { definition_type: DefinitionType::AllOf(all_of), .. } => {
+                    todo!()
+                }
+                _ => panic!(),
+            }
+            /*let name = format_ident!("r#{}", definition.key.value());
+            codegen_definition(&name, &definition.value)*/
         })
         .unzip();
     quote! {

@@ -696,7 +696,7 @@ dependencies = [
 [[package]]
 name = "diesel"
 version = "2.0.2"
-source = "git+https://github.com/diesel-rs//diesel.git?rev=49b39fc9f92018b41b48bba2b9401dad953899fe#49b39fc9f92018b41b48bba2b9401dad953899fe"
+source = "git+https://github.com/diesel-rs//diesel.git?rev=8b68099ac41a5b2ca8a8e9075a0b9f2372704f50#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
 dependencies = [
  "bitflags",
  "byteorder",
@@ -724,7 +724,7 @@ dependencies = [
 [[package]]
 name = "diesel_derives"
 version = "2.0.1"
-source = "git+https://github.com/diesel-rs//diesel.git?rev=49b39fc9f92018b41b48bba2b9401dad953899fe#49b39fc9f92018b41b48bba2b9401dad953899fe"
+source = "git+https://github.com/diesel-rs//diesel.git?rev=8b68099ac41a5b2ca8a8e9075a0b9f2372704f50#8b68099ac41a5b2ca8a8e9075a0b9f2372704f50"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
