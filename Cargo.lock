@@ -660,9 +660,11 @@ dependencies = [
  "clap",
  "debug-adapter-protocol-macro-impl",
  "futures-util",
+ "json-rpc-server",
  "out-dir-include",
  "prettyplease",
  "proc-macro2",
+ "serde_json",
  "syn",
  "tokio",
 ]
