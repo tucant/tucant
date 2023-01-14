@@ -1,6 +1,6 @@
 import { debug, DebugAdapterServer, DebugConfigurationProviderTriggerKind, ExtensionContext } from 'vscode';
 
-export function activateDebugger(context: ExtensionContext) {
+export function activate(context: ExtensionContext) {
     context.subscriptions.push(debug.registerDebugConfigurationProvider('tucant', {
 		provideDebugConfigurations(folder, token) {
             return [
