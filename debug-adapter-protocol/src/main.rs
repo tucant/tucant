@@ -44,6 +44,9 @@ impl Server {
     ) -> anyhow::Result<()> {
         loop {
             let request: () = serde_json::from_str(&reader.next().await.unwrap()?)?;
+            // Requests
+
+            println!("{:?}", request);
 
             let cloned_self = self.clone();
 
@@ -78,6 +81,7 @@ impl JsonRpcServer for Server {
     }
 }
 
+// cargo watch -x 'run -- --port 6009'
 pub fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

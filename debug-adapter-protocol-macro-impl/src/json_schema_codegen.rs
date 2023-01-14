@@ -27,28 +27,15 @@ pub fn codegen_definition(
     });
     match &definition.definition_type {
         crate::json_schema::DefinitionType::AllOf(t) => {
-            let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
-                .definitions
-                .iter()
-                .enumerate()
-                .map(|(id, p)| {
-                    let name =
-                        format_ident!("r#{}Struct{}", name, id.to_string().to_upper_camel_case());
-                    let key = format_ident!("r#o{}", id.to_string().to_snake_case());
-                    let code = codegen_definition(&name, p);
-                    (code.0, key, code.1)
-                })
-                .multiunzip();
+            let (base, derived) = t.definitions.iter().collect_tuple().unwrap();
+
+            // TODO FIXME "extends" def1
+
+            let (code, ident) = codegen_definition(&format_ident!("{}", name), derived);
 
             (
                 quote! {
-                    #(#properties_code)*
-
-                    #title
-                    #description
-                    pub struct #name {
-                        #(pub #member_names: #member_types),*
-                    }
+                    #code
                 },
                 quote! { #name },
             )
