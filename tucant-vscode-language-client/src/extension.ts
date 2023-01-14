@@ -29,6 +29,7 @@ let client: LanguageClient;
 class TucantConfigurationProvider implements DebugConfigurationProvider {
 
 	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+    console.log(config)
 		return config;
 	}
 }
@@ -65,7 +66,7 @@ export function activate(context: ExtensionContext) {
 	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
   let factory = new TucantDebugAdapterServerDescriptorFactory();
-  context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('mock', factory));
+  context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('tucant', factory));
 	if ('dispose' in factory) {
 		context.subscriptions.push(factory);
 	}
