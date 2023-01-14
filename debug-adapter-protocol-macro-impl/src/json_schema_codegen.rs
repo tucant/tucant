@@ -173,7 +173,7 @@ pub fn codegen_definition(
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
     // TODO FIXME all top level things are allOf
 
-    let (definitions, _): (Vec<_>, Vec<_>) = schema
+    /*let (definitions, _): (Vec<_>, Vec<_>) = schema
         .definitions
         .into_iter()
         .map(|definition| {
@@ -189,5 +189,8 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         .unzip();
     quote! {
         #(#definitions)*
+    }*/
+    quote! {
+        
     }
 }
