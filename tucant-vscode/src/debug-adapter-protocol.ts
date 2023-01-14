@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
+import { debug, DebugAdapterServer, DebugConfigurationProviderTriggerKind, ExtensionContext } from 'vscode';
 
-export function activateDebugger(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('tucant', {
+export function activateDebugger(context: ExtensionContext) {
+    context.subscriptions.push(debug.registerDebugConfigurationProvider('tucant', {
 		provideDebugConfigurations(folder, token) {
             return [
                 {
@@ -11,11 +11,11 @@ export function activateDebugger(context: vscode.ExtensionContext) {
                 }
             ];
         },
-	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
+	}, DebugConfigurationProviderTriggerKind.Dynamic));
 
-    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('tucant', {
+    context.subscriptions.push(debug.registerDebugAdapterDescriptorFactory('tucant', {
         createDebugAdapterDescriptor(session, executable) {
-            return new vscode.DebugAdapterServer(6009);
+            return new DebugAdapterServer(6009);
         },
     }));	
 }

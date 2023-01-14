@@ -1,6 +1,10 @@
-import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient/node';
 
-export function activate(context: vscode.ExtensionContext) {
+// https://github.com/microsoft/vscode-extension-samples/blob/main/lsp-multi-server-sample/client/src/extension.ts
+
+let defaultClient: LanguageClient;
+
+export function activate(context: ExtensionContext) {
 
 
 }
