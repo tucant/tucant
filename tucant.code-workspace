@@ -1,0 +1,43 @@
+{
+	"folders": [
+		{
+			"path": "tucant-vscode"
+		},
+		{
+			"path": "backend-rust"
+		},
+		{
+			"path": "backend-rust-derive"
+		},
+		{
+			"path": "backend-rust-derive-lib"
+		},
+		{
+			"path": "debug-adapter-protocol"
+		},
+		{
+			"path": "debug-adapter-protocol-macro-impl"
+		},
+		{
+			"path": "frontend-react"
+		},
+		{
+			"path": "out-dir-include"
+		},
+		{
+			"path": "tucant-language"
+		},
+		{
+			"path": "tucant-language-server"
+		},
+		{
+			"path": "tucant-language-server-derive-internal"
+		},
+		{
+			"path": "tucant-language-server-derive-output"
+		}
+	],
+	"settings": {
+		"typescript.tsc.autoDetect": "off"
+	}
+}
