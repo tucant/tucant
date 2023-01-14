@@ -37,7 +37,7 @@
         "title": "Hello World"
       },
       {
-        "command": "tucant.restart-language-server",
+        "command": "tucant-vscode.restart-language-server",
         "title": "TUCaN't: Restart language server"
       }
     ],

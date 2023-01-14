@@ -30,7 +30,7 @@ export function activate(context: ExtensionContext) {
       client.start();
     
       context.subscriptions.push(
-        commands.registerCommand("tucant.restart-language-server", () => {
+        commands.registerCommand("tucant-vscode.restart-language-server", () => {
           window.withProgress(
             {
               title: "TUCaN't: Restarting language server...",
