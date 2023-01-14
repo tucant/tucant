@@ -16,7 +16,8 @@
     "vscode": "^1.74.0"
   },
   "activationEvents": [
-    "onLanguage:tucant"
+    "onLanguage:tucant",
+    "onDebugResolve:tucant"
   ],
   "contributes": {
     "languages": [
@@ -42,7 +43,15 @@
         "editor.semanticHighlighting.enabled": true,
         "editor.formatOnType": true
       }
-    }
+    },
+    "debuggers": [
+      {
+        "type": "tucant",
+        "languages": ["tucant"],
+        "label": "tucan't debugger",
+        "program": "sleep 10"
+      }
+    ]
   },
   "type": "commonjs",
   "main": "./out/main.js",
