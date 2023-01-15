@@ -13,6 +13,7 @@ use futures_util::Stream;
 use futures_util::StreamExt;
 use json_rpc_server::run_json_rpc_server;
 use json_rpc_server::JsonRpcServer;
+use serde::Deserialize;
 
 use std::sync::Arc;
 use tokio::sync::{mpsc};
@@ -79,6 +80,14 @@ impl JsonRpcServer for Server {
 
         Ok(())
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Request<T> {
+    #[serde(flatten)]
+    inner: T,
+    r#type: String,
+    seq: u64,
 }
 
 // cargo watch -x 'run -- --port 6009'

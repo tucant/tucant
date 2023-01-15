@@ -50,7 +50,6 @@ pub fn codegen_definition(
                     #title
                     #description
                     #[derive(Debug, ::serde::Deserialize)]
-                    #[serde(deny_unknown_fields)] 
                     pub enum #name {
                         #(#member_names(#member_types)),*
                     }
@@ -106,7 +105,6 @@ pub fn codegen_definition(
                     #title
                     #description
                     #[derive(Debug, ::serde::Deserialize)]
-                    #[serde(deny_unknown_fields)] 
                     pub struct #name {
                         #(
                             #[serde(rename = #member_names)]
@@ -127,7 +125,6 @@ pub fn codegen_definition(
                 (
                     quote! {
                         #[derive(Debug, ::serde::Deserialize)]
-                        #[serde(deny_unknown_fields)] 
                         pub enum #name {
                             #(#enum_values),*
                         }
@@ -266,19 +263,20 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         #(#response_definitions_code)*
 
         #[derive(Debug, ::serde::Deserialize)]
-        #[serde(untagged, deny_unknown_fields)]
+        // TODO FIXME make this tagged to improve parsing errors a lot
+        #[serde(untagged)]
         pub enum Requests {
-            #(#request_definition_names(#request_definition_types)),*
+            #(#request_definition_names(crate::Request<#request_definition_types>)),*
         }
 
         #[derive(Debug, ::serde::Deserialize)]
-        #[serde(untagged, deny_unknown_fields)]
+        #[serde(untagged)]
         pub enum Responses {
             #(#response_definition_names(#response_definition_types)),*
         }
 
         #[derive(Debug, ::serde::Deserialize)]
-        #[serde(untagged, deny_unknown_fields)]
+        #[serde(untagged)]
         pub enum Events {
             #(#event_definition_names(#event_definition_types)),*
         }
