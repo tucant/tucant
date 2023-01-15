@@ -71,7 +71,12 @@ pub fn codegen_definition(
             )
         }
         crate::json_schema::DefinitionType::ObjectType(t) => {
-            let (properties_code, member_names, member_names_rust, member_types): (Vec<_>, Vec<_>, Vec<_>, Vec<_>) = t
+            let (properties_code, member_names, member_names_rust, member_types): (
+                Vec<_>,
+                Vec<_>,
+                Vec<_>,
+                Vec<_>,
+            ) = t
                 .properties
                 .iter()
                 .map(|p| {
@@ -81,7 +86,16 @@ pub fn codegen_definition(
                     let key = format_ident!("r#{}", p.key.value().to_snake_case());
                     let key = quote_spanned! {p.key.span()=> #key};
                     let (code0, code1) = codegen_definition(&name, &p.value.0);
-                    (code0, key_serde, key, if p.value.1 { code1 } else { quote! { Option<#code1> } })
+                    (
+                        code0,
+                        key_serde,
+                        key,
+                        if p.value.1 {
+                            code1
+                        } else {
+                            quote! { Option<#code1> }
+                        },
+                    )
                 })
                 .multiunzip();
             (
@@ -103,14 +117,20 @@ pub fn codegen_definition(
         }
         crate::json_schema::DefinitionType::StringType(t) => {
             if t.exhaustive {
-                let enum_values = t.enum_values.iter().map(|v| format_ident!("r#{}", v.0.value()));
+                let enum_values = t
+                    .enum_values
+                    .iter()
+                    .map(|v| format_ident!("r#{}", v.0.value()));
 
-                (quote! {
-                    #[derive(Debug, ::serde::Deserialize)]
-                    pub enum #name {
-                        #(#enum_values),*
-                    }
-                }, quote! { #name })
+                (
+                    quote! {
+                        #[derive(Debug, ::serde::Deserialize)]
+                        pub enum #name {
+                            #(#enum_values),*
+                        }
+                    },
+                    quote! { #name },
+                )
             } else {
                 (
                     quote! {

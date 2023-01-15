@@ -84,7 +84,9 @@ impl JsonRpcServer for Server {
 // cargo watch -x 'run -- --port 6009'
 pub fn main() -> anyhow::Result<()> {
     //let request: Requests = serde_json::from_str(r#"{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true},"type":"request","seq":1}"#)?;
-    let request: InitializeRequestArguments = serde_json::from_str(r#"{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true}"#)?;
+    let request: InitializeRequestArguments = serde_json::from_str(
+        r#"{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true}"#,
+    )?;
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
