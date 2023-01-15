@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use itertools::Itertools;
 use proc_macro2::Ident;
@@ -158,8 +160,6 @@ pub fn codegen_definition(
 #[allow(clippy::wildcard_imports)] // false positive
 #[must_use]
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
-    // TODO FIXME all top level things are allOf
-
     let definitions = schema
         .definitions
         .into_iter()
@@ -168,26 +168,28 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
                 Definition { definition_type: DefinitionType::AllOf(all_of), .. } => {
                     let (base, derived) = all_of.definitions.iter().collect_tuple().unwrap();
 
-                    match base {
+                    let base_class = match base {
                         Definition { definition_type: DefinitionType::Ref(def), .. } => {
-                            
+                            def.name.value().trim_start_matches("#/definitions/").to_string()
                         }
                         _ => panic!()
-                    }
-
-                    // TODO FIXME "extends" def1
+                    };
         
                     let (code, ident) = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
         
-                    code
+                    (Some(base_class), code)
                 }
                 _ => {
                     let name = format_ident!("r#{}", definition.key.value());
-                    codegen_definition(&name, &definition.value).0
+                    (None, codegen_definition(&name, &definition.value).0)
                 },
             }
-        }).collect_vec();
+        }).fold(BTreeMap::<Option<String>, Vec<proc_macro2::TokenStream>>::new(), |mut acc, (a, b)| {
+            acc.entry(a).or_default().push(b);
+            acc
+        });
+    
     quote! {
-        #(#definitions)*
+        // #(#definitions)*
     }
 }
