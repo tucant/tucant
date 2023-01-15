@@ -5,7 +5,7 @@ use itertools::Itertools;
 use proc_macro2::Ident;
 use quote::{format_ident, quote, quote_spanned};
 
-use crate::json_schema::{Definition, JSONSchema, DefinitionType};
+use crate::json_schema::{Definition, DefinitionType, JSONSchema};
 
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::wildcard_imports)] // false positive
@@ -174,9 +174,9 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
                         }
                         _ => panic!()
                     };
-        
+
                     let code = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
-        
+
                     (Some(base_class), code)
                 }
                 _ => {
@@ -190,19 +190,51 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         });
 
     let free_definitions = definitions.remove(&None).unwrap_or_default();
-    let event_definitions = definitions.remove(&Some("Event".to_string())).unwrap_or_default();
-    let request_definitions = definitions.remove(&Some("Request".to_string())).unwrap_or_default();
-    let response_definitions = definitions.remove(&Some("Response".to_string())).unwrap_or_default();
-    let protocol_message_definitions = definitions.remove(&Some("ProtocolMessage".to_string())).unwrap_or_default();
+    let event_definitions = definitions
+        .remove(&Some("Event".to_string()))
+        .unwrap_or_default();
+    let request_definitions = definitions
+        .remove(&Some("Request".to_string()))
+        .unwrap_or_default();
+    let response_definitions = definitions
+        .remove(&Some("Response".to_string()))
+        .unwrap_or_default();
+    let protocol_message_definitions = definitions
+        .remove(&Some("ProtocolMessage".to_string()))
+        .unwrap_or_default();
     assert_eq!(protocol_message_definitions.len(), 3);
     assert_eq!(definitions.keys().len(), 0);
 
-    let free_definitions_code = free_definitions.unzip();
+    let free_definitions_code = free_definitions.iter().map(|d| &d.0);
+    let event_definitions_code = event_definitions.iter().map(|d| &d.0);
+    let request_definitions_code = request_definitions.iter().map(|d| &d.0);
+    let response_definitions_code = response_definitions.iter().map(|d| &d.0);
+
+    let request_definition_names = request_definitions.iter().map(|d| &d.1);
+    let request_definition_types = request_definitions.iter().map(|d| &d.1);
+
+    let response_definition_names = response_definitions.iter().map(|d| &d.1);
+    let response_definition_types = response_definitions.iter().map(|d| &d.1);
+
+    let event_definition_names = event_definitions.iter().map(|d| &d.1);
+    let event_definition_types = event_definitions.iter().map(|d| &d.1);
 
     quote! {
-        #(#free_definitions)*
-        #(#event_definitions)*
-        #(#request_definitions)*
-        #(#response_definitions)*
+        #(#free_definitions_code)*
+        #(#event_definitions_code)*
+        #(#request_definitions_code)*
+        #(#response_definitions_code)*
+
+        pub enum Requests {
+            #(#request_definition_names(#request_definition_types)),*
+        }
+
+        pub enum Responses {
+            #(#response_definition_names(#response_definition_types)),*
+        }
+
+        pub enum Events {
+            #(#event_definition_names(#event_definition_types)),*
+        }
     }
 }

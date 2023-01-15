@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
 use itertools::Itertools;
 use proc_macro2::Span;
+use std::collections::BTreeMap;
 use syn::{
     punctuated::Punctuated,
     token::{Brace, Comma},
