@@ -13,9 +13,9 @@ use futures_util::Stream;
 use futures_util::StreamExt;
 use json_rpc_server::run_json_rpc_server;
 use json_rpc_server::JsonRpcServer;
-use std::collections::HashMap;
+
 use std::sync::Arc;
-use tokio::sync::{mpsc, oneshot, RwLock};
+use tokio::sync::{mpsc};
 
 out_dir_include::out_dir_include!("debug-adapter-protocol.rs");
 
@@ -48,9 +48,9 @@ impl Server {
             let request: Requests = serde_json::from_str(&read_value)?;
             // Requests
 
-            println!("{:?}", request);
+            println!("{request:?}");
 
-            let cloned_self = self.clone();
+            let _cloned_self = self.clone();
         }
     }
 }
@@ -67,7 +67,7 @@ impl JsonRpcServer for Server {
         read: R,
         write: W,
     ) -> anyhow::Result<()> {
-        let (tx, rx) = mpsc::channel::<String>(3);
+        let (_tx, rx) = mpsc::channel::<String>(3);
 
         let arc_self = Arc::new(Self {});
 
@@ -84,7 +84,7 @@ impl JsonRpcServer for Server {
 // cargo watch -x 'run -- --port 6009'
 pub fn main() -> anyhow::Result<()> {
     //let request: Requests = serde_json::from_str(r#"{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true},"type":"request","seq":1}"#)?;
-    let request: InitializeRequestArguments = serde_json::from_str(
+    let _request: InitializeRequestArguments = serde_json::from_str(
         r#"{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true}"#,
     )?;
 
