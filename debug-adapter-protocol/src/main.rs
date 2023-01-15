@@ -43,7 +43,9 @@ impl Server {
         mut reader: R,
     ) -> anyhow::Result<()> {
         loop {
-            let request: () = serde_json::from_str(&reader.next().await.unwrap()?)?;
+            let read_value = reader.next().await.unwrap()?;
+            println!("{read_value}");
+            let request: Requests = serde_json::from_str(&read_value)?;
             // Requests
 
             println!("{:?}", request);

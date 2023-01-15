@@ -49,6 +49,7 @@ pub fn codegen_definition(
 
                     #title
                     #description
+                    #[derive(Debug, ::serde::Deserialize)]
                     pub enum #name {
                         #(#member_names(#member_types)),*
                     }
@@ -88,6 +89,7 @@ pub fn codegen_definition(
 
                     #title
                     #description
+                    #[derive(Debug, ::serde::Deserialize)]
                     pub struct #name {
                         #(pub #member_names: #member_types),*
                     }
@@ -225,6 +227,7 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         #(#request_definitions_code)*
         #(#response_definitions_code)*
 
+        #[derive(Debug, ::serde::Deserialize)]
         pub enum Requests {
             #(#request_definition_names(#request_definition_types)),*
         }
