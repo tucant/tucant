@@ -71,16 +71,17 @@ pub fn codegen_definition(
             )
         }
         crate::json_schema::DefinitionType::ObjectType(t) => {
-            let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
+            let (properties_code, member_names, member_names_rust, member_types): (Vec<_>, Vec<_>, Vec<_>, Vec<_>) = t
                 .properties
                 .iter()
                 .map(|p| {
                     let name =
                         format_ident!("r#{}Struct{}", name, p.key.value().to_upper_camel_case());
+                    let key_serde = p.key.value();
                     let key = format_ident!("r#{}", p.key.value().to_snake_case());
                     let key = quote_spanned! {p.key.span()=> #key};
-                    let code = codegen_definition(&name, &p.value.0);
-                    (code.0, key, code.1)
+                    let (code0, code1) = codegen_definition(&name, &p.value.0);
+                    (code0, key_serde, key, if p.value.1 { code1 } else { quote! { Option<#code1> } })
                 })
                 .multiunzip();
             (
@@ -91,7 +92,10 @@ pub fn codegen_definition(
                     #description
                     #[derive(Debug, ::serde::Deserialize)]
                     pub struct #name {
-                        #(pub #member_names: #member_types),*
+                        #(
+                            #[serde(rename = #member_names)]
+                            pub #member_names_rust: #member_types
+                        ),*
                     }
                 },
                 quote! { #name },
