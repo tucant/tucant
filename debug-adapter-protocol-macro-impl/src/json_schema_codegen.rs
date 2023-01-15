@@ -168,6 +168,13 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
                 Definition { definition_type: DefinitionType::AllOf(all_of), .. } => {
                     let (base, derived) = all_of.definitions.iter().collect_tuple().unwrap();
 
+                    match base {
+                        Definition { definition_type: DefinitionType::Ref(def), .. } => {
+                            
+                        }
+                        _ => panic!()
+                    }
+
                     // TODO FIXME "extends" def1
         
                     let (code, ident) = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
