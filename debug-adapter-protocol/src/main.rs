@@ -51,8 +51,6 @@ impl Server {
             println!("{:?}", request);
 
             let cloned_self = self.clone();
-
-            todo!()
         }
     }
 }

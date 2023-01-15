@@ -97,16 +97,27 @@ pub fn codegen_definition(
                 quote! { #name },
             )
         }
-        crate::json_schema::DefinitionType::StringType(_t) => {
-            (
-                quote! {
-                    #title
-                    #description
-                    // sometimes needed for the $ref types
-                    pub type #name = String;
-                },
-                quote! { String },
-            )
+        crate::json_schema::DefinitionType::StringType(t) => {
+            if t.exhaustive {
+                let enum_values = t.enum_values.iter().map(|v| format_ident!("r#{}", v.0.value()));
+
+                (quote! {
+                    #[derive(Debug, ::serde::Deserialize)]
+                    pub enum #name {
+                        #(#enum_values),*
+                    }
+                }, quote! { #name })
+            } else {
+                (
+                    quote! {
+                        #title
+                        #description
+                        // sometimes needed for the $ref types
+                        pub type #name = String;
+                    },
+                    quote! { String },
+                )
+            }
         }
         crate::json_schema::DefinitionType::ArrayType(t) => {
             let array_name = format_ident!("r#{}Array", name);
@@ -228,14 +239,19 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         #(#response_definitions_code)*
 
         #[derive(Debug, ::serde::Deserialize)]
+        #[serde(untagged)]
         pub enum Requests {
             #(#request_definition_names(#request_definition_types)),*
         }
 
+        #[derive(Debug, ::serde::Deserialize)]
+        #[serde(untagged)]
         pub enum Responses {
             #(#response_definition_names(#response_definition_types)),*
         }
 
+        #[derive(Debug, ::serde::Deserialize)]
+        #[serde(untagged)]
         pub enum Events {
             #(#event_definition_names(#event_definition_types)),*
         }

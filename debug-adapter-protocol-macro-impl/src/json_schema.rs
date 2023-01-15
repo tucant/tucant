@@ -415,6 +415,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct StringType {
+    // optional description
     pub enum_values: Vec<(LitStr, Option<LitStr>)>,
     pub exhaustive: bool, // if enum_values empty and this is false it's a normal string
 }
