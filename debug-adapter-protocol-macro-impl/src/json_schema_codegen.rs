@@ -160,7 +160,7 @@ pub fn codegen_definition(
 #[allow(clippy::wildcard_imports)] // false positive
 #[must_use]
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
-    let definitions = schema
+    let mut definitions = schema
         .definitions
         .into_iter()
         .map(|definition| {
@@ -175,21 +175,34 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
                         _ => panic!()
                     };
         
-                    let (code, ident) = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
+                    let code = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
         
                     (Some(base_class), code)
                 }
                 _ => {
                     let name = format_ident!("r#{}", definition.key.value());
-                    (None, codegen_definition(&name, &definition.value).0)
+                    (None, codegen_definition(&name, &definition.value))
                 },
             }
-        }).fold(BTreeMap::<Option<String>, Vec<proc_macro2::TokenStream>>::new(), |mut acc, (a, b)| {
+        }).fold(BTreeMap::<Option<String>, Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)>>::new(), |mut acc, (a, b)| {
             acc.entry(a).or_default().push(b);
             acc
         });
-    
+
+    let free_definitions = definitions.remove(&None).unwrap_or_default();
+    let event_definitions = definitions.remove(&Some("Event".to_string())).unwrap_or_default();
+    let request_definitions = definitions.remove(&Some("Request".to_string())).unwrap_or_default();
+    let response_definitions = definitions.remove(&Some("Response".to_string())).unwrap_or_default();
+    let protocol_message_definitions = definitions.remove(&Some("ProtocolMessage".to_string())).unwrap_or_default();
+    assert_eq!(protocol_message_definitions.len(), 3);
+    assert_eq!(definitions.keys().len(), 0);
+
+    let free_definitions_code = free_definitions.unzip();
+
     quote! {
-        // #(#definitions)*
+        #(#free_definitions)*
+        #(#event_definitions)*
+        #(#request_definitions)*
+        #(#response_definitions)*
     }
 }
