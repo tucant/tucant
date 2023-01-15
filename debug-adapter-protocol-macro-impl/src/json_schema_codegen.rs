@@ -26,20 +26,7 @@ pub fn codegen_definition(
         }
     });
     match &definition.definition_type {
-        crate::json_schema::DefinitionType::AllOf(t) => {
-            let (base, derived) = t.definitions.iter().collect_tuple().unwrap();
-
-            // TODO FIXME "extends" def1
-
-            let (code, ident) = codegen_definition(&format_ident!("{}", name), derived);
-
-            (
-                quote! {
-                    #code
-                },
-                quote! { #name },
-            )
-        }
+        crate::json_schema::DefinitionType::AllOf(_) => unreachable!(),
         crate::json_schema::DefinitionType::OneOf(t) => {
             let (properties_code, member_names, member_types): (Vec<_>, Vec<_>, Vec<_>) = t
                 .definitions
@@ -173,24 +160,27 @@ pub fn codegen_definition(
 pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
     // TODO FIXME all top level things are allOf
 
-    /*let (definitions, _): (Vec<_>, Vec<_>) = schema
+    let definitions = schema
         .definitions
         .into_iter()
         .map(|definition| {
             match definition.value {
                 Definition { definition_type: DefinitionType::AllOf(all_of), .. } => {
-                    todo!()
+                    let (base, derived) = all_of.definitions.iter().collect_tuple().unwrap();
+
+                    // TODO FIXME "extends" def1
+        
+                    let (code, ident) = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
+        
+                    code
                 }
-                _ => panic!(),
+                _ => {
+                    let name = format_ident!("r#{}", definition.key.value());
+                    codegen_definition(&name, &definition.value).0
+                },
             }
-            /*let name = format_ident!("r#{}", definition.key.value());
-            codegen_definition(&name, &definition.value)*/
-        })
-        .unzip();
+        }).collect_vec();
     quote! {
         #(#definitions)*
-    }*/
-    quote! {
-        
     }
 }
