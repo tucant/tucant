@@ -16,7 +16,7 @@ use json_rpc_server::JsonRpcServer;
 use serde::Deserialize;
 
 use std::sync::Arc;
-use tokio::sync::{mpsc};
+use tokio::sync::mpsc;
 
 out_dir_include::out_dir_include!("debug-adapter-protocol.rs");
 
