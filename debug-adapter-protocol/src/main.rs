@@ -39,7 +39,81 @@ impl Server {
             match request {
                 Requests::InitializeRequest(request) => {
                     let response = Response::<InitializeResponse> {
-                        inner: Some(InitializeResponse { body: None }),
+                        inner: Some(InitializeResponse {
+                            body: Some(Capabilities {
+                                supports_configuration_done_request: Some(true),
+                                supports_function_breakpoints: Some(true),
+                                supports_conditional_breakpoints: Some(true),
+                                supports_hit_conditional_breakpoints: Some(true),
+                                supports_evaluate_for_hovers: Some(true),
+                                exception_breakpoint_filters: Some(vec![]),
+                                supports_step_back: Some(true),
+                                supports_set_variable: Some(true),
+                                supports_restart_frame: Some(true),
+                                supports_goto_targets_request: Some(true),
+                                supports_step_in_targets_request: Some(true),
+                                supports_completions_request: Some(true),
+                                completion_trigger_characters: Some(vec![
+                                    ".".to_string(),
+                                    " ".to_string(),
+                                ]),
+                                supports_modules_request: Some(true),
+                                additional_module_columns: Some(vec![]),
+                                supported_checksum_algorithms: Some(vec![
+                                    ChecksumAlgorithm::Md5,
+                                    ChecksumAlgorithm::Sha1,
+                                    ChecksumAlgorithm::Sha256,
+                                    ChecksumAlgorithm::Timestamp,
+                                ]),
+                                supports_restart_request: Some(true),
+                                supports_exception_options: Some(true),
+                                supports_value_formatting_options: Some(true),
+                                supports_exception_info_request: Some(true),
+                                support_terminate_debuggee: Some(true),
+                                support_suspend_debuggee: Some(true),
+                                supports_delayed_stack_trace_loading: Some(true),
+                                supports_loaded_sources_request: Some(true),
+                                supports_log_points: Some(true),
+                                supports_terminate_threads_request: Some(true),
+                                supports_set_expression: Some(true),
+                                supports_terminate_request: Some(true),
+                                supports_data_breakpoints: Some(true),
+                                supports_read_memory_request: Some(true),
+                                supports_write_memory_request: Some(true),
+                                supports_disassemble_request: Some(true),
+                                supports_cancel_request: Some(true),
+                                supports_breakpoint_locations_request: Some(true),
+                                supports_clipboard_context: Some(true),
+                                supports_stepping_granularity: Some(true),
+                                supports_instruction_breakpoints: Some(true),
+                                supports_exception_filter_options: Some(true),
+                                supports_single_thread_execution_requests: Some(true),
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Events::InitializedEvent(InitializedEvent {
+                        event: InitializedEventStructEvent::Initialized,
+                    });
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::LaunchRequest(request) => {
+                    // TODO FIXME make this pause at start
+
+                    // TODO FIXME abstract equal fields out
+                    let response = Response::<LaunchResponse> {
+                        inner: Some(LaunchResponse {}),
                         seq: {
                             seq += 1;
                             seq
@@ -52,10 +126,27 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                Requests::LaunchRequest(request) => {
-                    // TODO FIXME abstract equal fields out
-                    let response = Response::<LaunchResponse> {
-                        inner: Some(LaunchResponse {}),
+                Requests::LoadedSourcesRequest(request) => {
+                    let response = Response {
+                        inner: Some(LoadedSourcesResponse {
+                            body: LoadedSourcesResponseStructBody {
+                                sources: vec![Source {
+                                    name: Some("test.tucant".to_string()),
+                                    path: Some(
+                                        "/home/moritz/Documents/tucant/tucant-language/test.tucant"
+                                            .to_string(),
+                                    ),
+                                    source_reference: Some(0),
+                                    presentation_hint: Some(
+                                        SourceStructPresentationHint::Emphasize,
+                                    ),
+                                    origin: Some("source code".to_string()),
+                                    sources: Some(vec![]),
+                                    adapter_data: None,
+                                    checksums: Some(vec![]),
+                                }],
+                            },
+                        }),
                         seq: {
                             seq += 1;
                             seq
