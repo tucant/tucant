@@ -102,18 +102,112 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
 
-                    let event = Events::InitializedEvent(InitializedEvent {
-                        event: InitializedEventStructEvent::Initialized,
-                    });
+                    let event = Event {
+                        inner: InitializedEvent {
+                            event: InitializedEventStructEvent::Initialized,
+                        },
+                        r#type: "event".to_string(),
+                    };
 
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
                 Requests::LaunchRequest(request) => {
                     // TODO FIXME make this pause at start
 
+                    // TODO FIXME force matchup of request and response
+
                     // TODO FIXME abstract equal fields out
                     let response = Response::<LaunchResponse> {
                         inner: Some(LaunchResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SetFunctionBreakpointsRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetFunctionBreakpointsResponse {
+                            body: SetFunctionBreakpointsResponseStructBody {
+                                breakpoints: vec![],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SetDataBreakpointsRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetDataBreakpointsResponse {
+                            body: SetDataBreakpointsResponseStructBody {
+                                breakpoints: vec![],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SetInstructionBreakpointsRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetInstructionBreakpointsResponse {
+                            body: SetInstructionBreakpointsResponseStructBody {
+                                breakpoints: vec![],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::ConfigurationDoneRequest(request) => {
+                    let response = Response {
+                        inner: Some(ConfigurationDoneResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::ThreadsRequest(request) => {
+                    let response = Response {
+                        inner: Some(ThreadsResponse {
+                            body: ThreadsResponseStructBody { threads: vec![] },
+                        }),
                         seq: {
                             seq += 1;
                             seq
@@ -236,6 +330,14 @@ pub struct Response<T> {
     request_seq: u64,
     success: bool,
     message: Option<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Event<T> {
+    #[serde(flatten)]
+    inner: T,
+    r#type: String,
 }
 
 // cargo watch -x 'run -- --port 6009'
