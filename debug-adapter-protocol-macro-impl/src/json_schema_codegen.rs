@@ -206,26 +206,23 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         .definitions
         .into_iter()
         .map(|definition| {
-            match definition.value {
-                Definition { definition_type: DefinitionType::AllOf(all_of), .. } => {
-                    let (base, derived) = all_of.definitions.iter().collect_tuple().unwrap();
+            if let Definition { definition_type: DefinitionType::AllOf(all_of), .. } = definition.value {
+                let (base, derived) = all_of.definitions.iter().collect_tuple().unwrap();
 
-                    let base_class = match base {
-                        Definition { definition_type: DefinitionType::Ref(def), .. } => {
-                            def.name.value().trim_start_matches("#/definitions/").to_string()
-                        }
-                        _ => panic!()
-                    };
+                let base_class = match base {
+                    Definition { definition_type: DefinitionType::Ref(def), .. } => {
+                        def.name.value().trim_start_matches("#/definitions/").to_string()
+                    }
+                    _ => panic!()
+                };
 
-                    let code = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
+                let code = codegen_definition(&format_ident!("{}", definition.key.value()), derived);
 
-                    (Some(base_class), code)
-                }
-                _ => {
-                    let name = format_ident!("r#{}", definition.key.value());
-                    (None, codegen_definition(&name, &definition.value))
-                },
-            }
+                (Some(base_class), code)
+            } else {
+                                let name = format_ident!("r#{}", definition.key.value());
+                                (None, codegen_definition(&name, &definition.value))
+                            }
         }).fold(BTreeMap::<Option<String>, Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)>>::new(), |mut acc, (a, b)| {
             acc.entry(a).or_default().push(b);
             acc
@@ -267,6 +264,7 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         #(#request_definitions_code)*
         #(#response_definitions_code)*
 
+        #[allow(clippy::enum_variant_names)]
         #[derive(Debug, ::serde::Deserialize)]
         // TODO FIXME make this tagged to improve parsing errors a lot
         #[serde(untagged)]
@@ -274,12 +272,14 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
             #(#request_definition_names(crate::Request<#request_definition_types>)),*
         }
 
+        #[allow(clippy::enum_variant_names)]
         #[derive(Debug, ::serde::Deserialize)]
         #[serde(untagged)]
         pub enum Responses {
             #(#response_definition_names(#response_definition_types)),*
         }
 
+        #[allow(clippy::enum_variant_names)]
         #[derive(Debug, ::serde::Deserialize)]
         #[serde(untagged)]
         pub enum Events {
