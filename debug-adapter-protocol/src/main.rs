@@ -14,42 +14,92 @@ use futures_util::StreamExt;
 use json_rpc_server::run_json_rpc_server;
 use json_rpc_server::JsonRpcServer;
 use serde::Deserialize;
+use serde::Serialize;
 
 use std::sync::Arc;
-use tokio::sync::mpsc;
 
 out_dir_include::out_dir_include!("debug-adapter-protocol.rs");
 
 pub struct Server {}
 
 impl Server {
-    async fn handle_sending<
+    async fn handle<
+        R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
         W: Sink<String, Error = anyhow::Error> + std::marker::Send + std::marker::Unpin,
     >(
         self: Arc<Self>,
-        mut sender: W,
-        mut rx: mpsc::Receiver<String>,
-    ) -> anyhow::Result<()> {
-        while let Some(result) = rx.recv().await {
-            sender.send(result).await?;
-        }
-
-        Ok(())
-    }
-
-    async fn handle_receiving<
-        R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
-    >(
-        self: Arc<Self>,
         mut reader: R,
+        mut sender: W,
     ) -> anyhow::Result<()> {
+        let mut seq = 0;
         loop {
             let read_value = reader.next().await.unwrap()?;
-            println!("{read_value}");
             let request: Requests = serde_json::from_str(&read_value)?;
-            // Requests
 
-            println!("{request:?}");
+            match request {
+                Requests::InitializeRequest(request) => {
+                    let response = Response::<InitializeResponse> {
+                        inner: Some(InitializeResponse { body: None }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::LaunchRequest(request) => {
+                    // TODO FIXME abstract equal fields out
+                    let response = Response::<LaunchResponse> {
+                        inner: Some(LaunchResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::EvaluateRequest(request) => {
+                    let response = Response::<EvaluateResponse> {
+                        inner: Some(EvaluateResponse {
+                            body: EvaluateResponseStructBody {
+                                result: "42".to_string(),
+                                r#type: Some("answer-to-question-about-sense-of-life".to_string()),
+                                presentation_hint: Some(VariablePresentationHint {
+                                    kind: Some("property".to_string()),
+                                    attributes: Some(vec!["readOnly".to_string()]),
+                                    visibility: Some("public".to_string()),
+                                    lazy: Some(false),
+                                }),
+                                variables_reference: 1337,
+                                named_variables: Some(10),
+                                indexed_variables: Some(10),
+                                memory_reference: Some("deadbeef".to_string()),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                request => unimplemented!("{:?}", request),
+            }
 
             let _cloned_self = self.clone();
         }
@@ -68,36 +118,37 @@ impl JsonRpcServer for Server {
         read: R,
         write: W,
     ) -> anyhow::Result<()> {
-        let (_tx, rx) = mpsc::channel::<String>(3);
-
         let arc_self = Arc::new(Self {});
 
-        let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));
-        let handle2 = tokio::spawn(arc_self.handle_sending(write, rx));
-
-        handle1.await??;
-        handle2.await??;
+        arc_self.handle(read, write).await?;
 
         Ok(())
     }
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Request<T> {
     #[serde(flatten)]
     inner: T,
-    r#type: String,
     seq: u64,
+    r#type: String,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Response<T> {
+    #[serde(flatten)]
+    inner: Option<T>, // probably Result
+    seq: u64,
+    r#type: String,
+    request_seq: u64,
+    success: bool,
+    message: Option<String>,
 }
 
 // cargo watch -x 'run -- --port 6009'
 pub fn main() -> anyhow::Result<()> {
-    //let request: Requests = serde_json::from_str(r#"{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true},"type":"request","seq":1}"#)?;
-    let _request: InitializeRequestArguments = serde_json::from_str(
-        r#"{"clientID":"vscode","clientName":"Visual Studio Code","adapterID":"tucant","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us","supportsProgressReporting":true,"supportsInvalidatedEvent":true,"supportsMemoryReferences":true,"supportsArgsCanBeInterpretedByShell":true,"supportsMemoryEvent":true}"#,
-    )?;
-
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
