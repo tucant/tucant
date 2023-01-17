@@ -305,7 +305,64 @@ impl Server {
                 Requests::ThreadsRequest(request) => {
                     let response = Response {
                         inner: Some(ThreadsResponse {
-                            body: ThreadsResponseStructBody { threads: vec![] },
+                            body: ThreadsResponseStructBody {
+                                threads: vec![Thread {
+                                    id: 1234,
+                                    name: "the epic main thread".to_string(),
+                                }],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "entry".to_string(),
+                                description: Some("The entry has been reached".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StackTraceRequest(request) => {
+                    let response = Response {
+                        inner: Some(StackTraceResponse {
+                            body: StackTraceResponseStructBody {
+                                stack_frames: vec![StackFrame {
+                                    id: 15,
+                                    name: "root stack frame".to_string(),
+                                    source: Some(fake_source),
+                                    line: 1,
+                                    column: 1,
+                                    end_line: None,
+                                    end_column: None,
+                                    can_restart: Some(true),
+                                    instruction_pointer_reference: None,
+                                    module_id: None, // TODO FIXME add module
+                                    presentation_hint: Some(
+                                        StackFrameStructPresentationHint::Normal,
+                                    ),
+                                }],
+                                total_frames: Some(1),
+                            },
                         }),
                         seq: {
                             seq += 1;
