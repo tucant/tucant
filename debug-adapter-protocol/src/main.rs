@@ -36,6 +36,17 @@ impl Server {
             let read_value = reader.next().await.unwrap()?;
             let request: Requests = serde_json::from_str(&read_value)?;
 
+            let fake_source = Source {
+                name: Some("test.tucant".to_string()),
+                path: Some("/home/moritz/Documents/tucant/tucant-language/test.tucant".to_string()),
+                source_reference: None,
+                presentation_hint: Some(SourceStructPresentationHint::Emphasize),
+                origin: Some("source code".to_string()),
+                sources: Some(vec![]),
+                adapter_data: None,
+                checksums: Some(vec![]),
+            };
+
             match request {
                 Requests::InitializeRequest(request) => {
                     let response = Response::<InitializeResponse> {
@@ -131,6 +142,75 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::SetBreakpointsRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetBreakpointsResponse {
+                            body: SetBreakpointsResponseStructBody {
+                                breakpoints: vec![Breakpoint {
+                                    id: Some(133333),
+                                    verified: true,
+                                    message: None,
+                                    source: Some(fake_source),
+                                    line: Some(1),
+                                    column: Some(1),
+                                    end_line: Some(1),
+                                    end_column: Some(5),
+                                    instruction_reference: None,
+                                    offset: None,
+                                }],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::BreakpointLocationsRequest(request) => {
+                    // these are shown as hints when you set a breakpoint in that line
+                    let response = Response {
+                        inner: Some(BreakpointLocationsResponse {
+                            body: BreakpointLocationsResponseStructBody {
+                                breakpoints: vec![
+                                    BreakpointLocation {
+                                        line: 1,
+                                        column: Some(1),
+                                        end_line: None,
+                                        end_column: None,
+                                    },
+                                    BreakpointLocation {
+                                        line: 1,
+                                        column: Some(2),
+                                        end_line: None,
+                                        end_column: None,
+                                    },
+                                    BreakpointLocation {
+                                        line: 1,
+                                        column: Some(3),
+                                        end_line: None,
+                                        end_column: None,
+                                    },
+                                ],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::SetFunctionBreakpointsRequest(request) => {
                     let response = Response {
                         inner: Some(SetFunctionBreakpointsResponse {
@@ -188,6 +268,25 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::LoadedSourcesRequest(request) => {
+                    let response = Response {
+                        inner: Some(LoadedSourcesResponse {
+                            body: LoadedSourcesResponseStructBody {
+                                sources: vec![fake_source],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::ConfigurationDoneRequest(request) => {
                     let response = Response {
                         inner: Some(ConfigurationDoneResponse {}),
@@ -207,39 +306,6 @@ impl Server {
                     let response = Response {
                         inner: Some(ThreadsResponse {
                             body: ThreadsResponseStructBody { threads: vec![] },
-                        }),
-                        seq: {
-                            seq += 1;
-                            seq
-                        },
-                        r#type: "response".to_string(),
-                        request_seq: request.seq,
-                        success: true,
-                        message: None,
-                    };
-
-                    sender.send(serde_json::to_string(&response)?).await?;
-                }
-                Requests::LoadedSourcesRequest(request) => {
-                    let response = Response {
-                        inner: Some(LoadedSourcesResponse {
-                            body: LoadedSourcesResponseStructBody {
-                                sources: vec![Source {
-                                    name: Some("test.tucant".to_string()),
-                                    path: Some(
-                                        "/home/moritz/Documents/tucant/tucant-language/test.tucant"
-                                            .to_string(),
-                                    ),
-                                    source_reference: Some(0),
-                                    presentation_hint: Some(
-                                        SourceStructPresentationHint::Emphasize,
-                                    ),
-                                    origin: Some("source code".to_string()),
-                                    sources: Some(vec![]),
-                                    adapter_data: None,
-                                    checksums: Some(vec![]),
-                                }],
-                            },
                         }),
                         seq: {
                             seq += 1;
