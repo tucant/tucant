@@ -4002,40 +4002,42 @@ pub fn realistic() -> Result<TokenStream, syn::Error> {
                 },
 
                 "StackFrameFormat": {
-                    "allOf": [ { "$ref": "#/definitions/ValueFormat" }, {
-                        "type": "object",
-                        "description": "Provides formatting information for a stack frame.",
-                        "properties": {
-                            "parameters": {
-                                "type": "boolean",
-                                "description": "Displays parameters for the stack frame."
-                            },
-                            "parameterTypes": {
-                                "type": "boolean",
-                                "description": "Displays the types of parameters for the stack frame."
-                            },
-                            "parameterNames": {
-                                "type": "boolean",
-                                "description": "Displays the names of parameters for the stack frame."
-                            },
-                            "parameterValues": {
-                                "type": "boolean",
-                                "description": "Displays the values of parameters for the stack frame."
-                            },
-                            "line": {
-                                "type": "boolean",
-                                "description": "Displays the line number of the stack frame."
-                            },
-                            "module": {
-                                "type": "boolean",
-                                "description": "Displays the module of the stack frame."
-                            },
-                            "includeAll": {
-                                "type": "boolean",
-                                "description": "Includes all stack frames, including those the debug adapter might otherwise hide."
-                            }
+                    "type": "object",
+                    "description": "Provides formatting information for a stack frame.",
+                    "properties": {
+                        "hex": {
+                            "type": "boolean",
+                            "description": "Display the value in hex."
+                        },
+                        "parameters": {
+                            "type": "boolean",
+                            "description": "Displays parameters for the stack frame."
+                        },
+                        "parameterTypes": {
+                            "type": "boolean",
+                            "description": "Displays the types of parameters for the stack frame."
+                        },
+                        "parameterNames": {
+                            "type": "boolean",
+                            "description": "Displays the names of parameters for the stack frame."
+                        },
+                        "parameterValues": {
+                            "type": "boolean",
+                            "description": "Displays the values of parameters for the stack frame."
+                        },
+                        "line": {
+                            "type": "boolean",
+                            "description": "Displays the line number of the stack frame."
+                        },
+                        "module": {
+                            "type": "boolean",
+                            "description": "Displays the module of the stack frame."
+                        },
+                        "includeAll": {
+                            "type": "boolean",
+                            "description": "Includes all stack frames, including those the debug adapter might otherwise hide."
                         }
-                    }]
+                    }
                 },
 
                 "ExceptionFilterOptions": {
