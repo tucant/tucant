@@ -23,6 +23,7 @@ out_dir_include::out_dir_include!("debug-adapter-protocol.rs");
 pub struct Server {}
 
 impl Server {
+    #[allow(clippy::too_many_lines)]
     async fn handle<
         R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
         W: Sink<String, Error = anyhow::Error> + std::marker::Send + std::marker::Unpin,
@@ -147,7 +148,7 @@ impl Server {
                         inner: Some(SetBreakpointsResponse {
                             body: SetBreakpointsResponseStructBody {
                                 breakpoints: vec![Breakpoint {
-                                    id: Some(133333),
+                                    id: Some(133_333),
                                     verified: true,
                                     message: None,
                                     source: Some(fake_source),
