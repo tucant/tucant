@@ -349,6 +349,69 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::VariablesRequest(request) => {
+                    let response = Response {
+                        inner: Some(VariablesResponse {
+                            body: VariablesResponseStructBody {
+                                variables: vec![Variable {
+                                    name: "cat".to_string(),
+                                    value: "nicevalue".to_string(),
+                                    r#type: Some("string".to_string()),
+                                    presentation_hint: Some(VariablePresentationHint {
+                                        kind: Some("property".to_string()),
+                                        attributes: Some(vec!["readOnly".to_string()]),
+                                        visibility: Some("public".to_string()),
+                                        lazy: Some(false),
+                                    }),
+                                    evaluate_name: Some("evaluateName".to_string()),
+                                    variables_reference: 0,
+                                    named_variables: Some(0),
+                                    indexed_variables: Some(0),
+                                    memory_reference: None,
+                                }],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::CompletionsRequest(request) => {
+                    let response = Response {
+                        inner: Some(CompletionsResponse {
+                            body: CompletionsResponseStructBody {
+                                targets: vec![CompletionItem {
+                                    label: ".elephant".to_string(),
+                                    text: None,
+                                    sort_text: None,
+                                    detail: Some("this is super nice".to_string()),
+                                    r#type: Some(CompletionItemType::Function),
+                                    start: Some(0),
+                                    length: Some(0),
+                                    selection_start: None,  //Some(1),
+                                    selection_length: None, // Some(1),
+                                }],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 request => unimplemented!("{:?}", request),
             }
 
