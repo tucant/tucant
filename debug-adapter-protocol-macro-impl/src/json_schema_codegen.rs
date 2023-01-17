@@ -117,16 +117,21 @@ pub fn codegen_definition(
         }
         crate::json_schema::DefinitionType::StringType(t) => {
             if t.exhaustive {
-                let enum_values = t
+                let enum_values_rust = t
                     .enum_values
                     .iter()
-                    .map(|v| format_ident!("r#{}", v.0.value()));
+                    .map(|v| format_ident!("r#{}", v.0.value().to_upper_camel_case()));
+
+                let enum_values = t.enum_values.iter().map(|v| v.0.value());
 
                 (
                     quote! {
                         #[derive(Debug, ::serde::Deserialize)]
                         pub enum #name {
-                            #(#enum_values),*
+                            #(
+                                #[serde(rename = #enum_values)]
+                                #enum_values_rust
+                            ),*
                         }
                     },
                     quote! { #name },

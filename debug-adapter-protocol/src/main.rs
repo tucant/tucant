@@ -82,6 +82,7 @@ impl JsonRpcServer for Server {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct Request<T> {
     #[serde(flatten)]
