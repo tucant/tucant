@@ -47,6 +47,7 @@
         "editor.formatOnType": true
       }
     },
+    "breakpoints": [{ "language": "tucant" }],
     "debuggers": [
       {
         "type": "tucant",
@@ -73,6 +74,7 @@
           {
             "type": "tucant",
             "request": "launch",
+            "stopOnEntry": true,
             "name": "test name"
           }
         ],

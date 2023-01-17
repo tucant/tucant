@@ -49,7 +49,7 @@ pub fn codegen_definition(
 
                     #title
                     #description
-                    #[derive(Debug, ::serde::Deserialize)]
+                    #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
                     pub enum #name {
                         #(#member_names(#member_types)),*
                     }
@@ -104,7 +104,7 @@ pub fn codegen_definition(
 
                     #title
                     #description
-                    #[derive(Debug, ::serde::Deserialize)]
+                    #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
                     pub struct #name {
                         #(
                             #[serde(rename = #member_names)]
@@ -126,7 +126,7 @@ pub fn codegen_definition(
 
                 (
                     quote! {
-                        #[derive(Debug, ::serde::Deserialize)]
+                        #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
                         pub enum #name {
                             #(
                                 #[serde(rename = #enum_values)]
@@ -265,7 +265,7 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         #(#response_definitions_code)*
 
         #[allow(clippy::enum_variant_names)]
-        #[derive(Debug, ::serde::Deserialize)]
+        #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
         // TODO FIXME make this tagged to improve parsing errors a lot
         #[serde(untagged)]
         pub enum Requests {
@@ -273,14 +273,14 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
         }
 
         #[allow(clippy::enum_variant_names)]
-        #[derive(Debug, ::serde::Deserialize)]
+        #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
         #[serde(untagged)]
         pub enum Responses {
             #(#response_definition_names(#response_definition_types)),*
         }
 
         #[allow(clippy::enum_variant_names)]
-        #[derive(Debug, ::serde::Deserialize)]
+        #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
         #[serde(untagged)]
         pub enum Events {
             #(#event_definition_names(#event_definition_types)),*
