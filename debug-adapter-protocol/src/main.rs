@@ -416,7 +416,7 @@ impl Server {
                                 r#type: Some("answer-to-question-about-sense-of-life".to_string()),
                                 presentation_hint: Some(VariablePresentationHint {
                                     kind: Some("property".to_string()),
-                                    attributes: Some(vec!["readOnly".to_string()]),
+                                    attributes: Some(vec!["readWrite".to_string()]),
                                     visibility: Some("public".to_string()),
                                     lazy: Some(false),
                                 }),
@@ -448,7 +448,7 @@ impl Server {
                                     r#type: Some("string".to_string()),
                                     presentation_hint: Some(VariablePresentationHint {
                                         kind: Some("property".to_string()),
-                                        attributes: Some(vec!["readOnly".to_string()]),
+                                        attributes: Some(vec!["readWrite".to_string()]),
                                         visibility: Some("public".to_string()),
                                         lazy: Some(false),
                                     }),
@@ -557,10 +557,33 @@ impl Server {
                                 r#type: Some("elephant".to_string()),
                                 presentation_hint: Some(VariablePresentationHint {
                                     kind: Some("property".to_string()),
-                                    attributes: Some(vec!["readOnly".to_string()]),
+                                    attributes: Some(vec!["readWrite".to_string()]),
                                     visibility: Some("public".to_string()),
                                     lazy: Some(false),
                                 }),
+                                variables_reference: Some(3208),
+                                named_variables: Some(3),
+                                indexed_variables: Some(3),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SetVariableRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetVariableResponse {
+                            body: SetVariableResponseStructBody {
+                                value: "42".to_string(),
+                                r#type: Some("elephant".to_string()),
                                 variables_reference: Some(3208),
                                 named_variables: Some(3),
                                 indexed_variables: Some(3),
@@ -582,9 +605,11 @@ impl Server {
                     let response = Response {
                         inner: Some(DataBreakpointInfoResponse {
                             body: DataBreakpointInfoResponseStructBody {
-                                data_id: todo!(), // TODO FIXME codegen broken
+                                data_id: DataBreakpointInfoResponseStructBodyStructDataId::O0(
+                                    "dfs".to_string(),
+                                ),
                                 description: "test description".to_string(),
-                                access_types: Some(vec![]),
+                                access_types: Some(vec![DataBreakpointAccessType::ReadWrite]),
                                 can_persist: Some(true),
                             },
                         }),
