@@ -130,18 +130,20 @@ pub async fn run_json_rpc_server<S: JsonRpcServer>() -> anyhow::Result<()> {
             stdin: false,
             websocket: None,
         } => {
-            // TODO FIXME accept multiple sessions
-            let stream = TcpListener::bind(("127.0.0.1", port))
-                .await?
-                .accept()
-                .await?
-                .0;
-            let (read, write) = stream.into_split();
-            S::run(
-                FramedRead::new(read, MyStringDecoder),
-                FramedWrite::new(write, MyStringEncoder),
-            )
-            .await
+            let listener = TcpListener::bind(("127.0.0.1", port)).await?;
+
+            loop {
+                let (stream, _) = listener.accept().await?;
+                tokio::spawn(async {
+                    let (read, write) = stream.into_split();
+                    S::run(
+                        FramedRead::new(read, MyStringDecoder),
+                        FramedWrite::new(write, MyStringEncoder),
+                    )
+                    .await
+                    .unwrap();
+                });
+            }
         }
         Args {
             websocket: Some(port),
