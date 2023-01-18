@@ -13,6 +13,12 @@ export function activate(context: ExtensionContext) {
         },
 	}, DebugConfigurationProviderTriggerKind.Dynamic));
 
+    context.subscriptions.push(debug.registerDebugConfigurationProvider('tucant', {
+		resolveDebugConfiguration(folder, debugConfiguration, token) {
+            return debugConfiguration
+        },
+	}));
+
     context.subscriptions.push(debug.registerDebugAdapterDescriptorFactory('tucant', {
         createDebugAdapterDescriptor(session, executable) {
             return new DebugAdapterServer(6009);

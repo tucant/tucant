@@ -55,7 +55,7 @@ impl Server {
 
             match request {
                 Requests::InitializeRequest(request) => {
-                    let response = Response::<InitializeResponse> {
+                    let response = Response {
                         inner: Some(InitializeResponse {
                             body: Some(Capabilities {
                                 supports_configuration_done_request: Some(true),
@@ -144,13 +144,26 @@ impl Server {
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
                 Requests::LaunchRequest(request) => {
-                    // TODO FIXME make this pause at start
-
                     // TODO FIXME force matchup of request and response
 
                     // TODO FIXME abstract equal fields out
-                    let response = Response::<LaunchResponse> {
+                    let response = Response {
                         inner: Some(LaunchResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::AttachRequest(request) => {
+                    let response = Response {
+                        inner: Some(AttachResponse {}),
                         seq: {
                             seq += 1;
                             seq
@@ -176,7 +189,7 @@ impl Server {
                                     column: Some(1),
                                     end_line: Some(1),
                                     end_column: Some(5),
-                                    instruction_reference: None,
+                                    instruction_reference: Some("instruction".to_string()),
                                     offset: None,
                                 }],
                             },
@@ -402,7 +415,7 @@ impl Server {
                                     end_line: None,
                                     end_column: None,
                                     can_restart: Some(true),
-                                    instruction_pointer_reference: None,
+                                    instruction_pointer_reference: Some("instruction2".to_string()),
                                     module_id: Some(StackFrameStructModuleId::O1(
                                         "testmodule".to_string(),
                                     )),
@@ -1059,13 +1072,40 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                Requests::DisassembleRequest(_) => todo!(),
+                Requests::DisassembleRequest(request) => {
+                    let response = Response {
+                        inner: Some(DisassembleResponse {
+                            body: Some(DisassembleResponseStructBody {
+                                instructions: vec![DisassembledInstruction {
+                                    address: "0x00".to_string(),
+                                    instruction_bytes: Some("abcdef".to_string()),
+                                    instruction: "push elephant".to_string(),
+                                    symbol: Some("nice symbol".to_string()),
+                                    location: Some(fake_source),
+                                    line: Some(1),
+                                    column: Some(2),
+                                    end_line: None,
+                                    end_column: None,
+                                }],
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
 
                 Requests::ExceptionInfoRequest(_) => todo!(),
                 Requests::ModulesRequest(_) => todo!(),
                 Requests::GotoTargetsRequest(_) => todo!(),
                 Requests::GotoRequest(_) => todo!(),
-                Requests::AttachRequest(_) => todo!(),
 
                 // reverse requests
                 Requests::RunInTerminalRequest(_) => todo!(),
