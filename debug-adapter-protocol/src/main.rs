@@ -771,14 +771,124 @@ impl Server {
 
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
+                Requests::StepInRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepInResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped in".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StepOutRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepOutResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped out".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StepBackRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepBackResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped back".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::ReverseContinueRequest(request) => {
+                    let response = Response {
+                        inner: Some(ReverseContinueResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::RunInTerminalRequest(_) => todo!(),
                 Requests::StartDebuggingRequest(_) => todo!(),
                 Requests::AttachRequest(_) => todo!(),
                 Requests::SetExceptionBreakpointsRequest(_) => todo!(),
-                Requests::StepInRequest(_) => todo!(),
-                Requests::StepOutRequest(_) => todo!(),
-                Requests::StepBackRequest(_) => todo!(),
-                Requests::ReverseContinueRequest(_) => todo!(),
                 Requests::GotoRequest(_) => todo!(),
                 Requests::SourceRequest(_) => todo!(),
                 Requests::TerminateThreadsRequest(_) => todo!(),
