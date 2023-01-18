@@ -63,7 +63,16 @@ impl Server {
                                 supports_conditional_breakpoints: Some(true),
                                 supports_hit_conditional_breakpoints: Some(true),
                                 supports_evaluate_for_hovers: Some(true),
-                                exception_breakpoint_filters: Some(vec![]),
+                                exception_breakpoint_filters: Some(vec![
+                                    ExceptionBreakpointsFilter {
+                                        filter: "all".to_string(),
+                                        label: "All exceptions".to_string(),
+                                        description: None,
+                                        default: Some(true),
+                                        supports_condition: Some(true),
+                                        condition_description: None,
+                                    },
+                                ]),
                                 supports_step_back: Some(true),
                                 supports_set_variable: Some(true),
                                 supports_restart_frame: Some(true),
@@ -75,7 +84,13 @@ impl Server {
                                     " ".to_string(),
                                 ]),
                                 supports_modules_request: Some(true),
-                                additional_module_columns: Some(vec![]),
+                                additional_module_columns: Some(vec![ColumnDescriptor {
+                                    attribute_name: "size".to_string(),
+                                    label: "Size".to_string(),
+                                    format: None,
+                                    r#type: Some(ColumnDescriptorStructType::Number),
+                                    width: None,
+                                }]),
                                 supported_checksum_algorithms: Some(vec![
                                     ChecksumAlgorithm::Md5,
                                     ChecksumAlgorithm::Sha1,
@@ -274,6 +289,26 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::SetExceptionBreakpointsRequest(request) => {
+                    // TODO FIXME implement more fully
+                    let response = Response {
+                        inner: Some(SetExceptionBreakpointsResponse {
+                            body: Some(SetExceptionBreakpointsResponseStructBody {
+                                breakpoints: Some(vec![]),
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::LoadedSourcesRequest(request) => {
                     let response = Response {
                         inner: Some(LoadedSourcesResponse {
@@ -362,7 +397,9 @@ impl Server {
                                     end_column: None,
                                     can_restart: Some(true),
                                     instruction_pointer_reference: None,
-                                    module_id: None, // TODO FIXME add module
+                                    module_id: Some(StackFrameStructModuleId::O1(
+                                        "testmodule".to_string(),
+                                    )),
                                     presentation_hint: Some(
                                         StackFrameStructPresentationHint::Normal,
                                     ),
@@ -481,17 +518,30 @@ impl Server {
                     let response = Response {
                         inner: Some(CompletionsResponse {
                             body: CompletionsResponseStructBody {
-                                targets: vec![CompletionItem {
-                                    label: ".elephant".to_string(),
-                                    text: None,
-                                    sort_text: None,
-                                    detail: Some("this is super nice".to_string()),
-                                    r#type: Some(CompletionItemType::Function),
-                                    start: Some(0),
-                                    length: Some(0),
-                                    selection_start: None,  //Some(1),
-                                    selection_length: None, // Some(1),
-                                }],
+                                targets: vec![
+                                    CompletionItem {
+                                        label: ".elephant".to_string(),
+                                        text: None,
+                                        sort_text: None,
+                                        detail: Some("this is super nice".to_string()),
+                                        r#type: Some(CompletionItemType::Function),
+                                        start: Some(0),
+                                        length: Some(0),
+                                        selection_start: None,  //Some(1),
+                                        selection_length: None, // Some(1),
+                                    },
+                                    CompletionItem {
+                                        label: "module".to_string(),
+                                        text: None,
+                                        sort_text: None,
+                                        detail: Some("this is super nice".to_string()),
+                                        r#type: Some(CompletionItemType::Module),
+                                        start: Some(0),
+                                        length: Some(0),
+                                        selection_start: None,  //Some(1),
+                                        selection_length: None, // Some(1),
+                                    },
+                                ],
                             },
                         }),
                         seq: {
@@ -885,10 +935,6 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                Requests::RunInTerminalRequest(_) => todo!(),
-                Requests::StartDebuggingRequest(_) => todo!(),
-                Requests::AttachRequest(_) => todo!(),
-                Requests::SetExceptionBreakpointsRequest(_) => todo!(),
                 Requests::GotoRequest(_) => todo!(),
                 Requests::SourceRequest(_) => todo!(),
                 Requests::TerminateThreadsRequest(_) => todo!(),
@@ -899,6 +945,12 @@ impl Server {
                 Requests::ReadMemoryRequest(_) => todo!(),
                 Requests::WriteMemoryRequest(_) => todo!(),
                 Requests::DisassembleRequest(_) => todo!(),
+
+                Requests::AttachRequest(_) => todo!(),
+
+                // reverse requests
+                Requests::RunInTerminalRequest(_) => todo!(),
+                Requests::StartDebuggingRequest(_) => todo!(),
             }
 
             let _cloned_self = self.clone();
