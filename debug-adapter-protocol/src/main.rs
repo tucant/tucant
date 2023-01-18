@@ -504,7 +504,7 @@ impl Server {
                                     variables_reference: 0,
                                     named_variables: Some(0),
                                     indexed_variables: Some(0),
-                                    memory_reference: None,
+                                    memory_reference: Some("epic".to_string()),
                                 }],
                             },
                         }),
@@ -1015,8 +1015,50 @@ impl Server {
 
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
-                Requests::ReadMemoryRequest(_) => todo!(),
-                Requests::WriteMemoryRequest(_) => todo!(),
+                Requests::ReadMemoryRequest(request) => {
+                    let response = Response {
+                        inner: Some(ReadMemoryResponse {
+                            body: Some(ReadMemoryResponseStructBody {
+                                address: "0xdeadbeef".to_string(),
+                                unreadable_bytes: None,
+                                data: Some(
+                                    "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4="
+                                        .to_string(),
+                                ),
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::WriteMemoryRequest(request) => {
+                    let response = Response {
+                        inner: Some(WriteMemoryResponse {
+                            body: Some(WriteMemoryResponseStructBody {
+                                offset: None,
+                                bytes_written: None,
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::DisassembleRequest(_) => todo!(),
 
                 Requests::ExceptionInfoRequest(_) => todo!(),
