@@ -130,6 +130,7 @@ pub async fn run_json_rpc_server<S: JsonRpcServer>() -> anyhow::Result<()> {
             stdin: false,
             websocket: None,
         } => {
+            // TODO FIXME accept multiple sessions
             let stream = TcpListener::bind(("127.0.0.1", port))
                 .await?
                 .accept()

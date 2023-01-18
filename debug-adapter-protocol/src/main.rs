@@ -34,7 +34,12 @@ impl Server {
     ) -> anyhow::Result<()> {
         let mut seq = 0;
         loop {
-            let read_value = reader.next().await.unwrap()?;
+            let read_value = reader.next().await;
+            let Some(read_value) = read_value else {
+                break Ok(());
+            };
+            let read_value = read_value?;
+
             let request: Requests = serde_json::from_str(&read_value)?;
 
             let fake_source = Source {
@@ -625,7 +630,121 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                request => unimplemented!("{:?}", request),
+                Requests::ContinueRequest(request) => {
+                    let response = Response {
+                        inner: Some(ContinueResponse {
+                            body: ContinueResponseStructBody { all_threads_continued: Some(true) },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::PauseRequest(request) => {
+                    let response = Response {
+                        inner: Some(PauseResponse {
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "pause".to_string(),
+                                description: Some("Paused on request".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                },
+                Requests::TerminateRequest(request) => {
+                    let response = Response {
+                        inner: Some(TerminateResponse {
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: TerminatedEvent {
+                            event: TerminatedEventStructEvent::Terminated,
+                            body: Some(TerminatedEventStructBody {
+                                restart: None,
+                            }),
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                },
+                Requests::DisconnectRequest(request) => {
+                    let response = Response {
+                        inner: Some(DisconnectResponse {
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                },
+                Requests::RunInTerminalRequest(_) => todo!(),
+                Requests::StartDebuggingRequest(_) => todo!(),
+                Requests::AttachRequest(_) => todo!(),
+                Requests::RestartRequest(_) => todo!(),
+                Requests::SetExceptionBreakpointsRequest(_) => todo!(),
+                Requests::NextRequest(_) => todo!(),
+                Requests::StepInRequest(_) => todo!(),
+                Requests::StepOutRequest(_) => todo!(),
+                Requests::StepBackRequest(_) => todo!(),
+                Requests::ReverseContinueRequest(_) => todo!(),
+                Requests::GotoRequest(_) => todo!(),
+                Requests::SourceRequest(_) => todo!(),
+                Requests::TerminateThreadsRequest(_) => todo!(),
+                Requests::ModulesRequest(_) => todo!(),
+                Requests::StepInTargetsRequest(_) => todo!(),
+                Requests::GotoTargetsRequest(_) => todo!(),
+                Requests::ExceptionInfoRequest(_) => todo!(),
+                Requests::ReadMemoryRequest(_) => todo!(),
+                Requests::WriteMemoryRequest(_) => todo!(),
+                Requests::DisassembleRequest(_) => todo!(),
             }
 
             let _cloned_self = self.clone();
