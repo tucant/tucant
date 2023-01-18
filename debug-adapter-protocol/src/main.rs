@@ -45,7 +45,7 @@ impl Server {
             let fake_source = Source {
                 name: Some("test.tucant".to_string()),
                 path: Some("/home/moritz/Documents/tucant/tucant-language/test.tucant".to_string()),
-                source_reference: None,
+                source_reference: Some(5555),
                 presentation_hint: Some(SourceStructPresentationHint::Emphasize),
                 origin: Some("source code".to_string()),
                 sources: Some(vec![]),
@@ -365,10 +365,16 @@ impl Server {
                     let response = Response {
                         inner: Some(ThreadsResponse {
                             body: ThreadsResponseStructBody {
-                                threads: vec![Thread {
-                                    id: 1234,
-                                    name: "the epic main thread".to_string(),
-                                }],
+                                threads: vec![
+                                    Thread {
+                                        id: 1234,
+                                        name: "the epic main thread".to_string(),
+                                    },
+                                    Thread {
+                                        id: 1235,
+                                        name: "the epic second thread".to_string(),
+                                    },
+                                ],
                             },
                         }),
                         seq: {
@@ -935,17 +941,88 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                Requests::GotoRequest(_) => todo!(),
-                Requests::SourceRequest(_) => todo!(),
-                Requests::TerminateThreadsRequest(_) => todo!(),
-                Requests::ModulesRequest(_) => todo!(),
-                Requests::StepInTargetsRequest(_) => todo!(),
-                Requests::GotoTargetsRequest(_) => todo!(),
-                Requests::ExceptionInfoRequest(_) => todo!(),
+                Requests::StepInTargetsRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepInTargetsResponse {
+                            body: StepInTargetsResponseStructBody {
+                                targets: vec![StepInTarget {
+                                    id: 3265,
+                                    label: "Best Target".to_string(),
+                                    line: Some(3),
+                                    column: Some(1),
+                                    end_line: Some(3),
+                                    end_column: Some(10),
+                                }],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SourceRequest(request) => {
+                    let response = Response {
+                        inner: Some(SourceResponse {
+                            body: SourceResponseStructBody {
+                                content: "fake content content".to_string(),
+                                mime_type: Some("text/tucant".to_string()),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::TerminateThreadsRequest(request) => {
+                    let response = Response {
+                        inner: Some(TerminateThreadsResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: ThreadEvent {
+                            event: ThreadEventStructEvent::Thread,
+                            body: ThreadEventStructBody {
+                                reason: "exited".to_string(),
+                                thread_id: 1235,
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
                 Requests::ReadMemoryRequest(_) => todo!(),
                 Requests::WriteMemoryRequest(_) => todo!(),
                 Requests::DisassembleRequest(_) => todo!(),
 
+                Requests::ExceptionInfoRequest(_) => todo!(),
+                Requests::ModulesRequest(_) => todo!(),
+                Requests::GotoTargetsRequest(_) => todo!(),
+                Requests::GotoRequest(_) => todo!(),
                 Requests::AttachRequest(_) => todo!(),
 
                 // reverse requests
