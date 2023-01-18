@@ -157,8 +157,8 @@ impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
                         ));
                     }
                 }
-                JSONValue::Array(_type) => {
-                    let (definitions, definition_errors): (Vec<_>, Vec<_>) = _type
+                JSONValue::Array(r#type) => {
+                    let (definitions, definition_errors): (Vec<_>, Vec<_>) = r#type
                         .1
                         .into_iter()
                         .map(TryInto::<LitStr>::try_into)
@@ -176,28 +176,23 @@ impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
                                 .into_iter()
                                 .map(|definition| {
                                     let definition_type = match definition.value().as_ref() {
-                                        "array" => DefinitionType::ArrayType(ArrayType {
+                                        "array" => Self::ArrayType(ArrayType {
                                             item_type: Box::new(Definition {
                                                 title: None,
                                                 description: None,
-                                                definition_type: DefinitionType::Ref(
-                                                    RefDefinition {
-                                                        name: LitStr::new(
-                                                            "Value",
-                                                            Span::call_site(),
-                                                        ),
-                                                    },
-                                                ),
+                                                definition_type: Self::Ref(RefDefinition {
+                                                    name: LitStr::new("Value", Span::call_site()),
+                                                }),
                                             }),
                                         }),
-                                        "boolean" => DefinitionType::BooleanType(BooleanType {}),
-                                        "integer" => DefinitionType::IntegerType(IntegerType {}),
-                                        "null" => DefinitionType::NullType(NullType {}),
-                                        "number" => DefinitionType::DoubleType(DoubleType {}),
-                                        "object" => DefinitionType::Ref(RefDefinition {
+                                        "boolean" => Self::BooleanType(BooleanType {}),
+                                        "integer" => Self::IntegerType(IntegerType {}),
+                                        "null" => Self::NullType(NullType {}),
+                                        "number" => Self::DoubleType(DoubleType {}),
+                                        "object" => Self::Ref(RefDefinition {
                                             name: LitStr::new("Value", Span::call_site()),
                                         }),
-                                        "string" => DefinitionType::StringType(StringType {
+                                        "string" => Self::StringType(StringType {
                                             enum_values: vec![],
                                             exhaustive: false,
                                         }),
