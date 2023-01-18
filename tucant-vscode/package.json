@@ -74,14 +74,18 @@
           {
             "type": "tucant",
             "request": "launch",
-            "stopOnEntry": true,
-            "name": "test name"
+            "name": "Launch tucant"
+          },
+          {
+            "type": "tucant",
+            "request": "attach",
+            "name": "Attach to tucant"
           }
         ],
         "configurationSnippets": [
           {
             "label": "Tucant Debug: Launch",
-            "description": "A new configuration for 'debugging' a user selected markdown file.",
+            "description": "A new configuration for 'debugging' a user selected tucant file.",
             "body": {
               "type": "tucant",
               "request": "launch",

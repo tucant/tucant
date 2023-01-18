@@ -34,13 +34,18 @@ impl Server {
     ) -> anyhow::Result<()> {
         let mut seq = 0;
         loop {
-            let read_value = reader.next().await.unwrap()?;
+            let read_value = reader.next().await;
+            let Some(read_value) = read_value else {
+                break Ok(());
+            };
+            let read_value = read_value?;
+
             let request: Requests = serde_json::from_str(&read_value)?;
 
             let fake_source = Source {
                 name: Some("test.tucant".to_string()),
                 path: Some("/home/moritz/Documents/tucant/tucant-language/test.tucant".to_string()),
-                source_reference: None,
+                source_reference: Some(5555),
                 presentation_hint: Some(SourceStructPresentationHint::Emphasize),
                 origin: Some("source code".to_string()),
                 sources: Some(vec![]),
@@ -50,7 +55,7 @@ impl Server {
 
             match request {
                 Requests::InitializeRequest(request) => {
-                    let response = Response::<InitializeResponse> {
+                    let response = Response {
                         inner: Some(InitializeResponse {
                             body: Some(Capabilities {
                                 supports_configuration_done_request: Some(true),
@@ -58,7 +63,16 @@ impl Server {
                                 supports_conditional_breakpoints: Some(true),
                                 supports_hit_conditional_breakpoints: Some(true),
                                 supports_evaluate_for_hovers: Some(true),
-                                exception_breakpoint_filters: Some(vec![]),
+                                exception_breakpoint_filters: Some(vec![
+                                    ExceptionBreakpointsFilter {
+                                        filter: "all".to_string(),
+                                        label: "All exceptions".to_string(),
+                                        description: None,
+                                        default: Some(true),
+                                        supports_condition: Some(true),
+                                        condition_description: None,
+                                    },
+                                ]),
                                 supports_step_back: Some(true),
                                 supports_set_variable: Some(true),
                                 supports_restart_frame: Some(true),
@@ -70,7 +84,13 @@ impl Server {
                                     " ".to_string(),
                                 ]),
                                 supports_modules_request: Some(true),
-                                additional_module_columns: Some(vec![]),
+                                additional_module_columns: Some(vec![ColumnDescriptor {
+                                    attribute_name: "size".to_string(),
+                                    label: "Size".to_string(),
+                                    format: None,
+                                    r#type: Some(ColumnDescriptorStructType::Number),
+                                    width: None,
+                                }]),
                                 supported_checksum_algorithms: Some(vec![
                                     ChecksumAlgorithm::Md5,
                                     ChecksumAlgorithm::Sha1,
@@ -124,13 +144,26 @@ impl Server {
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
                 Requests::LaunchRequest(request) => {
-                    // TODO FIXME make this pause at start
-
                     // TODO FIXME force matchup of request and response
 
                     // TODO FIXME abstract equal fields out
-                    let response = Response::<LaunchResponse> {
+                    let response = Response {
                         inner: Some(LaunchResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::AttachRequest(request) => {
+                    let response = Response {
+                        inner: Some(AttachResponse {}),
                         seq: {
                             seq += 1;
                             seq
@@ -156,7 +189,7 @@ impl Server {
                                     column: Some(1),
                                     end_line: Some(1),
                                     end_column: Some(5),
-                                    instruction_reference: None,
+                                    instruction_reference: Some("instruction".to_string()),
                                     offset: None,
                                 }],
                             },
@@ -269,6 +302,26 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::SetExceptionBreakpointsRequest(request) => {
+                    // TODO FIXME implement more fully
+                    let response = Response {
+                        inner: Some(SetExceptionBreakpointsResponse {
+                            body: Some(SetExceptionBreakpointsResponseStructBody {
+                                breakpoints: Some(vec![]),
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::LoadedSourcesRequest(request) => {
                     let response = Response {
                         inner: Some(LoadedSourcesResponse {
@@ -302,28 +355,6 @@ impl Server {
                     };
 
                     sender.send(serde_json::to_string(&response)?).await?;
-                }
-                Requests::ThreadsRequest(request) => {
-                    let response = Response {
-                        inner: Some(ThreadsResponse {
-                            body: ThreadsResponseStructBody {
-                                threads: vec![Thread {
-                                    id: 1234,
-                                    name: "the epic main thread".to_string(),
-                                }],
-                            },
-                        }),
-                        seq: {
-                            seq += 1;
-                            seq
-                        },
-                        r#type: "response".to_string(),
-                        request_seq: request.seq,
-                        success: true,
-                        message: None,
-                    };
-
-                    sender.send(serde_json::to_string(&response)?).await?;
 
                     let event = Event {
                         inner: StoppedEvent {
@@ -343,6 +374,34 @@ impl Server {
 
                     sender.send(serde_json::to_string(&event)?).await?;
                 }
+                Requests::ThreadsRequest(request) => {
+                    let response = Response {
+                        inner: Some(ThreadsResponse {
+                            body: ThreadsResponseStructBody {
+                                threads: vec![
+                                    Thread {
+                                        id: 1234,
+                                        name: "the epic main thread".to_string(),
+                                    },
+                                    Thread {
+                                        id: 1235,
+                                        name: "the epic second thread".to_string(),
+                                    },
+                                ],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 Requests::StackTraceRequest(request) => {
                     let response = Response {
                         inner: Some(StackTraceResponse {
@@ -356,13 +415,46 @@ impl Server {
                                     end_line: None,
                                     end_column: None,
                                     can_restart: Some(true),
-                                    instruction_pointer_reference: None,
-                                    module_id: None, // TODO FIXME add module
+                                    instruction_pointer_reference: Some("instruction2".to_string()),
+                                    module_id: Some(StackFrameStructModuleId::O1(
+                                        "testmodule".to_string(),
+                                    )),
                                     presentation_hint: Some(
                                         StackFrameStructPresentationHint::Normal,
                                     ),
                                 }],
                                 total_frames: Some(1),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::ScopesRequest(request) => {
+                    let response = Response {
+                        inner: Some(ScopesResponse {
+                            body: ScopesResponseStructBody {
+                                scopes: vec![Scope {
+                                    name: "Registers".to_string(),
+                                    presentation_hint: Some("registers".to_string()),
+                                    variables_reference: 234,
+                                    named_variables: Some(5),
+                                    indexed_variables: Some(5),
+                                    expensive: false,
+                                    source: Some(fake_source),
+                                    line: Some(2),
+                                    column: Some(1),
+                                    end_line: Some(3),
+                                    end_column: Some(1),
+                                }],
                             },
                         }),
                         seq: {
@@ -385,7 +477,7 @@ impl Server {
                                 r#type: Some("answer-to-question-about-sense-of-life".to_string()),
                                 presentation_hint: Some(VariablePresentationHint {
                                     kind: Some("property".to_string()),
-                                    attributes: Some(vec!["readOnly".to_string()]),
+                                    attributes: Some(vec!["readWrite".to_string()]),
                                     visibility: Some("public".to_string()),
                                     lazy: Some(false),
                                 }),
@@ -417,7 +509,7 @@ impl Server {
                                     r#type: Some("string".to_string()),
                                     presentation_hint: Some(VariablePresentationHint {
                                         kind: Some("property".to_string()),
-                                        attributes: Some(vec!["readOnly".to_string()]),
+                                        attributes: Some(vec!["readWrite".to_string()]),
                                         visibility: Some("public".to_string()),
                                         lazy: Some(false),
                                     }),
@@ -425,7 +517,7 @@ impl Server {
                                     variables_reference: 0,
                                     named_variables: Some(0),
                                     indexed_variables: Some(0),
-                                    memory_reference: None,
+                                    memory_reference: Some("epic".to_string()),
                                 }],
                             },
                         }),
@@ -445,16 +537,434 @@ impl Server {
                     let response = Response {
                         inner: Some(CompletionsResponse {
                             body: CompletionsResponseStructBody {
-                                targets: vec![CompletionItem {
-                                    label: ".elephant".to_string(),
-                                    text: None,
-                                    sort_text: None,
-                                    detail: Some("this is super nice".to_string()),
-                                    r#type: Some(CompletionItemType::Function),
-                                    start: Some(0),
-                                    length: Some(0),
-                                    selection_start: None,  //Some(1),
-                                    selection_length: None, // Some(1),
+                                targets: vec![
+                                    CompletionItem {
+                                        label: ".elephant".to_string(),
+                                        text: None,
+                                        sort_text: None,
+                                        detail: Some("this is super nice".to_string()),
+                                        r#type: Some(CompletionItemType::Function),
+                                        start: Some(0),
+                                        length: Some(0),
+                                        selection_start: None,  //Some(1),
+                                        selection_length: None, // Some(1),
+                                    },
+                                    CompletionItem {
+                                        label: "module".to_string(),
+                                        text: None,
+                                        sort_text: None,
+                                        detail: Some("this is super nice".to_string()),
+                                        r#type: Some(CompletionItemType::Module),
+                                        start: Some(0),
+                                        length: Some(0),
+                                        selection_start: None,  //Some(1),
+                                        selection_length: None, // Some(1),
+                                    },
+                                ],
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::CancelRequest(request) => {
+                    let response = Response {
+                        inner: Some(CancelResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::RestartFrameRequest(request) => {
+                    let response = Response {
+                        inner: Some(RestartFrameResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "restart".to_string(),
+                                description: Some("Frame has been restarted".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::SetExpressionRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetExpressionResponse {
+                            body: SetExpressionResponseStructBody {
+                                value: "42".to_string(),
+                                r#type: Some("elephant".to_string()),
+                                presentation_hint: Some(VariablePresentationHint {
+                                    kind: Some("property".to_string()),
+                                    attributes: Some(vec!["readWrite".to_string()]),
+                                    visibility: Some("public".to_string()),
+                                    lazy: Some(false),
+                                }),
+                                variables_reference: Some(3208),
+                                named_variables: Some(3),
+                                indexed_variables: Some(3),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::SetVariableRequest(request) => {
+                    let response = Response {
+                        inner: Some(SetVariableResponse {
+                            body: SetVariableResponseStructBody {
+                                value: "42".to_string(),
+                                r#type: Some("elephant".to_string()),
+                                variables_reference: Some(3208),
+                                named_variables: Some(3),
+                                indexed_variables: Some(3),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::DataBreakpointInfoRequest(request) => {
+                    let response = Response {
+                        inner: Some(DataBreakpointInfoResponse {
+                            body: DataBreakpointInfoResponseStructBody {
+                                data_id: DataBreakpointInfoResponseStructBodyStructDataId::O0(
+                                    "dfs".to_string(),
+                                ),
+                                description: "test description".to_string(),
+                                access_types: Some(vec![DataBreakpointAccessType::ReadWrite]),
+                                can_persist: Some(true),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::ContinueRequest(request) => {
+                    let response = Response {
+                        inner: Some(ContinueResponse {
+                            body: ContinueResponseStructBody {
+                                all_threads_continued: Some(true),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::PauseRequest(request) => {
+                    let response = Response {
+                        inner: Some(PauseResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "pause".to_string(),
+                                description: Some("Paused on request".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::TerminateRequest(request) => {
+                    let response = Response {
+                        inner: Some(TerminateResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: TerminatedEvent {
+                            event: TerminatedEventStructEvent::Terminated,
+                            body: Some(TerminatedEventStructBody { restart: None }),
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::DisconnectRequest(request) => {
+                    let response = Response {
+                        inner: Some(DisconnectResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::RestartRequest(request) => {
+                    // TODO FIXME something is probably missing here, probably an terminated and started or so
+                    let response = Response {
+                        inner: Some(RestartResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::NextRequest(request) => {
+                    let response = Response {
+                        inner: Some(NextResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped forward".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StepInRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepInResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped in".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StepOutRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepOutResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped out".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::StepBackRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepBackResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: StoppedEvent {
+                            event: StoppedEventStructEvent::Stopped,
+                            body: StoppedEventStructBody {
+                                reason: "step".to_string(),
+                                description: Some("Stepped back".to_string()),
+                                thread_id: None, // TODO FIXME create threads
+                                preserve_focus_hint: Some(false),
+                                text: None,
+                                all_threads_stopped: Some(true),
+                                hit_breakpoint_ids: Some(vec![]),
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::ReverseContinueRequest(request) => {
+                    let response = Response {
+                        inner: Some(ReverseContinueResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::StepInTargetsRequest(request) => {
+                    let response = Response {
+                        inner: Some(StepInTargetsResponse {
+                            body: StepInTargetsResponseStructBody {
+                                targets: vec![StepInTarget {
+                                    id: 3265,
+                                    label: "Best Target".to_string(),
+                                    line: Some(3),
+                                    column: Some(1),
+                                    end_line: Some(3),
+                                    end_column: Some(10),
                                 }],
                             },
                         }),
@@ -470,7 +980,136 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
-                request => unimplemented!("{:?}", request),
+                Requests::SourceRequest(request) => {
+                    let response = Response {
+                        inner: Some(SourceResponse {
+                            body: SourceResponseStructBody {
+                                content: "fake content content".to_string(),
+                                mime_type: Some("text/tucant".to_string()),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::TerminateThreadsRequest(request) => {
+                    let response = Response {
+                        inner: Some(TerminateThreadsResponse {}),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+
+                    let event = Event {
+                        inner: ThreadEvent {
+                            event: ThreadEventStructEvent::Thread,
+                            body: ThreadEventStructBody {
+                                reason: "exited".to_string(),
+                                thread_id: 1235,
+                            },
+                        },
+                        r#type: "event".to_string(),
+                    };
+
+                    sender.send(serde_json::to_string(&event)?).await?;
+                }
+                Requests::ReadMemoryRequest(request) => {
+                    let response = Response {
+                        inner: Some(ReadMemoryResponse {
+                            body: Some(ReadMemoryResponseStructBody {
+                                address: "0xdeadbeef".to_string(),
+                                unreadable_bytes: None,
+                                data: Some(
+                                    "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDEzIGxhenkgZG9ncy4="
+                                        .to_string(),
+                                ),
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::WriteMemoryRequest(request) => {
+                    let response = Response {
+                        inner: Some(WriteMemoryResponse {
+                            body: Some(WriteMemoryResponseStructBody {
+                                offset: None,
+                                bytes_written: None,
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+                Requests::DisassembleRequest(request) => {
+                    let response = Response {
+                        inner: Some(DisassembleResponse {
+                            body: Some(DisassembleResponseStructBody {
+                                instructions: vec![DisassembledInstruction {
+                                    address: "0x00".to_string(),
+                                    instruction_bytes: Some("abcdef".to_string()),
+                                    instruction: "push elephant".to_string(),
+                                    symbol: Some("nice symbol".to_string()),
+                                    location: Some(fake_source),
+                                    line: Some(1),
+                                    column: Some(2),
+                                    end_line: None,
+                                    end_column: None,
+                                }],
+                            }),
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
+
+                Requests::ExceptionInfoRequest(_) => todo!(),
+                Requests::ModulesRequest(_) => todo!(),
+                Requests::GotoTargetsRequest(_) => todo!(),
+                Requests::GotoRequest(_) => todo!(),
+
+                // reverse requests
+                Requests::RunInTerminalRequest(_) => todo!(),
+                Requests::StartDebuggingRequest(_) => todo!(),
             }
 
             let _cloned_self = self.clone();

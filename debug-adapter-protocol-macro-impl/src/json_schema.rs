@@ -115,6 +115,7 @@ pub enum DefinitionType {
     IntegerType(IntegerType),
     DoubleType(DoubleType),
     BooleanType(BooleanType),
+    NullType(NullType),
 }
 
 impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
@@ -156,12 +157,56 @@ impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
                         ));
                     }
                 }
-                JSONValue::Array(_type) => {
-                    // we're doomed, this is basically a oneOf?
+                JSONValue::Array(r#type) => {
+                    let (definitions, definition_errors): (Vec<_>, Vec<_>) = r#type
+                        .1
+                        .into_iter()
+                        .map(TryInto::<LitStr>::try_into)
+                        .partition_result();
+                    if let Some(error) = definition_errors.into_iter().reduce(|mut e1, e2| {
+                        e1.combine(e2);
+                        e1
+                    }) {
+                        return Err(error);
+                    }
                     unexpected_keys(
                         map,
                         Ok(Self::OneOf(OneOfDefinition {
-                            definitions: Vec::new(),
+                            definitions: definitions
+                                .into_iter()
+                                .map(|definition| {
+                                    let definition_type = match definition.value().as_ref() {
+                                        "array" => Self::ArrayType(ArrayType {
+                                            item_type: Box::new(Definition {
+                                                title: None,
+                                                description: None,
+                                                definition_type: Self::Ref(RefDefinition {
+                                                    name: LitStr::new("Value", Span::call_site()),
+                                                }),
+                                            }),
+                                        }),
+                                        "boolean" => Self::BooleanType(BooleanType {}),
+                                        "integer" => Self::IntegerType(IntegerType {}),
+                                        "null" => Self::NullType(NullType {}),
+                                        "number" => Self::DoubleType(DoubleType {}),
+                                        "object" => Self::Ref(RefDefinition {
+                                            name: LitStr::new("Value", Span::call_site()),
+                                        }),
+                                        "string" => Self::StringType(StringType {
+                                            enum_values: vec![],
+                                            exhaustive: false,
+                                        }),
+                                        _ => {
+                                            panic!() // TODO FIXME
+                                        }
+                                    };
+                                    Definition {
+                                        title: None,
+                                        description: None,
+                                        definition_type,
+                                    }
+                                })
+                                .collect_vec(),
                         })),
                     )
                 }
@@ -283,21 +328,6 @@ pub struct ObjectType {
     pub additional_properties_type: Box<Definition>,
 }
 
-/*
-fn get_any_object_type() -> DefinitionType {
-    DefinitionType::OneOf(OneOfDefinition {
-        definitions: vec![Definition {
-            title: None,
-            description: None,
-            definition_type: DefinitionType::ObjectType(ObjectType {
-                properties: Vec::new(),
-                additional_properties_type: todo!(),
-            }),
-        }],
-    })
-}
-*/
-
 impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
     type Error = syn::Error;
 
@@ -363,7 +393,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
                 title: None,
                 description: None,
                 definition_type: DefinitionType::Ref(RefDefinition {
-                    name: LitStr::new("object", Span::call_site()),
+                    name: LitStr::new("Value", Span::call_site()),
                 }),
             }),
             Some(additional_properties @ JSONValue::Object(_)) => {
@@ -381,7 +411,7 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for ObjectType {
                     title: None,
                     description: None,
                     definition_type: DefinitionType::Ref(RefDefinition {
-                        name: LitStr::new("object", Span::call_site()),
+                        name: LitStr::new("Value", Span::call_site()),
                     }),
                 }),
             },
@@ -546,3 +576,6 @@ impl TryFrom<BTreeMap<LitStrOrd, JSONValue>> for BooleanType {
         unexpected_keys(map, Ok(Self {}))
     }
 }
+
+#[derive(Debug)]
+pub struct NullType {}

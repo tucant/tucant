@@ -1,9 +1,0 @@
-{
-    "configurations": [
-        {
-            "name": "tucant Launch",
-            "request": "launch",
-            "type": "tucant"
-        }
-    ]
-}
