@@ -196,6 +196,17 @@ pub fn codegen_definition(
                 quote! { bool },
             )
         }
+        crate::json_schema::DefinitionType::NullType(_t) => {
+            (
+                quote! {
+                    #title
+                    #description
+                    // sometimes needed for the $ref types
+                    pub type #name = ();
+                },
+                quote! { () },
+            )
+        }
     }
 }
 
@@ -259,6 +270,8 @@ pub fn codegen(schema: JSONSchema) -> proc_macro2::TokenStream {
     let event_definition_types = event_definitions.iter().map(|d| &d.1);
 
     quote! {
+        use ::serde_json::value::Value;
+
         #(#free_definitions_code)*
         #(#event_definitions_code)*
         #(#request_definitions_code)*

@@ -578,6 +578,28 @@ impl Server {
 
                     sender.send(serde_json::to_string(&response)?).await?;
                 }
+                Requests::DataBreakpointInfoRequest(request) => {
+                    let response = Response {
+                        inner: Some(DataBreakpointInfoResponse {
+                            body: DataBreakpointInfoResponseStructBody {
+                                data_id: todo!(), // TODO FIXME codegen broken
+                                description: "test description".to_string(),
+                                access_types: Some(vec![]),
+                                can_persist: Some(true),
+                            },
+                        }),
+                        seq: {
+                            seq += 1;
+                            seq
+                        },
+                        r#type: "response".to_string(),
+                        request_seq: request.seq,
+                        success: true,
+                        message: None,
+                    };
+
+                    sender.send(serde_json::to_string(&response)?).await?;
+                }
                 request => unimplemented!("{:?}", request),
             }
 
