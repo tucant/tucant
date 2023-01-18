@@ -50,6 +50,7 @@ pub fn codegen_definition(
                     #title
                     #description
                     #[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
+                    #[serde(untagged)]
                     pub enum #name {
                         #(#member_names(#member_types)),*
                     }
