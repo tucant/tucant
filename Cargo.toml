@@ -17,6 +17,7 @@ html5ever = { git = "https://github.com/servo/html5ever" }
 selectors = { git = "https://github.com/mohe2015/servo", branch = "mohe2015-patch-1" }
 cssparser = { git = "https://github.com/servo/rust-cssparser", rev = "9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db" }
 string_cache_codegen = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
+string_cache = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
 
 # https://github.com/rust-lang/cargo/issues/5478
 [patch.'https://github.com/diesel-rs/diesel.git']
