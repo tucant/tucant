@@ -268,7 +268,8 @@ allow-git = [
     "https://github.com/mohe2015/servo",
     "https://github.com/servo/rust-cssparser",
     "https://github.com/mohe2015/string-cache",
-    "https://github.com/esheppa/reqwest"
+    "https://github.com/esheppa/reqwest",
+    "https://github.com/newpavlov/cookie-rs"
 ]
 
 [sources.allow-org]
