@@ -1,3 +1,11 @@
+https://code.visualstudio.com/api/extension-guides/notebook
+
+https://github.com/tanhakabir/rest-book
+
+https://github.com/microsoft/vscode-github-issue-notebooks
+
+https://github.com/microsoft/vscode-nodebook
+
 Generated using
 
 ```bash
