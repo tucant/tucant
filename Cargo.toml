@@ -6,11 +6,27 @@ diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a
 diesel_derives = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
 diesel_migrations = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
 
+postgres-protocol = { git = "https://github.com/sfackler/rust-postgres" }
+postgres-types = { git = "https://github.com/sfackler/rust-postgres" }
+tokio-postgres = { git = "https://github.com/sfackler/rust-postgres" }
+reqwest = { git = "https://github.com/seanmonstar/reqwest" }
+tungstenite = { git = "https://github.com/snapview/tungstenite-rs" }
+opensearch = { git = "https://github.com/opensearch-project/opensearch-rs" }
+scraper = { git = "https://github.com/causal-agent/scraper", branch = "dependabot/cargo/cssparser-0.29" }
+html5ever = { git = "https://github.com/servo/html5ever" }
+selectors = { git = "https://github.com/servo/servo" }
+
+# cssparser
+# scaper
+# selectors
+# reqwest
+
 # https://github.com/rust-lang/cargo/issues/5478
 [patch.'https://github.com/diesel-rs/diesel.git']
 diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
 diesel_derives = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
 diesel_migrations = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
 
+# TODO FIXME do we need to add this to every subcrate?
 [profile.dev]
 split-debuginfo = "unpacked"

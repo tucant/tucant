@@ -245,16 +245,16 @@ skip-tree = [
     # fixed in https://github.com/sfackler/rust-postgres/commit/748167d5f8a489888209f58492153f52bd9d9e27
     # fixed in https://github.com/seanmonstar/reqwest/commit/e8a733a26ed765b263a04e9334a965491251e1d4
     # fixed in https://github.com/snapview/tungstenite-rs/commit/c469214dd3012af6f1641fb7a6754dc186e10677
-    { name = "base64", version = "=0.13.1" },
+    # { name = "base64", version = "=0.13.1" },
 
-    { name = "base64", version = "=0.11.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/af08cfdfd05eb66c0927eb161dd5eb42af6ea4d4
-    { name = "serde_with", version = "=1.14.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/45b69ca2d480888f7e7187a44cc2ccd73a0a324c
+    # { name = "base64", version = "=0.11.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/af08cfdfd05eb66c0927eb161dd5eb42af6ea4d4
+    # { name = "serde_with", version = "=1.14.0" }, # https://github.com/opensearch-project/opensearch-rs/commit/45b69ca2d480888f7e7187a44cc2ccd73a0a324c
 
-    { name = "selectors", version = "=0.22.0" }, # https://github.com/causal-agent/scraper/commit/a1ad314ed61b368e46f8d986fbb15b523ea4d091
+    # { name = "selectors", version = "=0.22.0" }, # https://github.com/causal-agent/scraper/commit/a1ad314ed61b368e46f8d986fbb15b523ea4d091
 
     { name = "cookie_store", version = "=0.16.1" }, # https://github.com/seanmonstar/reqwest/pull/1674
 
-    { name = "phf", version = "=0.10.1" }, # https://github.com/servo/html5ever/commit/5fdbd030d70d2bd8624a84f316a8c75eeb3ac18d
+    # { name = "phf", version = "=0.10.1" }, # https://github.com/servo/html5ever/commit/5fdbd030d70d2bd8624a84f316a8c75eeb3ac18d
 ]
 
 # This section is considered when running `cargo deny check sources`.
@@ -273,8 +273,14 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
 allow-git = [
     "https://github.com/SabrinaJewson/async-stream.rs",
-    "https://github.com/diesel-rs/diesel.git",
+    "https://github.com/diesel-rs//diesel.git",
     "https://github.com/mohe2015/diesel_full_text_search.git",
+    "https://github.com/servo/html5ever",
+    "https://github.com/opensearch-project/opensearch-rs",
+    "https://github.com/sfackler/rust-postgres",
+    "https://github.com/seanmonstar/reqwest",
+    "https://github.com/causal-agent/scraper",
+    "https://github.com/snapview/tungstenite-rs",
 ]
 
 [sources.allow-org]
