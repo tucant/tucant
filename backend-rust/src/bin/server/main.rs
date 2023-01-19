@@ -97,6 +97,7 @@ use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
 use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::setup;
+use base64::prelude::*;
 
 #[derive(Serialize, Typescriptable)]
 pub struct WithTucanUrl<T: Typescriptable> {
@@ -218,36 +219,18 @@ async fn login_hack(
     let url = match parse_tucan_url(&input.redirect).program {
         tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
             "http://localhost:5173/modules/{}",
-            base64::encode_engine(
-                registration.path,
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD
-                )
-            )
+            BASE64_URL_SAFE_NO_PAD.encode(registration.path,)
         )),
         tucant::url::TucanProgram::RootRegistration(_) => {
             Redirect::to("http://localhost:5173/modules/")
         }
         tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
             "http://localhost:5173/module/{}",
-            base64::encode_engine(
-                module_details.id,
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD
-                )
-            )
+            BASE64_URL_SAFE_NO_PAD.encode(module_details.id,)
         )),
         tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
             "http://localhost:5173/course/{}",
-            base64::encode_engine(
-                course_details.id,
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD
-                )
-            )
+            BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
         other => {

@@ -46,6 +46,7 @@ use crate::schema::{
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
+use base64::prelude::*;
 use diesel::upsert::excluded;
 use diesel::GroupedBy;
 use diesel::OptionalExtension;
@@ -77,14 +78,7 @@ pub enum CourseOrCourseGroup {
 static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
 
 static TUCANSCHEISS: Lazy<Module> = Lazy::new(|| Module {
-    tucan_id: base64::decode_engine(
-        "TUCANSCHEISS",
-        &base64::engine::fast_portable::FastPortable::from(
-            &base64::alphabet::URL_SAFE,
-            base64::engine::fast_portable::NO_PAD,
-        ),
-    )
-    .unwrap(),
+    tucan_id: BASE64_URL_SAFE_NO_PAD.decode("TUCANSCHEISS").unwrap(),
     tucan_last_checked: Utc::now().naive_utc(),
     title: "TUCANSCHEISS".to_string(),
     module_id: "TUCANSCHEISS".to_string(),

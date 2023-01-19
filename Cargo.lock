@@ -122,7 +122,7 @@ dependencies = [
 [[package]]
 name = "async-stream"
 version = "0.3.3"
-source = "git+https://github.com/SabrinaJewson/async-stream.rs?branch=no-proc-macro#1a43900aad6d8fd26653f084356420a5963f740a"
+source = "git+https://github.com/SabrinaJewson/async-stream.rs?rev=1a43900aad6d8fd26653f084356420a5963f740a#1a43900aad6d8fd26653f084356420a5963f740a"
 dependencies = [
  "futures-core",
  "pin-project-lite",
@@ -423,12 +423,12 @@ dependencies = [
 
 [[package]]
 name = "cookie_store"
-version = "0.16.1"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e4b6aa369f41f5faa04bb80c9b1f4216ea81646ed6124d76ba5c49a7aafd9cd"
+checksum = "bca9b3c618262fc0c85ecbc814c144e04be9c6eec08b315e7cd1cfbe0bb6ca84"
 dependencies = [
  "cookie",
- "idna 0.2.3",
+ "idna",
  "log",
  "publicsuffix",
  "serde",
@@ -1229,17 +1229,6 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "idna"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "418a0a6fab821475f634efe3ccc45c013f742efe03d853e8d3355d5cb850ecf8"
-dependencies = [
- "matches",
- "unicode-bidi",
- "unicode-normalization",
-]
-
-[[package]]
-name = "idna"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e14ddfc70884202db2244c223200c204c2bda1bc6e0998d11b5e024d657209e6"
@@ -1883,6 +1872,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc-macro-hack"
+version = "0.5.20+deprecated"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc375e1527247fe1a97d8b7156678dfe7c1af2fc075c9a4db3690ecd2a148068"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1903,7 +1898,7 @@ version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96a8c1bda5ae1af7f99a2962e49df150414a43d62404644d98dd5c3a93d07457"
 dependencies = [
- "idna 0.3.0",
+ "idna",
  "psl-types",
 ]
 
@@ -1983,11 +1978,11 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.14"
-source = "git+https://github.com/seanmonstar/reqwest#3459b89488e293eaed9f3c413155e2dff3018093"
+version = "0.11.12"
+source = "git+https://github.com/esheppa/reqwest?rev=d800e483d75e7f210aeb12fe8a9388863af2a9cc#d800e483d75e7f210aeb12fe8a9388863af2a9cc"
 dependencies = [
  "async-compression",
- "base64 0.21.0",
+ "base64 0.13.1",
  "bytes",
  "cookie",
  "cookie_store",
@@ -2007,6 +2002,7 @@ dependencies = [
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
+ "proc-macro-hack",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -2499,6 +2495,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
 dependencies = [
  "itoa",
+ "js-sys",
  "serde",
  "time-core",
  "time-macros",
@@ -2757,7 +2754,7 @@ dependencies = [
  "async-stream",
  "axum",
  "axum-extra",
- "base64 0.20.0",
+ "base64 0.21.0",
  "chrono",
  "deadpool",
  "derive_more",
@@ -2934,7 +2931,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d68c799ae75762b8c3fe375feb6600ef5602c883c5d21eb51c09f22b83c4643"
 dependencies = [
  "form_urlencoded",
- "idna 0.3.0",
+ "idna",
  "percent-encoding",
 ]
 

@@ -14,6 +14,7 @@ use diesel::sql_types::Bytea;
 use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 
+use base64::prelude::*;
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleResponse;
 use tucant::models::TucanSession;
@@ -31,14 +32,7 @@ pub async fn module(
 ) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
     let mut connection = tucan.pool.get().await?;
 
-    let binary_path = base64::decode_engine(
-        input.as_bytes(),
-        &base64::engine::fast_portable::FastPortable::from(
-            &base64::alphabet::URL_SAFE,
-            base64::engine::fast_portable::NO_PAD,
-        ),
-    )
-    .unwrap();
+    let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
     let tucan = tucan.continue_session(session.clone());
 

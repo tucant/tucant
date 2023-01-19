@@ -259,11 +259,8 @@ fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
         })
         .fold(quote! {}, |acc, val| {
             quote! {
-                #acc + &base64::encode_engine(
+                #acc + &BASE64_URL_SAFE_NO_PAD.encode(
                     #val,
-                    &base64::engine::fast_portable::FastPortable::from(
-                        &base64::alphabet::URL_SAFE,
-                        base64::engine::fast_portable::NO_PAD),
                 )
             }
         });
