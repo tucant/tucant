@@ -34,7 +34,7 @@ tower-http = { version = "0.3", features = ["cors","trace","compression-br","com
 serde = { version = "1", features = ["derive"] }
 serde_json = {version = "1", optional = true }
 async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a", optional = true }
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { default-features = false, version = "0.4", features = ["serde"] }
 deadpool = { version = "0.9", optional = true }
 url = { version = "2", optional = true }
 log = { version = "0.4", optional = true }

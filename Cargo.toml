@@ -11,7 +11,7 @@ postgres-types = { git = "https://github.com/sfackler/rust-postgres" }
 tokio-postgres = { git = "https://github.com/sfackler/rust-postgres" }
 reqwest = { git = "https://github.com/esheppa/reqwest", rev = "d800e483d75e7f210aeb12fe8a9388863af2a9cc" }
 tungstenite = { git = "https://github.com/snapview/tungstenite-rs" }
-opensearch = { git = "https://github.com/opensearch-project/opensearch-rs" }
+opensearch = { git = "https://github.com/Xtansia/opensearch-rs", branch = "update/base64-0.21" }
 scraper = { git = "https://github.com/causal-agent/scraper", branch = "dependabot/cargo/cssparser-0.29" }
 html5ever = { git = "https://github.com/servo/html5ever" }
 selectors = { git = "https://github.com/mohe2015/servo", branch = "mohe2015-patch-1" }

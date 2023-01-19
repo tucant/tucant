@@ -74,7 +74,6 @@ notice = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    "RUSTSEC-2020-0071",
 ]
 # Threshold for security vulnerabilities, any vulnerability with a CVSS score
 # lower than the range specified will be ignored. Note that ignored advisories
@@ -262,14 +261,14 @@ allow-git = [
     "https://github.com/diesel-rs//diesel.git",
     "https://github.com/mohe2015/diesel_full_text_search.git",
     "https://github.com/servo/html5ever",
-    "https://github.com/opensearch-project/opensearch-rs",
+    "https://github.com/Xtansia/opensearch-rs",
     "https://github.com/sfackler/rust-postgres",
-    "https://github.com/seanmonstar/reqwest",
     "https://github.com/causal-agent/scraper",
     "https://github.com/snapview/tungstenite-rs",
     "https://github.com/mohe2015/servo",
     "https://github.com/servo/rust-cssparser",
-    "https://github.com/mohe2015/string-cache"
+    "https://github.com/mohe2015/string-cache",
+    "https://github.com/esheppa/reqwest"
 ]
 
 [sources.allow-org]

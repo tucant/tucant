@@ -12,5 +12,5 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { default-features = false, version = "0.4", features = ["serde"] }
 axum = "0.6"
