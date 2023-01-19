@@ -485,14 +485,13 @@ dependencies = [
 [[package]]
 name = "cssparser"
 version = "0.29.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f93d03419cb5950ccfd3daf3ff1c7a36ace64609a1a8746d493df1ca0afde0fa"
+source = "git+https://github.com/servo/rust-cssparser?rev=9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db#9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db"
 dependencies = [
  "cssparser-macros",
  "dtoa-short",
  "itoa",
  "matches",
- "phf 0.10.1",
+ "phf",
  "proc-macro2",
  "quote",
  "smallvec",
@@ -502,8 +501,7 @@ dependencies = [
 [[package]]
 name = "cssparser-macros"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfae75de57f2b2e85e8768c3ea840fd159c8f33e2b6522c7835b7abac81be16e"
+source = "git+https://github.com/servo/rust-cssparser?rev=9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db#9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db"
 dependencies = [
  "quote",
  "syn",
@@ -1413,7 +1411,7 @@ version = "0.11.0"
 source = "git+https://github.com/servo/html5ever#98d3c0cd01471af997cd60849a38da45a9414dfd"
 dependencies = [
  "log",
- "phf 0.11.1",
+ "phf",
  "phf_codegen",
  "string_cache",
  "string_cache_codegen",
@@ -1702,21 +1700,11 @@ checksum = "478c572c3d73181ff3c2539045f6eb99e5491218eae919370993b890cdbdd98e"
 
 [[package]]
 name = "phf"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fabbf1ead8a5bcbc20f5f8b939ee3f5b0f6f281b6ad3468b84656b658b455259"
-dependencies = [
- "phf_macros",
- "phf_shared 0.10.0",
- "proc-macro-hack",
-]
-
-[[package]]
-name = "phf"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "928c6535de93548188ef63bb7c4036bd415cd8f36ad25af44b9789b2ee72a48c"
 dependencies = [
+ "phf_macros",
  "phf_shared 0.11.1",
 ]
 
@@ -1752,13 +1740,12 @@ dependencies = [
 
 [[package]]
 name = "phf_macros"
-version = "0.10.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58fdf3184dd560f160dd73922bea2d5cd6e8f064bf4b13110abd81b03697b4e0"
+checksum = "92aacdc5f16768709a569e913f7451034034178b05bdc8acda226659a3dccc66"
 dependencies = [
- "phf_generator 0.10.0",
- "phf_shared 0.10.0",
- "proc-macro-hack",
+ "phf_generator 0.11.1",
+ "phf_shared 0.11.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -1913,12 +1900,6 @@ dependencies = [
  "quote",
  "version_check",
 ]
-
-[[package]]
-name = "proc-macro-hack"
-version = "0.5.20+deprecated"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc375e1527247fe1a97d8b7156678dfe7c1af2fc075c9a4db3690ecd2a148068"
 
 [[package]]
 name = "proc-macro2"
@@ -2185,7 +2166,7 @@ dependencies = [
  "derive_more",
  "fxhash",
  "log",
- "phf 0.11.1",
+ "phf",
  "phf_codegen",
  "precomputed-hash",
  "servo_arc",
@@ -2401,8 +2382,7 @@ dependencies = [
 [[package]]
 name = "string_cache_codegen"
 version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bb30289b722be4ff74a408c3cc27edeaad656e06cb1fe8fa9231fa59c728988"
+source = "git+https://github.com/mohe2015/string-cache?branch=mohe2015-patch-1#4110b25696f883a8fda2d9830c5918a6c8484cf5"
 dependencies = [
  "phf_generator 0.10.0",
  "phf_shared 0.10.0",
@@ -2654,7 +2634,7 @@ dependencies = [
  "log",
  "parking_lot",
  "percent-encoding",
- "phf 0.11.1",
+ "phf",
  "pin-project-lite",
  "postgres-protocol",
  "postgres-types",
