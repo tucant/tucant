@@ -191,8 +191,6 @@ impl Server {
                 IncomingStuff::ProgressNotification(_) => todo!(),
             }
             //});
-
-
         }
     }
 

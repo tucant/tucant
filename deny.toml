@@ -281,6 +281,7 @@ allow-git = [
     "https://github.com/seanmonstar/reqwest",
     "https://github.com/causal-agent/scraper",
     "https://github.com/snapview/tungstenite-rs",
+    "https://github.com/mohe2015/servo",
 ]
 
 [sources.allow-org]

@@ -14,7 +14,7 @@ tungstenite = { git = "https://github.com/snapview/tungstenite-rs" }
 opensearch = { git = "https://github.com/opensearch-project/opensearch-rs" }
 scraper = { git = "https://github.com/causal-agent/scraper", branch = "dependabot/cargo/cssparser-0.29" }
 html5ever = { git = "https://github.com/servo/html5ever" }
-selectors = { git = "https://github.com/servo/servo" }
+selectors = { git = "https://github.com/mohe2015/servo", branch = "mohe2015-patch-1" }
 
 # cssparser
 # scaper

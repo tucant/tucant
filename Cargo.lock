@@ -564,35 +564,12 @@ dependencies = [
 
 [[package]]
 name = "darling"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d706e75d87e35569db781a9b5e2416cff1236a47ed380831f959382ccd5f858"
-dependencies = [
- "darling_core 0.10.2",
- "darling_macro 0.10.2",
-]
-
-[[package]]
-name = "darling"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0dd3cd20dc6b5a876612a6e5accfe7f3dd883db6d07acfbf14c128f61550dfa"
 dependencies = [
- "darling_core 0.14.2",
- "darling_macro 0.14.2",
-]
-
-[[package]]
-name = "darling_core"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0c960ae2da4de88a91b2d920c2a7233b400bc33cb28453a2987822d8392519b"
-dependencies = [
- "fnv",
- "ident_case",
- "proc-macro2",
- "quote",
- "syn",
+ "darling_core",
+ "darling_macro",
 ]
 
 [[package]]
@@ -611,22 +588,11 @@ dependencies = [
 
 [[package]]
 name = "darling_macro"
-version = "0.10.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
-dependencies = [
- "darling_core 0.10.2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "darling_macro"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7618812407e9402654622dd402b0a89dff9ba93badd6540781526117b92aab7e"
 dependencies = [
- "darling_core 0.14.2",
+ "darling_core",
  "quote",
  "syn",
 ]
@@ -689,9 +655,9 @@ dependencies = [
 [[package]]
 name = "derive_common"
 version = "0.0.1"
-source = "git+https://github.com/servo/servo#62ec0f1ec7212f3ba172dff537234b095ddbf02d"
+source = "git+https://github.com/mohe2015/servo?branch=mohe2015-patch-1#8d2343bbce894d6926f517f35925d70fb5f10210"
 dependencies = [
- "darling 0.10.2",
+ "darling",
  "proc-macro2",
  "quote",
  "syn",
@@ -2303,7 +2269,7 @@ dependencies = [
 [[package]]
 name = "selectors"
 version = "0.23.0"
-source = "git+https://github.com/servo/servo#62ec0f1ec7212f3ba172dff537234b095ddbf02d"
+source = "git+https://github.com/mohe2015/servo?branch=mohe2015-patch-1#8d2343bbce894d6926f517f35925d70fb5f10210"
 dependencies = [
  "bitflags",
  "cssparser",
@@ -2410,7 +2376,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1966009f3c05f095697c537312f5415d1e3ed31ce0a56942bac4c771c5c335e"
 dependencies = [
- "darling 0.14.2",
+ "darling",
  "proc-macro2",
  "quote",
  "syn",
@@ -2419,7 +2385,7 @@ dependencies = [
 [[package]]
 name = "servo_arc"
 version = "0.1.1"
-source = "git+https://github.com/servo/servo#62ec0f1ec7212f3ba172dff537234b095ddbf02d"
+source = "git+https://github.com/mohe2015/servo?branch=mohe2015-patch-1#8d2343bbce894d6926f517f35925d70fb5f10210"
 dependencies = [
  "nodrop",
  "stable_deref_trait",
@@ -2702,7 +2668,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 [[package]]
 name = "to_shmem"
 version = "0.0.1"
-source = "git+https://github.com/servo/servo#62ec0f1ec7212f3ba172dff537234b095ddbf02d"
+source = "git+https://github.com/mohe2015/servo?branch=mohe2015-patch-1#8d2343bbce894d6926f517f35925d70fb5f10210"
 dependencies = [
  "cssparser",
  "servo_arc",
@@ -2714,9 +2680,9 @@ dependencies = [
 [[package]]
 name = "to_shmem_derive"
 version = "0.0.1"
-source = "git+https://github.com/servo/servo#62ec0f1ec7212f3ba172dff537234b095ddbf02d"
+source = "git+https://github.com/mohe2015/servo?branch=mohe2015-patch-1#8d2343bbce894d6926f517f35925d70fb5f10210"
 dependencies = [
- "darling 0.10.2",
+ "darling",
  "derive_common",
  "proc-macro2",
  "quote",
