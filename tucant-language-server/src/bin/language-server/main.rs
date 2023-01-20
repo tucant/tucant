@@ -64,7 +64,7 @@ pub struct Server {
 }
 
 impl Server {
-    #[allow(clippy:::too_many_lines)]
+    #[allow(clippy::too_many_lines)]
     async fn handle_receiving<
         R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
     >(
