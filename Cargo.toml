@@ -18,7 +18,7 @@ selectors = { git = "https://github.com/mohe2015/servo", branch = "mohe2015-patc
 cssparser = { git = "https://github.com/servo/rust-cssparser", rev = "9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db" }
 string_cache_codegen = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
 string_cache = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
-cookie = { git = "https://github.com/newpavlov/cookie-rs", rev = "52e8b3e830de0755d1ccb81f273adcbfed42218f" }
+cookie = { git = "https://github.com/mohe2015/cookie-rs", branch = "base64ct" }
 
 # https://github.com/rust-lang/cargo/issues/5478
 [patch.'https://github.com/diesel-rs/diesel.git']
