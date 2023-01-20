@@ -9,6 +9,7 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
+use base64::prelude::*;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -41,13 +42,7 @@ where
     T: AsRef<[u8]>,
     S: Serializer,
 {
-    serializer.serialize_str(&base64::encode_engine(
-        buffer.as_ref(),
-        &base64::engine::fast_portable::FastPortable::from(
-            &base64::alphabet::URL_SAFE,
-            base64::engine::fast_portable::NO_PAD,
-        ),
-    ))
+    serializer.serialize_str(&BASE64_URL_SAFE_NO_PAD.encode(buffer.as_ref()))
 }
 
 pub fn from_base64<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
@@ -56,14 +51,9 @@ where
 {
     use serde::de::Error;
     String::deserialize(deserializer).and_then(|string| {
-        base64::decode_engine(
-            string,
-            &base64::engine::fast_portable::FastPortable::from(
-                &base64::alphabet::URL_SAFE,
-                base64::engine::fast_portable::NO_PAD,
-            ),
-        )
-        .map_err(|err| Error::custom(err.to_string()))
+        BASE64_URL_SAFE_NO_PAD
+            .decode(string)
+            .map_err(|err| Error::custom(err.to_string()))
     })
 }
 
@@ -89,15 +79,10 @@ where
     string.map_or_else(
         || Ok(None),
         |string| {
-            base64::decode_engine(
-                string,
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD,
-                ),
-            )
-            .map(Option::Some)
-            .map_err(|err| Error::custom(err.to_string()))
+            BASE64_URL_SAFE_NO_PAD
+                .decode(string)
+                .map(Option::Some)
+                .map_err(|err| Error::custom(err.to_string()))
         },
     )
 }

@@ -16,6 +16,8 @@ use diesel::sql_types::Bytea;
 
 use diesel_async::RunQueryDsl;
 
+use base64::prelude::*;
+
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleMenuResponse;
 use tucant::models::TucanSession;
@@ -46,14 +48,7 @@ pub async fn get_modules(
             }
         }
         Some(ref input) => {
-            let binary_path = base64::decode_engine(
-                input.as_bytes(),
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD,
-                ),
-            )
-            .unwrap();
+            let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
             let (module_menu, subentries) = tucan
                 .registration(Registration {
                     path: binary_path.clone(),
@@ -92,14 +87,7 @@ pub async fn get_modules(
     let url: TucanProgram = input.0.as_ref().map_or_else(
         || RootRegistration {}.into(),
         |input| {
-            let binary_path = base64::decode_engine(
-                input.as_bytes(),
-                &base64::engine::fast_portable::FastPortable::from(
-                    &base64::alphabet::URL_SAFE,
-                    base64::engine::fast_portable::NO_PAD,
-                ),
-            )
-            .unwrap();
+            let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
             Registration { path: binary_path }.into()
         },
     );

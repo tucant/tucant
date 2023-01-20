@@ -26,22 +26,27 @@ use async_trait::async_trait;
 use json_rpc_server::{run_json_rpc_server, JsonRpcServer};
 use tucant_language_server_derive_output::{
     CompletionOptions, Diagnostic, DiagnosticSeverity, DocumentHighlight, DocumentHighlightKind,
-    H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,
+    DocumentHighlightOptions, H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,
     H123ba34418f5bf58482d5c391e9bc084a642c554b2ec6d589db0de1d,
     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062,
     H2ac6f0a8906c9e0e69380d6c8ff247d1a746dae2e45f26f17eb9d93c,
     H3424688d17603d45dbf7bc9bc9337e660ef00dd90b070777859fbf1e,
+    H3f076d5c35e1c5c34483b1ffadcf3f4a2f3c65b49de48dd967965878,
+    H53c7229730a2be344694132844a8a00c54c85906ebc35cc81b32b232,
     H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13,
+    H7e74ba1e4709a8ad94f53b3eb5e17bb05e0ffcb0fb3c74991897e313,
     H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7,
     H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4,
     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552,
     Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483,
+    Hb99720fdeac6e579cc1799b1ed09a1f3cb72d7955fdb010b77198bb3,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
     Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2, Hover, HoverOptions, IncomingStuff,
     InitializeRequest, InitializeResult, InitializedNotification, MarkupContent, MarkupKind,
-    MessageType, Position, PublishDiagnosticsParams, Receivable, SemanticTokens,
-    SemanticTokensLegend, SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities,
-    ShowMessageParams, ShutdownRequest, StringOrNumber, TextDocumentCompletionRequest,
+    MessageType, NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions, Position,
+    PublishDiagnosticsParams, Receivable, SemanticTokens, SemanticTokensLegend,
+    SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities, ShowMessageParams,
+    ShutdownRequest, StaticRegistrationOptions, StringOrNumber, TextDocumentCompletionRequest,
     TextDocumentDidChangeNotification, TextDocumentDidCloseNotification,
     TextDocumentDidOpenNotification, TextDocumentDocumentHighlightRequest,
     TextDocumentFoldingRangeRequest, TextDocumentHoverRequest,
@@ -59,6 +64,7 @@ pub struct Server {
 }
 
 impl Server {
+    #[allow(clippy::too_many_lines)]
     async fn handle_receiving<
         R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
     >(
@@ -117,7 +123,69 @@ impl Server {
                     .handle_text_document_hover_request(request)
                     .await
                     .unwrap(),
-                _ => todo!(),
+                IncomingStuff::TextDocumentImplementationRequest(_) => todo!(),
+                IncomingStuff::TextDocumentTypeDefinitionRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDocumentColorRequest(_) => todo!(),
+                IncomingStuff::TextDocumentColorPresentationRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDeclarationRequest(_) => todo!(),
+                IncomingStuff::TextDocumentSelectionRangeRequest(_) => todo!(),
+                IncomingStuff::TextDocumentPrepareCallHierarchyRequest(_) => todo!(),
+                IncomingStuff::CallHierarchyIncomingCallsRequest(_) => todo!(),
+                IncomingStuff::CallHierarchyOutgoingCallsRequest(_) => todo!(),
+                IncomingStuff::TextDocumentSemanticTokensFullDeltaRequest(_) => todo!(),
+                IncomingStuff::TextDocumentSemanticTokensRangeRequest(_) => todo!(),
+                IncomingStuff::WorkspaceSemanticTokensRefreshRequest(_) => todo!(),
+                IncomingStuff::TextDocumentLinkedEditingRangeRequest(_) => todo!(),
+                IncomingStuff::WorkspaceWillCreateFilesRequest(_) => todo!(),
+                IncomingStuff::WorkspaceWillRenameFilesRequest(_) => todo!(),
+                IncomingStuff::WorkspaceWillDeleteFilesRequest(_) => todo!(),
+                IncomingStuff::TextDocumentMonikerRequest(_) => todo!(),
+                IncomingStuff::TextDocumentPrepareTypeHierarchyRequest(_) => todo!(),
+                IncomingStuff::TypeHierarchySupertypesRequest(_) => todo!(),
+                IncomingStuff::TypeHierarchySubtypesRequest(_) => todo!(),
+                IncomingStuff::TextDocumentInlineValueRequest(_) => todo!(),
+                IncomingStuff::WorkspaceInlineValueRefreshRequest(_) => todo!(),
+                IncomingStuff::TextDocumentInlayHintRequest(_) => todo!(),
+                IncomingStuff::InlayHintResolveRequest(_) => todo!(),
+                IncomingStuff::WorkspaceInlayHintRefreshRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDiagnosticRequest(_) => todo!(),
+                IncomingStuff::WorkspaceDiagnosticRequest(_) => todo!(),
+                IncomingStuff::WorkspaceDiagnosticRefreshRequest(_) => todo!(),
+                IncomingStuff::TextDocumentWillSaveWaitUntilRequest(_) => todo!(),
+                IncomingStuff::CompletionItemResolveRequest(_) => todo!(),
+                IncomingStuff::TextDocumentSignatureHelpRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDefinitionRequest(_) => todo!(),
+                IncomingStuff::TextDocumentReferencesRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDocumentSymbolRequest(_) => todo!(),
+                IncomingStuff::TextDocumentCodeActionRequest(_) => todo!(),
+                IncomingStuff::CodeActionResolveRequest(_) => todo!(),
+                IncomingStuff::WorkspaceSymbolRequest(_) => todo!(),
+                IncomingStuff::WorkspaceSymbolResolveRequest(_) => todo!(),
+                IncomingStuff::TextDocumentCodeLensRequest(_) => todo!(),
+                IncomingStuff::CodeLensResolveRequest(_) => todo!(),
+                IncomingStuff::TextDocumentDocumentLinkRequest(_) => todo!(),
+                IncomingStuff::DocumentLinkResolveRequest(_) => todo!(),
+                IncomingStuff::TextDocumentFormattingRequest(_) => todo!(),
+                IncomingStuff::TextDocumentRangeFormattingRequest(_) => todo!(),
+                IncomingStuff::TextDocumentOnTypeFormattingRequest(_) => todo!(),
+                IncomingStuff::TextDocumentRenameRequest(_) => todo!(),
+                IncomingStuff::TextDocumentPrepareRenameRequest(_) => todo!(),
+                IncomingStuff::WorkspaceExecuteCommandRequest(_) => todo!(),
+                IncomingStuff::WorkspaceDidChangeWorkspaceFoldersNotification(_) => todo!(),
+                IncomingStuff::WindowWorkDoneProgressCancelNotification(_) => todo!(),
+                IncomingStuff::WorkspaceDidCreateFilesNotification(_) => todo!(),
+                IncomingStuff::WorkspaceDidRenameFilesNotification(_) => todo!(),
+                IncomingStuff::WorkspaceDidDeleteFilesNotification(_) => todo!(),
+                IncomingStuff::NotebookDocumentDidOpenNotification(_) => todo!(),
+                IncomingStuff::NotebookDocumentDidChangeNotification(_) => todo!(),
+                IncomingStuff::NotebookDocumentDidSaveNotification(_) => todo!(),
+                IncomingStuff::NotebookDocumentDidCloseNotification(_) => todo!(),
+                IncomingStuff::ExitNotification(_) => todo!(),
+                IncomingStuff::WorkspaceDidChangeConfigurationNotification(_) => todo!(),
+                IncomingStuff::TextDocumentDidSaveNotification(_) => todo!(),
+                IncomingStuff::TextDocumentWillSaveNotification(_) => todo!(),
+                IncomingStuff::WorkspaceDidChangeWatchedFilesNotification(_) => todo!(),
+                IncomingStuff::ProgressNotification(_) => todo!(),
             }
             //});
         }
@@ -527,7 +595,7 @@ impl Server {
     async fn handle_initialize(self: Arc<Self>, request: InitializeRequest) -> anyhow::Result<()> {
         let result = InitializeResult {
             capabilities: ServerCapabilities {
-                position_encoding: None,
+                position_encoding: Some(tucant_language_server_derive_output::PositionEncodingKind::Utf16),
                 text_document_sync: Some(
                     H1e2267041560020dc953eb5d9d8f0c194de0f657a1193f66abeab062::Variant0(
                         TextDocumentSyncOptions {
@@ -539,15 +607,30 @@ impl Server {
                         },
                     ),
                 ),
-                notebook_document_sync: None,
+                notebook_document_sync: Some(H7e74ba1e4709a8ad94f53b3eb5e17bb05e0ffcb0fb3c74991897e313::Variant1(NotebookDocumentSyncRegistrationOptions {
+                    variant0: NotebookDocumentSyncOptions {
+                        notebook_selector: vec![
+                            Hb99720fdeac6e579cc1799b1ed09a1f3cb72d7955fdb010b77198bb3::Variant1(H53c7229730a2be344694132844a8a00c54c85906ebc35cc81b32b232 {
+                                notebook: None,
+                                cells: vec![
+                                    H3f076d5c35e1c5c34483b1ffadcf3f4a2f3c65b49de48dd967965878 { language: "tucant".to_string() }
+                                ]
+                            })
+                        ],
+                        save: Some(false),
+                    },
+                    variant1: StaticRegistrationOptions {
+                        id: None,
+                    },
+                })),
                 completion_provider: Some(CompletionOptions {
                     variant0: WorkDoneProgressOptions {
                         work_done_progress: None,
                     },
                     trigger_characters: Some(vec![r#"""#.to_string()]),
                     all_commit_characters: Some(vec![r#"""#.to_string()]),
-                    resolve_provider: None,
-                    completion_item: None,
+                    resolve_provider: None, // TODO FIXME
+                    completion_item: None, // TODO FIXME
                 }),
                 hover_provider: Some(
                     Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483::Variant1(
@@ -558,35 +641,40 @@ impl Server {
                         },
                     ),
                 ),
-                signature_help_provider: None,
-                declaration_provider: None,
-                definition_provider: None,
-                type_definition_provider: None,
-                implementation_provider: None,
-                references_provider: None,
+                signature_help_provider: None, // TODO FIXME
+                declaration_provider: None, // TODO FIXME
+                definition_provider: None, // TODO FIXME
+                type_definition_provider: None, // TODO FIXME
+                implementation_provider: None, // TODO FIXME
+                references_provider: None, // TODO FIXME
                 document_highlight_provider: Some(
-                    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2::Variant0(true),
+                    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2::Variant1(DocumentHighlightOptions {
+                        variant0: WorkDoneProgressOptions {
+                            work_done_progress: None
+                        },
+                    }),
                 ),
-                document_symbol_provider: None,
-                code_action_provider: None,
-                code_lens_provider: None,
-                document_link_provider: None,
+                document_symbol_provider: None, // TODO FIXME
+                code_action_provider: None, // TODO FIXME
+                code_lens_provider: None, // TODO FIXME
+                document_link_provider: None, // TODO FIXME
                 color_provider: None,
-                workspace_symbol_provider: None,
-                document_formatting_provider: None,
-                document_range_formatting_provider: None,
-                document_on_type_formatting_provider: None, /*Some(Box::new(DocumentOnTypeFormattingOptions {
+                workspace_symbol_provider: None, // TODO FIXME
+                document_formatting_provider: None, // TODO FIXME
+                document_range_formatting_provider: None, // TODO FIXME
+                document_on_type_formatting_provider: None,  // TODO FIXME 
+                /*Some(Box::new(DocumentOnTypeFormattingOptions {
                                                                 first_trigger_character: r#"""#.to_string(),
                                                                 more_trigger_character: None,
                                                             })),*/
-                rename_provider: None,
+                rename_provider: None, // TODO FIXME
                 folding_range_provider: Some(
                     H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc::Variant0(true),
                 ),
-                selection_range_provider: None,
-                execute_command_provider: None,
-                call_hierarchy_provider: None,
-                linked_editing_range_provider: None,
+                selection_range_provider: None, // TODO FIXME
+                execute_command_provider: None, // TODO FIXME
+                call_hierarchy_provider: None, // TODO FIXME
+                linked_editing_range_provider: None, // TODO FIXME
                 semantic_tokens_provider: Some(
                     Hb33d389f4db33e188f5f7289bda48f700ee05a6244701313be32e552::Variant0(
                         SemanticTokensOptions {
@@ -615,13 +703,13 @@ impl Server {
                         },
                     ),
                 ),
-                moniker_provider: None,
-                type_hierarchy_provider: None,
-                inline_value_provider: None,
-                inlay_hint_provider: None,
-                diagnostic_provider: None,
-                workspace: None,
-                experimental: None,
+                moniker_provider: None, // TODO FIXME
+                type_hierarchy_provider: None, // TODO FIXME
+                inline_value_provider: None, // TODO FIXME
+                inlay_hint_provider: None, // TODO FIXME
+                diagnostic_provider: None, // TODO FIXME
+                workspace: None, // TODO FIXME
+                experimental: None, // TODO FIXME
             },
             server_info: Some(tucant_language_server_derive_output::H880c6487247b4175461832601dd88a01930f42d1e56b2956a0727626 {
                 name: "TUCaN't".to_string(),
@@ -765,6 +853,7 @@ impl JsonRpcServer for Server {
     }
 }
 
+// cargo watch -x 'run -- --port 6008'
 pub fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

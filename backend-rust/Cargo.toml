@@ -18,7 +18,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.11", features = ["cookies"], optional = true }
+reqwest = { git = "https://github.com/mohe2015/reqwest", features = ["cookies"], branch = "update-cookie-store-v0.19" }
 tokio = { version = "1", features = ["full"], optional = true }
 scraper = { version = "0.14", optional = true }
 ego-tree = { version = "0.6", optional = true }
@@ -33,8 +33,8 @@ axum-extra = { version = "0.4", features = ["cookie", "cookie-private"] }
 tower-http = { version = "0.3", features = ["cors","trace","compression-br","compression-deflate","compression-gzip"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = {version = "1", optional = true }
-async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", branch = "no-proc-macro", optional = true }
-chrono = { version = "0.4", features = ["serde"] }
+async-stream = { git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a", optional = true }
+chrono = { default-features = false, version = "0.4", features = ["serde"] }
 deadpool = { version = "0.9", optional = true }
 url = { version = "2", optional = true }
 log = { version = "0.4", optional = true }
@@ -44,7 +44,7 @@ itertools = { version = "0.10", optional = true }
 either = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 diesel_full_text_search = { git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight", optional = true }
-base64 = { version = "0.20" }
+base64 = { version = "0.21" }
 tucant_derive = { path = "../backend-rust-derive", optional = true }
 file-lock = { version = "2", optional = true }
 tracing = "0.1"
@@ -56,7 +56,7 @@ async-recursion = "1"
 
 [features]
 default = ["server"]
-server = ["reqwest",
+server = [
 "tokio",
 "scraper",
 "ego-tree",
