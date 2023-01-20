@@ -34,8 +34,6 @@ use tucant_language_server_derive_output::{
     H3f076d5c35e1c5c34483b1ffadcf3f4a2f3c65b49de48dd967965878,
     H53c7229730a2be344694132844a8a00c54c85906ebc35cc81b32b232,
     H5f8b902ef452cedc6b143f87b02d86016c018ed08ad7f26834df1d13,
-    H6d5e7bee1978cdbacbdc4faec15da61357d241e66e2e4dd37e1542a3,
-    H7b212ce91fb5070a58b93646443fdb3624c960faf1750f03c202ce7d,
     H7e74ba1e4709a8ad94f53b3eb5e17bb05e0ffcb0fb3c74991897e313,
     H8aab3d49c891c78738dc034cb0cb70ee2b94bf6c13a697021734fff7,
     H96adce06505d36c9b352c6cf574cc0b4715c349e1dd3bd60d1ab63f4,
@@ -43,20 +41,18 @@ use tucant_language_server_derive_output::{
     Hb617b9fe394cc04976341932ae3d87256285a2654f1c9e6beddf7483,
     Hb99720fdeac6e579cc1799b1ed09a1f3cb72d7955fdb010b77198bb3,
     He98ccfdc940d4c1fa4b43794669192a12c560d6457d392bc00630cb4,
-    Hea17b2ded0130afa44181dd8690cfbf2d14dfe9661d0cdcf922e7c4b,
-    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2,
-    Hf468ffc6dde52ef0def77755aa94acc238115e9f9343cb8b60961ed1, Hover, HoverOptions, IncomingStuff,
+    Hf21695c74b3402f0de46005d3e2008486ab02d88f9adaff6b6cce6b2, Hover, HoverOptions, IncomingStuff,
     InitializeRequest, InitializeResult, InitializedNotification, MarkupContent, MarkupKind,
-    MessageType, NotebookCellTextDocumentFilter, NotebookDocumentSyncOptions,
-    NotebookDocumentSyncRegistrationOptions, Position, PublishDiagnosticsParams, Receivable,
-    SemanticTokens, SemanticTokensLegend, SemanticTokensOptions, Sendable, SendableAndForget,
-    ServerCapabilities, ShowMessageParams, ShutdownRequest, StaticRegistrationOptions,
-    StringOrNumber, TextDocumentCompletionRequest, TextDocumentDidChangeNotification,
-    TextDocumentDidCloseNotification, TextDocumentDidOpenNotification,
-    TextDocumentDocumentHighlightRequest, TextDocumentFoldingRangeRequest,
-    TextDocumentHoverRequest, TextDocumentPublishDiagnosticsNotification,
-    TextDocumentSemanticTokensFullRequest, TextDocumentSyncKind, TextDocumentSyncOptions,
-    WindowShowMessageNotification, WorkDoneProgressOptions,
+    MessageType, NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions, Position,
+    PublishDiagnosticsParams, Receivable, SemanticTokens, SemanticTokensLegend,
+    SemanticTokensOptions, Sendable, SendableAndForget, ServerCapabilities, ShowMessageParams,
+    ShutdownRequest, StaticRegistrationOptions, StringOrNumber, TextDocumentCompletionRequest,
+    TextDocumentDidChangeNotification, TextDocumentDidCloseNotification,
+    TextDocumentDidOpenNotification, TextDocumentDocumentHighlightRequest,
+    TextDocumentFoldingRangeRequest, TextDocumentHoverRequest,
+    TextDocumentPublishDiagnosticsNotification, TextDocumentSemanticTokensFullRequest,
+    TextDocumentSyncKind, TextDocumentSyncOptions, WindowShowMessageNotification,
+    WorkDoneProgressOptions,
 };
 
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
@@ -68,6 +64,7 @@ pub struct Server {
 }
 
 impl Server {
+    #[allow(clippy:::too_many_lines)]
     async fn handle_receiving<
         R: Stream<Item = Result<String, anyhow::Error>> + std::marker::Send + std::marker::Unpin,
     >(

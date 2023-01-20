@@ -39,10 +39,10 @@ pub fn extract_keys<const N: usize>(
     });
     if result.iter().any(Result::is_err) || !map.is_empty() {
         let unexpected_keys = map.into_iter().map(|key| {
-            return syn::Error::new(
+            syn::Error::new(
                 key.0 .0.span(),
                 format!("Unexpected key {}", key.0 .0.token()),
-            );
+            )
         });
 
         let results = unexpected_keys
@@ -72,10 +72,10 @@ pub fn unexpected_keys<T>(
 ) -> Result<T, syn::Error> {
     if value.is_err() || !map.is_empty() {
         let unexpected_keys = map.into_iter().map(|key| {
-            return syn::Error::new(
+            syn::Error::new(
                 key.0 .0.span(),
                 format!("Unexpected key {}", key.0 .0.token()),
-            );
+            )
         });
 
         Err(std::iter::once(value)

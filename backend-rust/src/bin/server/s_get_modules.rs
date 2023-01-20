@@ -17,7 +17,7 @@ use diesel::sql_types::Bytea;
 use diesel_async::RunQueryDsl;
 
 use base64::prelude::*;
-use base64::prelude::*;
+
 use tucant::models::ModuleMenuPathPart;
 use tucant::models::ModuleMenuResponse;
 use tucant::models::TucanSession;

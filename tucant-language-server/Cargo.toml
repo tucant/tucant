@@ -26,3 +26,6 @@ tokio-util = { version = "0.7", features = ["codec"] }
 bytes = "1"
 json-rpc-server = { path = "../json-rpc-server" }
 async-trait = "0.1"
+
+[dev-dependencies]
+env_logger = "0.10"

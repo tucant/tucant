@@ -2771,6 +2771,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bytes",
+ "env_logger",
  "futures-util",
  "itertools",
  "json-rpc-server",

@@ -46,7 +46,7 @@ use crate::schema::{
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;
 
-use base64::prelude::*;
+use base64::prelude::{Engine, BASE64_URL_SAFE_NO_PAD};
 use diesel::upsert::excluded;
 use diesel::GroupedBy;
 use diesel::OptionalExtension;
