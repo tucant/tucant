@@ -16,7 +16,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
     Enumeration, EnumerationType, MessageDirection, MetaModel, Notification, Request,
-    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType,
+    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType, StringOrNumber,
 };
 
 use type_converter::{handle_type, until_err};
@@ -162,7 +162,7 @@ pub fn parse_enumerations(
                         .iter()
                         .map(|value| -> syn::Result<TokenStream> {
                             let name = format_ident!("r#{}", value.name.to_upper_camel_case());
-                            let value: &i64 = (&value.value).try_into().unwrap();
+                            let StringOrNumber::Number(value) = &value.value else { panic!() };
                             Ok(quote! {
                                 #name = #value,
                             })
@@ -196,7 +196,7 @@ pub fn parse_enumerations(
                                     #[doc = #string]
                                 }
                             });
-                            let value: &String = (&value.value).try_into().unwrap();
+                            let StringOrNumber::String(value) = &value.value else { panic!() };
                             Ok(quote! {
                                 #[serde(rename = #value)]
                                 #documentation
