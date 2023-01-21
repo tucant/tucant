@@ -15,5 +15,5 @@ categories = ["accessibility", "api-bindings", "caching"]
 proc-macro = true
 
 [dependencies]
-quote = { default-features = false, version = "1" }
-syn   = { default-features = false, version = "1" }
+quote = "1"
+syn = { version = "1", features = ["full", "extra-traits"] }

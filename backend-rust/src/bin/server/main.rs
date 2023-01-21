@@ -63,6 +63,7 @@ use std::collections::BTreeSet;
 use std::net::SocketAddr;
 
 use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
 
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
@@ -273,151 +274,147 @@ struct AppState {
     tucan: Tucan,
 }
 
-fn main() -> anyhow::Result<()> {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async {
-            dotenv().ok();
-            env_logger::init();
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
+    env_logger::init();
 
-            /*
-                // https://crates.io/crates/tracing
+    /*
+        // https://crates.io/crates/tracing
 
-                let tracer = opentelemetry_otlp::new_pipeline()
-                    .tracing()
-                    .with_exporter(opentelemetry_otlp::new_exporter().tonic()) // with_endpoint("http://localhost:")
-                    .install_batch(opentelemetry::runtime::Tokio)?;
+        let tracer = opentelemetry_otlp::new_pipeline()
+            .tracing()
+            .with_exporter(opentelemetry_otlp::new_exporter().tonic()) // with_endpoint("http://localhost:")
+            .install_batch(opentelemetry::runtime::Tokio)?;
 
-                // Create a tracing layer with the configured tracer
-                let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+        // Create a tracing layer with the configured tracer
+        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-                // Use the tracing subscriber `Registry`, or any other subscriber
-                // that impls `LookupSpan`
-                let subscriber = Registry::default().with(telemetry);
+        // Use the tracing subscriber `Registry`, or any other subscriber
+        // that impls `LookupSpan`
+        let subscriber = Registry::default().with(telemetry);
 
-                tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
-            */
+        tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    */
 
-            warn!("Starting server...");
+    warn!("Starting server...");
 
-            let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-            let migrations = FileBasedMigrations::find_migrations_directory()?;
-            let mut connection = PgConnection::establish(&database_url)
-                .unwrap_or_else(|_| panic!("Error connecting to {database_url}"));
-            connection.run_pending_migrations(migrations).unwrap();
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let migrations = FileBasedMigrations::find_migrations_directory()?;
+    let mut connection = PgConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {database_url}"));
+    connection.run_pending_migrations(migrations).unwrap();
 
-            let random_secret_key = Key::generate();
+    let random_secret_key = Key::generate();
 
-            let file = OpenOptions::new()
-                .create_new(true)
-                .write(true)
-                .append(true)
-                .open("sessions.key")
-                .await;
-            if let Ok(mut file) = file {
-                file.write_all(random_secret_key.master()).await?;
-                drop(file);
-            }
+    let file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .append(true)
+        .open("sessions.key")
+        .await;
+    if let Ok(mut file) = file {
+        file.write_all(random_secret_key.master()).await?;
+        drop(file);
+    }
 
-            let secret_key_raw = fs::read("sessions.key").await?;
-            let secret_key = Key::from(&secret_key_raw);
+    let secret_key_raw = fs::read("sessions.key").await?;
+    let secret_key = Key::from(&secret_key_raw);
 
-            let tucan = Tucan::new()?;
+    let tucan = Tucan::new()?;
 
-            let app_state = AppState {
-                key: secret_key,
-                tucan,
-            };
+    let app_state = AppState {
+        key: secret_key,
+        tucan,
+    };
 
-            let app: Router<AppState> = Router::new()
-                .with_state(app_state.clone())
-                .route("/setup", post(setup))
-                .route("/login-hack", get(login_hack));
+    let app: Router<AppState> = Router::new()
+        .with_state(app_state.clone())
+        .route("/setup", post(setup))
+        .route("/login-hack", get(login_hack));
 
-            let app = TypescriptableApp {
-                app,
-                codes: BTreeSet::new(),
-            };
+    let app = TypescriptableApp {
+        app,
+        codes: BTreeSet::new(),
+    };
 
-            // TODO FIXME csrf protection
+    // TODO FIXME csrf protection
 
-            // TODO FIXME these settings are dangerous
-            let cors = CorsLayer::new()
-                // allow `GET` and `POST` when accessing the resource
-                .allow_methods([Method::GET, Method::POST])
-                .allow_credentials(true)
-                .allow_headers([
-                    AUTHORIZATION,
-                    ACCEPT,
-                    CONTENT_TYPE,
-                    "x-csrf-protection".parse::<HeaderName>().unwrap(),
-                ])
-                // allow requests from any origin
-                .allow_origin([
-                    "http://127.0.0.1:5173".parse::<HeaderValue>().unwrap(),
-                    "http://localhost:5173".parse::<HeaderValue>().unwrap(),
-                ]);
+    // TODO FIXME these settings are dangerous
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            ACCEPT,
+            CONTENT_TYPE,
+            "x-csrf-protection".parse::<HeaderName>().unwrap(),
+        ])
+        // allow requests from any origin
+        .allow_origin([
+            "http://127.0.0.1:5173".parse::<HeaderValue>().unwrap(),
+            "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+        ]);
 
-            let app = app
-                .route::<IndexTs>("/", post(index))
-                .route::<LoginTs>("/login", post(login))
-                .route::<LogoutTs>("/logout", post(logout))
-                .route::<GetModulesTs>("/modules", post(get_modules))
-                .route::<SearchModuleTs>("/search-modules", post(search_module))
-                .route::<SearchModuleOpensearchTs>(
-                    "/search-modules-opensearch",
-                    post(search_module_opensearch),
-                )
-                .route::<SearchCourseTs>("/search-course", post(search_course))
-                .route::<CourseTs>("/course", post(course))
-                .route::<CourseGroupTs>("/course-group", post(course_group))
-                .route::<ModuleTs>("/module", post(module))
-                .route::<ExamTs>("/exam", post(exam))
-                .route::<MyExamsTs>("/my-exams", post(my_exams))
-                .route::<MyModulesTs>("/my-modules", post(my_modules))
-                .route::<MyCoursesTs>("/my-courses", post(my_courses));
+    let app = app
+        .route::<IndexTs>("/", post(index))
+        .route::<LoginTs>("/login", post(login))
+        .route::<LogoutTs>("/logout", post(logout))
+        .route::<GetModulesTs>("/modules", post(get_modules))
+        .route::<SearchModuleTs>("/search-modules", post(search_module))
+        .route::<SearchModuleOpensearchTs>(
+            "/search-modules-opensearch",
+            post(search_module_opensearch),
+        )
+        .route::<SearchCourseTs>("/search-course", post(search_course))
+        .route::<CourseTs>("/course", post(course))
+        .route::<CourseGroupTs>("/course-group", post(course_group))
+        .route::<ModuleTs>("/module", post(module))
+        .route::<ExamTs>("/exam", post(exam))
+        .route::<MyExamsTs>("/my-exams", post(my_exams))
+        .route::<MyModulesTs>("/my-modules", post(my_modules))
+        .route::<MyCoursesTs>("/my-courses", post(my_courses));
 
-            let should_we_block = true;
-            let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
+    let should_we_block = true;
+    let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
-            let mut filelock = match FileLock::lock(
-                "../frontend-react/src/api.ts",
-                should_we_block,
-                lock_for_writing,
-            ) {
-                Ok(lock) => lock,
-                Err(err) => panic!("Error getting write lock: {err}"),
-            };
+    let mut filelock = match FileLock::lock(
+        "../frontend-react/src/api.ts",
+        should_we_block,
+        lock_for_writing,
+    ) {
+        Ok(lock) => lock,
+        Err(err) => panic!("Error getting write lock: {err}"),
+    };
 
-            filelock
-                .file
-                .write_all(
-                    (r#"// This file is automatically generated at startup. Do not modify.
+    filelock
+        .file
+        .write_all(
+            (r#"// This file is automatically generated at startup. Do not modify.
 import { genericFetch } from "./api_base"
 "#
-                    .to_string()
-                        + &app.codes.into_iter().join("\n"))
-                        .as_bytes(),
-                )
-                .unwrap();
+            .to_string()
+                + &app.codes.into_iter().join("\n"))
+                .as_bytes(),
+        )
+        .unwrap();
 
-            filelock.unlock().unwrap();
+    filelock.unlock().unwrap();
 
-            let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
-            tracing::debug!("listening on {}", addr);
-            axum::Server::bind(&addr)
-                .serve(
-                    app.app
-                        .with_state::<()>(app_state)
-                        .layer(cors)
-                        //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
-                        .into_make_service(),
-                )
-                .await
-                .unwrap();
+    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(
+            app.app
+                .with_state::<()>(app_state)
+                .layer(cors)
+                //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
+                .layer(TraceLayer::new_for_http())
+                .into_make_service(),
+        )
+        .await
+        .unwrap();
 
-            Ok(())
-        })
+    Ok(())
 }
