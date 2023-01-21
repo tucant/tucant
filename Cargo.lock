@@ -2474,6 +2474,7 @@ name = "tucant_language_server_derive_internal"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "digest",
  "heck",
  "hex",
  "itertools",

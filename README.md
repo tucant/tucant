@@ -175,7 +175,7 @@ reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-late
 Optimize dependencies:
 
 ```bash
-cargo tree --duplicates
+cargo tree -d --format "{p} {f}"
 
 cargo install cargo-machete
 cargo machete
