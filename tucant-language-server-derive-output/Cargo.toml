@@ -20,5 +20,5 @@ out-dir-include = { default-features = false, path = "../out-dir-include" }
 [build-dependencies]
 tucant_language_server_derive_internal = { default-features = false, path = "../tucant-language-server-derive-internal" }
 prettyplease = { default-features = false, version = "0.1" }
-syn          = { default-features = false, version = "1", features = ["full", "extra-traits"] }
-proc-macro2  = { default-features = false, version = "1", features = ["span-locations"] }
+syn          = { default-features = false, version = "1" }
+proc-macro2  = { default-features = false, version = "1" }

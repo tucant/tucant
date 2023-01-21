@@ -15,10 +15,10 @@ categories = ["accessibility", "api-bindings", "caching"]
 [dependencies]
 out-dir-include = { default-features = false, path = "../out-dir-include" }
 async-trait     = { default-features = false, version = "0.1" }
-tokio           = { default-features = false, version = "1", features = ["full"] }
-anyhow          = { default-features = false, version = "1", features = ["backtrace"] }
+tokio           = { default-features = false, version = "1" }
+anyhow          = { default-features = false, version = "1" }
 futures-util    = { default-features = false, version = "0.3" }
-clap            = { default-features = false, version = "4", features = ["derive"] }
+clap            = { default-features = false, features = [ "std", "derive" ], version = "4" }
 json-rpc-server = { default-features = false, path = "../json-rpc-server" }
 serde_json      = { default-features = false, version = "1" }
 serde           = { default-features = false, version = "1", features = ["derive"] }
@@ -26,5 +26,5 @@ serde           = { default-features = false, version = "1", features = ["derive
 [build-dependencies]
 debug-adapter-protocol-macro-impl = { default-features = false, path = "../debug-adapter-protocol-macro-impl" }
 prettyplease                      = { default-features = false, version = "0.1" }
-syn                               = { default-features = false, version = "1", features = ["full", "extra-traits"] }
-proc-macro2                       = { default-features = false, version = "1", features = ["span-locations"] }
+syn                               = { default-features = false, version = "1" }
+proc-macro2                       = { default-features = false, version = "1" }

@@ -354,7 +354,7 @@ impl TucanUser {
                     })
                 }
             })
-            .collect_vec()
+            .collect::<Vec<_>>()
     }
 
     async fn fetch_course(
@@ -517,7 +517,7 @@ impl TucanUser {
                     room: ce.room,
                     teachers: ce.teachers,
                 })
-                .collect_vec();
+                .collect::<Vec<_>>();
 
             (
                 CourseGroup {
@@ -803,7 +803,7 @@ impl TucanUser {
             let modules_and_courses: Vec<(Module, Vec<Course>)> = submodules
                 .into_iter()
                 .zip(grouped_module_courses)
-                .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect_vec()))
+                .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect::<Vec<_>>()))
                 .collect();
 
             Ok(Some((
@@ -932,7 +932,7 @@ impl TucanUser {
                                     done: false,
                                 }
                             })
-                            .collect_vec();
+                            .collect::<Vec<_>>();
 
                     (module, courses)
                 })
@@ -1660,7 +1660,7 @@ impl TucanUser {
                         module_link.inner_html(),
                     )
                 })
-                .collect_vec()
+                .collect::<Vec<_>>()
         };
 
         let mut connection = self.tucan.pool.get().await?;
@@ -1717,7 +1717,7 @@ impl TucanUser {
             });
 
         diesel::insert_into(modules_unfinished::table)
-            .values(module_exams.iter().map(|v| &v.0).collect_vec())
+            .values(module_exams.iter().map(|v| &v.0).collect::<Vec<_>>())
             .on_conflict(modules_unfinished::tucan_id)
             .do_nothing()
             .execute(&mut connection)
@@ -1739,7 +1739,7 @@ impl TucanUser {
             .await?;
 
         diesel::insert_into(courses_unfinished::table)
-            .values(course_exams.iter().map(|v| &v.0).collect_vec())
+            .values(course_exams.iter().map(|v| &v.0).collect::<Vec<_>>())
             .on_conflict(courses_unfinished::tucan_id)
             .do_nothing()
             .execute(&mut connection)
