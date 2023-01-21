@@ -13,7 +13,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 
 [dependencies]
 tokio             = { default-features = false, features = [ "fs", "net" ], version = "1" }
-itertools         = { default-features = false, version = "0.10" }
+itertools         = { default-features = false, features = [ "use_std" ], version = "0.10" }
 serde_json        = { default-features = false, features = [ "std" ], version = "1" }
 serde             = { default-features = false, features = [ "std", "derive" ], version = "1" }
 tucant_language_server_derive_output = { default-features = false, path = "../tucant-language-server-derive-output" }

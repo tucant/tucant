@@ -17,7 +17,7 @@ quote       = { default-features = false, version = "1" }
 proc-macro2 = { default-features = false, version = "1" }
 serde_json  = { default-features = false, features = [ "alloc" ], version = "1" }
 serde       = { default-features = false, version = "1", features = [ "derive" ] }
-itertools   = { default-features = false, version = "0.10" }
+itertools   = { default-features = false, features = [ "use_std" ], version = "0.10" }
 derive_more = { default-features = false, version = "0.99" }
 sha3        = { default-features = false, version = "0.10" }
 hex         = { default-features = false, version = "0.4", features = [ "std" ] }
