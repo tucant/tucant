@@ -12,7 +12,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde           = { default-features = false, version = "1", features = ["derive"] }
+serde           = { default-features = false, version = "1", features = [ "std", "derive"] }
 serde_repr      = { default-features = false, version = "0.1" }
 serde_with      = { default-features = false, version = "2" }
 out-dir-include = { default-features = false, path = "../out-dir-include" }

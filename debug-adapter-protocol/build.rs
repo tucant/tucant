@@ -10,10 +10,9 @@ fn main() {
     let output = realistic().unwrap();
     let output = syn::parse2::<syn::File>(output.clone()).unwrap_or_else(|err| {
         panic!(
-            "{} {} {err:#?} {:?}",
+            "{} {} {err:#?}",
             output,
             dest_path.to_string_lossy().as_ref(),
-            err.span().start()
         )
     });
     let output = prettyplease::unparse(&output);

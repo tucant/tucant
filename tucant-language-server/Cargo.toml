@@ -12,10 +12,10 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio             = { default-features = false, features = [ "fs" ], version = "1" }
+tokio             = { default-features = false, features = [ "fs", "net" ], version = "1" }
 itertools         = { default-features = false, version = "0.10" }
-serde_json        = { default-features = false, version = "1" }
-serde             = { default-features = false, version = "1", features = ["derive"] }
+serde_json        = { default-features = false, features = [ "std" ], version = "1" }
+serde             = { default-features = false, features = [ "std", "derive" ], version = "1" }
 tucant_language_server_derive_output = { default-features = false, path = "../tucant-language-server-derive-output" }
 once_cell         = { default-features = false, version = "1" }
 rand              = { default-features = false, version = "0.8" }
