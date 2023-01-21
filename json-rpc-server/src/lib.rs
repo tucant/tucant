@@ -3,7 +3,7 @@ use bytes::Buf;
 use bytes::BytesMut;
 use clap::Parser;
 use futures_util::Sink;
-use futures_util::SinkExt;
+
 use futures_util::Stream;
 use futures_util::StreamExt;
 use itertools::Itertools;
@@ -145,7 +145,7 @@ pub async fn run_json_rpc_server<S: JsonRpcServer>() -> anyhow::Result<()> {
             }
         }
         Args {
-            websocket: Some(port),
+            websocket: Some(_port),
             pipe: None,
             stdin: false,
             port: None,

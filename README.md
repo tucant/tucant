@@ -189,6 +189,8 @@ cargo deny check --workspace --all-targets
 
 cargo install --locked cargo-outdated
 cargo outdated --workspace --all-targets
+
+cargo tree --no-dedupe --prefix none | sort -k 1 | uniq -c | sort -k 1 -n -r
 ```
 
 Clippy
