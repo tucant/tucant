@@ -8,7 +8,6 @@ use futures_util::Stream;
 use futures_util::StreamExt;
 use itertools::Itertools;
 use tokio::net::{TcpListener, UnixStream};
-use tokio_tungstenite::tungstenite::Message;
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
 
 #[async_trait]
@@ -151,7 +150,7 @@ pub async fn run_json_rpc_server<S: JsonRpcServer>() -> anyhow::Result<()> {
             stdin: false,
             port: None,
         } => {
-            let stream = TcpListener::bind(("127.0.0.1", port))
+            /*let stream = TcpListener::bind(("127.0.0.1", port))
                 .await?
                 .accept()
                 .await?
@@ -169,7 +168,8 @@ pub async fn run_json_rpc_server<S: JsonRpcServer>() -> anyhow::Result<()> {
                 }),
                 write.with(|v| Box::pin(async { Ok(Message::Text(v)) })),
             )
-            .await
+            .await*/
+            unimplemented!()
         }
         Args { pipe: None, .. } => {
             S::run(
