@@ -63,7 +63,6 @@ use std::collections::BTreeSet;
 use std::net::SocketAddr;
 
 use tower_http::cors::CorsLayer;
-use tower_http::trace::TraceLayer;
 
 use tracing::warn;
 use tucant::schema::{sessions, users_unfinished};
@@ -274,8 +273,12 @@ struct AppState {
     tucan: Tucan,
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    tokio::runtime::Builder::new_current_thread()
+    .enable_all()
+    .build()
+    .unwrap()
+    .block_on(async { 
     dotenv().ok();
     env_logger::init();
 
@@ -410,11 +413,11 @@ import { genericFetch } from "./api_base"
                 .with_state::<()>(app_state)
                 .layer(cors)
                 //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
-                .layer(TraceLayer::new_for_http())
                 .into_make_service(),
         )
         .await
         .unwrap();
 
     Ok(())
+    })
 }
