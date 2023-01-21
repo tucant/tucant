@@ -23,6 +23,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Formatting
         run: cargo fmt --all --check
+      - run: cargo install cargo-hack --locked
       - name: Build
         run: cargo hack build --workspace --all-targets
       - name: Clippy
