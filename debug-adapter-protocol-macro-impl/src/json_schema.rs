@@ -206,7 +206,7 @@ impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
                                         definition_type,
                                     }
                                 })
-                                .collect::<Vec<_>>(),
+                                .collect_vec(),
                         })),
                     )
                 }

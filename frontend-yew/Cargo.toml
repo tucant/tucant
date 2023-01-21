@@ -11,7 +11,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-yew        = { default-features = false, git = "https://github.com/yewstack/yew/" }
-yew-router = { default-features = false, git = "https://github.com/yewstack/yew.git" }
-gloo-net   = { default-features = false, version = "0.2" }
-tucant     = { default-features = false, path = "../backend-rust" }
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr", "tokio"] }
+yew-router = { git = "https://github.com/yewstack/yew.git" }
+gloo-net = "0.2"
+tucant = { path = "../backend-rust", default-features = false }

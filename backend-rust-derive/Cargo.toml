@@ -15,8 +15,8 @@ categories = ["accessibility", "api-bindings", "caching"]
 proc-macro = true
 
 [dependencies]
-syn          = { default-features = false, version = "1" }
-quote        = { default-features = false, version = "1" }
-proc-macro2  = { default-features = false, version = "1" }
-prettyplease = { default-features = false, version = "0.1" }
-heck         = { default-features = false, version = "0.4" }
+syn = { version = "1", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+prettyplease = "0.1"
+heck = "0.4"

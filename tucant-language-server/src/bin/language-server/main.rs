@@ -11,6 +11,7 @@ pub mod parser;
 use std::{collections::HashMap, sync::Arc, vec};
 
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
+use itertools::Itertools;
 use parser::{highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
@@ -298,7 +299,7 @@ impl Server {
                     range: found_element.range,
                     kind: Some(DocumentHighlightKind::Text),
                 })
-                .collect::<Vec<_>>(),
+                .collect_vec(),
         );
 
         self.send_response(request, response).await?;
@@ -376,7 +377,7 @@ impl Server {
                 )
             };
 
-            diagnostics.collect::<Vec<_>>()
+            diagnostics.collect_vec()
         };
 
         let response = PublishDiagnosticsParams {
@@ -854,7 +855,7 @@ impl JsonRpcServer for Server {
 
 // cargo watch -x 'run -- --port 6008'
 pub fn main() -> anyhow::Result<()> {
-    tokio::runtime::Builder::new_current_thread()
+    tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
