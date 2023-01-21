@@ -21,8 +21,6 @@ once_cell         = { default-features = false, version = "1" }
 rand              = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
 anyhow            = { default-features = false, version = "1" }
 futures-util      = { default-features = false, version = "0.3" }
-tokio-util        = { default-features = false, version = "0.7", features = ["codec"] }
-bytes             = { default-features = false, version = "1" }
 json-rpc-server   = { default-features = false, path = "../json-rpc-server" }
 async-trait       = { default-features = false, version = "0.1" }
 

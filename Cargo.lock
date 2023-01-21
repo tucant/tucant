@@ -536,7 +536,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "clap",
  "debug-adapter-protocol-macro-impl",
  "futures-util",
  "json-rpc-server",
@@ -2436,7 +2435,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bytes",
  "env_logger",
  "futures-util",
  "itertools",
@@ -2446,7 +2444,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "tokio-util",
  "tucant_language_server_derive_output",
 ]
 
@@ -2455,7 +2452,6 @@ name = "tucant_derive"
 version = "0.1.0"
 dependencies = [
  "heck",
- "prettyplease",
  "proc-macro2",
  "quote",
  "syn",
@@ -2473,8 +2469,6 @@ dependencies = [
 name = "tucant_language_server_derive_internal"
 version = "0.1.0"
 dependencies = [
- "derive_more",
- "digest",
  "heck",
  "hex",
  "itertools",

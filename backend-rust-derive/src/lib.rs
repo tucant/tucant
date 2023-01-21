@@ -299,20 +299,3 @@ pub fn typescriptable(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         typescriptable_impl(&input).unwrap_or_else(Error::into_compile_error),
     )
 }
-
-#[cfg(test)]
-mod tests {
-
-    use syn::DeriveInput;
-
-    use crate::typescriptable_impl;
-
-    #[test]
-    fn it_works() {
-        let input: DeriveInput = syn::parse_str("struct Test<T> { inner: T }").unwrap();
-        let output = typescriptable_impl(&input).unwrap();
-        let output = syn::parse2::<syn::File>(output).unwrap();
-        let output = prettyplease::unparse(&output);
-        println!("{output}");
-    }
-}

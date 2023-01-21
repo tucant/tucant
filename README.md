@@ -179,6 +179,8 @@ cargo tree -d --format "{p} {f}"
 
 cargo hack build --workspace --all-targets
 
+cargo udeps
+
 cargo install cargo-machete
 cargo machete
 

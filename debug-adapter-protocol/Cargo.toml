@@ -18,7 +18,6 @@ async-trait     = { default-features = false, version = "0.1" }
 tokio           = { default-features = false, version = "1" }
 anyhow          = { default-features = false, version = "1" }
 futures-util    = { default-features = false, version = "0.3" }
-clap            = { default-features = false, features = [ "std", "derive" ], version = "4" }
 json-rpc-server = { default-features = false, path = "../json-rpc-server" }
 serde_json      = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
 serde           = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
