@@ -179,16 +179,16 @@ cargo tree -d --format "{p} {f}"
 
 cargo hack build --workspace --all-targets
 
-cargo udeps
+cargo udeps --workspace --all-targets
 
 cargo install cargo-machete
-cargo machete
+cargo machete --workspace --all-targets
 
 cargo install --locked cargo-deny
-cargo deny check
+cargo deny check --workspace --all-targets
 
 cargo install --locked cargo-outdated
-cargo outdated
+cargo outdated --workspace --all-targets
 ```
 
 Clippy
