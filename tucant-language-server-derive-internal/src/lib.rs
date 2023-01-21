@@ -16,7 +16,7 @@ use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use schema::{
     Enumeration, EnumerationType, MessageDirection, MetaModel, Notification, Request,
-    StringOrIntegerOrUnsignedIntegerLiteral, Structure, TypeAlias, TypeOrVecType, StringOrNumber,
+    StringOrIntegerOrUnsignedIntegerLiteral, StringOrNumber, Structure, TypeAlias, TypeOrVecType,
 };
 
 use type_converter::{handle_type, until_err};
