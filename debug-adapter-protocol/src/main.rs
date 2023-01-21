@@ -1168,7 +1168,7 @@ pub struct Event<T> {
 
 // cargo watch -x 'run -- --port 6009'
 pub fn main() -> anyhow::Result<()> {
-    tokio::runtime::Builder::new_multi_thread()
+    tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap()
