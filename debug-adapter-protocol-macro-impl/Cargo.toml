@@ -13,8 +13,8 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-syn = { version = "1", features = ["full", "extra-traits"] }
-proc-macro2 = { version = "1", features = ["span-locations"] }
-quote = "1"
-itertools = "0.10"
-heck = "0.4"
+syn         = { default-features = false, features = [ "parsing", "printing", "extra-traits" ], version = "1" }
+proc-macro2 = { default-features = false, version = "1" }
+quote       = { default-features = false, version = "1" }
+itertools   = { default-features = false, version = "0.10" }
+heck        = { default-features = false, version = "0.4" }

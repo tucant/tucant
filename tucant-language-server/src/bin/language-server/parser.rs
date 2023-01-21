@@ -412,7 +412,7 @@ pub fn parse_from_str(string: &str) -> Result<(Ast, Span), Error<()>> {
 pub fn test_tokenize() {
     println!(
         "{:#?}",
-        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#).collect_vec()
+        TokenizerBuilder::from_string(r#"(this is "awesome" 1337 lisp)"#).collect::<Vec<_>>()
     );
 }
 

@@ -1,4 +1,3 @@
-use derive_more::TryInto;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -83,8 +82,7 @@ pub struct Enumeration {
     pub values: Vec<EnumerationEntry>,
 }
 
-#[derive(Serialize, Deserialize, Debug, TryInto)]
-#[try_into(owned, ref)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum StringOrNumber {
     String(String),

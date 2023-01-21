@@ -3,7 +3,6 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-// we really need this, otherwise you can't see SendableAndForget::R and other stuff
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("debug-adapter-protocol.rs");
@@ -11,10 +10,9 @@ fn main() {
     let output = realistic().unwrap();
     let output = syn::parse2::<syn::File>(output.clone()).unwrap_or_else(|err| {
         panic!(
-            "{} {} {err:#?} {:?}",
+            "{} {} {err:#?}",
             output,
             dest_path.to_string_lossy().as_ref(),
-            err.span().start()
         )
     });
     let output = prettyplease::unparse(&output);
