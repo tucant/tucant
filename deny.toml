@@ -264,7 +264,6 @@ allow-git = [
     "https://github.com/Xtansia/opensearch-rs",
     "https://github.com/sfackler/rust-postgres",
     "https://github.com/causal-agent/scraper",
-    "https://github.com/snapview/tungstenite-rs",
     "https://github.com/mohe2015/servo",
     "https://github.com/servo/rust-cssparser",
     "https://github.com/mohe2015/string-cache",

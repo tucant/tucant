@@ -8,11 +8,17 @@
 pub mod evaluator;
 pub mod parser;
 
-use std::{collections::HashMap, sync::Arc, vec};
+use std::{
+    collections::HashMap,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+    vec,
+};
 
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
 use parser::{highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::Serialize;
 use serde_json::Value;
 use tokio::sync::{mpsc, oneshot, RwLock};
@@ -60,6 +66,7 @@ pub struct Server {
     documents: RwLock<HashMap<String, String>>,
     pending: RwLock<HashMap<String, oneshot::Sender<Value>>>,
     tx: mpsc::Sender<String>,
+    id: AtomicUsize,
 }
 
 impl Server {
@@ -735,11 +742,8 @@ impl Server {
 
         let (tx, rx) = oneshot::channel::<Value>();
 
-        let id: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(30)
-            .map(char::from)
-            .collect();
+        let id = self.id.fetch_add(1, Ordering::SeqCst);
+        let id = format!("S{id}");
 
         let request = TestRequest::<R::Request> {
             jsonrpc: "2.0".to_string(),
@@ -840,6 +844,7 @@ impl JsonRpcServer for Server {
             documents: RwLock::new(HashMap::new()),
             pending: RwLock::new(HashMap::new()),
             tx,
+            id: AtomicUsize::new(1),
         });
 
         let handle1 = tokio::spawn(arc_self.clone().handle_receiving(read));

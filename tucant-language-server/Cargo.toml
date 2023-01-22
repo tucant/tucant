@@ -13,18 +13,12 @@ categories = ["accessibility", "api-bindings", "caching"]
 
 [dependencies]
 tokio             = { default-features = false, features = [ "fs", "net" ], version = "1" }
-itertools         = { default-features = false, version = "0.10" }
-serde_json        = { default-features = false, features = [ "std" ], version = "1" }
-serde             = { default-features = false, features = [ "std", "derive" ], version = "1" }
+itertools         = { default-features = false, features = [ "use_std" ], version = "0.10" }
+serde_json        = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
+serde             = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
 tucant_language_server_derive_output = { default-features = false, path = "../tucant-language-server-derive-output" }
 once_cell         = { default-features = false, version = "1" }
-rand              = { default-features = false, version = "0.8" }
 anyhow            = { default-features = false, version = "1" }
 futures-util      = { default-features = false, version = "0.3" }
-tokio-util        = { default-features = false, version = "0.7", features = ["codec"] }
-bytes             = { default-features = false, version = "1" }
 json-rpc-server   = { default-features = false, path = "../json-rpc-server" }
 async-trait       = { default-features = false, version = "0.1" }
-
-[dev-dependencies]
-env_logger        = { default-features = false, version = "0.10" }

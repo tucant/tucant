@@ -31,8 +31,8 @@ regex                   = { default-features = false, features = [ "std" ], vers
 axum                    = { default-features = false, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
 axum-extra              = { default-features = false, version = "0.4", features = [ "cookie", "cookie-private" ] }
 tower-http              = { default-features = false, version = "0.3", features = [ "cors" ] }
-serde                   = { default-features = false, version = "1", features = [ "derive" ] }
-serde_json              = { default-features = false, version = "1", optional = true }
+serde                   = { default-features = false, version = "1", features = [ "alloc", "std", "derive" ] }
+serde_json              = { default-features = false, features = [ "default", "raw_value" ], version = "1", optional = true }
 async-stream            = { default-features = false, git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a", optional = true }
 chrono                  = { default-features = false, version = "0.4", features = ["serde"] }
 deadpool                = { default-features = false, version = "0.9", optional = true }
@@ -49,7 +49,7 @@ tucant_derive           = { default-features = false, path = "../backend-rust-de
 file-lock               = { default-features = false, version = "2", optional = true }
 tracing                 = { default-features = false, version = "0.1" }
 opensearch              = { default-features = false, features = [ "rustls-tls" ], version = "2" }
-rand                    = { default-features = false, version = "0.8" }
+rand                    = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
 tucant_derive_lib       = { default-features = false, path = "../backend-rust-derive-lib" }
 diesel_migrations       = { default-features = false, version = "2" }
 async-recursion         = { default-features = false, version = "1" }

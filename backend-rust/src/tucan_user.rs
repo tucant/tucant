@@ -974,7 +974,7 @@ impl TucanUser {
             .await?;
 
         diesel::insert_into(modules_unfinished::table)
-            .values(modules.iter().map(|m| &m.0).collect_vec())
+            .values(modules.iter().map(|m| &m.0).collect::<Vec<_>>())
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
@@ -995,7 +995,7 @@ impl TucanUser {
             .await?;
 
         diesel::insert_into(courses_unfinished::table)
-            .values(modules.iter().flat_map(|m| &m.1).collect_vec())
+            .values(modules.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
@@ -1666,7 +1666,7 @@ impl TucanUser {
         let mut connection = self.tucan.pool.get().await?;
 
         diesel::insert_into(exams_unfinished::table)
-            .values(exams.iter().map(|e| &e.1).collect_vec())
+            .values(exams.iter().map(|e| &e.1).collect::<Vec<_>>())
             .on_conflict(exams_unfinished::tucan_id)
             .do_nothing()
             .execute(&mut connection)

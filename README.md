@@ -175,16 +175,27 @@ reuse addheader --copyright "The tucant Contributors" --license AGPL-3.0-or-late
 Optimize dependencies:
 
 ```bash
-cargo tree --duplicates
+cargo tree -d --format "{p} {f}"
+
+cargo hack build --workspace --all-targets
+
+cargo udeps --workspace --all-targets
 
 cargo install cargo-machete
-cargo machete
+cargo machete --workspace --all-targets
 
 cargo install --locked cargo-deny
-cargo deny check
+cargo deny check --workspace --all-targets
 
 cargo install --locked cargo-outdated
-cargo outdated
+cargo outdated --workspace --all-targets
+
+cargo tree --no-dedupe --prefix none | sort -k 1 | uniq -c | sort -k 1 -n -r
+
+RUSTFLAGS="-Z time-passes" time cargo +nightly build &> time-passes.log
+
+RUSTFLAGS="-Z time-passes" ../../rustc_codegen_cranelift/dist/cargo-clif run &> time-passes.log
+
 ```
 
 Clippy

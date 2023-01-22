@@ -11,7 +11,6 @@ postgres-protocol = { git = "https://github.com/sfackler/rust-postgres" }
 postgres-types = { git = "https://github.com/sfackler/rust-postgres" }
 tokio-postgres = { git = "https://github.com/sfackler/rust-postgres" }
 reqwest = { git = "https://github.com/mohe2015/reqwest", branch = "update-cookie-store-v0.19" }
-tungstenite = { git = "https://github.com/snapview/tungstenite-rs" }
 opensearch = { git = "https://github.com/Xtansia/opensearch-rs", branch = "update/base64-0.21" }
 scraper = { git = "https://github.com/causal-agent/scraper", branch = "dependabot/cargo/cssparser-0.29" }
 html5ever = { git = "https://github.com/servo/html5ever" }
