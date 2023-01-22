@@ -1,3 +1,28 @@
+# Language design
+
+Performance shouldn't matter at all at the start only epic features.
+
+Like reverse execution, adjusting code at runtime, macros, etc.
+
+The function first typechecks and then returns the code that needs to run. E.g.:
+
+```tucant
+(+ (number 1) (number 1)
+```
+
+Maybe switch the parsing to everything is an element and elements are separated by whitespace. The you can use escaping `\ ` to create larger strings.
+
+Starts with calling the typechecking `+` which gets the AST as parameter. This function then
+calls the same on the subasts and then gets a value returned that contains the type and a function to actually run the code and return the value. This value can then be used by the function to return its own type and a function to run it.
+
+The hard thing there is how to implement all the language server functionalities.
+
+e.g. call hierarchy. this needs forward and reverse analysis, maybe this can be done by "debugging execution" and using tracepoints?
+if method calls are explicit and not simply (method args) but instead (apply method args) and maybe later we create a shorthand for that. then apply is an internal compiler method that we can use.
+
+how can types be shown in the ide? maybe every typecheck function calls an internal compiler tracing method and we can use that
+to record these things.
+
 # Supported Editors
 
 https://langserver.org/
