@@ -18,11 +18,7 @@ serde_json        = { default-features = false, features = [ "default", "raw_val
 serde             = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
 tucant_language_server_derive_output = { default-features = false, path = "../tucant-language-server-derive-output" }
 once_cell         = { default-features = false, version = "1" }
-rand              = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
 anyhow            = { default-features = false, version = "1" }
 futures-util      = { default-features = false, version = "0.3" }
 json-rpc-server   = { default-features = false, path = "../json-rpc-server" }
 async-trait       = { default-features = false, version = "0.1" }
-
-[dev-dependencies]
-env_logger        = { default-features = false, version = "0.10" }
