@@ -17,6 +17,6 @@ tokio             = { default-features = false, features = [ "io-std", "net", "r
 anyhow            = { default-features = false, features = [ "std" ], version = "1" }
 tokio-util        = { default-features = false, version = "0.7", features = ["codec"] }
 bytes             = { default-features = false, version = "1" }
-futures-util      = { default-features = false, version = "0.3" }
+futures-util      = { default-features = false, features = [ "sink" ], version = "0.3" }
 itertools         = { default-features = false, features = [ "use_std" ], version = "0.10" }
 async-trait       = { default-features = false, version = "0.1" }

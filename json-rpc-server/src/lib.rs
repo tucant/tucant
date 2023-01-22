@@ -5,7 +5,6 @@ use clap::Parser;
 use futures_util::Sink;
 
 use futures_util::Stream;
-use futures_util::StreamExt;
 use itertools::Itertools;
 use tokio::net::{TcpListener, UnixStream};
 use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite};
