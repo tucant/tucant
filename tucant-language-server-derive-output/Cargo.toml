@@ -9,9 +9,6 @@ readme = "README.md"
 keywords = ["tucan"]
 categories = ["accessibility", "api-bindings", "caching"]
 
-[lib]
-crate-type = ["dylib"]
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
