@@ -192,6 +192,9 @@ cargo outdated --workspace --all-targets
 
 cargo tree --no-dedupe --prefix none | sort -k 1 | uniq -c | sort -k 1 -n -r
 
+RUSTFLAGS="-Z time-passes" time cargo +nightly build &> time-passes.log
+
+RUSTFLAGS="-Z time-passes" ../../rustc_codegen_cranelift/dist/cargo-clif run &> time-passes.log
 
 ```
 
