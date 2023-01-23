@@ -50,12 +50,14 @@ where
 
 #[derive(Debug)]
 pub struct BumpOnlyAllocator {
+    possibilities: BigUint,
     inner: BigUint,
 }
 
 impl BumpOnlyAllocator {
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
+            possibilities: BigUint::from(1u8),
             inner: BigUint::from(0u8),
         }))
     }
@@ -65,7 +67,8 @@ impl Allocator for BumpOnlyAllocator {
     type AddressType = BumpOnlyAddress;
 
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
-        let address = this.borrow().inner.clone();
+        let address = this.borrow().possibilities.clone();
+        this.borrow_mut().possibilities *= &possibilities;
         this.borrow_mut().inner *= &possibilities;
         Self::AddressType {
             allocator: this,
@@ -75,6 +78,7 @@ impl Allocator for BumpOnlyAllocator {
     }
 }
 
+#[derive(Debug)]
 pub struct BumpOnlyAddress {
     allocator: Rc<RefCell<BumpOnlyAllocator>>,
     #[cfg(debug_assertions)]
@@ -87,7 +91,8 @@ impl Address for BumpOnlyAddress {
         debug_assert!(value < self.possibilities);
 
         let mut allocator_value = self.allocator.borrow_mut();
-        let (base_quotient, base_remainder) = if self.address == BigUint::from(0u8) { (BigUint::from(0u8), allocator_value.inner.clone()) } else { allocator_value.inner.div_rem(&self.address) };
+
+        let (base_quotient, base_remainder) = allocator_value.inner.div_rem(&self.address);
 
         let (remaining_quotient, _our_value) = base_remainder.div_rem(&self.possibilities);
 
@@ -99,9 +104,11 @@ impl Address for BumpOnlyAddress {
     fn get(&self) -> BigUint {
         let allocator_value = self.allocator.borrow();
 
-        let (base_quotient, base_remainder) = if self.address == BigUint::from(0u8) { (BigUint::from(0u8), allocator_value.inner.clone()) } else { allocator_value.inner.div_rem(&self.address) };
+        let (base_quotient, base_remainder) = allocator_value.inner.div_rem(&self.address);
 
         let (remaining_quotient, our_value) = base_remainder.div_rem(&self.possibilities);
+
+        println!("{base_quotient} {base_remainder} {remaining_quotient} {our_value}");
 
         debug_assert!(our_value < self.possibilities);
         our_value
@@ -114,15 +121,18 @@ fn test_allocator() {
     println!("{:?}", allocator);
 
     let mut addr0 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(7u8));
-    println!("{:?}", allocator);
+    println!("{:?}", addr0);
+
+    addr0.set(BigUint::from(0u8));
+    println!("{:?}", addr0);
 
     addr0.set(BigUint::from(5u8));
-    println!("{:?}", allocator);
+    println!("{:?}", addr0);
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
 
     let mut addr1 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(11u8));
-    println!("{:?}", allocator);
+    println!("{:?}", addr1);
 
     addr1.set(BigUint::from(3u8));
     println!("{:?}", allocator);
