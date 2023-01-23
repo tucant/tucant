@@ -75,17 +75,20 @@ impl Allocator for BumpOnlyAllocator {
 
 pub struct BumpOnlyAddress {
     allocator: Rc<RefCell<BumpOnlyAllocator>>,
+    #[cfg(debug_assertions)]
     possibilities: BigUint,
     address: BigUint,
 }
 
 impl Address for BumpOnlyAddress {
     fn set(&mut self, value: BigUint) {
-        todo!()
+        debug_assert!(value < self.possibilities);
     }
 
     fn get(&self) -> BigUint {
-        todo!()
+        let value = &self.allocator.borrow().inner;
+        let our_value = (value / &self.address) % &self.possibilities;
+        our_value
     }
 }
 
@@ -93,7 +96,13 @@ impl Address for BumpOnlyAddress {
 fn test_allocator() {
     let allocator = BumpOnlyAllocator::new();
 
-    let addr0 = BumpOnlyAllocator::allocate(allocator, BigUint::from(8u8));
+    let mut addr0 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(7u8));
+    addr0.set(BigUint::from(5u8));
+    assert_eq!(addr0.get(), BigUint::from(5u8));
 
-    addr0.set(5)
+    let mut addr1 = BumpOnlyAllocator::allocate(allocator, BigUint::from(11u8));
+    addr1.set(BigUint::from(3u8));
+    assert_eq!(addr1.get(), BigUint::from(3u8));
+
+    assert_eq!(addr0.get(), BigUint::from(5u8));
 }
