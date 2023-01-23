@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use num_bigint::BigUint;
+use num_integer::Integer;
 
 use crate::parser::Ast;
 
@@ -83,6 +84,15 @@ pub struct BumpOnlyAddress {
 impl Address for BumpOnlyAddress {
     fn set(&mut self, value: BigUint) {
         debug_assert!(value < self.possibilities);
+
+        let value = &self.allocator.borrow().inner;
+        let (base_quotient, base_remainder) = value.div_rem(&self.address);
+
+        let (remaining_quotient, our_value) = base_remainder.div_rem(&self.possibilities);
+
+        let base_remainder = remaining_quotient * &self.possibilities + value;
+        let value = base_quotient * &self.address + base_remainder;
+        self.allocator.borrow_mut().inner = value;
     }
 
     fn get(&self) -> BigUint {

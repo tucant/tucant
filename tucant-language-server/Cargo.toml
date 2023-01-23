@@ -23,3 +23,4 @@ futures-util      = { default-features = false, version = "0.3" }
 json-rpc-server   = { default-features = false, path = "../json-rpc-server" }
 async-trait       = { default-features = false, version = "0.1" }
 num-bigint        = { default-features = false, version = "0.4" }
+num-integer       = { default-features = false, version =  "0.1" }

@@ -2400,6 +2400,7 @@ dependencies = [
  "itertools",
  "json-rpc-server",
  "num-bigint",
+ "num-integer",
  "once_cell",
  "serde",
  "serde_json",
