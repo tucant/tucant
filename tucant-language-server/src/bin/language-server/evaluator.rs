@@ -33,10 +33,9 @@ impl AnyData for Ast {
     }
 }
 
-// how to do dynamic allocation?
 pub trait Address {
-    fn set(&mut self);
-    fn get(&self);
+    fn set(&mut self, value: BigUint);
+    fn get(&self) -> BigUint;
 }
 
 pub trait Allocator
@@ -52,18 +51,11 @@ pub struct BumpOnlyAllocator {
     inner: BigUint,
 }
 
-pub struct BumpOnlyAddress {
-    allocator: Rc<RefCell<BumpOnlyAllocator>>,
-    inner: BigUint,
-}
-
-impl Address for BumpOnlyAddress {
-    fn set(&mut self) {
-        todo!()
-    }
-
-    fn get(&self) {
-        todo!()
+impl BumpOnlyAllocator {
+    pub fn new() -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Self {
+            inner: BigUint::from(0u8),
+        }))
     }
 }
 
@@ -72,14 +64,36 @@ impl Allocator for BumpOnlyAllocator {
 
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
         let address = this.borrow().inner.clone();
-        this.borrow_mut().inner *= possibilities;
+        this.borrow_mut().inner *= &possibilities;
         Self::AddressType {
             allocator: this,
-            inner: address,
+            possibilities,
+            address,
         }
     }
 }
 
-// cargo test -- --show-output evaluate
+pub struct BumpOnlyAddress {
+    allocator: Rc<RefCell<BumpOnlyAllocator>>,
+    possibilities: BigUint,
+    address: BigUint,
+}
+
+impl Address for BumpOnlyAddress {
+    fn set(&mut self, value: BigUint) {
+        todo!()
+    }
+
+    fn get(&self) -> BigUint {
+        todo!()
+    }
+}
+
 #[test]
-const fn test_primitives() {}
+fn test_allocator() {
+    let allocator = BumpOnlyAllocator::new();
+
+    let addr0 = BumpOnlyAllocator::allocate(allocator, BigUint::from(8u8));
+
+    addr0.set(5)
+}
