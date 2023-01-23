@@ -10,7 +10,7 @@ The function first typechecks and then returns the code that needs to run. E.g.:
 (+ (number 1) (number 1)
 ```
 
-Maybe switch the parsing to everything is an element and elements are separated by whitespace. The you can use escaping `\ ` to create larger strings.
+Maybe switch the parsing to everything is an element and elements are separated by whitespace. The you can use escaping `\ ` to create larger strings. (This should definitely be something for later)
 
 Starts with calling the typechecking `+` which gets the AST as parameter. This function then
 calls the same on the subasts and then gets a value returned that contains the type and a function to actually run the code and return the value. This value can then be used by the function to return its own type and a function to run it.

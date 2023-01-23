@@ -23,10 +23,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tokio::sync::{mpsc, oneshot, RwLock};
 
-use crate::{
-    evaluator::typecheck,
-    parser::{visitor, Error},
-};
+use crate::parser::{visitor, Error};
 use async_trait::async_trait;
 use json_rpc_server::{run_json_rpc_server, JsonRpcServer};
 use tucant_language_server_derive_output::{
@@ -221,6 +218,7 @@ impl Server {
 
         let response = found_element.and_then(|found_element| {
             println!("found element {found_element:?}");
+            /*
             let typecheck = typecheck(value).1;
 
             typecheck
@@ -240,6 +238,8 @@ impl Server {
                         range: Some(found_type.1.range),
                     })
                 })
+                */
+            todo!()
         });
 
         if let Some(response) = response {
@@ -364,7 +364,8 @@ impl Server {
                     data: None,
                 }))
             } else {
-                let typecheck = typecheck(value.unwrap()).1;
+                /*
+                let typecheck = todo!();//typecheck(value.unwrap()).1;
                 Box::new(
                     typecheck
                         .into_iter()
@@ -381,6 +382,8 @@ impl Server {
                             data: None,
                         }),
                 )
+                */
+                todo!()
             };
 
             diagnostics.collect::<Vec<_>>()
