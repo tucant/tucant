@@ -48,6 +48,7 @@ where
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType;
 }
 
+#[derive(Debug)]
 pub struct BumpOnlyAllocator {
     inner: BigUint,
 }
@@ -85,19 +86,24 @@ impl Address for BumpOnlyAddress {
     fn set(&mut self, value: BigUint) {
         debug_assert!(value < self.possibilities);
 
-        let value = &self.allocator.borrow().inner;
-        let (base_quotient, base_remainder) = value.div_rem(&self.address);
+        let mut allocator_value = self.allocator.borrow_mut();
+        let (base_quotient, base_remainder) = if self.address == BigUint::from(0u8) { (BigUint::from(0u8), allocator_value.inner.clone()) } else { allocator_value.inner.div_rem(&self.address) };
 
-        let (remaining_quotient, our_value) = base_remainder.div_rem(&self.possibilities);
+        let (remaining_quotient, _our_value) = base_remainder.div_rem(&self.possibilities);
 
-        let base_remainder = remaining_quotient * &self.possibilities + value;
-        let value = base_quotient * &self.address + base_remainder;
-        self.allocator.borrow_mut().inner = value;
+        let base_remainder = remaining_quotient * &self.possibilities + &value;
+
+        allocator_value.inner = base_quotient * &self.address + base_remainder;
     }
 
     fn get(&self) -> BigUint {
-        let value = &self.allocator.borrow().inner;
-        let our_value = (value / &self.address) % &self.possibilities;
+        let allocator_value = self.allocator.borrow();
+
+        let (base_quotient, base_remainder) = if self.address == BigUint::from(0u8) { (BigUint::from(0u8), allocator_value.inner.clone()) } else { allocator_value.inner.div_rem(&self.address) };
+
+        let (remaining_quotient, our_value) = base_remainder.div_rem(&self.possibilities);
+
+        debug_assert!(our_value < self.possibilities);
         our_value
     }
 }
@@ -105,13 +111,22 @@ impl Address for BumpOnlyAddress {
 #[test]
 fn test_allocator() {
     let allocator = BumpOnlyAllocator::new();
+    println!("{:?}", allocator);
 
     let mut addr0 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(7u8));
+    println!("{:?}", allocator);
+
     addr0.set(BigUint::from(5u8));
+    println!("{:?}", allocator);
+
     assert_eq!(addr0.get(), BigUint::from(5u8));
 
-    let mut addr1 = BumpOnlyAllocator::allocate(allocator, BigUint::from(11u8));
+    let mut addr1 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(11u8));
+    println!("{:?}", allocator);
+
     addr1.set(BigUint::from(3u8));
+    println!("{:?}", allocator);
+
     assert_eq!(addr1.get(), BigUint::from(3u8));
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
