@@ -63,13 +63,17 @@ impl BumpOnlyAllocator {
     }
 }
 
+// memory: 0
+// store new value: 5
+// memory: 5
+// store new value: 7 (dont move old values!), value * memory_possibilities + old_memory
+
 impl Allocator for BumpOnlyAllocator {
     type AddressType = BumpOnlyAddress;
 
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
         let address = this.borrow().possibilities.clone();
         this.borrow_mut().possibilities *= &possibilities;
-        this.borrow_mut().inner *= &possibilities;
         Self::AddressType {
             allocator: this,
             possibilities,
@@ -87,28 +91,28 @@ pub struct BumpOnlyAddress {
 }
 
 impl Address for BumpOnlyAddress {
-    fn set(&mut self, value: BigUint) {
-        debug_assert!(value < self.possibilities);
+    fn set(&mut self, new_value: BigUint) {
+        debug_assert!(new_value < self.possibilities);
 
         let mut allocator_value = self.allocator.borrow_mut();
 
-        let (base_quotient, base_remainder) = allocator_value.inner.div_rem(&self.address);
+        let (your_value_and_higher_values, lower_values) =
+            allocator_value.inner.div_rem(&self.address);
 
-        let (remaining_quotient, _our_value) = base_remainder.div_rem(&self.possibilities);
+        let (higher_values, _our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
-        let base_remainder = remaining_quotient * &self.possibilities + &value;
+        let new_your_value_and_higher_values = higher_values * &self.possibilities + &new_value;
 
-        allocator_value.inner = base_quotient * &self.address + base_remainder;
+        allocator_value.inner = new_your_value_and_higher_values * &self.address + lower_values;
     }
 
     fn get(&self) -> BigUint {
-        let allocator_value = self.allocator.borrow();
+        let mut allocator_value = self.allocator.borrow();
 
-        let (base_quotient, base_remainder) = allocator_value.inner.div_rem(&self.address);
+        let (your_value_and_higher_values, lower_values) =
+            allocator_value.inner.div_rem(&self.address);
 
-        let (remaining_quotient, our_value) = base_remainder.div_rem(&self.possibilities);
-
-        println!("{base_quotient} {base_remainder} {remaining_quotient} {our_value}");
+        let (higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
         debug_assert!(our_value < self.possibilities);
         our_value
