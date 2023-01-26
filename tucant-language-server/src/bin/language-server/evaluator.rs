@@ -3,24 +3,72 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::Ast;
+use crate::parser::{Ast, TokenizerBuilder, parse};
+
+pub enum RootType {
+    AddFunction,
+    LetBinding,
+    LambdaDefinition,
+    Identifier,
+    Eval,
+}
+
+impl RootType {
+    fn execute(&self, data: BigUint) {
+        match self {
+            Self::Eval => {
+
+            }
+            _ => todo!()
+        }
+    }
+}
+
+impl AnyData for RootType {
+    fn get_possibilities(&self) -> BigUint {
+        BigUint::from(5u8)
+    }
+}
+
+impl From<RootType> for BigUint {
+
+    fn from(value: RootType) -> Self {
+        match value {
+            RootType::AddFunction => BigUint::from(0u8),
+            RootType::LetBinding => BigUint::from(1u8),
+            RootType::LambdaDefinition => BigUint::from(2u8),
+            RootType::Identifier => BigUint::from(3u8),
+            RootType::Eval => BigUint::from(4u8),
+        }
+    }
+}
 
 pub trait AnyData {
     fn get_possibilities(&self) -> BigUint;
-    fn get_value(&self) -> BigUint;
 }
 
-pub struct Boolean {
-    inner: BigUint,
-}
+pub struct Bool(bool);
 
-impl AnyData for Boolean {
+impl AnyData for Bool {
     fn get_possibilities(&self) -> BigUint {
         BigUint::from(2u8)
     }
+}
 
-    fn get_value(&self) -> BigUint {
-        self.inner.clone()
+impl From<Bool> for BigUint {
+    fn from(value: Bool) -> Self {
+        BigUint::from(match value.0 {
+            true => 0u8,
+            false => 1u8,
+        })
+    }
+}
+
+pub struct I64(i64);
+
+impl From<I64> for BigUint {
+    fn from(value: I64) -> Self {
+        BigUint::from(TryInto::<u64>::try_into(value.0 as i128 - i64::MIN as i128).unwrap())
     }
 }
 
@@ -28,8 +76,22 @@ impl AnyData for Ast {
     fn get_possibilities(&self) -> BigUint {
         todo!()
     }
+}
 
-    fn get_value(&self) -> BigUint {
+impl From<BigUint> for Ast {
+    fn from(value: BigUint) -> Self {
+        todo!()
+    }
+}
+
+impl From<Ast> for BigUint {
+    fn from(value: Ast) -> Self {
+        let (base, data): (u8, BigUint) = match value {
+            Ast::Number(v) => (0, I64(v).into()),
+            Ast::String(v) => (1, todo!()),
+            Ast::Identifier(v) => (2, todo!()),
+            Ast::List(v) => (3, todo!()),
+        };
         todo!()
     }
 }
@@ -144,4 +206,14 @@ fn test_allocator() {
     assert_eq!(addr1.get(), BigUint::from(3u8));
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
+}
+
+
+#[test]
+fn test_eval() {
+    let span = TokenizerBuilder::from_string(r#"(add 1 1)"#);
+    let value = parse(&mut span.peekable()).unwrap();
+    println!("{value:?}");
+
+    RootType::Eval.execute(value.0.into())
 }
