@@ -711,14 +711,12 @@ checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 
 [[package]]
 name = "file-lock"
-version = "2.1.6"
+version = "2.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0815fc2a1924e651b71ae6d13df07b356a671a09ecaf857dbd344a2ba937a496"
+checksum = "a585d1687856110a72028f31446c823f7c62e216e07434a64d1ebf1391fc99f8"
 dependencies = [
  "cc",
  "libc",
- "mktemp",
- "nix",
 ]
 
 [[package]]
@@ -1276,30 +1274,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "mktemp"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "975de676448231fcde04b9149d2543077e166b78fc29eae5aa219e7928410da2"
-dependencies = [
- "uuid",
-]
-
-[[package]]
 name = "new_debug_unreachable"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4a24736216ec316047a1fc4252e27dabb04218aa4a3f37c6e7ddbf1f9782b54"
-
-[[package]]
-name = "nix"
-version = "0.24.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa52e972a9a719cecb6864fb88568781eb706bac2cd1d4f04a648542dbf78069"
-dependencies = [
- "bitflags",
- "cfg-if",
- "libc",
-]
 
 [[package]]
 name = "nodrop"
@@ -2515,15 +2493,6 @@ name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
-
-[[package]]
-name = "uuid"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
-dependencies = [
- "getrandom",
-]
 
 [[package]]
 name = "vcpkg"
