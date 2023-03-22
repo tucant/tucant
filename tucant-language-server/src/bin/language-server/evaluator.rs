@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::{Ast, TokenizerBuilder, parse};
+use crate::parser::{parse, Ast, TokenizerBuilder};
 
 pub enum RootType {
     AddFunction,
@@ -16,10 +16,8 @@ pub enum RootType {
 impl RootType {
     fn execute(&self, data: BigUint) {
         match self {
-            Self::Eval => {
-
-            }
-            _ => todo!()
+            Self::Eval => {}
+            _ => todo!(),
         }
     }
 }
@@ -31,7 +29,6 @@ impl AnyData for RootType {
 }
 
 impl From<RootType> for BigUint {
-
     fn from(value: RootType) -> Self {
         match value {
             RootType::AddFunction => BigUint::from(0u8),
@@ -207,7 +204,6 @@ fn test_allocator() {
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
 }
-
 
 #[test]
 fn test_eval() {
