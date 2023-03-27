@@ -46,7 +46,7 @@ use reqwest::header::ACCEPT;
 use reqwest::header::AUTHORIZATION;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::Method;
-use reqwest::StatusCode;
+
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -59,7 +59,7 @@ use s_search_module::search_module;
 use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
-use tucant::url::Mlsstart;
+
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
 
