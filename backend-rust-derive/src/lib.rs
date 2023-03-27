@@ -6,11 +6,11 @@
 )]
 
 use heck::ToUpperCamelCase;
-use proc_macro2::{TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
-    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum,
-    DataStruct, DeriveInput, Error, ItemFn, Pat, PatIdent, PatType, TypeParam,
+    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
+    Error, ItemFn, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
