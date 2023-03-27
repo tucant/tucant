@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::{Ast, TokenizerBuilder, parse};
+use crate::parser::{Ast};
 
 pub enum RootType {
     AddFunction,
@@ -208,6 +208,8 @@ fn test_allocator() {
 
 #[test]
 fn test_eval() {
+    use crate::parser::{TokenizerBuilder, parse};
+
     let span = TokenizerBuilder::from_string(r#"(add 1 1)"#);
     let value = parse(&mut span.peekable()).unwrap();
     println!("{value:?}");
