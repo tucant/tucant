@@ -72,21 +72,17 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 ```bash
 cd backend-rust
 
-# We recommend using podman (with docker compat)
-docker build . --pull -f Dockerfile-postgres --tag postgres-hunspell
-docker run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
+podman build . --pull -f Dockerfile-postgres --tag postgres-hunspell
+podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
 
 ### Backend
 
 ```bash
-cd backend-rust
-
-# https://github.com/rust-lang/rust-clippy/issues/10134
-rustup default nightly-2022-12-29
-
 cargo install diesel_cli --no-default-features --features postgres
-cp .env.sample .env
+cp env.sample .env
+
+cd backend-rust
 $HOME/.cargo/bin/diesel setup
 
 # run this each time you want to run the backend

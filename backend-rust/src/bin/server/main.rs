@@ -59,6 +59,7 @@ use s_search_module::search_module;
 use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
+use tucant::url::Mlsstart;
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
 
@@ -232,10 +233,11 @@ async fn login_hack(
             BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
-        other => {
-            println!("{other:?}");
-            return Ok(StatusCode::NOT_FOUND.into_response());
-        }
+        tucant::url::TucanProgram::Mlsstart(_)=> Redirect::to("http://localhost:5173/"),
+        other=> {
+            println!("unknown redirect for {:?}", other);
+            Redirect::to("http://localhost:5173/")
+        },
     };
 
     Ok((cookie_jar, url).into_response())
