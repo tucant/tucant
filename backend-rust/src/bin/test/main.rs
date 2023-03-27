@@ -13,17 +13,8 @@ fn main() -> anyhow::Result<()> {
         .block_on(async {
             env_logger::init();
 
-            let tucan = Tucan::new()?;
-            let tucan = tucan
-                .login(
-                    &std::env::var("TUCAN_USERNAME").unwrap(),
-                    &std::env::var("TUCAN_PASSWORD").unwrap(),
-                )
-                .await?;
-
-            let exams = tucan.my_exams().await?;
-
-            println!("{exams:#?}");
+            let _tucan = Tucan::new()?;
+            //let vv = tucan.vv().await?;
 
             Ok(())
         })

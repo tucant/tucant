@@ -55,7 +55,7 @@ pub async fn get_modules(
                 })
                 .await?;
 
-            let mut connection = tucan.tucan.pool.get().await?;
+            let mut connection = tucan.pool.get().await?;
 
             let path_to_root: Vec<ModuleMenuPathPart> = sql_query(
                 r#"

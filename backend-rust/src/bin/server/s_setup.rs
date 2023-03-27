@@ -7,7 +7,6 @@ use crate::Moduledetails;
 use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
-use crate::TucanUser;
 
 use async_stream::Stream;
 use axum::body::StreamBody;
@@ -24,6 +23,7 @@ use axum::Json;
 
 use tucant::models::Course;
 use tucant::models::Module;
+use tucant::tucan::Authenticated;
 
 #[derive(Clone, Copy)]
 enum ModulesOrCourses {
@@ -43,7 +43,7 @@ enum ModuleOrCourse {
 #[async_recursion::async_recursion]
 async fn fetch_registration(
     stream: &mut Stream<Bytes>,
-    tucan: TucanUser,
+    tucan: Tucan<Authenticated>,
     parent: Registration,
     modules_or_courses: ModulesOrCourses,
 ) {

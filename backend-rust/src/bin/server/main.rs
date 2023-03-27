@@ -79,7 +79,6 @@ use tucant::typescript::TypescriptableApp;
 
 use std::io::Write;
 use tucant::tucan::Tucan;
-use tucant::tucan_user::TucanUser;
 use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 use tucant_derive_lib::Typescriptable;
@@ -147,7 +146,7 @@ async fn login(
     let tucan_user = tucan.login(&input.username, &input.password).await?;
     let cookie_jar = cookie_jar.add(Cookie::new(
         "session",
-        serde_json::to_string(&tucan_user.session)?,
+        serde_json::to_string(&tucan_user.state.session)?,
     ));
     Ok(TsHide {
         hidden: cookie_jar,
@@ -182,8 +181,8 @@ async fn login_hack(
         let tucan_user = tucan
             .tucan_session_from_session_data(session_nr, session_id)
             .await?;
-        let tucan_session = tucan_user.session.clone();
-        let user = UndoneUser::new(tucan_user.session.matriculation_number);
+        let tucan_session = tucan_user.state.session.clone();
+        let user = UndoneUser::new(tucan_user.state.session.matriculation_number);
         connection
             .build_transaction()
             .run(|mut connection| {
@@ -212,7 +211,7 @@ async fn login_hack(
             .await?;
         cookie_jar = cookie_jar.add(Cookie::new(
             "session",
-            serde_json::to_string(&tucan_user.session)?,
+            serde_json::to_string(&tucan_user.state.session)?,
         ));
     }
 
