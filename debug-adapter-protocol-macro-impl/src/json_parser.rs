@@ -24,8 +24,8 @@ impl JSONValue {
             Self::Bool(value) => value.span(),
             Self::String(value) => value.span(),
             Self::Integer(value) => value.span(),
-            Self::Array((value, _)) => value.span,
-            Self::Object((value, _)) => value.span,
+            Self::Array((value, _)) => value.span.join(),
+            Self::Object((value, _)) => value.span.join(),
         }
     }
 }
@@ -38,14 +38,14 @@ impl Parse for JSONValue {
             let brace = braced!(content in input);
             Ok(Self::Object((
                 brace,
-                content.parse_terminated(KeyValue::parse)?,
+                content.parse_terminated(KeyValue::parse, syn::Token![,])?,
             )))
         } else if lookahead.peek(token::Bracket) {
             let content;
             let bracket = bracketed!(content in input);
             Ok(Self::Array((
                 bracket,
-                content.parse_terminated(Self::parse)?,
+                content.parse_terminated(Self::parse, syn::Token![,])?,
             )))
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::String)

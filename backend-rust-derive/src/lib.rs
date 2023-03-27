@@ -9,8 +9,8 @@ use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
-    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum, DataStruct, DeriveInput,
-    Error, ItemFn, Meta, NestedMeta, Pat, PatIdent, PatType, TypeParam,
+    meta::ParseNestedMeta, parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum,
+    DataStruct, DeriveInput, Error, ItemFn, Meta, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -103,36 +103,37 @@ fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                     let ident_string = field.ident.as_ref().unwrap().to_string();
 
                     let ts_type_attr = field.attrs.iter().find(|attr| {
-                        attr.path.get_ident().map(Ident::to_string) == Some("ts_type".to_string())
+                        attr.path().is_ident("ts_type")
                     });
 
                     let serde_attr = field.attrs.iter().find(|attr| {
-                        attr.path.get_ident().map(Ident::to_string) == Some("serde".to_string())
+                        attr.path().is_ident("serde")
                     });
 
+                    // #[ts_type(String)]
                     let field_type = if let Some(ts_type_attr) = ts_type_attr {
-                        match ts_type_attr.parse_meta()? {
-                            Meta::List(meta_list) => match meta_list.nested.iter().next() {
-                                Some(NestedMeta::Meta(Meta::Path(path))) => path.to_token_stream(),
-                                _ => return Err(Error::new(meta_list.span(), r#"expected a type"#)),
-                            },
-                            err => return Err(Error::new(err.span(), r#"expected a list"#)),
+                        let mut the_type = None;
+                        ts_type_attr.parse_nested_meta(|meta| {
+                            the_type = Some(meta.path.to_token_stream());
+                            return Ok(());
+                        })?;
+                        if let Some(the_type) = the_type {
+                            the_type
+                        } else {
+                            return Err(Error::new(serde_attr.span(), r#"`ts_type` attribute macro expects list with type"#))
                         }
                     } else {
+                        // #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
                         if let Some(serde_attr) = serde_attr {
-                            let serde_attr = serde_attr.parse_meta()?;
-                            if let Meta::List(meta) = serde_attr {
-                                if let Some(meta) = meta.nested.iter().find(|meta| {
-                                    match meta {
-                                        NestedMeta::Meta(Meta::NameValue(meta)) => {
-                                            meta.path.get_ident().map(Ident::to_string) == Some("serialize_with".to_string())
-                                            || meta.path.get_ident().map(Ident::to_string) == Some("deserialize_with".to_string())
-                                        },
-                                        _ => false,
-                                    }
-                                }) {
-                                    return Err(Error::new(meta.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
+                            let mut has_de_serialize_with = false;
+                            serde_attr.parse_nested_meta(|meta| {
+                                if meta.path.is_ident("serialize_with") || meta.path.is_ident("deserialize_with") {
+                                    has_de_serialize_with = true;
                                 }
+                                return Ok(());
+                            })?;
+                            if has_de_serialize_with {
+                                return Err(Error::new(serde_attr.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
                             }
                         }
 

@@ -24,7 +24,7 @@ scraper                 = { default-features = false, version = "0.15", optional
 ego-tree                = { default-features = false, version = "0.6", optional = true }
 futures                 = { default-features = false, version = "0.3", optional = true }
 diesel                  = { default-features = false, version = "2", features = [ "postgres", "chrono", "32-column-tables" ], optional = true }
-diesel-async            = { default-features = false, version = "0.2", features = ["postgres", "deadpool"], optional = true }
+diesel-async            = { default-features = false, git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"], optional = true }
 dotenvy                 = { default-features = false, version = "0.15", optional = true }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1", optional = true }
 regex                   = { default-features = false, features = [ "std" ], version = "1", optional = true}
@@ -43,7 +43,7 @@ derive_more             = { default-features = false, version = "0.99", optional
 itertools               = { default-features = false, features = [ "use_std" ], version = "0.10", optional = true }
 either                  = { default-features = false, version = "1", optional = true }
 once_cell               = { default-features = false, version = "1", optional = true }
-diesel_full_text_search = { default-features = false, git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight", optional = true }
+diesel_full_text_search = { default-features = false, path = "../../diesel_full_text_search", optional = true }
 base64                  = { default-features = false, version = "0.21" }
 tucant_derive           = { default-features = false, path = "../backend-rust-derive", optional = true }
 file-lock               = { default-features = false, version = "2", optional = true }
