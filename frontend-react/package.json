@@ -23,10 +23,10 @@
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
     "@types/dompurify": "^3.0.0",
-    "@types/react": "^18.0.29",
+    "@types/react": "^18.0.30",
     "@types/react-dom": "^18.0.11",
-    "@typescript-eslint/eslint-plugin": "^5.56.0",
-    "@typescript-eslint/parser": "^5.56.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "@vitejs/plugin-react-swc": "^3.2.0",
     "eslint": "^8.36.0",
     "eslint-plugin-jsx-a11y": "^6.7.1",
