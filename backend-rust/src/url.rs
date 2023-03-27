@@ -376,7 +376,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             let program = TucanProgram::Moduledetails(Moduledetails {
                 id: number(&mut arguments).to_be_bytes().to_vec(),
             });
-            string(&mut arguments);
+            assert!(matches!(
+                arguments.next(),
+                None | Some(TucanArgument::String(_))
+            ));
             program
         }
         "COURSEDETAILS" => {
