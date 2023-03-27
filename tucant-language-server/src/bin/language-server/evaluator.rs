@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::{Ast};
+use crate::parser::Ast;
 
 pub enum RootType {
     AddFunction,
@@ -209,7 +209,7 @@ fn test_allocator() {
 #[cfg(test)]
 mod tests {
     use crate::evaluator::RootType;
-    use crate::parser::{TokenizerBuilder, parse};
+    use crate::parser::{parse, TokenizerBuilder};
 
     #[test]
     fn test_eval() {
