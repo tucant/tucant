@@ -18,9 +18,9 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest                 = { default-features = false, git = "https://github.com/mohe2015/reqwest", features = ["cookies"], branch = "update-cookie-store-v0.19" }
+reqwest                 = { default-features = false, features = ["cookies"], version = "0.11" }
 tokio                   = { default-features = false, features = [ "fs" ], version = "1", optional = true }
-scraper                 = { default-features = false, version = "0.14", optional = true }
+scraper                 = { default-features = false, version = "0.15", optional = true }
 ego-tree                = { default-features = false, version = "0.6", optional = true }
 futures                 = { default-features = false, version = "0.3", optional = true }
 diesel                  = { default-features = false, version = "2", features = [ "postgres", "chrono", "32-column-tables" ], optional = true }
@@ -29,8 +29,8 @@ dotenvy                 = { default-features = false, version = "0.15", optional
 anyhow                  = { default-features = false, features = [ "std" ], version = "1", optional = true }
 regex                   = { default-features = false, features = [ "std" ], version = "1", optional = true}
 axum                    = { default-features = false, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
-axum-extra              = { default-features = false, version = "0.4", features = [ "cookie", "cookie-private" ] }
-tower-http              = { default-features = false, version = "0.3", features = [ "cors" ] }
+axum-extra              = { default-features = false, version = "0.7", features = [ "cookie", "cookie-private" ] }
+tower-http              = { default-features = false, version = "0.4", features = [ "cors" ] }
 serde                   = { default-features = false, version = "1", features = [ "alloc", "std", "derive" ] }
 serde_json              = { default-features = false, features = [ "default", "raw_value" ], version = "1", optional = true }
 async-stream            = { default-features = false, git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a", optional = true }

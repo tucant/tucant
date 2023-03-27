@@ -15,7 +15,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 proc-macro = true
 
 [dependencies]
-syn          = { default-features = false, features = [ "full", "parsing", "proc-macro", "derive", "printing" ], version = "1" }
+syn          = { default-features = false, features = [ "full", "parsing", "proc-macro", "derive", "printing" ], version = "2" }
 quote        = { default-features = false, version = "1" }
 proc-macro2  = { default-features = false, version = "1" }
 heck         = { default-features = false, version = "0.4" }

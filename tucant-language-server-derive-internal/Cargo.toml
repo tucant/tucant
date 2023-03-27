@@ -12,7 +12,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-syn         = { default-features = false, version = "1" }
+syn         = { default-features = false, version = "2" }
 quote       = { default-features = false, version = "1" }
 proc-macro2 = { default-features = false, version = "1" }
 serde_json  = { default-features = false, features = [ "default", "raw_value" ], version = "1" }

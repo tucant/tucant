@@ -177,8 +177,10 @@ Optimize dependencies:
 ```bash
 cargo tree -d --format "{p} {f}"
 
+cargo install cargo-hack
 cargo hack build --workspace --all-targets
 
+cargo install cargo-udeps --locked
 cargo udeps --workspace --all-targets
 
 cargo install cargo-machete
@@ -188,7 +190,7 @@ cargo install --locked cargo-deny
 cargo deny check --workspace --all-targets
 
 cargo install --locked cargo-outdated
-cargo outdated --workspace --all-targets
+cargo outdated --workspace
 
 cargo tree --no-dedupe --prefix none | sort -k 1 | uniq -c | sort -k 1 -n -r
 
