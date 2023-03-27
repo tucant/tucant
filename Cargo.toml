@@ -7,8 +7,8 @@ resolver = "2"
 diesel = { git = "https://github.com/diesel-rs//diesel", rev = "b878fed" }
 
 # https://github.com/rust-lang/cargo/issues/5478
-#[patch.'https://github.com/diesel-rs/diesel.git']
-#diesel = { git = "https://github.com/diesel-rs//diesel", rev = "b878fed" }
+[patch.'https://github.com/diesel-rs/diesel.git']
+diesel = { git = "https://github.com/diesel-rs//diesel", rev = "b878fed" }
 
 # TODO FIXME do we need to add this to every subcrate?
 [profile.dev]

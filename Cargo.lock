@@ -117,7 +117,7 @@ dependencies = [
  "async-trait",
  "axum-core",
  "axum-macros",
- "bitflags 1.3.2",
+ "bitflags",
  "bytes",
  "futures-util",
  "http",
@@ -216,12 +216,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "bitflags"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "487f1e0fcbe47deb8b0574e646def1c903389d95241dd1bbcc6ce4a715dfc0c1"
-
-[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -289,7 +283,7 @@ version = "4.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c911b090850d79fc64fe9ea01e28e465f65e821e08813ced95bced72f7a8a9b"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
  "clap_derive",
  "clap_lex",
  "once_cell",
@@ -625,22 +619,10 @@ name = "diesel"
 version = "2.0.2"
 source = "git+https://github.com/diesel-rs//diesel?rev=b878fed#b878fed5d84ee6078cf3893efef5582f2df76814"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
  "byteorder",
  "chrono",
- "diesel_derives 2.0.2 (git+https://github.com/diesel-rs//diesel?rev=b878fed)",
- "itoa",
- "pq-sys",
-]
-
-[[package]]
-name = "diesel"
-version = "2.0.2"
-source = "git+https://github.com/diesel-rs/diesel.git#3d68571069e0f28582ae20e2120482203243bd55"
-dependencies = [
- "bitflags 2.0.2",
- "byteorder",
- "diesel_derives 2.0.2 (git+https://github.com/diesel-rs/diesel.git)",
+ "diesel_derives",
  "itoa",
  "pq-sys",
 ]
@@ -652,7 +634,7 @@ source = "git+https://github.com/weiznich/diesel_async#b860f3effb75d9cdbf8c41bc6
 dependencies = [
  "async-trait",
  "deadpool",
- "diesel 2.0.2 (git+https://github.com/diesel-rs//diesel?rev=b878fed)",
+ "diesel",
  "futures-util",
  "scoped-futures",
  "tokio",
@@ -664,7 +646,7 @@ name = "diesel_derives"
 version = "2.0.2"
 source = "git+https://github.com/diesel-rs//diesel?rev=b878fed#b878fed5d84ee6078cf3893efef5582f2df76814"
 dependencies = [
- "diesel_table_macro_syntax 0.1.0 (git+https://github.com/diesel-rs//diesel?rev=b878fed)",
+ "diesel_table_macro_syntax",
  "proc-macro-error",
  "proc-macro2",
  "quote",
@@ -672,22 +654,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "diesel_derives"
-version = "2.0.2"
-source = "git+https://github.com/diesel-rs/diesel.git#3d68571069e0f28582ae20e2120482203243bd55"
-dependencies = [
- "diesel_table_macro_syntax 0.1.0 (git+https://github.com/diesel-rs/diesel.git)",
- "proc-macro2",
- "quote",
- "syn 2.0.10",
-]
-
-[[package]]
 name = "diesel_full_text_search"
 version = "2.0.0"
 source = "git+https://github.com/mohe2015/diesel_full_text_search?branch=setweight#0fb822c9ef422313ba0f74d9ad8c11713f3c1365"
 dependencies = [
- "diesel 2.0.2 (git+https://github.com/diesel-rs/diesel.git)",
+ "diesel",
 ]
 
 [[package]]
@@ -696,7 +667,7 @@ version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e9ae22beef5e9d6fab9225ddb073c1c6c1a7a6ded5019d5da11d1e5c5adc34e2"
 dependencies = [
- "diesel 2.0.2 (git+https://github.com/diesel-rs//diesel?rev=b878fed)",
+ "diesel",
  "migrations_internals",
  "migrations_macros",
 ]
@@ -707,14 +678,6 @@ version = "0.1.0"
 source = "git+https://github.com/diesel-rs//diesel?rev=b878fed#b878fed5d84ee6078cf3893efef5582f2df76814"
 dependencies = [
  "syn 1.0.109",
-]
-
-[[package]]
-name = "diesel_table_macro_syntax"
-version = "0.1.0"
-source = "git+https://github.com/diesel-rs/diesel.git#3d68571069e0f28582ae20e2120482203243bd55"
-dependencies = [
- "syn 2.0.10",
 ]
 
 [[package]]
@@ -1857,7 +1820,7 @@ version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb5a58c1855b4b6819d59012155603f0b22ad30cad752600aadfcb695265519a"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
 ]
 
 [[package]]
@@ -2043,7 +2006,7 @@ version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c37578180969d00692904465fb7f6b3d50b9a2b952b87c23d0e2e5cb5013416"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
  "cssparser",
  "derive_more",
  "fxhash",
@@ -2490,7 +2453,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d1d42a9b3f3ec46ba828e8d376aec14592ea199f70a06a548587ecd1c4ab658"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
  "bytes",
  "futures-core",
  "futures-util",
@@ -2553,7 +2516,7 @@ dependencies = [
  "chrono",
  "deadpool",
  "derive_more",
- "diesel 2.0.2 (git+https://github.com/diesel-rs//diesel?rev=b878fed)",
+ "diesel",
  "diesel-async",
  "diesel_full_text_search",
  "diesel_migrations",
