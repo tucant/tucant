@@ -23,7 +23,6 @@ use tokio::sync::Semaphore;
 use crate::{
     models::{TucanSession, UndoneUser},
     schema::{sessions, users_unfinished},
-    tucan_user::TucanUser,
     url::{parse_tucan_url, TucanUrl},
 };
 
@@ -42,11 +41,20 @@ fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPg
 }
 
 #[derive(Clone)]
-pub struct Tucan {
+pub struct Unauthenticated;
+
+#[derive(Clone)]
+pub struct Authenticated {
+    pub session: TucanSession,
+}
+
+#[derive(Clone)]
+pub struct Tucan<State = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
     pub opensearch: OpenSearch,
+    pub state: State,
 }
 
 impl std::fmt::Debug for Tucan {
@@ -55,8 +63,8 @@ impl std::fmt::Debug for Tucan {
     }
 }
 
-impl Tucan {
-    pub fn new() -> anyhow::Result<Self> {
+impl Tucan<Unauthenticated> {
+    pub fn new() -> anyhow::Result<Tucan<Unauthenticated>> {
         let pool = create_pool();
 
         let url = Url::parse("https://localhost:9200")?;
@@ -67,19 +75,25 @@ impl Tucan {
             .build()?;
         let opensearch = OpenSearch::new(transport);
 
-        Ok(Self {
+        Ok(Tucan {
             pool,
             client: reqwest::Client::builder().build()?,
             semaphore: Arc::new(Semaphore::new(3)),
             opensearch,
+            state: Unauthenticated,
         })
     }
+}
 
+impl<State> Tucan<State> {
     #[must_use]
-    pub fn continue_session(&self, session: TucanSession) -> TucanUser {
-        TucanUser {
-            tucan: self.clone(),
-            session,
+    pub fn continue_session(&self, session: TucanSession) -> Tucan<Authenticated> {
+        Tucan {
+            pool: self.pool.clone(),
+            client: self.client.clone(),
+            semaphore: self.semaphore.clone(),
+            opensearch: self.opensearch.clone(),
+            state: Authenticated { session },
         }
     }
 
@@ -87,16 +101,19 @@ impl Tucan {
         &self,
         session_nr: i64,
         session_id: String,
-    ) -> anyhow::Result<TucanUser> {
+    ) -> anyhow::Result<Tucan<Authenticated>> {
         let session = TucanSession {
             matriculation_number: -1, // TODO FIXME implement this more cleanly
             session_nr,
             session_id: session_id.clone(),
         };
 
-        let tucan_user = TucanUser {
-            tucan: self.clone(),
-            session,
+        let tucan_user = Tucan {
+            pool: self.pool.clone(),
+            client: self.client.clone(),
+            semaphore: self.semaphore.clone(),
+            opensearch: self.opensearch.clone(),
+            state: Authenticated { session },
         };
 
         let user = tucan_user.personal_data().await?;
@@ -107,13 +124,20 @@ impl Tucan {
             session_id,
         };
 
-        Ok(TucanUser {
-            tucan: self.clone(),
-            session,
+        Ok(Tucan {
+            pool: self.pool.clone(),
+            client: self.client.clone(),
+            semaphore: self.semaphore.clone(),
+            opensearch: self.opensearch.clone(),
+            state: Authenticated { session },
         })
     }
 
-    pub async fn login(&self, username: &str, password: &str) -> anyhow::Result<TucanUser> {
+    pub async fn login(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> anyhow::Result<Tucan<Authenticated>> {
         use diesel_async::RunQueryDsl;
 
         let params: [(&str, &str); 10] = [
@@ -168,13 +192,15 @@ impl Tucan {
                 let mut connection = self.pool.get().await?;
 
                 {
-                    let user_session = user.session.clone();
+                    let user_session = user.state.session.clone();
                     connection
                         .build_transaction()
                         .run(|mut connection| {
                             Box::pin(async move {
                                 diesel::insert_into(users_unfinished::table)
-                                    .values(UndoneUser::new(user.session.matriculation_number))
+                                    .values(UndoneUser::new(
+                                        user.state.session.matriculation_number,
+                                    ))
                                     .on_conflict(users_unfinished::matriculation_number)
                                     .do_nothing()
                                     .execute(&mut connection)
