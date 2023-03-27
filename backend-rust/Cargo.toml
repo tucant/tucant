@@ -43,7 +43,7 @@ derive_more             = { default-features = false, version = "0.99", optional
 itertools               = { default-features = false, features = [ "use_std" ], version = "0.10", optional = true }
 either                  = { default-features = false, version = "1", optional = true }
 once_cell               = { default-features = false, version = "1", optional = true }
-diesel_full_text_search = { default-features = false, path = "../../diesel_full_text_search", optional = true }
+diesel_full_text_search = { default-features = false, git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight", optional = true }
 base64                  = { default-features = false, version = "0.21" }
 tucant_derive           = { default-features = false, path = "../backend-rust-derive", optional = true }
 file-lock               = { default-features = false, version = "2", optional = true }
