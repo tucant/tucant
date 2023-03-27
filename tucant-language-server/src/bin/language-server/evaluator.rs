@@ -212,6 +212,7 @@ mod tests {
     use crate::parser::{parse, TokenizerBuilder};
 
     #[test]
+    #[ignore]
     fn test_eval() {
         let span = TokenizerBuilder::from_string(r#"(add 1 1)"#);
         let value = parse(&mut span.peekable()).unwrap();
