@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::{parse, Ast, TokenizerBuilder};
+use crate::parser::Ast;
 
 pub enum RootType {
     AddFunction,
@@ -14,7 +14,7 @@ pub enum RootType {
 }
 
 impl RootType {
-    fn execute(&self, data: BigUint) {
+    fn execute(&self, _data: BigUint) {
         match self {
             Self::Eval => {}
             _ => todo!(),
@@ -31,11 +31,11 @@ impl AnyData for RootType {
 impl From<RootType> for BigUint {
     fn from(value: RootType) -> Self {
         match value {
-            RootType::AddFunction => BigUint::from(0u8),
-            RootType::LetBinding => BigUint::from(1u8),
-            RootType::LambdaDefinition => BigUint::from(2u8),
-            RootType::Identifier => BigUint::from(3u8),
-            RootType::Eval => BigUint::from(4u8),
+            RootType::AddFunction => Self::from(0u8),
+            RootType::LetBinding => Self::from(1u8),
+            RootType::LambdaDefinition => Self::from(2u8),
+            RootType::Identifier => Self::from(3u8),
+            RootType::Eval => Self::from(4u8),
         }
     }
 }
@@ -54,7 +54,7 @@ impl AnyData for Bool {
 
 impl From<Bool> for BigUint {
     fn from(value: Bool) -> Self {
-        BigUint::from(match value.0 {
+        Self::from(match value.0 {
             true => 0u8,
             false => 1u8,
         })
@@ -65,7 +65,7 @@ pub struct I64(i64);
 
 impl From<I64> for BigUint {
     fn from(value: I64) -> Self {
-        BigUint::from(TryInto::<u64>::try_into(value.0 as i128 - i64::MIN as i128).unwrap())
+        Self::from(TryInto::<u64>::try_into(i128::from(value.0) - i128::from(i64::MIN)).unwrap())
     }
 }
 
@@ -76,18 +76,18 @@ impl AnyData for Ast {
 }
 
 impl From<BigUint> for Ast {
-    fn from(value: BigUint) -> Self {
+    fn from(_value: BigUint) -> Self {
         todo!()
     }
 }
 
 impl From<Ast> for BigUint {
     fn from(value: Ast) -> Self {
-        let (base, data): (u8, BigUint) = match value {
+        let (_base, _data): (u8, Self) = match value {
             Ast::Number(v) => (0, I64(v).into()),
-            Ast::String(v) => (1, todo!()),
-            Ast::Identifier(v) => (2, todo!()),
-            Ast::List(v) => (3, todo!()),
+            Ast::String(_v) => (1, todo!()),
+            Ast::Identifier(_v) => (2, todo!()),
+            Ast::List(_v) => (3, todo!()),
         };
         todo!()
     }
@@ -114,6 +114,7 @@ pub struct BumpOnlyAllocator {
 }
 
 impl BumpOnlyAllocator {
+    #[must_use]
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Self {
             possibilities: BigUint::from(1u8),
@@ -166,12 +167,12 @@ impl Address for BumpOnlyAddress {
     }
 
     fn get(&self) -> BigUint {
-        let mut allocator_value = self.allocator.borrow();
+        let allocator_value = self.allocator.borrow();
 
-        let (your_value_and_higher_values, lower_values) =
+        let (your_value_and_higher_values, _lower_values) =
             allocator_value.inner.div_rem(&self.address);
 
-        let (higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
+        let (_higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
         debug_assert!(our_value < self.possibilities);
         our_value
