@@ -182,37 +182,42 @@ impl Address for BumpOnlyAddress {
 #[test]
 fn test_allocator() {
     let allocator = BumpOnlyAllocator::new();
-    println!("{:?}", allocator);
+    println!("{allocator:?}");
 
     let mut addr0 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(7u8));
-    println!("{:?}", addr0);
+    println!("{addr0:?}");
 
     addr0.set(BigUint::from(0u8));
-    println!("{:?}", addr0);
+    println!("{addr0:?}");
 
     addr0.set(BigUint::from(5u8));
-    println!("{:?}", addr0);
+    println!("{addr0:?}");
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
 
     let mut addr1 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(11u8));
-    println!("{:?}", addr1);
+    println!("{addr1:?}");
 
     addr1.set(BigUint::from(3u8));
-    println!("{:?}", allocator);
+    println!("{allocator:?}");
 
     assert_eq!(addr1.get(), BigUint::from(3u8));
 
     assert_eq!(addr0.get(), BigUint::from(5u8));
 }
 
-#[test]
-fn test_eval() {
+// https://github.com/rust-lang/rust-analyzer/issues/12661
+#[cfg(test)]
+mod tests {
+    use crate::evaluator::RootType;
     use crate::parser::{TokenizerBuilder, parse};
 
-    let span = TokenizerBuilder::from_string(r#"(add 1 1)"#);
-    let value = parse(&mut span.peekable()).unwrap();
-    println!("{value:?}");
+    #[test]
+    fn test_eval() {
+        let span = TokenizerBuilder::from_string(r#"(add 1 1)"#);
+        let value = parse(&mut span.peekable()).unwrap();
+        println!("{value:?}");
 
-    RootType::Eval.execute(value.0.into())
+        RootType::Eval.execute(value.0.into())
+    }
 }
