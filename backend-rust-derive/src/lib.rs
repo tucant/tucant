@@ -6,11 +6,11 @@
 )]
 
 use heck::ToUpperCamelCase;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
-    meta::ParseNestedMeta, parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum,
-    DataStruct, DeriveInput, Error, ItemFn, Meta, Pat, PatIdent, PatType, TypeParam,
+    parse::Nothing, parse_macro_input, spanned::Spanned, Data, DataEnum,
+    DataStruct, DeriveInput, Error, ItemFn, Pat, PatIdent, PatType, TypeParam,
 };
 
 // RUSTFLAGS="-Z macro-backtrace" cargo test
@@ -115,7 +115,7 @@ fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                         let mut the_type = None;
                         ts_type_attr.parse_nested_meta(|meta| {
                             the_type = Some(meta.path.to_token_stream());
-                            return Ok(());
+                            Ok(())
                         })?;
                         if let Some(the_type) = the_type {
                             the_type
@@ -130,7 +130,7 @@ fn typescriptable_impl(input: &DeriveInput) -> syn::Result<TokenStream> {
                                 if meta.path.is_ident("serialize_with") || meta.path.is_ident("deserialize_with") {
                                     has_de_serialize_with = true;
                                 }
-                                return Ok(());
+                                Ok(())
                             })?;
                             if has_de_serialize_with {
                                 return Err(Error::new(serde_attr.span(), r#"`serde` attribute macro `serialize_with` or `deserialize_with` requires `ts_type` attribute macro to clarify type"#))
