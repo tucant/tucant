@@ -14,6 +14,7 @@ pub enum RootType {
 }
 
 impl RootType {
+    #[allow(unused, clippy::needless_pass_by_value)]
     fn execute(&self, _data: BigUint) {
         match self {
             Self::Eval => {}
@@ -54,10 +55,7 @@ impl AnyData for Bool {
 
 impl From<Bool> for BigUint {
     fn from(value: Bool) -> Self {
-        Self::from(match value.0 {
-            true => 0u8,
-            false => 1u8,
-        })
+        Self::from(u8::from(value.0))
     }
 }
 
@@ -65,7 +63,8 @@ pub struct I64(i64);
 
 impl From<I64> for BigUint {
     fn from(value: I64) -> Self {
-        Self::from(TryInto::<u64>::try_into(i128::from(value.0) - i128::from(i64::MIN)).unwrap())
+        #[allow(clippy::cast_sign_loss)]
+        Self::from(value.0 as u64)
     }
 }
 
@@ -85,9 +84,9 @@ impl From<Ast> for BigUint {
     fn from(value: Ast) -> Self {
         let (_base, _data): (u8, Self) = match value {
             Ast::Number(v) => (0, I64(v).into()),
-            Ast::String(_v) => (1, todo!()),
-            Ast::Identifier(_v) => (2, todo!()),
-            Ast::List(_v) => (3, todo!()),
+            Ast::String(_v) => todo!(),
+            Ast::Identifier(_v) => todo!(),
+            Ast::List(_v) => todo!(),
         };
         todo!()
     }
@@ -218,6 +217,6 @@ mod tests {
         let value = parse(&mut span.peekable()).unwrap();
         println!("{value:?}");
 
-        RootType::Eval.execute(value.0.into())
+        RootType::Eval.execute(value.0.into());
     }
 }
