@@ -49,7 +49,7 @@ pub struct Authenticated {
 }
 
 #[derive(Clone)]
-pub struct Tucan<State = Unauthenticated> {
+pub struct Tucan<State: Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
@@ -64,7 +64,7 @@ impl std::fmt::Debug for Tucan {
 }
 
 impl Tucan<Unauthenticated> {
-    pub fn new() -> anyhow::Result<Tucan<Unauthenticated>> {
+    pub fn new() -> anyhow::Result<Self> {
         let pool = create_pool();
 
         let url = Url::parse("https://localhost:9200")?;
@@ -75,7 +75,7 @@ impl Tucan<Unauthenticated> {
             .build()?;
         let opensearch = OpenSearch::new(transport);
 
-        Ok(Tucan {
+        Ok(Self {
             pool,
             client: reqwest::Client::builder().build()?,
             semaphore: Arc::new(Semaphore::new(3)),
@@ -85,7 +85,7 @@ impl Tucan<Unauthenticated> {
     }
 }
 
-impl<State> Tucan<State> {
+impl<State: Sync + Send> Tucan<State> {
     #[must_use]
     pub fn continue_session(&self, session: TucanSession) -> Tucan<Authenticated> {
         Tucan {
