@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use num_bigint::BigUint;
 use num_integer::Integer;
 
-use crate::parser::{parse, Ast, TokenizerBuilder};
+use crate::parser::{Ast, TokenizerBuilder, parse};
 
 pub enum RootType {
     AddFunction,
