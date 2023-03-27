@@ -233,11 +233,11 @@ async fn login_hack(
             BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
-        tucant::url::TucanProgram::Mlsstart(_)=> Redirect::to("http://localhost:5173/"),
-        other=> {
+        tucant::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
+        other => {
             println!("unknown redirect for {:?}", other);
             Redirect::to("http://localhost:5173/")
-        },
+        }
     };
 
     Ok((cookie_jar, url).into_response())
