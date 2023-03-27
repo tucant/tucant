@@ -2,6 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::io::{stdout, Write};
+
+use base64::{
+    engine::{
+        general_purpose::{NO_PAD, PAD},
+        GeneralPurpose,
+    },
+    prelude::*,
+};
 use tucant::tucan::Tucan;
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test
@@ -14,16 +23,7 @@ fn main() -> anyhow::Result<()> {
             env_logger::init();
 
             let tucan = Tucan::new()?;
-            let tucan = tucan
-                .login(
-                    &std::env::var("TUCAN_USERNAME").unwrap(),
-                    &std::env::var("TUCAN_PASSWORD").unwrap(),
-                )
-                .await?;
-
-            let exams = tucan.my_exams().await?;
-
-            println!("{exams:#?}");
+            //let vv = tucan.vv().await?;
 
             Ok(())
         })
