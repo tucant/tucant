@@ -13,9 +13,7 @@ import { TucanUrlLink } from "../components/TucanUrlLink";
 export default function Module() {
   const { id } = useParams();
 
-  const { data } = useSWR(["course", id ?? ""], {
-    fetcher: ([_, id]) => module(id),
-  });
+  const { data } = useSWR(["course", id ?? ""], ([_, id]) => module(id));
 
   if (data === null) {
     return <SignOut />;

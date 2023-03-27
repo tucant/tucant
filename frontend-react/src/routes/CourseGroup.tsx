@@ -11,9 +11,9 @@ import { TucanUrlLink } from "../components/TucanUrlLink";
 export default function CourseGroupRoute() {
   const { id } = useParams();
 
-  const { data } = useSWR(["course-group", id ?? ""], {
-    fetcher: ([_, id]) => course_group(id),
-  });
+  const { data } = useSWR(["course-group", id ?? ""], ([_, id]) =>
+    course_group(id),
+  );
 
   if (data === null) {
     return <SignOut />;

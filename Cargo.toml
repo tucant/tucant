@@ -2,29 +2,13 @@
 members = ["backend-rust", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
 resolver = "2"
 
+# synced with https://github.com/weiznich/diesel_async/blob/main/Cargo.toml#L53
 [patch.crates-io]
-diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
-diesel_derives = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
-diesel_migrations = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
-
-postgres-protocol = { git = "https://github.com/sfackler/rust-postgres" }
-postgres-types = { git = "https://github.com/sfackler/rust-postgres" }
-tokio-postgres = { git = "https://github.com/sfackler/rust-postgres" }
-reqwest = { git = "https://github.com/mohe2015/reqwest", branch = "update-cookie-store-v0.19" }
-opensearch = { git = "https://github.com/Xtansia/opensearch-rs", branch = "update/base64-0.21" }
-scraper = { git = "https://github.com/causal-agent/scraper", branch = "dependabot/cargo/cssparser-0.29" }
-html5ever = { git = "https://github.com/servo/html5ever" }
-selectors = { git = "https://github.com/mohe2015/servo", branch = "mohe2015-patch-1" }
-cssparser = { git = "https://github.com/servo/rust-cssparser", rev = "9f936c08dcd96e8c3fda914f5d3f5ec24aecd4db" }
-string_cache_codegen = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
-string_cache = { git = "https://github.com/mohe2015/string-cache", branch = "mohe2015-patch-1" }
-cookie = { git = "https://github.com/mohe2015/cookie-rs", branch = "base64ct" }
+diesel = { git = "https://github.com/diesel-rs//diesel", rev = "b878fed" }
 
 # https://github.com/rust-lang/cargo/issues/5478
 [patch.'https://github.com/diesel-rs/diesel.git']
-diesel = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
-diesel_derives = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
-diesel_migrations = { git = "https://github.com/diesel-rs//diesel.git", rev = "8b68099ac41a5b2ca8a8e9075a0b9f2372704f50" }
+diesel = { git = "https://github.com/diesel-rs//diesel", rev = "b878fed" }
 
 # TODO FIXME do we need to add this to every subcrate?
 [profile.dev]

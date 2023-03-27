@@ -13,9 +13,7 @@ import { Link } from "../Navigation";
 export default function CourseRoute() {
   const { id } = useParams();
 
-  const { data } = useSWR(["course", id ?? ""], {
-    fetcher: ([_, id]) => course(id),
-  });
+  const { data } = useSWR(["course", id ?? ""], ([_, id]) => course(id));
 
   if (data === null) {
     return <SignOut />;

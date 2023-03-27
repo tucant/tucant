@@ -46,7 +46,7 @@ use reqwest::header::ACCEPT;
 use reqwest::header::AUTHORIZATION;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::Method;
-use reqwest::StatusCode;
+
 use s_course::course;
 use s_get_modules::get_modules;
 use s_module::module;
@@ -59,6 +59,7 @@ use s_search_module::search_module;
 use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
+
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
 
@@ -232,9 +233,10 @@ async fn login_hack(
             BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
         )),
         tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
+        tucant::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
         other => {
-            println!("{other:?}");
-            return Ok(StatusCode::NOT_FOUND.into_response());
+            println!("unknown redirect for {:?}", other);
+            Redirect::to("http://localhost:5173/")
         }
     };
 

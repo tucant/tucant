@@ -9,9 +9,7 @@ import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
 export default function MyCourses() {
-  const { data } = useSWR("my-courses", {
-    fetcher: () => my_courses(null),
-  });
+  const { data } = useSWR("my-courses", () => my_courses(null));
 
   if (data === null) {
     return <SignOut />;

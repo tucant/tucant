@@ -35,7 +35,7 @@ pub fn extract_keys<const N: usize>(
     let result = keys.map(|key| {
         let corresponding_value = map.remove(&LitStrOrd(LitStr::new(key, Span::call_site())));
         corresponding_value
-            .ok_or_else(|| syn::Error::new(brace.span, format!("Could not find key {key}")))
+            .ok_or_else(|| syn::Error::new(brace.span.join(), format!("Could not find key {key}")))
     });
     if result.iter().any(Result::is_err) || !map.is_empty() {
         let unexpected_keys = map.into_iter().map(|key| {

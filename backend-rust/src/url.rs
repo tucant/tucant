@@ -272,6 +272,7 @@ fn string<'a>(
 #[allow(clippy::module_name_repetitions)]
 #[must_use]
 pub fn parse_tucan_url(url: &str) -> TucanUrl {
+    // TODO FIXME don't panic here as we use this for our login hack
     let url = Url::parse(url).unwrap();
     assert_eq!(
         url.origin(),
@@ -375,7 +376,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             let program = TucanProgram::Moduledetails(Moduledetails {
                 id: number(&mut arguments).to_be_bytes().to_vec(),
             });
-            string(&mut arguments);
+            assert!(matches!(
+                arguments.next(),
+                None | Some(TucanArgument::String(_))
+            ));
             program
         }
         "COURSEDETAILS" => {

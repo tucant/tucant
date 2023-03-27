@@ -24,6 +24,6 @@ serde           = { default-features = false, features = [ "alloc", "std", "deri
 
 [build-dependencies]
 debug-adapter-protocol-macro-impl = { default-features = false, path = "../debug-adapter-protocol-macro-impl" }
-prettyplease                      = { default-features = false, version = "0.1" }
-syn                               = { default-features = false, version = "1" }
+prettyplease                      = { default-features = false, version = "0.2" }
+syn                               = { default-features = false, version = "2" }
 proc-macro2                       = { default-features = false, version = "1" }

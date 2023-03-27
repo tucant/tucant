@@ -217,7 +217,7 @@ impl TryFrom<(Brace, BTreeMap<LitStrOrd, JSONValue>)> for DefinitionType {
         } else if map.contains_key(&LitStrOrd(LitStr::new("oneOf", Span::call_site()))) {
             map.try_into().map(Self::OneOf)
         } else {
-            Err(syn::Error::new(brace.span, "Unknown definition"))
+            Err(syn::Error::new(brace.span.join(), "Unknown definition"))
         }
     }
 }
