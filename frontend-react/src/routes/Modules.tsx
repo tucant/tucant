@@ -13,9 +13,7 @@ import SignOut from "./Logout";
 export default function Modules() {
   const { id } = useParams();
 
-  const { data } = useSWR(["module_menu", id ?? null], {
-    fetcher: ([_, id]) => get_modules(id),
-  });
+  const { data } = useSWR(["module_menu", id ?? null], ([_, id]) => get_modules(id));
 
   if (data === null) {
     return <SignOut />;

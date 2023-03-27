@@ -10,9 +10,7 @@ import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
 export default function MyExams() {
-  const { data } = useSWR("my-exams", {
-    fetcher: () => my_exams(null),
-  });
+  const { data } = useSWR("my-exams", () => my_exams(null));
 
   if (data === null) {
     return <SignOut />;

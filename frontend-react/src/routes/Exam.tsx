@@ -13,9 +13,7 @@ import { formatLocalDate } from "../api_base";
 export default function Exam() {
   const { id } = useParams();
 
-  const { data } = useSWR(["exam", id ?? ""], {
-    fetcher: ([_, id]) => exam(id),
-  });
+  const { data } = useSWR(["exam", id ?? ""], ([_, id]) => exam(id));
 
   if (data === null) {
     return <SignOut />;

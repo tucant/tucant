@@ -9,9 +9,7 @@ import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
 export default function MyModules() {
-  const { data } = useSWR("my-modules", {
-    fetcher: () => my_modules(null),
-  });
+  const { data } = useSWR("my-modules", () => my_modules(null));
 
   if (data === null) {
     return <SignOut />;
