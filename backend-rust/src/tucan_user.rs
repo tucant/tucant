@@ -13,7 +13,7 @@ use crate::{
         ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    tucan::{Authenticated, Tucan},
+    tucan::{s, Authenticated, Tucan},
     url::{
         parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
         Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
@@ -54,10 +54,6 @@ use diesel::QueryDsl;
 use log::debug;
 use scraper::Selector;
 
-fn s(selector: &str) -> Selector {
-    Selector::parse(selector).unwrap()
-}
-
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
 }
@@ -93,39 +89,6 @@ impl Tucan<Authenticated> {
             .replace_all(string, "-")
             .trim_matches('-')
             .to_lowercase()
-    }
-
-    pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
-        let cookie = format!("cnsc={}", self.state.session.session_id);
-
-        let mut request = self
-            .client
-            .get(url.to_tucan_url(Some(self.state.session.session_nr.try_into().unwrap())))
-            .build()
-            .unwrap();
-
-        request
-            .headers_mut()
-            .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
-
-        let permit = self.semaphore.clone().acquire_owned().await?;
-        let resp = self.client.execute(request).await?.text().await?;
-        drop(permit);
-
-        Ok(resp)
-    }
-
-    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
-        let html_doc = Html::parse_document(resp);
-
-        if html_doc
-            .select(&s("h1"))
-            .any(|s| s.inner_html() == "Timeout!")
-        {
-            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
-            // TODO FIXME propagate error better
-        }
-        Ok(html_doc)
     }
 
     async fn cached_module(

@@ -7,6 +7,7 @@ use std::{
     sync::Arc,
 };
 
+use axum::http::HeaderValue;
 use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
@@ -18,12 +19,13 @@ use opensearch::{
     OpenSearch,
 };
 use reqwest::{Client, Url};
+use scraper::{Html, Selector};
 use tokio::sync::Semaphore;
 
 use crate::{
     models::{TucanSession, UndoneUser},
     schema::{sessions, users_unfinished},
-    url::{parse_tucan_url, TucanUrl},
+    url::{parse_tucan_url, Externalpages, TucanProgram, TucanUrl},
 };
 
 use dotenvy::dotenv;
@@ -40,16 +42,32 @@ fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPg
     Pool::builder(config).build().unwrap()
 }
 
+pub trait GetTucanSession {
+    fn session(&self) -> Option<&TucanSession>;
+}
+
 #[derive(Clone)]
 pub struct Unauthenticated;
+
+impl GetTucanSession for Unauthenticated {
+    fn session(&self) -> Option<&TucanSession> {
+        None
+    }
+}
 
 #[derive(Clone)]
 pub struct Authenticated {
     pub session: TucanSession,
 }
 
+impl GetTucanSession for Authenticated {
+    fn session(&self) -> Option<&TucanSession> {
+        Some(&self.session)
+    }
+}
+
 #[derive(Clone)]
-pub struct Tucan<State: Sync + Send = Unauthenticated> {
+pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
@@ -77,7 +95,9 @@ impl Tucan<Unauthenticated> {
 
         Ok(Self {
             pool,
-            client: reqwest::Client::builder().build()?,
+            client: reqwest::Client::builder()
+                .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
+                .build()?,
             semaphore: Arc::new(Semaphore::new(3)),
             opensearch,
             state: Unauthenticated,
@@ -85,7 +105,73 @@ impl Tucan<Unauthenticated> {
     }
 }
 
-impl<State: Sync + Send> Tucan<State> {
+pub fn s(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap()
+}
+
+impl<State: GetTucanSession + Sync + Send> Tucan<State> {
+    pub async fn vv(&self) -> anyhow::Result<()> {
+        let document = self
+            .fetch_document(&TucanProgram::Externalpages(Externalpages {
+                id: 344,
+                name: "welcome".to_string(),
+            }))
+            .await?;
+        let document = Self::parse_document(&document)?;
+
+        let vv_link = document
+            .select(&s("a"))
+            .find(|e| e.inner_html() == "Vorlesungsverzeichnis (VV)")
+            .unwrap()
+            .value()
+            .attr("href")
+            .unwrap();
+
+        println!("{}", vv_link);
+
+        Ok(())
+    }
+
+    pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
+        let mut request = self
+            .client
+            .get(
+                url.to_tucan_url(
+                    self.state
+                        .session()
+                        .map(|session| session.session_nr.try_into().unwrap()),
+                ),
+            )
+            .build()
+            .unwrap();
+
+        self.state.session().map(|session| {
+            request.headers_mut().insert(
+                "Cookie",
+                HeaderValue::from_str(&format!("cnsc={}", session.session_id)).unwrap(),
+            );
+        });
+
+        let permit = self.semaphore.clone().acquire_owned().await?;
+        let resp = self.client.execute(request).await?.text().await?;
+        drop(permit);
+
+        Ok(resp)
+    }
+
+    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
+        let html_doc = Html::parse_document(resp);
+
+        if html_doc
+            .select(&s("h1"))
+            .any(|s| s.inner_html() == "Timeout!")
+        {
+            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
+            // TODO FIXME propagate error better
+        }
+        Ok(html_doc)
+    }
+
     #[must_use]
     pub fn continue_session(&self, session: TucanSession) -> Tucan<Authenticated> {
         Tucan {

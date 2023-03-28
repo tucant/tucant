@@ -21,8 +21,8 @@ pub struct StartpageDispatch;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Externalpages {
-    id: u64,
-    name: String,
+    pub id: u64,
+    pub name: String,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -177,7 +177,10 @@ impl TucanProgram {
                 Box::new(std::iter::once(TucanArgument::Number(339))),
             ),
             Self::StartpageDispatch(_) => todo!(),
-            Self::Externalpages(_) => todo!(),
+            Self::Externalpages(Externalpages { id, name }) => (
+                "EXTERNALPAGES",
+                Box::new([TucanArgument::Number(*id), TucanArgument::String(name)].into_iter()),
+            ),
             Self::Examdetails(Examdetails { id }) => {
                 let mut a = id.chunks(std::mem::size_of::<u64>());
                 (

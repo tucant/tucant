@@ -13,8 +13,8 @@ fn main() -> anyhow::Result<()> {
         .block_on(async {
             env_logger::init();
 
-            let _tucan = Tucan::new()?;
-            //let vv = tucan.vv().await?;
+            let tucan = Tucan::new()?;
+            let vv = tucan.vv().await?;
 
             Ok(())
         })
