@@ -130,6 +130,21 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         println!("{vv_link}");
 
+        let vv_program =
+            parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{}", vv_link)).program;
+
+        let document = self.fetch_document(&vv_program).await?;
+
+        println!("{}", vv_program.to_tucan_url(None));
+
+        println!("{document}");
+
+        let document = Self::parse_document(&document)?;
+
+        for registration in document.select(&s("#auditRegistration_list")) {
+            println!("{}", registration.inner_html());
+        }
+
         Ok(())
     }
 

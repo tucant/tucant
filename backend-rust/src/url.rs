@@ -80,6 +80,11 @@ pub struct Courseprep {
     pub id: i64,
 }
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+pub struct Action {
+    pub magic: String,
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone, TryInto, From)]
 pub enum TucanProgram {
     Mlsstart(Mlsstart),
@@ -99,6 +104,7 @@ pub enum TucanProgram {
     Persaddress(Persaddress),
     Examdetails(Examdetails),
     Courseprep(Courseprep),
+    Action(Action),
 }
 
 impl TucanProgram {
@@ -206,6 +212,10 @@ impl TucanProgram {
                     ]
                     .into_iter(),
                 ),
+            ),
+            Self::Action(Action { magic }) => (
+                "ACTION",
+                Box::new(std::iter::once(TucanArgument::String(magic))),
             ),
         };
         let args = args.format(",");
@@ -433,6 +443,9 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                 id: id.try_into().unwrap(),
             })
         }
+        "ACTION" => TucanProgram::Action(Action {
+            magic: string(&mut arguments).to_string(),
+        }),
         other => {
             panic!("invalid appname: {other}");
         }
