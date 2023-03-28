@@ -12,6 +12,8 @@ use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
+use futures::{stream::FuturesUnordered, StreamExt};
+use itertools::Itertools;
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -25,7 +27,7 @@ use tokio::sync::Semaphore;
 use crate::{
     models::{TucanSession, UndoneUser},
     schema::{sessions, users_unfinished},
-    url::{parse_tucan_url, Externalpages, TucanProgram, TucanUrl},
+    url::{parse_tucan_url, Action, Externalpages, TucanProgram, TucanUrl},
 };
 
 use dotenvy::dotenv;
@@ -96,6 +98,7 @@ impl Tucan<Unauthenticated> {
         Ok(Self {
             pool,
             client: reqwest::Client::builder()
+                .connection_verbose(true)
                 .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
                 .build()?,
             semaphore: Arc::new(Semaphore::new(3)),
@@ -128,22 +131,47 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .attr("href")
             .unwrap();
 
-        println!("{vv_link}");
-
         let vv_program =
             parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{}", vv_link)).program;
 
-        let document = self.fetch_document(&vv_program).await?;
+        self.action(vv_program).await
+    }
 
-        println!("{}", vv_program.to_tucan_url(None));
-
-        println!("{document}");
-
-        let document = Self::parse_document(&document)?;
-
-        for registration in document.select(&s("#auditRegistration_list")) {
-            println!("{}", registration.inner_html());
+    #[async_recursion::async_recursion]
+    pub async fn action(&self, url: TucanProgram) -> anyhow::Result<()> {
+        if let TucanProgram::Action(Action { magic }) = &url {
+            println!("{}", magic)
         }
+
+        let registrations = {
+            let document = self.fetch_document(&url).await?;
+
+            let document = Self::parse_document(&document)?;
+
+            document
+                .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
+                .map(|registration| {
+                    //println!("{}", registration.inner_html());
+
+                    parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        registration.value().attr("href").unwrap()
+                    ))
+                    .program
+                })
+                .collect_vec()
+        };
+
+        let results = registrations
+            .into_iter()
+            .map(|url| async { self.action(url).await })
+            .collect::<FuturesUnordered<_>>();
+
+        let results: Vec<anyhow::Result<()>> = results.collect().await;
+
+        let results: anyhow::Result<Vec<()>> = results.into_iter().collect();
+
+        let results = results?;
 
         Ok(())
     }
