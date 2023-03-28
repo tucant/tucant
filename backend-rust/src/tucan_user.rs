@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::{
-    convert::TryInto,
-};
+use std::convert::TryInto;
 
 use crate::{
     models::{
@@ -51,7 +49,6 @@ use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use log::debug;
-
 
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
