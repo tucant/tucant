@@ -4,7 +4,6 @@
 
 use std::{
     convert::TryInto,
-    io::{Error, ErrorKind},
 };
 
 use crate::{
@@ -32,7 +31,7 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use reqwest::header::HeaderValue;
+
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
@@ -52,7 +51,7 @@ use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use log::debug;
-use scraper::Selector;
+
 
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()

@@ -105,7 +105,7 @@ impl Tucan<Unauthenticated> {
     }
 }
 
-pub fn s(selector: &str) -> Selector {
+#[must_use] pub fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()
 }
 
@@ -127,7 +127,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .attr("href")
             .unwrap();
 
-        println!("{}", vv_link);
+        println!("{vv_link}");
 
         Ok(())
     }
@@ -145,12 +145,10 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .build()
             .unwrap();
 
-        self.state.session().map(|session| {
-            request.headers_mut().insert(
+        if let Some(session) = self.state.session() { request.headers_mut().insert(
                 "Cookie",
                 HeaderValue::from_str(&format!("cnsc={}", session.session_id)).unwrap(),
-            );
-        });
+            ); }
 
         let permit = self.semaphore.clone().acquire_owned().await?;
         let resp = self.client.execute(request).await?.text().await?;

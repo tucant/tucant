@@ -14,7 +14,7 @@ fn main() -> anyhow::Result<()> {
             env_logger::init();
 
             let tucan = Tucan::new()?;
-            let vv = tucan.vv().await?;
+            tucan.vv().await?;
 
             Ok(())
         })
