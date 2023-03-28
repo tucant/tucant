@@ -15,6 +15,7 @@ use base64::{
 use permute::permutations_of;
 
 fn main() -> anyhow::Result<()> {
+    // https://cryptii.com/
     let tmp = [
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         "abcdefghijklmnopqrstuvwxyz",
@@ -41,14 +42,13 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         })();
         if res.is_ok() {
-            println!("\n\n\n\n{}\n\n", alphabet);
+            println!("\n{}", alphabet);
             let file = File::open("base64.txt").unwrap();
             let lines = io::BufReader::new(file).lines();
 
             for line in lines {
                 let result = engine.decode(line?.trim_end_matches("_"))?;
                 stdout().write(&result)?;
-                println!("\n\n");
             }
         }
     }
