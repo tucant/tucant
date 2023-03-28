@@ -53,29 +53,8 @@ rand                    = { default-features = false, features = [ "default", "s
 tucant_derive_lib       = { default-features = false, path = "../backend-rust-derive-lib" }
 diesel_migrations       = { default-features = false, version = "2" }
 async-recursion         = { default-features = false, version = "1" }
+permute = "0.2.1"
 
 [features]
 default = ["server"]
-server = [
-"tokio",
-"scraper",
-"ego-tree",
-"futures",
-"diesel",
-"diesel-async",
-"dotenvy",
-"anyhow",
-"regex",
-"serde_json",
-"async-stream",
-"deadpool",
-"url",
-"log",
-"env_logger",
-"derive_more",
-"itertools",
-"either",
-"once_cell",
-"diesel_full_text_search",
-"tucant_derive",
-"file-lock"]
+server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]

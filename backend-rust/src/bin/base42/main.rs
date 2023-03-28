@@ -12,23 +12,36 @@ use base64::{
     engine::{self, general_purpose},
     Engine,
 };
+use permute::permutations_of;
 
 fn main() -> anyhow::Result<()> {
-    let file = File::open("base64.txt").unwrap();
-    // Read the file line by line, and return an iterator of the lines of the file.
-    let lines = io::BufReader::new(file).lines();
+    let tmp = [
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "abcdefghijklmnopqrstuvwxyz",
+        "123456789",
+        "0",
+        "~",
+        "-",
+    ];
 
-    let custom: Alphabet = base64::alphabet::Alphabet::new(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~-",
-    )
-    .unwrap();
+    for permutation in permutations_of(&tmp) {
+        (|| -> anyhow::Result<()> {
+            let custom: Alphabet =
+                base64::alphabet::Alphabet::new(&permutation.cloned().collect::<String>()).unwrap();
 
-    let engine: engine::GeneralPurpose =
-        engine::GeneralPurpose::new(&custom, general_purpose::NO_PAD);
+            let engine: engine::GeneralPurpose =
+                engine::GeneralPurpose::new(&custom, general_purpose::NO_PAD);
 
-    for line in lines {
-        let result = engine.decode(line?.trim_end_matches("_"))?;
-        stdout().write(&result)?;
+            let file = File::open("base64.txt").unwrap();
+            // Read the file line by line, and return an iterator of the lines of the file.
+            let lines = io::BufReader::new(file).lines();
+
+            for line in lines {
+                let result = engine.decode(line?.trim_end_matches("_"))?;
+                stdout().write(&result)?;
+            }
+            Ok(())
+        })();
     }
 
     Ok(())
