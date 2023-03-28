@@ -132,7 +132,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .unwrap();
 
         let vv_program =
-            parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{}", vv_link)).program;
+            parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{vv_link}")).program;
 
         self.action(vv_program).await
     }
@@ -140,7 +140,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     #[async_recursion::async_recursion]
     pub async fn action(&self, url: TucanProgram) -> anyhow::Result<()> {
         if let TucanProgram::Action(Action { magic }) = &url {
-            println!("{}", magic)
+            println!("{magic}")
         }
 
         let registrations = {
@@ -171,7 +171,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         let results: anyhow::Result<Vec<()>> = results.into_iter().collect();
 
-        let results = results?;
+        let _results = results?;
 
         Ok(())
     }
