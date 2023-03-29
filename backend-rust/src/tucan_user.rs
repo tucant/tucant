@@ -285,7 +285,6 @@ impl Tucan<Authenticated> {
                     start_time_column.inner_html(),
                     end_time_column.inner_html()
                 );
-                println!("{val}");
                 let date = Self::parse_datetime(&val);
                 let room = room_column
                     .select(&s("a"))
@@ -651,8 +650,6 @@ impl Tucan<Authenticated> {
 
         let is_course_group =
             element_by_selector(&Self::parse_document(&document)?, "form h1 + h2").is_some();
-
-        println!("is_course_group {is_course_group}");
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup({
