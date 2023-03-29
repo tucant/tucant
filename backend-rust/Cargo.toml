@@ -27,7 +27,7 @@ diesel                  = { default-features = false, version = "2", features = 
 diesel-async            = { default-features = false, git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"], optional = true }
 dotenvy                 = { default-features = false, version = "0.15", optional = true }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1", optional = true }
-regex                   = { default-features = false, features = [ "std" ], version = "1", optional = true}
+regex                   = { default-features = false, features = [ "std", "unicode" ], version = "1", optional = true}
 axum                    = { default-features = false, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
 axum-extra              = { default-features = false, version = "0.7", features = [ "cookie", "cookie-private" ] }
 tower-http              = { default-features = false, version = "0.4", features = [ "cors" ] }

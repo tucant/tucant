@@ -23,7 +23,8 @@ export function ModuleList({ listData }: ModuleListProps) {
             className="list-group-item list-group-item-action"
             to={`/module/${String(e[0]?.tucan_id)}`}
           >
-            {e[0]?.title}
+            {e[0]?.title}  <span className="badge rounded-pill text-bg-primary">{`${e[0].credits ?? 0
+              } Credits`}</span>
           </Link>
         ))}
       </div>
