@@ -4,6 +4,8 @@
 
 import useSWR from "swr";
 import { my_modules } from "../api";
+import { ModuleEntry } from "../components/ModuleEntry";
+import { ModuleList } from "../components/ModuleList";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
@@ -23,13 +25,7 @@ export default function MyModules() {
           <>
             <TucanUrlLink data={data} />
             {data.inner.map((e) => (
-              <Link
-                key={e.tucan_id}
-                className="list-group-item list-group-item-action"
-                to={`/module/${e.tucan_id}`}
-              >
-                {e.title}
-              </Link>
+              <ModuleEntry module={e}></ModuleEntry>
             ))}
           </>
         )}

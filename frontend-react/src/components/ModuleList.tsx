@@ -1,5 +1,6 @@
 import { ModuleMenuResponse } from "../api";
 import { Link } from "../Navigation";
+import { ModuleEntry } from "./ModuleEntry";
 
 type ModuleListProps = { listData: ModuleMenuResponse };
 export function ModuleList({ listData }: ModuleListProps) {
@@ -18,14 +19,7 @@ export function ModuleList({ listData }: ModuleListProps) {
       </div>
       <div className="list-group">
         {listData.entries.modules_and_courses.map((e) => (
-          <Link
-            key={e[0]?.tucan_id}
-            className="list-group-item list-group-item-action"
-            to={`/module/${String(e[0]?.tucan_id)}`}
-          >
-            {e[0]?.title}  <span className="badge rounded-pill text-bg-primary">{`${e[0].credits ?? 0
-              } Credits`}</span>
-          </Link>
+          <ModuleEntry module={e[0]}></ModuleEntry>
         ))}
       </div>
     </>
