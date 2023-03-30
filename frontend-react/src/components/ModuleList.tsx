@@ -20,13 +20,11 @@ export function ModuleList({ listData }: ModuleListProps) {
         ))}
       </div>
       <div className="list-group">
-        {// @ts-expect-error typings bug
+        {
           listData.entries.modules_and_courses.map((e) => (<Fragment key={e[0].tucan_id}>
             <ModuleEntry module={e[0]}></ModuleEntry>
             {
-              e[1].map((c) => {
-                <CourseEntry c={c}></CourseEntry>
-              })
+              //e[1].map((c) => <CourseEntry c={c}></CourseEntry>)
             }
           </Fragment>
           ))}
