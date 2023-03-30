@@ -15,6 +15,8 @@ use base64::{
 use permute::permutations_of;
 
 fn main() -> anyhow::Result<()> {
+    // Somewhere the html code (on VV -> Übersicht -> SB Mechanik) it says "Zurueck-Button, verschluesselt"
+
     // https://cryptii.com/
     let tmp = [
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ",

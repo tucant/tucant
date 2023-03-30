@@ -8,10 +8,12 @@ use std::{
 };
 
 use axum::http::HeaderValue;
+use chrono::Utc;
 use deadpool::managed::Pool;
 
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
+use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use opensearch::{
@@ -21,13 +23,13 @@ use opensearch::{
     OpenSearch,
 };
 use reqwest::{Client, Url};
-use scraper::{Html, Selector};
+use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
 use crate::{
-    models::{TucanSession, UndoneUser},
+    models::{Course, TucanSession, UndoneUser},
     schema::{sessions, users_unfinished},
-    url::{parse_tucan_url, Action, Externalpages, TucanProgram, TucanUrl},
+    url::{parse_tucan_url, Action, Coursedetails, Externalpages, TucanProgram, TucanUrl},
 };
 
 use dotenvy::dotenv;
@@ -137,41 +139,126 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         self.action(vv_program).await
     }
 
+    pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
+        document
+            .select(&s(r#"a[name="eventLink"]"#))
+            .map(|e| e.parent().unwrap().parent().unwrap())
+            .unique_by(NodeRef::id)
+            .map(|node| {
+                let element_ref = ElementRef::wrap(node).unwrap();
+                let selector = &s("a");
+                let mut links = element_ref.select(selector);
+                Course {
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    course_id: links.next().unwrap().inner_html(),
+                    title: links.next().unwrap().inner_html(),
+                    tucan_id: TryInto::<Coursedetails>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            links.next().unwrap().value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                    .id,
+                    sws: 0,
+                    content: String::new(),
+                    done: false,
+                }
+            })
+            .collect::<Vec<_>>()
+    }
+
     #[async_recursion::async_recursion]
     pub async fn action(&self, url: TucanProgram) -> anyhow::Result<()> {
-        if let TucanProgram::Action(Action { magic }) = &url {
+        /*if let TucanProgram::Action(Action { magic }) = &url {
             println!("{magic}")
+        }*/
+        match &url {
+            TucanProgram::Action(Action { magic }) => {}
+            url => {
+                println!("{:?}", url);
+            }
         }
 
-        let registrations = {
-            let document = self.fetch_document(&url).await?;
+        let document = self.fetch_document(&url).await?;
 
+        let (registration_list, course_list) = {
             let document = Self::parse_document(&document)?;
 
-            document
-                .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
-                .map(|registration| {
-                    //println!("{}", registration.inner_html());
-
-                    parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        registration.value().attr("href").unwrap()
-                    ))
-                    .program
-                })
-                .collect_vec()
+            (
+                document
+                    .select(&s("#auditRegistration_list"))
+                    .next()
+                    .is_some(),
+                document
+                    .select(&s("div.tb div.tbhead"))
+                    .next()
+                    .map(|e| e.inner_html() == "Veranstaltungen / Module")
+                    .unwrap_or(false),
+            )
         };
 
-        let results = registrations
-            .into_iter()
-            .map(|url| async { self.action(url).await })
-            .collect::<FuturesUnordered<_>>();
+        if registration_list {
+            let registrations = {
+                let document = Self::parse_document(&document)?;
 
-        let results: Vec<anyhow::Result<()>> = results.collect().await;
+                document
+                    .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
+                    .map(|registration| {
+                        //println!("{}", registration.inner_html());
 
-        let results: anyhow::Result<Vec<()>> = results.into_iter().collect();
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            registration.value().attr("href").unwrap()
+                        ))
+                        .program
+                    })
+                    .collect_vec()
+            };
 
-        let _results = results?;
+            let results = registrations
+                .into_iter()
+                .map(|url| async { self.action(url).await })
+                .collect::<FuturesUnordered<_>>();
+
+            let results: Vec<anyhow::Result<()>> = results.collect().await;
+
+            let results: anyhow::Result<Vec<()>> = results.into_iter().collect();
+
+            let _results = results?;
+        } else if course_list {
+            let document = Self::parse_document(&document)?;
+
+            let courses = document
+                .select(&s(r#"a[name="eventLink"]"#))
+                .map(|node| {
+                    let course_id_title = node.inner_html();
+                    let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
+                    Course {
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        course_id: course_id.to_string(),
+                        title: title.to_string(),
+                        tucan_id: TryInto::<Coursedetails>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                node.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .id,
+                        sws: 0,
+                        content: String::new(),
+                        done: false,
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            println!("{:?}", courses);
+        } else {
+            panic!("unknown url {:?}", url.to_tucan_url(None));
+        }
 
         Ok(())
     }

@@ -157,33 +157,7 @@ impl Tucan<Authenticated> {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let courses = document
-                .select(&s(r#"a[name="eventLink"]"#))
-                .map(|e| e.parent().unwrap().parent().unwrap())
-                .unique_by(NodeRef::id)
-                .map(|node| {
-                    let element_ref = ElementRef::wrap(node).unwrap();
-                    let selector = &s("a");
-                    let mut links = element_ref.select(selector);
-                    Course {
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        course_id: links.next().unwrap().inner_html(),
-                        title: links.next().unwrap().inner_html(),
-                        tucan_id: TryInto::<Coursedetails>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                links.next().unwrap().value().attr("href").unwrap()
-                            ))
-                            .program,
-                        )
-                        .unwrap()
-                        .id,
-                        sws: 0,
-                        content: String::new(),
-                        done: false,
-                    }
-                })
-                .collect::<Vec<_>>();
+            let courses = Self::parse_courses(&document);
 
             let module = Module {
                 tucan_id: url.clone().id,
