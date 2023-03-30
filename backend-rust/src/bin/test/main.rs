@@ -14,7 +14,9 @@ fn main() -> anyhow::Result<()> {
             env_logger::init();
 
             let tucan = Tucan::new()?;
-            tucan.vv().await?;
+            let courses = tucan.vv().await?;
+            println!("{:?}", courses);
+            println!("{}", courses.len());
 
             Ok(())
         })

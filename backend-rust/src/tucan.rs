@@ -29,7 +29,10 @@ use tokio::sync::Semaphore;
 use crate::{
     models::{Course, TucanSession, UndoneUser},
     schema::{sessions, users_unfinished},
-    url::{parse_tucan_url, Action, Coursedetails, Externalpages, TucanProgram, TucanUrl},
+    url::{
+        parse_tucan_url, Action, Coursedetails, Externalpages, Moduledetails, TucanProgram,
+        TucanUrl,
+    },
 };
 
 use dotenvy::dotenv;
@@ -116,7 +119,7 @@ pub fn s(selector: &str) -> Selector {
 }
 
 impl<State: GetTucanSession + Sync + Send> Tucan<State> {
-    pub async fn vv(&self) -> anyhow::Result<()> {
+    pub async fn vv(&self) -> anyhow::Result<Vec<Course>> {
         let document = self
             .fetch_document(&TucanProgram::Externalpages(Externalpages {
                 id: 344,
@@ -170,17 +173,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     }
 
     #[async_recursion::async_recursion]
-    pub async fn action(&self, url: TucanProgram) -> anyhow::Result<()> {
-        /*if let TucanProgram::Action(Action { magic }) = &url {
-            println!("{magic}")
-        }*/
-        match &url {
-            TucanProgram::Action(Action { magic }) => {}
-            url => {
-                println!("{:?}", url);
-            }
-        }
-
+    pub async fn action(&self, url: TucanProgram) -> anyhow::Result<Vec<Course>> {
         let document = self.fetch_document(&url).await?;
 
         let (registration_list, course_list) = {
@@ -222,45 +215,52 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .map(|url| async { self.action(url).await })
                 .collect::<FuturesUnordered<_>>();
 
-            let results: Vec<anyhow::Result<()>> = results.collect().await;
+            let results: Vec<anyhow::Result<_>> = results.collect().await;
 
-            let results: anyhow::Result<Vec<()>> = results.into_iter().collect();
+            let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
 
-            let _results = results?;
+            let results: Vec<Course> = results?.into_iter().flatten().collect();
+
+            Ok(results)
         } else if course_list {
             let document = Self::parse_document(&document)?;
 
             let courses = document
                 .select(&s(r#"a[name="eventLink"]"#))
-                .map(|node| {
-                    let course_id_title = node.inner_html();
-                    let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
-                    Course {
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        course_id: course_id.to_string(),
-                        title: title.to_string(),
-                        tucan_id: TryInto::<Coursedetails>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                node.value().attr("href").unwrap()
-                            ))
-                            .program,
-                        )
-                        .unwrap()
-                        .id,
-                        sws: 0,
-                        content: String::new(),
-                        done: false,
+                .flat_map(|node| {
+                    match parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        node.value().attr("href").unwrap()
+                    ))
+                    .program {
+                        TucanProgram::Coursedetails(Coursedetails { id }) => {
+                            let course_id_title = node.inner_html();
+                            let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
+                            vec![Course {
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                course_id: course_id.to_string(),
+                                title: title.to_string(),
+                                tucan_id: id,
+                                sws: 0,
+                                content: String::new(),
+                                done: false,
+                            }]
+                        }
+                        TucanProgram::Moduledetails(Moduledetails { id }) => {
+                            // Don't handle as there is one in the whole thing
+                            //println!("module on {}", url.to_tucan_url(None));
+                            vec![]
+                        }
+                        _ => {
+                            panic!();
+                        }
                     }
                 })
                 .collect::<Vec<_>>();
-
-            println!("{:?}", courses);
+            Ok(courses)
         } else {
             panic!("unknown url {:?}", url.to_tucan_url(None));
         }
-
-        Ok(())
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
