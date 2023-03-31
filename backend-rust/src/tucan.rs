@@ -263,6 +263,303 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         }
     }
 
+    async fn cached_action(
+        &self,
+        url: Action,
+    ) -> anyhow::Result<Option<(ModuleMenu, crate::models::Registration)>> {
+        use diesel_async::RunQueryDsl;
+
+        // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
+        // also you can get multiple courses per module
+        // you can also get no module but courses (I think we currently don't return these, NEVER FIX THIS BULLSHIT)
+        // maybe return highest row for each course_id
+
+        let mut connection = self.pool.get().await?;
+
+        let existing_registration_already_fetched = module_menu_unfinished::table
+            .filter(module_menu_unfinished::tucan_id.eq(&url.path))
+            .filter(module_menu_unfinished::done)
+            .get_result::<ModuleMenu>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(module_menu) = existing_registration_already_fetched {
+            debug!("[~] menu {:?}", module_menu);
+
+            // existing submenus
+            let submenus = module_menu_unfinished::table
+                .select(module_menu_unfinished::all_columns)
+                .filter(module_menu_unfinished::parent.eq(&url.path))
+                .load::<ModuleMenu>(&mut connection)
+                .await?;
+
+            // existing submodules
+            let submodules: Vec<Module> = module_menu_module::table
+                .inner_join(modules_unfinished::table)
+                .select(MODULES_UNFINISHED)
+                .filter(module_menu_module::module_menu_id.eq(&url.path))
+                .load::<Module>(&mut connection)
+                .await?;
+
+            // TODO FIXME maybe only return the latest course for courses with same course_id
+            let module_courses: Vec<(ModuleCourse, Course)> =
+                ModuleCourse::belonging_to(&submodules)
+                    .inner_join(courses_unfinished::table)
+                    .select((
+                        (module_courses::module, module_courses::course),
+                        COURSES_UNFINISHED,
+                    ))
+                    .load::<(ModuleCourse, Course)>(&mut connection)
+                    .await?;
+            let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
+                module_courses.grouped_by(&submodules);
+            let modules_and_courses: Vec<(Module, Vec<Course>)> = submodules
+                .into_iter()
+                .zip(grouped_module_courses)
+                .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect::<Vec<_>>()))
+                .collect();
+
+            Ok(Some((
+                module_menu,
+                crate::models::Registration {
+                    submenus,
+                    modules_and_courses,
+                },
+            )))
+        } else {
+            Ok(None)
+        }
+    }
+
+    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::unused_peekable)]
+    pub async fn fetch_action(&self, url: Action) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let mut connection = self.pool.get().await?;
+
+        let (module_menu, submenus, modules) = {
+            let document = Self::parse_document(&document)?;
+
+            let (_name, module_menu) = {
+                let url_element = document
+                    .select(&s("h2 a"))
+                    .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
+                    .last()
+                    .unwrap();
+
+                (
+                    url_element.inner_html(),
+                    ModuleMenu {
+                        tucan_id: url.path.clone(),
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        name: url_element.inner_html(),
+                        done: false,
+                        parent: None,
+                    },
+                )
+            };
+
+            debug!("[+] menu {:?}", module_menu);
+
+            let selector = s("table.tbcoursestatus strong a[href]");
+
+            let a = document.select(&selector).fuse().peekable();
+
+            let d = a.batching(|f| {
+                let title = if f.peek()?.value().attr("name") == Some("eventLink") {
+                    None
+                } else {
+                    f.next()
+                };
+                let sub_elements: Vec<ElementRef> = f
+                    .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
+                    .collect();
+
+                Some((title, sub_elements))
+            });
+
+            let modules: Vec<(Module, Vec<Course>)> = d
+                .map(|e| {
+                    let module = e.0.map_or_else(
+                        || TUCANSCHEISS.clone(),
+                        |i| {
+                            let mut text = i.text();
+                            Module {
+                                tucan_id: TryInto::<Moduledetails>::try_into(
+                                    parse_tucan_url(&format!(
+                                        "https://www.tucan.tu-darmstadt.de{}",
+                                        i.value().attr("href").unwrap()
+                                    ))
+                                    .program,
+                                )
+                                .unwrap()
+                                .id,
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                module_id: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                title: text
+                                    .next()
+                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
+                                    .to_string(),
+                                credits: None,
+                                content: String::new(),
+                                done: false,
+                            }
+                        },
+                    );
+
+                    let courses =
+                        e.1.into_iter()
+                            .map(|course| {
+                                let mut text = course.text();
+
+                                Course {
+                                    tucan_id: TryInto::<Coursedetails>::try_into(
+                                        parse_tucan_url(&format!(
+                                            "https://www.tucan.tu-darmstadt.de{}",
+                                            course.value().attr("href").unwrap()
+                                        ))
+                                        .program,
+                                    )
+                                    .unwrap()
+                                    .id,
+                                    tucan_last_checked: Utc::now().naive_utc(),
+                                    course_id: text
+                                        .next()
+                                        .unwrap_or_else(|| {
+                                            panic!("{:?}", course.text().collect::<Vec<_>>())
+                                        })
+                                        .to_string(),
+                                    title: text
+                                        .next()
+                                        .unwrap_or_else(|| {
+                                            panic!("{:?}", course.text().collect::<Vec<_>>())
+                                        })
+                                        .to_string(),
+                                    sws: 0,
+                                    content: String::new(),
+                                    done: false,
+                                }
+                            })
+                            .collect::<Vec<_>>();
+
+                    (module, courses)
+                })
+                .collect();
+
+            let utc = Utc::now().naive_utc();
+            let submenus: Vec<ModuleMenu> = document
+                .select(&s("#contentSpacer_IE ul a[href]"))
+                .map(|e| {
+                    let child = TryInto::<Registration>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            e.value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                    .path;
+
+                    ModuleMenu {
+                        tucan_id: child,
+                        tucan_last_checked: utc,
+                        name: e.inner_html().trim().to_string(),
+                        done: false,
+                        parent: Some(url.path.clone()),
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            (module_menu, submenus, modules)
+        };
+
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&module_menu)
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
+            .get_result::<ModuleMenu>(&mut connection)
+            .await?;
+
+        diesel::insert_into(modules_unfinished::table)
+            .values(modules.iter().map(|m| &m.0).collect::<Vec<_>>())
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_menu_module::table)
+            .values(
+                modules
+                    .iter()
+                    .map(|m| &m.0)
+                    .map(|m| ModuleMenuEntryModule {
+                        module_id: m.tucan_id.clone(),
+                        module_menu_id: url.path.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(modules.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_courses::table)
+            .values(
+                modules
+                    .clone()
+                    .into_iter()
+                    .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
+                    .map(|m| ModuleCourse {
+                        module: m.0.tucan_id.clone(),
+                        course: m.1.tucan_id,
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict_do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_menu_unfinished::table)
+            .values(&submenus[..])
+            .on_conflict(module_menu_unfinished::tucan_id)
+            .do_update()
+            .set(module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)))
+            .execute(&mut connection)
+            .await?;
+
+        diesel::update(module_menu_unfinished::table)
+            .filter(module_menu_unfinished::tucan_id.eq(url.path.clone()))
+            .set(module_menu_unfinished::done.eq(true))
+            .execute(&mut connection)
+            .await?;
+
+        Ok(())
+    }
+
+    // caching is relatively useless as all urls when logged in are changing all the time. Only the vv links not logged in are static.
+    pub async fn action(
+        &self,
+        url: Registration,
+    ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
+        if let Some(value) = self.cached_registration(url.clone()).await? {
+            return Ok(value);
+        }
+
+        self.fetch_registration(url.clone()).await?;
+
+        Ok(self.cached_registration(url.clone()).await?.unwrap())
+    }
+
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
         let mut request = self
             .client
