@@ -2,6 +2,8 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
+DROP TABLE vv_menu_courses;
+DROP TABLE vv_menu_unfinished;
 DROP TABLE user_exams;
 DROP TABLE course_exams;
 DROP TABLE module_exams;
