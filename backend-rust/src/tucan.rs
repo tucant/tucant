@@ -28,7 +28,7 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{Course, TucanSession, UndoneUser},
-    schema::{sessions, users_unfinished},
+    schema::{courses_unfinished, sessions, users_unfinished},
     url::{
         parse_tucan_url, Action, Coursedetails, Externalpages, Moduledetails, TucanProgram,
         TucanUrl,
@@ -119,7 +119,7 @@ pub fn s(selector: &str) -> Selector {
 }
 
 impl<State: GetTucanSession + Sync + Send> Tucan<State> {
-    pub async fn vv(&self) -> anyhow::Result<Vec<Course>> {
+    pub async fn vv_root(&self) -> anyhow::Result<Vec<Course>> {
         let document = self
             .fetch_document(&TucanProgram::Externalpages(Externalpages {
                 id: 344,
@@ -139,7 +139,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let vv_program =
             parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{vv_link}")).program;
 
-        self.action(vv_program).await
+        self.vv(vv_program.try_into().unwrap()).await
     }
 
     pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
@@ -172,98 +172,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .collect::<Vec<_>>()
     }
 
-    #[async_recursion::async_recursion]
-    pub async fn action(&self, url: TucanProgram) -> anyhow::Result<Vec<Course>> {
-        let document = self.fetch_document(&url).await?;
-
-        let (registration_list, course_list) = {
-            let document = Self::parse_document(&document)?;
-
-            (
-                document
-                    .select(&s("#auditRegistration_list"))
-                    .next()
-                    .is_some(),
-                document
-                    .select(&s("div.tb div.tbhead"))
-                    .next()
-                    .map(|e| e.inner_html() == "Veranstaltungen / Module")
-                    .unwrap_or(false),
-            )
-        };
-
-        if registration_list {
-            let registrations = {
-                let document = Self::parse_document(&document)?;
-
-                document
-                    .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
-                    .map(|registration| {
-                        //println!("{}", registration.inner_html());
-
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            registration.value().attr("href").unwrap()
-                        ))
-                        .program
-                    })
-                    .collect_vec()
-            };
-
-            let results = registrations
-                .into_iter()
-                .map(|url| async { self.action(url).await })
-                .collect::<FuturesUnordered<_>>();
-
-            let results: Vec<anyhow::Result<_>> = results.collect().await;
-
-            let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
-
-            let results: Vec<Course> = results?.into_iter().flatten().collect();
-
-            Ok(results)
-        } else if course_list {
-            let document = Self::parse_document(&document)?;
-
-            let courses = document
-                .select(&s(r#"a[name="eventLink"]"#))
-                .flat_map(|node| {
-                    match parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        node.value().attr("href").unwrap()
-                    ))
-                    .program {
-                        TucanProgram::Coursedetails(Coursedetails { id }) => {
-                            let course_id_title = node.inner_html();
-                            let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
-                            vec![Course {
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                course_id: course_id.to_string(),
-                                title: title.to_string(),
-                                tucan_id: id,
-                                sws: 0,
-                                content: String::new(),
-                                done: false,
-                            }]
-                        }
-                        TucanProgram::Moduledetails(Moduledetails { id }) => {
-                            // Don't handle as there is one in the whole thing
-                            //println!("module on {}", url.to_tucan_url(None));
-                            vec![]
-                        }
-                        _ => {
-                            panic!();
-                        }
-                    }
-                })
-                .collect::<Vec<_>>();
-            Ok(courses)
-        } else {
-            panic!("unknown url {:?}", url.to_tucan_url(None));
-        }
-    }
-
-    async fn cached_action(
+    async fn cached_vv(
         &self,
         url: Action,
     ) -> anyhow::Result<Option<(ModuleMenu, crate::models::Registration)>> {
@@ -333,182 +242,127 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
-    pub async fn fetch_action(&self, url: Action) -> anyhow::Result<()> {
-        use diesel_async::RunQueryDsl;
+    pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
+        let document = self.fetch_document(&url.into()).await?;
 
-        let document = self.fetch_document(&url.clone().into()).await?;
-        let mut connection = self.pool.get().await?;
-
-        let (module_menu, submenus, modules) = {
+        let (registration_list, course_list) = {
             let document = Self::parse_document(&document)?;
 
-            let (_name, module_menu) = {
-                let url_element = document
-                    .select(&s("h2 a"))
-                    .filter(|e| e.inner_html() != "<!--$MG_DESCNAVI-->")
-                    .last()
-                    .unwrap();
+            (
+                document
+                    .select(&s("#auditRegistration_list"))
+                    .next()
+                    .is_some(),
+                document
+                    .select(&s("div.tb div.tbhead"))
+                    .next()
+                    .map(|e| e.inner_html() == "Veranstaltungen / Module")
+                    .unwrap_or(false),
+            )
+        };
 
-                (
-                    url_element.inner_html(),
-                    ModuleMenu {
-                        tucan_id: url.path.clone(),
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        name: url_element.inner_html(),
-                        done: false,
-                        parent: None,
-                    },
-                )
-            };
+        if registration_list {
+            let registrations = {
+                let document = Self::parse_document(&document)?;
 
-            debug!("[+] menu {:?}", module_menu);
+                document
+                    .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
+                    .map(|registration| {
+                        //println!("{}", registration.inner_html());
 
-            let selector = s("table.tbcoursestatus strong a[href]");
-
-            let a = document.select(&selector).fuse().peekable();
-
-            let d = a.batching(|f| {
-                let title = if f.peek()?.value().attr("name") == Some("eventLink") {
-                    None
-                } else {
-                    f.next()
-                };
-                let sub_elements: Vec<ElementRef> = f
-                    .peeking_take_while(|e| e.value().attr("name") == Some("eventLink"))
-                    .collect();
-
-                Some((title, sub_elements))
-            });
-
-            let modules: Vec<(Module, Vec<Course>)> = d
-                .map(|e| {
-                    let module = e.0.map_or_else(
-                        || TUCANSCHEISS.clone(),
-                        |i| {
-                            let mut text = i.text();
-                            Module {
-                                tucan_id: TryInto::<Moduledetails>::try_into(
-                                    parse_tucan_url(&format!(
-                                        "https://www.tucan.tu-darmstadt.de{}",
-                                        i.value().attr("href").unwrap()
-                                    ))
-                                    .program,
-                                )
-                                .unwrap()
-                                .id,
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                module_id: text
-                                    .next()
-                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                                    .to_string(),
-                                title: text
-                                    .next()
-                                    .unwrap_or_else(|| panic!("{:?}", i.text().collect::<Vec<_>>()))
-                                    .to_string(),
-                                credits: None,
-                                content: String::new(),
-                                done: false,
-                            }
-                        },
-                    );
-
-                    let courses =
-                        e.1.into_iter()
-                            .map(|course| {
-                                let mut text = course.text();
-
-                                Course {
-                                    tucan_id: TryInto::<Coursedetails>::try_into(
-                                        parse_tucan_url(&format!(
-                                            "https://www.tucan.tu-darmstadt.de{}",
-                                            course.value().attr("href").unwrap()
-                                        ))
-                                        .program,
-                                    )
-                                    .unwrap()
-                                    .id,
-                                    tucan_last_checked: Utc::now().naive_utc(),
-                                    course_id: text
-                                        .next()
-                                        .unwrap_or_else(|| {
-                                            panic!("{:?}", course.text().collect::<Vec<_>>())
-                                        })
-                                        .to_string(),
-                                    title: text
-                                        .next()
-                                        .unwrap_or_else(|| {
-                                            panic!("{:?}", course.text().collect::<Vec<_>>())
-                                        })
-                                        .to_string(),
-                                    sws: 0,
-                                    content: String::new(),
-                                    done: false,
-                                }
-                            })
-                            .collect::<Vec<_>>();
-
-                    (module, courses)
-                })
-                .collect();
-
-            let utc = Utc::now().naive_utc();
-            let submenus: Vec<ModuleMenu> = document
-                .select(&s("#contentSpacer_IE ul a[href]"))
-                .map(|e| {
-                    let child = TryInto::<Registration>::try_into(
                         parse_tucan_url(&format!(
                             "https://www.tucan.tu-darmstadt.de{}",
-                            e.value().attr("href").unwrap()
+                            registration.value().attr("href").unwrap()
                         ))
-                        .program,
-                    )
-                    .unwrap()
-                    .path;
+                        .program
+                    })
+                    .collect_vec()
+            };
 
-                    ModuleMenu {
-                        tucan_id: child,
-                        tucan_last_checked: utc,
-                        name: e.inner_html().trim().to_string(),
-                        done: false,
-                        parent: Some(url.path.clone()),
+            let results = registrations
+                .into_iter()
+                .map(|url| async { self.action(url).await })
+                .collect::<FuturesUnordered<_>>();
+
+            let results: Vec<anyhow::Result<_>> = results.collect().await;
+
+            let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
+
+            let results: Vec<Course> = results?.into_iter().flatten().collect();
+
+            use diesel_async::RunQueryDsl;
+
+            let mut connection = self.pool.get().await?;
+
+            diesel::insert_into(module_menu_unfinished::table)
+                .values(&module_menu)
+                .on_conflict(module_menu_unfinished::tucan_id)
+                .do_update()
+                .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
+                .get_result::<ModuleMenu>(&mut connection)
+                .await?;
+        } else if course_list {
+            let document = Self::parse_document(&document)?;
+
+            let courses = document
+                .select(&s(r#"a[name="eventLink"]"#))
+                .flat_map(|node| {
+                    match parse_tucan_url(&format!(
+                        "https://www.tucan.tu-darmstadt.de{}",
+                        node.value().attr("href").unwrap()
+                    ))
+                    .program {
+                        TucanProgram::Coursedetails(Coursedetails { id }) => {
+                            let course_id_title = node.inner_html();
+                            let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
+                            vec![Course {
+                                tucan_last_checked: Utc::now().naive_utc(),
+                                course_id: course_id.to_string(),
+                                title: title.to_string(),
+                                tucan_id: id,
+                                sws: 0,
+                                content: String::new(),
+                                done: false,
+                            }]
+                        }
+                        TucanProgram::Moduledetails(Moduledetails { id }) => {
+                            // Don't handle as there is one in the whole thing
+                            //println!("module on {}", url.to_tucan_url(None));
+                            vec![]
+                        }
+                        _ => {
+                            panic!();
+                        }
                     }
                 })
                 .collect::<Vec<_>>();
 
-            (module_menu, submenus, modules)
-        };
+            diesel::insert_into(courses_unfinished::table)
+                .values(courses.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
+                .on_conflict_do_nothing()
+                .execute(&mut connection)
+                .await?;
 
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&module_menu)
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
-            .get_result::<ModuleMenu>(&mut connection)
-            .await?;
-
+            diesel::insert_into(module_menu_module::table)
+                .values(
+                    modules
+                        .iter()
+                        .map(|m| &m.0)
+                        .map(|m| ModuleMenuEntryModule {
+                            module_id: m.tucan_id.clone(),
+                            module_menu_id: url.path.clone(),
+                        })
+                        .collect::<Vec<_>>(),
+                )
+                .on_conflict_do_nothing()
+                .execute(&mut connection)
+                .await?;
+        } else {
+            panic!("unknown url {:?}", url.to_tucan_url(None));
+        }
+        /*
         diesel::insert_into(modules_unfinished::table)
             .values(modules.iter().map(|m| &m.0).collect::<Vec<_>>())
-            .on_conflict_do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(module_menu_module::table)
-            .values(
-                modules
-                    .iter()
-                    .map(|m| &m.0)
-                    .map(|m| ModuleMenuEntryModule {
-                        module_id: m.tucan_id.clone(),
-                        module_menu_id: url.path.clone(),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict_do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(courses_unfinished::table)
-            .values(modules.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
             .on_conflict_do_nothing()
             .execute(&mut connection)
             .await?;
@@ -542,22 +396,23 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .set(module_menu_unfinished::done.eq(true))
             .execute(&mut connection)
             .await?;
+        */
 
         Ok(())
     }
 
     // caching is relatively useless as all urls when logged in are changing all the time. Only the vv links not logged in are static.
-    pub async fn action(
+    pub async fn vv(
         &self,
-        url: Registration,
+        url: Action,
     ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
-        if let Some(value) = self.cached_registration(url.clone()).await? {
+        if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
 
-        self.fetch_registration(url.clone()).await?;
+        self.fetch_vv(url.clone()).await?;
 
-        Ok(self.cached_registration(url.clone()).await?.unwrap())
+        Ok(self.cached_vv(url.clone()).await?.unwrap())
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
