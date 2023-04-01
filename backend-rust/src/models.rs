@@ -525,11 +525,11 @@ pub struct CourseGroupEvent {
 #[cfg_attr(feature = "server", diesel(table_name = vv_menu_unfinished))]
 #[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = parent)))]
 pub struct VVMenuItem {
-    tucan_id: String,
-    tucan_last_checked: NaiveDateTime,
-    name: String,
-    done: bool,
-    parent: Option<Vec<u8>>,
+    pub tucan_id: String,
+    pub tucan_last_checked: NaiveDateTime,
+    pub name: String,
+    pub done: bool,
+    pub parent: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -542,8 +542,8 @@ pub struct VVMenuItem {
 #[cfg_attr(feature = "server", diesel(belongs_to(Course)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = vv_menu_id)))]
 pub struct VVMenuCourses {
-    vv_menu_id: String,
-    course_id: Vec<u8>,
+    pub vv_menu_id: String,
+    pub course_id: Vec<u8>,
 }
 
 pub const MODULES_UNFINISHED: (

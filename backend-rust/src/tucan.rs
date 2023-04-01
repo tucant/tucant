@@ -28,7 +28,7 @@ use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
 use crate::{
-    models::{Course, TucanSession, UndoneUser, VVMenuItem, COURSES_UNFINISHED},
+    models::{Course, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED},
     schema::{courses_unfinished, sessions, users_unfinished, vv_menu_courses, vv_menu_unfinished},
     url::{
         parse_tucan_url, Action, Coursedetails, Externalpages, Moduledetails, TucanProgram,
@@ -173,7 +173,10 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .collect::<Vec<_>>()
     }
 
-    async fn cached_vv(&self, url: Action) -> anyhow::Result<Option<(VVMenuItem, Vec<Course>)>> {
+    async fn cached_vv(
+        &self,
+        url: Action,
+    ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)>> {
         use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
 
@@ -230,44 +233,53 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         };
 
         if registration_list {
-            let registrations = {
+            let vv_menus = {
                 let document = Self::parse_document(&document)?;
 
                 document
                     .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
-                    .map(|registration| {
-                        //println!("{}", registration.inner_html());
-
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            registration.value().attr("href").unwrap()
-                        ))
-                        .program
+                    .map(|registration| VVMenuItem {
+                        tucan_id: TryInto::<Action>::try_into(
+                            parse_tucan_url(&format!(
+                                "https://www.tucan.tu-darmstadt.de{}",
+                                registration.value().attr("href").unwrap()
+                            ))
+                            .program,
+                        )
+                        .unwrap()
+                        .magic,
+                        tucan_last_checked: Utc::now().naive_utc(),
+                        name: registration.inner_html(),
+                        done: false,
+                        parent: Some(url.magic.clone()),
                     })
                     .collect_vec()
             };
 
-            let results = registrations
+            let results = vv_menus
                 .into_iter()
-                .map(|url| async { self.action(url).await })
+                .map(|url| async {
+                    self.vv(Action {
+                        magic: url.tucan_id,
+                    })
+                    .await
+                })
                 .collect::<FuturesUnordered<_>>();
 
             let results: Vec<anyhow::Result<_>> = results.collect().await;
 
             let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
 
-            let results: Vec<Course> = results?.into_iter().flatten().collect();
+            let _: Vec<Course> = results?.into_iter().flatten().collect();
 
             use diesel_async::RunQueryDsl;
 
             let mut connection = self.pool.get().await?;
 
-            diesel::insert_into(module_menu_unfinished::table)
-                .values(&module_menu)
-                .on_conflict(module_menu_unfinished::tucan_id)
-                .do_update()
-                .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
-                .get_result::<ModuleMenu>(&mut connection)
+            diesel::insert_into(vv_menu_unfinished::table)
+                .values(&vv_menus)
+                .on_conflict_do_nothing() // TODO FIXME
+                .execute(&mut connection)
                 .await?;
         } else if course_list {
             let document = Self::parse_document(&document)?;
@@ -305,28 +317,23 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 })
                 .collect::<Vec<_>>();
 
-            diesel::insert_into(courses_unfinished::table)
-                .values(courses.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
-                .on_conflict_do_nothing()
-                .execute(&mut connection)
-                .await?;
+            let vv_courses = courses.iter().map(|course| VVMenuCourses {
+                vv_menu_id: url.magic.clone(),
+                course_id: course.tucan_id.clone(),
+            });
 
-            diesel::insert_into(module_menu_module::table)
-                .values(
-                    modules
-                        .iter()
-                        .map(|m| &m.0)
-                        .map(|m| ModuleMenuEntryModule {
-                            module_id: m.tucan_id.clone(),
-                            module_menu_id: url.path.clone(),
-                        })
-                        .collect::<Vec<_>>(),
-                )
-                .on_conflict_do_nothing()
+            use diesel_async::RunQueryDsl;
+
+            let mut connection = self.pool.get().await?;
+
+            diesel::insert_into(courses_unfinished::table)
+                .values(&courses)
+                .on_conflict(courses_unfinished::tucan_id)
+                .do_nothing()
                 .execute(&mut connection)
                 .await?;
         } else {
-            panic!("unknown url {:?}", url.to_tucan_url(None));
+            panic!("unknown url {:?}", url.into().to_tucan_url(None));
         }
         /*
         diesel::insert_into(modules_unfinished::table)

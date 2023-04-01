@@ -245,7 +245,7 @@ diesel::table! {
         tucan_last_checked -> Timestamptz,
         name -> Text,
         done -> Bool,
-        parent -> Nullable<Bytea>,
+        parent -> Nullable<Text>,
     }
 }
 
@@ -271,7 +271,6 @@ diesel::joinable!(user_modules -> modules_unfinished (module_id));
 diesel::joinable!(user_modules -> users_unfinished (user_id));
 diesel::joinable!(vv_menu_courses -> courses_unfinished (course_id));
 diesel::joinable!(vv_menu_courses -> vv_menu_unfinished (vv_menu_id));
-diesel::joinable!(vv_menu_unfinished -> module_menu_unfinished (parent));
 
 diesel::allow_tables_to_appear_in_same_query!(
     course_events,

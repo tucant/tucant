@@ -197,7 +197,7 @@ CREATE TABLE vv_menu_unfinished (
     name TEXT NOT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE,
     -- there is always only one parent
-    parent BYTEA REFERENCES module_menu_unfinished (tucan_id)
+    parent TEXT REFERENCES vv_menu_unfinished (tucan_id)
 );
 
 CREATE TABLE vv_menu_courses (
