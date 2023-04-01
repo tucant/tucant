@@ -303,7 +303,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
             let _: Vec<_> = results?;
         } else if course_list {
-            let courses = {
+            let (courses, vv_courses) = {
                 let document = Self::parse_document(&document)?;
 
                 let courses = document
@@ -346,7 +346,8 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                         course_id: course.tucan_id.clone(),
                     })
                     .collect();
-                courses
+
+                (courses, vv_courses)
             };
 
             let mut connection = self.pool.get().await?;
@@ -355,6 +356,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .values(&courses)
                 .on_conflict(courses_unfinished::tucan_id)
                 .do_nothing()
+                .execute(&mut connection)
+                .await?;
+
+            diesel::insert_into(vv_menu_courses::table)
+                .values(&vv_courses)
+                .on_conflict_do_nothing() // TODO FIXME
                 .execute(&mut connection)
                 .await?;
         } else {
