@@ -192,7 +192,7 @@ CREATE TABLE user_exams (
 );
 
 CREATE TABLE vv_menu_unfinished (
-    tucan_id BYTEA NOT NULL PRIMARY KEY,
+    tucan_id TEXT NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
     name TEXT NOT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE,
@@ -201,7 +201,7 @@ CREATE TABLE vv_menu_unfinished (
 );
 
 CREATE TABLE vv_menu_courses (
-    vv_menu_id BYTEA NOT NULL REFERENCES vv_menu_unfinished (tucan_id),
+    vv_menu_id TEXT NOT NULL REFERENCES vv_menu_unfinished (tucan_id),
     course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
     PRIMARY KEY (course_id, vv_menu_id)
 );

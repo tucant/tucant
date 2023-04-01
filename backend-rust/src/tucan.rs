@@ -16,6 +16,7 @@ use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConne
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
+use log::debug;
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -27,8 +28,8 @@ use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
 use crate::{
-    models::{Course, TucanSession, UndoneUser},
-    schema::{courses_unfinished, sessions, users_unfinished},
+    models::{Course, TucanSession, UndoneUser, VVMenuItem, COURSES_UNFINISHED},
+    schema::{courses_unfinished, sessions, users_unfinished, vv_menu_courses, vv_menu_unfinished},
     url::{
         parse_tucan_url, Action, Coursedetails, Externalpages, Moduledetails, TucanProgram,
         TucanUrl,
@@ -172,69 +173,36 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .collect::<Vec<_>>()
     }
 
-    async fn cached_vv(
-        &self,
-        url: Action,
-    ) -> anyhow::Result<Option<(ModuleMenu, crate::models::Registration)>> {
+    async fn cached_vv(&self, url: Action) -> anyhow::Result<Option<(VVMenuItem, Vec<Course>)>> {
+        use diesel::prelude::*;
         use diesel_async::RunQueryDsl;
-
-        // making this here 100% correct is probably not easy as you get different modules depending on when you registered for a module
-        // also you can get multiple courses per module
-        // you can also get no module but courses (I think we currently don't return these, NEVER FIX THIS BULLSHIT)
-        // maybe return highest row for each course_id
 
         let mut connection = self.pool.get().await?;
 
-        let existing_registration_already_fetched = module_menu_unfinished::table
-            .filter(module_menu_unfinished::tucan_id.eq(&url.path))
-            .filter(module_menu_unfinished::done)
-            .get_result::<ModuleMenu>(&mut connection)
+        let existing_registration_already_fetched = vv_menu_unfinished::table
+            .filter(vv_menu_unfinished::tucan_id.eq(&url.magic))
+            .filter(vv_menu_unfinished::done)
+            .get_result::<VVMenuItem>(&mut connection)
             .await
             .optional()?;
 
         if let Some(module_menu) = existing_registration_already_fetched {
             debug!("[~] menu {:?}", module_menu);
 
-            // existing submenus
-            let submenus = module_menu_unfinished::table
-                .select(module_menu_unfinished::all_columns)
-                .filter(module_menu_unfinished::parent.eq(&url.path))
-                .load::<ModuleMenu>(&mut connection)
+            let submenus = vv_menu_unfinished::table
+                .select(vv_menu_unfinished::all_columns)
+                .filter(vv_menu_unfinished::parent.eq(&url.magic))
+                .load::<VVMenuItem>(&mut connection)
                 .await?;
 
-            // existing submodules
-            let submodules: Vec<Module> = module_menu_module::table
-                .inner_join(modules_unfinished::table)
-                .select(MODULES_UNFINISHED)
-                .filter(module_menu_module::module_menu_id.eq(&url.path))
-                .load::<Module>(&mut connection)
+            let submodules: Vec<Course> = vv_menu_courses::table
+                .inner_join(courses_unfinished::table)
+                .select(COURSES_UNFINISHED)
+                .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
+                .load::<Course>(&mut connection)
                 .await?;
 
-            // TODO FIXME maybe only return the latest course for courses with same course_id
-            let module_courses: Vec<(ModuleCourse, Course)> =
-                ModuleCourse::belonging_to(&submodules)
-                    .inner_join(courses_unfinished::table)
-                    .select((
-                        (module_courses::module, module_courses::course),
-                        COURSES_UNFINISHED,
-                    ))
-                    .load::<(ModuleCourse, Course)>(&mut connection)
-                    .await?;
-            let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
-                module_courses.grouped_by(&submodules);
-            let modules_and_courses: Vec<(Module, Vec<Course>)> = submodules
-                .into_iter()
-                .zip(grouped_module_courses)
-                .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect::<Vec<_>>()))
-                .collect();
-
-            Ok(Some((
-                module_menu,
-                crate::models::Registration {
-                    submenus,
-                    modules_and_courses,
-                },
-            )))
+            todo!()
         } else {
             Ok(None)
         }

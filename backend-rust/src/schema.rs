@@ -231,7 +231,7 @@ diesel::table! {
     use diesel_full_text_search::*;
 
     vv_menu_courses (course_id, vv_menu_id) {
-        vv_menu_id -> Bytea,
+        vv_menu_id -> Text,
         course_id -> Bytea,
     }
 }
@@ -241,7 +241,7 @@ diesel::table! {
     use diesel_full_text_search::*;
 
     vv_menu_unfinished (tucan_id) {
-        tucan_id -> Bytea,
+        tucan_id -> Text,
         tucan_last_checked -> Timestamptz,
         name -> Text,
         done -> Bool,
