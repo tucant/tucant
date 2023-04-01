@@ -232,6 +232,9 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
+        use diesel::prelude::*;
+        use diesel_async::RunQueryDsl;
+
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
@@ -275,8 +278,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             };
 
             {
-                use diesel_async::RunQueryDsl;
-
                 let mut connection = self.pool.get().await?;
 
                 diesel::insert_into(vv_menu_unfinished::table)
@@ -348,8 +349,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 courses
             };
 
-            use diesel_async::RunQueryDsl;
-
             let mut connection = self.pool.get().await?;
 
             diesel::insert_into(courses_unfinished::table)
@@ -364,6 +363,14 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 Into::<TucanProgram>::into(url).to_tucan_url(None)
             );
         }
+
+        let mut connection = self.pool.get().await?;
+
+        diesel::update(vv_menu_unfinished::table)
+            .filter(vv_menu_unfinished::tucan_id.eq(url.magic.clone()))
+            .set(vv_menu_unfinished::done.eq(true))
+            .execute(&mut connection)
+            .await?;
 
         Ok(())
     }
