@@ -202,14 +202,14 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         let mut connection = self.pool.get().await?;
 
-        let existing_registration_already_fetched = vv_menu_unfinished::table
+        let existing_vv_menu_already_fetched = vv_menu_unfinished::table
             .filter(vv_menu_unfinished::tucan_id.eq(&url.magic))
             .filter(vv_menu_unfinished::done)
             .get_result::<VVMenuItem>(&mut connection)
             .await
             .optional()?;
 
-        if let Some(module_menu) = existing_registration_already_fetched {
+        if let Some(vv_menu) = existing_vv_menu_already_fetched {
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
@@ -223,7 +223,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .load::<Course>(&mut connection)
                 .await?;
 
-            todo!()
+            Ok(Some((vv_menu, submenus, submodules)))
         } else {
             Ok(None)
         }
