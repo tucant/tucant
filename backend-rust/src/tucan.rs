@@ -120,7 +120,7 @@ pub fn s(selector: &str) -> Selector {
 }
 
 impl<State: GetTucanSession + Sync + Send> Tucan<State> {
-    pub async fn vv_root(&self) -> anyhow::Result<Vec<Course>> {
+    pub async fn vv_root(&self) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
         let document = self
             .fetch_document(&TucanProgram::Externalpages(Externalpages {
                 id: 344,
@@ -214,7 +214,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
-        let document = self.fetch_document(&url.into()).await?;
+        let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
             let document = Self::parse_document(&document)?;
@@ -257,10 +257,10 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             };
 
             let results = vv_menus
-                .into_iter()
+                .iter()
                 .map(|url| async {
                     self.vv(Action {
-                        magic: url.tucan_id,
+                        magic: url.tucan_id.clone(),
                     })
                     .await
                 })
@@ -270,7 +270,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
             let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
 
-            let _: Vec<Course> = results?.into_iter().flatten().collect();
+            let _: Vec<_> = results?;
 
             use diesel_async::RunQueryDsl;
 
@@ -333,54 +333,21 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .execute(&mut connection)
                 .await?;
         } else {
-            panic!("unknown url {:?}", url.into().to_tucan_url(None));
+            panic!(
+                "unknown url {:?}",
+                Into::<TucanProgram>::into(url).to_tucan_url(None)
+            );
         }
-        /*
-        diesel::insert_into(modules_unfinished::table)
-            .values(modules.iter().map(|m| &m.0).collect::<Vec<_>>())
-            .on_conflict_do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(module_courses::table)
-            .values(
-                modules
-                    .clone()
-                    .into_iter()
-                    .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
-                    .map(|m| ModuleCourse {
-                        module: m.0.tucan_id.clone(),
-                        course: m.1.tucan_id,
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict_do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&submenus[..])
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)))
-            .execute(&mut connection)
-            .await?;
-
-        diesel::update(module_menu_unfinished::table)
-            .filter(module_menu_unfinished::tucan_id.eq(url.path.clone()))
-            .set(module_menu_unfinished::done.eq(true))
-            .execute(&mut connection)
-            .await?;
-        */
 
         Ok(())
     }
 
     // caching is relatively useless as all urls when logged in are changing all the time. Only the vv links not logged in are static.
+    #[async_recursion::async_recursion]
     pub async fn vv(
         &self,
         url: Action,
-    ) -> anyhow::Result<(ModuleMenu, crate::models::Registration)> {
+    ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
         if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
