@@ -137,10 +137,30 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .attr("href")
             .unwrap();
 
-        let vv_program =
-            parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{vv_link}")).program;
+        let vv_action: Action =
+            parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{vv_link}"))
+                .program
+                .try_into()
+                .unwrap();
 
-        self.vv(vv_program.try_into().unwrap()).await
+        {
+            use diesel_async::RunQueryDsl;
+
+            let mut connection = self.pool.get().await?;
+            diesel::insert_into(vv_menu_unfinished::table)
+                .values(VVMenuItem {
+                    tucan_id: vv_action.magic.clone(),
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    name: "unknown".to_string(),
+                    done: false,
+                    parent: None,
+                })
+                .on_conflict_do_nothing() // TODO FIXME
+                .execute(&mut connection)
+                .await?;
+        }
+
+        self.vv(vv_action).await
     }
 
     pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
@@ -190,8 +210,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .optional()?;
 
         if let Some(module_menu) = existing_registration_already_fetched {
-            debug!("[~] menu {:?}", module_menu);
-
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
@@ -256,6 +274,18 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     .collect_vec()
             };
 
+            {
+                use diesel_async::RunQueryDsl;
+
+                let mut connection = self.pool.get().await?;
+
+                diesel::insert_into(vv_menu_unfinished::table)
+                    .values(&vv_menus)
+                    .on_conflict_do_nothing() // TODO FIXME
+                    .execute(&mut connection)
+                    .await?;
+            }
+
             let results = vv_menus
                 .iter()
                 .map(|url| async {
@@ -271,20 +301,11 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
 
             let _: Vec<_> = results?;
-
-            use diesel_async::RunQueryDsl;
-
-            let mut connection = self.pool.get().await?;
-
-            diesel::insert_into(vv_menu_unfinished::table)
-                .values(&vv_menus)
-                .on_conflict_do_nothing() // TODO FIXME
-                .execute(&mut connection)
-                .await?;
         } else if course_list {
-            let document = Self::parse_document(&document)?;
+            let courses = {
+                let document = Self::parse_document(&document)?;
 
-            let courses = document
+                let courses = document
                 .select(&s(r#"a[name="eventLink"]"#))
                 .flat_map(|node| {
                     match parse_tucan_url(&format!(
@@ -317,10 +338,15 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 })
                 .collect::<Vec<_>>();
 
-            let vv_courses = courses.iter().map(|course| VVMenuCourses {
-                vv_menu_id: url.magic.clone(),
-                course_id: course.tucan_id.clone(),
-            });
+                let vv_courses: Vec<_> = courses
+                    .iter()
+                    .map(|course| VVMenuCourses {
+                        vv_menu_id: url.magic.clone(),
+                        course_id: course.tucan_id.clone(),
+                    })
+                    .collect();
+                courses
+            };
 
             use diesel_async::RunQueryDsl;
 
@@ -348,6 +374,8 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         &self,
         url: Action,
     ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
+        println!("vv {}", url.magic);
+
         if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
