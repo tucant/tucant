@@ -408,6 +408,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .session()
                 .map(|session| session.session_nr.try_into().unwrap()),
         );
+        println!("{url}");
         let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {
@@ -421,12 +422,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let resp = self.client.execute(request).await?.text().await?;
         drop(permit);
 
-        if resp.contains("access_denied.htm") {
-            return Err(Error::new(ErrorKind::Other, "access denied").into());
-        }
-
         if resp.contains("timeout.htm") {
             return Err(Error::new(ErrorKind::Other, "session timeout").into());
+        }
+
+        if resp.contains("access_denied.htm") {
+            return Err(Error::new(ErrorKind::Other, "access denied").into());
         }
 
         Ok(resp)

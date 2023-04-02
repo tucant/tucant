@@ -213,33 +213,39 @@ async fn login_hack(
             "session",
             serde_json::to_string(&tucan_user.state.session)?,
         ));
+
+        let url = match parse_tucan_url(&input.redirect).program {
+            tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
+                "http://localhost:5173/modules/{}",
+                BASE64_URL_SAFE_NO_PAD.encode(registration.path,)
+            )),
+            tucant::url::TucanProgram::RootRegistration(_) => {
+                Redirect::to("http://localhost:5173/modules/")
+            }
+            tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
+                "http://localhost:5173/module/{}",
+                BASE64_URL_SAFE_NO_PAD.encode(module_details.id,)
+            )),
+            tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
+                "http://localhost:5173/course/{}",
+                BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
+            )),
+            tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
+            tucant::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
+            other => {
+                println!("unknown redirect for {:?}", other);
+                Redirect::to("http://localhost:5173/")
+            }
+        };
+
+        Ok((cookie_jar, url).into_response())
+    } else {
+        Ok((
+            cookie_jar,
+            Redirect::to("http://localhost:5173/not-logged-into-tucan"),
+        )
+            .into_response())
     }
-
-    let url = match parse_tucan_url(&input.redirect).program {
-        tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
-            "http://localhost:5173/modules/{}",
-            BASE64_URL_SAFE_NO_PAD.encode(registration.path,)
-        )),
-        tucant::url::TucanProgram::RootRegistration(_) => {
-            Redirect::to("http://localhost:5173/modules/")
-        }
-        tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
-            "http://localhost:5173/module/{}",
-            BASE64_URL_SAFE_NO_PAD.encode(module_details.id,)
-        )),
-        tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
-            "http://localhost:5173/course/{}",
-            BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
-        )),
-        tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
-        tucant::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
-        other => {
-            println!("unknown redirect for {:?}", other);
-            Redirect::to("http://localhost:5173/")
-        }
-    };
-
-    Ok((cookie_jar, url).into_response())
 }
 
 #[ts]
