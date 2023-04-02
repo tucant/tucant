@@ -23,7 +23,7 @@ export default function MyModules() {
           <>
             <TucanUrlLink data={data} />
             {data.inner.map((e) => (
-              <ModuleEntry key={e.tucan_id} module={e}></ModuleEntry>
+              <ModuleEntry key={e.tucan_id} module={e} />
             ))}
           </>
         )}

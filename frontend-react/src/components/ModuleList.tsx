@@ -21,7 +21,7 @@ export function ModuleList({ listData }: ModuleListProps) {
       <div className="list-group">
         {listData.entries.modules_and_courses.map((e) => (
           <Fragment key={e[0].tucan_id}>
-            <ModuleEntry module={e[0]}></ModuleEntry>
+            <ModuleEntry module={e[0]} />
             {
               //e[1].map((c) => <CourseEntry c={c}></CourseEntry>)
             }

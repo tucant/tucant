@@ -138,6 +138,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .value()
                 .attr("href")
                 .unwrap()
+                .clone()
         };
 
         let vv_action: Action =
