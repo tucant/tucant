@@ -36,7 +36,7 @@ export default function SearchPage(props: {
     });
   };
 
-  const { data } = useSWR("[`search_${props.base_path}`, form.q]", ([_, q]) =>
+  const { data } = useSWR([`search_${props.base_path}`, form.q], ([_, q]) =>
     props.function(q),
   );
 
