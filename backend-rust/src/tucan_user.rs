@@ -2,10 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::{
-    convert::TryInto,
-    io::{Error, ErrorKind},
-};
+use std::convert::TryInto;
 
 use crate::{
     models::{
@@ -13,7 +10,7 @@ use crate::{
         ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    tucan::{Authenticated, Tucan},
+    tucan::{s, Authenticated, Tucan},
     url::{
         parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
         Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
@@ -26,13 +23,13 @@ use crate::{
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
-use ego_tree::NodeRef;
+
 use either::Either;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use reqwest::header::HeaderValue;
+
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
@@ -52,11 +49,6 @@ use diesel::GroupedBy;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use log::debug;
-use scraper::Selector;
-
-fn s(selector: &str) -> Selector {
-    Selector::parse(selector).unwrap()
-}
 
 fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
@@ -93,39 +85,6 @@ impl Tucan<Authenticated> {
             .replace_all(string, "-")
             .trim_matches('-')
             .to_lowercase()
-    }
-
-    pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
-        let cookie = format!("cnsc={}", self.state.session.session_id);
-
-        let mut request = self
-            .client
-            .get(url.to_tucan_url(Some(self.state.session.session_nr.try_into().unwrap())))
-            .build()
-            .unwrap();
-
-        request
-            .headers_mut()
-            .insert("Cookie", HeaderValue::from_str(&cookie).unwrap());
-
-        let permit = self.semaphore.clone().acquire_owned().await?;
-        let resp = self.client.execute(request).await?.text().await?;
-        drop(permit);
-
-        Ok(resp)
-    }
-
-    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
-        let html_doc = Html::parse_document(resp);
-
-        if html_doc
-            .select(&s("h1"))
-            .any(|s| s.inner_html() == "Timeout!")
-        {
-            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
-            // TODO FIXME propagate error better
-        }
-        Ok(html_doc)
     }
 
     async fn cached_module(
@@ -198,33 +157,7 @@ impl Tucan<Authenticated> {
                 .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
                 .inner_html();
 
-            let courses = document
-                .select(&s(r#"a[name="eventLink"]"#))
-                .map(|e| e.parent().unwrap().parent().unwrap())
-                .unique_by(NodeRef::id)
-                .map(|node| {
-                    let element_ref = ElementRef::wrap(node).unwrap();
-                    let selector = &s("a");
-                    let mut links = element_ref.select(selector);
-                    Course {
-                        tucan_last_checked: Utc::now().naive_utc(),
-                        course_id: links.next().unwrap().inner_html(),
-                        title: links.next().unwrap().inner_html(),
-                        tucan_id: TryInto::<Coursedetails>::try_into(
-                            parse_tucan_url(&format!(
-                                "https://www.tucan.tu-darmstadt.de{}",
-                                links.next().unwrap().value().attr("href").unwrap()
-                            ))
-                            .program,
-                        )
-                        .unwrap()
-                        .id,
-                        sws: 0,
-                        content: String::new(),
-                        done: false,
-                    }
-                })
-                .collect::<Vec<_>>();
+            let courses = Self::parse_courses(&document);
 
             let module = Module {
                 tucan_id: url.clone().id,
@@ -326,7 +259,6 @@ impl Tucan<Authenticated> {
                     start_time_column.inner_html(),
                     end_time_column.inner_html()
                 );
-                println!("{val}");
                 let date = Self::parse_datetime(&val);
                 let room = room_column
                     .select(&s("a"))
@@ -692,8 +624,6 @@ impl Tucan<Authenticated> {
 
         let is_course_group =
             element_by_selector(&Self::parse_document(&document)?, "form h1 + h2").is_some();
-
-        println!("is_course_group {is_course_group}");
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup({

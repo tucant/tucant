@@ -190,3 +190,18 @@ CREATE TABLE user_exams (
     exam BYTEA NOT NULL REFERENCES exams_unfinished (tucan_id),
     PRIMARY KEY (matriculation_number, exam)
 );
+
+CREATE TABLE vv_menu_unfinished (
+    tucan_id TEXT NOT NULL PRIMARY KEY,
+    tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
+    name TEXT NOT NULL,
+    done BOOLEAN NOT NULL DEFAULT FALSE,
+    -- there is always only one parent
+    parent TEXT REFERENCES vv_menu_unfinished (tucan_id)
+);
+
+CREATE TABLE vv_menu_courses (
+    vv_menu_id TEXT NOT NULL REFERENCES vv_menu_unfinished (tucan_id),
+    course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
+    PRIMARY KEY (course_id, vv_menu_id)
+);

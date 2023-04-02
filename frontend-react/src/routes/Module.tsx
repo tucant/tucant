@@ -13,7 +13,7 @@ import { TucanUrlLink } from "../components/TucanUrlLink";
 export default function Module() {
   const { id } = useParams();
 
-  const { data } = useSWR(["course", id ?? ""], ([_, id]) => module(id));
+  const { data } = useSWR(["module", id ?? ""], ([_, id]) => module(id));
 
   if (data === null) {
     return <SignOut />;
@@ -44,6 +44,7 @@ export default function Module() {
             data.inner.module.credits ?? 0
           } Credits`}</span>
           <TucanUrlLink data={data} />
+
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{

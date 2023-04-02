@@ -484,8 +484,10 @@ impl Server {
         self: Arc<Self>,
         notification: TextDocumentDidCloseNotification,
     ) -> anyhow::Result<()> {
-        let mut documents = self.documents.write().await;
-        documents.remove(&notification.params.text_document.uri);
+        self.documents
+            .write()
+            .await
+            .remove(&notification.params.text_document.uri);
 
         Ok(())
     }
@@ -754,8 +756,7 @@ impl Server {
             params: request,
         };
 
-        let mut pending = self.pending.write().await;
-        pending.insert(id.clone(), tx);
+        self.pending.write().await.insert(id.clone(), tx);
 
         let result = serde_json::to_string(&request)?;
 

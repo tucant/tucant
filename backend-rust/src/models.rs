@@ -34,7 +34,7 @@ use crate::schema::{
     course_events, course_exams, course_groups_events, course_groups_unfinished,
     courses_unfinished, exams_unfinished, module_courses, module_exams, module_menu_module,
     module_menu_unfinished, modules_unfinished, sessions, user_course_groups, user_courses,
-    user_exams, user_modules, users_unfinished,
+    user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -514,6 +514,36 @@ pub struct CourseGroupEvent {
     pub timestamp_end: NaiveDateTime,
     pub room: String,
     pub teachers: String,
+}
+
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = vv_menu_unfinished))]
+#[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = parent)))]
+pub struct VVMenuItem {
+    pub tucan_id: String,
+    pub tucan_last_checked: NaiveDateTime,
+    pub name: String,
+    pub done: bool,
+    pub parent: Option<String>,
+}
+
+#[derive(Serialize, Debug)]
+#[cfg_attr(
+    feature = "server",
+    derive(Associations, Identifiable, Queryable, Insertable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(vv_menu_id, course_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = vv_menu_courses))]
+#[cfg_attr(feature = "server", diesel(belongs_to(Course)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = vv_menu_id)))]
+pub struct VVMenuCourses {
+    pub vv_menu_id: String,
+    pub course_id: Vec<u8>,
 }
 
 pub const MODULES_UNFINISHED: (

@@ -226,6 +226,29 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    vv_menu_courses (course_id, vv_menu_id) {
+        vv_menu_id -> Text,
+        course_id -> Bytea,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use diesel_full_text_search::*;
+
+    vv_menu_unfinished (tucan_id) {
+        tucan_id -> Text,
+        tucan_last_checked -> Timestamptz,
+        name -> Text,
+        done -> Bool,
+        parent -> Nullable<Text>,
+    }
+}
+
 diesel::joinable!(course_events -> courses_unfinished (course));
 diesel::joinable!(course_exams -> courses_unfinished (course_id));
 diesel::joinable!(course_exams -> exams_unfinished (exam));
@@ -246,6 +269,8 @@ diesel::joinable!(user_exams -> exams_unfinished (exam));
 diesel::joinable!(user_exams -> users_unfinished (matriculation_number));
 diesel::joinable!(user_modules -> modules_unfinished (module_id));
 diesel::joinable!(user_modules -> users_unfinished (user_id));
+diesel::joinable!(vv_menu_courses -> courses_unfinished (course_id));
+diesel::joinable!(vv_menu_courses -> vv_menu_unfinished (vv_menu_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     course_events,
@@ -265,4 +290,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     user_exams,
     user_modules,
     users_unfinished,
+    vv_menu_courses,
+    vv_menu_unfinished,
 );
