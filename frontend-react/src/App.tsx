@@ -53,6 +53,12 @@ function App() {
                 <Route path="course-group/:id" element={<CourseGroup />} />
                 <Route path="exam/:id" element={<Exam />} />
                 <Route path="credits" element={<Credits />} />
+                <Route
+                  path="not-logged-into-tucan"
+                  element={
+                    "You are not logged into TUCaN! Use this login hack after you logged in."
+                  }
+                />
                 <Route index element={<Welcome />} />
                 <Route
                   path="*"

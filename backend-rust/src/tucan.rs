@@ -129,7 +129,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .await?;
 
         let vv_link = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             document
                 .select(&s("a"))
@@ -242,7 +242,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             (
                 document
@@ -258,7 +258,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         if registration_list {
             let vv_menus = {
-                let document = Self::parse_document(&document)?;
+                let document = Self::parse_document(&document);
 
                 document
                     .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
@@ -307,7 +307,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let _: Vec<_> = results?;
         } else if course_list {
             let (courses, vv_courses) = {
-                let document = Self::parse_document(&document)?;
+                let document = Self::parse_document(&document);
 
                 let courses = document
                 .select(&s(r#"a[name="eventLink"]"#))
@@ -403,17 +403,13 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
-        let mut request = self
-            .client
-            .get(
-                url.to_tucan_url(
-                    self.state
-                        .session()
-                        .map(|session| session.session_nr.try_into().unwrap()),
-                ),
-            )
-            .build()
-            .unwrap();
+        let url = url.to_tucan_url(
+            self.state
+                .session()
+                .map(|session| session.session_nr.try_into().unwrap()),
+        );
+        println!("{url}");
+        let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {
             request.headers_mut().insert(
@@ -426,20 +422,19 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let resp = self.client.execute(request).await?.text().await?;
         drop(permit);
 
+        if resp.contains("timeout.htm") {
+            return Err(Error::new(ErrorKind::Other, "session timeout").into());
+        }
+
+        if resp.contains("access_denied.htm") {
+            return Err(Error::new(ErrorKind::Other, "access denied").into());
+        }
+
         Ok(resp)
     }
 
-    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
-        let html_doc = Html::parse_document(resp);
-
-        if html_doc
-            .select(&s("h1"))
-            .any(|s| s.inner_html() == "Timeout!")
-        {
-            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
-            // TODO FIXME propagate error better
-        }
-        Ok(html_doc)
+    pub(crate) fn parse_document(resp: &str) -> Html {
+        Html::parse_document(resp)
     }
 
     #[must_use]

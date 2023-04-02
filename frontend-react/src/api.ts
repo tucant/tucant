@@ -137,6 +137,7 @@ export type ModuleMenuResponse =
 export type ModuleResponse =
 {
   module: Module,
+  courses: Course[],
   path: ModuleMenuPathPart[][],
 }
 export type Registration =

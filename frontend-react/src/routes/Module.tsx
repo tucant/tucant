@@ -9,6 +9,7 @@ import useSWR from "swr";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
 import { TucanUrlLink } from "../components/TucanUrlLink";
+import { CourseEntry } from "../components/CourseEntry";
 
 export default function Module() {
   const { id } = useParams();
@@ -44,6 +45,13 @@ export default function Module() {
             data.inner.module.credits ?? 0
           } Credits`}</span>
           <TucanUrlLink data={data} />
+
+          <h2>Courses</h2>
+          <div className="list-group">
+            {data.inner.courses.map((course) => {
+              return <CourseEntry key={course.tucan_id} c={course} />;
+            })}
+          </div>
 
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify

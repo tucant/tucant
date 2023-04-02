@@ -20,7 +20,6 @@ export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
   return (
     <NavLink
       onClick={(event) => {
-        event.preventDefault();
         startTransition(() => {
           internalOnClick(event);
         });

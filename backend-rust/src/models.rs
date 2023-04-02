@@ -143,6 +143,7 @@ pub struct ModuleMenuResponse {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct ModuleResponse {
     pub module: Module,
+    pub courses: Vec<Course>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 

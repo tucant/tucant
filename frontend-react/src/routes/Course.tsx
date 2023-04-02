@@ -28,6 +28,7 @@ export default function CourseRoute() {
             {data.inner[0].course_id} {data.inner[0].title}
           </h3>
           <TucanUrlLink data={data} />
+
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{
