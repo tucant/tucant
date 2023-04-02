@@ -39,7 +39,7 @@ fn main() -> anyhow::Result<()> {
             let lines = io::BufReader::new(file).lines();
 
             for line in lines {
-                let _ = engine.decode(line?.trim_end_matches("_"))?;
+                let _ = engine.decode(line?.trim_end_matches('_'))?;
             }
             Ok(())
         })();
@@ -49,8 +49,8 @@ fn main() -> anyhow::Result<()> {
             let lines = io::BufReader::new(file).lines();
 
             for line in lines {
-                let result = engine.decode(line?.trim_end_matches("_"))?;
-                stdout().write(&result)?;
+                let result = engine.decode(line?.trim_end_matches('_'))?;
+                stdout().write_all(&result)?;
             }
         }
     }

@@ -16,7 +16,7 @@ use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConne
 use ego_tree::NodeRef;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
-use log::debug;
+
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -127,15 +127,18 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 name: "welcome".to_string(),
             }))
             .await?;
-        let document = Self::parse_document(&document)?;
 
-        let vv_link = document
-            .select(&s("a"))
-            .find(|e| e.inner_html() == "Vorlesungsverzeichnis (VV)")
-            .unwrap()
-            .value()
-            .attr("href")
-            .unwrap();
+        let vv_link = {
+            let document = Self::parse_document(&document)?;
+
+            document
+                .select(&s("a"))
+                .find(|e| e.inner_html() == "Vorlesungsverzeichnis (VV)")
+                .unwrap()
+                .value()
+                .attr("href")
+                .unwrap()
+        };
 
         let vv_action: Action =
             parse_tucan_url(&format!("https://www.tucan.tu-darmstadt.de{vv_link}"))
@@ -197,7 +200,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         &self,
         url: Action,
     ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)>> {
-        use diesel::prelude::*;
+        use diesel::prelude::{ExpressionMethods, OptionalExtension, QueryDsl};
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -232,7 +235,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
-        use diesel::prelude::*;
+        use diesel::prelude::ExpressionMethods;
         use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&url.clone().into()).await?;
@@ -248,8 +251,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 document
                     .select(&s("div.tb div.tbhead"))
                     .next()
-                    .map(|e| e.inner_html() == "Veranstaltungen / Module")
-                    .unwrap_or(false),
+                    .map_or(false, |e| e.inner_html() == "Veranstaltungen / Module"),
             )
         };
 
@@ -316,7 +318,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     .program {
                         TucanProgram::Coursedetails(Coursedetails { id }) => {
                             let course_id_title = node.inner_html();
-                            let Some((course_id, title)) = course_id_title.split_once(" ") else {panic!()};
+                            let Some((course_id, title)) = course_id_title.split_once(' ') else {panic!()};
                             vec![Course {
                                 tucan_last_checked: Utc::now().naive_utc(),
                                 course_id: course_id.to_string(),
@@ -327,7 +329,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                                 done: false,
                             }]
                         }
-                        TucanProgram::Moduledetails(Moduledetails { id }) => {
+                        TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
                             // Don't handle as there is one in the whole thing
                             //println!("module on {}", url.to_tucan_url(None));
                             vec![]
