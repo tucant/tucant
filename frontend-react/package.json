@@ -17,23 +17,23 @@
     "eslint-plugin-react": "^7.32.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.9.0",
-    "swr": "^2.1.1"
+    "react-router-dom": "^6.10.0",
+    "swr": "^2.1.2"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
     "@types/dompurify": "^3.0.0",
-    "@types/react": "^18.0.30",
+    "@types/react": "^18.0.32",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "@vitejs/plugin-react-swc": "^3.2.0",
-    "eslint": "^8.36.0",
+    "eslint": "^8.37.0",
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "rome": "^11.0.0",
+    "rome": "^12.0.0",
     "sass": "^1.60.0",
-    "typescript": "^5.0.2",
+    "typescript": "^5.0.3",
     "vite": "^4.2.1"
   }
 }
