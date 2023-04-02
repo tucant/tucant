@@ -8,7 +8,7 @@ export function ModuleEntry({ module }: { module: Module }) {
       className="list-group-item list-group-item-action"
       to={`/module/${String(module.tucan_id)}`}
     >
-      {module.title}{" "}
+      [M] {module.title}{" "}
       <span className="badge rounded-pill text-bg-primary">{`${
         module.credits ?? 0
       } Credits`}</span>

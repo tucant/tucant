@@ -8,7 +8,7 @@ export function CourseEntry({ c }: { c: Course }) {
       className="list-group-item list-group-item-action"
       to={`/course/${c.tucan_id}`}
     >
-      {c.title}
+      [V] {c.title}
     </Link>
   );
 }

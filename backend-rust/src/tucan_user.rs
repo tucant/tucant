@@ -158,6 +158,7 @@ impl Tucan<Authenticated> {
                 .inner_html();
 
             let courses = Self::parse_courses(&document);
+            println!("{courses:?}");
 
             let module = Module {
                 tucan_id: url.clone().id,
