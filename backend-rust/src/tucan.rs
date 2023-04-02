@@ -403,17 +403,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
-        let mut request = self
-            .client
-            .get(
-                url.to_tucan_url(
-                    self.state
-                        .session()
-                        .map(|session| session.session_nr.try_into().unwrap()),
-                ),
-            )
-            .build()
-            .unwrap();
+        let url = url.to_tucan_url(
+            self.state
+                .session()
+                .map(|session| session.session_nr.try_into().unwrap()),
+        );
+        let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {
             request.headers_mut().insert(
@@ -426,19 +421,20 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let resp = self.client.execute(request).await?.text().await?;
         drop(permit);
 
+        if resp.contains("access_denied.htm") {
+            return Err(Error::new(ErrorKind::Other, "access denied").into());
+        }
+
+        if resp.contains("timeout.htm") {
+            return Err(Error::new(ErrorKind::Other, "session timeout").into());
+        }
+
         Ok(resp)
     }
 
     pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
         let html_doc = Html::parse_document(resp);
 
-        if html_doc
-            .select(&s("h1"))
-            .any(|s| s.inner_html() == "Timeout!")
-        {
-            return Err(Error::new(ErrorKind::Other, "well we got a timeout here. relogin").into());
-            // TODO FIXME propagate error better
-        }
         Ok(html_doc)
     }
 

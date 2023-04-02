@@ -643,6 +643,7 @@ impl Tucan<Authenticated> {
         // TODO FIXME cache this
 
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
+
         let document = Self::parse_document(&document)?;
 
         let url_element = document
