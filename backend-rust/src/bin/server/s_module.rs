@@ -40,8 +40,7 @@ pub async fn module(
         .module(Moduledetails {
             id: binary_path.clone(),
         })
-        .await?
-        .0;
+        .await?;
 
     let path_to_root: Vec<ModuleMenuPathPart> = sql_query(
             r#"
@@ -63,7 +62,8 @@ pub async fn module(
     let paths = calculate_paths(&path_to_root);
 
     let result = ModuleResponse {
-        module: result,
+        module: result.0,
+        courses: result.1,
         path: paths,
     };
 

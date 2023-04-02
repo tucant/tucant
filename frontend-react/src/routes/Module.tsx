@@ -40,10 +40,14 @@ export default function Module() {
               </ol>
             </nav>
           ))}
-          <span className="badge rounded-pill text-bg-primary">{`${
-            data.inner.module.credits ?? 0
-          } Credits`}</span>
+          <span className="badge rounded-pill text-bg-primary">{`${data.inner.module.credits ?? 0
+            } Credits`}</span>
           <TucanUrlLink data={data} />
+
+          <h2>Courses</h2>
+          {data.inner.courses.map(course => {
+            course.title
+          })}
 
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
