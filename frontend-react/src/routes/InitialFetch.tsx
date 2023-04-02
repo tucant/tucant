@@ -13,7 +13,6 @@ export default function InitialFetch() {
     useState<buttonVariantType>("primary");
   const setSuccess = (success: boolean | null) => {
     switch (success) {
-      default:
       case null:
         setButtonVariant("primary");
         break;
@@ -22,6 +21,9 @@ export default function InitialFetch() {
         break;
       case true:
         setButtonVariant("success");
+        break;
+      default:
+        setButtonVariant("primary");
         break;
     }
   };
