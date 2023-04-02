@@ -6,7 +6,6 @@ import useSWR from "swr";
 import { my_courses } from "../api";
 import { CourseOrCourseGroupEntry } from "../components/CourseOrCourseGroupEntry";
 import { TucanUrlLink } from "../components/TucanUrlLink";
-import { Link } from "../Navigation";
 import SignOut from "./Logout";
 
 export default function MyCourses() {
@@ -23,9 +22,12 @@ export default function MyCourses() {
         {data != null && (
           <>
             <TucanUrlLink data={data} />
-            {data.inner.map((e) =>
-              <CourseOrCourseGroupEntry key={e.value[0].tucan_id} c={e}></CourseOrCourseGroupEntry>
-            )}
+            {data.inner.map((e) => (
+              <CourseOrCourseGroupEntry
+                key={e.value[0].tucan_id}
+                c={e}
+              ></CourseOrCourseGroupEntry>
+            ))}
           </>
         )}
       </div>

@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import { ModuleMenuResponse } from "../api";
 import { Link } from "../Navigation";
-import { CourseEntry } from "./CourseEntry";
 import { ModuleEntry } from "./ModuleEntry";
 
 type ModuleListProps = { listData: ModuleMenuResponse };
@@ -20,14 +19,14 @@ export function ModuleList({ listData }: ModuleListProps) {
         ))}
       </div>
       <div className="list-group">
-        {
-          listData.entries.modules_and_courses.map((e) => (<Fragment key={e[0].tucan_id}>
+        {listData.entries.modules_and_courses.map((e) => (
+          <Fragment key={e[0].tucan_id}>
             <ModuleEntry module={e[0]}></ModuleEntry>
             {
               //e[1].map((c) => <CourseEntry c={c}></CourseEntry>)
             }
           </Fragment>
-          ))}
+        ))}
       </div>
     </>
   );

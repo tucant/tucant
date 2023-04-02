@@ -40,8 +40,9 @@ export default function Module() {
               </ol>
             </nav>
           ))}
-          <span className="badge rounded-pill text-bg-primary">{`${data.inner.module.credits ?? 0
-            } Credits`}</span>
+          <span className="badge rounded-pill text-bg-primary">{`${
+            data.inner.module.credits ?? 0
+          } Credits`}</span>
           <TucanUrlLink data={data} />
 
           <div
