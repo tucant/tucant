@@ -129,7 +129,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             .await?;
 
         let vv_link = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             document
                 .select(&s("a"))
@@ -242,7 +242,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             (
                 document
@@ -258,7 +258,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         if registration_list {
             let vv_menus = {
-                let document = Self::parse_document(&document)?;
+                let document = Self::parse_document(&document);
 
                 document
                     .select(&s("#auditRegistration_list li a.auditRegNodeLink"))
@@ -307,7 +307,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let _: Vec<_> = results?;
         } else if course_list {
             let (courses, vv_courses) = {
-                let document = Self::parse_document(&document)?;
+                let document = Self::parse_document(&document);
 
                 let courses = document
                 .select(&s(r#"a[name="eventLink"]"#))
@@ -433,10 +433,8 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         Ok(resp)
     }
 
-    pub(crate) fn parse_document(resp: &str) -> anyhow::Result<Html> {
-        let html_doc = Html::parse_document(resp);
-
-        Ok(html_doc)
+    pub(crate) fn parse_document(resp: &str) -> Html {
+        Html::parse_document(resp)
     }
 
     #[must_use]

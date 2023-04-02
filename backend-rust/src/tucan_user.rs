@@ -125,7 +125,7 @@ impl Tucan<Authenticated> {
         let mut connection = self.pool.get().await?;
 
         let (module, courses) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             let name = element_by_selector(&document, "h1").unwrap();
 
@@ -300,7 +300,7 @@ impl Tucan<Authenticated> {
         };
 
         let (course, course_groups, events) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             let name = element_by_selector(&document, "h1").unwrap_or_else(|| unwrap_handler());
 
@@ -412,7 +412,7 @@ impl Tucan<Authenticated> {
         use diesel_async::RunQueryDsl;
 
         let (course_group, events) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             let plenum_element = document
                 .select(&s(".img_arrowLeft"))
@@ -624,7 +624,7 @@ impl Tucan<Authenticated> {
         let connection = self.pool.get().await?;
 
         let is_course_group =
-            element_by_selector(&Self::parse_document(&document)?, "form h1 + h2").is_some();
+            element_by_selector(&Self::parse_document(&document), "form h1 + h2").is_some();
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup({
@@ -645,7 +645,7 @@ impl Tucan<Authenticated> {
 
         let document = self.fetch_document(&RootRegistration {}.into()).await?;
 
-        let document = Self::parse_document(&document)?;
+        let document = Self::parse_document(&document);
 
         let url_element = document
             .select(&s("h2 a"))
@@ -752,7 +752,7 @@ impl Tucan<Authenticated> {
         let mut connection = self.pool.get().await?;
 
         let (module_menu, submenus, modules) = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             let (_name, module_menu) = {
                 let url_element = document
@@ -1011,7 +1011,7 @@ impl Tucan<Authenticated> {
 
         let document = self.fetch_document(&Mymodules.clone().into()).await?;
         let my_modules = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             document
                 .select(&s("tbody tr a"))
@@ -1127,7 +1127,7 @@ impl Tucan<Authenticated> {
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             document
                 .select(&s("tbody tr a"))
@@ -1210,7 +1210,7 @@ impl Tucan<Authenticated> {
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
         let document = self.fetch_document(&Persaddress.clone().into()).await?;
-        let document = Self::parse_document(&document)?;
+        let document = Self::parse_document(&document);
 
         let matriculation_number: i32 = document
             .select(&s(r#"td[name="matriculationNumber"]"#))
@@ -1266,7 +1266,7 @@ impl Tucan<Authenticated> {
 
         let exam = {
             let name_document = self.fetch_document(&exam_details.clone().into()).await?;
-            let name_document = Self::parse_document(&name_document)?;
+            let name_document = Self::parse_document(&name_document);
 
             let registration_range_element = name_document
                 .select(&s("table td b"))
@@ -1533,7 +1533,7 @@ impl Tucan<Authenticated> {
 
         let exams = {
             let document = self.fetch_document(&Myexams.clone().into()).await?;
-            let document = Self::parse_document(&document)?;
+            let document = Self::parse_document(&document);
 
             document
                 .select(&s("table tbody tr"))
