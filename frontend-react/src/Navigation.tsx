@@ -65,6 +65,11 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link className="nav-link" to="/vv/">
+                  Vorlesungsverzeichnis
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link className="nav-link" to="/modules/">
                   Module
                 </Link>
