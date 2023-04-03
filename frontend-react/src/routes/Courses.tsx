@@ -5,7 +5,6 @@
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { courses } from "../api";
-import { ModuleList } from "../components/ModuleList";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
@@ -14,9 +13,7 @@ import { CourseEntry } from "../components/CourseEntry";
 export default function Courses() {
   const { id } = useParams();
 
-  const { data } = useSWR(["courses", id ?? null], ([_, id]) =>
-    courses(id),
-  );
+  const { data } = useSWR(["courses", id ?? null], ([_, id]) => courses(id));
 
   if (data === null) {
     return <SignOut />;
@@ -40,9 +37,9 @@ export default function Courses() {
           </div>
           <TucanUrlLink data={data} />
           <div className="list-group">
-            {data.inner[2].map(course =>
+            {data.inner[2].map((course) => (
               <CourseEntry key={course.tucan_id} c={course} />
-            )}
+            ))}
           </div>
         </>
       )}
