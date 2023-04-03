@@ -10,6 +10,7 @@ use axum::Json;
 
 use tucant::models::CourseEvent;
 use tucant::models::CourseGroup;
+use tucant::models::Module;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
@@ -25,7 +26,8 @@ pub async fn course(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<(Course, Vec<CourseGroup>, Vec<CourseEvent>)>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)>>, MyError>
+{
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
     let tucan = tucan.continue_session(session.clone());

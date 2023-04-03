@@ -9,6 +9,7 @@ import useSWR from "swr";
 import SignOut from "./Logout";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
+import { ModuleEntry } from "../components/ModuleEntry";
 
 export default function CourseRoute() {
   const { id } = useParams();
@@ -24,10 +25,17 @@ export default function CourseRoute() {
       <h1 className="text-center">Veranstaltung</h1>
       {data && (
         <>
-          <h3 className="text-center">
-            {data.inner[0].course_id} {data.inner[0].title}
-          </h3>
           <TucanUrlLink data={data} />
+          <h1 className="text-center">
+            {data.inner[0].course_id} {data.inner[0].title}
+          </h1>
+
+          <h2 className="text-center">Module</h2>
+          <div className="list-group">
+            {data.inner[3].map((module) => {
+              return <ModuleEntry key={module.tucan_id} module={module} />;
+            })}
+          </div>
 
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
@@ -35,7 +43,7 @@ export default function CourseRoute() {
               __html: dompurify.sanitize(data.inner[0].content),
             }}
           />
-          <h4>Termine</h4>
+          <h2>Termine</h2>
           <div className="list-group">
             {data.inner[2].map((e) => (
               <div
@@ -48,7 +56,7 @@ export default function CourseRoute() {
               </div>
             ))}
           </div>
-          <h4>Übungsgruppen</h4>
+          <h2>Übungsgruppen</h2>
           <div className="list-group">
             {data.inner[1].map((e) => (
               <Link

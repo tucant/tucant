@@ -22,9 +22,11 @@ export default function Module() {
 
   return (
     <main className="container">
+      <h1 className="text-center">Modul</h1>
       {data && (
         <>
-          <h1>
+          <TucanUrlLink data={data} />
+          <h1 className="text-center">
             {data.inner.module.module_id} {data.inner.module.title}
           </h1>
           {data.inner.path.map((p) => (
@@ -44,9 +46,8 @@ export default function Module() {
           <span className="badge rounded-pill text-bg-primary">{`${
             data.inner.module.credits ?? 0
           } Credits`}</span>
-          <TucanUrlLink data={data} />
 
-          <h2>Courses</h2>
+          <h2 className="text-center">Veranstaltungen</h2>
           <div className="list-group">
             {data.inner.courses.map((course) => {
               return <CourseEntry key={course.tucan_id} c={course} />;

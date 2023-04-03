@@ -57,7 +57,7 @@ fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Element
 #[derive(Debug, Typescriptable, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum CourseOrCourseGroup {
-    Course((Course, Vec<CourseGroup>, Vec<CourseEvent>)),
+    Course((Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)),
     CourseGroup((CourseGroup, Vec<CourseGroupEvent>)),
 }
 
@@ -283,6 +283,7 @@ impl Tucan<Authenticated> {
             .collect::<Vec<_>>()
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn fetch_course(
         &self,
         url: Coursedetails,
@@ -367,6 +368,19 @@ impl Tucan<Authenticated> {
                     }
                 })
                 .collect();
+
+            let contained_in_modules = document
+                .select(&s(r#"caption"#))
+                .find(|e| e.inner_html() == "Enthalten in Modulen")
+                .unwrap_or_else(|| unwrap_handler())
+                .next_siblings()
+                .find_map(ElementRef::wrap)
+                .unwrap_or_else(|| unwrap_handler());
+            let selector = s("td.tbdata");
+            let _contained_in_modules = contained_in_modules
+                .select(&selector)
+                .map(|module| module.inner_html().trim().to_owned())
+                .collect_vec();
 
             (course, course_groups, events)
         };
@@ -503,7 +517,7 @@ impl Tucan<Authenticated> {
     async fn cached_course(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>, Vec<CourseEvent>)>> {
+    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -533,7 +547,19 @@ impl Tucan<Authenticated> {
                 .load::<CourseEvent>(&mut connection)
                 .await?;
 
-            return Ok(Some((existing, course_groups, course_events)));
+            let parent_modules = module_courses::table
+                .filter(module_courses::course.eq(&existing.tucan_id))
+                .inner_join(modules_unfinished::table)
+                .select(MODULES_UNFINISHED)
+                .load::<Module>(&mut connection)
+                .await?;
+
+            return Ok(Some((
+                existing,
+                course_groups,
+                course_events,
+                parent_modules,
+            )));
         }
 
         Ok(None)
@@ -578,7 +604,7 @@ impl Tucan<Authenticated> {
     pub async fn course(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<(Course, Vec<CourseGroup>, Vec<CourseEvent>)> {
+    ) -> anyhow::Result<(Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)> {
         if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(value);
         }
