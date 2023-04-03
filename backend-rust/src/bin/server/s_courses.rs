@@ -37,6 +37,8 @@ pub async fn courses(
         }
     };
 
+    // TODO FIXME show path
+
     let url: TucanProgram = input.0.as_ref().map_or_else(
         || {
             Externalpages {

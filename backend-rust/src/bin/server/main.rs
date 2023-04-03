@@ -171,8 +171,6 @@ async fn login_hack(
 ) -> Result<Response, MyError> {
     use diesel_async::RunQueryDsl;
 
-    println!("{input:?}");
-
     let mut connection = tucan.pool.get().await?;
 
     if let LoginHack {

@@ -179,6 +179,7 @@ impl Tucan<Unauthenticated> {
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
+                .order(vv_menu_unfinished::name.asc())
                 .load::<VVMenuItem>(&mut connection)
                 .await?;
 
@@ -186,6 +187,7 @@ impl Tucan<Unauthenticated> {
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
+                .order(courses_unfinished::title.asc())
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -295,7 +297,6 @@ impl Tucan<Unauthenticated> {
                         }
                         TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
                             // Don't handle as there is one in the whole thing
-                            //println!("module on {}", url.to_tucan_url(None));
                             vec![]
                         }
                         _ => {
@@ -354,8 +355,6 @@ impl Tucan<Unauthenticated> {
         &self,
         url: Action,
     ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
-        println!("vv {}", url.magic);
-
         if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
@@ -408,7 +407,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .session()
                 .map(|session| session.session_nr.try_into().unwrap()),
         );
-        println!("{url}");
         let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {
