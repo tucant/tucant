@@ -99,6 +99,7 @@ use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
 use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::setup;
+use crate::s_setup::setup_vv;
 use base64::prelude::*;
 
 #[derive(Serialize, Typescriptable)]
@@ -341,6 +342,7 @@ fn main() -> anyhow::Result<()> {
 
             let app: Router<AppState> = Router::new()
                 .with_state(app_state.clone())
+                .route("/setup-vv", post(setup_vv))
                 .route("/setup", post(setup))
                 .route("/login-hack", get(login_hack));
 

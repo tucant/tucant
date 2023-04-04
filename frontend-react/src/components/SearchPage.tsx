@@ -47,7 +47,7 @@ export default function SearchPage(props: {
   return (
     <main className="container">
       <h1 className="text-center">{props.title}</h1>
-      <InitialFetch />
+      <InitialFetch url={"/setup"} />
       <form>
         <div className="mb-3">
           <div className="input-group mb-3">

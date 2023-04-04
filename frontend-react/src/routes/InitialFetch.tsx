@@ -6,7 +6,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 type buttonVariantType = "primary" | "warning" | "success";
 
-export default function InitialFetch() {
+export default function InitialFetch(props: { url: string }) {
   const [data, setData] = useState<string>("");
   const [isLoading, setLoading] = useState(false);
   const [buttonVariant, setButtonVariant] =
@@ -56,7 +56,7 @@ export default function InitialFetch() {
             setLoading(true);
             setData("Synchronisierung wird gestartet.");
 
-            const response = await fetch("http://localhost:8080/setup", {
+            const response = await fetch(`http://localhost:8080${props.url}`, {
               credentials: "include",
               method: "POST",
               headers: {

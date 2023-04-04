@@ -9,6 +9,7 @@ import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
 import { CourseEntry } from "../components/CourseEntry";
+import InitialFetch from "./InitialFetch";
 
 export default function Courses() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function Courses() {
   return (
     <main className="container">
       <h1 className="text-center">{data?.inner[0].name}</h1>
+      <InitialFetch url={"/setup-vv"} />
       {data && (
         <>
           {data.inner[3].map((p) => (

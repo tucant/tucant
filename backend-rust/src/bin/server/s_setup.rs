@@ -42,6 +42,35 @@ enum ModuleOrCourse {
     Course(Course),
 }
 
+pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response, MyError> {
+    let stream = try_stream(move |mut stream| async move {
+        stream
+            .yield_item(Bytes::from("\nVV wird heruntergeladen..."))
+            .await;
+
+        let root = tucan.vv_root().await.unwrap();
+
+        prefetch_vv(
+            &mut stream,
+            tucan.0,
+            Action {
+                magic: root.0.tucan_id,
+            },
+        )
+        .await;
+
+        stream.yield_item(Bytes::from("\nFertig!")).await;
+
+        let return_value: std::io::Result<()> = Ok(());
+
+        return_value
+    });
+
+    let headers = [(header::CONTENT_TYPE, "text/plain")];
+
+    Ok((headers, StreamBody::new(stream)).into_response())
+}
+
 #[async_recursion::async_recursion]
 async fn prefetch_vv(stream: &mut Stream<Bytes>, tucan: Tucan<Unauthenticated>, action: Action) {
     let value = tucan.vv(action).await.unwrap();
