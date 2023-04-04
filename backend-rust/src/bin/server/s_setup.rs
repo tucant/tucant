@@ -24,6 +24,8 @@ use axum::Json;
 use tucant::models::Course;
 use tucant::models::Module;
 use tucant::tucan::Authenticated;
+use tucant::tucan::Unauthenticated;
+use tucant::url::Action;
 
 #[derive(Clone, Copy)]
 enum ModulesOrCourses {
@@ -38,6 +40,28 @@ enum ModuleOrCourse {
     Module(Module),
     #[allow(dead_code)]
     Course(Course),
+}
+
+#[async_recursion::async_recursion]
+async fn prefetch_vv(stream: &mut Stream<Bytes>, tucan: Tucan<Unauthenticated>, action: Action) {
+    let value = tucan.vv(action).await.unwrap();
+
+    stream
+        .yield_item(Bytes::from(format!("\nvv {}", value.0.name)))
+        .await;
+
+    for submenu in value.1 {
+        prefetch_vv(
+            stream,
+            tucan.clone(),
+            Action {
+                magic: submenu.tucan_id,
+            },
+        )
+        .await;
+    }
+
+    for course in value.2 {}
 }
 
 #[async_recursion::async_recursion]
