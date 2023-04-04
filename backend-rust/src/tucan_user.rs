@@ -74,6 +74,7 @@ static TUCANSCHEISS: Lazy<Module> = Lazy::new(|| Module {
 });
 
 impl Tucan<Authenticated> {
+    #[must_use]
     pub fn as_unauthenticated(&self) -> Tucan<Unauthenticated> {
         Tucan {
             pool: self.pool.clone(),
