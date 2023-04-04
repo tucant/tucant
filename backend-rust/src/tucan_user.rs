@@ -10,7 +10,7 @@ use crate::{
         ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    tucan::{s, Authenticated, Tucan},
+    tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
         Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
@@ -74,6 +74,17 @@ static TUCANSCHEISS: Lazy<Module> = Lazy::new(|| Module {
 });
 
 impl Tucan<Authenticated> {
+    #[must_use]
+    pub fn as_unauthenticated(&self) -> Tucan<Unauthenticated> {
+        Tucan {
+            pool: self.pool.clone(),
+            client: self.client.clone(),
+            semaphore: self.semaphore.clone(),
+            opensearch: self.opensearch.clone(),
+            state: Unauthenticated {},
+        }
+    }
+
     pub fn normalize(string: &str) -> String {
         // maybe do in postgres as this is generated?
         // &amp; replace with -
@@ -158,7 +169,6 @@ impl Tucan<Authenticated> {
                 .inner_html();
 
             let courses = Self::parse_courses(&document);
-            println!("{courses:?}");
 
             let module = Module {
                 tucan_id: url.clone().id,

@@ -69,20 +69,12 @@ impl Decoder for MyStringDecoder {
             //for (position, _) in it {
             let part = &buf[start..position];
 
-            println!("Part {}", std::str::from_utf8(part).unwrap());
-
             let (key, value) = part.split(|b| *b == b':').tuples().exactly_one().unwrap();
 
             assert!(key == b"Content-Length");
             let length_string = std::str::from_utf8(value).unwrap().trim();
             let length = length_string.parse::<usize>().unwrap() + 2;
 
-            println!(
-                "len: {}, pos: {}, end: {}",
-                buf.len(),
-                position,
-                position + length + 1
-            );
             if position + length + 1 > buf.len() {
                 return Ok(None);
             }
@@ -91,7 +83,6 @@ impl Decoder for MyStringDecoder {
             let return_value = std::str::from_utf8(contents).unwrap().to_string();
             buf.advance(position + length + 1);
 
-            println!("{return_value}");
             return Ok(Some(return_value));
 
             //start = position;

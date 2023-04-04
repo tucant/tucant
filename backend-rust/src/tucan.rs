@@ -14,7 +14,6 @@ use deadpool::managed::Pool;
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
 
 use ego_tree::NodeRef;
-use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 
 use opensearch::{
@@ -112,14 +111,7 @@ impl Tucan<Unauthenticated> {
             state: Unauthenticated,
         })
     }
-}
 
-#[must_use]
-pub fn s(selector: &str) -> Selector {
-    Selector::parse(selector).unwrap()
-}
-
-impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     pub async fn vv_root(&self) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
         let document = self
             .fetch_document(&TucanProgram::Externalpages(Externalpages {
@@ -155,7 +147,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .values(VVMenuItem {
                     tucan_id: vv_action.magic.clone(),
                     tucan_last_checked: Utc::now().naive_utc(),
-                    name: "unknown".to_string(),
+                    name: "root".to_string(),
                     done: false,
                     parent: None,
                 })
@@ -165,36 +157,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         }
 
         self.vv(vv_action).await
-    }
-
-    pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
-        document
-            .select(&s(r#"a[name="eventLink"]"#))
-            .map(|e| e.parent().unwrap().parent().unwrap())
-            .unique_by(NodeRef::id)
-            .map(|node| {
-                let element_ref = ElementRef::wrap(node).unwrap();
-                let selector = &s("a");
-                let mut links = element_ref.select(selector);
-                Course {
-                    tucan_last_checked: Utc::now().naive_utc(),
-                    course_id: links.next().unwrap().inner_html(),
-                    title: links.next().unwrap().inner_html(),
-                    tucan_id: TryInto::<Coursedetails>::try_into(
-                        parse_tucan_url(&format!(
-                            "https://www.tucan.tu-darmstadt.de{}",
-                            links.next().unwrap().value().attr("href").unwrap()
-                        ))
-                        .program,
-                    )
-                    .unwrap()
-                    .id,
-                    sws: 0,
-                    content: String::new(),
-                    done: false,
-                }
-            })
-            .collect::<Vec<_>>()
     }
 
     async fn cached_vv(
@@ -217,6 +179,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
+                .order(vv_menu_unfinished::name.asc())
                 .load::<VVMenuItem>(&mut connection)
                 .await?;
 
@@ -224,6 +187,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
+                .order(courses_unfinished::title.asc())
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -290,7 +254,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     .await?;
             }
 
-            let results = vv_menus
+            /* let results = vv_menus
                 .iter()
                 .map(|url| async {
                     self.vv(Action {
@@ -305,6 +269,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let results: anyhow::Result<Vec<_>> = results.into_iter().collect();
 
             let _: Vec<_> = results?;
+            */
         } else if course_list {
             let (courses, vv_courses) = {
                 let document = Self::parse_document(&document);
@@ -332,7 +297,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                         }
                         TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
                             // Don't handle as there is one in the whole thing
-                            //println!("module on {}", url.to_tucan_url(None));
                             vec![]
                         }
                         _ => {
@@ -391,8 +355,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         &self,
         url: Action,
     ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
-        println!("vv {}", url.magic);
-
         if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
@@ -401,6 +363,43 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         Ok(self.cached_vv(url.clone()).await?.unwrap())
     }
+}
+
+#[must_use]
+pub fn s(selector: &str) -> Selector {
+    Selector::parse(selector).unwrap()
+}
+
+impl<State: GetTucanSession + Sync + Send> Tucan<State> {
+    pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
+        document
+            .select(&s(r#"a[name="eventLink"]"#))
+            .map(|e| e.parent().unwrap().parent().unwrap())
+            .unique_by(NodeRef::id)
+            .map(|node| {
+                let element_ref = ElementRef::wrap(node).unwrap();
+                let selector = &s("a");
+                let mut links = element_ref.select(selector);
+                Course {
+                    tucan_last_checked: Utc::now().naive_utc(),
+                    course_id: links.next().unwrap().inner_html(),
+                    title: links.next().unwrap().inner_html(),
+                    tucan_id: TryInto::<Coursedetails>::try_into(
+                        parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            links.next().unwrap().value().attr("href").unwrap()
+                        ))
+                        .program,
+                    )
+                    .unwrap()
+                    .id,
+                    sws: 0,
+                    content: String::new(),
+                    done: false,
+                }
+            })
+            .collect::<Vec<_>>()
+    }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
         let url = url.to_tucan_url(
@@ -408,7 +407,6 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .session()
                 .map(|session| session.session_nr.try_into().unwrap()),
         );
-        println!("{url}");
         let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {

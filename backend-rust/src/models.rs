@@ -520,7 +520,7 @@ pub struct CourseGroupEvent {
 #[derive(Serialize, Debug)]
 #[cfg_attr(
     feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
+    derive(Associations, Identifiable, Queryable, Typescriptable, Insertable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = vv_menu_unfinished))]

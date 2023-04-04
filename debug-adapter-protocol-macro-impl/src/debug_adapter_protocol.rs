@@ -4198,7 +4198,5 @@ pub fn realistic() -> Result<TokenStream, syn::Error> {
 
     let value: JSONSchema = value.try_into()?;
 
-    //println!("{_input:#?}");
-
     Ok(codegen(value))
 }

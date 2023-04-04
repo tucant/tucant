@@ -190,7 +190,6 @@ fn main() -> anyhow::Result<()> {
             }
 
             // let response_body = response.json::<Value>().await?;
-            //println!("{:?}", response_body);
 
             let mut connection = tucan.pool.get().await?;
             let modules: Vec<Module> = modules_unfinished::table
@@ -271,7 +270,6 @@ fn main() -> anyhow::Result<()> {
                 .await?;
 
             let _response_body = response.json::<Value>().await?;
-            //println!("{}", response_body);
             // TODO FIXME delete indexes here
 
             Ok(())

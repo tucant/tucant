@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 mod s_course;
 mod s_coursegroup;
+mod s_courses;
 mod s_exam;
 mod s_get_modules;
 mod s_module;
@@ -86,6 +87,8 @@ use tucant_derive_lib::Typescriptable;
 use crate::s_course::CourseTs;
 use crate::s_coursegroup::course_group;
 use crate::s_coursegroup::CourseGroupTs;
+use crate::s_courses::courses;
+use crate::s_courses::CoursesTs;
 use crate::s_exam::exam;
 use crate::s_exam::ExamTs;
 use crate::s_get_modules::GetModulesTs;
@@ -167,8 +170,6 @@ async fn login_hack(
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
     use diesel_async::RunQueryDsl;
-
-    println!("{input:?}");
 
     let mut connection = tucan.pool.get().await?;
 
@@ -384,7 +385,8 @@ fn main() -> anyhow::Result<()> {
                 .route::<ExamTs>("/exam", post(exam))
                 .route::<MyExamsTs>("/my-exams", post(my_exams))
                 .route::<MyModulesTs>("/my-modules", post(my_modules))
-                .route::<MyCoursesTs>("/my-courses", post(my_courses));
+                .route::<MyCoursesTs>("/my-courses", post(my_courses))
+                .route::<CoursesTs>("/courses", post(courses));
 
             let should_we_block = true;
             let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);

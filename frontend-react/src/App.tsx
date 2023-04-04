@@ -24,6 +24,7 @@ import { SearchModulesOpenSearch } from "./routes/SearchModulesOpenSearch";
 import MyExams from "./routes/MyExams";
 import Exam from "./routes/Exam";
 import CourseGroup from "./routes/CourseGroup";
+import Courses from "./routes/Courses";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
@@ -37,6 +38,8 @@ function App() {
               <Route path="/" element={<Navigation isLoading={isLoading} />}>
                 <Route path="modules/" element={<Modules />} />
                 <Route path="modules/:id" element={<Modules />} />
+                <Route path="vv/" element={<Courses />} />
+                <Route path="vv/:id" element={<Courses />} />
                 <Route path="login" element={<Login />} />
                 <Route path="my-modules" element={<MyModules />} />
                 <Route path="my-courses" element={<MyCourses />} />
