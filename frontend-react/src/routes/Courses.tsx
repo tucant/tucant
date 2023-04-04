@@ -24,6 +24,25 @@ export default function Courses() {
       <h1 className="text-center">{data?.inner[0].name}</h1>
       {data && (
         <>
+          {data.inner[3].map((p) => (
+            <nav
+              key={p.map((pe) => pe.tucan_id).join()}
+              style={{ "--bs-breadcrumb-divider": "'>'" }}
+              aria-label="breadcrumb"
+            >
+              <ol className="breadcrumb">
+                {p.map((pe) => (
+                  <Link
+                    key={pe.tucan_id}
+                    className="breadcrumb-item active"
+                    to={`/vv/${pe.tucan_id}`}
+                  >
+                    {pe.name}
+                  </Link>
+                ))}
+              </ol>
+            </nav>
+          ))}
           <div className="list-group">
             {data.inner[1].map((p) => (
               <Link
