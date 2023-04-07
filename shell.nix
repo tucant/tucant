@@ -5,10 +5,8 @@ mkShell {
     bashInteractive
     cargo
     cargo.rustc.llvmPackages.clang
-    cargo.rustc.llvmPackages.lld
+    cargo.rustc.llvmPackages.bintools
+    rust-analyzer
   ];
-
-  shellHook = ''
-    # ...
-  '';
+  RUST_BACKTRACE = 1;
 }
