@@ -6,8 +6,8 @@ export async function course(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ29
 export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0> {
         return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0
 }
-export async function courses(input: string | null): Promise<WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW11d> {
-        return await genericFetch("http://localhost:8080/courses", input) as WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW11d
+export async function courses(input: string | null): Promise<WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW10sIFZWTWVudVBhdGhQYXJ0W11bXV0> {
+        return await genericFetch("http://localhost:8080/courses", input) as WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW10sIFZWTWVudVBhdGhQYXJ0W11bXV0
 }
 export async function exam(input: string): Promise<WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0> {
         return await genericFetch("http://localhost:8080/exam", input) as WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0
@@ -163,6 +163,13 @@ export type VVMenuItem =
   done: boolean,
   parent: string | null,
 }
+export type VVMenuPathPart =
+{
+  parent: string | null,
+  tucan_id: string,
+  name: string,
+  leaf: boolean,
+}
 export type WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd =
 {
   tucan_url: string,
@@ -198,10 +205,10 @@ export type WithTucanUrlW0V4YW0sIE1vZHVsZVtdLCBDb3Vyc2VbXV0 =
   tucan_url: string,
   inner: [Exam, Module[], Course[]],
 }
-export type WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW11d =
+export type WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW10sIFZWTWVudVBhdGhQYXJ0W11bXV0 =
 {
   tucan_url: string,
-  inner: [VVMenuItem, VVMenuItem[], Course[]],
+  inner: [VVMenuItem, VVMenuItem[], Course[], VVMenuPathPart[][]],
 }
 export type WithTucanUrlW1tNb2R1bGUsIEV4YW1dW10sIFtDb3Vyc2UsIEV4YW1dW11d =
 {

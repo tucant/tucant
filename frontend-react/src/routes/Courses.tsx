@@ -9,6 +9,7 @@ import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
 import SignOut from "./Logout";
 import { CourseEntry } from "../components/CourseEntry";
+import InitialFetch from "./InitialFetch";
 
 export default function Courses() {
   const { id } = useParams();
@@ -22,8 +23,28 @@ export default function Courses() {
   return (
     <main className="container">
       <h1 className="text-center">{data?.inner[0].name}</h1>
+      <InitialFetch url={"/setup-vv"} />
       {data && (
         <>
+          {data.inner[3].map((p) => (
+            <nav
+              key={p.map((pe) => pe.tucan_id).join()}
+              style={{ "--bs-breadcrumb-divider": "'>'" }}
+              aria-label="breadcrumb"
+            >
+              <ol className="breadcrumb">
+                {p.map((pe) => (
+                  <Link
+                    key={pe.tucan_id}
+                    className="breadcrumb-item active"
+                    to={`/vv/${pe.tucan_id}`}
+                  >
+                    {pe.name}
+                  </Link>
+                ))}
+              </ol>
+            </nav>
+          ))}
           <div className="list-group">
             {data.inner[1].map((p) => (
               <Link

@@ -1,6 +1,7 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
 use std::collections::VecDeque;
+use std::hash::Hash;
 
 use axum::extract::FromRef;
 use axum::extract::FromRequestParts;
@@ -122,6 +123,26 @@ pub struct ModuleMenuPathPart {
     #[cfg_attr(feature = "server", diesel(sql_type = Bool))]
     #[serde(skip)]
     pub leaf: bool,
+}
+
+pub trait PathLike<TI: Eq + Hash> {
+    fn leaf(&self) -> bool;
+    fn tucan_id(&self) -> TI;
+    fn parent(&self) -> Option<TI>;
+}
+
+impl PathLike<Vec<u8>> for ModuleMenuPathPart {
+    fn leaf(&self) -> bool {
+        self.leaf
+    }
+
+    fn tucan_id(&self) -> Vec<u8> {
+        self.tucan_id.clone()
+    }
+
+    fn parent(&self) -> Option<Vec<u8>> {
+        self.parent.clone()
+    }
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
@@ -531,6 +552,35 @@ pub struct VVMenuItem {
     pub name: String,
     pub done: bool,
     pub parent: Option<String>,
+}
+
+#[cfg_attr(feature = "server", derive(QueryableByName, Typescriptable))]
+#[derive(Hash, PartialEq, Eq, Debug, Serialize, Clone, Deserialize)]
+pub struct VVMenuPathPart {
+    #[cfg_attr(feature = "server", diesel(sql_type = Nullable<Text>))]
+    #[serde(skip)]
+    pub parent: Option<String>,
+    #[cfg_attr(feature = "server", diesel(sql_type = Text))]
+    pub tucan_id: String,
+    #[cfg_attr(feature = "server", diesel(sql_type = Text))]
+    pub name: String,
+    #[cfg_attr(feature = "server", diesel(sql_type = Bool))]
+    #[serde(skip)]
+    pub leaf: bool,
+}
+
+impl PathLike<String> for VVMenuPathPart {
+    fn leaf(&self) -> bool {
+        self.leaf
+    }
+
+    fn tucan_id(&self) -> String {
+        self.tucan_id.clone()
+    }
+
+    fn parent(&self) -> Option<String> {
+        self.parent.clone()
+    }
 }
 
 #[derive(Serialize, Debug)]
