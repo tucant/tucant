@@ -7,6 +7,8 @@ mkShell {
     cargo.rustc.llvmPackages.clang
     cargo.rustc.llvmPackages.bintools
     rust-analyzer
+    clippy
+    rustfmt
   ];
   RUST_BACKTRACE = 1;
 }

@@ -24,7 +24,7 @@ pub fn calculate_paths<TI: Eq + Hash, T: PathLike<TI> + Clone>(
             while let Some(curr) = current {
                 path.push_front(curr.to_owned().clone());
                 if let Some(parent) = &curr.parent() {
-                    current = nonleaves.get(&parent);
+                    current = nonleaves.get(parent);
                 } else {
                     break;
                 }

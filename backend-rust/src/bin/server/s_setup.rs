@@ -90,7 +90,7 @@ async fn prefetch_vv(stream: &mut Stream<Bytes>, tucan: Tucan<Unauthenticated>, 
         .await;
     }
 
-    for course in value.2 {}
+    for _course in value.2 {}
 }
 
 #[async_recursion::async_recursion]

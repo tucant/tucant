@@ -20,25 +20,21 @@ use crate::{
     models::{UserCourse, UserModule},
     url::Profcourses,
 };
-use chrono::{NaiveDateTime, TimeZone, Utc};
-use deadpool::managed::Object;
-use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
+use chrono::{NaiveDateTime, Utc};
 
 use either::Either;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use once_cell::sync::Lazy;
-use regex::Regex;
 
-use scraper::{ElementRef, Html};
+use scraper::ElementRef;
 use serde::{Deserialize, Serialize};
 use tucant_derive::Typescriptable;
 
 use crate::schema::{
-    course_events, course_exams, course_groups_events, course_groups_unfinished,
-    courses_unfinished, exams_unfinished, module_courses, module_exams, module_menu_module,
-    module_menu_unfinished, modules_unfinished, user_course_groups, user_courses, user_exams,
-    user_modules, users_unfinished,
+    course_exams, courses_unfinished, exams_unfinished, module_courses, module_exams,
+    module_menu_module, module_menu_unfinished, modules_unfinished, user_course_groups,
+    user_courses, user_exams, user_modules, users_unfinished,
 };
 use diesel::BelongingToDsl;
 use diesel::ExpressionMethods;

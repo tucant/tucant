@@ -102,6 +102,7 @@ impl std::fmt::Debug for Tucan {
     }
 }
 
+#[must_use]
 pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
 }
@@ -196,7 +197,6 @@ impl Tucan<Unauthenticated> {
         &self,
         url: Action,
     ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)>> {
-        use diesel::prelude::{ExpressionMethods, OptionalExtension, QueryDsl};
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -233,7 +233,6 @@ impl Tucan<Unauthenticated> {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
-        use diesel::prelude::ExpressionMethods;
         use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&url.clone().into()).await?;
@@ -609,6 +608,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         Err(Error::new(ErrorKind::Other, "Invalid username or password").into())
     }
 
+    #[must_use]
     pub fn parse_datetime(date_string: &str) -> (bool, NaiveDateTime, NaiveDateTime) {
         let re = Regex::new(
             r"([[:alpha:]]{2}), (\d{1,2})\. ([[^ ]]{3,4}) (\d{4})(\*)? (\d{2}):(\d{2})-(\d{2}):(\d{2})",
