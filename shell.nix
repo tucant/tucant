@@ -9,6 +9,7 @@ mkShell {
     rust-analyzer
     clippy
     rustfmt
+    postgresql_15
   ];
   RUST_BACKTRACE = 1;
 }
