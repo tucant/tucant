@@ -68,8 +68,10 @@ export default function InitialFetch(props: { url: string }) {
 
             const reader = response.body?.getReader();
             let value: ReadableStreamReadResult<Uint8Array> | undefined;
-            while (!(value = await reader?.read())?.done) {
+            value = await reader?.read();
+            while (!value?.done) {
               setData((data) => data + new TextDecoder().decode(value?.value));
+              value = await reader?.read();
             }
             setData((data) => data + "\nFertig");
             setSuccess(true);

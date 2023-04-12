@@ -32,17 +32,22 @@ export default function CourseGroupRoute() {
             zugehörige Veranstaltung
           </a>
           <h4>Termine</h4>
-          <button className="btn btn-primary mb-2" onClick={() => {
-            var blob = new Blob([data.inner[3]], { type: "text/calendar" });
+          <button
+            className="btn btn-primary mb-2"
+            onClick={() => {
+              const blob = new Blob([data.inner[3]], { type: "text/calendar" });
 
-            const elem = document.createElement("a");
-            elem.setAttribute("href", window.URL.createObjectURL(blob));
-            elem.setAttribute("download", `Termine ${data.inner[1].title}`);
-            elem.style.display = "none";
-            document.body.appendChild(elem);
-            elem.click();
-            document.body.removeChild(elem);
-          }}>Download</button>
+              const elem = document.createElement("a");
+              elem.setAttribute("href", window.URL.createObjectURL(blob));
+              elem.setAttribute("download", `Termine ${data.inner[1].title}`);
+              elem.style.display = "none";
+              document.body.appendChild(elem);
+              elem.click();
+              document.body.removeChild(elem);
+            }}
+          >
+            Download
+          </button>
           <div className="list-group">
             {data.inner[2].map((e) => (
               <div
@@ -56,8 +61,7 @@ export default function CourseGroupRoute() {
             ))}
           </div>
         </>
-      )
-      }
-    </main >
+      )}
+    </main>
   );
 }
