@@ -3,8 +3,8 @@ import { genericFetch } from "./api_base"
 export async function course(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXSwgTW9kdWxlW11d> {
         return await genericFetch("http://localhost:8080/course", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXSwgTW9kdWxlW11d
 }
-export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0> {
-        return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0
+export async function course_group(input: string): Promise<WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXSwgc3RyaW5nXQ> {
+        return await genericFetch("http://localhost:8080/course-group", input) as WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXSwgc3RyaW5nXQ
 }
 export async function courses(input: string | null): Promise<WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW10sIFZWTWVudVBhdGhQYXJ0W11bXV0> {
         return await genericFetch("http://localhost:8080/courses", input) as WithTucanUrlW1ZWTWVudUl0ZW0sIFZWTWVudUl0ZW1bXSwgQ291cnNlW10sIFZWTWVudVBhdGhQYXJ0W11bXV0
@@ -190,10 +190,10 @@ export type WithTucanUrlTW9kdWxlW10 =
   tucan_url: string,
   inner: Module[],
 }
-export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXV0 =
+export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXAsIENvdXJzZUdyb3VwRXZlbnRbXSwgc3RyaW5nXQ =
 {
   tucan_url: string,
-  inner: [Course, CourseGroup, CourseGroupEvent[]],
+  inner: [Course, CourseGroup, CourseGroupEvent[], string],
 }
 export type WithTucanUrlW0NvdXJzZSwgQ291cnNlR3JvdXBbXSwgQ291cnNlRXZlbnRbXSwgTW9kdWxlW11d =
 {
