@@ -44,6 +44,22 @@ export default function CourseRoute() {
             }}
           />
           <h2>Termine</h2>
+          <button
+            className="btn btn-primary mb-2"
+            onClick={() => {
+              const blob = new Blob([data.inner[4]], { type: "text/calendar" });
+
+              const elem = document.createElement("a");
+              elem.setAttribute("href", window.URL.createObjectURL(blob));
+              elem.setAttribute("download", `Termine ${data.inner[0].title}`);
+              elem.style.display = "none";
+              document.body.appendChild(elem);
+              elem.click();
+              document.body.removeChild(elem);
+            }}
+          >
+            Download
+          </button>
           <div className="list-group">
             {data.inner[2].map((e) => (
               <div

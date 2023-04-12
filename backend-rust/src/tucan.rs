@@ -716,11 +716,8 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     end_time_column.inner_html()
                 );
                 let date = Self::parse_datetime(&val);
-                let room = room_column
-                    .select(&s("a"))
-                    .next()
-                    .unwrap_or_else(|| unwrap_handler())
-                    .inner_html();
+                // TODO the link is optional, eg. Praktikum Visual Computing doesn't link a room
+                let room = room_column.text().join("");
                 let lecturers = lecturer_column.inner_html().trim().to_string();
 
                 if date.0 {

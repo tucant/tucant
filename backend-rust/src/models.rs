@@ -500,7 +500,7 @@ pub struct UserExam {
     pub exam: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable, AsChangeset)
@@ -519,7 +519,7 @@ pub struct CourseEvent {
     pub teachers: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, Typescriptable, AsChangeset)
