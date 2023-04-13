@@ -95,7 +95,7 @@ fn prefetch_vv(
                 prefetch_vv(
                     t,
                     Action {
-                        magic: submenu.tucan_id.clone(),
+                        magic: submenu.tucan_id,
                     },
                 )
             })
@@ -127,7 +127,7 @@ fn fetch_registration(
                 fetch_registration(
                     t,
                     Registration {
-                        path: menu.tucan_id.clone(),
+                        path: menu.tucan_id,
                     },
                     modules_or_courses,
                 )
@@ -239,7 +239,7 @@ fn fetch_module_urls(
                 fetch_module_urls(
                     t,
                     Registration {
-                        path: menu.tucan_id.clone(),
+                        path: menu.tucan_id,
                     },
                 )
             })
