@@ -36,7 +36,7 @@ pub async fn course_group(
 ) -> Result<Json<WithTucanUrl<(Course, CourseGroup, Vec<CourseGroupEvent>, String)>>, MyError> {
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    let tucan = tucan.continue_session(session.clone());
+    let tucan = tucan.continue_session(session.clone()).await?;
 
     let url = Coursedetails {
         id: binary_path.clone(),

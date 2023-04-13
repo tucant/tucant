@@ -468,14 +468,37 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     }
 
     #[must_use]
-    pub fn continue_session(&self, session: TucanSession) -> Tucan<Authenticated> {
-        Tucan {
+    pub async fn continue_session(
+        &self,
+        session: TucanSession,
+    ) -> anyhow::Result<Tucan<Authenticated>> {
+        use diesel_async::RunQueryDsl;
+        let mut connection = self.pool.get().await?;
+
+        // TODO FIXME strg+f insert_into(users_unfinished and do this everywhere directly in the method so it can't be forgotten
+        diesel::insert_into(users_unfinished::table)
+            .values(UndoneUser::new(session.matriculation_number.clone()))
+            .on_conflict(users_unfinished::matriculation_number)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(sessions::table)
+            .values(session.clone())
+            .execute(&mut connection)
+            .await?;
+
+        drop(connection);
+
+        Ok(Tucan {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
             opensearch: self.opensearch.clone(),
-            state: Authenticated { session },
-        }
+            state: Authenticated {
+                session: session.clone(),
+            },
+        })
     }
 
     pub async fn tucan_session_from_session_data(

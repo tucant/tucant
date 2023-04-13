@@ -168,7 +168,7 @@ pub async fn setup(
             .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
             .await;
 
-        let tucan = tucan.continue_session(session);
+        let tucan = tucan.continue_session(session).await?;
 
         let root = tucan.root_registration().await.unwrap();
 
@@ -184,7 +184,7 @@ pub async fn setup(
 
         stream.yield_item(Bytes::from("\nFertig!")).await;
 
-        let return_value: std::io::Result<()> = Ok(());
+        let return_value: anyhow::Result<()> = Ok(());
 
         return_value
     });

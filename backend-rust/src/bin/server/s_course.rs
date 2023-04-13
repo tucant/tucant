@@ -31,7 +31,7 @@ use tucant_derive::ts;
 #[ts]
 #[axum::debug_handler(state=AppState)]
 pub async fn course(
-    session: TucanSession,
+    session: Option<TucanSession>,
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<
@@ -48,7 +48,7 @@ pub async fn course(
 > {
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    let tucan = tucan.continue_session(session.clone());
+    let tucan = tucan; //.continue_session(session.clone());
 
     let url = Coursedetails {
         id: binary_path.clone(),
@@ -80,7 +80,7 @@ pub async fn course(
 
     Ok(Json(WithTucanUrl {
         tucan_url: Into::<TucanProgram>::into(url)
-            .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+            .to_tucan_url(session.map(|s| s.session_nr.try_into().unwrap())),
         inner: (
             result.0,
             result.1,
