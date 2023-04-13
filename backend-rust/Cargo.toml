@@ -20,7 +20,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 [dependencies]
 reqwest                 = { default-features = false, features = ["cookies"], version = "0.11" }
 tokio                   = { default-features = false, features = [ "fs" ], version = "1", optional = true }
-scraper                 = { default-features = false, version = "0.15", optional = true }
+scraper                 = { default-features = false, version = "0.16", optional = true }
 ego-tree                = { default-features = false, version = "0.6", optional = true }
 futures                 = { default-features = false, version = "0.3", optional = true }
 diesel                  = { default-features = false, version = "2", features = [ "postgres", "chrono", "32-column-tables" ], optional = true }
