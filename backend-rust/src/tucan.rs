@@ -9,12 +9,12 @@ use std::{
 
 use axum::http::HeaderValue;
 use chrono::{NaiveDateTime, TimeZone, Utc};
+use deadpool::managed::Object;
 use deadpool::managed::Pool;
+use diesel::BelongingToDsl;
 use diesel::OptionalExtension;
 use diesel::{upsert::excluded, QueryDsl};
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
-
-use deadpool::managed::Object;
 
 use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
@@ -34,8 +34,8 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{
-        Course, CourseEvent, CourseGroup, CourseGroupEvent, Module, TucanSession, UndoneUser,
-        VVMenuCourses, VVMenuItem, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        Course, CourseEvent, CourseGroup, CourseGroupEvent, Module, ModuleCourse, TucanSession,
+        UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
@@ -84,6 +84,12 @@ pub struct Authenticated {
 impl GetTucanSession for Authenticated {
     fn session(&self) -> Option<&TucanSession> {
         Some(&self.session)
+    }
+}
+
+impl GetTucanSession for Box<dyn GetTucanSession + Sync + Send> {
+    fn session(&self) -> Option<&TucanSession> {
+        self.as_ref().session()
     }
 }
 
@@ -212,7 +218,7 @@ impl Tucan<Unauthenticated> {
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
-                .order(vv_menu_unfinished::name.asc())
+                .order(vv_menu_unfinished::name)
                 .load::<VVMenuItem>(&mut connection)
                 .await?;
 
@@ -220,7 +226,7 @@ impl Tucan<Unauthenticated> {
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
-                .order(courses_unfinished::title.asc())
+                .order(courses_unfinished::title)
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -402,7 +408,7 @@ pub fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()
 }
 
-impl<State: GetTucanSession + Sync + Send> Tucan<State> {
+impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
         document
             .select(&s(r#"a[name="eventLink"]"#))
@@ -467,15 +473,68 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
         Html::parse_document(resp)
     }
 
-    #[must_use]
-    pub fn continue_session(&self, session: TucanSession) -> Tucan<Authenticated> {
-        Tucan {
+    pub async fn continue_optional_session(
+        &self,
+        session: Option<TucanSession>,
+    ) -> anyhow::Result<Tucan<Box<dyn GetTucanSession + Sync + Send + 'static>>> {
+        Ok(match session {
+            Some(session) => {
+                let tucan = self.continue_session(session).await?;
+                Tucan {
+                    client: tucan.client,
+                    semaphore: tucan.semaphore,
+                    pool: tucan.pool,
+                    opensearch: tucan.opensearch,
+                    state: Box::new(tucan.state),
+                }
+            }
+            None => Tucan {
+                client: self.client.clone(),
+                semaphore: self.semaphore.clone(),
+                pool: self.pool.clone(),
+                opensearch: self.opensearch.clone(),
+                state: Box::new(Unauthenticated),
+            },
+        })
+    }
+
+    pub async fn continue_session(
+        &self,
+        session: TucanSession,
+    ) -> anyhow::Result<Tucan<Authenticated>> {
+        use diesel_async::RunQueryDsl;
+        let mut connection = self.pool.get().await?;
+
+        // TODO FIXME strg+f insert_into(users_unfinished and do this everywhere directly in the method so it can't be forgotten
+        diesel::insert_into(users_unfinished::table)
+            .values(UndoneUser::new(session.matriculation_number))
+            .on_conflict(users_unfinished::matriculation_number)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(sessions::table)
+            .values(session.clone())
+            .on_conflict((
+                sessions::matriculation_number,
+                sessions::session_nr,
+                sessions::session_id,
+            ))
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        drop(connection);
+
+        Ok(Tucan {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
             opensearch: self.opensearch.clone(),
-            state: Authenticated { session },
-        }
+            state: Authenticated {
+                session: session.clone(),
+            },
+        })
     }
 
     pub async fn tucan_session_from_session_data(
@@ -589,6 +648,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
                                 diesel::insert_into(sessions::table)
                                     .values(user_session)
+                                    .on_conflict((
+                                        sessions::matriculation_number,
+                                        sessions::session_nr,
+                                        sessions::session_id,
+                                    ))
+                                    .do_nothing()
                                     .execute(&mut connection)
                                     .await?;
 
@@ -823,20 +888,21 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     }
                 })
                 .collect();
-
-            let contained_in_modules = document
-                .select(&s(r#"caption"#))
-                .find(|e| e.inner_html() == "Enthalten in Modulen")
-                .unwrap_or_else(|| unwrap_handler())
-                .next_siblings()
-                .find_map(ElementRef::wrap)
-                .unwrap_or_else(|| unwrap_handler());
-            let selector = s("td.tbdata");
-            let _contained_in_modules = contained_in_modules
-                .select(&selector)
-                .map(|module| module.inner_html().trim().to_owned())
-                .collect_vec();
-
+            /*
+                        // TODO FIXME only do this when logged in as otherwise this doesn't work
+                        let contained_in_modules = document
+                            .select(&s(r#"caption"#))
+                            .find(|e| e.inner_html() == "Enthalten in Modulen")
+                            .unwrap_or_else(|| unwrap_handler())
+                            .next_siblings()
+                            .find_map(ElementRef::wrap)
+                            .unwrap_or_else(|| unwrap_handler());
+                        let selector = s("td.tbdata");
+                        let _contained_in_modules = contained_in_modules
+                            .select(&selector)
+                            .map(|module| module.inner_html().trim().to_owned())
+                            .collect_vec();
+            */
             (course, course_groups, events)
         };
 
@@ -992,6 +1058,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_groups_unfinished::table)
                 .select(course_groups_unfinished::all_columns)
+                .order(course_groups_unfinished::title)
                 .load::<CourseGroup>(&mut connection)
                 .await?;
 
@@ -999,6 +1066,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_events::table)
                 .select(course_events::all_columns)
+                .order(course_events::timestamp_start)
                 .load::<CourseEvent>(&mut connection)
                 .await?;
 
@@ -1006,6 +1074,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(module_courses::course.eq(&existing.tucan_id))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .load::<Module>(&mut connection)
                 .await?;
 
@@ -1047,6 +1116,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let course_group_events: Vec<CourseGroupEvent> = course_groups_events::table
                 .filter(course_groups_events::course.eq(&existing.tucan_id))
                 .select(course_groups_events::all_columns)
+                .order(course_groups_events::timestamp_start)
                 .load::<CourseGroupEvent>(&mut connection)
                 .await?;
 
@@ -1119,5 +1189,137 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 self.cached_course(url.clone()).await?.unwrap()
             }))
         }
+    }
+
+    async fn cached_module(
+        &self,
+        url: Moduledetails,
+    ) -> anyhow::Result<Option<(Module, Vec<Course>)>> {
+        use diesel_async::RunQueryDsl;
+
+        let mut connection = self.pool.get().await?;
+
+        let existing_module = modules_unfinished::table
+            .filter(modules_unfinished::tucan_id.eq(&url.id))
+            .filter(modules_unfinished::done)
+            .select(MODULES_UNFINISHED)
+            .order(modules_unfinished::title)
+            .get_result::<Module>(&mut connection)
+            .await
+            .optional()?;
+
+        if let Some(existing_module) = existing_module {
+            debug!("[~] module {:?}", existing_module);
+
+            let course_list = ModuleCourse::belonging_to(&existing_module)
+                .inner_join(courses_unfinished::table)
+                .order(courses_unfinished::title)
+                .select(COURSES_UNFINISHED)
+                .load::<Course>(&mut connection)
+                .await?;
+
+            Ok(Some((existing_module, course_list)))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub async fn fetch_module(&self, url: Moduledetails) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let mut connection = self.pool.get().await?;
+
+        let (module, courses) = {
+            let document = Self::parse_document(&document);
+
+            let name = element_by_selector(&document, "h1").unwrap();
+
+            let text = name.inner_html();
+            let mut fs = text.split("&nbsp;");
+            let module_id = fs.next().unwrap().trim();
+
+            let module_name = fs.next().map(str::trim);
+
+            let credits = document
+                .select(&s(r#"#contentlayoutleft b"#))
+                .find(|e| e.inner_html() == "Credits: ")
+                .unwrap()
+                .next_sibling()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap();
+
+            let credits = credits
+                .trim()
+                .strip_suffix(",0")
+                .and_then(|v| v.parse::<i32>().ok())
+                .unwrap_or(0);
+
+            let content = document
+                .select(&s("#contentlayoutleft tr.tbdata"))
+                .next()
+                .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
+                .inner_html();
+
+            let courses = Self::parse_courses(&document);
+
+            let module = Module {
+                tucan_id: url.clone().id,
+                tucan_last_checked: Utc::now().naive_utc(),
+                title: module_name.unwrap().to_string(),
+                credits: Some(credits),
+                module_id: normalize(module_id),
+                content,
+                done: true,
+            };
+
+            (module, courses)
+        };
+
+        debug!("[+] module {:?}", module);
+
+        diesel::insert_into(modules_unfinished::table)
+            .values(&module)
+            .on_conflict(modules_unfinished::tucan_id)
+            .do_update()
+            .set(&module)
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(courses_unfinished::table)
+            .values(&courses)
+            .on_conflict(courses_unfinished::tucan_id)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        diesel::insert_into(module_courses::table)
+            .values(
+                courses
+                    .iter()
+                    .map(|c| ModuleCourse {
+                        course: c.tucan_id.clone(),
+                        module: module.tucan_id.clone(),
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .on_conflict(module_courses::all_columns)
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+        if let Some(value) = self.cached_module(url.clone()).await? {
+            return Ok(value);
+        }
+
+        self.fetch_module(url.clone()).await?;
+
+        Ok(self.cached_module(url).await?.unwrap())
     }
 }

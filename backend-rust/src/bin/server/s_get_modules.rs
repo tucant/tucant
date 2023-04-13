@@ -33,7 +33,7 @@ pub async fn get_modules(
     tucan: State<Tucan>,
     input: Json<Option<String>>,
 ) -> Result<Json<WithTucanUrl<ModuleMenuResponse>>, MyError> {
-    let tucan = tucan.continue_session(session.clone());
+    let tucan = tucan.continue_session(session.clone()).await?;
 
     let value = match input.0 {
         None => {

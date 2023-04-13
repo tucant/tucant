@@ -8,6 +8,7 @@ import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
+import InitialFetch from "./InitialFetch";
 import SignOut from "./Logout";
 
 export default function Modules() {
@@ -22,8 +23,10 @@ export default function Modules() {
   }
 
   return (
-    <main className="container">
+    <main className="container-fluid">
       <h1 className="text-center">{data?.inner.module_menu.name}</h1>
+      <InitialFetch url={"/setup-modules"} />
+
       {data && (
         <>
           {data.inner.path.map((p) => (

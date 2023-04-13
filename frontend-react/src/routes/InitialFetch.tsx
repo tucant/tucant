@@ -28,7 +28,7 @@ export default function InitialFetch(props: { url: string }) {
     }
   };
   const [error, setError] = useState<string | null>(null);
-  const scrollEl = useRef<HTMLPreElement>(null);
+  const scrollEl = useRef<HTMLTextAreaElement>(null);
   const [everStarted, setEverStarted] = useState(false);
 
   useLayoutEffect(() => {
@@ -54,7 +54,7 @@ export default function InitialFetch(props: { url: string }) {
             setSuccess(null);
             setError(null);
             setLoading(true);
-            setData("Synchronisierung wird gestartet.");
+            setData("");
 
             const response = await fetch(`http://localhost:8080${props.url}`, {
               credentials: "include",
@@ -73,11 +73,12 @@ export default function InitialFetch(props: { url: string }) {
               setData((data) => data + new TextDecoder().decode(value?.value));
               value = await reader?.read();
             }
-            setData((data) => data + "\nFertig");
             setSuccess(true);
+            setLoading(false);
           })().catch((error) => {
             setError(String(error));
             setSuccess(false);
+            setLoading(false);
           });
         }}
       >
@@ -102,7 +103,7 @@ export default function InitialFetch(props: { url: string }) {
                 aria-expanded="true"
                 aria-controls="collapseOne"
               >
-                {data.substring(data.lastIndexOf("\n"))}
+                {data.substring(data.trim().lastIndexOf("\n"))}
               </button>
             </h2>
             <div
@@ -112,9 +113,13 @@ export default function InitialFetch(props: { url: string }) {
               data-bs-parent="#accordionExample"
             >
               <div className="accordion-body">
-                <pre ref={scrollEl} style={{ maxHeight: "25vh" }}>
-                  {data}
-                </pre>
+                <textarea
+                  className="form-control"
+                  readOnly={true}
+                  ref={scrollEl}
+                  rows={10}
+                  value={data}
+                />
               </div>
             </div>
           </div>

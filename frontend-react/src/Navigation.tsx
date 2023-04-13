@@ -34,7 +34,7 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
 
   return (
     <div className="vh-100 position-relative">
-      <nav className="navbar navbar-expand-lg bg-light">
+      <nav className="navbar navbar-expand-lg">
         <div className="container-fluid">
           <Link className="navbar-brand" to="/">
             <img

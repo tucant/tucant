@@ -98,6 +98,7 @@ use crate::s_my_exams::MyExamsTs;
 use crate::s_my_modules::MyModulesTs;
 use crate::s_search_module::search_module_opensearch;
 use crate::s_search_module::SearchModuleTs;
+use crate::s_setup::module_urls;
 use crate::s_setup::setup;
 use crate::s_setup::setup_vv;
 use base64::prelude::*;
@@ -344,6 +345,7 @@ fn main() -> anyhow::Result<()> {
                 .with_state(app_state.clone())
                 .route("/setup-vv", post(setup_vv))
                 .route("/setup", post(setup))
+                .route("/setup-modules", post(module_urls))
                 .route("/login-hack", get(login_hack));
 
             let app = TypescriptableApp {

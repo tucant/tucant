@@ -39,7 +39,10 @@ pub async fn courses(
     >,
     MyError,
 > {
-    let tucan = tucan.continue_session(session.clone()).as_unauthenticated();
+    let tucan = tucan
+        .continue_session(session.clone())
+        .await?
+        .as_unauthenticated();
 
     let value = match input.0 {
         None => {

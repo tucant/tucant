@@ -447,7 +447,8 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "COURSEDETAILS" => {
             number(&mut arguments);
-            assert!([0, 376_333_755_785_484].contains(&number(&mut arguments)));
+            let n = number(&mut arguments);
+            assert!([0, 376_333_755_785_484, 386_163_012_113_566].contains(&n));
             let prog = TucanProgram::Coursedetails(Coursedetails {
                 id: vec![
                     number(&mut arguments).to_be_bytes(), // this *should* be unique per course

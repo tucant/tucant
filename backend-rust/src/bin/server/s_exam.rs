@@ -29,7 +29,7 @@ pub async fn exam(
 ) -> Result<Json<WithTucanUrl<(Exam, Vec<Module>, Vec<Course>)>>, MyError> {
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    let tucan = tucan.continue_session(session.clone());
+    let tucan = tucan.continue_session(session.clone()).await?;
 
     let url = Examdetails {
         id: binary_path.clone(),

@@ -10,7 +10,7 @@ use crate::{
         ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    tucan::{element_by_selector, normalize, s, Authenticated, Tucan, Unauthenticated},
+    tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
         Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
@@ -75,136 +75,6 @@ impl Tucan<Authenticated> {
         }
     }
 
-    async fn cached_module(
-        &self,
-        url: Moduledetails,
-    ) -> anyhow::Result<Option<(Module, Vec<Course>)>> {
-        use diesel_async::RunQueryDsl;
-
-        let mut connection = self.pool.get().await?;
-
-        let existing_module = modules_unfinished::table
-            .filter(modules_unfinished::tucan_id.eq(&url.id))
-            .filter(modules_unfinished::done)
-            .select(MODULES_UNFINISHED)
-            .get_result::<Module>(&mut connection)
-            .await
-            .optional()?;
-
-        if let Some(existing_module) = existing_module {
-            debug!("[~] module {:?}", existing_module);
-
-            let course_list = ModuleCourse::belonging_to(&existing_module)
-                .inner_join(courses_unfinished::table)
-                .select(COURSES_UNFINISHED)
-                .load::<Course>(&mut connection)
-                .await?;
-
-            Ok(Some((existing_module, course_list)))
-        } else {
-            Ok(None)
-        }
-    }
-
-    pub async fn fetch_module(&self, url: Moduledetails) -> anyhow::Result<()> {
-        use diesel_async::RunQueryDsl;
-
-        let document = self.fetch_document(&url.clone().into()).await?;
-        let mut connection = self.pool.get().await?;
-
-        let (module, courses) = {
-            let document = Self::parse_document(&document);
-
-            let name = element_by_selector(&document, "h1").unwrap();
-
-            let text = name.inner_html();
-            let mut fs = text.split("&nbsp;");
-            let module_id = fs.next().unwrap().trim();
-
-            let module_name = fs.next().map(str::trim);
-
-            let credits = document
-                .select(&s(r#"#contentlayoutleft b"#))
-                .find(|e| e.inner_html() == "Credits: ")
-                .unwrap()
-                .next_sibling()
-                .unwrap()
-                .value()
-                .as_text()
-                .unwrap();
-
-            let credits = credits
-                .trim()
-                .strip_suffix(",0")
-                .and_then(|v| v.parse::<i32>().ok())
-                .unwrap_or(0);
-
-            let content = document
-                .select(&s("#contentlayoutleft tr.tbdata"))
-                .next()
-                .unwrap_or_else(|| panic!("{}", document.root_element().inner_html()))
-                .inner_html();
-
-            let courses = Self::parse_courses(&document);
-
-            let module = Module {
-                tucan_id: url.clone().id,
-                tucan_last_checked: Utc::now().naive_utc(),
-                title: module_name.unwrap().to_string(),
-                credits: Some(credits),
-                module_id: normalize(module_id),
-                content,
-                done: true,
-            };
-
-            (module, courses)
-        };
-
-        debug!("[+] module {:?}", module);
-
-        diesel::insert_into(modules_unfinished::table)
-            .values(&module)
-            .on_conflict(modules_unfinished::tucan_id)
-            .do_update()
-            .set(&module)
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(courses_unfinished::table)
-            .values(&courses)
-            .on_conflict(courses_unfinished::tucan_id)
-            .do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        diesel::insert_into(module_courses::table)
-            .values(
-                courses
-                    .iter()
-                    .map(|c| ModuleCourse {
-                        course: c.tucan_id.clone(),
-                        module: module.tucan_id.clone(),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict(module_courses::all_columns)
-            .do_nothing()
-            .execute(&mut connection)
-            .await?;
-
-        Ok(())
-    }
-
-    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
-        if let Some(value) = self.cached_module(url.clone()).await? {
-            return Ok(value);
-        }
-
-        self.fetch_module(url.clone()).await?;
-
-        Ok(self.cached_module(url).await?.unwrap())
-    }
-
     pub async fn root_registration(&self) -> anyhow::Result<ModuleMenu> {
         // TODO FIXME cache this
 
@@ -267,6 +137,7 @@ impl Tucan<Authenticated> {
             let submenus = module_menu_unfinished::table
                 .select(module_menu_unfinished::all_columns)
                 .filter(module_menu_unfinished::parent.eq(&url.path))
+                .order(module_menu_unfinished::name)
                 .load::<ModuleMenu>(&mut connection)
                 .await?;
 
@@ -274,6 +145,7 @@ impl Tucan<Authenticated> {
             let submodules: Vec<Module> = module_menu_module::table
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .filter(module_menu_module::module_menu_id.eq(&url.path))
                 .load::<Module>(&mut connection)
                 .await?;
@@ -286,6 +158,7 @@ impl Tucan<Authenticated> {
                         (module_courses::module, module_courses::course),
                         COURSES_UNFINISHED,
                     ))
+                    .order(courses_unfinished::title)
                     .load::<(ModuleCourse, Course)>(&mut connection)
                     .await?;
             let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
@@ -558,6 +431,7 @@ impl Tucan<Authenticated> {
                                 .filter(user_modules::user_id.eq(&tu_id))
                                 .inner_join(modules_unfinished::table)
                                 .select(MODULES_UNFINISHED)
+                                .order(modules_unfinished::title)
                                 .load::<Module>(&mut connection)
                                 .await?,
                         ))
@@ -665,6 +539,7 @@ impl Tucan<Authenticated> {
                                 users_unfinished::matriculation_number.eq(&matriculation_number),
                             )
                             .select(users_unfinished::user_courses_last_checked)
+                            .order()
                             .get_result::<Option<NaiveDateTime>>(&mut connection)
                             .await?;
 
@@ -674,6 +549,7 @@ impl Tucan<Authenticated> {
                                     .filter(user_courses::user_id.eq(&matriculation_number))
                                     .inner_join(courses_unfinished::table)
                                     .select(COURSES_UNFINISHED)
+                                    .order()
                                     .load::<Course>(&mut connection)
                                     .await?,
                             ))
@@ -809,6 +685,7 @@ impl Tucan<Authenticated> {
                 .filter(module_exams::exam.eq(&exam_details.id))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .load(&mut connection)
                 .await?;
 
@@ -816,6 +693,7 @@ impl Tucan<Authenticated> {
                 .filter(course_exams::exam.eq(&exam_details.id))
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
+                .order(courses_unfinished::title)
                 .load(&mut connection)
                 .await?;
 
@@ -1007,6 +885,7 @@ impl Tucan<Authenticated> {
                         .inner_join(module_exams::table.inner_join(modules_unfinished::table)),
                 )
                 .select((MODULES_UNFINISHED, exams_unfinished::all_columns))
+                .order((modules_unfinished::title, exams_unfinished::exam_time_start))
                 .load::<(Module, Exam)>(&mut connection)
                 .await?;
 
@@ -1017,6 +896,7 @@ impl Tucan<Authenticated> {
                         .inner_join(course_exams::table.inner_join(courses_unfinished::table)),
                 )
                 .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
+                .order((courses_unfinished::title, exams_unfinished::exam_time_start))
                 .load::<(Course, Exam)>(&mut connection)
                 .await?;
 
