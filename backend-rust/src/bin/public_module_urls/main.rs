@@ -4,6 +4,7 @@
 
 use tucant::tucan::Tucan;
 
+// $HOME/.cargo/bin/diesel database reset && cargo run --bin test
 fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()

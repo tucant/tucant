@@ -28,10 +28,12 @@ use tucant::tucan::Unauthenticated;
 use tucant::url::Action;
 
 #[derive(Clone, Copy)]
-enum ModulesOrCourses {
+pub enum ModulesOrCourses {
+    #[allow(dead_code)]
     Modules,
     #[allow(dead_code)]
     Courses,
+    Both,
 }
 
 #[derive(Debug)]
@@ -122,7 +124,7 @@ async fn fetch_registration(
 
     for module in value.1.modules_and_courses {
         match modules_or_courses {
-            ModulesOrCourses::Modules => {
+            ModulesOrCourses::Modules | ModulesOrCourses::Both => {
                 let module = tucan
                     .module(Moduledetails {
                         id: module.0.tucan_id.clone(),
@@ -133,7 +135,10 @@ async fn fetch_registration(
                     .yield_item(Bytes::from(format!("\nmodule {:?}", module.0.title)))
                     .await;
             }
-            ModulesOrCourses::Courses => {
+            ModulesOrCourses::Courses => {}
+        }
+        match modules_or_courses {
+            ModulesOrCourses::Courses | ModulesOrCourses::Both => {
                 // some history modules have multiple courses per module
                 // so we have to fetch all here
 
@@ -154,6 +159,7 @@ async fn fetch_registration(
                     }
                 }
             }
+            ModulesOrCourses::Modules => {}
         }
     }
 }
@@ -165,7 +171,9 @@ pub async fn setup(
 ) -> Result<Response, MyError> {
     let stream = try_stream(move |mut stream| async move {
         stream
-            .yield_item(Bytes::from("\nAlle Module werden heruntergeladen..."))
+            .yield_item(Bytes::from(
+                "\nAlle Module und Veranstaltungen werden heruntergeladen...",
+            ))
             .await;
 
         let tucan = tucan.continue_session(session).await?;
@@ -178,7 +186,7 @@ pub async fn setup(
             Registration {
                 path: root.tucan_id,
             },
-            ModulesOrCourses::Modules,
+            ModulesOrCourses::Both,
         )
         .await;
 

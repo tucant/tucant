@@ -146,7 +146,7 @@ impl Tucan<Unauthenticated> {
                 .connection_verbose(true)
                 .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
                 .build()?,
-            semaphore: Arc::new(Semaphore::new(3)),
+            semaphore: Arc::new(Semaphore::new(7)),
             opensearch,
             state: Unauthenticated,
         })
