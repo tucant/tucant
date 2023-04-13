@@ -2,7 +2,7 @@ export function TucanUrlLink(props: { data: { tucan_url: string } }) {
   return (
     <div className="float-end">
       <a
-        className="btn btn-light"
+        className="btn btn-secondary"
         target="_blank"
         rel="noopener noreferrer"
         href={props.data.tucan_url}

@@ -12,7 +12,7 @@
     "check-fix": "tsc && eslint --fix . && rome check --apply . && rome format --write ."
   },
   "dependencies": {
-    "bootstrap": "^5.2.3",
+    "bootstrap": "^5.3.0-alpha3",
     "dompurify": "^3.0.1",
     "eslint-plugin-react": "^7.32.2",
     "react": "^18.2.0",
