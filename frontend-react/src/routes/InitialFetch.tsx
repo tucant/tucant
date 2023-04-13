@@ -113,13 +113,18 @@ export default function InitialFetch(props: { url: string }) {
               data-bs-parent="#accordionExample"
             >
               <div className="accordion-body">
-                <textarea className="form-control" readOnly={true} ref={scrollEl} rows={10} value={data} />
+                <textarea
+                  className="form-control"
+                  readOnly={true}
+                  ref={scrollEl}
+                  rows={10}
+                  value={data}
+                />
               </div>
             </div>
           </div>
         </div>
-      )
-      }
+      )}
     </>
   );
 }
