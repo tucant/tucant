@@ -87,6 +87,7 @@ impl Tucan<Authenticated> {
             .filter(modules_unfinished::tucan_id.eq(&url.id))
             .filter(modules_unfinished::done)
             .select(MODULES_UNFINISHED)
+            .order(modules_unfinished::title)
             .get_result::<Module>(&mut connection)
             .await
             .optional()?;
@@ -96,6 +97,7 @@ impl Tucan<Authenticated> {
 
             let course_list = ModuleCourse::belonging_to(&existing_module)
                 .inner_join(courses_unfinished::table)
+                .order(courses_unfinished::title)
                 .select(COURSES_UNFINISHED)
                 .load::<Course>(&mut connection)
                 .await?;
@@ -267,6 +269,7 @@ impl Tucan<Authenticated> {
             let submenus = module_menu_unfinished::table
                 .select(module_menu_unfinished::all_columns)
                 .filter(module_menu_unfinished::parent.eq(&url.path))
+                .order(module_menu_unfinished::name)
                 .load::<ModuleMenu>(&mut connection)
                 .await?;
 
@@ -274,6 +277,7 @@ impl Tucan<Authenticated> {
             let submodules: Vec<Module> = module_menu_module::table
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .filter(module_menu_module::module_menu_id.eq(&url.path))
                 .load::<Module>(&mut connection)
                 .await?;
@@ -286,6 +290,7 @@ impl Tucan<Authenticated> {
                         (module_courses::module, module_courses::course),
                         COURSES_UNFINISHED,
                     ))
+                    .order(courses_unfinished::title)
                     .load::<(ModuleCourse, Course)>(&mut connection)
                     .await?;
             let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
@@ -558,6 +563,7 @@ impl Tucan<Authenticated> {
                                 .filter(user_modules::user_id.eq(&tu_id))
                                 .inner_join(modules_unfinished::table)
                                 .select(MODULES_UNFINISHED)
+                                .order(modules_unfinished::title)
                                 .load::<Module>(&mut connection)
                                 .await?,
                         ))
@@ -665,6 +671,7 @@ impl Tucan<Authenticated> {
                                 users_unfinished::matriculation_number.eq(&matriculation_number),
                             )
                             .select(users_unfinished::user_courses_last_checked)
+                            .order()
                             .get_result::<Option<NaiveDateTime>>(&mut connection)
                             .await?;
 
@@ -674,6 +681,7 @@ impl Tucan<Authenticated> {
                                     .filter(user_courses::user_id.eq(&matriculation_number))
                                     .inner_join(courses_unfinished::table)
                                     .select(COURSES_UNFINISHED)
+                                    .order()
                                     .load::<Course>(&mut connection)
                                     .await?,
                             ))
@@ -809,6 +817,7 @@ impl Tucan<Authenticated> {
                 .filter(module_exams::exam.eq(&exam_details.id))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .load(&mut connection)
                 .await?;
 
@@ -816,6 +825,7 @@ impl Tucan<Authenticated> {
                 .filter(course_exams::exam.eq(&exam_details.id))
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
+                .order(courses_unfinished::title)
                 .load(&mut connection)
                 .await?;
 
@@ -1007,6 +1017,7 @@ impl Tucan<Authenticated> {
                         .inner_join(module_exams::table.inner_join(modules_unfinished::table)),
                 )
                 .select((MODULES_UNFINISHED, exams_unfinished::all_columns))
+                .order((modules_unfinished::title, exams_unfinished::exam_time_start))
                 .load::<(Module, Exam)>(&mut connection)
                 .await?;
 
@@ -1017,6 +1028,7 @@ impl Tucan<Authenticated> {
                         .inner_join(course_exams::table.inner_join(courses_unfinished::table)),
                 )
                 .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
+                .order((courses_unfinished::title, exams_unfinished::exam_time_start))
                 .load::<(Course, Exam)>(&mut connection)
                 .await?;
 

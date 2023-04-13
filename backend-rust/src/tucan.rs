@@ -212,7 +212,7 @@ impl Tucan<Unauthenticated> {
             let submenus = vv_menu_unfinished::table
                 .select(vv_menu_unfinished::all_columns)
                 .filter(vv_menu_unfinished::parent.eq(&url.magic))
-                .order(vv_menu_unfinished::name.asc())
+                .order(vv_menu_unfinished::name)
                 .load::<VVMenuItem>(&mut connection)
                 .await?;
 
@@ -220,7 +220,7 @@ impl Tucan<Unauthenticated> {
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
-                .order(courses_unfinished::title.asc())
+                .order(courses_unfinished::title)
                 .load::<Course>(&mut connection)
                 .await?;
 
@@ -992,6 +992,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_groups_unfinished::table)
                 .select(course_groups_unfinished::all_columns)
+                .order(course_groups_unfinished::title)
                 .load::<CourseGroup>(&mut connection)
                 .await?;
 
@@ -999,6 +1000,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_events::table)
                 .select(course_events::all_columns)
+                .order(course_events::timestamp_start)
                 .load::<CourseEvent>(&mut connection)
                 .await?;
 
@@ -1006,6 +1008,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                 .filter(module_courses::course.eq(&existing.tucan_id))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .load::<Module>(&mut connection)
                 .await?;
 
@@ -1047,6 +1050,7 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
             let course_group_events: Vec<CourseGroupEvent> = course_groups_events::table
                 .filter(course_groups_events::course.eq(&existing.tucan_id))
                 .select(course_groups_events::all_columns)
+                .order(course_groups_events::timestamp_start)
                 .load::<CourseGroupEvent>(&mut connection)
                 .await?;
 

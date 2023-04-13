@@ -194,6 +194,7 @@ fn main() -> anyhow::Result<()> {
             let mut connection = tucan.pool.get().await?;
             let modules: Vec<Module> = modules_unfinished::table
                 .select(MODULES_UNFINISHED)
+                .order(modules_unfinished::title)
                 .load::<Module>(&mut connection)
                 .await?;
 

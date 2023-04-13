@@ -50,7 +50,7 @@ pub async fn search_course(
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = courses_unfinished::table
         .filter(tsvector.matches(tsquery))
-        .order_by(rank.desc())
+        .order(rank.desc())
         .select((
             courses_unfinished::tucan_id,
             courses_unfinished::title,

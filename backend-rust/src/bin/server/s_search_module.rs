@@ -41,7 +41,7 @@ pub async fn search_module(
     let rank = ts_rank_cd_normalized(tsvector, tsquery, 1);
     let sql_query = modules_unfinished::table
         .filter(tsvector.matches(tsquery))
-        .order_by(rank.desc())
+        .order(rank.desc())
         .select((
             modules_unfinished::tucan_id,
             modules_unfinished::title,
