@@ -26,7 +26,7 @@ use tucant_derive::ts;
 #[ts]
 #[axum::debug_handler(state=AppState)]
 pub async fn module(
-    session: Option<TucanSession>, // TODO FIXME link this with the State<Tucan>
+    session: Option<TucanSession>,
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
@@ -34,8 +34,7 @@ pub async fn module(
 
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    // TODO FIXME optionally use session
-    let tucan = tucan; // .continue_session(session.clone());
+    let tucan = tucan.continue_optional_session(session.clone()).await?;
 
     let result = tucan
         .module(Moduledetails {

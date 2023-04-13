@@ -48,7 +48,7 @@ pub async fn course(
 > {
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    let tucan = tucan; //.continue_session(session.clone());
+    let tucan = tucan.continue_optional_session(session.clone()).await?;
 
     let url = Coursedetails {
         id: binary_path.clone(),

@@ -87,6 +87,12 @@ impl GetTucanSession for Authenticated {
     }
 }
 
+impl GetTucanSession for Box<dyn GetTucanSession + Sync + Send> {
+    fn session(&self) -> Option<&TucanSession> {
+        self.as_ref().session()
+    }
+}
+
 #[derive(Clone)]
 pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
@@ -402,7 +408,7 @@ pub fn s(selector: &str) -> Selector {
     Selector::parse(selector).unwrap()
 }
 
-impl<State: GetTucanSession + Sync + Send> Tucan<State> {
+impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
         document
             .select(&s(r#"a[name="eventLink"]"#))
@@ -468,6 +474,32 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
     }
 
     #[must_use]
+    pub async fn continue_optional_session(
+        &self,
+        session: Option<TucanSession>,
+    ) -> anyhow::Result<Tucan<Box<dyn GetTucanSession + Sync + Send + 'static>>> {
+        Ok(match session {
+            Some(session) => {
+                let tucan = self.continue_session(session).await?;
+                Tucan {
+                    client: tucan.client,
+                    semaphore: tucan.semaphore,
+                    pool: tucan.pool,
+                    opensearch: tucan.opensearch,
+                    state: Box::new(tucan.state),
+                }
+            }
+            None => Tucan {
+                client: self.client.clone(),
+                semaphore: self.semaphore.clone(),
+                pool: self.pool.clone(),
+                opensearch: self.opensearch.clone(),
+                state: Box::new(Unauthenticated),
+            },
+        })
+    }
+
+    #[must_use]
     pub async fn continue_session(
         &self,
         session: TucanSession,
@@ -485,6 +517,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
         diesel::insert_into(sessions::table)
             .values(session.clone())
+            .on_conflict((
+                sessions::matriculation_number,
+                sessions::session_nr,
+                sessions::session_id,
+            ))
+            .do_nothing()
             .execute(&mut connection)
             .await?;
 
@@ -612,6 +650,12 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
 
                                 diesel::insert_into(sessions::table)
                                     .values(user_session)
+                                    .on_conflict((
+                                        sessions::matriculation_number,
+                                        sessions::session_nr,
+                                        sessions::session_id,
+                                    ))
+                                    .do_nothing()
                                     .execute(&mut connection)
                                     .await?;
 
@@ -846,20 +890,21 @@ impl<State: GetTucanSession + Sync + Send> Tucan<State> {
                     }
                 })
                 .collect();
-
-            let contained_in_modules = document
-                .select(&s(r#"caption"#))
-                .find(|e| e.inner_html() == "Enthalten in Modulen")
-                .unwrap_or_else(|| unwrap_handler())
-                .next_siblings()
-                .find_map(ElementRef::wrap)
-                .unwrap_or_else(|| unwrap_handler());
-            let selector = s("td.tbdata");
-            let _contained_in_modules = contained_in_modules
-                .select(&selector)
-                .map(|module| module.inner_html().trim().to_owned())
-                .collect_vec();
-
+            /*
+                        // TODO FIXME only do this when logged in as otherwise this doesn't work
+                        let contained_in_modules = document
+                            .select(&s(r#"caption"#))
+                            .find(|e| e.inner_html() == "Enthalten in Modulen")
+                            .unwrap_or_else(|| unwrap_handler())
+                            .next_siblings()
+                            .find_map(ElementRef::wrap)
+                            .unwrap_or_else(|| unwrap_handler());
+                        let selector = s("td.tbdata");
+                        let _contained_in_modules = contained_in_modules
+                            .select(&selector)
+                            .map(|module| module.inner_html().trim().to_owned())
+                            .collect_vec();
+            */
             (course, course_groups, events)
         };
 
