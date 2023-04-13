@@ -34,8 +34,9 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{
-        Course, CourseEvent, CourseGroup, CourseGroupEvent, Module, ModuleCourse, TucanSession,
-        UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        CompleteCourse, Course, CourseEvent, CourseGroup, CourseGroupEvent, MaybeCompleteCourse,
+        Module, ModuleCourse, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem,
+        COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
@@ -150,6 +151,25 @@ impl Tucan<Unauthenticated> {
             opensearch,
             state: Unauthenticated,
         })
+    }
+
+    pub async fn test(&self) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
+        let mut connection = self.pool.get().await?;
+
+        let test: Vec<_> = courses_unfinished::table
+            .select((
+                courses_unfinished::columns::tucan_id,
+                courses_unfinished::columns::tucan_last_checked,
+                courses_unfinished::columns::title,
+                courses_unfinished::columns::course_id,
+                courses_unfinished::columns::sws,
+                courses_unfinished::columns::content,
+                courses_unfinished::columns::done,
+            ))
+            .load::<MaybeCompleteCourse>(&mut connection)
+            .await?;
+        Ok(())
     }
 
     pub async fn vv_root(&self) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {

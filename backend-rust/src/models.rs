@@ -15,16 +15,21 @@ use base64::prelude::*;
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
+use diesel::backend::Backend;
+use diesel::deserialize::FromSql;
 #[cfg(feature = "server")]
 use diesel::prelude::{
     AsChangeset, Associations, Identifiable, Insertable, Queryable, QueryableByName,
 };
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
+use diesel::sql_types::Int2;
 #[cfg(feature = "server")]
 use diesel::sql_types::Text;
+use diesel::sql_types::Timestamptz;
 #[cfg(feature = "server")]
 use diesel::sql_types::{Bytea, Nullable};
+use diesel_full_text_search::Tsvector;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "server")]
@@ -240,6 +245,66 @@ pub struct Course {
     pub sws: i16,
     pub content: String,
     pub done: bool,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+pub struct PartialCourse {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub course_id: String,
+}
+
+#[cfg_attr(
+    feature = "server",
+    derive(Queryable, Serialize, Debug, Deserialize, PartialEq, Eq, Clone)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
+pub struct CompleteCourse {
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub course_id: String,
+    pub sws: i16,
+    pub content: String,
+}
+
+pub enum MaybeCompleteCourse {
+    Partial(PartialCourse),
+    Complete(CompleteCourse),
+}
+
+use diesel::deserialize::{self};
+
+impl<DB> Queryable<(Bytea, Timestamptz, Text, Text, Int2, Text, Bool), DB> for MaybeCompleteCourse
+where
+    DB: Backend,
+    Vec<u8>: FromSql<Bytea, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i16: FromSql<Int2, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row = (Vec<u8>, NaiveDateTime, String, String, i16, String, bool);
+
+    fn build(row: Self::Row) -> deserialize::Result<Self> {
+        Ok(MaybeCompleteCourse::Partial(PartialCourse {
+            tucan_id: row.0,
+            tucan_last_checked: row.1,
+            title: row.2,
+            course_id: row.3,
+        }))
+    }
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

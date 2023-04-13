@@ -13,8 +13,6 @@ fn main() -> anyhow::Result<()> {
             env_logger::init();
 
             let tucan = Tucan::new()?;
-            let result = tucan.vv_root().await?;
-            println!("{:?}", result);
 
             Ok(())
         })
