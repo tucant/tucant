@@ -28,6 +28,7 @@ use tucant::models::Module;
 use tucant::tucan::Authenticated;
 use tucant::tucan::Unauthenticated;
 use tucant::url::Action;
+use tucant::url::TucanProgram;
 
 #[derive(Clone, Copy)]
 pub enum ModulesOrCourses {
@@ -212,6 +213,77 @@ pub async fn setup(
         }
 
         stream.yield_item(Bytes::from("\nFertig!")).await;
+
+        let return_value: anyhow::Result<()> = Ok(());
+
+        return_value
+    });
+
+    let headers = [(header::CONTENT_TYPE, "text/plain")];
+
+    Ok((headers, StreamBody::new(stream)).into_response())
+}
+
+fn fetch_module_urls(
+    tucan: Tucan<Authenticated>,
+    parent: Registration,
+) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
+    Box::pin(async_stream::stream(move |mut stream| async move {
+        let value = tucan.registration(parent.clone()).await.unwrap();
+
+        let tucan_clone = tucan.clone();
+
+        let mut result = futures::stream::iter(value.1.submenus)
+            .map(|menu| {
+                let t = tucan_clone.clone();
+                fetch_module_urls(
+                    t,
+                    Registration {
+                        path: menu.tucan_id.clone(),
+                    },
+                )
+            })
+            .flatten_unordered(None);
+
+        while let Some(value) = result.next().await {
+            stream.yield_item(value).await;
+        }
+
+        for module in value.1.modules_and_courses {
+            let tucan_program: TucanProgram = Moduledetails {
+                id: module.0.tucan_id.clone(),
+            }
+            .into();
+            stream
+                .yield_item(Bytes::from(format!(
+                    "{}\n",
+                    tucan_program.to_tucan_url(None)
+                )))
+                .await;
+        }
+    }))
+}
+
+pub async fn module_urls(
+    tucan: State<Tucan>,
+    session: TucanSession,
+    _input: Json<()>,
+) -> Result<Response, MyError> {
+    let stream = try_stream(move |mut stream| async move {
+        let tucan = tucan.continue_session(session).await?;
+
+        let root = tucan.root_registration().await.unwrap();
+
+        let mut inner_stream = fetch_module_urls(
+            tucan,
+            Registration {
+                path: root.tucan_id,
+            },
+        );
+
+        while let Some(value) = inner_stream.next().await {
+            stream.yield_item(value).await;
+        }
 
         let return_value: anyhow::Result<()> = Ok(());
 
