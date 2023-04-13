@@ -146,7 +146,7 @@ impl Tucan<Unauthenticated> {
                 .connection_verbose(true)
                 .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
                 .build()?,
-            semaphore: Arc::new(Semaphore::new(7)),
+            semaphore: Arc::new(Semaphore::new(5)),
             opensearch,
             state: Unauthenticated,
         })
@@ -473,7 +473,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         Html::parse_document(resp)
     }
 
-    #[must_use]
     pub async fn continue_optional_session(
         &self,
         session: Option<TucanSession>,
@@ -499,7 +498,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         })
     }
 
-    #[must_use]
     pub async fn continue_session(
         &self,
         session: TucanSession,
@@ -509,7 +507,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
         // TODO FIXME strg+f insert_into(users_unfinished and do this everywhere directly in the method so it can't be forgotten
         diesel::insert_into(users_unfinished::table)
-            .values(UndoneUser::new(session.matriculation_number.clone()))
+            .values(UndoneUser::new(session.matriculation_number))
             .on_conflict(users_unfinished::matriculation_number)
             .do_nothing()
             .execute(&mut connection)

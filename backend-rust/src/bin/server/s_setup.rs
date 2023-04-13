@@ -2,14 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::pin::Pin;
+
 use crate::Coursedetails;
 use crate::Moduledetails;
 use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 
-use async_stream::Stream;
 use axum::body::StreamBody;
+use futures::StreamExt;
 use reqwest::header;
 use tucant::MyError;
 
@@ -52,14 +54,16 @@ pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response,
 
         let root = tucan.vv_root().await.unwrap();
 
-        prefetch_vv(
-            &mut stream,
+        let mut inner_stream = prefetch_vv(
             tucan.0,
             Action {
                 magic: root.0.tucan_id,
             },
-        )
-        .await;
+        );
+
+        while let Some(value) = inner_stream.next().await {
+            stream.yield_item(value).await;
+        }
 
         stream.yield_item(Bytes::from("\nFertig!")).await;
 
@@ -73,95 +77,110 @@ pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response,
     Ok((headers, StreamBody::new(stream)).into_response())
 }
 
-#[async_recursion::async_recursion]
-async fn prefetch_vv(stream: &mut Stream<Bytes>, tucan: Tucan<Unauthenticated>, action: Action) {
-    let value = tucan.vv(action).await.unwrap();
+fn prefetch_vv(
+    tucan: Tucan<Unauthenticated>,
+    action: Action,
+) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
+    Box::pin(async_stream::stream(move |mut stream| async move {
+        let value = tucan.vv(action).await.unwrap();
 
-    stream
-        .yield_item(Bytes::from(format!("\nvv {}", value.0.name)))
-        .await;
+        stream
+            .yield_item(Bytes::from(format!("\nvv {}", value.0.name)))
+            .await;
 
-    for submenu in value.1 {
-        prefetch_vv(
-            stream,
-            tucan.clone(),
-            Action {
-                magic: submenu.tucan_id,
-            },
-        )
-        .await;
-    }
+        let mut result = futures::stream::iter(value.1)
+            .map(|submenu| {
+                let t = tucan.clone();
+                prefetch_vv(
+                    t,
+                    Action {
+                        magic: submenu.tucan_id.clone(),
+                    },
+                )
+            })
+            .flatten_unordered(None);
 
-    for _course in value.2 {}
+        while let Some(value) = result.next().await {
+            stream.yield_item(value).await;
+        }
+    }))
 }
 
-#[async_recursion::async_recursion]
-async fn fetch_registration(
-    stream: &mut Stream<Bytes>,
+fn fetch_registration(
     tucan: Tucan<Authenticated>,
     parent: Registration,
     modules_or_courses: ModulesOrCourses,
-) {
-    let value = tucan.registration(parent.clone()).await.unwrap();
+) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
+    Box::pin(async_stream::stream(move |mut stream| async move {
+        let value = tucan.registration(parent.clone()).await.unwrap();
 
-    stream
-        .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
-        .await;
+        stream
+            .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
+            .await;
 
-    let tucan_clone = tucan.clone();
+        let tucan_clone = tucan.clone();
 
-    for menu in value.1.submenus {
-        fetch_registration(
-            stream,
-            tucan_clone.clone(),
-            Registration {
-                path: menu.tucan_id,
-            },
-            modules_or_courses,
-        )
-        .await;
-    }
+        let mut result = futures::stream::iter(value.1.submenus)
+            .map(|menu| {
+                let t = tucan_clone.clone();
+                fetch_registration(
+                    t,
+                    Registration {
+                        path: menu.tucan_id.clone(),
+                    },
+                    modules_or_courses,
+                )
+            })
+            .flatten_unordered(None);
 
-    for module in value.1.modules_and_courses {
-        match modules_or_courses {
-            ModulesOrCourses::Modules | ModulesOrCourses::Both => {
-                let module = tucan
-                    .module(Moduledetails {
-                        id: module.0.tucan_id.clone(),
-                    })
-                    .await
-                    .unwrap();
-                stream
-                    .yield_item(Bytes::from(format!("\nmodule {:?}", module.0.title)))
-                    .await;
-            }
-            ModulesOrCourses::Courses => {}
+        while let Some(value) = result.next().await {
+            stream.yield_item(value).await;
         }
-        match modules_or_courses {
-            ModulesOrCourses::Courses | ModulesOrCourses::Both => {
-                // some history modules have multiple courses per module
-                // so we have to fetch all here
 
-                for course in module.1 {
-                    match tucan
-                        .course_or_course_group(Coursedetails {
-                            id: course.tucan_id.clone(),
+        for module in value.1.modules_and_courses {
+            match modules_or_courses {
+                ModulesOrCourses::Modules | ModulesOrCourses::Both => {
+                    let module = tucan
+                        .module(Moduledetails {
+                            id: module.0.tucan_id.clone(),
                         })
                         .await
-                        .unwrap()
-                    {
-                        tucant::tucan_user::CourseOrCourseGroup::Course(course) => {
-                            stream
-                                .yield_item(Bytes::from(format!("\ncourse {:?}", course.0.title)))
-                                .await;
+                        .unwrap();
+                    stream
+                        .yield_item(Bytes::from(format!("\nmodule {:?}", module.0.title)))
+                        .await;
+                }
+                ModulesOrCourses::Courses => {}
+            }
+            match modules_or_courses {
+                ModulesOrCourses::Courses | ModulesOrCourses::Both => {
+                    // some history modules have multiple courses per module
+                    // so we have to fetch all here
+
+                    for course in module.1 {
+                        match tucan
+                            .course_or_course_group(Coursedetails {
+                                id: course.tucan_id.clone(),
+                            })
+                            .await
+                            .unwrap()
+                        {
+                            tucant::tucan_user::CourseOrCourseGroup::Course(course) => {
+                                stream
+                                    .yield_item(Bytes::from(format!(
+                                        "\ncourse {:?}",
+                                        course.0.title
+                                    )))
+                                    .await;
+                            }
+                            tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
                         }
-                        tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
                     }
                 }
+                ModulesOrCourses::Modules => {}
             }
-            ModulesOrCourses::Modules => {}
         }
-    }
+    }))
 }
 
 pub async fn setup(
@@ -180,15 +199,17 @@ pub async fn setup(
 
         let root = tucan.root_registration().await.unwrap();
 
-        fetch_registration(
-            &mut stream,
+        let mut inner_stream = fetch_registration(
             tucan,
             Registration {
                 path: root.tucan_id,
             },
             ModulesOrCourses::Both,
-        )
-        .await;
+        );
+
+        while let Some(value) = inner_stream.next().await {
+            stream.yield_item(value).await;
+        }
 
         stream.yield_item(Bytes::from("\nFertig!")).await;
 
