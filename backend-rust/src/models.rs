@@ -154,7 +154,7 @@ impl PathLike<Vec<u8>> for ModuleMenuPathPart {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
     pub submenus: Vec<ModuleMenu>,
-    pub modules_and_courses: Vec<(Module, Vec<Course>)>,
+    pub modules_and_courses: Vec<(Module, Vec<MaybeCompleteCourse>)>,
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
@@ -169,7 +169,7 @@ pub struct ModuleMenuResponse {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct ModuleResponse {
     pub module: Module,
-    pub courses: Vec<Course>,
+    pub courses: Vec<MaybeCompleteCourse>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
@@ -222,34 +222,6 @@ pub struct ModuleMenuEntryModule {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(
-        Identifiable,
-        Queryable,
-        Insertable,
-        AsChangeset,
-        Typescriptable,
-        Associations
-    )
-)]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
-pub struct Course {
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
-    #[cfg_attr(feature = "server", ts_type(String))]
-    pub tucan_id: Vec<u8>,
-    pub tucan_last_checked: NaiveDateTime,
-    pub title: String,
-    pub course_id: String,
-    pub sws: i16,
-    pub content: String,
-    pub done: bool,
-}
-
-#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
     derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
@@ -266,11 +238,22 @@ pub struct PartialCourse {
 
 #[cfg_attr(
     feature = "server",
-    derive(Queryable, Serialize, Debug, Deserialize, PartialEq, Eq, Clone)
+    derive(
+        Queryable,
+        Serialize,
+        Deserialize,
+        Debug,
+        PartialEq,
+        Eq,
+        Clone,
+        Typescriptable
+    )
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 pub struct CompleteCourse {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
@@ -279,12 +262,23 @@ pub struct CompleteCourse {
     pub content: String,
 }
 
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
 pub enum MaybeCompleteCourse {
     Partial(PartialCourse),
     Complete(CompleteCourse),
 }
 
-use diesel::deserialize::{self};
+impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
+    type Values = <diesel::dsl::Eq<courses_unfinished::title, String> as Insertable<
+        courses_unfinished::table,
+    >>::Values;
+
+    fn values(self) -> Self::Values {
+        "hi"
+    }
+}
+
+use diesel::deserialize;
 
 impl<DB> Queryable<(Bytea, Timestamptz, Text, Text, Int2, Text, Bool), DB> for MaybeCompleteCourse
 where
@@ -310,19 +304,11 @@ where
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(
-        Identifiable,
-        Queryable,
-        Insertable,
-        AsChangeset,
-        Typescriptable,
-        Associations
-    )
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = course_groups_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct CourseGroup {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -649,13 +635,10 @@ impl PathLike<String> for VVMenuPathPart {
 }
 
 #[derive(Serialize, Debug)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable,))]
 #[cfg_attr(feature = "server", diesel(primary_key(vv_menu_id, course_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = vv_menu_courses))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Course)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(MaybeCompleteCourse)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = vv_menu_id)))]
 pub struct VVMenuCourses {
     pub vv_menu_id: String,

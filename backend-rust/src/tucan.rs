@@ -34,8 +34,8 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{
-        CompleteCourse, Course, CourseEvent, CourseGroup, CourseGroupEvent, MaybeCompleteCourse,
-        Module, ModuleCourse, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem,
+        CompleteCourse, CourseEvent, CourseGroup, CourseGroupEvent, MaybeCompleteCourse, Module,
+        ModuleCourse, PartialCourse, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::{
@@ -158,21 +158,14 @@ impl Tucan<Unauthenticated> {
         let mut connection = self.pool.get().await?;
 
         let test: Vec<_> = courses_unfinished::table
-            .select((
-                courses_unfinished::columns::tucan_id,
-                courses_unfinished::columns::tucan_last_checked,
-                courses_unfinished::columns::title,
-                courses_unfinished::columns::course_id,
-                courses_unfinished::columns::sws,
-                courses_unfinished::columns::content,
-                courses_unfinished::columns::done,
-            ))
             .load::<MaybeCompleteCourse>(&mut connection)
             .await?;
         Ok(())
     }
 
-    pub async fn vv_root(&self) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
+    pub async fn vv_root(
+        &self,
+    ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)> {
         let document = self
             .fetch_document(&TucanProgram::Externalpages(Externalpages {
                 id: 344,
@@ -222,7 +215,7 @@ impl Tucan<Unauthenticated> {
     async fn cached_vv(
         &self,
         url: Action,
-    ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)>> {
+    ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -242,12 +235,12 @@ impl Tucan<Unauthenticated> {
                 .load::<VVMenuItem>(&mut connection)
                 .await?;
 
-            let submodules: Vec<Course> = vv_menu_courses::table
+            let submodules: Vec<MaybeCompleteCourse> = vv_menu_courses::table
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
                 .order(courses_unfinished::title)
-                .load::<Course>(&mut connection)
+                .load::<MaybeCompleteCourse>(&mut connection)
                 .await?;
 
             Ok(Some((vv_menu, submenus, submodules)))
@@ -343,15 +336,12 @@ impl Tucan<Unauthenticated> {
                         TucanProgram::Coursedetails(Coursedetails { id }) => {
                             let course_id_title = node.inner_html();
                             let Some((course_id, title)) = course_id_title.split_once(' ') else {panic!()};
-                            vec![Course {
+                            vec![MaybeCompleteCourse::Partial(PartialCourse {
                                 tucan_last_checked: Utc::now().naive_utc(),
                                 course_id: course_id.to_string(),
                                 title: title.to_string(),
                                 tucan_id: id,
-                                sws: 0,
-                                content: String::new(),
-                                done: false,
-                            }]
+                            })]
                         }
                         TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
                             // Don't handle as there is one in the whole thing
@@ -412,7 +402,7 @@ impl Tucan<Unauthenticated> {
     pub async fn vv(
         &self,
         url: Action,
-    ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<Course>)> {
+    ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)> {
         if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
@@ -429,7 +419,7 @@ pub fn s(selector: &str) -> Selector {
 }
 
 impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
-    pub(crate) fn parse_courses(document: &Html) -> Vec<Course> {
+    pub(crate) fn parse_courses(document: &Html) -> Vec<MaybeCompleteCourse> {
         document
             .select(&s(r#"a[name="eventLink"]"#))
             .map(|e| e.parent().unwrap().parent().unwrap())
@@ -438,7 +428,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 let element_ref = ElementRef::wrap(node).unwrap();
                 let selector = &s("a");
                 let mut links = element_ref.select(selector);
-                Course {
+                MaybeCompleteCourse::Partial(PartialCourse {
                     tucan_last_checked: Utc::now().naive_utc(),
                     course_id: links.next().unwrap().inner_html(),
                     title: links.next().unwrap().inner_html(),
@@ -451,10 +441,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     )
                     .unwrap()
                     .id,
-                    sws: 0,
-                    content: String::new(),
-                    done: false,
-                }
+                })
             })
             .collect::<Vec<_>>()
     }
@@ -871,15 +858,14 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let events = self.extract_events(&url, &document);
 
-            let course = Course {
+            let course = MaybeCompleteCourse::Complete(CompleteCourse {
                 tucan_id: url.id.clone(),
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: course_name.unwrap_or_else(|| unwrap_handler()).to_string(),
                 sws,
                 course_id: normalize(course_id),
                 content,
-                done: true,
-            };
+            });
 
             let course_groups: Vec<CourseGroup> = document
                 .select(&s(".dl-ul-listview .listelement"))
@@ -966,7 +952,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     ) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
-        let (course_group, events) = {
+        let (course_group, events, h1) = {
             let document = Self::parse_document(&document);
 
             let plenum_element = document
@@ -1000,6 +986,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 })
                 .collect::<Vec<_>>();
 
+            let h1 = document.select(&s("h1")).next().unwrap().inner_html();
+
             (
                 CourseGroup {
                     tucan_id: url.id,
@@ -1008,20 +996,20 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     done: true,
                 },
                 events,
+                h1,
             )
         };
 
         debug!("[+] course group {:?}", course_group);
 
-        let course = Course {
+        let Some((course_id, title)) = h1.split_once(' ') else {panic!()};
+
+        let course = MaybeCompleteCourse::Partial(PartialCourse {
             tucan_id: course_group.course.clone(),
             tucan_last_checked: Utc::now().naive_utc(),
-            title: String::new(),
-            sws: 0,
-            course_id: String::new(),
-            content: String::new(),
-            done: false,
-        };
+            title: title.to_owned(),
+            course_id: course_id.to_owned(),
+        });
 
         diesel::insert_into(courses_unfinished::table)
             .values(&course)
@@ -1058,7 +1046,14 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     async fn cached_course(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<Option<(Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)>> {
+    ) -> anyhow::Result<
+        Option<(
+            MaybeCompleteCourse,
+            Vec<CourseGroup>,
+            Vec<CourseEvent>,
+            Vec<Module>,
+        )>,
+    > {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -1067,7 +1062,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
             .select(COURSES_UNFINISHED)
-            .get_result::<Course>(&mut connection)
+            .get_result::<MaybeCompleteCourse>(&mut connection)
             .await
             .optional()?;
 
@@ -1149,7 +1144,12 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     pub async fn course(
         &self,
         url: Coursedetails,
-    ) -> anyhow::Result<(Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)> {
+    ) -> anyhow::Result<(
+        MaybeCompleteCourse,
+        Vec<CourseGroup>,
+        Vec<CourseEvent>,
+        Vec<Module>,
+    )> {
         if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(value);
         }
@@ -1214,7 +1214,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     async fn cached_module(
         &self,
         url: Moduledetails,
-    ) -> anyhow::Result<Option<(Module, Vec<Course>)>> {
+    ) -> anyhow::Result<Option<(Module, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -1235,7 +1235,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .inner_join(courses_unfinished::table)
                 .order(courses_unfinished::title)
                 .select(COURSES_UNFINISHED)
-                .load::<Course>(&mut connection)
+                .load::<MaybeCompleteCourse>(&mut connection)
                 .await?;
 
             Ok(Some((existing_module, course_list)))
@@ -1333,7 +1333,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         Ok(())
     }
 
-    pub async fn module(&self, url: Moduledetails) -> anyhow::Result<(Module, Vec<Course>)> {
+    pub async fn module(
+        &self,
+        url: Moduledetails,
+    ) -> anyhow::Result<(Module, Vec<MaybeCompleteCourse>)> {
         if let Some(value) = self.cached_module(url.clone()).await? {
             return Ok(value);
         }
