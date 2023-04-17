@@ -9,7 +9,9 @@ use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
 use diesel::ExpressionMethods;
+use diesel_full_text_search::TsVector;
 use std::collections::VecDeque;
+use std::convert::Infallible;
 use std::hash::Hash;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
@@ -261,7 +263,23 @@ pub enum MaybeCompleteCourse {
     Complete(CompleteCourse),
 }
 
+// https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/insertable.rs
 impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
+    type Values = <diesel::dsl::Eq<courses_unfinished::tucan_id, Vec<u8>> as Insertable<
+        courses_unfinished::table,
+    >>::Values;
+
+    fn values(self) -> Self::Values {
+        match self {
+            MaybeCompleteCourse::Partial(v) => courses_unfinished::tucan_id.eq(Vec::new()).values(),
+            MaybeCompleteCourse::Complete(v) => {
+                courses_unfinished::tucan_id.eq(Vec::new()).values()
+            }
+        }
+    }
+}
+
+impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
     type Values = <diesel::dsl::Eq<courses_unfinished::tucan_id, Vec<u8>> as Insertable<
         courses_unfinished::table,
     >>::Values;
@@ -278,7 +296,9 @@ impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
 
 use diesel::deserialize;
 
-impl<DB> Queryable<(Bytea, Timestamptz, Text, Text, Int2, Text, Bool), DB> for MaybeCompleteCourse
+// https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/queryable.rs
+impl<DB> Queryable<(Bytea, Timestamptz, Text, Text, Int2, Text, Bool, TsVector), DB>
+    for MaybeCompleteCourse
 where
     DB: Backend,
     Vec<u8>: FromSql<Bytea, DB>,
@@ -286,8 +306,18 @@ where
     String: FromSql<Text, DB>,
     i16: FromSql<Int2, DB>,
     bool: FromSql<Bool, DB>,
+    bool: FromSql<TsVector, DB>,
 {
-    type Row = (Vec<u8>, NaiveDateTime, String, String, i16, String, bool);
+    type Row = (
+        Vec<u8>,
+        NaiveDateTime,
+        String,
+        String,
+        i16,
+        String,
+        bool,
+        bool,
+    );
 
     fn build(row: Self::Row) -> deserialize::Result<Self> {
         Ok(MaybeCompleteCourse::Partial(PartialCourse {
