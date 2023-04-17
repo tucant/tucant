@@ -691,20 +691,4 @@ pub const MODULES_UNFINISHED: (
     modules_unfinished::done,
 );
 
-pub const COURSES_UNFINISHED: (
-    courses_unfinished::columns::tucan_id,
-    courses_unfinished::columns::tucan_last_checked,
-    courses_unfinished::columns::title,
-    courses_unfinished::columns::course_id,
-    courses_unfinished::columns::sws,
-    courses_unfinished::columns::content,
-    courses_unfinished::columns::done,
-) = (
-    courses_unfinished::tucan_id,
-    courses_unfinished::tucan_last_checked,
-    courses_unfinished::title,
-    courses_unfinished::course_id,
-    courses_unfinished::sws,
-    courses_unfinished::content,
-    courses_unfinished::done,
-);
+pub const COURSES_UNFINISHED: (courses_unfinished::tucan_id, courses_unfinished::tucan_last_checked, courses_unfinished::title, courses_unfinished::course_id, courses_unfinished::sws, courses_unfinished::content, courses_unfinished::done, courses_unfinished::tsv) = courses_unfinished::all_columns;
