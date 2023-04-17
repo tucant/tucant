@@ -1,8 +1,5 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
-use std::collections::VecDeque;
-use std::hash::Hash;
-
 use axum::extract::FromRef;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -11,6 +8,9 @@ use axum::response::Response;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
+use diesel::ExpressionMethods;
+use std::collections::VecDeque;
+use std::hash::Hash;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -236,21 +236,14 @@ pub struct PartialCourse {
     pub course_id: String,
 }
 
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(
-        Queryable,
-        Serialize,
-        Deserialize,
-        Debug,
-        PartialEq,
-        Eq,
-        Clone,
-        Typescriptable
-    )
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct CompleteCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -269,12 +262,17 @@ pub enum MaybeCompleteCourse {
 }
 
 impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
-    type Values = <diesel::dsl::Eq<courses_unfinished::title, String> as Insertable<
+    type Values = <diesel::dsl::Eq<courses_unfinished::tucan_id, Vec<u8>> as Insertable<
         courses_unfinished::table,
     >>::Values;
 
     fn values(self) -> Self::Values {
-        "hi"
+        match self {
+            MaybeCompleteCourse::Partial(v) => courses_unfinished::tucan_id.eq(Vec::new()).values(),
+            MaybeCompleteCourse::Complete(v) => {
+                courses_unfinished::tucan_id.eq(Vec::new()).values()
+            }
+        }
     }
 }
 
