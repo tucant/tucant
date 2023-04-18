@@ -14,6 +14,7 @@ use axum::extract::State;
 
 use axum::Json;
 
+use tucant::models::MaybeCompleteCourse;
 use tucant::models::TucanSession;
 use tucant::models::VVMenuItem;
 use tucant::models::VVMenuPathPart;
@@ -33,7 +34,7 @@ pub async fn courses(
         WithTucanUrl<(
             VVMenuItem,
             Vec<VVMenuItem>,
-            Vec<tucant::models::Course>,
+            Vec<MaybeCompleteCourse>,
             Vec<VecDeque<VVMenuPathPart>>,
         )>,
     >,

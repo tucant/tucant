@@ -8,8 +8,8 @@ use crate::WithTucanUrl;
 use axum::extract::State;
 use axum::Json;
 
-use tucant::models::Course;
 use tucant::models::Exam;
+use tucant::models::MaybeCompleteCourse;
 use tucant::models::Module;
 use tucant::models::TucanSession;
 
@@ -26,7 +26,7 @@ pub async fn exam(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<(Exam, Vec<Module>, Vec<Course>)>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Exam, Vec<Module>, Vec<MaybeCompleteCourse>)>>, MyError> {
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
     let tucan = tucan.continue_session(session.clone()).await?;

@@ -271,6 +271,13 @@ impl MaybeCompleteCourse {
             MaybeCompleteCourse::Complete(v) => &v.tucan_id,
         }
     }
+
+    pub fn title(&self) -> &String {
+        match self {
+            MaybeCompleteCourse::Partial(v) => &v.title,
+            MaybeCompleteCourse::Complete(v) => &v.title,
+        }
+    }
 }
 
 // https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/insertable.rs

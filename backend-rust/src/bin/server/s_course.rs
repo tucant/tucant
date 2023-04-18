@@ -18,14 +18,15 @@ use icalendar::EventLike;
 use icalendar::EventStatus;
 use tucant::models::CourseEvent;
 use tucant::models::CourseGroup;
+use tucant::models::MaybeCompleteCourse;
 use tucant::models::Module;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
+use tucant::tucan::Tucan;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
 use tucant::MyError;
-use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
@@ -37,7 +38,7 @@ pub async fn course(
 ) -> Result<
     Json<
         WithTucanUrl<(
-            Course,
+            MaybeCompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
             Vec<Module>,
@@ -59,7 +60,7 @@ pub async fn course(
     let events = result.2.clone();
 
     let mut my_calendar = Calendar::new();
-    my_calendar.name(&result.0.title);
+    my_calendar.name(&result.0.title());
     for event in events {
         my_calendar.push(
             Event::new()
@@ -69,10 +70,10 @@ pub async fn course(
                 .ends(event.timestamp_end)
                 .location(&event.room)
                 .alarm(Alarm::display(
-                    &format!("{} beginnt gleich", result.0.title),
+                    &format!("{} beginnt gleich", result.0.title()),
                     -Duration::minutes(15),
                 ))
-                .summary(&result.0.title)
+                .summary(&result.0.title())
                 .done(),
         );
     }
