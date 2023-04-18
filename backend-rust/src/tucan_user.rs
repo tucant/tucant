@@ -375,7 +375,7 @@ impl Tucan<Authenticated> {
                     .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
                     .map(|m| ModuleCourse {
                         module: m.0.tucan_id.clone(),
-                        course: m.1.tucan_id,
+                        course: m.1.tucan_id().clone(),
                     })
                     .collect::<Vec<_>>(),
             )
@@ -604,7 +604,7 @@ impl Tucan<Authenticated> {
                 .partition_map(|value| match value {
                     CourseOrCourseGroup::Course(c) => Either::Left(UserCourse {
                         user_id: self.state.session.matriculation_number,
-                        course_id: c.0.tucan_id.clone(),
+                        course_id: c.0.tucan_id().clone(),
                     }),
                     CourseOrCourseGroup::CourseGroup(cg) => Either::Right(UserCourseGroup {
                         user_id: self.state.session.matriculation_number,
@@ -1062,7 +1062,7 @@ impl Tucan<Authenticated> {
                 course_exams
                     .iter()
                     .map(|e| CourseExam {
-                        course_id: e.0.tucan_id.clone(),
+                        course_id: e.0.tucan_id().clone(),
                         exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),

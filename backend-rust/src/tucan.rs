@@ -158,6 +158,7 @@ impl Tucan<Unauthenticated> {
         let mut connection = self.pool.get().await?;
 
         let test: Vec<_> = courses_unfinished::table
+            .select(COURSES_UNFINISHED)
             .load::<MaybeCompleteCourse>(&mut connection)
             .await?;
         Ok(())
@@ -358,7 +359,7 @@ impl Tucan<Unauthenticated> {
                     .iter()
                     .map(|course| VVMenuCourses {
                         vv_menu_id: url.magic.clone(),
-                        course_id: course.tucan_id.clone(),
+                        course_id: course.tucan_id().clone(),
                     })
                     .collect();
 
@@ -1070,7 +1071,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             debug!("[~] course {:?}", existing);
 
             let course_groups = courses_unfinished::table
-                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id()))
                 .inner_join(course_groups_unfinished::table)
                 .select(course_groups_unfinished::all_columns)
                 .order(course_groups_unfinished::title)
@@ -1078,7 +1079,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .await?;
 
             let course_events = courses_unfinished::table
-                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id()))
                 .inner_join(course_events::table)
                 .select(course_events::all_columns)
                 .order(course_events::timestamp_start)
@@ -1086,7 +1087,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .await?;
 
             let parent_modules = module_courses::table
-                .filter(module_courses::course.eq(&existing.tucan_id))
+                .filter(module_courses::course.eq(&existing.tucan_id()))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
@@ -1320,7 +1321,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 courses
                     .iter()
                     .map(|c| ModuleCourse {
-                        course: c.tucan_id.clone(),
+                        course: c.tucan_id().clone(),
                         module: module.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
