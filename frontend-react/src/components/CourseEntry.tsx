@@ -1,14 +1,14 @@
-import { Course } from "../api";
 import { Link } from "../Navigation";
+import { MaybeCompleteCourse } from "../api";
 
-export function CourseEntry({ c }: { c: Course }) {
+export function CourseEntry({ c }: { c: MaybeCompleteCourse }) {
   return (
     <Link
-      key={c.tucan_id}
+      key={c.value.tucan_id}
       className="list-group-item list-group-item-action"
-      to={`/course/${c.tucan_id}`}
+      to={`/course/${c.value.tucan_id}`}
     >
-      [V] {c.title}
+      [V] {c.value.title}
     </Link>
   );
 }

@@ -4,11 +4,11 @@ import { Link } from "../Navigation";
 export function CourseOrCourseGroupEntry({ c }: { c: CourseOrCourseGroup }) {
   return c.type === "Course" ? (
     <Link
-      key={c.value[0].tucan_id}
+      key={c.value[0].value.tucan_id}
       className="list-group-item list-group-item-action"
-      to={`/course/${c.value[0].tucan_id}`}
+      to={`/course/${c.value[0].value.tucan_id}`}
     >
-      {c.value[0].title}
+      {c.value[0].value.title}
     </Link>
   ) : (
     <Link

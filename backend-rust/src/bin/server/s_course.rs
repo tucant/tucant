@@ -16,6 +16,7 @@ use icalendar::Component;
 use icalendar::Event;
 use icalendar::EventLike;
 use icalendar::EventStatus;
+use tucant::models::CompleteCourse;
 use tucant::models::CourseEvent;
 use tucant::models::CourseGroup;
 use tucant::models::MaybeCompleteCourse;
@@ -38,7 +39,7 @@ pub async fn course(
 ) -> Result<
     Json<
         WithTucanUrl<(
-            MaybeCompleteCourse,
+            CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
             Vec<Module>,

@@ -1049,7 +1049,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         url: Coursedetails,
     ) -> anyhow::Result<
         Option<(
-            MaybeCompleteCourse,
+            CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
             Vec<Module>,
@@ -1063,7 +1063,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
             .select(COURSES_UNFINISHED)
-            .get_result::<MaybeCompleteCourse>(&mut connection)
+            .get_result::<CompleteCourse>(&mut connection)
             .await
             .optional()?;
 
@@ -1146,7 +1146,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<(
-        MaybeCompleteCourse,
+        CompleteCourse,
         Vec<CourseGroup>,
         Vec<CourseEvent>,
         Vec<Module>,
