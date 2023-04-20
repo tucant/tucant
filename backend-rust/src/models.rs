@@ -8,7 +8,12 @@ use axum::response::Response;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
+use diesel::deserialize::FromStaticSqlRow;
+use diesel::query_builder::AsQuery;
 use diesel::query_builder::UndecoratedInsertRecord;
+use diesel::query_dsl::CompatibleType;
+use diesel::sql_types::Binary;
+use diesel::sql_types::SmallInt;
 use diesel::ExpressionMethods;
 use diesel_full_text_search::TsVector;
 use std::collections::VecDeque;
@@ -272,30 +277,27 @@ struct InternalCourse {
     pub done: bool,
 }
 
-impl From<PartialCourse> for InternalCourse {
-    fn from(value: PartialCourse) -> Self {
-        Self {
-            tucan_id: value.tucan_id,
-            tucan_last_checked: value.tucan_last_checked,
-            title: value.title,
-            course_id: value.course_id,
-            sws: 0,
-            content: "".to_string(),
-            done: false,
-        }
-    }
-}
-
-impl From<CompleteCourse> for InternalCourse {
-    fn from(value: CompleteCourse) -> Self {
-        Self {
-            tucan_id: value.tucan_id,
-            tucan_last_checked: value.tucan_last_checked,
-            title: value.title,
-            course_id: value.course_id,
-            sws: value.sws,
-            content: value.content,
-            done: true,
+impl From<&MaybeCompleteCourse> for InternalCourse {
+    fn from(value: &MaybeCompleteCourse) -> Self {
+        match value {
+            MaybeCompleteCourse::Partial(value) => Self {
+                tucan_id: value.tucan_id,
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title,
+                course_id: value.course_id,
+                sws: 0,
+                content: "".to_string(),
+                done: false,
+            },
+            MaybeCompleteCourse::Complete(value) => Self {
+                tucan_id: value.tucan_id,
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title,
+                course_id: value.course_id,
+                sws: value.sws,
+                content: value.content,
+                done: true,
+            },
         }
     }
 }
@@ -350,6 +352,43 @@ impl MaybeCompleteCourse {
             MaybeCompleteCourse::Partial(v) => &v.title,
             MaybeCompleteCourse::Complete(v) => &v.title,
         }
+    }
+}
+
+impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
+    type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalCourse::from(&self).values()
+    }
+}
+
+impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
+    type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalCourse::from(self).values()
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>
+    for MaybeCompleteCourse
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i16: FromSql<SmallInt, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row = <InternalCourse as Queryable<
+        (Binary, Timestamptz, Text, Text, SmallInt, Text, Bool),
+        DB,
+    >>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalCourse =
+            Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        Ok(value.into())
     }
 }
 
