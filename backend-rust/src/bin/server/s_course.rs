@@ -60,7 +60,7 @@ pub async fn course(
     let events = result.2.clone();
 
     let mut my_calendar = Calendar::new();
-    my_calendar.name(&result.0.title());
+    my_calendar.name(result.0.title());
     for event in events {
         my_calendar.push(
             Event::new()
@@ -73,7 +73,7 @@ pub async fn course(
                     &format!("{} beginnt gleich", result.0.title()),
                     -Duration::minutes(15),
                 ))
-                .summary(&result.0.title())
+                .summary(result.0.title())
                 .done(),
         );
     }

@@ -8,16 +8,15 @@ use axum::response::Response;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
-use diesel::deserialize::FromStaticSqlRow;
-use diesel::query_builder::AsQuery;
+
 use diesel::query_builder::UndecoratedInsertRecord;
-use diesel::query_dsl::CompatibleType;
+
 use diesel::sql_types::Binary;
 use diesel::sql_types::SmallInt;
 use diesel::ExpressionMethods;
-use diesel_full_text_search::TsVector;
+
 use std::collections::VecDeque;
-use std::convert::Infallible;
+
 use std::hash::Hash;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
@@ -31,13 +30,13 @@ use diesel::prelude::{
 };
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
-use diesel::sql_types::Int2;
+
 #[cfg(feature = "server")]
 use diesel::sql_types::Text;
 use diesel::sql_types::Timestamptz;
 #[cfg(feature = "server")]
 use diesel::sql_types::{Bytea, Nullable};
-use diesel_full_text_search::Tsvector;
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "server")]
@@ -286,7 +285,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 title: value.title.clone(),
                 course_id: value.course_id.clone(),
                 sws: 0,
-                content: "".to_string(),
+                content: String::new(),
                 done: false,
             },
             MaybeCompleteCourse::Complete(value) => Self {
@@ -313,7 +312,7 @@ impl From<InternalCourse> for MaybeCompleteCourse {
                 sws,
                 content,
                 done: true,
-            } => MaybeCompleteCourse::Complete(CompleteCourse {
+            } => Self::Complete(CompleteCourse {
                 tucan_id,
                 tucan_last_checked,
                 title,
@@ -329,7 +328,7 @@ impl From<InternalCourse> for MaybeCompleteCourse {
                 sws: 0,
                 ref content,
                 done: false,
-            } if content == "" => MaybeCompleteCourse::Partial(PartialCourse {
+            } if content.is_empty() => Self::Partial(PartialCourse {
                 tucan_id,
                 tucan_last_checked,
                 title,
@@ -341,17 +340,19 @@ impl From<InternalCourse> for MaybeCompleteCourse {
 }
 
 impl MaybeCompleteCourse {
+    #[must_use]
     pub fn tucan_id(&self) -> &Vec<u8> {
         match self {
-            MaybeCompleteCourse::Partial(v) => &v.tucan_id,
-            MaybeCompleteCourse::Complete(v) => &v.tucan_id,
+            Self::Partial(v) => &v.tucan_id,
+            Self::Complete(v) => &v.tucan_id,
         }
     }
 
+    #[must_use]
     pub fn title(&self) -> &String {
         match self {
-            MaybeCompleteCourse::Partial(v) => &v.title,
-            MaybeCompleteCourse::Complete(v) => &v.title,
+            Self::Partial(v) => &v.title,
+            Self::Complete(v) => &v.title,
         }
     }
 }

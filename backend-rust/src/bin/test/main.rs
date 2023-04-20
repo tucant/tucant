@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
         .block_on(async {
             env_logger::init();
 
-            let tucan = Tucan::new()?;
+            let _tucan = Tucan::new()?;
 
             Ok(())
         })

@@ -157,7 +157,7 @@ impl Tucan<Unauthenticated> {
         use diesel_async::RunQueryDsl;
         let mut connection = self.pool.get().await?;
 
-        let test: Vec<_> = courses_unfinished::table
+        let _test: Vec<_> = courses_unfinished::table
             .select(COURSES_UNFINISHED)
             .load::<MaybeCompleteCourse>(&mut connection)
             .await?;
