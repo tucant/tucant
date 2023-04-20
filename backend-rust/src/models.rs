@@ -308,9 +308,9 @@ impl TryFrom<InternalCourse> for CompleteCourse {
     fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
         match TryInto::<MaybeCompleteCourse>::try_into(value)? {
             MaybeCompleteCourse::Complete(value) => Ok(value),
-            _ => Err(Box::new(std::io::Error::new(
+            MaybeCompleteCourse::Partial(_) => Err(Box::new(std::io::Error::new(
                 ErrorKind::Other,
-                "invalid enum in database",
+                "expected complete course, got partial course",
             ))),
         }
     }
@@ -422,7 +422,7 @@ where
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
         let value: InternalCourse =
             Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
-        Ok(value.try_into()?)
+        value.try_into()
     }
 }
 
@@ -443,7 +443,7 @@ where
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
         let value: InternalCourse =
             Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
-        Ok(value.try_into()?)
+        value.try_into()
     }
 }
 
