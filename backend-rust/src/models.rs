@@ -265,7 +265,7 @@ pub enum MaybeCompleteCourse {
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-struct InternalCourse {
+pub struct InternalCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
@@ -281,21 +281,21 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
     fn from(value: &MaybeCompleteCourse) -> Self {
         match value {
             MaybeCompleteCourse::Partial(value) => Self {
-                tucan_id: value.tucan_id,
+                tucan_id: value.tucan_id.clone(),
                 tucan_last_checked: value.tucan_last_checked,
-                title: value.title,
-                course_id: value.course_id,
+                title: value.title.clone(),
+                course_id: value.course_id.clone(),
                 sws: 0,
                 content: "".to_string(),
                 done: false,
             },
             MaybeCompleteCourse::Complete(value) => Self {
-                tucan_id: value.tucan_id,
+                tucan_id: value.tucan_id.clone(),
                 tucan_last_checked: value.tucan_last_checked,
-                title: value.title,
-                course_id: value.course_id,
+                title: value.title.clone(),
+                course_id: value.course_id.clone(),
                 sws: value.sws,
-                content: value.content,
+                content: value.content.clone(),
                 done: true,
             },
         }
@@ -335,6 +335,7 @@ impl From<InternalCourse> for MaybeCompleteCourse {
                 title,
                 course_id,
             }),
+            _ => panic!(),
         }
     }
 }
@@ -368,6 +369,18 @@ impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
 
     fn values(self) -> Self::Values {
         InternalCourse::from(self).values()
+    }
+}
+
+impl UndecoratedInsertRecord<courses_unfinished::table> for MaybeCompleteCourse {}
+
+impl AsChangeset for &MaybeCompleteCourse {
+    type Target = <InternalCourse as AsChangeset>::Target;
+
+    type Changeset = <InternalCourse as AsChangeset>::Changeset;
+
+    fn as_changeset(self) -> Self::Changeset {
+        InternalCourse::from(self).as_changeset()
     }
 }
 
