@@ -13,11 +13,11 @@ use diesel::query_builder::UndecoratedInsertRecord;
 
 use diesel::sql_types::Binary;
 use diesel::sql_types::SmallInt;
-use diesel::ExpressionMethods;
 
 use std::collections::VecDeque;
 
 use std::hash::Hash;
+use std::io::ErrorKind;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -301,8 +301,10 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
     }
 }
 
-impl From<InternalCourse> for MaybeCompleteCourse {
-    fn from(value: InternalCourse) -> Self {
+impl TryFrom<InternalCourse> for MaybeCompleteCourse {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
         match value {
             InternalCourse {
                 tucan_id,
@@ -312,14 +314,14 @@ impl From<InternalCourse> for MaybeCompleteCourse {
                 sws,
                 content,
                 done: true,
-            } => Self::Complete(CompleteCourse {
+            } => Ok(Self::Complete(CompleteCourse {
                 tucan_id,
                 tucan_last_checked,
                 title,
                 course_id,
                 sws,
                 content,
-            }),
+            })),
             InternalCourse {
                 tucan_id,
                 tucan_last_checked,
@@ -328,20 +330,23 @@ impl From<InternalCourse> for MaybeCompleteCourse {
                 sws: 0,
                 ref content,
                 done: false,
-            } if content.is_empty() => Self::Partial(PartialCourse {
+            } if content.is_empty() => Ok(Self::Partial(PartialCourse {
                 tucan_id,
                 tucan_last_checked,
                 title,
                 course_id,
-            }),
-            _ => panic!(),
+            })),
+            _ => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "invalid enum in database",
+            ))),
         }
     }
 }
 
 impl MaybeCompleteCourse {
     #[must_use]
-    pub fn tucan_id(&self) -> &Vec<u8> {
+    pub const fn tucan_id(&self) -> &Vec<u8> {
         match self {
             Self::Partial(v) => &v.tucan_id,
             Self::Complete(v) => &v.tucan_id,
@@ -349,7 +354,7 @@ impl MaybeCompleteCourse {
     }
 
     #[must_use]
-    pub fn title(&self) -> &String {
+    pub const fn title(&self) -> &String {
         match self {
             Self::Partial(v) => &v.title,
             Self::Complete(v) => &v.title,
@@ -402,7 +407,7 @@ where
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
         let value: InternalCourse =
             Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
-        Ok(value.into())
+        Ok(value.try_into()?)
     }
 }
 
