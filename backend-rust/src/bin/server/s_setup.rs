@@ -170,7 +170,7 @@ fn fetch_registration(
                                 stream
                                     .yield_item(Bytes::from(format!(
                                         "\ncourse {:?}",
-                                        course.0.title()
+                                        course.0.title
                                     )))
                                     .await;
                             }

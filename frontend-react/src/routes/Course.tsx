@@ -27,7 +27,7 @@ export default function CourseRoute() {
         <>
           <TucanUrlLink data={data} />
           <h1 className="text-center">
-            {data.inner[0].value.course_id} {data.inner[0].value.title}
+            {data.inner[0].course_id} {data.inner[0].title}
           </h1>
 
           <h2 className="text-center">Module</h2>
@@ -40,7 +40,7 @@ export default function CourseRoute() {
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{
-              __html: dompurify.sanitize(data.inner[0].value.content),
+              __html: dompurify.sanitize(data.inner[0].content),
             }}
           />
           <h2>Termine</h2>
@@ -51,7 +51,7 @@ export default function CourseRoute() {
 
               const elem = document.createElement("a");
               elem.setAttribute("href", window.URL.createObjectURL(blob));
-              elem.setAttribute("download", `Termine ${data.inner[0].value.title}`);
+              elem.setAttribute("download", `Termine ${data.inner[0].title}`);
               elem.style.display = "none";
               document.body.appendChild(elem);
               elem.click();

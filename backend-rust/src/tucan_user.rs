@@ -6,9 +6,10 @@ use std::convert::TryInto;
 
 use crate::{
     models::{
-        CourseEvent, CourseExam, CourseGroup, CourseGroupEvent, Exam, MaybeCompleteCourse, Module,
-        ModuleCourse, ModuleExam, ModuleMenu, ModuleMenuEntryModule, PartialCourse, UndoneUser,
-        UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        CompleteCourse, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent, Exam,
+        MaybeCompleteCourse, Module, ModuleCourse, ModuleExam, ModuleMenu, ModuleMenuEntryModule,
+        PartialCourse, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
+        MODULES_UNFINISHED,
     },
     tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
@@ -51,7 +52,7 @@ use log::debug;
 pub enum CourseOrCourseGroup {
     Course(
         (
-            MaybeCompleteCourse,
+            CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
             Vec<Module>,
@@ -604,7 +605,7 @@ impl Tucan<Authenticated> {
                 .partition_map(|value| match value {
                     CourseOrCourseGroup::Course(c) => Either::Left(UserCourse {
                         user_id: self.state.session.matriculation_number,
-                        course_id: c.0.tucan_id().clone(),
+                        course_id: c.0.tucan_id.clone(),
                     }),
                     CourseOrCourseGroup::CourseGroup(cg) => Either::Right(UserCourseGroup {
                         user_id: self.state.session.matriculation_number,

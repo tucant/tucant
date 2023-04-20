@@ -59,7 +59,7 @@ export default function Courses() {
           <TucanUrlLink data={data} />
           <div className="list-group">
             {data.inner[2].map((course) => (
-              <CourseEntry key={course.tucan_id} c={course} />
+              <CourseEntry key={course.value.tucan_id} c={course} />
             ))}
           </div>
         </>

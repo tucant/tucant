@@ -301,6 +301,20 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
     }
 }
 
+impl TryFrom<InternalCourse> for CompleteCourse {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
+        match TryInto::<MaybeCompleteCourse>::try_into(value)? {
+            MaybeCompleteCourse::Complete(value) => Ok(value),
+            _ => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "invalid enum in database",
+            ))),
+        }
+    }
+}
+
 impl TryFrom<InternalCourse> for MaybeCompleteCourse {
     type Error = Box<dyn std::error::Error + Send + Sync>;
 
@@ -392,6 +406,27 @@ impl AsChangeset for &MaybeCompleteCourse {
 
 impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>
     for MaybeCompleteCourse
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i16: FromSql<SmallInt, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row = <InternalCourse as Queryable<
+        (Binary, Timestamptz, Text, Text, SmallInt, Text, Bool),
+        DB,
+    >>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalCourse =
+            Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        Ok(value.try_into()?)
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>
+    for CompleteCourse
 where
     Vec<u8>: FromSql<Binary, DB>,
     NaiveDateTime: FromSql<Timestamptz, DB>,

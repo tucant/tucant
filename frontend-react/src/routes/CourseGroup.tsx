@@ -25,7 +25,7 @@ export default function CourseGroupRoute() {
       {data && (
         <>
           <h3 className="text-center">
-            {data.inner[0].value.course_id} {data.inner[1].title}
+            {data.inner[0].course_id} {data.inner[1].title}
           </h3>
           <TucanUrlLink data={data} />
           <a href={`/course/${data.inner[1].course}`}>

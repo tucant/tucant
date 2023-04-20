@@ -1071,7 +1071,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             debug!("[~] course {:?}", existing);
 
             let course_groups = courses_unfinished::table
-                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id()))
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_groups_unfinished::table)
                 .select(course_groups_unfinished::all_columns)
                 .order(course_groups_unfinished::title)
@@ -1079,7 +1079,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .await?;
 
             let course_events = courses_unfinished::table
-                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id()))
+                .filter(courses_unfinished::tucan_id.eq(&existing.tucan_id))
                 .inner_join(course_events::table)
                 .select(course_events::all_columns)
                 .order(course_events::timestamp_start)
@@ -1087,7 +1087,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .await?;
 
             let parent_modules = module_courses::table
-                .filter(module_courses::course.eq(&existing.tucan_id()))
+                .filter(module_courses::course.eq(&existing.tucan_id))
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)

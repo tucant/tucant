@@ -16,9 +16,9 @@ use icalendar::Component;
 use icalendar::Event;
 use icalendar::EventLike;
 use icalendar::EventStatus;
+use tucant::models::CompleteCourse;
 use tucant::models::CourseGroup;
 use tucant::models::CourseGroupEvent;
-use tucant::models::MaybeCompleteCourse;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
@@ -34,17 +34,8 @@ pub async fn course_group(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<
-    Json<
-        WithTucanUrl<(
-            MaybeCompleteCourse,
-            CourseGroup,
-            Vec<CourseGroupEvent>,
-            String,
-        )>,
-    >,
-    MyError,
-> {
+) -> Result<Json<WithTucanUrl<(CompleteCourse, CourseGroup, Vec<CourseGroupEvent>, String)>>, MyError>
+{
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
     let tucan = tucan.continue_session(session.clone()).await?;
