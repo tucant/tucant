@@ -223,13 +223,7 @@ pub struct ModuleMenuEntryModule {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
-)]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct PartialCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -240,13 +234,7 @@ pub struct PartialCourse {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
-)]
-#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
-#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
-#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
 pub struct CompleteCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -264,6 +252,91 @@ pub enum MaybeCompleteCourse {
     Complete(CompleteCourse),
 }
 
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "server",
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
+)]
+#[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
+#[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
+#[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
+struct InternalCourse {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub course_id: String,
+    pub sws: i16,
+    pub content: String,
+    pub done: bool,
+}
+
+impl From<PartialCourse> for InternalCourse {
+    fn from(value: PartialCourse) -> Self {
+        Self {
+            tucan_id: value.tucan_id,
+            tucan_last_checked: value.tucan_last_checked,
+            title: value.title,
+            course_id: value.course_id,
+            sws: 0,
+            content: "".to_string(),
+            done: false,
+        }
+    }
+}
+
+impl From<CompleteCourse> for InternalCourse {
+    fn from(value: CompleteCourse) -> Self {
+        Self {
+            tucan_id: value.tucan_id,
+            tucan_last_checked: value.tucan_last_checked,
+            title: value.title,
+            course_id: value.course_id,
+            sws: value.sws,
+            content: value.content,
+            done: true,
+        }
+    }
+}
+
+impl From<InternalCourse> for MaybeCompleteCourse {
+    fn from(value: InternalCourse) -> Self {
+        match value {
+            InternalCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws,
+                content,
+                done: true,
+            } => MaybeCompleteCourse::Complete(CompleteCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws,
+                content,
+            }),
+            InternalCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws: 0,
+                ref content,
+                done: false,
+            } if content == "" => MaybeCompleteCourse::Partial(PartialCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+            }),
+        }
+    }
+}
+
 impl MaybeCompleteCourse {
     pub fn tucan_id(&self) -> &Vec<u8> {
         match self {
@@ -277,85 +350,6 @@ impl MaybeCompleteCourse {
             MaybeCompleteCourse::Partial(v) => &v.title,
             MaybeCompleteCourse::Complete(v) => &v.title,
         }
-    }
-}
-
-// https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/insertable.rs
-impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
-    type Values = <diesel::dsl::Eq<courses_unfinished::tucan_id, Vec<u8>> as Insertable<
-        courses_unfinished::table,
-    >>::Values;
-
-    fn values(self) -> Self::Values {
-        match self {
-            MaybeCompleteCourse::Partial(v) => courses_unfinished::tucan_id.eq(Vec::new()).values(),
-            MaybeCompleteCourse::Complete(v) => {
-                courses_unfinished::tucan_id.eq(Vec::new()).values()
-            }
-        }
-    }
-}
-
-// TODO FIXME better idea may be to convert the enum to an internal type that represents both and make that implement the standard diesel interfaces
-impl<'a> Insertable<courses_unfinished::table> for &'a MaybeCompleteCourse {
-    type Values = <diesel::dsl::Eq<courses_unfinished::tucan_id, &'a Vec<u8>> as Insertable<
-        courses_unfinished::table,
-    >>::Values;
-
-    fn values(self) -> Self::Values {
-        match self {
-            MaybeCompleteCourse::Partial(v) => {
-                courses_unfinished::tucan_id.eq(&v.tucan_id).values()
-            }
-            MaybeCompleteCourse::Complete(v) => {
-                courses_unfinished::tucan_id.eq(&v.tucan_id).values()
-            }
-        }
-    }
-}
-
-impl UndecoratedInsertRecord<courses_unfinished::table> for MaybeCompleteCourse {}
-
-// https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/as_changeset.rs
-impl<'a> AsChangeset for &'a MaybeCompleteCourse {
-    type Target = courses_unfinished::table;
-
-    type Changeset =
-        <diesel::dsl::Eq<courses_unfinished::tucan_id, &'a Vec<u8>> as AsChangeset>::Changeset;
-
-    fn as_changeset(self) -> Self::Changeset {
-        match self {
-            MaybeCompleteCourse::Partial(v) => {
-                courses_unfinished::tucan_id.eq(&v.tucan_id).as_changeset()
-            }
-            MaybeCompleteCourse::Complete(v) => {
-                courses_unfinished::tucan_id.eq(&v.tucan_id).as_changeset()
-            }
-        }
-    }
-}
-
-use diesel::deserialize;
-
-// https://github.com/diesel-rs/diesel/blob/master/diesel_derives/src/queryable.rs
-impl<DB> Queryable<(Bytea, Timestamptz, Text, Text, Int2, Text, Bool), DB> for MaybeCompleteCourse
-where
-    DB: Backend,
-    Vec<u8>: FromSql<Bytea, DB>,
-    NaiveDateTime: FromSql<Timestamptz, DB>,
-    String: FromSql<Text, DB>,
-    i16: FromSql<Int2, DB>,
-    bool: FromSql<Bool, DB>,
-{
-    type Row = (Vec<u8>, NaiveDateTime, String, String, i16, String, bool);
-
-    fn build(row: Self::Row) -> deserialize::Result<Self> {
-        Ok(MaybeCompleteCourse::Partial(PartialCourse {
-            tucan_id: row.0,
-            tucan_last_checked: row.1,
-            title: row.2,
-            course_id: row.3,
-        }))
     }
 }
 
