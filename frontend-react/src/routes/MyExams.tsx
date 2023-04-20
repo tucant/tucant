@@ -41,7 +41,7 @@ export default function MyExams() {
                 className="list-group-item list-group-item-action"
                 to={`/exam/${e[1].tucan_id}`}
               >
-                {e[0].title} ({e[1].exam_type}){" "}
+                {e[0].value.title} ({e[1].exam_type}){" "}
                 {formatLocalDate(e[1].exam_time_start)
                   ?.concat("-")
                   .concat(formatLocalDate(e[1].exam_time_end) ?? "")}

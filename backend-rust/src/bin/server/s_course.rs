@@ -16,16 +16,17 @@ use icalendar::Component;
 use icalendar::Event;
 use icalendar::EventLike;
 use icalendar::EventStatus;
+use tucant::models::CompleteCourse;
 use tucant::models::CourseEvent;
 use tucant::models::CourseGroup;
 use tucant::models::Module;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
+use tucant::tucan::Tucan;
 use tucant::url::Coursedetails;
 use tucant::url::TucanProgram;
 use tucant::MyError;
-use tucant::{models::Course, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]
@@ -37,7 +38,7 @@ pub async fn course(
 ) -> Result<
     Json<
         WithTucanUrl<(
-            Course,
+            CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
             Vec<Module>,

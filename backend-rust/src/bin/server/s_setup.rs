@@ -23,7 +23,7 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 
-use tucant::models::Course;
+use tucant::models::MaybeCompleteCourse;
 use tucant::models::Module;
 use tucant::tucan::Authenticated;
 use tucant::tucan::Unauthenticated;
@@ -44,7 +44,7 @@ enum ModuleOrCourse {
     #[allow(dead_code)]
     Module(Module),
     #[allow(dead_code)]
-    Course(Course),
+    Course(MaybeCompleteCourse),
 }
 
 pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response, MyError> {
@@ -161,7 +161,7 @@ fn fetch_registration(
                     for course in module.1 {
                         match tucan
                             .course_or_course_group(Coursedetails {
-                                id: course.tucan_id.clone(),
+                                id: course.tucan_id().clone(),
                             })
                             .await
                             .unwrap()

@@ -50,7 +50,7 @@ export default function Module() {
           <h2 className="text-center">Veranstaltungen</h2>
           <div className="list-group">
             {data.inner.courses.map((course) => {
-              return <CourseEntry key={course.tucan_id} c={course} />;
+              return <CourseEntry key={course.value.tucan_id} c={course} />;
             })}
           </div>
 

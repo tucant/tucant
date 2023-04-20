@@ -24,7 +24,7 @@ export function ModuleList({ listData }: ModuleListProps) {
           <Fragment key={e[0].tucan_id}>
             <ModuleEntry module={e[0]} />
             {e[1].map((c) => (
-              <CourseEntry key={c.tucan_id} c={c} />
+              <CourseEntry key={c.value.tucan_id} c={c} />
             ))}
           </Fragment>
         ))}

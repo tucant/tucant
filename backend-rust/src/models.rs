@@ -1,8 +1,5 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
-use std::collections::VecDeque;
-use std::hash::Hash;
-
 use axum::extract::FromRef;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -11,20 +8,35 @@ use axum::response::Response;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
+
+use diesel::query_builder::UndecoratedInsertRecord;
+
+use diesel::sql_types::Binary;
+use diesel::sql_types::SmallInt;
+
+use std::collections::VecDeque;
+
+use std::hash::Hash;
+use std::io::ErrorKind;
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
+use diesel::backend::Backend;
+use diesel::deserialize::FromSql;
 #[cfg(feature = "server")]
 use diesel::prelude::{
     AsChangeset, Associations, Identifiable, Insertable, Queryable, QueryableByName,
 };
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
+
 #[cfg(feature = "server")]
 use diesel::sql_types::Text;
+use diesel::sql_types::Timestamptz;
 #[cfg(feature = "server")]
 use diesel::sql_types::{Bytea, Nullable};
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(feature = "server")]
@@ -149,7 +161,7 @@ impl PathLike<Vec<u8>> for ModuleMenuPathPart {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
     pub submenus: Vec<ModuleMenu>,
-    pub modules_and_courses: Vec<(Module, Vec<Course>)>,
+    pub modules_and_courses: Vec<(Module, Vec<MaybeCompleteCourse>)>,
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
@@ -164,7 +176,7 @@ pub struct ModuleMenuResponse {
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct ModuleResponse {
     pub module: Module,
-    pub courses: Vec<Course>,
+    pub courses: Vec<MaybeCompleteCourse>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
@@ -215,22 +227,45 @@ pub struct ModuleMenuEntryModule {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
+pub struct PartialCourse {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub course_id: String,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
+pub struct CompleteCourse {
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    #[cfg_attr(feature = "server", ts_type(String))]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub course_id: String,
+    pub sws: i16,
+    pub content: String,
+}
+
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
+#[serde(tag = "type", content = "value")] // TODO FIXME make Typescriptable detect/enforce this
+pub enum MaybeCompleteCourse {
+    Partial(PartialCourse),
+    Complete(CompleteCourse),
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(
-        Identifiable,
-        Queryable,
-        Insertable,
-        AsChangeset,
-        Typescriptable,
-        Associations
-    )
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = courses_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[diesel(belongs_to(ModuleCourse, foreign_key = tucan_id))]
-pub struct Course {
+pub struct InternalCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
     pub tucan_id: Vec<u8>,
@@ -242,22 +277,184 @@ pub struct Course {
     pub done: bool,
 }
 
+impl From<&MaybeCompleteCourse> for InternalCourse {
+    fn from(value: &MaybeCompleteCourse) -> Self {
+        match value {
+            MaybeCompleteCourse::Partial(value) => Self {
+                tucan_id: value.tucan_id.clone(),
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title.clone(),
+                course_id: value.course_id.clone(),
+                sws: 0,
+                content: String::new(),
+                done: false,
+            },
+            MaybeCompleteCourse::Complete(value) => Self {
+                tucan_id: value.tucan_id.clone(),
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title.clone(),
+                course_id: value.course_id.clone(),
+                sws: value.sws,
+                content: value.content.clone(),
+                done: true,
+            },
+        }
+    }
+}
+
+impl TryFrom<InternalCourse> for CompleteCourse {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
+        match TryInto::<MaybeCompleteCourse>::try_into(value)? {
+            MaybeCompleteCourse::Complete(value) => Ok(value),
+            MaybeCompleteCourse::Partial(_) => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "expected complete course, got partial course",
+            ))),
+        }
+    }
+}
+
+impl TryFrom<InternalCourse> for MaybeCompleteCourse {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
+        match value {
+            InternalCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws,
+                content,
+                done: true,
+            } => Ok(Self::Complete(CompleteCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws,
+                content,
+            })),
+            InternalCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+                sws: 0,
+                ref content,
+                done: false,
+            } if content.is_empty() => Ok(Self::Partial(PartialCourse {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                course_id,
+            })),
+            _ => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "invalid enum in database",
+            ))),
+        }
+    }
+}
+
+impl MaybeCompleteCourse {
+    #[must_use]
+    pub const fn tucan_id(&self) -> &Vec<u8> {
+        match self {
+            Self::Partial(v) => &v.tucan_id,
+            Self::Complete(v) => &v.tucan_id,
+        }
+    }
+
+    #[must_use]
+    pub const fn title(&self) -> &String {
+        match self {
+            Self::Partial(v) => &v.title,
+            Self::Complete(v) => &v.title,
+        }
+    }
+}
+
+impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
+    type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalCourse::from(&self).values()
+    }
+}
+
+impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
+    type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalCourse::from(self).values()
+    }
+}
+
+impl UndecoratedInsertRecord<courses_unfinished::table> for MaybeCompleteCourse {}
+
+impl AsChangeset for &MaybeCompleteCourse {
+    type Target = <InternalCourse as AsChangeset>::Target;
+
+    type Changeset = <InternalCourse as AsChangeset>::Changeset;
+
+    fn as_changeset(self) -> Self::Changeset {
+        InternalCourse::from(self).as_changeset()
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>
+    for MaybeCompleteCourse
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i16: FromSql<SmallInt, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row = <InternalCourse as Queryable<
+        (Binary, Timestamptz, Text, Text, SmallInt, Text, Bool),
+        DB,
+    >>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalCourse =
+            Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        value.try_into()
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>
+    for CompleteCourse
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i16: FromSql<SmallInt, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row = <InternalCourse as Queryable<
+        (Binary, Timestamptz, Text, Text, SmallInt, Text, Bool),
+        DB,
+    >>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalCourse =
+            Queryable::<(Binary, Timestamptz, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        value.try_into()
+    }
+}
+
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
-    derive(
-        Identifiable,
-        Queryable,
-        Insertable,
-        AsChangeset,
-        Typescriptable,
-        Associations
-    )
+    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = course_groups_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Course, foreign_key = course)))]
 pub struct CourseGroup {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
@@ -584,13 +781,10 @@ impl PathLike<String> for VVMenuPathPart {
 }
 
 #[derive(Serialize, Debug)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable,))]
 #[cfg_attr(feature = "server", diesel(primary_key(vv_menu_id, course_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = vv_menu_courses))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Course)))]
+#[cfg_attr(feature = "server", diesel(belongs_to(MaybeCompleteCourse)))]
 #[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = vv_menu_id)))]
 pub struct VVMenuCourses {
     pub vv_menu_id: String,
@@ -616,13 +810,13 @@ pub const MODULES_UNFINISHED: (
 );
 
 pub const COURSES_UNFINISHED: (
-    courses_unfinished::columns::tucan_id,
-    courses_unfinished::columns::tucan_last_checked,
-    courses_unfinished::columns::title,
-    courses_unfinished::columns::course_id,
-    courses_unfinished::columns::sws,
-    courses_unfinished::columns::content,
-    courses_unfinished::columns::done,
+    courses_unfinished::tucan_id,
+    courses_unfinished::tucan_last_checked,
+    courses_unfinished::title,
+    courses_unfinished::course_id,
+    courses_unfinished::sws,
+    courses_unfinished::content,
+    courses_unfinished::done,
 ) = (
     courses_unfinished::tucan_id,
     courses_unfinished::tucan_last_checked,

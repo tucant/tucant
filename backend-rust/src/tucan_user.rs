@@ -6,9 +6,10 @@ use std::convert::TryInto;
 
 use crate::{
     models::{
-        Course, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent, Exam, Module, ModuleCourse,
-        ModuleExam, ModuleMenu, ModuleMenuEntryModule, UndoneUser, UserCourseGroup, UserExam,
-        COURSES_UNFINISHED, MODULES_UNFINISHED,
+        CompleteCourse, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent, Exam,
+        MaybeCompleteCourse, Module, ModuleCourse, ModuleExam, ModuleMenu, ModuleMenuEntryModule,
+        PartialCourse, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
+        MODULES_UNFINISHED,
     },
     tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
@@ -49,7 +50,14 @@ use log::debug;
 #[derive(Debug, Typescriptable, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value")]
 pub enum CourseOrCourseGroup {
-    Course((Course, Vec<CourseGroup>, Vec<CourseEvent>, Vec<Module>)),
+    Course(
+        (
+            CompleteCourse,
+            Vec<CourseGroup>,
+            Vec<CourseEvent>,
+            Vec<Module>,
+        ),
+    ),
     CourseGroup((CourseGroup, Vec<CourseGroupEvent>)),
 }
 
@@ -151,7 +159,7 @@ impl Tucan<Authenticated> {
                 .await?;
 
             // TODO FIXME maybe only return the latest course for courses with same course_id
-            let module_courses: Vec<(ModuleCourse, Course)> =
+            let module_courses: Vec<(ModuleCourse, MaybeCompleteCourse)> =
                 ModuleCourse::belonging_to(&submodules)
                     .inner_join(courses_unfinished::table)
                     .select((
@@ -159,11 +167,11 @@ impl Tucan<Authenticated> {
                         COURSES_UNFINISHED,
                     ))
                     .order(courses_unfinished::title)
-                    .load::<(ModuleCourse, Course)>(&mut connection)
+                    .load::<(ModuleCourse, MaybeCompleteCourse)>(&mut connection)
                     .await?;
-            let grouped_module_courses: Vec<Vec<(ModuleCourse, Course)>> =
+            let grouped_module_courses: Vec<Vec<(ModuleCourse, MaybeCompleteCourse)>> =
                 module_courses.grouped_by(&submodules);
-            let modules_and_courses: Vec<(Module, Vec<Course>)> = submodules
+            let modules_and_courses: Vec<(Module, Vec<MaybeCompleteCourse>)> = submodules
                 .into_iter()
                 .zip(grouped_module_courses)
                 .map(|(m, r)| (m, r.into_iter().map(|r| r.1).collect::<Vec<_>>()))
@@ -230,7 +238,7 @@ impl Tucan<Authenticated> {
                 Some((title, sub_elements))
             });
 
-            let modules: Vec<(Module, Vec<Course>)> = d
+            let modules: Vec<(Module, Vec<MaybeCompleteCourse>)> = d
                 .map(|e| {
                     let module = e.0.map_or_else(
                         || TUCANSCHEISS.clone(),
@@ -267,7 +275,7 @@ impl Tucan<Authenticated> {
                             .map(|course| {
                                 let mut text = course.text();
 
-                                Course {
+                                MaybeCompleteCourse::Partial(PartialCourse {
                                     tucan_id: TryInto::<Coursedetails>::try_into(
                                         parse_tucan_url(&format!(
                                             "https://www.tucan.tu-darmstadt.de{}",
@@ -290,10 +298,7 @@ impl Tucan<Authenticated> {
                                             panic!("{:?}", course.text().collect::<Vec<_>>())
                                         })
                                         .to_string(),
-                                    sws: 0,
-                                    content: String::new(),
-                                    done: false,
-                                }
+                                })
                             })
                             .collect::<Vec<_>>();
 
@@ -371,7 +376,7 @@ impl Tucan<Authenticated> {
                     .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
                     .map(|m| ModuleCourse {
                         module: m.0.tucan_id.clone(),
-                        course: m.1.tucan_id,
+                        course: m.1.tucan_id().clone(),
                     })
                     .collect::<Vec<_>>(),
             )
@@ -468,11 +473,13 @@ impl Tucan<Authenticated> {
                 .collect::<FuturesUnordered<_>>()
         };
 
-        let results: Vec<anyhow::Result<(Module, Vec<Course>)>> = my_modules.collect().await;
+        let results: Vec<anyhow::Result<(Module, Vec<MaybeCompleteCourse>)>> =
+            my_modules.collect().await;
 
-        let results: anyhow::Result<Vec<(Module, Vec<Course>)>> = results.into_iter().collect();
+        let results: anyhow::Result<Vec<(Module, Vec<MaybeCompleteCourse>)>> =
+            results.into_iter().collect();
 
-        let results: Vec<(Module, Vec<Course>)> = results?;
+        let results: Vec<(Module, Vec<MaybeCompleteCourse>)> = results?;
 
         let my_user_studies = results
             .iter()
@@ -668,7 +675,7 @@ impl Tucan<Authenticated> {
     async fn cached_exam_details(
         &self,
         exam_details: Examdetails,
-    ) -> anyhow::Result<Option<(Exam, Vec<Module>, Vec<Course>)>> {
+    ) -> anyhow::Result<Option<(Exam, Vec<Module>, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -689,7 +696,7 @@ impl Tucan<Authenticated> {
                 .load(&mut connection)
                 .await?;
 
-            let course_exams: Vec<Course> = course_exams::table
+            let course_exams: Vec<MaybeCompleteCourse> = course_exams::table
                 .filter(course_exams::exam.eq(&exam_details.id))
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
@@ -849,7 +856,7 @@ impl Tucan<Authenticated> {
     pub async fn exam_details(
         &self,
         exam_details: Examdetails,
-    ) -> anyhow::Result<(Exam, Vec<Module>, Vec<Course>)> {
+    ) -> anyhow::Result<(Exam, Vec<Module>, Vec<MaybeCompleteCourse>)> {
         if let Some(value) = self.cached_exam_details(exam_details.clone()).await? {
             return Ok(value);
         }
@@ -864,7 +871,7 @@ impl Tucan<Authenticated> {
 
     pub async fn cached_my_exams(
         &self,
-    ) -> anyhow::Result<Option<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)>> {
+    ) -> anyhow::Result<Option<(Vec<(Module, Exam)>, Vec<(MaybeCompleteCourse, Exam)>)>> {
         use diesel_async::RunQueryDsl;
 
         let matriculation_number = self.state.session.matriculation_number;
@@ -897,7 +904,7 @@ impl Tucan<Authenticated> {
                 )
                 .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
                 .order((courses_unfinished::title, exams_unfinished::exam_time_start))
-                .load::<(Course, Exam)>(&mut connection)
+                .load::<(MaybeCompleteCourse, Exam)>(&mut connection)
                 .await?;
 
             Ok(Some((modules, courses)))
@@ -911,7 +918,7 @@ impl Tucan<Authenticated> {
         use diesel_async::RunQueryDsl;
 
         type ModuleExams = Vec<(Module, Exam)>;
-        type CourseExams = Vec<(Course, Exam)>;
+        type CourseExams = Vec<(MaybeCompleteCourse, Exam)>;
 
         let matriculation_number = self.state.session.matriculation_number;
 
@@ -1011,15 +1018,12 @@ impl Tucan<Authenticated> {
                     v.1,
                 )),
                 TucanProgram::Coursedetails(coursedetails) => Either::Right((
-                    Course {
+                    MaybeCompleteCourse::Partial(PartialCourse {
                         tucan_id: coursedetails.id,
                         tucan_last_checked: Utc::now().naive_utc(),
                         course_id: String::new(),
                         title: v.2,
-                        sws: 0,
-                        content: String::new(),
-                        done: false,
-                    },
+                    }),
                     v.1,
                 )),
                 _ => panic!(),
@@ -1059,7 +1063,7 @@ impl Tucan<Authenticated> {
                 course_exams
                     .iter()
                     .map(|e| CourseExam {
-                        course_id: e.0.tucan_id.clone(),
+                        course_id: e.0.tucan_id().clone(),
                         exam: e.1.tucan_id.clone(),
                     })
                     .collect::<Vec<_>>(),
@@ -1078,7 +1082,9 @@ impl Tucan<Authenticated> {
         Ok(())
     }
 
-    pub async fn my_exams(&self) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(Course, Exam)>)> {
+    pub async fn my_exams(
+        &self,
+    ) -> anyhow::Result<(Vec<(Module, Exam)>, Vec<(MaybeCompleteCourse, Exam)>)> {
         if let Some(value) = self.cached_my_exams().await? {
             return Ok(value);
         }
