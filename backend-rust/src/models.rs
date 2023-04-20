@@ -251,6 +251,7 @@ pub struct CompleteCourse {
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
+#[serde(tag = "type", content = "value")] // TODO FIXME make Typescriptable detect/enforce this
 pub enum MaybeCompleteCourse {
     Partial(PartialCourse),
     Complete(CompleteCourse),
