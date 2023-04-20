@@ -23,7 +23,7 @@ tokio                   = { default-features = false, features = [ "fs" ], versi
 scraper                 = { default-features = false, version = "0.16", optional = true }
 ego-tree                = { default-features = false, version = "0.6", optional = true }
 futures                 = { default-features = false, version = "0.3", optional = true }
-diesel                  = { default-features = false, version = "2", features = [ "postgres", "chrono", "32-column-tables", "nightly-error-messages" ], optional = true }
+diesel                  = { default-features = false, version = "2", features = [ "postgres", "chrono", "32-column-tables" ], optional = true }
 diesel-async            = { default-features = false, git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"], optional = true }
 dotenvy                 = { default-features = false, version = "0.15", optional = true }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1", optional = true }

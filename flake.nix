@@ -13,16 +13,25 @@
         let pkgs = nixpkgs.legacyPackages.${system}; in
         {
           devShells.default = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [
-              bashInteractive
-              fenix.packages.${system}.complete.toolchain
-              fenix.packages.${system}.rust-analyzer
-              llvmPackages_latest.clang
-              llvmPackages_latest.lld
+            nativeBuildInputs =
+              let
+                rust =
+#                  fenix.packages.${system}.stable;
+                   fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
+              in
+              with pkgs; [
+                bashInteractive
+                nixpkgs-fmt
+                rust.toolchain
+                rust.rust-analyzer
+                llvmPackages_latest.clang
+                llvmPackages_latest.bintools
+                nodejs_latest
+                pkg-config
+                openssl.dev
+              ];
+            buildInputs = with pkgs; [
               postgresql_15
-              nodejs_latest
-              pkg-config
-              openssl.dev
             ];
             RUST_BACKTRACE = 1;
             # export PATH=$PATH:/home/moritz/Documents/rome/target/debug/

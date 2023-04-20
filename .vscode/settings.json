@@ -1,7 +1,5 @@
 {
-    "editor.formatOnSaveMode": "file",
-    "editor.formatOnSave": true,
-    "rust-analyzer.linkedProjects": [
-        "./backend-rust/Cargo.toml"
-    ]
+    "[rust]": {
+        "editor.formatOnSave": true,
+    },
 }
