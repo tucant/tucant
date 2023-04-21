@@ -25,7 +25,7 @@ CREATE TABLE modules_unfinished (
     tucan_last_checked TIMESTAMP WITH TIME ZONE NOT NULL,
     title TEXT NOT NULL,
     module_id TEXT NOT NULL,
-    credits INTEGER,
+    credits INTEGER NOT NULL,
     content TEXT NOT NULL,
     done BOOLEAN NOT NULL DEFAULT FALSE,
     tsv tsvector NOT NULL GENERATED ALWAYS AS (

@@ -1,17 +1,17 @@
-import { Module } from "../api";
 import { Link } from "../Navigation";
+import { MaybeCompleteModule } from "../api";
 
-export function ModuleEntry({ module }: { module: Module }) {
+export function ModuleEntry({ module }: { module: MaybeCompleteModule }) {
   return (
     <Link
-      key={module.tucan_id}
+      key={module.value.tucan_id}
       className="list-group-item list-group-item-action"
-      to={`/module/${String(module.tucan_id)}`}
+      to={`/module/${String(module.value.tucan_id)}`}
     >
-      [M] {module.title}{" "}
-      <span className="badge rounded-pill text-bg-primary">{`${
-        module.credits ?? 0
-      } Credits`}</span>
+      [M] {module.value.title}{" "}
+      {module.type === "Complete" && (
+        <span className="badge rounded-pill text-bg-primary">{`${module.value.credits} Credits`}</span>
+      )}
     </Link>
   );
 }

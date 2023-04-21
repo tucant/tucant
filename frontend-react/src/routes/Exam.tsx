@@ -51,11 +51,11 @@ export default function Exam() {
           <div className="list-group">
             {data.inner[1].map((e) => (
               <Link
-                key={e.tucan_id}
+                key={e.value.tucan_id}
                 className="list-group-item list-group-item-action"
-                to={`/module/${e.tucan_id}`}
+                to={`/module/${e.value.tucan_id}`}
               >
-                {e.title}
+                {e.value.title}
               </Link>
             ))}
             {data.inner[2].map((e) => (
