@@ -1,4 +1,5 @@
 {
+  # ln -sf /home/moritz/Documents/rome/target/debug/rome /home/moritz/Documents/tucant/frontend-react/node_modules/@rometools/cli-linux-x64/rome
   description = "my project description";
 
   inputs.flake-utils.url = "github:numtide/flake-utils";

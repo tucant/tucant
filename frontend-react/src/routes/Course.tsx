@@ -33,7 +33,9 @@ export default function CourseRoute() {
           <h2 className="text-center">Module</h2>
           <div className="list-group">
             {data.inner[3].map((module) => {
-              return <ModuleEntry key={module.value.tucan_id} module={module} />;
+              return (
+                <ModuleEntry key={module.value.tucan_id} module={module} />
+              );
             })}
           </div>
 
