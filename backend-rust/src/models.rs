@@ -12,6 +12,7 @@ use base64::prelude::*;
 use diesel::query_builder::UndecoratedInsertRecord;
 
 use diesel::sql_types::Binary;
+use diesel::sql_types::Int4;
 use diesel::sql_types::SmallInt;
 
 use std::collections::VecDeque;
@@ -101,6 +102,195 @@ where
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
+pub struct PartialModule {
+    #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub module_id: String,
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "server", derive(Typescriptable,))]
+pub struct CompleteModule {
+    #[cfg_attr(feature = "server", ts_type(String))]
+    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    pub tucan_id: Vec<u8>,
+    pub tucan_last_checked: NaiveDateTime,
+    pub title: String,
+    pub module_id: String,
+    pub credits: i32,
+    pub content: String,
+}
+
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
+#[serde(tag = "type", content = "value")] // TODO FIXME make Typescriptable detect/enforce this
+pub enum MaybeCompleteModule {
+    Partial(PartialModule),
+    Complete(CompleteModule),
+}
+
+impl From<&MaybeCompleteModule> for InternalModule {
+    fn from(value: &MaybeCompleteModule) -> Self {
+        match value {
+            MaybeCompleteModule::Partial(value) => Self {
+                tucan_id: value.tucan_id.clone(),
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title.clone(),
+                module_id: value.module_id.clone(),
+                credits: 0,
+                content: String::new(),
+                done: false,
+            },
+            MaybeCompleteModule::Complete(value) => Self {
+                tucan_id: value.tucan_id.clone(),
+                tucan_last_checked: value.tucan_last_checked,
+                title: value.title.clone(),
+                credits: value.credits,
+                module_id: value.module_id.clone(),
+                content: value.content.clone(),
+                done: true,
+            },
+        }
+    }
+}
+
+impl TryFrom<InternalModule> for CompleteModule {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalModule) -> Result<Self, Self::Error> {
+        match TryInto::<MaybeCompleteModule>::try_into(value)? {
+            MaybeCompleteModule::Complete(value) => Ok(value),
+            MaybeCompleteModule::Partial(_) => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "expected complete module, got partial module",
+            ))),
+        }
+    }
+}
+
+impl TryFrom<InternalModule> for MaybeCompleteModule {
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+
+    fn try_from(value: InternalModule) -> Result<Self, Self::Error> {
+        match value {
+            InternalModule {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                content,
+                module_id,
+                credits,
+                done: true,
+            } => Ok(Self::Complete(CompleteModule {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                module_id,
+                credits,
+                content,
+            })),
+            InternalModule {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                module_id,
+                credits,
+                ref content,
+                done: false,
+            } if content.is_empty() => Ok(Self::Partial(PartialModule {
+                tucan_id,
+                tucan_last_checked,
+                title,
+                module_id,
+            })),
+            _ => Err(Box::new(std::io::Error::new(
+                ErrorKind::Other,
+                "invalid enum in database",
+            ))),
+        }
+    }
+}
+
+impl MaybeCompleteModule {
+    #[must_use]
+    pub const fn tucan_id(&self) -> &Vec<u8> {
+        match self {
+            Self::Partial(v) => &v.tucan_id,
+            Self::Complete(v) => &v.tucan_id,
+        }
+    }
+}
+
+impl Insertable<modules_unfinished::table> for MaybeCompleteModule {
+    type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalModule::from(&self).values()
+    }
+}
+
+impl Insertable<modules_unfinished::table> for &MaybeCompleteModule {
+    type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalModule::from(self).values()
+    }
+}
+
+impl UndecoratedInsertRecord<modules_unfinished::table> for MaybeCompleteModule {}
+
+impl AsChangeset for &MaybeCompleteModule {
+    type Target = <InternalModule as AsChangeset>::Target;
+
+    type Changeset = <InternalModule as AsChangeset>::Changeset;
+
+    fn as_changeset(self) -> Self::Changeset {
+        InternalModule::from(self).as_changeset()
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>
+    for MaybeCompleteModule
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i32: FromSql<Int4, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row =
+        <InternalModule as Queryable<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalModule =
+            Queryable::<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>::build(row)?;
+        value.try_into()
+    }
+}
+
+impl<DB: Backend> Queryable<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>
+    for CompleteModule
+where
+    Vec<u8>: FromSql<Binary, DB>,
+    NaiveDateTime: FromSql<Timestamptz, DB>,
+    String: FromSql<Text, DB>,
+    i32: FromSql<Int4, DB>,
+    bool: FromSql<Bool, DB>,
+{
+    type Row =
+        <InternalModule as Queryable<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>>::Row;
+
+    fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
+        let value: InternalModule =
+            Queryable::<(Binary, Timestamptz, Text, Text, Int4, Text, Bool), DB>::build(row)?;
+        value.try_into()
+    }
+}
+
+#[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(
     feature = "server",
     derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)
@@ -108,14 +298,14 @@ where
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = modules_unfinished))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-pub struct Module {
+pub struct InternalModule {
     #[cfg_attr(feature = "server", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
     pub module_id: String,
-    pub credits: Option<i32>,
+    pub credits: i32,
     pub content: String,
     pub done: bool,
 }
