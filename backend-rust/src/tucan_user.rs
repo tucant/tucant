@@ -11,6 +11,7 @@ use crate::{
         ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser, UserCourseGroup, UserExam,
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
+    schema::course_groups_unfinished,
     tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
@@ -535,7 +536,9 @@ impl Tucan<Authenticated> {
         Ok(self.cached_my_modules().await?.unwrap())
     }
 
-    async fn cached_my_courses(&self) -> anyhow::Result<Option<Vec<CourseOrCourseGroup>>> {
+    async fn cached_my_courses(
+        &self,
+    ) -> anyhow::Result<Option<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -552,7 +555,10 @@ impl Tucan<Authenticated> {
                         .await?;
 
                     if user_courses_already_fetched.is_some() {
-                        Ok::<Option<Vec<MaybeCompleteCourse>>, diesel::result::Error>(Some(
+                        Ok::<
+                            Option<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>,
+                            diesel::result::Error,
+                        >(Some((
                             user_courses::table
                                 .filter(user_courses::user_id.eq(&matriculation_number))
                                 .inner_join(courses_unfinished::table)
@@ -560,7 +566,14 @@ impl Tucan<Authenticated> {
                                 .order(courses_unfinished::title)
                                 .load(&mut connection)
                                 .await?,
-                        ))
+                            user_course_groups::table
+                                .filter(user_course_groups::user_id.eq(&matriculation_number))
+                                .inner_join(course_groups_unfinished::table)
+                                .select(course_groups_unfinished::all_columns)
+                                .order(course_groups_unfinished::title)
+                                .load(&mut connection)
+                                .await?,
+                        )))
                     } else {
                         Ok(None)
                     }
@@ -588,6 +601,7 @@ impl Tucan<Authenticated> {
                     )
                     .unwrap()
                 })
+                // TODO FIXME make this lazy
                 .map(|details| self.course_or_course_group(details))
                 .collect::<FuturesUnordered<_>>()
         };
@@ -655,7 +669,7 @@ impl Tucan<Authenticated> {
         Ok(())
     }
 
-    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+    pub async fn my_courses(&self) -> anyhow::Result<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)> {
         if let Some(value) = self.cached_my_courses().await? {
             return Ok(value);
         }

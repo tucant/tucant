@@ -9,10 +9,11 @@ use tucant::MyError;
 use axum::extract::State;
 use axum::Json;
 
+use tucant::models::CourseGroup;
+use tucant::models::MaybeCompleteCourse;
 use tucant::models::TucanSession;
 
 use tucant::tucan::Tucan;
-use tucant::tucan_user::CourseOrCourseGroup;
 use tucant::url::Profcourses;
 use tucant::url::TucanProgram;
 use tucant_derive::ts;
@@ -23,7 +24,7 @@ pub async fn my_courses(
     session: TucanSession,
     tucan: State<Tucan>,
     _input: Json<()>,
-) -> Result<Json<WithTucanUrl<Vec<CourseOrCourseGroup>>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await?;
 
     let result = tucan.my_courses().await?;
