@@ -11,7 +11,6 @@ use axum::http::HeaderValue;
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use deadpool::managed::Pool;
-use diesel::BelongingToDsl;
 use diesel::OptionalExtension;
 use diesel::{upsert::excluded, QueryDsl};
 use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
@@ -34,9 +33,9 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{
-        CompleteCourse, CourseEvent, CourseGroup, CourseGroupEvent, MaybeCompleteCourse, Module,
-        ModuleCourse, PartialCourse, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem,
-        COURSES_UNFINISHED, MODULES_UNFINISHED,
+        CompleteCourse, CompleteModule, CourseEvent, CourseGroup, CourseGroupEvent,
+        MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, PartialCourse, TucanSession,
+        UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
@@ -1052,7 +1051,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
-            Vec<Module>,
+            Vec<MaybeCompleteModule>,
         )>,
     > {
         use diesel_async::RunQueryDsl;
@@ -1091,7 +1090,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
-                .load::<Module>(&mut connection)
+                .load::<MaybeCompleteModule>(&mut connection)
                 .await?;
 
             return Ok(Some((
@@ -1149,7 +1148,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         CompleteCourse,
         Vec<CourseGroup>,
         Vec<CourseEvent>,
-        Vec<Module>,
+        Vec<MaybeCompleteModule>,
     )> {
         if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(value);
@@ -1215,7 +1214,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     async fn cached_module(
         &self,
         url: Moduledetails,
-    ) -> anyhow::Result<Option<(Module, Vec<MaybeCompleteCourse>)>> {
+    ) -> anyhow::Result<Option<(CompleteModule, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -1225,14 +1224,15 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(modules_unfinished::done)
             .select(MODULES_UNFINISHED)
             .order(modules_unfinished::title)
-            .get_result::<Module>(&mut connection)
+            .get_result::<CompleteModule>(&mut connection)
             .await
             .optional()?;
 
         if let Some(existing_module) = existing_module {
             debug!("[~] module {:?}", existing_module);
 
-            let course_list = ModuleCourse::belonging_to(&existing_module)
+            let course_list = module_courses::table
+                .filter(module_courses::module.eq(&existing_module.tucan_id))
                 .inner_join(courses_unfinished::table)
                 .order(courses_unfinished::title)
                 .select(COURSES_UNFINISHED)
@@ -1286,14 +1286,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let courses = Self::parse_courses(&document);
 
-            let module = Module {
+            let module = CompleteModule {
                 tucan_id: url.clone().id,
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
-                credits: Some(credits),
+                credits: credits,
                 module_id: normalize(module_id),
                 content,
-                done: true,
             };
 
             (module, courses)
@@ -1337,7 +1336,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     pub async fn module(
         &self,
         url: Moduledetails,
-    ) -> anyhow::Result<(Module, Vec<MaybeCompleteCourse>)> {
+    ) -> anyhow::Result<(CompleteModule, Vec<MaybeCompleteCourse>)> {
         if let Some(value) = self.cached_module(url.clone()).await? {
             return Ok(value);
         }

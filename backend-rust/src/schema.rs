@@ -137,7 +137,7 @@ diesel::table! {
         tucan_last_checked -> Timestamptz,
         title -> Text,
         module_id -> Text,
-        credits -> Nullable<Int4>,
+        credits -> Int4,
         content -> Text,
         done -> Bool,
         tsv -> Tsvector,

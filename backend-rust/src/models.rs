@@ -26,9 +26,7 @@ use chrono::NaiveDateTime;
 use diesel::backend::Backend;
 use diesel::deserialize::FromSql;
 #[cfg(feature = "server")]
-use diesel::prelude::{
-    AsChangeset, Associations, Identifiable, Insertable, Queryable, QueryableByName,
-};
+use diesel::prelude::{AsChangeset, Identifiable, Insertable, Queryable, QueryableByName};
 #[cfg(feature = "server")]
 use diesel::sql_types::Bool;
 
@@ -132,27 +130,39 @@ pub enum MaybeCompleteModule {
     Complete(CompleteModule),
 }
 
+impl From<&CompleteModule> for InternalModule {
+    fn from(value: &CompleteModule) -> Self {
+        Self {
+            tucan_id: value.tucan_id.clone(),
+            tucan_last_checked: value.tucan_last_checked,
+            title: value.title.clone(),
+            credits: value.credits,
+            module_id: value.module_id.clone(),
+            content: value.content.clone(),
+            done: true,
+        }
+    }
+}
+
+impl From<&PartialModule> for InternalModule {
+    fn from(value: &PartialModule) -> Self {
+        Self {
+            tucan_id: value.tucan_id.clone(),
+            tucan_last_checked: value.tucan_last_checked,
+            title: value.title.clone(),
+            module_id: value.module_id.clone(),
+            credits: 0,
+            content: String::new(),
+            done: false,
+        }
+    }
+}
+
 impl From<&MaybeCompleteModule> for InternalModule {
     fn from(value: &MaybeCompleteModule) -> Self {
         match value {
-            MaybeCompleteModule::Partial(value) => Self {
-                tucan_id: value.tucan_id.clone(),
-                tucan_last_checked: value.tucan_last_checked,
-                title: value.title.clone(),
-                module_id: value.module_id.clone(),
-                credits: 0,
-                content: String::new(),
-                done: false,
-            },
-            MaybeCompleteModule::Complete(value) => Self {
-                tucan_id: value.tucan_id.clone(),
-                tucan_last_checked: value.tucan_last_checked,
-                title: value.title.clone(),
-                credits: value.credits,
-                module_id: value.module_id.clone(),
-                content: value.content.clone(),
-                done: true,
-            },
+            MaybeCompleteModule::Partial(value) => value.into(),
+            MaybeCompleteModule::Complete(value) => value.into(),
         }
     }
 }
@@ -240,9 +250,27 @@ impl Insertable<modules_unfinished::table> for &MaybeCompleteModule {
     }
 }
 
+impl Insertable<modules_unfinished::table> for &CompleteModule {
+    type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
+
+    fn values(self) -> Self::Values {
+        InternalModule::from(self).values()
+    }
+}
+
 impl UndecoratedInsertRecord<modules_unfinished::table> for MaybeCompleteModule {}
 
 impl AsChangeset for &MaybeCompleteModule {
+    type Target = <InternalModule as AsChangeset>::Target;
+
+    type Changeset = <InternalModule as AsChangeset>::Changeset;
+
+    fn as_changeset(self) -> Self::Changeset {
+        InternalModule::from(self).as_changeset()
+    }
+}
+
+impl AsChangeset for &CompleteModule {
     type Target = <InternalModule as AsChangeset>::Target;
 
     type Changeset = <InternalModule as AsChangeset>::Changeset;
@@ -351,7 +379,7 @@ impl PathLike<Vec<u8>> for ModuleMenuPathPart {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Registration {
     pub submenus: Vec<ModuleMenu>,
-    pub modules_and_courses: Vec<(Module, Vec<MaybeCompleteCourse>)>,
+    pub modules_and_courses: Vec<(MaybeCompleteModule, Vec<MaybeCompleteCourse>)>,
 }
 
 #[cfg_attr(feature = "server", derive(Typescriptable))]
@@ -365,7 +393,7 @@ pub struct ModuleMenuResponse {
 #[cfg_attr(feature = "server", derive(Typescriptable))]
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
 pub struct ModuleResponse {
-    pub module: Module,
+    pub module: CompleteModule,
     pub courses: Vec<MaybeCompleteCourse>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
@@ -401,14 +429,9 @@ pub struct ModuleMenu {
 }
 
 #[derive(Serialize, Debug)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable,))]
 #[cfg_attr(feature = "server", diesel(primary_key(module_menu_id, module_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_menu_module))]
-#[cfg_attr(feature = "server", diesel(belongs_to(ModuleMenu)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Module)))]
 pub struct ModuleMenuEntryModule {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module_menu_id: Vec<u8>,
@@ -657,14 +680,10 @@ pub struct CourseGroup {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable,)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable,))]
 #[cfg_attr(feature = "server", diesel(primary_key(module, course)))]
 #[cfg_attr(feature = "server", diesel(table_name = module_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(Module, foreign_key = module)))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module: Vec<u8>,
@@ -765,30 +784,20 @@ where
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "server", diesel(primary_key(user_id, module_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = user_modules))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
 pub struct UserModule {
     pub user_id: i32,
     pub module_id: Vec<u8>,
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone, Typescriptable)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "server", diesel(primary_key(user_id, course_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = user_courses))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
 pub struct UserCourse {
     pub user_id: i32,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -797,15 +806,10 @@ pub struct UserCourse {
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone, Typescriptable)]
-#[cfg_attr(
-    feature = "server",
-    derive(Associations, Identifiable, Queryable, Insertable)
-)]
+#[cfg_attr(feature = "server", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "server", diesel(primary_key(user_id, course_group_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = user_course_groups))]
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
-#[cfg_attr(feature = "server", diesel(belongs_to(User, foreign_key = user_id)))]
-#[cfg_attr(feature = "server", diesel(belongs_to(UndoneUser, foreign_key = user_id)))]
 pub struct UserCourseGroup {
     pub user_id: i32,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -928,11 +932,10 @@ pub struct CourseGroupEvent {
 #[derive(Serialize, Debug)]
 #[cfg_attr(
     feature = "server",
-    derive(Associations, Identifiable, Queryable, Typescriptable, Insertable,)
+    derive(Identifiable, Queryable, Typescriptable, Insertable,)
 )]
 #[cfg_attr(feature = "server", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "server", diesel(table_name = vv_menu_unfinished))]
-#[cfg_attr(feature = "server", diesel(belongs_to(VVMenuItem, foreign_key = parent)))]
 pub struct VVMenuItem {
     pub tucan_id: String,
     pub tucan_last_checked: NaiveDateTime,
