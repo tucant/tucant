@@ -24,7 +24,7 @@ use axum::response::Response;
 use axum::Json;
 
 use tucant::models::MaybeCompleteCourse;
-use tucant::models::Module;
+use tucant::models::MaybeCompleteModule;
 use tucant::tucan::Authenticated;
 use tucant::tucan::Unauthenticated;
 use tucant::url::Action;
@@ -42,7 +42,7 @@ pub enum ModulesOrCourses {
 #[derive(Debug)]
 enum ModuleOrCourse {
     #[allow(dead_code)]
-    Module(Module),
+    Module(MaybeCompleteModule),
     #[allow(dead_code)]
     Course(MaybeCompleteCourse),
 }
@@ -143,7 +143,7 @@ fn fetch_registration(
                 ModulesOrCourses::Modules | ModulesOrCourses::Both => {
                     let module = tucan
                         .module(Moduledetails {
-                            id: module.0.tucan_id.clone(),
+                            id: module.0.tucan_id().clone(),
                         })
                         .await
                         .unwrap();
@@ -251,7 +251,7 @@ fn fetch_module_urls(
 
         for module in value.1.modules_and_courses {
             let tucan_program: TucanProgram = Moduledetails {
-                id: module.0.tucan_id.clone(),
+                id: module.0.tucan_id().clone(),
             }
             .into();
             stream

@@ -13,7 +13,7 @@ use rand::Rng;
 use base64::prelude::*;
 use serde_json::{json, Value};
 use tucant::{
-    models::{Module, MODULES_UNFINISHED},
+    models::{InternalModule, MaybeCompleteModule, MODULES_UNFINISHED},
     schema::modules_unfinished,
     tucan::Tucan,
 };
@@ -192,14 +192,15 @@ fn main() -> anyhow::Result<()> {
             // let response_body = response.json::<Value>().await?;
 
             let mut connection = tucan.pool.get().await?;
-            let modules: Vec<Module> = modules_unfinished::table
+            let modules: Vec<MaybeCompleteModule> = modules_unfinished::table
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
-                .load::<Module>(&mut connection)
+                .load::<MaybeCompleteModule>(&mut connection)
                 .await?;
 
             let body: Vec<JsonBody<_>> = modules
-                .into_iter()
+                .iter()
+                .map(Into::<InternalModule>::into)
                 .flat_map(|m| {
                     let base64_tucan_id = BASE64_URL_SAFE_NO_PAD.encode(&m.tucan_id);
                     [

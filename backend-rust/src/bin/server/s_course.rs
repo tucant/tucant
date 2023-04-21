@@ -19,7 +19,7 @@ use icalendar::EventStatus;
 use tucant::models::CompleteCourse;
 use tucant::models::CourseEvent;
 use tucant::models::CourseGroup;
-use tucant::models::Module;
+use tucant::models::MaybeCompleteModule;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
@@ -41,7 +41,7 @@ pub async fn course(
             CompleteCourse,
             Vec<CourseGroup>,
             Vec<CourseEvent>,
-            Vec<Module>,
+            Vec<MaybeCompleteModule>,
             String,
         )>,
     >,

@@ -8,7 +8,7 @@ use tucant::MyError;
 
 use axum::extract::State;
 use axum::Json;
-use tucant::models::Module;
+use tucant::models::MaybeCompleteModule;
 use tucant::models::TucanSession;
 use tucant::tucan::Tucan;
 use tucant::url::Mymodules;
@@ -21,7 +21,7 @@ pub async fn my_modules(
     session: TucanSession,
     tucan: State<Tucan>,
     _input: Json<()>,
-) -> Result<Json<WithTucanUrl<Vec<Module>>>, MyError> {
+) -> Result<Json<WithTucanUrl<Vec<MaybeCompleteModule>>>, MyError> {
     let tucan = tucan.continue_session(session.clone()).await?;
 
     let result = tucan.my_modules().await?;

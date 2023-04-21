@@ -10,7 +10,7 @@ use axum::Json;
 
 use tucant::models::Exam;
 use tucant::models::MaybeCompleteCourse;
-use tucant::models::Module;
+use tucant::models::MaybeCompleteModule;
 use tucant::models::TucanSession;
 
 use base64::prelude::*;
@@ -26,7 +26,8 @@ pub async fn exam(
     session: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
-) -> Result<Json<WithTucanUrl<(Exam, Vec<Module>, Vec<MaybeCompleteCourse>)>>, MyError> {
+) -> Result<Json<WithTucanUrl<(Exam, Vec<MaybeCompleteModule>, Vec<MaybeCompleteCourse>)>>, MyError>
+{
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
     let tucan = tucan.continue_session(session.clone()).await?;
