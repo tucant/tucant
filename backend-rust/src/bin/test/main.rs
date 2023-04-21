@@ -12,7 +12,18 @@ fn main() -> anyhow::Result<()> {
         .block_on(async {
             env_logger::init();
 
-            let _tucan = Tucan::new()?;
+            let tucan = Tucan::new()?;
+            let tucan = tucan
+                .login(
+                    &std::env::var("TUCAN_USERNAME")?,
+                    &std::env::var("TUCAN_PASSWORD")?,
+                )
+                .await?;
+
+            let semesters = tucan.root_module_results().await?;
+            for semester in semesters {
+                tucan.module_results(semester).await?;
+            }
 
             Ok(())
         })

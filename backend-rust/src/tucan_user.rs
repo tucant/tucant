@@ -14,8 +14,8 @@ use crate::{
     schema::course_groups_unfinished,
     tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
-        parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
-        Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
+        parse_tucan_url, Coursedetails, Courseresults, Examdetails, Moduledetails, Myexams,
+        Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
     },
 };
 use crate::{
@@ -677,6 +677,55 @@ impl Tucan<Authenticated> {
         self.fetch_my_courses().await?;
 
         Ok(self.cached_my_courses().await?.unwrap())
+    }
+
+    pub async fn root_module_results(&self) -> anyhow::Result<Vec<u64>> {
+        let document = self
+            .fetch_document(&Courseresults { semester: None }.clone().into())
+            .await?;
+        let document = Self::parse_document(&document);
+
+        let semesters = document
+            .select(&s("#semester option"))
+            .map(|v| v.value().attr("value").unwrap().to_owned().parse().unwrap())
+            .collect_vec();
+
+        Ok(semesters)
+    }
+
+    pub async fn module_results(&self, semester: u64) -> anyhow::Result<()> {
+        let document = self
+            .fetch_document(
+                &Courseresults {
+                    semester: Some(semester),
+                }
+                .clone()
+                .into(),
+            )
+            .await?;
+        let document = Self::parse_document(&document);
+
+        let rows_selector = s("table.nb.list tbody tr");
+        let rows = document.select(&rows_selector);
+
+        rows.flat_map(|row| {
+            let cols_selector = s("td");
+            let mut cols = row.select(&cols_selector);
+            let first_col = cols.next();
+            if first_col.is_none() {
+                return None;
+            }
+            let nr = first_col.unwrap().inner_html().trim().to_owned();
+            let module_name = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade = cols.next().unwrap().inner_html().trim().to_owned();
+            let credits = cols.next().unwrap().inner_html().trim().to_owned();
+            let status = cols.next().unwrap().inner_html().trim().to_owned();
+            println!("{nr} {module_name} {grade} {credits} {status}");
+            Some(())
+        })
+        .collect_vec();
+
+        Ok(())
     }
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {

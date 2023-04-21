@@ -59,7 +59,9 @@ pub struct Studentchoicecourses;
 pub struct Myexams;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
-pub struct Courseresults;
+pub struct Courseresults {
+    pub semester: Option<u64>,
+}
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Examresults;
@@ -182,7 +184,17 @@ impl TucanProgram {
                         .into_iter(),
                     ),
                 ),
-                Self::Courseresults(_) => todo!(),
+                Self::Courseresults(Courseresults { semester }) => (
+                    "COURSERESULTS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(324),
+                        ]
+                        .into_iter()
+                        .chain(semester.map(TucanArgument::Number)),
+                    ),
+                ),
                 Self::Examresults(_) => todo!(),
                 Self::StudentResult(_) => todo!(),
                 Self::Moduledetails(Moduledetails { id }) => (
@@ -417,8 +429,13 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             TucanProgram::Myexams(Myexams)
         }
         "COURSERESULTS" => {
-            number(&mut arguments);
-            TucanProgram::Courseresults(Courseresults)
+            assert_eq!(number(&mut arguments), 324);
+            let res = match arguments.next() {
+                Some(TucanArgument::Number(n)) => Some(n),
+                None => None,
+                _ => panic!("unexpected"),
+            };
+            TucanProgram::Courseresults(Courseresults { semester: res })
         }
         "EXAMRESULTS" => {
             number(&mut arguments);
