@@ -27,8 +27,8 @@ export async function logout(input: null): Promise<null> {
 export async function module(input: string): Promise<WithTucanUrlTW9kdWxlUmVzcG9uc2U> {
         return await genericFetch("http://localhost:8080/module", input) as WithTucanUrlTW9kdWxlUmVzcG9uc2U
 }
-export async function my_courses(input: null): Promise<WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd> {
-        return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd
+export async function my_courses(input: null): Promise<WithTucanUrlW01heWJlQ29tcGxldGVDb3Vyc2VbXSwgQ291cnNlR3JvdXBbXV0> {
+        return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlW01heWJlQ29tcGxldGVDb3Vyc2VbXSwgQ291cnNlR3JvdXBbXV0
 }
 export async function my_exams(input: null): Promise<WithTucanUrlW1tNYXliZUNvbXBsZXRlTW9kdWxlLCBFeGFtXVtdLCBbTWF5YmVDb21wbGV0ZUNvdXJzZSwgRXhhbV1bXV0> {
         return await genericFetch("http://localhost:8080/my-exams", input) as WithTucanUrlW1tNYXliZUNvbXBsZXRlTW9kdWxlLCBFeGFtXVtdLCBbTWF5YmVDb21wbGV0ZUNvdXJzZSwgRXhhbV1bXV0
@@ -86,10 +86,6 @@ export type CourseGroupEvent =
   room: string,
   teachers: string,
 }
-export type CourseOrCourseGroup =
- | { type: "Course", value: [CompleteCourse, CourseGroup[], CourseEvent[], MaybeCompleteModule[]] }
- | { type: "CourseGroup", value: [CourseGroup, CourseGroupEvent[]] }
-
 export type Exam =
 {
   tucan_id: string,
@@ -190,11 +186,6 @@ export type VVMenuPathPart =
   name: string,
   leaf: boolean,
 }
-export type WithTucanUrlQ291cnNlT3JDb3Vyc2VHcm91cFtd =
-{
-  tucan_url: string,
-  inner: CourseOrCourseGroup[],
-}
 export type WithTucanUrlTW9kdWxlTWVudVJlc3BvbnNl =
 {
   tucan_url: string,
@@ -209,6 +200,11 @@ export type WithTucanUrlTWF5YmVDb21wbGV0ZU1vZHVsZVtd =
 {
   tucan_url: string,
   inner: MaybeCompleteModule[],
+}
+export type WithTucanUrlW01heWJlQ29tcGxldGVDb3Vyc2VbXSwgQ291cnNlR3JvdXBbXV0 =
+{
+  tucan_url: string,
+  inner: [MaybeCompleteCourse[], CourseGroup[]],
 }
 export type WithTucanUrlW0NvbXBsZXRlQ291cnNlLCBDb3Vyc2VHcm91cCwgQ291cnNlR3JvdXBFdmVudFtdLCBzdHJpbmdd =
 {
