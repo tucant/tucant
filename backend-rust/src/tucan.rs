@@ -986,7 +986,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 })
                 .collect::<Vec<_>>();
 
-            let h1 = document.select(&s("h1")).next().unwrap().inner_html();
+            let h1 = document
+                .select(&s("h1"))
+                .next()
+                .unwrap()
+                .inner_html()
+                .trim()
+                .to_owned();
 
             (
                 CourseGroup {
@@ -1002,7 +1008,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
         debug!("[+] course group {:?}", course_group);
 
-        let Some((course_id, title)) = h1.split_once(' ') else {panic!()};
+        let Some((course_id, title)) = h1.split_once('\n') else {panic!("{}", h1)};
 
         let course = MaybeCompleteCourse::Partial(PartialCourse {
             tucan_id: course_group.course.clone(),
