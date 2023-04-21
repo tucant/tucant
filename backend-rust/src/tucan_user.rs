@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::convert::TryInto;
+use std::{collections::HashMap, convert::TryInto};
 
 use crate::{
     models::{
@@ -166,8 +166,18 @@ impl Tucan<Authenticated> {
                 .order(courses_unfinished::title)
                 .load::<(ModuleCourse, MaybeCompleteCourse)>(&mut connection)
                 .await?;
-            let grouped_module_courses: Vec<Vec<(ModuleCourse, MaybeCompleteCourse)>> =
-                module_courses.grouped_by(&submodules);
+
+            let id_indices: HashMap<_, _> = submodules
+                .iter()
+                .enumerate()
+                .map(|(i, u)| (u.tucan_id(), i))
+                .collect();
+            let mut grouped_module_courses =
+                submodules.iter().map(|_| Vec::new()).collect::<Vec<_>>();
+            for child in module_courses {
+                grouped_module_courses[id_indices[&child.0.module]].push(child);
+            }
+
             let modules_and_courses: Vec<(MaybeCompleteModule, Vec<MaybeCompleteCourse>)> =
                 submodules
                     .into_iter()

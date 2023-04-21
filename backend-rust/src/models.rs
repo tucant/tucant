@@ -207,7 +207,7 @@ impl TryFrom<InternalModule> for MaybeCompleteModule {
                 tucan_last_checked,
                 title,
                 module_id,
-                credits,
+                credits: 0,
                 ref content,
                 done: false,
             } if content.is_empty() => Ok(Self::Partial(PartialModule {
