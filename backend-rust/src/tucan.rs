@@ -1290,7 +1290,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 tucan_id: url.clone().id,
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
-                credits: credits,
+                credits,
                 module_id: normalize(module_id),
                 content,
             };

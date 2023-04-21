@@ -157,7 +157,10 @@ impl Tucan<Authenticated> {
 
             // TODO FIXME maybe only return the latest course for courses with same course_id
             let module_courses: Vec<(ModuleCourse, MaybeCompleteCourse)> = module_courses::table
-                .filter(module_courses::module.eq_any(submodules.iter().map(|m| m.tucan_id())))
+                .filter(
+                    module_courses::module
+                        .eq_any(submodules.iter().map(MaybeCompleteModule::tucan_id)),
+                )
                 .inner_join(courses_unfinished::table)
                 .select((
                     (module_courses::module, module_courses::course),
