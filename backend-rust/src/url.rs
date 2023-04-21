@@ -195,7 +195,17 @@ impl TucanProgram {
                         .chain(semester.map(TucanArgument::Number)),
                     ),
                 ),
-                Self::Examresults(_) => todo!(),
+                Self::Examresults(_) => (
+                    "EXAMRESULTS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(325),
+                            TucanArgument::Number(999),
+                        ]
+                        .into_iter(),
+                    ),
+                ),
                 Self::StudentResult(_) => todo!(),
                 Self::Moduledetails(Moduledetails { id }) => (
                     "MODULEDETAILS",
@@ -438,7 +448,8 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             TucanProgram::Courseresults(Courseresults { semester: res })
         }
         "EXAMRESULTS" => {
-            number(&mut arguments);
+            assert_eq!(number(&mut arguments), 325);
+            assert_eq!(number(&mut arguments), 999);
             TucanProgram::Examresults(Examresults)
         }
         "STUDENT_RESULT" => {

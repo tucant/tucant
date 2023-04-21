@@ -14,8 +14,8 @@ use crate::{
     schema::course_groups_unfinished,
     tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
     url::{
-        parse_tucan_url, Coursedetails, Courseresults, Examdetails, Moduledetails, Myexams,
-        Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
+        parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
+        Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
     },
 };
 use crate::{
@@ -721,6 +721,33 @@ impl Tucan<Authenticated> {
             let credits = cols.next().unwrap().inner_html().trim().to_owned();
             let status = cols.next().unwrap().inner_html().trim().to_owned();
             println!("{nr} {module_name} {grade} {credits} {status}");
+            Some(())
+        })
+        .collect_vec();
+
+        Ok(())
+    }
+
+    pub async fn course_results(&self) -> anyhow::Result<()> {
+        let document = self.fetch_document(&Examresults.clone().into()).await?;
+        let document = Self::parse_document(&document);
+
+        let rows_selector = s("table.nb.list tbody tr");
+        let rows = document.select(&rows_selector);
+
+        rows.flat_map(|row| {
+            let cols_selector = s("td");
+            let mut cols = row.select(&cols_selector);
+            let mut name_parts = cols.next().unwrap().text();
+            let a = name_parts.next().unwrap().trim().to_owned();
+            let (module_id, text) = a.split_once(" ").unwrap();
+            let module_id = module_id.trim();
+            let text = text.trim();
+            let b = name_parts.next().unwrap().trim().to_owned();
+            let date = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade_text = cols.next().unwrap().inner_html().trim().to_owned();
+            println!("|{module_id}|{text}|{b}| {date} {grade} {grade_text}");
             Some(())
         })
         .collect_vec();
