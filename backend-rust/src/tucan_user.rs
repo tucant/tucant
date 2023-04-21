@@ -535,51 +535,42 @@ impl Tucan<Authenticated> {
         Ok(self.cached_my_modules().await?.unwrap())
     }
 
-    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+    async fn cached_my_courses(&self) -> anyhow::Result<Option<Vec<CourseOrCourseGroup>>> {
         use diesel_async::RunQueryDsl;
 
-        // TODO FIXME cache this
+        let mut connection = self.pool.get().await?;
+        let matriculation_number = self.state.session.matriculation_number;
 
-        /*
-        {
-            let mut connection = self.tucan.pool.get().await?;
-            let matriculation_number = self.session.matriculation_number;
+        Ok(connection
+            .build_transaction()
+            .run(|mut connection| {
+                Box::pin(async move {
+                    let user_courses_already_fetched = users_unfinished::table
+                        .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                        .select(users_unfinished::user_courses_last_checked)
+                        .get_result::<Option<NaiveDateTime>>(&mut connection)
+                        .await?;
 
-            let courses = connection
-                .build_transaction()
-                .run(|mut connection| {
-                    Box::pin(async move {
-                        let user_courses_already_fetched = users_unfinished::table
-                            .filter(
-                                users_unfinished::matriculation_number.eq(&matriculation_number),
-                            )
-                            .select(users_unfinished::user_courses_last_checked)
-                            .order()
-                            .get_result::<Option<NaiveDateTime>>(&mut connection)
-                            .await?;
-
-                        if user_courses_already_fetched.is_some() {
-                            Ok::<Option<Vec<Course>>, diesel::result::Error>(Some(
-                                user_courses::table
-                                    .filter(user_courses::user_id.eq(&matriculation_number))
-                                    .inner_join(courses_unfinished::table)
-                                    .select(COURSES_UNFINISHED)
-                                    .order()
-                                    .load::<Course>(&mut connection)
-                                    .await?,
-                            ))
-                        } else {
-                            Ok(None)
-                        }
-                    })
+                    if user_courses_already_fetched.is_some() {
+                        Ok::<Option<Vec<MaybeCompleteCourse>>, diesel::result::Error>(Some(
+                            user_courses::table
+                                .filter(user_courses::user_id.eq(&matriculation_number))
+                                .inner_join(courses_unfinished::table)
+                                .select(COURSES_UNFINISHED)
+                                .order(courses_unfinished::title)
+                                .load(&mut connection)
+                                .await?,
+                        ))
+                    } else {
+                        Ok(None)
+                    }
                 })
-                .await?;
+            })
+            .await?)
+    }
 
-            if let Some(courses) = courses {
-                return Ok(courses);
-            }
-        }
-        */
+    pub async fn fetch_my_courses(&self) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
@@ -661,7 +652,17 @@ impl Tucan<Authenticated> {
                 .await?;
         }
 
-        Ok(courses_or_course_groups)
+        Ok(())
+    }
+
+    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+        if let Some(value) = self.cached_my_courses().await? {
+            return Ok(value);
+        }
+
+        self.fetch_my_courses().await?;
+
+        Ok(self.cached_my_courses().await?.unwrap())
     }
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
