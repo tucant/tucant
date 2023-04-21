@@ -15,7 +15,6 @@ use axum::extract::State;
 use axum::Json;
 
 use tucant::models::MaybeCompleteCourse;
-use tucant::models::TucanSession;
 use tucant::models::VVMenuItem;
 use tucant::models::VVMenuPathPart;
 use tucant::tucan::Tucan;
@@ -26,7 +25,6 @@ use tucant_derive::ts;
 
 #[ts]
 pub async fn courses(
-    session: TucanSession,
     tucan: State<Tucan>,
     input: Json<Option<String>>,
 ) -> Result<
@@ -40,11 +38,6 @@ pub async fn courses(
     >,
     MyError,
 > {
-    let tucan = tucan
-        .continue_session(session.clone())
-        .await?
-        .as_unauthenticated();
-
     let value = match input.0 {
         None => {
             let result = tucan.vv_root().await?;
@@ -104,7 +97,7 @@ pub async fn courses(
     );
 
     Ok(Json(WithTucanUrl {
-        tucan_url: url.to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: url.to_tucan_url(None),
         inner: value,
     }))
 }
