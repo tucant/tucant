@@ -137,7 +137,7 @@ impl Allocator for BumpOnlyAllocator {
         if possibilities == BigUint::from(0u8) {
             Self::AddressType {
                 possibilities,
-                address: BigUint::from(0u8), // special address for zero sized value (could be removed later again this is helpful for testing)
+                address: BigUint::from(1u8),
             }
         } else {
             let address = self.possibilities.clone();
@@ -152,7 +152,6 @@ impl Allocator for BumpOnlyAllocator {
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct BumpOnlyAddress {
-    #[cfg(debug_assertions)]
     possibilities: BigUint,
     address: BigUint,
 }
@@ -175,6 +174,7 @@ impl Address for BumpOnlyAddress {
     fn get(&self, allocator: &BumpOnlyAllocator) -> BigUint {
         let (your_value_and_higher_values, _lower_values) = allocator.inner.div_rem(&self.address);
 
+        // TODO FIXME should you be able to get a value when there are no possibilities?
         let (_higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
         assert!(our_value < self.possibilities);

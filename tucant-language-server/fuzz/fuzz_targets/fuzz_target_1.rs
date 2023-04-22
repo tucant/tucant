@@ -1,7 +1,5 @@
 #![no_main]
 
-use std::collections::HashMap;
-
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
 use num_bigint::BigUint;
@@ -48,10 +46,9 @@ impl<'a> Arbitrary<'a> for VecAction {
 }
 
 fuzz_target!(|actions: VecAction| {
-    println!("-------------------------------");
+    //println!("-------------------------------");
     let mut allocator = BumpOnlyAllocator::new();
-    let mut settable_addresses = Vec::<BumpOnlyAddress>::new();
-    let mut expected_values = HashMap::new();
+    let mut settable_addresses = Vec::<(BumpOnlyAddress, BigUint)>::new();
 
     for action in actions.0 {
         match action {
@@ -60,21 +57,20 @@ fuzz_target!(|actions: VecAction| {
                 let address =
                     BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(possibilities));
                 //println!("address {:?}", address.clone());
-                expected_values.insert(address.clone(), BigUint::from(0u8));
                 if possibilities != 0 {
-                    settable_addresses.push(address);
+                    settable_addresses.push((address, BigUint::from(0u8)));
                 }
             }
             Action::Set(address, value) => {
-                settable_addresses[address].set(&mut allocator, BigUint::from(value));
-                expected_values
-                    .insert(settable_addresses[address].clone(), BigUint::from(value))
-                    .unwrap();
+                settable_addresses[address]
+                    .0
+                    .set(&mut allocator, BigUint::from(value));
+                settable_addresses[address].1 = BigUint::from(value);
             }
         }
     }
 
-    for (k, v) in expected_values {
+    for (k, v) in settable_addresses {
         assert_eq!(k.get(&mut allocator), v);
     }
 });
