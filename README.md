@@ -220,3 +220,4 @@ https://opensearch.org/docs/latest/api-reference/search/
 ## Fuzzing
 
 cargo install cargo-fuzz
+cargo install afl

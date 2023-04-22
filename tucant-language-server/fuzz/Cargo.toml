@@ -5,10 +5,11 @@ publish = false
 edition = "2021"
 
 [package.metadata]
-cargo-fuzz = true
+#cargo-fuzz = true
 
 [dependencies]
-libfuzzer-sys = "0.4"
+afl = "*"
+#libfuzzer-sys = "0.4"
 arbitrary   = { default-features = false, version = "1", features = ["derive"] }
 num-integer = { default-features = false, version = "0.1" }
 num-bigint  = { default-features = false, version = "0.4" }
