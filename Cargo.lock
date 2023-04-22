@@ -2683,6 +2683,8 @@ version = "0.0.0"
 dependencies = [
  "arbitrary",
  "libfuzzer-sys",
+ "num-bigint",
+ "num-integer",
  "tucant-language-server",
 ]
 

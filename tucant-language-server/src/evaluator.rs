@@ -144,14 +144,14 @@ impl Allocator for BumpOnlyAllocator {
 #[derive(Debug)]
 pub struct BumpOnlyAddress {
     allocator: Rc<RefCell<BumpOnlyAllocator>>,
-    #[cfg(debug_assertions)]
+    //#[cfg(debug_assertions)]
     possibilities: BigUint,
     address: BigUint,
 }
 
 impl Address for BumpOnlyAddress {
     fn set(&mut self, new_value: BigUint) {
-        debug_assert!(new_value < self.possibilities);
+        assert!(new_value < self.possibilities);
 
         let mut allocator_value = self.allocator.borrow_mut();
 
@@ -173,7 +173,7 @@ impl Address for BumpOnlyAddress {
 
         let (_higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
-        debug_assert!(our_value < self.possibilities);
+        assert!(our_value < self.possibilities);
         our_value
     }
 }
