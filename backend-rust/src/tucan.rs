@@ -19,7 +19,6 @@ use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
-use once_cell::sync::Lazy;
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -111,21 +110,6 @@ impl std::fmt::Debug for Tucan {
 #[must_use]
 pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     document.select(&s(selector)).next()
-}
-
-static NORMALIZED_NAME_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ /)(.]+").unwrap());
-
-pub fn normalize(string: &str) -> String {
-    // maybe do in postgres as this is generated?
-    // &amp; replace with -
-    // replace , to -
-    // remove consecutive -
-    // remove [] to -
-    // remove - at end and start
-    NORMALIZED_NAME_REGEX
-        .replace_all(string, "-")
-        .trim_matches('-')
-        .to_lowercase()
 }
 
 impl Tucan<Unauthenticated> {
@@ -834,7 +818,11 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let text = name.inner_html();
             let mut fs = text.trim().split('\n');
-            let course_id = fs.next().unwrap_or_else(|| unwrap_handler()).trim();
+            let course_id = fs
+                .next()
+                .unwrap_or_else(|| unwrap_handler())
+                .trim()
+                .to_owned();
             let course_name = fs.next().map(str::trim);
 
             let sws = document
@@ -863,7 +851,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: course_name.unwrap_or_else(|| unwrap_handler()).to_string(),
                 sws,
-                course_id: normalize(course_id),
+                course_id,
                 content,
             });
 
@@ -1264,7 +1252,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let text = name.inner_html();
             let mut fs = text.split("&nbsp;");
-            let module_id = fs.next().unwrap().trim();
+            let module_id = fs.next().unwrap().trim().to_owned();
 
             let module_name = fs.next().map(str::trim);
 
@@ -1297,7 +1285,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 tucan_last_checked: Utc::now().naive_utc(),
                 title: module_name.unwrap().to_string(),
                 credits,
-                module_id: normalize(module_id),
+                module_id,
                 content,
             };
 

@@ -12,7 +12,7 @@ use crate::{
         COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::course_groups_unfinished,
-    tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
+    tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
         Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
@@ -103,9 +103,6 @@ impl Tucan<Authenticated> {
             program: TucanProgram::Registration(url),
             ..
         } = url else { panic!() };
-
-        let name = url_element.inner_html();
-        let _normalized_name = normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
@@ -478,6 +475,7 @@ impl Tucan<Authenticated> {
                     )
                     .unwrap()
                 })
+                // TODO FIXME insert partial module
                 .map(|moduledetails| self.module(moduledetails))
                 .collect::<FuturesUnordered<_>>()
         };
@@ -694,6 +692,8 @@ impl Tucan<Authenticated> {
     }
 
     pub async fn module_results(&self, semester: u64) -> anyhow::Result<()> {
+        let modules = self.my_modules().await?;
+
         let document = self
             .fetch_document(
                 &Courseresults {
@@ -719,6 +719,10 @@ impl Tucan<Authenticated> {
             let credits = cols.next().unwrap().inner_html().trim().to_owned();
             let status = cols.next().unwrap().inner_html().trim().to_owned();
             println!("{nr} {module_name} {grade} {credits} {status}");
+
+            let module = modules.iter().find(|m| m.module_id() == &nr).unwrap();
+            println!("{:?}", module.tucan_id());
+
             Some(())
         })
         .collect_vec();

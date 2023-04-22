@@ -232,6 +232,14 @@ impl MaybeCompleteModule {
             Self::Complete(v) => &v.tucan_id,
         }
     }
+
+    #[must_use]
+    pub const fn module_id(&self) -> &String {
+        match self {
+            Self::Partial(v) => &v.module_id,
+            Self::Complete(v) => &v.module_id,
+        }
+    }
 }
 
 impl Insertable<modules_unfinished::table> for MaybeCompleteModule {
