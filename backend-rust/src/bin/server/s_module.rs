@@ -34,8 +34,6 @@ pub async fn module(
 
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
-    let tucan = tucan.continue_optional_session(session.clone()).await?;
-
     let result = tucan
         .module(Moduledetails {
             id: binary_path.clone(),

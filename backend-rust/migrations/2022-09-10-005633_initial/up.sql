@@ -205,3 +205,4 @@ CREATE TABLE vv_menu_courses (
     course_id BYTEA NOT NULL REFERENCES courses_unfinished (tucan_id),
     PRIMARY KEY (course_id, vv_menu_id)
 );
+

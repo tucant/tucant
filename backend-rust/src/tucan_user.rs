@@ -6,15 +6,16 @@ use std::{collections::HashMap, convert::TryInto};
 
 use crate::{
     models::{
-        CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent,
-        Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam, ModuleMenu,
-        ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser, UserCourseGroup, UserExam,
-        COURSES_UNFINISHED, MODULES_UNFINISHED,
+        self, CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup,
+        CourseGroupEvent, Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam,
+        ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser,
+        UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    tucan::{normalize, s, Authenticated, Tucan, Unauthenticated},
+    schema::course_groups_unfinished,
+    tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
-        parse_tucan_url, Coursedetails, Examdetails, Moduledetails, Myexams, Mymodules,
-        Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
+        parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
+        Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
     },
 };
 use crate::{
@@ -102,9 +103,6 @@ impl Tucan<Authenticated> {
             program: TucanProgram::Registration(url),
             ..
         } = url else { panic!() };
-
-        let name = url_element.inner_html();
-        let _normalized_name = normalize(&name);
 
         Ok(ModuleMenu {
             tucan_id: url.path,
@@ -477,6 +475,7 @@ impl Tucan<Authenticated> {
                     )
                     .unwrap()
                 })
+                // TODO FIXME insert partial module
                 .map(|moduledetails| self.module(moduledetails))
                 .collect::<FuturesUnordered<_>>()
         };
@@ -535,51 +534,54 @@ impl Tucan<Authenticated> {
         Ok(self.cached_my_modules().await?.unwrap())
     }
 
-    pub async fn my_courses(&self) -> anyhow::Result<Vec<CourseOrCourseGroup>> {
+    async fn cached_my_courses(
+        &self,
+    ) -> anyhow::Result<Option<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>> {
         use diesel_async::RunQueryDsl;
 
-        // TODO FIXME cache this
+        let mut connection = self.pool.get().await?;
+        let matriculation_number = self.state.session.matriculation_number;
 
-        /*
-        {
-            let mut connection = self.tucan.pool.get().await?;
-            let matriculation_number = self.session.matriculation_number;
+        Ok(connection
+            .build_transaction()
+            .run(|mut connection| {
+                Box::pin(async move {
+                    let user_courses_already_fetched = users_unfinished::table
+                        .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
+                        .select(users_unfinished::user_courses_last_checked)
+                        .get_result::<Option<NaiveDateTime>>(&mut connection)
+                        .await?;
 
-            let courses = connection
-                .build_transaction()
-                .run(|mut connection| {
-                    Box::pin(async move {
-                        let user_courses_already_fetched = users_unfinished::table
-                            .filter(
-                                users_unfinished::matriculation_number.eq(&matriculation_number),
-                            )
-                            .select(users_unfinished::user_courses_last_checked)
-                            .order()
-                            .get_result::<Option<NaiveDateTime>>(&mut connection)
-                            .await?;
-
-                        if user_courses_already_fetched.is_some() {
-                            Ok::<Option<Vec<Course>>, diesel::result::Error>(Some(
-                                user_courses::table
-                                    .filter(user_courses::user_id.eq(&matriculation_number))
-                                    .inner_join(courses_unfinished::table)
-                                    .select(COURSES_UNFINISHED)
-                                    .order()
-                                    .load::<Course>(&mut connection)
-                                    .await?,
-                            ))
-                        } else {
-                            Ok(None)
-                        }
-                    })
+                    if user_courses_already_fetched.is_some() {
+                        Ok::<
+                            Option<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>,
+                            diesel::result::Error,
+                        >(Some((
+                            user_courses::table
+                                .filter(user_courses::user_id.eq(&matriculation_number))
+                                .inner_join(courses_unfinished::table)
+                                .select(COURSES_UNFINISHED)
+                                .order(courses_unfinished::title)
+                                .load(&mut connection)
+                                .await?,
+                            user_course_groups::table
+                                .filter(user_course_groups::user_id.eq(&matriculation_number))
+                                .inner_join(course_groups_unfinished::table)
+                                .select(course_groups_unfinished::all_columns)
+                                .order(course_groups_unfinished::title)
+                                .load(&mut connection)
+                                .await?,
+                        )))
+                    } else {
+                        Ok(None)
+                    }
                 })
-                .await?;
+            })
+            .await?)
+    }
 
-            if let Some(courses) = courses {
-                return Ok(courses);
-            }
-        }
-        */
+    pub async fn fetch_my_courses(&self) -> anyhow::Result<()> {
+        use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&Profcourses.clone().into()).await?;
         let my_courses = {
@@ -597,6 +599,7 @@ impl Tucan<Authenticated> {
                     )
                     .unwrap()
                 })
+                // TODO FIXME make this lazy
                 .map(|details| self.course_or_course_group(details))
                 .collect::<FuturesUnordered<_>>()
         };
@@ -661,7 +664,114 @@ impl Tucan<Authenticated> {
                 .await?;
         }
 
-        Ok(courses_or_course_groups)
+        Ok(())
+    }
+
+    pub async fn my_courses(&self) -> anyhow::Result<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)> {
+        // TODO FIXME for integrated courses only the groups is returned but we should probably also return a course entry
+        if let Some(value) = self.cached_my_courses().await? {
+            return Ok(value);
+        }
+
+        self.fetch_my_courses().await?;
+
+        Ok(self.cached_my_courses().await?.unwrap())
+    }
+
+    pub async fn root_module_results(&self) -> anyhow::Result<Vec<u64>> {
+        let document = self
+            .fetch_document(&Courseresults { semester: None }.clone().into())
+            .await?;
+        let document = Self::parse_document(&document);
+
+        let semesters = document
+            .select(&s("#semester option"))
+            .map(|v| v.value().attr("value").unwrap().to_owned().parse().unwrap())
+            .collect_vec();
+
+        Ok(semesters)
+    }
+
+    pub async fn module_results(&self, semester: u64) -> anyhow::Result<()> {
+        let modules = self.my_modules().await?;
+
+        let document = self
+            .fetch_document(
+                &Courseresults {
+                    semester: Some(semester),
+                }
+                .clone()
+                .into(),
+            )
+            .await?;
+        let document = Self::parse_document(&document);
+
+        let rows_selector = s("table.nb.list tbody tr");
+        let rows = document.select(&rows_selector);
+
+        rows.map(|row| {
+            let cols_selector = s("td");
+            let mut cols = row.select(&cols_selector);
+            let first_col = cols.next();
+            first_col?;
+            let nr = first_col.unwrap().inner_html().trim().to_owned();
+            let module_name = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade = cols.next().unwrap().inner_html().trim().to_owned();
+            let credits = cols.next().unwrap().inner_html().trim().to_owned();
+            let status = cols.next().unwrap().inner_html().trim().to_owned();
+            println!("{nr} {module_name} {grade} {credits} {status}");
+
+            let module = modules.iter().find(|m| m.module_id() == &nr).unwrap();
+            println!("{:?}", module.tucan_id());
+
+            Some(())
+        })
+        .collect_vec();
+
+        Ok(())
+    }
+
+    pub async fn course_results(&self) -> anyhow::Result<()> {
+        let modules = self.my_modules().await?;
+        let courses = self.my_courses().await?;
+
+        let document = self
+            .fetch_document(
+                &Examresults {
+                    semester: Some(999),
+                }
+                .clone()
+                .into(),
+            )
+            .await?;
+        let document = Self::parse_document(&document);
+
+        let rows_selector = s("table.nb.list tbody tr");
+        let rows = document.select(&rows_selector);
+
+        rows.map(|row| {
+            let cols_selector = s("td");
+            let mut cols = row.select(&cols_selector);
+            let mut name_parts = cols.next().unwrap().text();
+            let a = name_parts.next().unwrap().trim().to_owned();
+            let (module_id, text) = a.split_once(' ').unwrap();
+            let module_id = module_id.trim();
+            let text = text.trim();
+            let b = name_parts.next().unwrap().trim().to_owned();
+            let date = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade = cols.next().unwrap().inner_html().trim().to_owned();
+            let grade_text = cols.next().unwrap().inner_html().trim().to_owned();
+            println!("|{module_id}|{text}|{b}| {date} {grade} {grade_text}");
+
+            let module = modules.iter().find(|m| m.module_id() == module_id);
+            let course = courses.0.iter().find(|c| c.course_id() == module_id);
+            //let course_group = courses.1.iter().find(|c| c.course_id == &module_id);
+            println!("{:?}", module.map(models::MaybeCompleteModule::tucan_id));
+            println!("{:?}", course.map(models::MaybeCompleteCourse::tucan_id));
+        })
+        .collect_vec();
+
+        Ok(())
     }
 
     pub async fn personal_data(&self) -> anyhow::Result<UndoneUser> {
