@@ -216,3 +216,7 @@ https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
 https://opensearch.org/docs/latest/api-reference/explain/
 
 https://opensearch.org/docs/latest/api-reference/search/
+
+## Fuzzing
+
+cargo install cargo-fuzz
