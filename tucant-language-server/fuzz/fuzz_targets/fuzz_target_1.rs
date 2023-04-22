@@ -53,10 +53,8 @@ fuzz_target!(|actions: VecAction| {
     for action in actions.0 {
         match action {
             Action::Allocate(possibilities) => {
-                //println!("possibilities {possibilities}");
                 let address =
                     BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(possibilities));
-                //println!("address {:?}", address.clone());
                 if possibilities != 0 {
                     settable_addresses.push((address, BigUint::from(0u8)));
                 }

@@ -160,6 +160,7 @@ impl Address for BumpOnlyAddress {
     type AllocatorType = BumpOnlyAllocator;
 
     fn set(&self, allocator: &mut BumpOnlyAllocator, new_value: BigUint) {
+        assert_ne!(self.possibilities, BigUint::from(0u8)); // redundant but clearer
         assert!(new_value < self.possibilities);
 
         let (your_value_and_higher_values, lower_values) = allocator.inner.div_rem(&self.address);
@@ -172,9 +173,10 @@ impl Address for BumpOnlyAddress {
     }
 
     fn get(&self, allocator: &BumpOnlyAllocator) -> BigUint {
+        assert_ne!(self.possibilities, BigUint::from(0u8));
+
         let (your_value_and_higher_values, _lower_values) = allocator.inner.div_rem(&self.address);
 
-        // TODO FIXME should you be able to get a value when there are no possibilities?
         let (_higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
         assert!(our_value < self.possibilities);
