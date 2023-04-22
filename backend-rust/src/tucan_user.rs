@@ -735,7 +735,15 @@ impl Tucan<Authenticated> {
         let modules = self.my_modules().await?;
         let courses = self.my_courses().await?;
 
-        let document = self.fetch_document(&Examresults.clone().into()).await?;
+        let document = self
+            .fetch_document(
+                &Examresults {
+                    semester: Some(999),
+                }
+                .clone()
+                .into(),
+            )
+            .await?;
         let document = Self::parse_document(&document);
 
         let rows_selector = s("table.nb.list tbody tr");
