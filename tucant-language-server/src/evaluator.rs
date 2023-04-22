@@ -108,7 +108,7 @@ where
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BumpOnlyAllocator {
-    possibilities: BigUint,
+    pub possibilities: BigUint,
     inner: BigUint,
 }
 
@@ -131,14 +131,20 @@ impl Allocator for BumpOnlyAllocator {
     type AddressType = BumpOnlyAddress;
 
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
-        let address = this.borrow().possibilities.clone();
-        if possibilities != BigUint::from(0u8) {
+        if possibilities == BigUint::from(0u8) {
+            Self::AddressType {
+                allocator: this,
+                possibilities,
+                address: BigUint::from(0u8), // special address for zero sized value (could be removed later again this is helpful for testing)
+            }
+        } else {
+            let address = this.borrow().possibilities.clone();
             this.borrow_mut().possibilities *= &possibilities;
-        }
-        Self::AddressType {
-            allocator: this,
-            possibilities,
-            address,
+            Self::AddressType {
+                allocator: this,
+                possibilities,
+                address,
+            }
         }
     }
 }
