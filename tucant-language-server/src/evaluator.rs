@@ -111,7 +111,7 @@ where
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BumpOnlyAllocator {
-    pub possibilities: BigUint,
+    possibilities: BigUint,
     inner: BigUint,
 }
 
@@ -150,11 +150,11 @@ impl Allocator for BumpOnlyAllocator {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct BumpOnlyAddress {
     #[cfg(debug_assertions)]
     possibilities: BigUint,
-    pub address: BigUint,
+    address: BigUint,
 }
 
 impl Address for BumpOnlyAddress {

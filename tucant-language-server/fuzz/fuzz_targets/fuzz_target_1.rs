@@ -56,11 +56,11 @@ fuzz_target!(|actions: VecAction| {
     for action in actions.0 {
         match action {
             Action::Allocate(possibilities) => {
-                println!("possibilities {possibilities}");
+                //println!("possibilities {possibilities}");
                 let address =
                     BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(possibilities));
-                println!("address {}", address.address.clone());
-                expected_values.insert(address.address.clone(), 0);
+                //println!("address {:?}", address.clone());
+                expected_values.insert(address.clone(), BigUint::from(0u8));
                 if possibilities != 0 {
                     settable_addresses.push(address);
                 }
@@ -68,13 +68,13 @@ fuzz_target!(|actions: VecAction| {
             Action::Set(address, value) => {
                 settable_addresses[address].set(&mut allocator, BigUint::from(value));
                 expected_values
-                    .insert(settable_addresses[address].address.clone(), value)
+                    .insert(settable_addresses[address].clone(), BigUint::from(value))
                     .unwrap();
             }
         }
     }
 
-    /*for (k, v) in expected_values {
-
-    }*/
+    for (k, v) in expected_values {
+        assert_eq!(k.get(&mut allocator), v);
+    }
 });
