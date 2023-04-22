@@ -1,5 +1,7 @@
 #![no_main]
 
+use std::collections::HashMap;
+
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
 use num_bigint::BigUint;
@@ -48,17 +50,29 @@ impl<'a> Arbitrary<'a> for VecAction {
 fuzz_target!(|actions: VecAction| {
     let allocator = BumpOnlyAllocator::new();
     let mut settable_addresses = Vec::<BumpOnlyAddress>::new();
+    let mut expected_values = HashMap::new();
 
     for action in actions.0 {
         match action {
             Action::Allocate(possibilities) => {
                 let address =
                     BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(possibilities));
+                let old = expected_values.insert(address.address.clone(), 0);
                 if possibilities != 0 {
+                    assert_eq!(old, None);
                     settable_addresses.push(address);
                 }
             }
-            Action::Set(address, value) => settable_addresses[address].set(BigUint::from(value)),
+            Action::Set(address, value) => {
+                settable_addresses[address].set(BigUint::from(value));
+                expected_values
+                    .insert(settable_addresses[address].address.clone(), value)
+                    .unwrap();
+            }
         }
     }
+
+    /*for (k, v) in expected_values {
+
+    }*/
 });

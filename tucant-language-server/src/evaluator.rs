@@ -106,7 +106,7 @@ where
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BumpOnlyAllocator {
     possibilities: BigUint,
     inner: BigUint,
@@ -143,12 +143,12 @@ impl Allocator for BumpOnlyAllocator {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct BumpOnlyAddress {
-    allocator: Rc<RefCell<BumpOnlyAllocator>>,
+    allocator: Rc<RefCell<BumpOnlyAllocator>>, // TODO FIXME use normal mutability of the inner value and normal single mutable ownership rules
     //#[cfg(debug_assertions)]
     possibilities: BigUint,
-    address: BigUint,
+    pub address: BigUint,
 }
 
 impl Address for BumpOnlyAddress {
