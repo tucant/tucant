@@ -1,7 +1,14 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
+use tucant_language_server::evaluator::BumpOnlyAllocator;
 
-fuzz_target!(|data: &[u8]| {
-    // fuzzed code goes here
+#[derive(Debug, Arbitrary)]
+enum Action {
+    Allocate(u64),
+    Set(u64),
+}
+
+fuzz_target!(|data: &[Action]| {
+    let allocator = BumpOnlyAllocator::new();
 });
