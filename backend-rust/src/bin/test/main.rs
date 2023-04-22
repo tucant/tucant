@@ -20,13 +20,13 @@ fn main() -> anyhow::Result<()> {
                 )
                 .await?;
 
-            //tucan.course_results().await?;
-
-            let semesters = tucan.root_module_results().await?;
-            for semester in semesters {
-                tucan.module_results(semester).await?;
-            }
-
+            tucan.course_results().await?;
+            /*
+                        let semesters = tucan.root_module_results().await?;
+                        for semester in semesters {
+                            tucan.module_results(semester).await?;
+                        }
+            */
             Ok(())
         })
 }

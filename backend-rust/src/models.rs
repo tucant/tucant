@@ -596,6 +596,14 @@ impl MaybeCompleteCourse {
             Self::Complete(v) => &v.title,
         }
     }
+
+    #[must_use]
+    pub const fn course_id(&self) -> &String {
+        match self {
+            Self::Partial(v) => &v.course_id,
+            Self::Complete(v) => &v.course_id,
+        }
+    }
 }
 
 impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {

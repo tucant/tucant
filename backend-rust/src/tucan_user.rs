@@ -668,6 +668,7 @@ impl Tucan<Authenticated> {
     }
 
     pub async fn my_courses(&self) -> anyhow::Result<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)> {
+        // TODO FIXME for integrated courses only the groups is returned but we should probably also return a course entry
         if let Some(value) = self.cached_my_courses().await? {
             return Ok(value);
         }
@@ -731,6 +732,9 @@ impl Tucan<Authenticated> {
     }
 
     pub async fn course_results(&self) -> anyhow::Result<()> {
+        let modules = self.my_modules().await?;
+        let courses = self.my_courses().await?;
+
         let document = self.fetch_document(&Examresults.clone().into()).await?;
         let document = Self::parse_document(&document);
 
@@ -750,6 +754,13 @@ impl Tucan<Authenticated> {
             let grade = cols.next().unwrap().inner_html().trim().to_owned();
             let grade_text = cols.next().unwrap().inner_html().trim().to_owned();
             println!("|{module_id}|{text}|{b}| {date} {grade} {grade_text}");
+
+            let module = modules.iter().find(|m| m.module_id() == &module_id);
+            let course = courses.0.iter().find(|c| c.course_id() == &module_id);
+            //let course_group = courses.1.iter().find(|c| c.course_id == &module_id);
+            println!("{:?}", module.map(|m| m.tucan_id()));
+            println!("{:?}", course.map(|c| c.tucan_id()));
+
             Some(())
         })
         .collect_vec();
