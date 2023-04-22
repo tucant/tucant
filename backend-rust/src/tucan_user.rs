@@ -6,10 +6,10 @@ use std::{collections::HashMap, convert::TryInto};
 
 use crate::{
     models::{
-        CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup, CourseGroupEvent,
-        Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam, ModuleMenu,
-        ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser, UserCourseGroup, UserExam,
-        COURSES_UNFINISHED, MODULES_UNFINISHED,
+        self, CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup,
+        CourseGroupEvent, Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam,
+        ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser,
+        UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::course_groups_unfinished,
     tucan::{s, Authenticated, Tucan, Unauthenticated},
@@ -758,8 +758,8 @@ impl Tucan<Authenticated> {
             let module = modules.iter().find(|m| m.module_id() == &module_id);
             let course = courses.0.iter().find(|c| c.course_id() == &module_id);
             //let course_group = courses.1.iter().find(|c| c.course_id == &module_id);
-            println!("{:?}", module.map(|m| m.tucan_id()));
-            println!("{:?}", course.map(|c| c.tucan_id()));
+            println!("{:?}", module.map(models::MaybeCompleteModule::tucan_id));
+            println!("{:?}", course.map(models::MaybeCompleteCourse::tucan_id));
 
             Some(())
         })
