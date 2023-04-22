@@ -708,13 +708,11 @@ impl Tucan<Authenticated> {
         let rows_selector = s("table.nb.list tbody tr");
         let rows = document.select(&rows_selector);
 
-        rows.flat_map(|row| {
+        rows.filter_map(|row| {
             let cols_selector = s("td");
             let mut cols = row.select(&cols_selector);
             let first_col = cols.next();
-            if first_col.is_none() {
-                return None;
-            }
+            first_col?;
             let nr = first_col.unwrap().inner_html().trim().to_owned();
             let module_name = cols.next().unwrap().inner_html().trim().to_owned();
             let grade = cols.next().unwrap().inner_html().trim().to_owned();
@@ -735,12 +733,12 @@ impl Tucan<Authenticated> {
         let rows_selector = s("table.nb.list tbody tr");
         let rows = document.select(&rows_selector);
 
-        rows.flat_map(|row| {
+        rows.filter_map(|row| {
             let cols_selector = s("td");
             let mut cols = row.select(&cols_selector);
             let mut name_parts = cols.next().unwrap().text();
             let a = name_parts.next().unwrap().trim().to_owned();
-            let (module_id, text) = a.split_once(" ").unwrap();
+            let (module_id, text) = a.split_once(' ').unwrap();
             let module_id = module_id.trim();
             let text = text.trim();
             let b = name_parts.next().unwrap().trim().to_owned();
