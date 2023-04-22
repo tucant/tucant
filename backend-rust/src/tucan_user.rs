@@ -709,7 +709,7 @@ impl Tucan<Authenticated> {
         let rows_selector = s("table.nb.list tbody tr");
         let rows = document.select(&rows_selector);
 
-        rows.filter_map(|row| {
+        rows.map(|row| {
             let cols_selector = s("td");
             let mut cols = row.select(&cols_selector);
             let first_col = cols.next();
@@ -741,7 +741,7 @@ impl Tucan<Authenticated> {
         let rows_selector = s("table.nb.list tbody tr");
         let rows = document.select(&rows_selector);
 
-        rows.filter_map(|row| {
+        rows.map(|row| {
             let cols_selector = s("td");
             let mut cols = row.select(&cols_selector);
             let mut name_parts = cols.next().unwrap().text();
@@ -755,13 +755,11 @@ impl Tucan<Authenticated> {
             let grade_text = cols.next().unwrap().inner_html().trim().to_owned();
             println!("|{module_id}|{text}|{b}| {date} {grade} {grade_text}");
 
-            let module = modules.iter().find(|m| m.module_id() == &module_id);
-            let course = courses.0.iter().find(|c| c.course_id() == &module_id);
+            let module = modules.iter().find(|m| m.module_id() == module_id);
+            let course = courses.0.iter().find(|c| c.course_id() == module_id);
             //let course_group = courses.1.iter().find(|c| c.course_id == &module_id);
             println!("{:?}", module.map(models::MaybeCompleteModule::tucan_id));
             println!("{:?}", course.map(models::MaybeCompleteCourse::tucan_id));
-
-            Some(())
         })
         .collect_vec();
 
