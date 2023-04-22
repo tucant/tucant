@@ -132,7 +132,9 @@ impl Allocator for BumpOnlyAllocator {
 
     fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
         let address = this.borrow().possibilities.clone();
-        this.borrow_mut().possibilities *= &possibilities;
+        if possibilities != BigUint::from(0u8) {
+            this.borrow_mut().possibilities *= &possibilities;
+        }
         Self::AddressType {
             allocator: this,
             possibilities,
