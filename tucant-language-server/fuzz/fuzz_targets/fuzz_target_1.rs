@@ -49,7 +49,7 @@ impl<'a> Arbitrary<'a> for VecAction {
 
 fuzz_target!(|actions: VecAction| {
     println!("-------------------------------");
-    let allocator = BumpOnlyAllocator::new();
+    let mut allocator = BumpOnlyAllocator::new();
     let mut settable_addresses = Vec::<BumpOnlyAddress>::new();
     let mut expected_values = HashMap::new();
 
@@ -58,7 +58,7 @@ fuzz_target!(|actions: VecAction| {
             Action::Allocate(possibilities) => {
                 println!("possibilities {possibilities}");
                 let address =
-                    BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(possibilities));
+                    BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(possibilities));
                 println!("address {}", address.address.clone());
                 expected_values.insert(address.address.clone(), 0);
                 if possibilities != 0 {
@@ -66,7 +66,7 @@ fuzz_target!(|actions: VecAction| {
                 }
             }
             Action::Set(address, value) => {
-                settable_addresses[address].set(BigUint::from(value));
+                settable_addresses[address].set(&mut allocator, BigUint::from(value));
                 expected_values
                     .insert(settable_addresses[address].address.clone(), value)
                     .unwrap();
