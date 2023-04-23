@@ -125,6 +125,12 @@ impl BumpOnlyAllocator {
     }
 }
 
+impl Default for BumpOnlyAllocator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // memory: 0
 // store new value: 5
 // memory: 5
