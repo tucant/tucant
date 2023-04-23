@@ -2925,6 +2925,7 @@ name = "tucant-language-server-fuzz-afl"
 version = "0.0.0"
 dependencies = [
  "afl",
+ "arbitrary",
  "tucant-language-server-fuzz-common",
 ]
 
@@ -2942,6 +2943,7 @@ dependencies = [
 name = "tucant-language-server-fuzz-libfuzzer"
 version = "0.0.0"
 dependencies = [
+ "arbitrary",
  "libfuzzer-sys",
  "tucant-language-server-fuzz-common",
 ]
