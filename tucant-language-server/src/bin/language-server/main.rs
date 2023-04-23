@@ -5,9 +5,6 @@
     clippy::multiple_crate_versions
 )]
 
-pub mod evaluator;
-pub mod parser;
-
 use std::{
     collections::HashMap,
     sync::{
@@ -18,14 +15,16 @@ use std::{
 };
 
 use futures_util::{Sink, SinkExt, Stream, StreamExt};
-use parser::{highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN};
 use serde::Serialize;
 use serde_json::Value;
 use tokio::sync::{mpsc, oneshot, RwLock};
+use tucant_language_server::parser::{
+    highlight_visitor, hover_visitor, list_visitor, parse_from_str, Ast, FAKE_SPAN,
+};
 
-use crate::parser::{visitor, Error};
 use async_trait::async_trait;
 use json_rpc_server::{run_json_rpc_server, JsonRpcServer};
+use tucant_language_server::parser::{visitor, Error};
 use tucant_language_server_derive_output::{
     CompletionOptions, Diagnostic, DiagnosticSeverity, DocumentHighlight, DocumentHighlightKind,
     DocumentHighlightOptions, H07cfb623af7dea337d0e304325abc9453187c524fb5e436547852fdc,

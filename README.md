@@ -216,3 +216,18 @@ https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
 https://opensearch.org/docs/latest/api-reference/explain/
 
 https://opensearch.org/docs/latest/api-reference/search/
+
+## Fuzzing
+
+cargo install cargo-fuzz
+cargo install afl
+
+echo core | sudo tee /proc/sys/kernel/core_pattern
+cd tucant-language-server/fuzz_afl
+mkdir in
+echo 1 > in/trivial
+cargo afl build
+cargo afl fuzz -i in -o out ../../target/debug/fuzz_target_1
+
+cd tucant-language-server/fuzz_libfuzzer/
+cargo fuzz run --jobs 8 --fuzz-dir . fuzz_target_1

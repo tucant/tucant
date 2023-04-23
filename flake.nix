@@ -17,8 +17,8 @@
             nativeBuildInputs =
               let
                 rust =
-#                  fenix.packages.${system}.stable;
-                   fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
+                  fenix.packages.${system}.complete;
+                  # fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
               in
               with pkgs; [
                 bashInteractive
@@ -27,6 +27,8 @@
                 rust.rust-analyzer
                 llvmPackages_latest.clang
                 llvmPackages_latest.bintools
+                llvmPackages_latest.llvm
+                llvmPackages_latest.libclang
                 nodejs_latest
                 pkg-config
                 openssl.dev
@@ -35,8 +37,18 @@
               postgresql_15
             ];
             RUST_BACKTRACE = 1;
-            # export PATH=$PATH:/home/moritz/Documents/rome/target/debug/
+
+hardeningDisable=["fortify"];
+
+  #             export PATH=$PATH:$HOME/Documents/rome/target/debug/
+          shellHook = ''
+            export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang}/lib";
+          '';
+
+
+
           };
+   
         }
       );
 }

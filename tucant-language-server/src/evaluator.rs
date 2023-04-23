@@ -1,5 +1,3 @@
-use std::{cell::RefCell, rc::Rc};
-
 use num_bigint::BigUint;
 use num_integer::Integer;
 
@@ -92,9 +90,14 @@ impl From<Ast> for BigUint {
     }
 }
 
-pub trait Address {
-    fn set(&mut self, value: BigUint);
-    fn get(&self) -> BigUint;
+pub trait Address
+where
+    Self::AllocatorType: Allocator,
+{
+    type AllocatorType;
+
+    fn set(&self, allocator: &mut Self::AllocatorType, value: BigUint);
+    fn get(&self, allocator: &Self::AllocatorType) -> BigUint;
 }
 
 pub trait Allocator
@@ -103,10 +106,10 @@ where
 {
     type AddressType;
 
-    fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType;
+    fn allocate(&mut self, possibilities: BigUint) -> Self::AddressType;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct BumpOnlyAllocator {
     possibilities: BigUint,
     inner: BigUint,
@@ -114,11 +117,17 @@ pub struct BumpOnlyAllocator {
 
 impl BumpOnlyAllocator {
     #[must_use]
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Self {
+    pub fn new() -> Self {
+        Self {
             possibilities: BigUint::from(1u8),
             inner: BigUint::from(0u8),
-        }))
+        }
+    }
+}
+
+impl Default for BumpOnlyAllocator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -130,79 +139,82 @@ impl BumpOnlyAllocator {
 impl Allocator for BumpOnlyAllocator {
     type AddressType = BumpOnlyAddress;
 
-    fn allocate(this: Rc<RefCell<Self>>, possibilities: BigUint) -> Self::AddressType {
-        let address = this.borrow().possibilities.clone();
-        this.borrow_mut().possibilities *= &possibilities;
-        Self::AddressType {
-            allocator: this,
-            possibilities,
-            address,
+    fn allocate(&mut self, possibilities: BigUint) -> Self::AddressType {
+        if possibilities == BigUint::from(0u8) {
+            Self::AddressType {
+                possibilities,
+                address: BigUint::from(1u8),
+            }
+        } else {
+            let address = self.possibilities.clone();
+            self.possibilities *= &possibilities;
+            Self::AddressType {
+                possibilities,
+                address,
+            }
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct BumpOnlyAddress {
-    allocator: Rc<RefCell<BumpOnlyAllocator>>,
-    #[cfg(debug_assertions)]
     possibilities: BigUint,
     address: BigUint,
 }
 
 impl Address for BumpOnlyAddress {
-    fn set(&mut self, new_value: BigUint) {
-        debug_assert!(new_value < self.possibilities);
+    type AllocatorType = BumpOnlyAllocator;
 
-        let mut allocator_value = self.allocator.borrow_mut();
+    fn set(&self, allocator: &mut BumpOnlyAllocator, new_value: BigUint) {
+        assert_ne!(self.possibilities, BigUint::from(0u8)); // redundant but clearer
+        assert!(new_value < self.possibilities);
 
-        let (your_value_and_higher_values, lower_values) =
-            allocator_value.inner.div_rem(&self.address);
+        let (your_value_and_higher_values, lower_values) = allocator.inner.div_rem(&self.address);
 
         let (higher_values, _our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
         let new_your_value_and_higher_values = higher_values * &self.possibilities + &new_value;
 
-        allocator_value.inner = new_your_value_and_higher_values * &self.address + lower_values;
+        allocator.inner = new_your_value_and_higher_values * &self.address + lower_values;
     }
 
-    fn get(&self) -> BigUint {
-        let allocator_value = self.allocator.borrow();
+    fn get(&self, allocator: &BumpOnlyAllocator) -> BigUint {
+        assert_ne!(self.possibilities, BigUint::from(0u8));
 
-        let (your_value_and_higher_values, _lower_values) =
-            allocator_value.inner.div_rem(&self.address);
+        let (your_value_and_higher_values, _lower_values) = allocator.inner.div_rem(&self.address);
 
         let (_higher_values, our_value) = your_value_and_higher_values.div_rem(&self.possibilities);
 
-        debug_assert!(our_value < self.possibilities);
+        assert!(our_value < self.possibilities);
         our_value
     }
 }
 
 #[test]
 fn test_allocator() {
-    let allocator = BumpOnlyAllocator::new();
+    let mut allocator = BumpOnlyAllocator::new();
     println!("{allocator:?}");
 
-    let mut addr0 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(7u8));
+    let addr0 = BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(7u8));
     println!("{addr0:?}");
 
-    addr0.set(BigUint::from(0u8));
+    addr0.set(&mut allocator, BigUint::from(0u8));
     println!("{addr0:?}");
 
-    addr0.set(BigUint::from(5u8));
+    addr0.set(&mut allocator, BigUint::from(5u8));
     println!("{addr0:?}");
 
-    assert_eq!(addr0.get(), BigUint::from(5u8));
+    assert_eq!(addr0.get(&allocator), BigUint::from(5u8));
 
-    let mut addr1 = BumpOnlyAllocator::allocate(allocator.clone(), BigUint::from(11u8));
+    let addr1 = BumpOnlyAllocator::allocate(&mut allocator, BigUint::from(11u8));
     println!("{addr1:?}");
 
-    addr1.set(BigUint::from(3u8));
+    addr1.set(&mut allocator, BigUint::from(3u8));
     println!("{allocator:?}");
 
-    assert_eq!(addr1.get(), BigUint::from(3u8));
+    assert_eq!(addr1.get(&allocator), BigUint::from(3u8));
 
-    assert_eq!(addr0.get(), BigUint::from(5u8));
+    assert_eq!(addr0.get(&allocator), BigUint::from(5u8));
 }
 
 // https://github.com/rust-lang/rust-analyzer/issues/12661
