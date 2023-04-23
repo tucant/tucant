@@ -65,6 +65,6 @@ pub fn magic(actions: VecAction) {
     }
 
     for (k, v) in settable_addresses {
-        assert_eq!(k.get(&mut allocator), v);
+        assert_eq!(k.get(&allocator), v);
     }
 }
