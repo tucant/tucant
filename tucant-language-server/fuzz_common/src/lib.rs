@@ -1,8 +1,4 @@
-//#![no_main]
-
 use arbitrary::Arbitrary;
-//use libfuzzer_sys::fuzz_target;
-use afl::fuzz;
 use num_bigint::BigUint;
 use tucant_language_server::evaluator::{Address, Allocator, BumpOnlyAddress, BumpOnlyAllocator};
 
@@ -47,7 +43,6 @@ impl<'a> Arbitrary<'a> for VecAction {
 }
 
 pub fn magic(actions: VecAction) {
-    //println!("-------------------------------");
     let mut allocator = BumpOnlyAllocator::new();
     let mut settable_addresses = Vec::<(BumpOnlyAddress, BigUint)>::new();
 
@@ -72,10 +67,4 @@ pub fn magic(actions: VecAction) {
     for (k, v) in settable_addresses {
         assert_eq!(k.get(&mut allocator), v);
     }
-}
-
-// fuzz_target!(|input: VecAction| { magic(input) });
-
-fn main() {
-    fuzz!(|input: VecAction| { magic(input) });
 }
