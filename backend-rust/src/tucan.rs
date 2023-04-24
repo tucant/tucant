@@ -1328,10 +1328,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                         return None; // empty
                     }
 
-                    println!(
-                        "{}",
-                        Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
-                    );
                     let title = module_exam_type
                         .select(&s(".level02_color"))
                         .next()
@@ -1379,8 +1375,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                             })
                             .collect_vec();
                     }
-
-                    println!("{}", title);
 
                     Some(())
                 })
