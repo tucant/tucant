@@ -1337,6 +1337,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                         .next()
                         .unwrap()
                         .inner_html();
+                    let re = Regex::new(r"\s+").unwrap();
+                    let title = re.replace_all(&title, " ");
                     let title = title.trim();
 
                     if module_exam_type.select(&s("tr.tbdata")).next().is_some() {
