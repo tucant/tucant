@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use base64::Engine;
 use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use tucant::{
@@ -62,6 +63,14 @@ fn main() -> anyhow::Result<()> {
                     &std::env::var("TUCAN_USERNAME")?,
                     &std::env::var("TUCAN_PASSWORD")?,
                 )
+                .await?;
+
+            let module = tucan
+                .module(Moduledetails {
+                    id: base64::prelude::BASE64_URL_SAFE_NO_PAD
+                        .decode("AAFWTy6e-KU")
+                        .unwrap(),
+                })
                 .await?;
 
             let root_reg = tucan.root_registration().await?;
