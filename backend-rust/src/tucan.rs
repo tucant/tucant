@@ -1314,16 +1314,24 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                         .inner_html()
                         .trim()
                         .to_owned();
-                    println!(
+                    /*println!(
                         "{}|{}|{}|{}|{}",
                         nr, detail_exam, detail_date, detail_instructors, detail_compulsory
-                    );
+                    );*/
                 })
                 .collect_vec();
 
             let modul_exam_types = document
                 .select(&s("table[summary=\"Leistungen\"] tbody"))
                 .map(|module_exam_type| {
+                    if module_exam_type.select(&s("tr")).next().is_none() {
+                        return None; // empty
+                    }
+
+                    println!(
+                        "{}",
+                        Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
+                    );
                     let title = module_exam_type
                         .select(&s(".level02_color"))
                         .next()
@@ -1332,7 +1340,12 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     let title = title.trim();
 
                     if module_exam_type.select(&s("tr.tbdata")).next().is_some() {
-                        println!("skipping, too complicated")
+                        println!("skipping, too complicated");
+
+                        println!(
+                            "{}",
+                            Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
+                        );
                     } else {
                         let trs = module_exam_type
                             .select(&s("tr"))
@@ -1357,22 +1370,19 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     .inner_html();
                                 let detail_weight = detail_weight.trim();
 
-                                println!(
+                                /*  println!(
                                     "{}|{}|{}",
                                     detail_reqachieve, detail_compulsory, detail_weight
-                                );
+                                );*/
                             })
                             .collect_vec();
                     }
 
                     println!("{}", title);
+
+                    Some(())
                 })
                 .collect_vec();
-
-            println!(
-                "{}",
-                Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
-            );
 
             let module = CompleteModule {
                 tucan_id: url.clone().id,
