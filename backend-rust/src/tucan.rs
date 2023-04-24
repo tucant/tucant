@@ -1280,6 +1280,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let courses = Self::parse_courses(&document);
 
+            println!("hi");
+
+            let modul_exam_types = document
+                .select(&s("table[summary=\"Modulabschlussprüfungen\"] tbody tr"))
+                .map(|module_exam_type| println!("{}", module_exam_type.inner_html()))
+                .collect_vec();
+
             let module = CompleteModule {
                 tucan_id: url.clone().id,
                 tucan_last_checked: Utc::now().naive_utc(),

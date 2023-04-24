@@ -6,7 +6,7 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use itertools::Itertools;
 use tucant::{
     tucan::{Authenticated, Tucan},
-    url::Registration,
+    url::{Moduledetails, Registration},
 };
 
 #[async_recursion::async_recursion]
@@ -16,14 +16,18 @@ async fn recursive_reg(
 ) -> anyhow::Result<()> {
     let (_, registration) = tucan.registration(registration).await?;
 
-    registration
+    let g = registration
         .modules_and_courses
         .iter()
         .map(|(module)| {
-            println!("{:?}", module);
-            //tucan.module(tucant::url::Moduledetails { id: () })
+            tucan.module(Moduledetails {
+                id: module.0.tucan_id().clone(),
+            })
         })
-        .collect_vec();
+        .collect::<FuturesUnordered<_>>();
+
+    let g = g.collect::<Vec<_>>().await;
+    let g: anyhow::Result<Vec<_>> = g.into_iter().collect();
 
     let a = registration
         .submenus
@@ -39,7 +43,7 @@ async fn recursive_reg(
         .collect::<FuturesUnordered<_>>();
 
     let b = a.collect::<Vec<_>>().await;
-    let c: anyhow::Result<Vec<()>> = b.into_iter().collect();
+    let c: anyhow::Result<Vec<_>> = b.into_iter().collect();
 
     Ok(())
 }
