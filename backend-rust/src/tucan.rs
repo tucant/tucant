@@ -1342,16 +1342,20 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     .next()
                                     .unwrap()
                                     .inner_html();
+                                let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
+                                let detail_reqachieve = detail_reqachieve.trim();
                                 let detail_compulsory = tr
                                     .select(&s(".rw-detail-compulsory"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
+                                let detail_compulsory = detail_compulsory.trim();
                                 let detail_weight = tr
                                     .select(&s(".rw-detail-weight"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
+                                let detail_weight = detail_weight.trim();
 
                                 println!(
                                     "{}|{}|{}",
