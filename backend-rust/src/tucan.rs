@@ -1296,8 +1296,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     let title = re.replace_all(&title, " ");
                     let title = title.trim();
 
-                    if module_exam_type.select(&s("tr.tbdata")).next().is_some() {
-                        let trs = module_exam_type
+                    let exam_types = if module_exam_type.select(&s("tr.tbdata")).next().is_some() {
+                        module_exam_type
                             .select(&s("tr.tbdata"))
                             .map(|tr| {
                                 let detail_reqachieve = tr
@@ -1306,19 +1306,19 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     .unwrap()
                                     .inner_html();
                                 let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
-                                let detail_reqachieve = detail_reqachieve.trim();
+                                let detail_reqachieve = detail_reqachieve.trim().to_owned();
                                 let detail_compulsory = tr
                                     .select(&s(".rw-detail-compulsory"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
-                                let detail_compulsory = detail_compulsory.trim();
+                                let detail_compulsory = detail_compulsory.trim().to_owned();
                                 let detail_weight = tr
                                     .select(&s(".rw-detail-weight"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
-                                let detail_weight = detail_weight.trim();
+                                let detail_weight = detail_weight.trim().to_owned();
 
                                 println!(
                                     "{}: {}|{}|{}",
@@ -1327,10 +1327,12 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     detail_compulsory,
                                     detail_weight
                                 );
+
+                                (detail_reqachieve, detail_compulsory, detail_weight)
                             })
-                            .collect_vec();
+                            .collect_vec()
                     } else {
-                        let trs = module_exam_type
+                        module_exam_type
                             .select(&s("tr"))
                             .map(|tr| {
                                 let detail_reqachieve = tr
@@ -1339,19 +1341,19 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     .unwrap()
                                     .inner_html();
                                 let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
-                                let detail_reqachieve = detail_reqachieve.trim();
+                                let detail_reqachieve = detail_reqachieve.trim().to_owned();
                                 let detail_compulsory = tr
                                     .select(&s(".rw-detail-compulsory"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
-                                let detail_compulsory = detail_compulsory.trim();
+                                let detail_compulsory = detail_compulsory.trim().to_owned();
                                 let detail_weight = tr
                                     .select(&s(".rw-detail-weight"))
                                     .next()
                                     .unwrap()
                                     .inner_html();
-                                let detail_weight = detail_weight.trim();
+                                let detail_weight = detail_weight.trim().to_owned();
 
                                 println!(
                                     "{}: {}|{}|{}",
@@ -1360,9 +1362,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                     detail_compulsory,
                                     detail_weight
                                 );
+                                (detail_reqachieve, detail_compulsory, detail_weight)
                             })
-                            .collect_vec();
-                    }
+                            .collect_vec()
+                    };
 
                     Some(())
                 })
