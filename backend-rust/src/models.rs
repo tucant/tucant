@@ -1000,6 +1000,13 @@ pub struct VVMenuCourses {
     pub course_id: Vec<u8>,
 }
 
+pub struct ModuleExamType {
+    pub module_id: Vec<u8>,
+    pub exam_type: String,
+    pub required: bool,
+    pub weight: u8,
+}
+
 pub const MODULES_UNFINISHED: (
     modules_unfinished::columns::tucan_id,
     modules_unfinished::columns::tucan_last_checked,

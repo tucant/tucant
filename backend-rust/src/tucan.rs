@@ -33,13 +33,14 @@ use tokio::sync::Semaphore;
 use crate::{
     models::{
         CompleteCourse, CompleteModule, CourseEvent, CourseGroup, CourseGroupEvent,
-        MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, PartialCourse, TucanSession,
-        UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExamType, PartialCourse,
+        TucanSession, UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED,
+        MODULES_UNFINISHED,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
-        module_courses, modules_unfinished, sessions, users_unfinished, vv_menu_courses,
-        vv_menu_unfinished,
+        module_courses, module_exam_types, modules_unfinished, sessions, users_unfinished,
+        vv_menu_courses, vv_menu_unfinished,
     },
     tucan_user::CourseOrCourseGroup,
     url::{
@@ -1245,7 +1246,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         let document = self.fetch_document(&url.clone().into()).await?;
         let mut connection = self.pool.get().await?;
 
-        let (module, courses) = {
+        let (module, courses, modul_exam_types) = {
             let document = Self::parse_document(&document);
 
             let name = element_by_selector(&document, "h1").unwrap();
@@ -1280,96 +1281,106 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
             let courses = Self::parse_courses(&document);
 
-            let modul_exam_types = document
+            let leistungen = document
                 .select(&s("table[summary=\"Leistungen\"] tbody"))
-                .map(|module_exam_type| {
-                    if module_exam_type.select(&s("tr")).next().is_none() {
-                        return None; // empty
-                    }
+                .next()
+                .unwrap();
 
-                    let title = module_exam_type
-                        .select(&s(".level02_color"))
-                        .next()
-                        .unwrap()
-                        .inner_html();
-                    let re = Regex::new(r"\s+").unwrap();
-                    let title = re.replace_all(&title, " ");
-                    let title = title.trim();
+            let modul_exam_types = if leistungen.select(&s("tr")).next().is_none() {
+                Some(Vec::new()) // empty
+            } else {
+                let title = leistungen
+                    .select(&s(".level02_color"))
+                    .next()
+                    .unwrap()
+                    .inner_html();
+                let re = Regex::new(r"\s+").unwrap();
+                let title = re.replace_all(&title, " ");
+                let title = title.trim();
 
-                    let exam_types = if module_exam_type.select(&s("tr.tbdata")).next().is_some() {
-                        module_exam_type
-                            .select(&s("tr.tbdata"))
-                            .map(|tr| {
-                                let detail_reqachieve = tr
-                                    .select(&s(".rw-detail-reqachieve"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
-                                let detail_reqachieve = detail_reqachieve.trim().to_owned();
-                                let detail_compulsory = tr
-                                    .select(&s(".rw-detail-compulsory"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_compulsory = detail_compulsory.trim().to_owned();
-                                let detail_weight = tr
-                                    .select(&s(".rw-detail-weight"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_weight = detail_weight.trim().to_owned();
+                let exam_types = if leistungen.select(&s("tr.tbdata")).next().is_some() {
+                    leistungen
+                        .select(&s("tr.tbdata"))
+                        .map(|tr| {
+                            let detail_reqachieve = tr
+                                .select(&s(".rw-detail-reqachieve"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
+                            let detail_reqachieve = detail_reqachieve.trim().to_owned();
+                            let detail_compulsory = tr
+                                .select(&s(".rw-detail-compulsory"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_compulsory = detail_compulsory.trim().to_owned();
+                            let detail_weight = tr
+                                .select(&s(".rw-detail-weight"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_weight = detail_weight.trim().to_owned();
 
-                                println!(
-                                    "{}: {}|{}|{}",
-                                    module_name.unwrap(),
-                                    detail_reqachieve,
-                                    detail_compulsory,
-                                    detail_weight
-                                );
+                            println!(
+                                "{}: {}|{}|{}",
+                                module_name.unwrap(),
+                                detail_reqachieve,
+                                detail_compulsory,
+                                detail_weight
+                            );
 
-                                (detail_reqachieve, detail_compulsory, detail_weight)
-                            })
-                            .collect_vec()
-                    } else {
-                        module_exam_type
-                            .select(&s("tr"))
-                            .map(|tr| {
-                                let detail_reqachieve = tr
-                                    .select(&s(".rw-detail-reqachieve"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
-                                let detail_reqachieve = detail_reqachieve.trim().to_owned();
-                                let detail_compulsory = tr
-                                    .select(&s(".rw-detail-compulsory"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_compulsory = detail_compulsory.trim().to_owned();
-                                let detail_weight = tr
-                                    .select(&s(".rw-detail-weight"))
-                                    .next()
-                                    .unwrap()
-                                    .inner_html();
-                                let detail_weight = detail_weight.trim().to_owned();
+                            (detail_reqachieve, detail_compulsory, detail_weight)
+                        })
+                        .collect_vec()
+                } else {
+                    leistungen
+                        .select(&s("tr"))
+                        .map(|tr| {
+                            let detail_reqachieve = tr
+                                .select(&s(".rw-detail-reqachieve"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_reqachieve = detail_reqachieve.replace("&nbsp;", "");
+                            let detail_reqachieve = detail_reqachieve.trim().to_owned();
+                            let detail_compulsory = tr
+                                .select(&s(".rw-detail-compulsory"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_compulsory = detail_compulsory.trim().to_owned();
+                            let detail_weight = tr
+                                .select(&s(".rw-detail-weight"))
+                                .next()
+                                .unwrap()
+                                .inner_html();
+                            let detail_weight = detail_weight.trim().to_owned();
 
-                                println!(
-                                    "{}: {}|{}|{}",
-                                    module_name.unwrap(),
-                                    detail_reqachieve,
-                                    detail_compulsory,
-                                    detail_weight
-                                );
-                                (detail_reqachieve, detail_compulsory, detail_weight)
-                            })
-                            .collect_vec()
-                    };
+                            println!(
+                                "{}: {}|{}|{}",
+                                module_name.unwrap(),
+                                detail_reqachieve,
+                                detail_compulsory,
+                                detail_weight
+                            );
+                            (detail_reqachieve, detail_compulsory, detail_weight)
+                        })
+                        .collect_vec()
+                };
 
-                    Some(())
-                })
-                .collect_vec();
+                Some(
+                    exam_types
+                        .into_iter()
+                        .map(|exam_type| ModuleExamType {
+                            module_id: todo!(),
+                            exam_type: todo!(),
+                            required: todo!(),
+                            weight: todo!(),
+                        })
+                        .collect(),
+                )
+            };
             /*
                         let modul_exam_types = document
                             .select(&s("table[summary=\"Modulabschlussprüfungen\"] tbody tr"))
@@ -1426,7 +1437,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 content,
             };
 
-            (module, courses)
+            (module, courses, modul_exam_types)
         };
 
         debug!("[+] module {:?}", module);
@@ -1460,6 +1471,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .do_nothing()
             .execute(&mut connection)
             .await?;
+
+        diesel::insert_into(module_exam_types::table).values(modul_exam_types);
 
         Ok(())
     }
