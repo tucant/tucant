@@ -1287,7 +1287,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .unwrap();
 
             let modul_exam_types = if leistungen.select(&s("tr")).next().is_none() {
-                Some(Vec::new()) // empty
+                Vec::new() // empty
             } else {
                 let title = leistungen
                     .select(&s(".level02_color"))
@@ -1369,17 +1369,26 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                         .collect_vec()
                 };
 
-                Some(
-                    exam_types
-                        .into_iter()
-                        .map(|exam_type| ModuleExamType {
-                            module_id: todo!(),
-                            exam_type: todo!(),
-                            required: todo!(),
-                            weight: todo!(),
-                        })
-                        .collect(),
-                )
+                exam_types
+                    .into_iter()
+                    .map(|(detail_reqachieve, detail_compulsory, detail_weight)| {
+                        let detail_weight = detail_weight.split("<br>").next().unwrap().trim();
+                        ModuleExamType {
+                            module_id: url.id.clone(),
+                            exam_type: detail_reqachieve,
+                            required: match detail_compulsory.as_str() {
+                                "Ja" => true,
+                                "Nein" => false,
+                                _ => panic!(),
+                            },
+                            weight: if detail_weight.ends_with("%") {
+                                detail_weight.trim_end_matches("%").parse().unwrap()
+                            } else {
+                                detail_weight.parse().unwrap()
+                            },
+                        }
+                    })
+                    .collect()
             };
             /*
                         let modul_exam_types = document
@@ -1472,7 +1481,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_exam_types::table).values(modul_exam_types);
+        diesel::insert_into(module_exam_types::table).values(&modul_exam_types);
 
         Ok(())
     }

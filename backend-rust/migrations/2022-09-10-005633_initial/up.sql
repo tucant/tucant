@@ -211,6 +211,6 @@ CREATE TABLE module_exam_types (
     module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
     exam_type TEXT NOT NULL,
     required BOOLEAN NOT NULL,
-    weight INTEGER NOT NULL,
+    weight SMALLINT NOT NULL,
     PRIMARY KEY(module_id, exam_type)
 )

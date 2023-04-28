@@ -103,7 +103,7 @@ diesel::table! {
         module_id -> Bytea,
         exam_type -> Text,
         required -> Bool,
-        weight -> Int4,
+        weight -> Int2,
     }
 }
 
