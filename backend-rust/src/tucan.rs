@@ -1240,6 +1240,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     pub async fn fetch_module(&self, url: Moduledetails) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -1296,7 +1297,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     .inner_html();
                 let re = Regex::new(r"\s+").unwrap();
                 let title = re.replace_all(&title, " ");
-                let title = title.trim();
+                let _title = title.trim();
 
                 let exam_types = if leistungen.select(&s("tr.tbdata")).next().is_some() {
                     leistungen
@@ -1381,8 +1382,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                 "Nein" => false,
                                 _ => panic!(),
                             },
-                            weight: if detail_weight.ends_with("%") {
-                                detail_weight.trim_end_matches("%").parse().unwrap()
+                            weight: if detail_weight.ends_with('%') {
+                                detail_weight.trim_end_matches('%').parse().unwrap()
                             } else {
                                 detail_weight.parse().unwrap()
                             },
@@ -1481,7 +1482,12 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .execute(&mut connection)
             .await?;
 
-        diesel::insert_into(module_exam_types::table).values(&modul_exam_types);
+        diesel::insert_into(module_exam_types::table)
+            .values(&modul_exam_types)
+            .on_conflict((module_exam_types::module_id, module_exam_types::exam_type))
+            .do_nothing()
+            .execute(&mut connection)
+            .await?;
 
         Ok(())
     }

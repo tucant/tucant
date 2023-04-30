@@ -4,7 +4,7 @@
 
 use base64::Engine;
 use futures::{stream::FuturesUnordered, StreamExt};
-use itertools::Itertools;
+
 use tucant::{
     tucan::{Authenticated, Tucan},
     url::{Moduledetails, Registration},
@@ -20,7 +20,7 @@ async fn recursive_reg(
     let g = registration
         .modules_and_courses
         .iter()
-        .map(|(module)| {
+        .map(|module| {
             tucan.module(Moduledetails {
                 id: module.0.tucan_id().clone(),
             })
@@ -28,7 +28,7 @@ async fn recursive_reg(
         .collect::<FuturesUnordered<_>>();
 
     let g = g.collect::<Vec<_>>().await;
-    let g: anyhow::Result<Vec<_>> = g.into_iter().collect();
+    let _g: anyhow::Result<Vec<_>> = g.into_iter().collect();
 
     let a = registration
         .submenus
@@ -44,7 +44,7 @@ async fn recursive_reg(
         .collect::<FuturesUnordered<_>>();
 
     let b = a.collect::<Vec<_>>().await;
-    let c: anyhow::Result<Vec<_>> = b.into_iter().collect();
+    let _c: anyhow::Result<Vec<_>> = b.into_iter().collect();
 
     Ok(())
 }
@@ -65,7 +65,7 @@ fn main() -> anyhow::Result<()> {
                 )
                 .await?;
 
-            let module = tucan
+            let _module = tucan
                 .module(Moduledetails {
                     id: base64::prelude::BASE64_URL_SAFE_NO_PAD
                         .decode("AAFWTy6e-KU")
