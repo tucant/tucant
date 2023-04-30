@@ -118,6 +118,13 @@ export type MaybeCompleteModule =
  | { type: "Partial", value: PartialModule }
  | { type: "Complete", value: CompleteModule }
 
+export type ModuleExamType =
+{
+  module_id: number[],
+  exam_type: string,
+  required: boolean,
+  weight: number,
+}
 export type ModuleMenu =
 {
   tucan_id: string,
@@ -143,6 +150,7 @@ export type ModuleResponse =
 {
   module: CompleteModule,
   courses: MaybeCompleteCourse[],
+  exam_types: ModuleExamType[],
   path: ModuleMenuPathPart[][],
 }
 export type PartialCourse =

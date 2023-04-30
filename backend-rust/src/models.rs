@@ -403,6 +403,7 @@ pub struct ModuleMenuResponse {
 pub struct ModuleResponse {
     pub module: CompleteModule,
     pub courses: Vec<MaybeCompleteCourse>,
+    pub exam_types: Vec<ModuleExamType>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
@@ -1000,7 +1001,9 @@ pub struct VVMenuCourses {
     pub course_id: Vec<u8>,
 }
 
-#[derive(Insertable)]
+#[derive(
+    Insertable, Queryable, Typescriptable, Clone, PartialEq, Eq, Serialize, Deserialize, Debug,
+)]
 #[cfg_attr(feature = "server", diesel(table_name = module_exam_types))]
 pub struct ModuleExamType {
     pub module_id: Vec<u8>,

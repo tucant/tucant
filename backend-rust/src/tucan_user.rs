@@ -8,8 +8,8 @@ use crate::{
     models::{
         self, CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup,
         CourseGroupEvent, Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam,
-        ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser,
-        UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        ModuleExamType, ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule,
+        UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::course_groups_unfinished,
     tucan::{s, Authenticated, Tucan, Unauthenticated},
@@ -480,17 +480,31 @@ impl Tucan<Authenticated> {
                 .collect::<FuturesUnordered<_>>()
         };
 
-        let results: Vec<anyhow::Result<(CompleteModule, Vec<MaybeCompleteCourse>)>> =
-            my_modules.collect().await;
+        let results: Vec<
+            anyhow::Result<(
+                CompleteModule,
+                Vec<MaybeCompleteCourse>,
+                Vec<ModuleExamType>,
+            )>,
+        > = my_modules.collect().await;
 
-        let results: anyhow::Result<Vec<(CompleteModule, Vec<MaybeCompleteCourse>)>> =
-            results.into_iter().collect();
+        let results: anyhow::Result<
+            Vec<(
+                CompleteModule,
+                Vec<MaybeCompleteCourse>,
+                Vec<ModuleExamType>,
+            )>,
+        > = results.into_iter().collect();
 
-        let results: Vec<(CompleteModule, Vec<MaybeCompleteCourse>)> = results?;
+        let results: Vec<(
+            CompleteModule,
+            Vec<MaybeCompleteCourse>,
+            Vec<ModuleExamType>,
+        )> = results?;
 
         let my_user_studies = results
             .iter()
-            .map(|(m, _cs)| UserModule {
+            .map(|(m, _cs, _)| UserModule {
                 user_id: self.state.session.matriculation_number,
                 module_id: m.tucan_id.clone(),
             })

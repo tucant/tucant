@@ -1209,7 +1209,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     async fn cached_module(
         &self,
         url: Moduledetails,
-    ) -> anyhow::Result<Option<(CompleteModule, Vec<MaybeCompleteCourse>)>> {
+    ) -> anyhow::Result<
+        Option<(
+            CompleteModule,
+            Vec<MaybeCompleteCourse>,
+            Vec<ModuleExamType>,
+        )>,
+    > {
         use diesel_async::RunQueryDsl;
 
         let mut connection = self.pool.get().await?;
@@ -1234,7 +1240,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .load::<MaybeCompleteCourse>(&mut connection)
                 .await?;
 
-            Ok(Some((existing_module, course_list)))
+            let exam_types = module_exam_types::table
+                .filter(module_exam_types::module_id.eq(&existing_module.tucan_id))
+                .order(module_exam_types::exam_type)
+                .load::<ModuleExamType>(&mut connection)
+                .await?;
+
+            Ok(Some((existing_module, course_list, exam_types)))
         } else {
             Ok(None)
         }
@@ -1495,7 +1507,11 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     pub async fn module(
         &self,
         url: Moduledetails,
-    ) -> anyhow::Result<(CompleteModule, Vec<MaybeCompleteCourse>)> {
+    ) -> anyhow::Result<(
+        CompleteModule,
+        Vec<MaybeCompleteCourse>,
+        Vec<ModuleExamType>,
+    )> {
         if let Some(value) = self.cached_module(url.clone()).await? {
             return Ok(value);
         }
