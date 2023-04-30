@@ -44,9 +44,9 @@ use tucant_derive::Typescriptable;
 #[cfg(feature = "server")]
 use crate::schema::{
     course_events, course_exams, course_groups_events, course_groups_unfinished,
-    courses_unfinished, exams_unfinished, module_courses, module_exams, module_menu_module,
-    module_menu_unfinished, modules_unfinished, sessions, user_course_groups, user_courses,
-    user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
+    courses_unfinished, exams_unfinished, module_courses, module_exam_types, module_exams,
+    module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_course_groups,
+    user_courses, user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
 };
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -403,6 +403,7 @@ pub struct ModuleMenuResponse {
 pub struct ModuleResponse {
     pub module: CompleteModule,
     pub courses: Vec<MaybeCompleteCourse>,
+    pub exam_types: Vec<ModuleExamType>,
     pub path: Vec<VecDeque<ModuleMenuPathPart>>,
 }
 
@@ -998,6 +999,17 @@ impl PathLike<String> for VVMenuPathPart {
 pub struct VVMenuCourses {
     pub vv_menu_id: String,
     pub course_id: Vec<u8>,
+}
+
+#[derive(
+    Insertable, Queryable, Typescriptable, Clone, PartialEq, Eq, Serialize, Deserialize, Debug,
+)]
+#[cfg_attr(feature = "server", diesel(table_name = module_exam_types))]
+pub struct ModuleExamType {
+    pub module_id: Vec<u8>,
+    pub exam_type: String,
+    pub required: bool,
+    pub weight: i16,
 }
 
 pub const MODULES_UNFINISHED: (

@@ -206,3 +206,11 @@ CREATE TABLE vv_menu_courses (
     PRIMARY KEY (course_id, vv_menu_id)
 );
 
+-- the exam types that are associated with the module. for example a "Studienleistung" oder "Fachprüfung"
+CREATE TABLE module_exam_types (
+    module_id BYTEA NOT NULL REFERENCES modules_unfinished (tucan_id),
+    exam_type TEXT NOT NULL,
+    required BOOLEAN NOT NULL,
+    weight SMALLINT NOT NULL,
+    PRIMARY KEY(module_id, exam_type)
+)

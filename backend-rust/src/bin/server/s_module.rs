@@ -62,6 +62,7 @@ pub async fn module(
     let result = ModuleResponse {
         module: result.0,
         courses: result.1,
+        exam_types: result.2,
         path: paths,
     };
 

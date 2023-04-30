@@ -54,6 +54,21 @@ export default function Module() {
             })}
           </div>
 
+          <h2 className="text-center">Prüfungen</h2>
+          <div className="list-group">
+            {data.inner.exam_types.map((exam_type) => {
+              return (
+                <Link
+                  key={exam_type.exam_type}
+                  className="list-group-item list-group-item-action"
+                  to="/not-implemented"
+                >
+                  {exam_type.exam_type}
+                </Link>
+              );
+            })}
+          </div>
+
           <div
             // rome-ignore lint/security/noDangerouslySetInnerHtml: using dompurify
             dangerouslySetInnerHTML={{
