@@ -43,8 +43,9 @@ export default function Module() {
               </ol>
             </nav>
           ))}
-          <span className="badge rounded-pill text-bg-primary">{`${data.inner.module.credits ?? 0
-            } Credits`}</span>
+          <span className="badge rounded-pill text-bg-primary">{`${
+            data.inner.module.credits ?? 0
+          } Credits`}</span>
 
           <h2 className="text-center">Veranstaltungen</h2>
           <div className="list-group">
@@ -56,11 +57,15 @@ export default function Module() {
           <h2 className="text-center">Prüfungen</h2>
           <div className="list-group">
             {data.inner.exam_types.map((exam_type) => {
-              return <Link
-                key={exam_type.exam_type}
-                className="list-group-item list-group-item-action"
-                to="/not-implemented"
-              >{exam_type.exam_type}</Link>;
+              return (
+                <Link
+                  key={exam_type.exam_type}
+                  className="list-group-item list-group-item-action"
+                  to="/not-implemented"
+                >
+                  {exam_type.exam_type}
+                </Link>
+              );
             })}
           </div>
 

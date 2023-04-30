@@ -480,6 +480,7 @@ impl Tucan<Authenticated> {
                 .collect::<FuturesUnordered<_>>()
         };
 
+        #[allow(clippy::type_complexity)]
         let results: Vec<
             anyhow::Result<(
                 CompleteModule,
@@ -488,6 +489,7 @@ impl Tucan<Authenticated> {
             )>,
         > = my_modules.collect().await;
 
+        #[allow(clippy::type_complexity)]
         let results: anyhow::Result<
             Vec<(
                 CompleteModule,
