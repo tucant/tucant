@@ -7,7 +7,6 @@ use std::{
     sync::Arc,
 };
 
-use axum::http::HeaderValue;
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use deadpool::managed::Object;
 use deadpool::managed::Pool;

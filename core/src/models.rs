@@ -1,12 +1,5 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
-use axum::extract::FromRef;
-use axum::extract::FromRequestParts;
-use axum::http::request::Parts;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use axum_extra::extract::cookie::Key;
-use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
 
 use diesel::query_builder::UndecoratedInsertRecord;
@@ -25,23 +18,23 @@ use std::io::ErrorKind;
 use chrono::NaiveDateTime;
 use diesel::backend::Backend;
 use diesel::deserialize::FromSql;
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use diesel::prelude::{AsChangeset, Identifiable, Insertable, Queryable, QueryableByName};
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use diesel::sql_types::Bool;
 
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use diesel::sql_types::Timestamptz;
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use diesel::sql_types::{Bytea, Nullable};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use tucant_derive::Typescriptable;
 
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 use crate::schema::{
     course_events, course_exams, course_groups_events, course_groups_unfinished,
     courses_unfinished, exams_unfinished, module_courses, module_exam_types, module_exams,
@@ -772,32 +765,6 @@ pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,
     pub session_id: String,
-}
-
-#[axum::async_trait]
-impl<S> FromRequestParts<S> for TucanSession
-where
-    Key: FromRef<S>,
-    S: Send + Sync,
-{
-    type Rejection = Response;
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
-            .await
-            .map_err(axum::response::IntoResponse::into_response)?;
-
-        let session: Self = serde_json::from_str(
-            cookie_jar
-                .get("session")
-                .ok_or_else(|| {
-                    (axum::http::StatusCode::UNAUTHORIZED, "session not found").into_response()
-                })?
-                .value(),
-        )
-        .map_err(|err| Into::<tucant::MyError>::into(err).into_response())?;
-        Ok(session)
-    }
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

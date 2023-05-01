@@ -11,18 +11,11 @@
 
 use std::fmt::Display;
 
-use axum::response::{IntoResponse, Response};
-use reqwest::StatusCode;
 extern crate self as tucant;
 
 pub mod models;
-#[cfg(feature = "server")]
+#[cfg(feature = "diesel")]
 pub mod schema;
-#[cfg(feature = "server")]
 pub mod tucan;
-#[cfg(feature = "server")]
 pub mod tucan_user;
-#[cfg(feature = "server")]
-pub mod typescript;
-#[cfg(feature = "server")]
 pub mod url;
