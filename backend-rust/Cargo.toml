@@ -21,8 +21,9 @@ crate-type = ["cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest                 = { default-features = false, features = ["cookies"], version = "0.11" }
-tokio                   = { default-features = false, features = [ "fs" ], version = "1", optional = true }
+getrandom               = { default-features = false, features = ["js"], version = "0.2" }
+reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.11" }
+tokio                   = { default-features = false, version = "1", optional = true }
 scraper                 = { default-features = false, version = "0.16", optional = true }
 ego-tree                = { default-features = false, version = "0.6", optional = true }
 futures                 = { default-features = false, version = "0.3", optional = true }
@@ -31,13 +32,13 @@ diesel-async            = { default-features = false, git = "https://github.com/
 dotenvy                 = { default-features = false, version = "0.15", optional = true }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1", optional = true }
 regex                   = { default-features = false, features = [ "std", "unicode" ], version = "1", optional = true}
-axum                    = { default-features = false, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
-axum-extra              = { default-features = false, version = "0.7", features = [ "cookie", "cookie-private" ] }
-tower-http              = { default-features = false, version = "0.4", features = [ "cors" ] }
-serde                   = { default-features = false, version = "1", features = [ "alloc", "std", "derive" ] }
+axum                    = { default-features = false, features = [ "json", "query", "macros", "tokio" ], version = "0.6", optional = true }
+axum-extra              = { default-features = false, version = "0.7", features = [ "cookie", "cookie-private" ], optional = true }
+tower-http              = { default-features = false, version = "0.4", features = [ "cors" ], optional = true }
+serde                   = { default-features = false, version = "1", features = [ "alloc", "std", "derive" ], optional = true }
 serde_json              = { default-features = false, features = [ "default", "raw_value" ], version = "1", optional = true }
 async-stream            = { default-features = false, git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a", optional = true }
-chrono                  = { default-features = false, version = "0.4", features = ["serde"] }
+chrono                  = { default-features = false, version = "0.4", features = ["serde"], optional = true }
 deadpool                = { default-features = false, version = "0.9", optional = true }
 url                     = { default-features = false, version = "2", optional = true }
 log                     = { default-features = false, version = "0.4", optional = true }
@@ -47,18 +48,19 @@ itertools               = { default-features = false, features = [ "use_std" ], 
 either                  = { default-features = false, version = "1", optional = true }
 once_cell               = { default-features = false, version = "1", optional = true }
 diesel_full_text_search = { default-features = false, git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight", optional = true }
-base64                  = { default-features = false, version = "0.21" }
+base64                  = { default-features = false, version = "0.21", optional = true }
 tucant_derive           = { default-features = false, path = "../backend-rust-derive", optional = true }
 file-lock               = { default-features = false, version = "2", optional = true }
-tracing                 = { default-features = false, version = "0.1" }
-opensearch              = { default-features = false, features = [ "rustls-tls" ], version = "2" }
-rand                    = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
-tucant_derive_lib       = { default-features = false, path = "../backend-rust-derive-lib" }
-diesel_migrations       = { default-features = false, version = "2" }
-async-recursion         = { default-features = false, version = "1" }
-permute = "0.2.1"
-icalendar = "0.15.4"
+tracing                 = { default-features = false, version = "0.1", optional = true }
+opensearch              = { default-features = false, features = [ "rustls-tls" ], version = "2", optional = true }
+rand                    = { default-features = false, features = [ "default", "small_rng" ], version = "0.8", optional = true }
+tucant_derive_lib       = { default-features = false, path = "../backend-rust-derive-lib", optional = true }
+diesel_migrations       = { default-features = false, version = "2", optional = true }
+async-recursion         = { default-features = false, version = "1", optional = true }
+permute = { version = "0.2.1", optional = true }
+icalendar = { version = "0.15.4", optional = true }
 
 [features]
-default = ["server"]
+default = ["js"]
+js = []
 server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]
