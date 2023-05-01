@@ -18,6 +18,7 @@ use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
+#[cfg(feature = "opensearch")]
 use opensearch::{
     auth::Credentials,
     cert::CertificateValidation,
@@ -47,20 +48,6 @@ use crate::{
         TucanUrl,
     },
 };
-
-use dotenvy::dotenv;
-
-fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection> {
-    dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url)
-}
-
-fn create_pool() -> deadpool::managed::Pool<AsyncDieselConnectionManager<AsyncPgConnection>> {
-    let config = get_config();
-    Pool::builder(config).build().unwrap()
-}
 
 pub trait GetTucanSession {
     fn session(&self) -> Option<&TucanSession>;
