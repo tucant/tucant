@@ -23,8 +23,11 @@
               with pkgs; [
                 bashInteractive
                 nixpkgs-fmt
-                rust.toolchain
-                rust.rust-analyzer
+                (fenix.packages.${system}.combine [
+                  rust.toolchain
+                  rust.rust-analyzer
+                  fenix.packages.${system}.targets.wasm32-unknown-unknown.latest.toolchain
+                ])
                 llvmPackages_latest.clang
                 llvmPackages_latest.bintools
                 llvmPackages_latest.llvm
