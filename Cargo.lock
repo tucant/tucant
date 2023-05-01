@@ -2736,7 +2736,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
-name = "tucant"
+name = "tucant-backend"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-recursion",
+ "async-stream",
+ "axum",
+ "axum-extra",
+ "base64 0.21.0",
+ "chrono",
+ "deadpool",
+ "derive_more",
+ "diesel",
+ "diesel-async",
+ "diesel_full_text_search",
+ "diesel_migrations",
+ "dotenvy",
+ "ego-tree",
+ "either",
+ "env_logger",
+ "file-lock",
+ "futures",
+ "getrandom 0.2.9",
+ "icalendar",
+ "itertools",
+ "log",
+ "once_cell",
+ "opensearch",
+ "permute",
+ "rand 0.8.5",
+ "regex",
+ "reqwest",
+ "scraper",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tucant_derive",
+ "tucant_derive_lib",
+ "url",
+]
+
+[[package]]
+name = "tucant-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",

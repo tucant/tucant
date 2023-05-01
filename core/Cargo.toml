@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 [package]
-name = "tucant"
+name = "tucant-core"
 version = "0.1.0"
 edition = "2021"
 readme = "README.md"
 authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
 description = "A nicer, faster and more featureful frontend to TUCaN"
-default-run = "server"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/mohe2015/tucant"
 keywords = ["tucan"]
