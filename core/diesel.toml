@@ -7,7 +7,7 @@
 
 [print_schema]
 file = "src/schema.rs"
-import_types = ["diesel::sql_types::*; #[cfg(feature = \"fts\")] use diesel_full_text_search::*"]
+import_types = ["diesel::sql_types::*"]
 # git diff -U6 > src/schema.patch
 #patch_file = "src/schema.patch"
 

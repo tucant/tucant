@@ -8,11 +8,8 @@ use std::{
 };
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
-use deadpool::managed::Object;
-use deadpool::managed::Pool;
-use diesel::OptionalExtension;
+use diesel::{r2d2::Pool, sqlite::Sqlite, OptionalExtension};
 use diesel::{upsert::excluded, QueryDsl};
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 
 use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
@@ -76,7 +73,7 @@ impl GetTucanSession for Box<dyn GetTucanSession + Sync + Send> {
 pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
-    pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
+    pub pool: Pool<Sqlite>,
     pub state: State,
 }
 
@@ -92,9 +89,7 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
 }
 
 impl Tucan<Unauthenticated> {
-    pub fn new(
-        pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
-    ) -> anyhow::Result<Self> {
+    pub fn new(pool: Pool<Sqlite>) -> anyhow::Result<Self> {
         /*
                 let url = Url::parse("https://localhost:9200")?;
 
