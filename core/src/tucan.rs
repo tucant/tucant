@@ -8,7 +8,11 @@ use std::{
 };
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
-use diesel::{r2d2::Pool, sqlite::Sqlite, OptionalExtension};
+use diesel::{
+    r2d2::{ConnectionManager, Pool},
+    sqlite::Sqlite,
+    OptionalExtension, SqliteConnection,
+};
 use diesel::{upsert::excluded, QueryDsl};
 
 use diesel::ExpressionMethods;
@@ -73,7 +77,7 @@ impl GetTucanSession for Box<dyn GetTucanSession + Sync + Send> {
 pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
-    pub pool: Pool<Sqlite>,
+    pub pool: Pool<ConnectionManager<SqliteConnection>>,
     pub state: State,
 }
 
@@ -89,7 +93,7 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
 }
 
 impl Tucan<Unauthenticated> {
-    pub fn new(pool: Pool<Sqlite>) -> anyhow::Result<Self> {
+    pub fn new(pool: Pool<ConnectionManager<SqliteConnection>>) -> anyhow::Result<Self> {
         /*
                 let url = Url::parse("https://localhost:9200")?;
 
@@ -114,7 +118,7 @@ impl Tucan<Unauthenticated> {
 
     pub async fn test(&self) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let _test: Vec<_> = courses_unfinished::table
             .select(COURSES_UNFINISHED)
@@ -155,7 +159,7 @@ impl Tucan<Unauthenticated> {
         {
             use diesel_async::RunQueryDsl;
 
-            let mut connection = self.pool.get().await?;
+            let mut connection = self.pool.get()?;
             diesel::insert_into(vv_menu_unfinished::table)
                 .values(VVMenuItem {
                     tucan_id: vv_action.magic.clone(),
@@ -178,7 +182,7 @@ impl Tucan<Unauthenticated> {
     ) -> anyhow::Result<Option<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing_vv_menu_already_fetched = vv_menu_unfinished::table
             .filter(vv_menu_unfinished::tucan_id.eq(&url.magic))
@@ -256,7 +260,7 @@ impl Tucan<Unauthenticated> {
             };
 
             {
-                let mut connection = self.pool.get().await?;
+                let mut connection = self.pool.get()?;
 
                 diesel::insert_into(vv_menu_unfinished::table)
                     .values(&vv_menus)
@@ -325,7 +329,7 @@ impl Tucan<Unauthenticated> {
                 (courses, vv_courses)
             };
 
-            let mut connection = self.pool.get().await?;
+            let mut connection = self.pool.get()?;
 
             diesel::insert_into(courses_unfinished::table)
                 .values(&courses)
@@ -346,7 +350,7 @@ impl Tucan<Unauthenticated> {
             );
         }
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         diesel::update(vv_menu_unfinished::table)
             .filter(vv_menu_unfinished::tucan_id.eq(url.magic.clone()))
@@ -468,7 +472,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         session: TucanSession,
     ) -> anyhow::Result<Tucan<Authenticated>> {
         use diesel_async::RunQueryDsl;
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         // TODO FIXME strg+f insert_into(users_unfinished and do this everywhere directly in the method so it can't be forgotten
         diesel::insert_into(users_unfinished::table)
@@ -591,7 +595,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     .tucan_session_from_session_data(session_nr, session_id.clone())
                     .await?;
 
-                let mut connection = self.pool.get().await?;
+                let mut connection = self.pool.get()?;
 
                 {
                     let user_session = user.state.session.clone();
@@ -767,7 +771,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         &self,
         url: Coursedetails,
         document: String,
-        mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
+        connection: &mut SqliteConnection,
     ) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -907,7 +911,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         &self,
         url: Coursedetails,
         document: String,
-        mut connection: Object<AsyncDieselConnectionManager<AsyncPgConnection>>,
+        connection: &mut SqliteConnection,
     ) -> anyhow::Result<()> {
         use diesel_async::RunQueryDsl;
 
@@ -1021,7 +1025,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     > {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing = courses_unfinished::table
             .filter(courses_unfinished::tucan_id.eq(&url.id))
@@ -1075,7 +1079,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     ) -> anyhow::Result<Option<(CourseGroup, Vec<CourseGroupEvent>)>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing = course_groups_unfinished::table
             .filter(course_groups_unfinished::tucan_id.eq(&url.id))
@@ -1120,7 +1124,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         }
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let connection = self.pool.get().await?;
+        let connection = self.pool.get()?;
 
         self.fetch_course(url.clone(), document, connection).await?;
 
@@ -1136,7 +1140,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         }
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let connection = self.pool.get().await?;
+        let connection = self.pool.get()?;
 
         self.fetch_course_group(url.clone(), document, connection)
             .await?;
@@ -1157,7 +1161,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         }
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let connection = self.pool.get().await?;
+        let connection = self.pool.get()?;
 
         let is_course_group =
             element_by_selector(&Self::parse_document(&document), "form h1 + h2").is_some();
@@ -1188,7 +1192,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     > {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing_module = modules_unfinished::table
             .filter(modules_unfinished::tucan_id.eq(&url.id))
@@ -1227,7 +1231,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let (module, courses, modul_exam_types) = {
             let document = Self::parse_document(&document);

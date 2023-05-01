@@ -342,10 +342,10 @@ pub struct InternalModule {
 #[cfg_attr(feature = "diesel", derive(QueryableByName, Typescriptable))]
 #[derive(Hash, PartialEq, Eq, Debug, Serialize, Clone, Deserialize)]
 pub struct ModuleMenuPathPart {
-    #[cfg_attr(feature = "diesel", diesel(sql_type = Nullable<Bytea>))]
+    #[cfg_attr(feature = "diesel", diesel(sql_type = Nullable<Binary>))]
     #[serde(skip)]
     pub parent: Option<Vec<u8>>,
-    #[cfg_attr(feature = "diesel", diesel(sql_type = Bytea))]
+    #[cfg_attr(feature = "diesel", diesel(sql_type = Binary))]
     #[cfg_attr(feature = "diesel", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub tucan_id: Vec<u8>,

@@ -76,7 +76,6 @@ impl Tucan<Authenticated> {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
-            opensearch: self.opensearch.clone(),
             state: Unauthenticated {},
         }
     }
@@ -124,7 +123,7 @@ impl Tucan<Authenticated> {
         // you can also get no module but courses (I think we currently don't return these, NEVER FIX THIS BULLSHIT)
         // maybe return highest row for each course_id
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing_registration_already_fetched = module_menu_unfinished::table
             .filter(module_menu_unfinished::tucan_id.eq(&url.path))
@@ -204,7 +203,7 @@ impl Tucan<Authenticated> {
         use diesel_async::RunQueryDsl;
 
         let document = self.fetch_document(&url.clone().into()).await?;
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let (module_menu, submenus, modules) = {
             let document = Self::parse_document(&document);
@@ -423,7 +422,7 @@ impl Tucan<Authenticated> {
     async fn cached_my_modules(&self) -> anyhow::Result<Option<Vec<MaybeCompleteModule>>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
         let tu_id = self.state.session.matriculation_number;
 
         let modules = connection
@@ -512,7 +511,7 @@ impl Tucan<Authenticated> {
             })
             .collect::<Vec<_>>();
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let matriculation_number = self.state.session.matriculation_number;
         connection
@@ -555,7 +554,7 @@ impl Tucan<Authenticated> {
     ) -> anyhow::Result<Option<(Vec<MaybeCompleteCourse>, Vec<CourseGroup>)>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
         let matriculation_number = self.state.session.matriculation_number;
 
         Ok(connection
@@ -641,7 +640,7 @@ impl Tucan<Authenticated> {
                 });
 
         {
-            let mut connection = self.pool.get().await?;
+            let mut connection = self.pool.get()?;
 
             let tu_id = self.state.session.matriculation_number;
             connection
@@ -812,7 +811,7 @@ impl Tucan<Authenticated> {
     ) -> anyhow::Result<Option<(Exam, Vec<MaybeCompleteModule>, Vec<MaybeCompleteCourse>)>> {
         use diesel_async::RunQueryDsl;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let existing = exams_unfinished::table
             .filter(exams_unfinished::tucan_id.eq(&exam_details.id))
@@ -974,7 +973,7 @@ impl Tucan<Authenticated> {
             }
         };
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         diesel::insert_into(exams_unfinished::table)
             .values(&exam)
@@ -1015,7 +1014,7 @@ impl Tucan<Authenticated> {
 
         let matriculation_number = self.state.session.matriculation_number;
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         let exams_already_fetched = users_unfinished::table
             .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
@@ -1118,7 +1117,7 @@ impl Tucan<Authenticated> {
                 .collect::<Vec<_>>()
         };
 
-        let mut connection = self.pool.get().await?;
+        let mut connection = self.pool.get()?;
 
         diesel::insert_into(exams_unfinished::table)
             .values(exams.iter().map(|e| &e.1).collect::<Vec<_>>())
