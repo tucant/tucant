@@ -79,7 +79,7 @@ podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB
 ### Backend
 
 ```bash
-cargo install diesel_cli --no-default-features --features postgres
+cargo install diesel_cli --no-default-features --features sqlite
 cp env.sample .env
 
 cd backend-rust

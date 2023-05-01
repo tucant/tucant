@@ -24,10 +24,9 @@ use diesel::prelude::{AsChangeset, Identifiable, Insertable, Queryable, Queryabl
 use diesel::sql_types::Bool;
 
 #[cfg(feature = "diesel")]
-use diesel::sql_types::Text;
-use diesel::sql_types::Timestamptz;
+use diesel::sql_types::Nullable;
 #[cfg(feature = "diesel")]
-use diesel::sql_types::{Bytea, Nullable};
+use diesel::sql_types::Text;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -784,7 +783,7 @@ pub struct UserModule {
 #[cfg_attr(feature = "server", diesel(treat_none_as_null = true))]
 pub struct UserCourse {
     pub user_id: i32,
-    #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
+    //#[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "server", ts_type(String))]
     pub course_id: Vec<u8>,
 }

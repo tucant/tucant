@@ -1,84 +1,76 @@
 // @generated automatically by Diesel CLI.
 
-pub mod sql_types {
-    #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "tsvector", schema = "pg_catalog"))]
-    pub struct Tsvector;
-}
-
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     course_events (course, timestamp_start, timestamp_end, room) {
-        course -> Bytea,
-        timestamp_start -> Timestamptz,
-        timestamp_end -> Timestamptz,
+        course -> Binary,
+        timestamp_start -> Nullable<Timestamp>,
+        timestamp_end -> Nullable<Timestamp>,
         room -> Text,
         teachers -> Text,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     course_exams (course_id, exam) {
-        course_id -> Bytea,
-        exam -> Bytea,
+        course_id -> Binary,
+        exam -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     course_groups_events (course, timestamp_start, timestamp_end, room) {
-        course -> Bytea,
-        timestamp_start -> Timestamptz,
-        timestamp_end -> Timestamptz,
+        course -> Binary,
+        timestamp_start -> Nullable<Timestamp>,
+        timestamp_end -> Nullable<Timestamp>,
         room -> Text,
         teachers -> Text,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     course_groups_unfinished (tucan_id) {
-        tucan_id -> Bytea,
-        course -> Bytea,
+        tucan_id -> Binary,
+        course -> Binary,
         title -> Text,
         done -> Bool,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
-    use super::sql_types::Tsvector;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     courses_unfinished (tucan_id) {
-        tucan_id -> Bytea,
-        tucan_last_checked -> Timestamptz,
+        tucan_id -> Binary,
+        tucan_last_checked -> Timestamp,
         title -> Text,
         course_id -> Text,
-        sws -> Int2,
+        sws -> SmallInt,
         content -> Text,
         done -> Bool,
-        tsv -> Tsvector,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     exams_unfinished (tucan_id) {
-        tucan_id -> Bytea,
+        tucan_id -> Binary,
         exam_type -> Text,
         semester -> Text,
-        exam_time_start -> Nullable<Timestamptz>,
-        exam_time_end -> Nullable<Timestamptz>,
-        registration_start -> Timestamptz,
-        registration_end -> Timestamptz,
-        unregistration_start -> Timestamptz,
-        unregistration_end -> Timestamptz,
+        exam_time_start -> Nullable<Timestamp>,
+        exam_time_end -> Nullable<Timestamp>,
+        registration_start -> Timestamp,
+        registration_end -> Timestamp,
+        unregistration_start -> Timestamp,
+        unregistration_end -> Timestamp,
         examinator -> Nullable<Text>,
         room -> Nullable<Text>,
         done -> Bool,
@@ -86,122 +78,120 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     module_courses (module, course) {
-        module -> Bytea,
-        course -> Bytea,
+        module -> Binary,
+        course -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     module_exam_types (module_id, exam_type) {
-        module_id -> Bytea,
+        module_id -> Binary,
         exam_type -> Text,
         required -> Bool,
-        weight -> Int2,
+        weight -> SmallInt,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     module_exams (module_id, exam) {
-        module_id -> Bytea,
-        exam -> Bytea,
+        module_id -> Binary,
+        exam -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
-    module_menu_module (module_id, module_menu_id) {
-        module_menu_id -> Bytea,
-        module_id -> Bytea,
+    module_menu_module (module_menu_id, module_id) {
+        module_menu_id -> Binary,
+        module_id -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     module_menu_unfinished (tucan_id) {
-        tucan_id -> Bytea,
-        tucan_last_checked -> Timestamptz,
+        tucan_id -> Binary,
+        tucan_last_checked -> Timestamp,
         name -> Text,
         done -> Bool,
-        parent -> Nullable<Bytea>,
+        parent -> Nullable<Binary>,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
-    use super::sql_types::Tsvector;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     modules_unfinished (tucan_id) {
-        tucan_id -> Bytea,
-        tucan_last_checked -> Timestamptz,
+        tucan_id -> Binary,
+        tucan_last_checked -> Timestamp,
         title -> Text,
         module_id -> Text,
-        credits -> Int4,
+        credits -> Integer,
         content -> Text,
         done -> Bool,
-        tsv -> Tsvector,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     sessions (matriculation_number, session_nr, session_id) {
-        matriculation_number -> Int4,
-        session_nr -> Int8,
+        matriculation_number -> Integer,
+        session_nr -> BigInt,
         session_id -> Text,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     user_course_groups (user_id, course_group_id) {
-        user_id -> Int4,
-        course_group_id -> Bytea,
+        user_id -> Integer,
+        course_group_id -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     user_courses (user_id, course_id) {
-        user_id -> Int4,
-        course_id -> Bytea,
+        user_id -> Integer,
+        course_id -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     user_exams (matriculation_number, exam) {
-        matriculation_number -> Int4,
-        exam -> Bytea,
+        matriculation_number -> Integer,
+        exam -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     user_modules (user_id, module_id) {
-        user_id -> Int4,
-        module_id -> Bytea,
+        user_id -> Integer,
+        module_id -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     users_unfinished (matriculation_number) {
-        matriculation_number -> Int4,
+        matriculation_number -> Integer,
         title -> Text,
         academic_title -> Text,
         post_name -> Text,
@@ -212,36 +202,36 @@ diesel::table! {
         redirect_messages_to_university_email -> Bool,
         subject -> Text,
         email -> Text,
-        department -> Int4,
+        department -> Integer,
         post_title -> Text,
         street -> Text,
         address_addition -> Text,
         country -> Text,
-        plz -> Int4,
+        plz -> Integer,
         city -> Text,
         phone_number -> Text,
-        user_modules_last_checked -> Nullable<Timestamptz>,
-        user_courses_last_checked -> Nullable<Timestamptz>,
-        user_exams_last_checked -> Nullable<Timestamptz>,
+        user_modules_last_checked -> Nullable<Timestamp>,
+        user_courses_last_checked -> Nullable<Timestamp>,
+        user_exams_last_checked -> Nullable<Timestamp>,
         done -> Bool,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
-    vv_menu_courses (course_id, vv_menu_id) {
+    vv_menu_courses (vv_menu_id, course_id) {
         vv_menu_id -> Text,
-        course_id -> Bytea,
+        course_id -> Binary,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "fts")] use diesel_full_text_search::*;
 
     vv_menu_unfinished (tucan_id) {
         tucan_id -> Text,
-        tucan_last_checked -> Timestamptz,
+        tucan_last_checked -> Timestamp,
         name -> Text,
         done -> Bool,
         parent -> Nullable<Text>,

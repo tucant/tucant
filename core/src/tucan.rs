@@ -12,7 +12,7 @@ use deadpool::managed::Object;
 use deadpool::managed::Pool;
 use diesel::OptionalExtension;
 use diesel::{upsert::excluded, QueryDsl};
-use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 
 use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
@@ -92,12 +92,14 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
 }
 
 impl Tucan<Unauthenticated> {
-    pub fn new() -> anyhow::Result<Self> {
-        let pool = create_pool();
-
-        let url = Url::parse("https://localhost:9200")?;
-        let conn_pool = SingleNodeConnectionPool::new(url);
+    pub fn new(
+        pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
+    ) -> anyhow::Result<Self> {
         /*
+                let url = Url::parse("https://localhost:9200")?;
+
+                let conn_pool = SingleNodeConnectionPool::new(url);
+
                 let transport = TransportBuilder::new(conn_pool)
                     .auth(Credentials::Basic("admin".to_string(), "admin".to_string()))
                     .cert_validation(CertificateValidation::None)

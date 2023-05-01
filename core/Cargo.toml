@@ -26,8 +26,8 @@ tokio                   = { default-features = false, optional = true, version =
 scraper                 = { default-features = false, optional = true, version = "0.16" }
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
-diesel                  = { default-features = false, optional = true, version = "2", features = [ "postgres", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
-diesel-async            = { default-features = false, optional = true, git = "https://github.com/weiznich/diesel_async", features = ["postgres", "deadpool"] }
+diesel                  = { default-features = false, optional = true, version = "2", features = [ "sqlite", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
+diesel-async            = { default-features = false, optional = true, git = "https://github.com/weiznich/diesel_async", features = [ "deadpool" ] }
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
 anyhow                  = { default-features = false, optional = true, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
