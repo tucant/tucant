@@ -1233,7 +1233,6 @@ checksum = "4f730bf0dc0a06f7e19c4ca6b731427d741384338b60128e5d0d00aeb0b5f071"
 dependencies = [
  "chrono",
  "iso8601",
- "nom",
  "uuid",
 ]
 
