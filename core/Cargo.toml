@@ -61,5 +61,5 @@ icalendar               = { default-features = false, optional = true, version =
 
 [features]
 default = ["js"]
-js = [ "serde_json", "diesel", "deadpool", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
+js = [ "derive_more", "anyhow", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "diesel-async", "ego-tree", "serde_json", "diesel", "deadpool", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
 server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]
