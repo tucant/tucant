@@ -129,10 +129,12 @@ impl Tucan<Unauthenticated> {
     pub async fn vv_root(
         &self,
     ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)> {
-        let document = self.fetch_document(&TucanProgram::Externalpages(Externalpages {
-            id: 344,
-            name: "welcome".to_string(),
-        }))?;
+        let document = self
+            .fetch_document(&TucanProgram::Externalpages(Externalpages {
+                id: 344,
+                name: "welcome".to_string(),
+            }))
+            .await?;
 
         let vv_link = {
             let document = Self::parse_document(&document);
@@ -180,7 +182,6 @@ impl Tucan<Unauthenticated> {
             .filter(vv_menu_unfinished::tucan_id.eq(&url.magic))
             .filter(vv_menu_unfinished::done)
             .get_result::<VVMenuItem>(&mut connection)
-            .await
             .optional()?;
 
         if let Some(vv_menu) = existing_vv_menu_already_fetched {
@@ -206,7 +207,7 @@ impl Tucan<Unauthenticated> {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
-        let document = self.fetch_document(&url.clone().into())?;
+        let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
             let document = Self::parse_document(&document);
@@ -250,10 +251,17 @@ impl Tucan<Unauthenticated> {
             {
                 let mut connection = self.pool.get()?;
 
-                diesel::insert_into(vv_menu_unfinished::table)
-                    .values(&vv_menus)
-                    .on_conflict_do_nothing() // TODO FIXME
-                    .execute(&mut connection)?;
+                // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+                let res: Result<Vec<usize>, _> = vv_menus
+                    .into_iter()
+                    .map(|vv_menu| -> Result<_, _> {
+                        diesel::insert_into(vv_menu_unfinished::table)
+                            .values(vv_menu)
+                            .on_conflict_do_nothing() // TODO FIXME
+                            .execute(&mut connection)
+                    })
+                    .collect();
+                res?;
             }
 
             /* let results = vv_menus
@@ -351,13 +359,13 @@ impl Tucan<Unauthenticated> {
         &self,
         url: Action,
     ) -> anyhow::Result<(VVMenuItem, Vec<VVMenuItem>, Vec<MaybeCompleteCourse>)> {
-        if let Some(value) = self.cached_vv(url.clone())? {
+        if let Some(value) = self.cached_vv(url.clone()).await? {
             return Ok(value);
         }
 
-        self.fetch_vv(url.clone())?;
+        self.fetch_vv(url.clone()).await?;
 
-        Ok(self.cached_vv(url.clone())?.unwrap())
+        Ok(self.cached_vv(url.clone()).await?.unwrap())
     }
 }
 
@@ -409,8 +417,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             );
         }
 
-        let permit = self.semaphore.clone().acquire_owned()?;
-        let resp = self.client.execute(request)?.text()?;
+        let permit = self.semaphore.clone().acquire_owned().await?;
+        let resp = self.client.execute(request).await?.text().await?;
         drop(permit);
 
         if resp.contains("timeout.htm") {
@@ -504,7 +512,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             state: Authenticated { session },
         };
 
-        let user = tucan_user.personal_data()?;
+        let user = tucan_user.personal_data().await?;
 
         let session = TucanSession {
             matriculation_number: user.matriculation_number,
@@ -544,7 +552,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .client
             .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
             .form(&params)
-            .send()?;
+            .send()
+            .await?;
 
         let refresh_header = res_headers.headers().get("refresh");
 
@@ -564,7 +573,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 let session_cookie = res_headers.cookies().next().unwrap();
                 let id = session_cookie.value().to_string();
 
-                res_headers.text()?;
+                res_headers.text().await?;
 
                 let session_nr = nr.try_into().unwrap();
                 let session_id = id.to_string();
@@ -575,27 +584,23 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
                 {
                     let user_session = user.state.session.clone();
-                    connection.build_transaction().run(|mut connection| {
-                        Box::pin(async move {
-                            diesel::insert_into(users_unfinished::table)
-                                .values(UndoneUser::new(user.state.session.matriculation_number))
-                                .on_conflict(users_unfinished::matriculation_number)
-                                .do_nothing()
-                                .execute(&mut connection)?;
+                    diesel::insert_into(users_unfinished::table)
+                        .values(UndoneUser::new(user.state.session.matriculation_number))
+                        .on_conflict(users_unfinished::matriculation_number)
+                        .do_nothing()
+                        .execute(&mut connection)?;
 
-                            diesel::insert_into(sessions::table)
-                                .values(user_session)
-                                .on_conflict((
-                                    sessions::matriculation_number,
-                                    sessions::session_nr,
-                                    sessions::session_id,
-                                ))
-                                .do_nothing()
-                                .execute(&mut connection)?;
+                    diesel::insert_into(sessions::table)
+                        .values(user_session)
+                        .on_conflict((
+                            sessions::matriculation_number,
+                            sessions::session_nr,
+                            sessions::session_id,
+                        ))
+                        .do_nothing()
+                        .execute(&mut connection)?;
 
-                            Ok::<(), diesel::result::Error>(())
-                        })
-                    })?;
+                    Ok::<(), diesel::result::Error>(())
                 }
 
                 return Ok(user);
@@ -848,13 +853,13 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .on_conflict(courses_unfinished::tucan_id)
             .do_update()
             .set(&course)
-            .execute(&mut connection)?;
+            .execute(connection)?;
 
         diesel::insert_into(course_groups_unfinished::table)
             .values(&course_groups)
             .on_conflict(course_groups_unfinished::tucan_id)
             .do_nothing()
-            .execute(&mut connection)?;
+            .execute(connection)?;
 
         diesel::insert_into(course_events::table)
             .values(&events)
@@ -989,7 +994,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(courses_unfinished::done)
             .select(COURSES_UNFINISHED)
             .get_result::<CompleteCourse>(&mut connection)
-            .await
             .optional()?;
 
         if let Some(existing) = existing {
@@ -1070,61 +1074,65 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         Vec<CourseEvent>,
         Vec<MaybeCompleteModule>,
     )> {
-        if let Some(value) = self.cached_course(url.clone())? {
+        if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(value);
         }
 
-        let document = self.fetch_document(&url.clone().into())?;
-        let connection = self.pool.get()?;
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let mut connection = self.pool.get()?;
 
-        self.fetch_course(url.clone(), document, connection)?;
+        self.fetch_course(url.clone(), document, &mut connection)
+            .await?;
 
-        Ok(self.cached_course(url)?.unwrap())
+        Ok(self.cached_course(url).await?.unwrap())
     }
 
     pub async fn course_group(
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<(CourseGroup, Vec<CourseGroupEvent>)> {
-        if let Some(value) = self.cached_course_group(url.clone())? {
+        if let Some(value) = self.cached_course_group(url.clone()).await? {
             return Ok(value);
         }
 
-        let document = self.fetch_document(&url.clone().into())?;
-        let connection = self.pool.get()?;
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let mut connection = self.pool.get()?;
 
-        self.fetch_course_group(url.clone(), document, connection)?;
+        self.fetch_course_group(url.clone(), document, &mut connection)
+            .await?;
 
-        Ok(self.cached_course_group(url)?.unwrap())
+        Ok(self.cached_course_group(url).await?.unwrap())
     }
 
     pub async fn course_or_course_group(
         &self,
         url: Coursedetails,
     ) -> anyhow::Result<CourseOrCourseGroup> {
-        if let Some(value) = self.cached_course(url.clone())? {
+        if let Some(value) = self.cached_course(url.clone()).await? {
             return Ok(CourseOrCourseGroup::Course(value));
         }
 
-        if let Some(value) = self.cached_course_group(url.clone())? {
+        if let Some(value) = self.cached_course_group(url.clone()).await? {
             return Ok(CourseOrCourseGroup::CourseGroup(value));
         }
 
-        let document = self.fetch_document(&url.clone().into())?;
-        let connection = self.pool.get()?;
+        let document = self.fetch_document(&url.clone().into()).await?;
+        let mut connection = self.pool.get()?;
 
         let is_course_group =
             element_by_selector(&Self::parse_document(&document), "form h1 + h2").is_some();
 
         if is_course_group {
             Ok(CourseOrCourseGroup::CourseGroup({
-                self.fetch_course_group(url.clone(), document, connection)?;
-                self.cached_course_group(url.clone())?.unwrap()
+                self.fetch_course_group(url.clone(), document, &mut connection)
+                    .await?;
+                self.cached_course_group(url.clone()).await?.unwrap()
             }))
         } else {
             Ok(CourseOrCourseGroup::Course({
-                self.fetch_course(url.clone(), document, connection)?;
-                self.cached_course(url.clone())?.unwrap()
+                self.fetch_course(url.clone(), document, &mut connection)
+                    .await?;
+                self.cached_course(url.clone()).await?.unwrap()
             }))
         }
     }
@@ -1147,7 +1155,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .select(MODULES_UNFINISHED)
             .order(modules_unfinished::title)
             .get_result::<CompleteModule>(&mut connection)
-            .await
             .optional()?;
 
         if let Some(existing_module) = existing_module {
@@ -1173,7 +1180,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
     #[allow(clippy::too_many_lines)]
     pub async fn fetch_module(&self, url: Moduledetails) -> anyhow::Result<()> {
-        let document = self.fetch_document(&url.clone().into())?;
+        let document = self.fetch_document(&url.clone().into()).await?;
         let mut connection = self.pool.get()?;
 
         let (module, courses, modul_exam_types) = {
@@ -1425,12 +1432,12 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         Vec<MaybeCompleteCourse>,
         Vec<ModuleExamType>,
     )> {
-        if let Some(value) = self.cached_module(url.clone())? {
+        if let Some(value) = self.cached_module(url.clone()).await? {
             return Ok(value);
         }
 
-        self.fetch_module(url.clone())?;
+        self.fetch_module(url.clone()).await?;
 
-        Ok(self.cached_module(url)?.unwrap())
+        Ok(self.cached_module(url).await?.unwrap())
     }
 }
