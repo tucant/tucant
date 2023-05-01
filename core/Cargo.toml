@@ -27,7 +27,6 @@ scraper                 = { default-features = false, optional = true, version =
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
 diesel                  = { default-features = false, optional = true, version = "2", features = [ "r2d2", "sqlite", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
-diesel-async            = { default-features = false, optional = true, git = "https://github.com/weiznich/diesel_async", features = [ ] }
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
 anyhow                  = { default-features = false, optional = true, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
@@ -60,5 +59,5 @@ icalendar               = { default-features = false, optional = true, version =
 
 [features]
 default = ["js"]
-js = [ "derive_more", "anyhow", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "diesel-async", "ego-tree", "serde_json", "diesel", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
-server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]
+js = [ "derive_more", "anyhow", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "ego-tree", "serde_json", "diesel", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
+server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]
