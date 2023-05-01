@@ -5,8 +5,8 @@ diesel::table! {
 
     course_events (course, timestamp_start, timestamp_end, room) {
         course -> Binary,
-        timestamp_start -> Nullable<Timestamp>,
-        timestamp_end -> Nullable<Timestamp>,
+        timestamp_start -> Timestamp,
+        timestamp_end -> Timestamp,
         room -> Text,
         teachers -> Text,
     }
@@ -26,8 +26,8 @@ diesel::table! {
 
     course_groups_events (course, timestamp_start, timestamp_end, room) {
         course -> Binary,
-        timestamp_start -> Nullable<Timestamp>,
-        timestamp_end -> Nullable<Timestamp>,
+        timestamp_start -> Timestamp,
+        timestamp_end -> Timestamp,
         room -> Text,
         teachers -> Text,
     }

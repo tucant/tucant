@@ -1080,7 +1080,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 course_groups_unfinished::done,
             ))
             .get_result::<CourseGroup>(&mut connection)
-            .await
             .optional()?;
 
         if let Some(existing) = existing {
@@ -1428,11 +1427,18 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .set(&module)
             .execute(&mut connection)?;
 
-        diesel::insert_into(courses_unfinished::table)
-            .values(&courses)
-            .on_conflict(courses_unfinished::tucan_id)
-            .do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = courses
+            .into_iter()
+            .map(|course| -> Result<_, _> {
+                diesel::insert_into(courses_unfinished::table)
+                    .values(course)
+                    .on_conflict(courses_unfinished::tucan_id)
+                    .do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
         diesel::insert_into(module_courses::table)
             .values(
