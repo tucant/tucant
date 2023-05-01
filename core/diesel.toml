@@ -7,11 +7,9 @@
 
 [print_schema]
 file = "src/schema.rs"
-import_types = ["diesel::sql_types::*", "fdg diesel_full_text_search::*"]
-generate_missing_sql_type_definitions = true
+import_types = ["diesel::sql_types::*; #[cfg(feature = \"fts\")] use diesel_full_text_search::*"]
 # git diff -U6 > src/schema.patch
-patch_file = "src/schema.patch"
-with_docs = true
+#patch_file = "src/schema.patch"
 
 [migrations_directory]
 dir = "migrations"

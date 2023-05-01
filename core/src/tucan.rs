@@ -18,15 +18,8 @@ use diesel::ExpressionMethods;
 use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
-#[cfg(feature = "opensearch")]
-use opensearch::{
-    auth::Credentials,
-    cert::CertificateValidation,
-    http::transport::{SingleNodeConnectionPool, TransportBuilder},
-    OpenSearch,
-};
 use regex::Regex;
-use reqwest::{Client, Url};
+use reqwest::{header::HeaderValue, Client, Url};
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
@@ -84,7 +77,6 @@ pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
     pub(crate) client: Client,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<AsyncDieselConnectionManager<AsyncPgConnection>>,
-    pub opensearch: OpenSearch,
     pub state: State,
 }
 
@@ -105,12 +97,13 @@ impl Tucan<Unauthenticated> {
 
         let url = Url::parse("https://localhost:9200")?;
         let conn_pool = SingleNodeConnectionPool::new(url);
-        let transport = TransportBuilder::new(conn_pool)
-            .auth(Credentials::Basic("admin".to_string(), "admin".to_string()))
-            .cert_validation(CertificateValidation::None)
-            .build()?;
-        let opensearch = OpenSearch::new(transport);
-
+        /*
+                let transport = TransportBuilder::new(conn_pool)
+                    .auth(Credentials::Basic("admin".to_string(), "admin".to_string()))
+                    .cert_validation(CertificateValidation::None)
+                    .build()?;
+                let opensearch = OpenSearch::new(transport);
+        */
         Ok(Self {
             pool,
             client: reqwest::Client::builder()
@@ -118,7 +111,6 @@ impl Tucan<Unauthenticated> {
                 .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
                 .build()?,
             semaphore: Arc::new(Semaphore::new(3)),
-            opensearch,
             state: Unauthenticated,
         })
     }
@@ -462,7 +454,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     client: tucan.client,
                     semaphore: tucan.semaphore,
                     pool: tucan.pool,
-                    opensearch: tucan.opensearch,
                     state: Box::new(tucan.state),
                 }
             }
@@ -470,7 +461,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 client: self.client.clone(),
                 semaphore: self.semaphore.clone(),
                 pool: self.pool.clone(),
-                opensearch: self.opensearch.clone(),
                 state: Box::new(Unauthenticated),
             },
         })
@@ -508,7 +498,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
-            opensearch: self.opensearch.clone(),
             state: Authenticated {
                 session: session.clone(),
             },
@@ -530,7 +519,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
-            opensearch: self.opensearch.clone(),
             state: Authenticated { session },
         };
 
@@ -546,7 +534,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
-            opensearch: self.opensearch.clone(),
             state: Authenticated { session },
         })
     }

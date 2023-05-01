@@ -1,9 +1,13 @@
-#![allow(clippy::wildcard_imports)]
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "tsvector", schema = "pg_catalog"))]
+    pub struct Tsvector;
+}
+
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     course_events (course, timestamp_start, timestamp_end, room) {
         course -> Bytea,
@@ -15,8 +19,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     course_exams (course_id, exam) {
         course_id -> Bytea,
@@ -25,8 +28,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     course_groups_events (course, timestamp_start, timestamp_end, room) {
         course -> Bytea,
@@ -38,8 +40,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     course_groups_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -50,8 +51,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use super::sql_types::Tsvector;
 
     courses_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -66,8 +67,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     exams_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -86,8 +86,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     module_courses (module, course) {
         module -> Bytea,
@@ -96,8 +95,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     module_exam_types (module_id, exam_type) {
         module_id -> Bytea,
@@ -108,8 +106,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     module_exams (module_id, exam) {
         module_id -> Bytea,
@@ -118,8 +115,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     module_menu_module (module_id, module_menu_id) {
         module_menu_id -> Bytea,
@@ -128,8 +124,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     module_menu_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -141,8 +136,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
+    use super::sql_types::Tsvector;
 
     modules_unfinished (tucan_id) {
         tucan_id -> Bytea,
@@ -157,8 +152,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     sessions (matriculation_number, session_nr, session_id) {
         matriculation_number -> Int4,
@@ -168,8 +162,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     user_course_groups (user_id, course_group_id) {
         user_id -> Int4,
@@ -178,8 +171,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     user_courses (user_id, course_id) {
         user_id -> Int4,
@@ -188,8 +180,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     user_exams (matriculation_number, exam) {
         matriculation_number -> Int4,
@@ -198,8 +189,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     user_modules (user_id, module_id) {
         user_id -> Int4,
@@ -208,8 +198,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     users_unfinished (matriculation_number) {
         matriculation_number -> Int4,
@@ -239,8 +228,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     vv_menu_courses (course_id, vv_menu_id) {
         vv_menu_id -> Text,
@@ -249,8 +237,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use diesel_full_text_search::*;
+    use diesel::sql_types::*; #[cfg(feature = "opensearch")] use diesel_full_text_search::*;
 
     vv_menu_unfinished (tucan_id) {
         tucan_id -> Text,
