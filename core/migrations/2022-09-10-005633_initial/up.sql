@@ -118,8 +118,8 @@ CREATE TABLE course_groups_unfinished (
 
 CREATE TABLE course_events (
     course BLOB NOT NULL REFERENCES courses_unfinished(tucan_id),
-    timestamp_start TIMESTAMP DEFAULT NULL,
-    timestamp_end TIMESTAMP DEFAULT NULL,
+    timestamp_start TIMESTAMP NOT NULL,
+    timestamp_end TIMESTAMP NOT NULL,
     room TEXT NOT NULL,
     teachers TEXT NOT NULL,
     PRIMARY KEY (course, timestamp_start, timestamp_end, room)
@@ -127,8 +127,8 @@ CREATE TABLE course_events (
 
 CREATE TABLE course_groups_events (
     course BLOB NOT NULL REFERENCES course_groups_unfinished(tucan_id),
-    timestamp_start TIMESTAMP DEFAULT NULL,
-    timestamp_end TIMESTAMP DEFAULT NULL,
+    timestamp_start TIMESTAMP NOT NULL,
+    timestamp_end TIMESTAMP NOT NULL,
     room TEXT NOT NULL,
     teachers TEXT NOT NULL,
     PRIMARY KEY (course, timestamp_start, timestamp_end, room)

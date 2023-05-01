@@ -326,16 +326,29 @@ impl Tucan<Unauthenticated> {
 
             let mut connection = self.pool.get()?;
 
-            diesel::insert_into(courses_unfinished::table)
-                .values(&courses)
-                .on_conflict(courses_unfinished::tucan_id)
-                .do_nothing()
-                .execute(&mut connection)?;
+            // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+            let res: Result<Vec<usize>, _> = courses
+                .into_iter()
+                .map(|course| -> Result<_, _> {
+                    diesel::insert_into(courses_unfinished::table)
+                        .values(course)
+                        .on_conflict(courses_unfinished::tucan_id)
+                        .do_nothing()
+                        .execute(&mut connection)
+                })
+                .collect();
+            res?;
 
-            diesel::insert_into(vv_menu_courses::table)
-                .values(&vv_courses)
-                .on_conflict_do_nothing() // TODO FIXME
-                .execute(&mut connection)?;
+            let res: Result<Vec<usize>, _> = vv_courses
+                .into_iter()
+                .map(|vv_course| -> Result<_, _> {
+                    diesel::insert_into(vv_menu_courses::table)
+                        .values(vv_course)
+                        .on_conflict_do_nothing() // TODO FIXME
+                        .execute(&mut connection)
+                })
+                .collect();
+            res?;
         } else {
             panic!(
                 "unknown url {:?}",
@@ -442,7 +455,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     ) -> anyhow::Result<Tucan<Box<dyn GetTucanSession + Sync + Send + 'static>>> {
         Ok(match session {
             Some(session) => {
-                let tucan = self.continue_session(session)?;
+                let tucan = self.continue_session(session).await?;
                 Tucan {
                     client: tucan.client,
                     semaphore: tucan.semaphore,
@@ -578,7 +591,9 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 let session_nr = nr.try_into().unwrap();
                 let session_id = id.to_string();
 
-                let user = self.tucan_session_from_session_data(session_nr, session_id.clone())?;
+                let user = self
+                    .tucan_session_from_session_data(session_nr, session_id.clone())
+                    .await?;
 
                 let mut connection = self.pool.get()?;
 
@@ -599,8 +614,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                         ))
                         .do_nothing()
                         .execute(&mut connection)?;
-
-                    Ok::<(), diesel::result::Error>(())
                 }
 
                 return Ok(user);
@@ -608,7 +621,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             panic!("Failed to extract session_nr");
         }
 
-        res_headers.text()?;
+        res_headers.text().await?;
 
         Err(Error::new(ErrorKind::Other, "Invalid username or password").into())
     }
@@ -855,23 +868,35 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .set(&course)
             .execute(connection)?;
 
-        diesel::insert_into(course_groups_unfinished::table)
-            .values(&course_groups)
-            .on_conflict(course_groups_unfinished::tucan_id)
-            .do_nothing()
-            .execute(connection)?;
+        let res: Result<Vec<usize>, _> = course_groups
+            .into_iter()
+            .map(|course_group| -> Result<_, _> {
+                diesel::insert_into(course_groups_unfinished::table)
+                    .values(&course_group)
+                    .on_conflict(course_groups_unfinished::tucan_id)
+                    .do_nothing()
+                    .execute(connection)
+            })
+            .collect();
+        res?;
 
-        diesel::insert_into(course_events::table)
-            .values(&events)
-            .on_conflict((
-                course_events::course,
-                course_events::timestamp_start,
-                course_events::timestamp_end,
-                course_events::room,
-            ))
-            .do_update()
-            .set(course_events::teachers.eq(excluded(course_events::teachers)))
-            .execute(&mut connection)?;
+        let res: Result<Vec<usize>, _> = events
+            .into_iter()
+            .map(|event| -> Result<_, _> {
+                diesel::insert_into(course_events::table)
+                    .values(event)
+                    .on_conflict((
+                        course_events::course,
+                        course_events::timestamp_start,
+                        course_events::timestamp_end,
+                        course_events::room,
+                    ))
+                    .do_update()
+                    .set(course_events::teachers.eq(excluded(course_events::teachers)))
+                    .execute(connection)
+            })
+            .collect();
+        res?;
 
         Ok(())
     }
@@ -952,26 +977,34 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .on_conflict(courses_unfinished::tucan_id)
             .do_update()
             .set(&course)
-            .execute(&mut connection)?;
+            .execute(connection)?;
 
         diesel::insert_into(course_groups_unfinished::table)
             .values(&course_group)
             .on_conflict(course_groups_unfinished::tucan_id)
             .do_update()
             .set(&course_group)
-            .execute(&mut connection)?;
+            .execute(connection)?;
 
-        diesel::insert_into(course_groups_events::table)
-            .values(&events)
-            .on_conflict((
-                course_groups_events::course,
-                course_groups_events::timestamp_start,
-                course_groups_events::timestamp_end,
-                course_groups_events::room,
-            ))
-            .do_update()
-            .set(course_groups_events::teachers.eq(excluded(course_groups_events::teachers)))
-            .execute(&mut connection)?;
+        let res: Result<Vec<usize>, _> = events
+            .into_iter()
+            .map(|event| -> Result<_, _> {
+                diesel::insert_into(course_groups_events::table)
+                    .values(event)
+                    .on_conflict((
+                        course_groups_events::course,
+                        course_groups_events::timestamp_start,
+                        course_groups_events::timestamp_end,
+                        course_groups_events::room,
+                    ))
+                    .do_update()
+                    .set(
+                        course_groups_events::teachers.eq(excluded(course_groups_events::teachers)),
+                    )
+                    .execute(connection)
+            })
+            .collect();
+        res?;
 
         Ok(())
     }
