@@ -16,6 +16,7 @@ use diesel::{
 use diesel::{upsert::excluded, QueryDsl};
 
 use diesel::ExpressionMethods;
+use dotenvy::dotenv;
 use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;

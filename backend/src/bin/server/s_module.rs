@@ -5,11 +5,11 @@
 use crate::utils::calculate_paths;
 use crate::AppState;
 use crate::WithTucanUrl;
-use tucant_core::MyError;
-
 use axum::extract::State;
 use axum::Json;
 use diesel::sql_types::Bytea;
+use diesel::RunQueryDsl;
+use tucant_core::MyError;
 
 use diesel::sql_query;
 
@@ -54,7 +54,7 @@ pub async fn module(
         )
         .bind::<Bytea, _>(binary_path.clone())
         .load::<ModuleMenuPathPart>(&mut connection)
-        .await?;
+        ?;
 
     let paths = calculate_paths(&path_to_root);
 

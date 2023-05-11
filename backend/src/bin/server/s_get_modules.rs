@@ -4,9 +4,9 @@
 
 use crate::utils::calculate_paths;
 use crate::WithTucanUrl;
-use tucant_core::MyError;
-
 use axum::extract::State;
+use diesel::RunQueryDsl;
+use tucant_core::MyError;
 
 use axum::Json;
 
@@ -69,8 +69,7 @@ pub async fn get_modules(
         "#,
             )
             .bind::<Bytea, _>(binary_path)
-            .load::<ModuleMenuPathPart>(&mut connection)
-            .await?;
+            .load::<ModuleMenuPathPart>(&mut connection)?;
 
             let paths = calculate_paths(&path_to_root);
 

@@ -13,7 +13,7 @@ use tucant_core::MyError;
 use axum::extract::State;
 
 use axum::Json;
-
+use diesel::RunQueryDsl;
 use tucant_core::models::MaybeCompleteCourse;
 use tucant_core::models::VVMenuItem;
 use tucant_core::models::VVMenuPathPart;
@@ -45,7 +45,6 @@ pub async fn courses(
             (result.0, result.1, result.2, Vec::new())
         }
         Some(ref input) => {
-
             let result = tucan
                 .vv(Action {
                     magic: input.clone(),
@@ -68,8 +67,7 @@ pub async fn courses(
         "#,
             )
             .bind::<Text, _>(input.clone())
-            .load::<VVMenuPathPart>(&mut connection)
-            .await?;
+            .load::<VVMenuPathPart>(&mut connection)?;
 
             let paths = calculate_paths(&path_to_root);
 
