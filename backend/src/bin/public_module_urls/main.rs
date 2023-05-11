@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use tucant::tucan::Tucan;
+use tucant_core::tucan::Tucan;
 
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test
 fn main() -> anyhow::Result<()> {

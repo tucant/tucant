@@ -62,4 +62,4 @@ tucant-core = { path = "../core" }
 
 [features]
 default = ["server"]
-server = ["tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]
+server = [ "base64", "opensearch", "tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]

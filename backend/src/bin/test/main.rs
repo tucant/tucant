@@ -5,7 +5,7 @@
 use base64::Engine;
 use futures::{stream::FuturesUnordered, StreamExt};
 
-use tucant::{
+use tucant_core::{
     tucan::{Authenticated, Tucan},
     url::{Moduledetails, Registration},
 };
