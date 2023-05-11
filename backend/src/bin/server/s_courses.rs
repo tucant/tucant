@@ -53,7 +53,7 @@ pub async fn courses(
                 })
                 .await?;
 
-            let mut connection = tucan.pool.get().await?;
+            let mut connection = tucan.pool.get()?;
 
             let path_to_root: Vec<VVMenuPathPart> = sql_query(
                 r#"

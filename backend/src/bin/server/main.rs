@@ -54,12 +54,17 @@ use s_module::module;
 use s_my_courses::my_courses;
 use s_my_courses::MyCoursesTs;
 use s_my_modules::my_modules;
+#[cfg(feature = "full-text-search")]
 use s_search_course::search_course;
+#[cfg(feature = "full-text-search")]
 use s_search_course::SearchCourseTs;
+#[cfg(feature = "full-text-search")]
 use s_search_module::search_module;
+#[cfg(feature = "full-text-search")]
 use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
+use tucant_backend::typescript::TypescriptableApp;
 
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
@@ -76,7 +81,6 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucant_core::typescript::TypescriptableApp;
 
 use std::io::Write;
 use tucant_core::tucan::Tucan;
@@ -171,9 +175,7 @@ async fn login_hack(
     tucan: State<Tucan>,
     input: Query<LoginHack>,
 ) -> Result<Response, MyError> {
-    use diesel_async::RunQueryDsl;
-
-    let mut connection = tucan.pool.get().await?;
+    let mut connection = tucan.pool.get()?;
 
     if let LoginHack {
         session_nr: Some(session_nr),

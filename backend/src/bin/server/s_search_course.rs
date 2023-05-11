@@ -36,13 +36,14 @@ pub struct SearchResult {
     pub rank: f64,
 }
 
+#[cfg(feature = "full-text-search")]
 #[ts]
 pub async fn search_course(
     _: TucanSession,
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
-    let mut connection = tucan.pool.get().await?;
+    let mut connection = tucan.pool.get()?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = courses_unfinished::tsv;

@@ -26,6 +26,7 @@ use tucant_core::models::TucanSession;
 use tucant_core::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
+#[cfg(feature = "full-text-search")]
 #[ts]
 pub async fn search_module(
     _: TucanSession,
@@ -33,7 +34,7 @@ pub async fn search_module(
     input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     // http://localhost:8080/search-module?q=digitale%20schaltung
-    let mut connection = tucan.pool.get().await?;
+    let mut connection = tucan.pool.get()?;
 
     let config = TsConfigurationByName("tucan");
     let tsvector = modules_unfinished::tsv;
@@ -62,6 +63,7 @@ pub async fn search_module(
     Ok(Json(result))
 }
 
+#[cfg(feature = "full-text-search")]
 #[ts]
 pub async fn search_module_opensearch(
     _: TucanSession,

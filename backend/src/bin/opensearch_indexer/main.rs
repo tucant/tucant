@@ -21,6 +21,7 @@ use tucant_core::{
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[allow(clippy::too_many_lines)]
 fn main() -> anyhow::Result<()> {
+    #[cfg(feature = "full-text-search")]
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -191,7 +192,7 @@ fn main() -> anyhow::Result<()> {
 
             // let response_body = response.json::<Value>().await?;
 
-            let mut connection = tucan.pool.get().await?;
+            let mut connection = tucan.pool.get()?;
             let modules: Vec<MaybeCompleteModule> = modules_unfinished::table
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
@@ -275,5 +276,6 @@ fn main() -> anyhow::Result<()> {
             // TODO FIXME delete indexes here
 
             Ok(())
-        })
+        })?;
+    Ok(())
 }

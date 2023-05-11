@@ -30,7 +30,7 @@ pub async fn module(
     tucan: State<Tucan>,
     input: Json<String>,
 ) -> Result<Json<WithTucanUrl<ModuleResponse>>, MyError> {
-    let mut connection = tucan.pool.get().await?;
+    let mut connection = tucan.pool.get()?;
 
     let binary_path = BASE64_URL_SAFE_NO_PAD.decode(input.as_bytes()).unwrap();
 
