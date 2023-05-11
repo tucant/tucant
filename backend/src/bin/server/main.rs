@@ -34,6 +34,9 @@ use axum::Router;
 use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::Key;
 use axum_extra::extract::PrivateCookieJar;
+use diesel::r2d2;
+use diesel::r2d2::ConnectionManager;
+use diesel::SqliteConnection;
 use diesel::{Connection, PgConnection};
 use diesel_migrations::FileBasedMigrations;
 use diesel_migrations::MigrationHarness;
@@ -54,13 +57,9 @@ use s_module::module;
 use s_my_courses::my_courses;
 use s_my_courses::MyCoursesTs;
 use s_my_modules::my_modules;
-#[cfg(feature = "full-text-search")]
 use s_search_course::search_course;
-#[cfg(feature = "full-text-search")]
 use s_search_course::SearchCourseTs;
-#[cfg(feature = "full-text-search")]
 use s_search_module::search_module;
-#[cfg(feature = "full-text-search")]
 use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
@@ -102,9 +101,7 @@ use crate::s_module::ModuleTs;
 use crate::s_my_exams::my_exams;
 use crate::s_my_exams::MyExamsTs;
 use crate::s_my_modules::MyModulesTs;
-#[cfg(feature = "full-text-search")]
 use crate::s_search_module::search_module_opensearch;
-#[cfg(feature = "full-text-search")]
 use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::module_urls;
 use crate::s_setup::setup;
@@ -315,11 +312,16 @@ fn main() -> anyhow::Result<()> {
 
             warn!("Starting server...");
 
+            let migrations = FileBasedMigrations::from_path("core/migrations")?;
+            dotenv().ok();
             let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-            let migrations = FileBasedMigrations::find_migrations_directory()?;
-            let mut connection = PgConnection::establish(&database_url)
-                .unwrap_or_else(|_| panic!("Error connecting to {database_url}"));
-            connection.run_pending_migrations(migrations).unwrap();
+
+            let manager = ConnectionManager::<SqliteConnection>::new(database_url);
+            let pool = r2d2::Pool::builder()
+                .build(manager)
+                .expect("Failed to create pool.");
+            pool.get()?.run_pending_migrations(migrations).unwrap();
+            drop(pool);
 
             let random_secret_key = Key::generate();
 
@@ -387,24 +389,19 @@ fn main() -> anyhow::Result<()> {
                 .route::<MyExamsTs>("/my-exams", post(my_exams))
                 .route::<MyModulesTs>("/my-modules", post(my_modules))
                 .route::<MyCoursesTs>("/my-courses", post(my_courses))
-                .route::<CoursesTs>("/courses", post(courses));
-
-            #[cfg(feature = "full-text-search")]
-            {
-                app = app
-                    .route::<SearchModuleTs>("/search-modules", post(search_module))
-                    .route::<SearchModuleOpensearchTs>(
-                        "/search-modules-opensearch",
-                        post(search_module_opensearch),
-                    )
-                    .route::<SearchCourseTs>("/search-course", post(search_course));
-            }
+                .route::<CoursesTs>("/courses", post(courses))
+                .route::<SearchModuleTs>("/search-modules", post(search_module))
+                .route::<SearchModuleOpensearchTs>(
+                    "/search-modules-opensearch",
+                    post(search_module_opensearch),
+                )
+                .route::<SearchCourseTs>("/search-course", post(search_course));
 
             let should_we_block = true;
             let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
             let mut filelock = match FileLock::lock(
-                "../frontend-react/src/api.ts",
+                "./frontend-react/src/api.ts",
                 should_we_block,
                 lock_for_writing,
             ) {
