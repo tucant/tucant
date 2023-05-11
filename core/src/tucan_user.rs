@@ -335,13 +335,21 @@ impl Tucan<Authenticated> {
             .values(&module_menu)
             .on_conflict(module_menu_unfinished::tucan_id)
             .do_update()
-            .set(&module_menu) // treat_none_as_null is false so parent should't be overwritten
+            .set(&module_menu) // TODO FIXME this is broken now - treat_none_as_null is false so parent should't be overwritten
             .get_result::<ModuleMenu>(&mut connection)?;
 
-        diesel::insert_into(modules_unfinished::table)
-            .values(modules.iter().map(|m| &m.0).collect::<Vec<_>>())
-            .on_conflict_do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = modules
+            .iter()
+            .map(|m| &m.0)
+            .map(|module| -> Result<_, _> {
+                diesel::insert_into(modules_unfinished::table)
+                    .values(module)
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
         diesel::insert_into(module_menu_module::table)
             .values(

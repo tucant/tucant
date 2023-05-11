@@ -9,8 +9,6 @@
     clippy::multiple_crate_versions
 )]
 
-use std::fmt::Display;
-
 extern crate self as tucant;
 
 pub mod models;

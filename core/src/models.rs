@@ -326,7 +326,6 @@ where
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = modules_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct InternalModule {
     #[cfg_attr(feature = "diesel", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -414,7 +413,6 @@ pub struct ModuleResponse {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = module_menu_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = false))]
 pub struct ModuleMenu {
     #[cfg_attr(feature = "diesel", ts_type(String))]
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -479,7 +477,6 @@ pub enum MaybeCompleteCourse {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = courses_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct InternalCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
@@ -677,7 +674,6 @@ where
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = course_groups_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct CourseGroup {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
@@ -693,7 +689,6 @@ pub struct CourseGroup {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable,))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(module, course)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = module_courses))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct ModuleCourse {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     pub module: Vec<u8>,
@@ -705,7 +700,6 @@ pub struct ModuleCourse {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(matriculation_number)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = users_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct User {
     matriculation_number: i32,
     title: String,
@@ -734,7 +728,6 @@ pub struct User {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(matriculation_number)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = users_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct UndoneUser {
     pub matriculation_number: i32,
     pub done: bool,
@@ -760,7 +753,6 @@ impl UndoneUser {
     diesel(primary_key(matriculation_number, session_nr, session_id))
 )]
 #[cfg_attr(feature = "diesel", diesel(table_name = sessions))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,
@@ -771,7 +763,6 @@ pub struct TucanSession {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(user_id, module_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = user_modules))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct UserModule {
     pub user_id: i32,
     pub module_id: Vec<u8>,
@@ -781,7 +772,6 @@ pub struct UserModule {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(user_id, course_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = user_courses))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct UserCourse {
     pub user_id: i32,
     //#[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -793,7 +783,6 @@ pub struct UserCourse {
 #[cfg_attr(feature = "diesel", derive(Identifiable, Queryable, Insertable))]
 #[cfg_attr(feature = "diesel", diesel(primary_key(user_id, course_group_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = user_course_groups))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct UserCourseGroup {
     pub user_id: i32,
     //#[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -808,7 +797,6 @@ pub struct UserCourseGroup {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = exams_unfinished))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct Exam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
@@ -833,7 +821,6 @@ pub struct Exam {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(course_id, exam)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = course_exams))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct CourseExam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
@@ -850,7 +837,6 @@ pub struct CourseExam {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(module_id, exam)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = module_exams))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct ModuleExam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
@@ -867,7 +853,6 @@ pub struct ModuleExam {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(matriculation_number, exam)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = user_exams))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct UserExam {
     pub matriculation_number: i32,
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
@@ -885,7 +870,6 @@ pub struct UserExam {
     diesel(primary_key(course, timestamp_start, timestamp_end, room))
 )]
 #[cfg_attr(feature = "diesel", diesel(table_name = course_events))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct CourseEvent {
     pub course: Vec<u8>,
     pub timestamp_start: NaiveDateTime,
@@ -904,7 +888,6 @@ pub struct CourseEvent {
     diesel(primary_key(course, timestamp_start, timestamp_end, room))
 )]
 #[cfg_attr(feature = "diesel", diesel(table_name = course_groups_events))]
-#[cfg_attr(feature = "diesel", diesel(treat_none_as_null = true))]
 pub struct CourseGroupEvent {
     pub course: Vec<u8>,
     pub timestamp_start: NaiveDateTime,

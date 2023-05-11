@@ -11,7 +11,6 @@ use chrono::{NaiveDateTime, TimeZone, Utc};
 use diesel::prelude::*;
 use diesel::{
     r2d2::{ConnectionManager, Pool},
-    sqlite::Sqlite,
     OptionalExtension, SqliteConnection,
 };
 use diesel::{upsert::excluded, QueryDsl};
@@ -21,7 +20,7 @@ use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
 use regex::Regex;
-use reqwest::{header::HeaderValue, Client, Url};
+use reqwest::{header::HeaderValue, Client};
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
