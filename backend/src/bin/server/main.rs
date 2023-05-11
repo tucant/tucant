@@ -96,6 +96,8 @@ use crate::s_courses::CoursesTs;
 use crate::s_exam::exam;
 use crate::s_exam::ExamTs;
 
+use crate::s_get_modules::get_modules;
+use crate::s_get_modules::GetModulesTs;
 use crate::s_module::ModuleTs;
 use crate::s_my_exams::my_exams;
 use crate::s_my_exams::MyExamsTs;
@@ -374,6 +376,7 @@ fn main() -> anyhow::Result<()> {
                 ]);
 
             let app = app
+                .route::<GetModulesTs>("/modules", post(get_modules))
                 .route::<IndexTs>("/", post(index))
                 .route::<LoginTs>("/login", post(login))
                 .route::<LogoutTs>("/logout", post(logout))
@@ -389,7 +392,6 @@ fn main() -> anyhow::Result<()> {
             #[cfg(feature = "full-text-search")]
             {
                 app = app
-                    .route::<GetModulesTs>("/modules", post(get_modules))
                     .route::<SearchModuleTs>("/search-modules", post(search_module))
                     .route::<SearchModuleOpensearchTs>(
                         "/search-modules-opensearch",

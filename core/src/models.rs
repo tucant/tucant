@@ -16,7 +16,6 @@ use diesel::sql_types::Int4;
 use diesel::sql_types::SmallInt;
 use diesel::sql_types::Timestamp;
 
-
 use std::collections::VecDeque;
 
 use std::hash::Hash;

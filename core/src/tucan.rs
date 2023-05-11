@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
-use diesel::{prelude::{Identifiable, Insertable, PgArrayExpressionMethods, PgJsonbExpressionMethods, PgNetExpressionMethods, PgRangeExpressionMethods, Queryable, QueryableByName, RunQueryDsl}, r2d2};
+use diesel::{prelude::RunQueryDsl, r2d2};
 use diesel::{
     r2d2::{ConnectionManager, Pool},
     OptionalExtension, SqliteConnection,
@@ -508,9 +508,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             pool: self.pool.clone(),
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
-            state: Authenticated {
-                session,
-            },
+            state: Authenticated { session },
         })
     }
 

@@ -2,23 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-
-
-
-
-
-
-
-
-use diesel::{Queryable};
-
+use diesel::Queryable;
 
 use serde::Serialize;
 
-use tucant_core::{
-    models::{as_base64},
-};
-use tucant_derive::{Typescriptable};
+use tucant_core::models::as_base64;
+use tucant_derive::Typescriptable;
 
 #[derive(Queryable, Serialize, Typescriptable)]
 pub struct SearchResult {

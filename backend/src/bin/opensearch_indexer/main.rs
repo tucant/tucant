@@ -2,15 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-
-
-
-
-
-
-
-
-
 // $HOME/.cargo/bin/diesel database reset && cargo run --bin test_client
 #[allow(clippy::too_many_lines)]
 fn main() -> anyhow::Result<()> {
