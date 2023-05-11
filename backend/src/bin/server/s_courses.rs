@@ -8,19 +8,19 @@ use crate::utils::calculate_paths;
 use crate::WithTucanUrl;
 use diesel::sql_query;
 use diesel::sql_types::Text;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 
 use axum::Json;
 
-use tucant::models::MaybeCompleteCourse;
-use tucant::models::VVMenuItem;
-use tucant::models::VVMenuPathPart;
-use tucant::tucan::Tucan;
-use tucant::url::Action;
-use tucant::url::Externalpages;
-use tucant::url::TucanProgram;
+use tucant_core::models::MaybeCompleteCourse;
+use tucant_core::models::VVMenuItem;
+use tucant_core::models::VVMenuPathPart;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Action;
+use tucant_core::url::Externalpages;
+use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]

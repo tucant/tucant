@@ -5,7 +5,7 @@
 use crate::utils::calculate_paths;
 use crate::AppState;
 use crate::WithTucanUrl;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 use axum::Json;
@@ -15,12 +15,12 @@ use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 
 use base64::prelude::*;
-use tucant::models::ModuleMenuPathPart;
-use tucant::models::ModuleResponse;
-use tucant::models::TucanSession;
-use tucant::tucan::Tucan;
-use tucant::url::Moduledetails;
-use tucant::url::TucanProgram;
+use tucant_core::models::ModuleMenuPathPart;
+use tucant_core::models::ModuleResponse;
+use tucant_core::models::TucanSession;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Moduledetails;
+use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]

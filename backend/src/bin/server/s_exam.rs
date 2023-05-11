@@ -8,16 +8,16 @@ use crate::WithTucanUrl;
 use axum::extract::State;
 use axum::Json;
 
-use tucant::models::Exam;
-use tucant::models::MaybeCompleteCourse;
-use tucant::models::MaybeCompleteModule;
-use tucant::models::TucanSession;
+use tucant_core::models::Exam;
+use tucant_core::models::MaybeCompleteCourse;
+use tucant_core::models::MaybeCompleteModule;
+use tucant_core::models::TucanSession;
 
 use base64::prelude::*;
-use tucant::tucan::Tucan;
-use tucant::url::Examdetails;
-use tucant::url::TucanProgram;
-use tucant::MyError;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Examdetails;
+use tucant_core::url::TucanProgram;
+use tucant_core::MyError;
 use tucant_derive::ts;
 
 #[ts]

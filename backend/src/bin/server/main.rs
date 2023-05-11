@@ -67,20 +67,20 @@ use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
 
 use tracing::warn;
-use tucant::schema::{sessions, users_unfinished};
-use tucant::MyError;
+use tucant_core::schema::{sessions, users_unfinished};
+use tucant_core::MyError;
 
-use tucant::models::{TucanSession, UndoneUser};
+use tucant_core::models::{TucanSession, UndoneUser};
 
 use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
-use tucant::typescript::TypescriptableApp;
+use tucant_core::typescript::TypescriptableApp;
 
 use std::io::Write;
-use tucant::tucan::Tucan;
-use tucant::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
+use tucant_core::tucan::Tucan;
+use tucant_core::url::{parse_tucan_url, Coursedetails, Moduledetails, Registration};
 use tucant_derive::{ts, Typescriptable};
 use tucant_derive_lib::Typescriptable;
 
@@ -218,23 +218,29 @@ async fn login_hack(
         ));
 
         let url = match parse_tucan_url(&input.redirect).program {
-            tucant::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
+            tucant_core::url::TucanProgram::Registration(registration) => Redirect::to(&format!(
                 "http://localhost:5173/modules/{}",
                 BASE64_URL_SAFE_NO_PAD.encode(registration.path,)
             )),
-            tucant::url::TucanProgram::RootRegistration(_) => {
+            tucant_core::url::TucanProgram::RootRegistration(_) => {
                 Redirect::to("http://localhost:5173/modules/")
             }
-            tucant::url::TucanProgram::Moduledetails(module_details) => Redirect::to(&format!(
-                "http://localhost:5173/module/{}",
-                BASE64_URL_SAFE_NO_PAD.encode(module_details.id,)
-            )),
-            tucant::url::TucanProgram::Coursedetails(course_details) => Redirect::to(&format!(
-                "http://localhost:5173/course/{}",
-                BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
-            )),
-            tucant::url::TucanProgram::Externalpages(_) => Redirect::to("http://localhost:5173/"),
-            tucant::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
+            tucant_core::url::TucanProgram::Moduledetails(module_details) => {
+                Redirect::to(&format!(
+                    "http://localhost:5173/module/{}",
+                    BASE64_URL_SAFE_NO_PAD.encode(module_details.id,)
+                ))
+            }
+            tucant_core::url::TucanProgram::Coursedetails(course_details) => {
+                Redirect::to(&format!(
+                    "http://localhost:5173/course/{}",
+                    BASE64_URL_SAFE_NO_PAD.encode(course_details.id,)
+                ))
+            }
+            tucant_core::url::TucanProgram::Externalpages(_) => {
+                Redirect::to("http://localhost:5173/")
+            }
+            tucant_core::url::TucanProgram::Mlsstart(_) => Redirect::to("http://localhost:5173/"),
             other => {
                 println!("unknown redirect for {:?}", other);
                 Redirect::to("http://localhost:5173/")

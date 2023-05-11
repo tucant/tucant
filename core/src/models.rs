@@ -49,6 +49,7 @@ use crate::schema::{
     module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_course_groups,
     user_courses, user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
 };
+use crate::MyError;
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -765,30 +766,6 @@ pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,
     pub session_id: String,
-}
-
-#[derive(Debug)]
-pub struct MyError {
-    err: anyhow::Error,
-}
-
-impl std::fmt::Display for MyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.err.fmt(f)
-    }
-}
-
-impl<E: Into<anyhow::Error>> From<E> for MyError {
-    fn from(err: E) -> Self {
-        Self { err: err.into() }
-    }
-}
-
-impl IntoResponse for MyError {
-    fn into_response(self) -> Response {
-        println!("{:?}", self.err);
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", self.err)).into_response()
-    }
 }
 
 // TODO FIMXE don't have this in frontend

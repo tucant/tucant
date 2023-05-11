@@ -5,7 +5,7 @@
 use crate::s_search_course::SearchResult;
 use diesel::dsl::sql;
 use diesel::sql_types::Double;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 use axum::Json;
@@ -22,8 +22,8 @@ use diesel_full_text_search::{
 use itertools::Itertools;
 use opensearch::SearchParts;
 use serde_json::{json, Value};
-use tucant::models::TucanSession;
-use tucant::{schema::modules_unfinished, tucan::Tucan};
+use tucant_core::models::TucanSession;
+use tucant_core::{schema::modules_unfinished, tucan::Tucan};
 use tucant_derive::ts;
 
 #[ts]

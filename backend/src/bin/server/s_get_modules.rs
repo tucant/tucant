@@ -4,7 +4,7 @@
 
 use crate::utils::calculate_paths;
 use crate::WithTucanUrl;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 
@@ -18,13 +18,13 @@ use diesel_async::RunQueryDsl;
 
 use base64::prelude::*;
 
-use tucant::models::ModuleMenuPathPart;
-use tucant::models::ModuleMenuResponse;
-use tucant::models::TucanSession;
-use tucant::tucan::Tucan;
-use tucant::url::Registration;
-use tucant::url::RootRegistration;
-use tucant::url::TucanProgram;
+use tucant_core::models::ModuleMenuPathPart;
+use tucant_core::models::ModuleMenuResponse;
+use tucant_core::models::TucanSession;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Registration;
+use tucant_core::url::RootRegistration;
+use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]
@@ -40,7 +40,7 @@ pub async fn get_modules(
             let module_menu = tucan.root_registration().await?;
             ModuleMenuResponse {
                 module_menu: module_menu.clone(),
-                entries: tucant::models::Registration {
+                entries: tucant_core::models::Registration {
                     modules_and_courses: vec![],
                     submenus: vec![module_menu],
                 },

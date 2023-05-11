@@ -1,5 +1,5 @@
 use gloo_net::http::Request;
-use tucant::models::ModuleResponse;
+use tucant_core::models::ModuleResponse;
 use yew::prelude::*;
 use yew::suspense::use_future;
 

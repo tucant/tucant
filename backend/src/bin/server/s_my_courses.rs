@@ -4,18 +4,18 @@
 
 use crate::AppState;
 use crate::WithTucanUrl;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 use axum::Json;
 
-use tucant::models::CourseGroup;
-use tucant::models::MaybeCompleteCourse;
-use tucant::models::TucanSession;
+use tucant_core::models::CourseGroup;
+use tucant_core::models::MaybeCompleteCourse;
+use tucant_core::models::TucanSession;
 
-use tucant::tucan::Tucan;
-use tucant::url::Profcourses;
-use tucant::url::TucanProgram;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Profcourses;
+use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]

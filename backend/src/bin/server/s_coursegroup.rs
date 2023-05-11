@@ -16,16 +16,16 @@ use icalendar::Component;
 use icalendar::Event;
 use icalendar::EventLike;
 use icalendar::EventStatus;
-use tucant::models::CompleteCourse;
-use tucant::models::CourseGroup;
-use tucant::models::CourseGroupEvent;
-use tucant::models::TucanSession;
+use tucant_core::models::CompleteCourse;
+use tucant_core::models::CourseGroup;
+use tucant_core::models::CourseGroupEvent;
+use tucant_core::models::TucanSession;
 
 use base64::prelude::*;
-use tucant::tucan::Tucan;
-use tucant::url::Coursedetails;
-use tucant::url::TucanProgram;
-use tucant::MyError;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Coursedetails;
+use tucant_core::url::TucanProgram;
+use tucant_core::MyError;
 use tucant_derive::ts;
 
 #[ts]

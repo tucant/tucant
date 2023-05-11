@@ -4,7 +4,7 @@
 
 use diesel::dsl::sql;
 use diesel::sql_types::Double;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 use axum::Json;
@@ -19,7 +19,7 @@ use diesel_full_text_search::{
 };
 use serde::Serialize;
 
-use tucant::{
+use tucant_core::{
     models::{as_base64, TucanSession},
     schema::courses_unfinished,
     tucan::Tucan,

@@ -13,7 +13,7 @@ use crate::TucanSession;
 use axum::body::StreamBody;
 use futures::StreamExt;
 use reqwest::header;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use async_stream::try_stream;
 use axum::body::Bytes;
@@ -23,12 +23,12 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 
-use tucant::models::MaybeCompleteCourse;
-use tucant::models::MaybeCompleteModule;
-use tucant::tucan::Authenticated;
-use tucant::tucan::Unauthenticated;
-use tucant::url::Action;
-use tucant::url::TucanProgram;
+use tucant_core::models::MaybeCompleteCourse;
+use tucant_core::models::MaybeCompleteModule;
+use tucant_core::tucan::Authenticated;
+use tucant_core::tucan::Unauthenticated;
+use tucant_core::url::Action;
+use tucant_core::url::TucanProgram;
 
 #[derive(Clone, Copy)]
 pub enum ModulesOrCourses {
@@ -166,7 +166,7 @@ fn fetch_registration(
                             .await
                             .unwrap()
                         {
-                            tucant::tucan_user::CourseOrCourseGroup::Course(course) => {
+                            tucant_core::tucan_user::CourseOrCourseGroup::Course(course) => {
                                 stream
                                     .yield_item(Bytes::from(format!(
                                         "\ncourse {:?}",
@@ -174,7 +174,9 @@ fn fetch_registration(
                                     )))
                                     .await;
                             }
-                            tucant::tucan_user::CourseOrCourseGroup::CourseGroup(_) => panic!(),
+                            tucant_core::tucan_user::CourseOrCourseGroup::CourseGroup(_) => {
+                                panic!()
+                            }
                         }
                     }
                 }

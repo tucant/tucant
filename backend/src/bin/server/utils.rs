@@ -3,7 +3,7 @@ use std::{
     hash::Hash,
 };
 
-use tucant::models::PathLike;
+use tucant_core::models::PathLike;
 
 pub fn calculate_paths<TI: Eq + Hash, T: PathLike<TI> + Clone>(
     path_to_root: &[T],

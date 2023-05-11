@@ -4,15 +4,15 @@
 
 use crate::AppState;
 use crate::WithTucanUrl;
-use tucant::MyError;
+use tucant_core::MyError;
 
 use axum::extract::State;
 use axum::Json;
-use tucant::models::MaybeCompleteModule;
-use tucant::models::TucanSession;
-use tucant::tucan::Tucan;
-use tucant::url::Mymodules;
-use tucant::url::TucanProgram;
+use tucant_core::models::MaybeCompleteModule;
+use tucant_core::models::TucanSession;
+use tucant_core::tucan::Tucan;
+use tucant_core::url::Mymodules;
+use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
 #[ts]

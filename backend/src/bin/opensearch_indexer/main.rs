@@ -12,7 +12,7 @@ use rand::Rng;
 
 use base64::prelude::*;
 use serde_json::{json, Value};
-use tucant::{
+use tucant_core::{
     models::{InternalModule, MaybeCompleteModule, MODULES_UNFINISHED},
     schema::modules_unfinished,
     tucan::Tucan,
