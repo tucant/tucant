@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
-use diesel::prelude::*;
+use diesel::{prelude::*, r2d2};
 use diesel::{
     r2d2::{ConnectionManager, Pool},
     OptionalExtension, SqliteConnection,
@@ -93,7 +93,11 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
 }
 
 impl Tucan<Unauthenticated> {
-    pub fn new(pool: Pool<ConnectionManager<SqliteConnection>>) -> anyhow::Result<Self> {
+    pub fn new() -> anyhow::Result<Self> {
+        let manager = ConnectionManager::<SqliteConnection>::new("db.sqlite");
+        let pool = r2d2::Pool::builder()
+            .build(manager)
+            .expect("Failed to create pool.");
         /*
                 let url = Url::parse("https://localhost:9200")?;
 

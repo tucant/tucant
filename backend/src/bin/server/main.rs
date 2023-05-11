@@ -14,8 +14,8 @@ mod s_search_course;
 mod s_search_module;
 mod s_setup;
 mod utils;
-
 use axum::Json;
+use diesel::RunQueryDsl;
 
 use axum::extract::FromRef;
 
@@ -100,7 +100,9 @@ use crate::s_module::ModuleTs;
 use crate::s_my_exams::my_exams;
 use crate::s_my_exams::MyExamsTs;
 use crate::s_my_modules::MyModulesTs;
+#[cfg(feature = "full-text-search")]
 use crate::s_search_module::search_module_opensearch;
+#[cfg(feature = "full-text-search")]
 use crate::s_search_module::SearchModuleTs;
 use crate::s_setup::module_urls;
 use crate::s_setup::setup;
@@ -188,32 +190,23 @@ async fn login_hack(
             .await?;
         let tucan_session = tucan_user.state.session.clone();
         let user = UndoneUser::new(tucan_user.state.session.matriculation_number);
-        connection
-            .build_transaction()
-            .run(|mut connection| {
-                Box::pin(async move {
-                    diesel::insert_into(users_unfinished::table)
-                        .values(user)
-                        .on_conflict(users_unfinished::matriculation_number)
-                        .do_nothing()
-                        .execute(&mut connection)
-                        .await?;
 
-                    diesel::insert_into(sessions::table)
-                        .values(tucan_session)
-                        .on_conflict((
-                            sessions::matriculation_number,
-                            sessions::session_nr,
-                            sessions::session_id,
-                        ))
-                        .do_nothing()
-                        .execute(&mut connection)
-                        .await?;
+        diesel::insert_into(users_unfinished::table)
+            .values(user)
+            .on_conflict(users_unfinished::matriculation_number)
+            .do_nothing()
+            .execute(&mut connection)?;
 
-                    Ok::<(), diesel::result::Error>(())
-                })
-            })
-            .await?;
+        diesel::insert_into(sessions::table)
+            .values(tucan_session)
+            .on_conflict((
+                sessions::matriculation_number,
+                sessions::session_nr,
+                sessions::session_id,
+            ))
+            .do_nothing()
+            .execute(&mut connection)?;
+
         cookie_jar = cookie_jar.add(Cookie::new(
             "session",
             serde_json::to_string(&tucan_user.state.session)?,
@@ -380,17 +373,10 @@ fn main() -> anyhow::Result<()> {
                     "http://localhost:5173".parse::<HeaderValue>().unwrap(),
                 ]);
 
-            let app = app
+            let mut app = app
                 .route::<IndexTs>("/", post(index))
                 .route::<LoginTs>("/login", post(login))
                 .route::<LogoutTs>("/logout", post(logout))
-                .route::<GetModulesTs>("/modules", post(get_modules))
-                .route::<SearchModuleTs>("/search-modules", post(search_module))
-                .route::<SearchModuleOpensearchTs>(
-                    "/search-modules-opensearch",
-                    post(search_module_opensearch),
-                )
-                .route::<SearchCourseTs>("/search-course", post(search_course))
                 .route::<CourseTs>("/course", post(course))
                 .route::<CourseGroupTs>("/course-group", post(course_group))
                 .route::<ModuleTs>("/module", post(module))
@@ -399,6 +385,18 @@ fn main() -> anyhow::Result<()> {
                 .route::<MyModulesTs>("/my-modules", post(my_modules))
                 .route::<MyCoursesTs>("/my-courses", post(my_courses))
                 .route::<CoursesTs>("/courses", post(courses));
+
+            #[cfg(feature = "full-text-search")]
+            {
+                app = app
+                    .route::<GetModulesTs>("/modules", post(get_modules))
+                    .route::<SearchModuleTs>("/search-modules", post(search_module))
+                    .route::<SearchModuleOpensearchTs>(
+                        "/search-modules-opensearch",
+                        post(search_module_opensearch),
+                    )
+                    .route::<SearchCourseTs>("/search-course", post(search_course));
+            }
 
             let should_we_block = true;
             let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
