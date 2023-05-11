@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use diesel::QueryDsl;
-use diesel_async::RunQueryDsl;
 use itertools::Itertools;
 use opensearch::{
     http::request::JsonBody, indices::IndicesCreateParts, params::Refresh, BulkParts,

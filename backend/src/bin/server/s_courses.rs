@@ -45,7 +45,6 @@ pub async fn courses(
             (result.0, result.1, result.2, Vec::new())
         }
         Some(ref input) => {
-            use diesel_async::RunQueryDsl;
 
             let result = tucan
                 .vv(Action {

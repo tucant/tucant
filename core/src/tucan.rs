@@ -94,7 +94,10 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
 
 impl Tucan<Unauthenticated> {
     pub fn new() -> anyhow::Result<Self> {
-        let manager = ConnectionManager::<SqliteConnection>::new("db.sqlite");
+        dotenv().ok();
+        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+        let manager = ConnectionManager::<SqliteConnection>::new(database_url);
         let pool = r2d2::Pool::builder()
             .build(manager)
             .expect("Failed to create pool.");

@@ -13,7 +13,6 @@ use base64::prelude::*;
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::TextExpressionMethods;
-use diesel_async::RunQueryDsl;
 use diesel_full_text_search::TsVectorExtensions;
 use diesel_full_text_search::{
     configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
