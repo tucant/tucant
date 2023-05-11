@@ -1,5 +1,12 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
+use axum::extract::FromRef;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use axum_extra::extract::cookie::Key;
+use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
 
 use diesel::query_builder::UndecoratedInsertRecord;
@@ -8,6 +15,7 @@ use diesel::sql_types::Binary;
 use diesel::sql_types::Int4;
 use diesel::sql_types::SmallInt;
 use diesel::sql_types::Timestamp;
+use reqwest::StatusCode;
 
 use std::collections::VecDeque;
 
@@ -757,6 +765,57 @@ pub struct TucanSession {
     pub matriculation_number: i32,
     pub session_nr: i64,
     pub session_id: String,
+}
+
+#[derive(Debug)]
+pub struct MyError {
+    err: anyhow::Error,
+}
+
+impl std::fmt::Display for MyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.err.fmt(f)
+    }
+}
+
+impl<E: Into<anyhow::Error>> From<E> for MyError {
+    fn from(err: E) -> Self {
+        Self { err: err.into() }
+    }
+}
+
+impl IntoResponse for MyError {
+    fn into_response(self) -> Response {
+        println!("{:?}", self.err);
+        (StatusCode::INTERNAL_SERVER_ERROR, format!("{:?}", self.err)).into_response()
+    }
+}
+
+// TODO FIMXE don't have this in frontend
+#[axum::async_trait]
+impl<S> FromRequestParts<S> for TucanSession
+where
+    Key: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let cookie_jar = PrivateCookieJar::<Key>::from_request_parts(parts, state)
+            .await
+            .map_err(axum::response::IntoResponse::into_response)?;
+
+        let session: Self = serde_json::from_str(
+            cookie_jar
+                .get("session")
+                .ok_or_else(|| {
+                    (axum::http::StatusCode::UNAUTHORIZED, "session not found").into_response()
+                })?
+                .value(),
+        )
+        .map_err(|err| Into::<MyError>::into(err).into_response())?;
+        Ok(session)
+    }
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]

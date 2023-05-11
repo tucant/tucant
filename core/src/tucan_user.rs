@@ -351,46 +351,69 @@ impl Tucan<Authenticated> {
             .collect();
         res?;
 
-        diesel::insert_into(module_menu_module::table)
-            .values(
-                modules
-                    .iter()
-                    .map(|m| &m.0)
-                    .map(|m| ModuleMenuEntryModule {
-                        module_id: m.tucan_id().clone(),
-                        module_menu_id: url.path.clone(),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict_do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = modules
+            .iter()
+            .map(|m| &m.0)
+            .map(|m| ModuleMenuEntryModule {
+                module_id: m.tucan_id().clone(),
+                module_menu_id: url.path.clone(),
+            })
+            .map(|module| -> Result<_, _> {
+                diesel::insert_into(module_menu_module::table)
+                    .values(module)
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
-        diesel::insert_into(courses_unfinished::table)
-            .values(modules.iter().flat_map(|m| &m.1).collect::<Vec<_>>())
-            .on_conflict_do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = modules
+            .iter()
+            .flat_map(|m| &m.1)
+            .map(|module| -> Result<_, _> {
+                diesel::insert_into(courses_unfinished::table)
+                    .values(module)
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
-        diesel::insert_into(module_courses::table)
-            .values(
-                modules
-                    .clone()
-                    .into_iter()
-                    .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
-                    .map(|m| ModuleCourse {
-                        module: m.0.tucan_id().clone(),
-                        course: m.1.tucan_id().clone(),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict_do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = modules
+            .clone()
+            .into_iter()
+            .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
+            .map(|m| ModuleCourse {
+                module: m.0.tucan_id().clone(),
+                course: m.1.tucan_id().clone(),
+            })
+            .map(|module| -> Result<_, _> {
+                diesel::insert_into(module_courses::table)
+                    .values(module)
+                    .on_conflict_do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
-        diesel::insert_into(module_menu_unfinished::table)
-            .values(&submenus[..])
-            .on_conflict(module_menu_unfinished::tucan_id)
-            .do_update()
-            .set(module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)))
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = submenus
+            .iter()
+            .map(|submenu| -> Result<_, _> {
+                diesel::insert_into(module_menu_unfinished::table)
+                    .values(submenu)
+                    .on_conflict(module_menu_unfinished::tucan_id)
+                    .do_update()
+                    .set(
+                        module_menu_unfinished::parent.eq(excluded(module_menu_unfinished::parent)),
+                    )
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
         diesel::update(module_menu_unfinished::table)
             .filter(module_menu_unfinished::tucan_id.eq(url.path.clone()))
@@ -424,16 +447,16 @@ impl Tucan<Authenticated> {
                 .get_result::<Option<NaiveDateTime>>(&mut connection)?;
 
             if user_studies_already_fetched.is_some() {
-                Ok::<Option<Vec<MaybeCompleteModule>>, diesel::result::Error>(Some(
+                Some(
                     user_modules::table
                         .filter(user_modules::user_id.eq(&tu_id))
                         .inner_join(modules_unfinished::table)
                         .select(MODULES_UNFINISHED)
                         .order(modules_unfinished::title)
                         .load::<MaybeCompleteModule>(&mut connection)?,
-                ))
+                )
             } else {
-                Ok(None)
+                None
             }
         };
 
@@ -498,11 +521,18 @@ impl Tucan<Authenticated> {
 
         let matriculation_number = self.state.session.matriculation_number;
         {
-            diesel::insert_into(user_modules::table)
-                .values(my_user_studies)
-                .on_conflict((user_modules::user_id, user_modules::module_id))
-                .do_nothing()
-                .execute(&mut connection)?;
+            // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+            let res: Result<Vec<usize>, _> = my_user_studies
+                .iter()
+                .map(|my_user_study| -> Result<_, _> {
+                    diesel::insert_into(user_modules::table)
+                        .values(my_user_study)
+                        .on_conflict((user_modules::user_id, user_modules::module_id))
+                        .do_nothing()
+                        .execute(&mut connection)
+                })
+                .collect();
+            res?;
 
             diesel::update(users_unfinished::table)
                 .filter(users_unfinished::matriculation_number.eq(matriculation_number))
@@ -603,20 +633,36 @@ impl Tucan<Authenticated> {
 
             let tu_id = self.state.session.matriculation_number;
             {
-                diesel::insert_into(user_courses::table)
-                    .values(my_user_studies.0)
-                    .on_conflict((user_courses::user_id, user_courses::course_id))
-                    .do_nothing()
-                    .execute(&mut connection)?;
+                // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+                let res: Result<Vec<usize>, _> = my_user_studies
+                    .0
+                    .iter()
+                    .map(|my_user_study| -> Result<_, _> {
+                        diesel::insert_into(user_courses::table)
+                            .values(my_user_study)
+                            .on_conflict((user_courses::user_id, user_courses::course_id))
+                            .do_nothing()
+                            .execute(&mut connection)
+                    })
+                    .collect();
+                res?;
 
-                diesel::insert_into(user_course_groups::table)
-                    .values(my_user_studies.1)
-                    .on_conflict((
-                        user_course_groups::user_id,
-                        user_course_groups::course_group_id,
-                    ))
-                    .do_nothing()
-                    .execute(&mut connection)?;
+                // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+                let res: Result<Vec<usize>, _> = my_user_studies
+                    .1
+                    .iter()
+                    .map(|my_user_study| -> Result<_, _> {
+                        diesel::insert_into(user_course_groups::table)
+                            .values(my_user_study)
+                            .on_conflict((
+                                user_course_groups::user_id,
+                                user_course_groups::course_group_id,
+                            ))
+                            .do_nothing()
+                            .execute(&mut connection)
+                    })
+                    .collect();
+                res?;
 
                 diesel::update(users_unfinished::table)
                     .filter(users_unfinished::matriculation_number.eq(tu_id))
@@ -1168,7 +1214,7 @@ impl Tucan<Authenticated> {
                     .values(course_exam)
                     .on_conflict(course_exams::all_columns)
                     .do_nothing()
-                    .execute(&mut connection)?;
+                    .execute(&mut connection)
             })
             .collect();
         res?;
