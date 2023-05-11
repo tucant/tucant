@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
-use diesel::{prelude::*, r2d2};
+use diesel::{prelude::{Identifiable, Insertable, PgArrayExpressionMethods, PgJsonbExpressionMethods, PgNetExpressionMethods, PgRangeExpressionMethods, Queryable, QueryableByName, RunQueryDsl}, r2d2};
 use diesel::{
     r2d2::{ConnectionManager, Pool},
     OptionalExtension, SqliteConnection,
@@ -509,7 +509,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             client: self.client.clone(),
             semaphore: self.semaphore.clone(),
             state: Authenticated {
-                session: session.clone(),
+                session,
             },
         })
     }
@@ -1454,7 +1454,6 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 course: c.tucan_id().clone(),
                 module: module.tucan_id.clone(),
             })
-            .into_iter()
             .map(|course| -> Result<_, _> {
                 diesel::insert_into(module_courses::table)
                     .values(course)

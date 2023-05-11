@@ -15,7 +15,7 @@ use diesel::sql_types::Binary;
 use diesel::sql_types::Int4;
 use diesel::sql_types::SmallInt;
 use diesel::sql_types::Timestamp;
-use reqwest::StatusCode;
+
 
 use std::collections::VecDeque;
 

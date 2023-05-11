@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use diesel::prelude::*;
+use diesel::prelude::{Identifiable, Insertable, RunQueryDsl};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::{
@@ -383,7 +383,7 @@ impl Tucan<Authenticated> {
 
         // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
         let res: Result<Vec<usize>, _> = modules
-            .clone()
+            
             .into_iter()
             .flat_map(|m| m.1.into_iter().map(move |e| (m.0.clone(), e)))
             .map(|m| ModuleCourse {

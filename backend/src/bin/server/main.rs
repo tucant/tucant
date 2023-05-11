@@ -49,7 +49,7 @@ use reqwest::header::CONTENT_TYPE;
 use reqwest::Method;
 
 use s_course::course;
-use s_get_modules::get_modules;
+
 use s_module::module;
 use s_my_courses::my_courses;
 use s_my_courses::MyCoursesTs;
@@ -95,7 +95,7 @@ use crate::s_courses::courses;
 use crate::s_courses::CoursesTs;
 use crate::s_exam::exam;
 use crate::s_exam::ExamTs;
-use crate::s_get_modules::GetModulesTs;
+
 use crate::s_module::ModuleTs;
 use crate::s_my_exams::my_exams;
 use crate::s_my_exams::MyExamsTs;
@@ -373,7 +373,7 @@ fn main() -> anyhow::Result<()> {
                     "http://localhost:5173".parse::<HeaderValue>().unwrap(),
                 ]);
 
-            let mut app = app
+            let app = app
                 .route::<IndexTs>("/", post(index))
                 .route::<LoginTs>("/login", post(login))
                 .route::<LogoutTs>("/logout", post(logout))

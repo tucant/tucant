@@ -2,28 +2,25 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::s_search_course::SearchResult;
-use diesel::dsl::sql;
-use diesel::sql_types::Double;
-use tucant_core::MyError;
 
-use axum::extract::State;
-use axum::Json;
-use base64::prelude::*;
-use diesel::ExpressionMethods;
-use diesel::QueryDsl;
-use diesel::TextExpressionMethods;
-use diesel_full_text_search::TsVectorExtensions;
-use diesel_full_text_search::{
-    configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
-    websearch_to_tsquery_with_search_config,
-};
-use itertools::Itertools;
-use opensearch::SearchParts;
-use serde_json::{json, Value};
-use tucant_core::models::TucanSession;
-use tucant_core::{schema::modules_unfinished, tucan::Tucan};
-use tucant_derive::ts;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #[cfg(feature = "full-text-search")]
 #[ts]

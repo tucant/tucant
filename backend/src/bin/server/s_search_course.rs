@@ -2,28 +2,23 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use diesel::dsl::sql;
-use diesel::sql_types::Double;
-use tucant_core::MyError;
 
-use axum::extract::State;
-use axum::Json;
-use diesel::ExpressionMethods;
-use diesel::TextExpressionMethods;
-use diesel::{QueryDsl, Queryable};
-use diesel_full_text_search::TsVectorExtensions;
-use diesel_full_text_search::{
-    configuration::TsConfigurationByName, ts_headline_with_search_config, ts_rank_cd_normalized,
-    websearch_to_tsquery_with_search_config,
-};
+
+
+
+
+
+
+
+use diesel::{Queryable};
+
+
 use serde::Serialize;
 
 use tucant_core::{
-    models::{as_base64, TucanSession},
-    schema::courses_unfinished,
-    tucan::Tucan,
+    models::{as_base64},
 };
-use tucant_derive::{ts, Typescriptable};
+use tucant_derive::{Typescriptable};
 
 #[derive(Queryable, Serialize, Typescriptable)]
 pub struct SearchResult {
