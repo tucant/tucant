@@ -1429,7 +1429,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
         // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
         let res: Result<Vec<usize>, _> = courses
-            .into_iter()
+            .iter()
             .map(|course| -> Result<_, _> {
                 diesel::insert_into(courses_unfinished::table)
                     .values(course)
@@ -1440,25 +1440,36 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .collect();
         res?;
 
-        diesel::insert_into(module_courses::table)
-            .values(
-                courses
-                    .iter()
-                    .map(|c| ModuleCourse {
-                        course: c.tucan_id().clone(),
-                        module: module.tucan_id.clone(),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .on_conflict(module_courses::all_columns)
-            .do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = courses
+            .iter()
+            .map(|c| ModuleCourse {
+                course: c.tucan_id().clone(),
+                module: module.tucan_id.clone(),
+            })
+            .into_iter()
+            .map(|course| -> Result<_, _> {
+                diesel::insert_into(module_courses::table)
+                    .values(course)
+                    .on_conflict(module_courses::all_columns)
+                    .do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
-        diesel::insert_into(module_exam_types::table)
-            .values(&modul_exam_types)
-            .on_conflict((module_exam_types::module_id, module_exam_types::exam_type))
-            .do_nothing()
-            .execute(&mut connection)?;
+        // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
+        let res: Result<Vec<usize>, _> = modul_exam_types
+            .into_iter()
+            .map(|modul_exam_type| -> Result<_, _> {
+                diesel::insert_into(module_exam_types::table)
+                    .values(&modul_exam_type)
+                    .on_conflict((module_exam_types::module_id, module_exam_types::exam_type))
+                    .do_nothing()
+                    .execute(&mut connection)
+            })
+            .collect();
+        res?;
 
         Ok(())
     }

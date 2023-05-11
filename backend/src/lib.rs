@@ -1,11 +1,22 @@
 pub mod typescript;
 
+use std::path::Display;
+
+use axum::{
+    extract::FromRequestParts,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
+use deadpool::managed::Pool;
+use diesel_async::{pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection};
+use dotenvy::dotenv;
+
 #[derive(Debug)]
 pub struct MyError {
     err: anyhow::Error,
 }
 
-impl Display for MyError {
+impl std::fmt::Display for MyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.err.fmt(f)
     }
@@ -49,8 +60,6 @@ where
         Ok(session)
     }
 }
-
-use dotenvy::dotenv;
 
 fn get_config() -> AsyncDieselConnectionManager<diesel_async::AsyncPgConnection> {
     dotenv().ok();

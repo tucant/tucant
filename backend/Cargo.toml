@@ -58,8 +58,8 @@ diesel_migrations       = { default-features = false, optional = true, version =
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.15.4" }
+tucant-core = { path = "../core" }
 
 [features]
-default = ["js"]
-js = [ "serde_json", "diesel" ]
-server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]
+default = ["server"]
+server = ["tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "diesel-async", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]

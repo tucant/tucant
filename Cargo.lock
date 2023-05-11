@@ -2813,6 +2813,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "tucant-core",
  "tucant_derive",
  "tucant_derive_lib",
  "url",
