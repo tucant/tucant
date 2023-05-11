@@ -6,7 +6,9 @@
 #![allow(
     clippy::missing_panics_doc,
     clippy::missing_errors_doc,
-    clippy::multiple_crate_versions
+    clippy::multiple_crate_versions,
+    clippy::unused_async,
+    dead_code
 )]
 
 use axum::response::{IntoResponse, Response};
