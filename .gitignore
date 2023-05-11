@@ -11,3 +11,4 @@ target/
 out/
 .env
 corpus
+*.db
