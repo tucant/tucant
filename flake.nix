@@ -27,6 +27,7 @@
                   rust.toolchain
                   rust.rust-analyzer
                   fenix.packages.${system}.targets.wasm32-unknown-unknown.latest.toolchain
+                  fenix.packages.${system}.targets.wasm32-unknown-emscripten.latest.toolchain
                 ])
                 llvmPackages_latest.clang
                 llvmPackages_latest.bintools
@@ -35,10 +36,10 @@
                 nodejs_latest
                 pkg-config
                 openssl.dev
+                emscripten
               ];
             buildInputs = with pkgs; [
               postgresql_15
-              sqlite
             ];
             RUST_BACKTRACE = 1;
 

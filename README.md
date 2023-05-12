@@ -84,9 +84,11 @@ https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/emscripten-packages.
 
 https://github.com/rustwasm/wasm-bindgen/pull/2209
 
+https://users.rust-lang.org/t/wasm32-unknown-unknown-vs-wasm32-wasi/78325
+
 almost works:
 export EM_CACHE=$(pwd)/.emscriptencache
-cargo build -Zbuild-std --target wasm32-unknown-emscripten
+cargo build --target wasm32-unknown-emscripten
 
 ### Backend
 

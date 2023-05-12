@@ -58,6 +58,7 @@ async-recursion         = { default-features = false, optional = true, version =
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.15.4" }
 tucant-core = { path = "../core" }
+rusqlite = { version = "0.26.0", features = ["bundled"] }
 
 [features]
 default = ["server"]
