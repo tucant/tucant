@@ -28,6 +28,7 @@
                   rust.rust-analyzer
                   fenix.packages.${system}.targets.wasm32-unknown-unknown.latest.toolchain
                   fenix.packages.${system}.targets.wasm32-unknown-emscripten.latest.toolchain
+                  fenix.packages.${system}.targets.wasm32-wasi.latest.toolchain
                 ])
                 llvmPackages_latest.clang
                 llvmPackages_latest.bintools

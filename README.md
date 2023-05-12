@@ -90,6 +90,9 @@ almost works:
 export EM_CACHE=$(pwd)/.emscriptencache
 cargo build --target wasm32-unknown-emscripten
 
+https://github.com/strawlab/iana-time-zone/blob/main/Cargo.toml
+seems like some dependencies use wasm-bindgen so we can't use emscripten?
+
 ### Backend
 
 ```bash
