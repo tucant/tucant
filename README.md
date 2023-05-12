@@ -76,6 +76,18 @@ podman build . --pull -f Dockerfile-postgres --tag postgres-hunspell
 podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
 
+https://sqlite.org/wasm/doc/trunk/index.md
+
+https://github.com/NixOS/nixpkgs/pull/217428
+
+https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/emscripten-packages.nix
+
+https://github.com/rustwasm/wasm-bindgen/pull/2209
+
+almost works:
+export EM_CACHE=$(pwd)/.emscriptencache
+cargo build -Zbuild-std --target wasm32-unknown-emscripten
+
 ### Backend
 
 ```bash
