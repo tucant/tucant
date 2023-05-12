@@ -1,12 +1,5 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
-use axum::extract::FromRef;
-use axum::extract::FromRequestParts;
-use axum::http::request::Parts;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use axum_extra::extract::cookie::Key;
-use axum_extra::extract::PrivateCookieJar;
 use base64::prelude::*;
 
 use diesel::query_builder::UndecoratedInsertRecord;
@@ -768,6 +761,23 @@ pub struct TucanSession {
 }
 
 // TODO FIMXE don't have this in frontend
+
+#[cfg(feature = "axum")]
+use axum::extract::FromRef;
+#[cfg(feature = "axum")]
+use axum::extract::FromRequestParts;
+#[cfg(feature = "axum")]
+use axum::http::request::Parts;
+#[cfg(feature = "axum")]
+use axum::response::IntoResponse;
+#[cfg(feature = "axum")]
+use axum::response::Response;
+#[cfg(feature = "axum")]
+use axum_extra::extract::cookie::Key;
+#[cfg(feature = "axum")]
+use axum_extra::extract::PrivateCookieJar;
+
+#[cfg(feature = "axum")]
 #[axum::async_trait]
 impl<S> FromRequestParts<S> for TucanSession
 where
