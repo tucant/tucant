@@ -113,12 +113,17 @@ impl Tucan<Unauthenticated> {
                     .build()?;
                 let opensearch = OpenSearch::new(transport);
         */
+        let client = reqwest::Client::builder();
+        #[cfg(not(feature = "js"))]
+        {
+            client = client
+                .connection_verbose(true)
+                .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant");
+        }
+
         Ok(Self {
             pool,
-            client: reqwest::Client::builder()
-                .connection_verbose(true)
-                .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
-                .build()?,
+            client: client.build()?,
             semaphore: Arc::new(Semaphore::new(3)),
             state: Unauthenticated,
         })
@@ -588,13 +593,18 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 ..
             } = url
             {
+                #[cfg(not(feature = "js"))]
                 let session_cookie = res_headers.cookies().next().unwrap();
+                #[cfg(not(feature = "js"))]
                 let id = session_cookie.value().to_string();
 
                 res_headers.text().await?;
 
                 let session_nr = nr.try_into().unwrap();
+                #[cfg(not(feature = "js"))]
                 let session_id = id.to_string();
+                #[cfg(feature = "js")]
+                let session_id = "FAKESESSIONID".to_string();
 
                 let user = self
                     .tucan_session_from_session_data(session_nr, session_id.clone())
