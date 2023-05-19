@@ -113,7 +113,7 @@ impl Tucan<Unauthenticated> {
                     .build()?;
                 let opensearch = OpenSearch::new(transport);
         */
-        let client = reqwest::Client::builder();
+        let mut client = reqwest::Client::builder();
         #[cfg(not(feature = "js"))]
         {
             client = client
