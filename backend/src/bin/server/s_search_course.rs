@@ -27,8 +27,8 @@ pub struct SearchResult {
 #[ts]
 pub async fn search_course(
     _: TucanSession,
-    tucan: State<Tucan>,
-    input: Json<String>,
+    _tucan: State<Tucan>,
+    _input: Json<String>,
 ) -> Result<Json<Vec<SearchResult>>, MyError> {
     #[cfg(feature = "full-text-search")]
     {

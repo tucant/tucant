@@ -15,7 +15,7 @@ categories = ["accessibility", "api-bindings", "caching"]
 # needed in build-script output code
 serde           = { default-features = false, features = [ "alloc", "std", "derive"], version = "1" }
 serde_repr      = { default-features = false, version = "0.1" }
-serde_with      = { default-features = false, features = [ "macros" ], version = "2" }
+serde_with      = { default-features = false, features = [ "macros" ], version = "3" }
 
 out-dir-include = { default-features = false, path = "../out-dir-include" }
 

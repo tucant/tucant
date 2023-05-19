@@ -47,6 +47,7 @@ export default function CourseRoute() {
           />
           <h2>Termine</h2>
           <button
+            type="button"
             className="btn btn-primary mb-2"
             onClick={() => {
               const blob = new Blob([data.inner[4]], { type: "text/calendar" });

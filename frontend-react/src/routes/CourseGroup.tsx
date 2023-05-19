@@ -33,6 +33,7 @@ export default function CourseGroupRoute() {
           </a>
           <h4>Termine</h4>
           <button
+            type="button"
             className="btn btn-primary mb-2"
             onClick={() => {
               const blob = new Blob([data.inner[3]], { type: "text/calendar" });

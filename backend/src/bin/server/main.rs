@@ -37,7 +37,7 @@ use axum_extra::extract::PrivateCookieJar;
 use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use diesel::SqliteConnection;
-use diesel::{Connection, PgConnection};
+
 use diesel_migrations::FileBasedMigrations;
 use diesel_migrations::MigrationHarness;
 use dotenvy::dotenv;
