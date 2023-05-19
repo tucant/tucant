@@ -22,7 +22,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 getrandom               = { default-features = false, features = ["js"], version = "0.2" }
 reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.11" }
-tokio                   = { default-features = false, optional = true, version = "1" }
+tokio                   = { default-features = false, optional = true, version = "1", features = ["fs"] }
 scraper                 = { default-features = false, optional = true, version = "0.16" }
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
