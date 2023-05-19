@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: The tucant Contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[package]
+name = "tucant-backend"
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
+description = "A nicer, faster and more featureful frontend to TUCaN"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/mohe2015/tucant"
+keywords = ["tucan"]
+categories = ["accessibility", "api-bindings", "caching"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+getrandom               = { default-features = false, features = ["js"], version = "0.2" }
+reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.11" }
+tokio                   = { default-features = false, optional = true, version = "1", features = ["fs"] }
+scraper                 = { default-features = false, optional = true, version = "0.16" }
+ego-tree                = { default-features = false, optional = true, version = "0.6" }
+futures                 = { default-features = false, optional = true, version = "0.3" }
+diesel                  = { default-features = false, optional = true, version = "2", features = [ "postgres", "chrono", "32-column-tables" ] }
+dotenvy                 = { default-features = false, optional = true, version = "0.15" }
+anyhow                  = { default-features = false, optional = true, features = [ "std" ], version = "1" }
+regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
+axum                    = { default-features = false, optional = true, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
+axum-extra              = { default-features = false, optional = true, version = "0.7", features = [ "cookie", "cookie-private" ] }
+tower-http              = { default-features = false, optional = true, version = "0.4", features = [ "cors" ] }
+serde                   = { default-features = false, optional = true, version = "1", features = [ "alloc", "std", "derive" ] }
+serde_json              = { default-features = false, optional = true, features = [ "default", "raw_value" ], version = "1" }
+async-stream            = { default-features = false, optional = true, git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a" }
+chrono                  = { default-features = false, optional = true, version = "0.4", features = ["serde"] }
+deadpool                = { default-features = false, optional = true, version = "0.9" }
+url                     = { default-features = false, optional = true, version = "2" }
+log                     = { default-features = false, optional = true, version = "0.4" }
+env_logger              = { default-features = false, optional = true, version = "0.10" }
+derive_more             = { default-features = false, optional = true, version = "0.99" }
+itertools               = { default-features = false, optional = true, features = [ "use_std" ], version = "0.10" }
+either                  = { default-features = false, optional = true, version = "1" }
+once_cell               = { default-features = false, optional = true, version = "1" }
+diesel_full_text_search = { default-features = false, optional = true, git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight" }
+base64                  = { default-features = false, optional = true, version = "0.21" }
+tucant_derive           = { default-features = false, optional = true, path = "../backend-rust-derive" }
+file-lock               = { default-features = false, optional = true, version = "2" }
+tracing                 = { default-features = false, optional = true, version = "0.1" }
+opensearch              = { default-features = false, optional = true, features = [ "rustls-tls" ], version = "2" }
+rand                    = { default-features = false, optional = true, features = [ "default", "small_rng" ], version = "0.8" }
+tucant_derive_lib       = { default-features = false, optional = true, path = "../backend-rust-derive-lib" }
+diesel_migrations       = { default-features = false, optional = true, version = "2" }
+async-recursion         = { default-features = false, optional = true, version = "1" }
+permute                 = { default-features = false, optional = true, version = "0.2.1" }
+icalendar               = { default-features = false, optional = true, version = "0.15.4" }
+tucant-core = { path = "../core", default-features = false, features = ["server"] }
+
+[features]
+default = ["server"]
+full-text-search = []
+server = [ "chrono", "icalendar", "serde", "reqwest", "diesel_migrations", "tower-http", "tracing", "async-recursion", "permute", "rand", "base64", "opensearch", "tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]

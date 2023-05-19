@@ -76,10 +76,27 @@ podman build . --pull -f Dockerfile-postgres --tag postgres-hunspell
 podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
 
+https://sqlite.org/wasm/doc/trunk/index.md
+
+https://github.com/NixOS/nixpkgs/pull/217428
+
+https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/emscripten-packages.nix
+
+https://github.com/rustwasm/wasm-bindgen/pull/2209
+
+https://users.rust-lang.org/t/wasm32-unknown-unknown-vs-wasm32-wasi/78325
+
+almost works:
+export EM_CACHE=$(pwd)/.emscriptencache
+cargo build --target wasm32-unknown-emscripten
+
+https://github.com/strawlab/iana-time-zone/blob/main/Cargo.toml
+seems like some dependencies use wasm-bindgen so we can't use emscripten?
+
 ### Backend
 
 ```bash
-cargo install diesel_cli --no-default-features --features postgres
+cargo install diesel_cli --no-default-features --features sqlite
 cp env.sample .env
 
 cd backend-rust

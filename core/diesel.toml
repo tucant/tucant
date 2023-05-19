@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: The tucant Contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# For documentation on how to configure this file,
+# see https://diesel.rs/guides/configuring-diesel-cli
+
+[print_schema]
+file = "src/schema.rs"
+import_types = ["diesel::sql_types::*"]
+# git diff -U6 > src/schema.patch
+#patch_file = "src/schema.patch"
+
+[migrations_directory]
+dir = "migrations"

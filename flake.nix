@@ -18,13 +18,18 @@
               let
                 rust =
                   fenix.packages.${system}.complete;
-                  # fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
+                # fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
               in
               with pkgs; [
                 bashInteractive
                 nixpkgs-fmt
-                rust.toolchain
-                rust.rust-analyzer
+                (fenix.packages.${system}.combine [
+                  rust.toolchain
+                  rust.rust-analyzer
+                  fenix.packages.${system}.targets.wasm32-unknown-unknown.latest.toolchain
+                  fenix.packages.${system}.targets.wasm32-unknown-emscripten.latest.toolchain
+                  fenix.packages.${system}.targets.wasm32-wasi.latest.toolchain
+                ])
                 llvmPackages_latest.clang
                 llvmPackages_latest.bintools
                 llvmPackages_latest.llvm
@@ -32,23 +37,24 @@
                 nodejs_latest
                 pkg-config
                 openssl.dev
+                emscripten
               ];
             buildInputs = with pkgs; [
               postgresql_15
             ];
             RUST_BACKTRACE = 1;
 
-hardeningDisable=["fortify"];
+            hardeningDisable = [ "fortify" ];
 
-  #             export PATH=$PATH:$HOME/Documents/rome/target/debug/
-          shellHook = ''
-            export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang}/lib";
-          '';
+            #             export PATH=$PATH:$HOME/Documents/rome/target/debug/
+            shellHook = ''
+              export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang}/lib";
+            '';
 
 
 
           };
-   
+
         }
       );
 }
