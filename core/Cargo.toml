@@ -60,5 +60,6 @@ rusqlite = { version = "0.26.0", features = ["bundled"] }
 
 [features]
 default = ["js"]
+axum = [ "dep:axum", "dep:axum-extra" ]
 js = [ "dotenvy", "derive_more", "anyhow", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "ego-tree", "serde_json", "diesel", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
 server = ["tokio", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock"]

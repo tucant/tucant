@@ -57,7 +57,7 @@ diesel_migrations       = { default-features = false, optional = true, version =
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.15.4" }
-tucant-core = { path = "../core" }
+tucant-core = { path = "../core", default-features = false, features = ["axum"] }
 rusqlite = { version = "0.26.0", features = ["bundled"] }
 
 [features]

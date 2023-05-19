@@ -177,7 +177,7 @@ impl Tucan<Unauthenticated> {
                     done: false,
                     parent: None,
                 })
-                .on_conflict_do_nothing() // TODO FIXME
+                .on_conflict_do_nothing()
                 .execute(&mut connection)?;
         }
 
@@ -379,7 +379,7 @@ impl Tucan<Unauthenticated> {
     }
 
     // caching is relatively useless as all urls when logged in are changing all the time. Only the vv links not logged in are static.
-    #[async_recursion::async_recursion(?Send)]
+    #[async_recursion::async_recursion]
     pub async fn vv(
         &self,
         url: Action,

@@ -10,8 +10,6 @@
     clippy::unused_async
 )]
 
-use reqwest::StatusCode;
-
 extern crate self as tucant;
 
 pub mod models;
@@ -40,6 +38,7 @@ impl<E: Into<anyhow::Error>> From<E> for MyError {
 
 #[cfg(feature = "axum")]
 use axum::response::{IntoResponse, Response};
+use reqwest::StatusCode;
 #[cfg(feature = "axum")]
 impl IntoResponse for MyError {
     fn into_response(self) -> Response {
