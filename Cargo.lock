@@ -286,9 +286,9 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 
 [[package]]
 name = "base64"
-version = "0.21.0"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
+checksum = "3f1e31e207a6b8fb791a38ea3105e6cb541f55e4d029902d3039a4ad07cc4105"
 
 [[package]]
 name = "bitflags"
@@ -436,7 +436,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7efb37c3e1ccb1ff97164ad95ac1606e8ccd35b3fa0a7d99a304c7f4a428cc24"
 dependencies = [
  "aes-gcm",
- "base64 0.21.0",
+ "base64 0.21.1",
  "percent-encoding",
  "rand 0.8.5",
  "subtle",
@@ -1520,7 +1520,7 @@ version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7899e6ad63d5c1dc6394785d625cadf560aaa5e606d6b709fd5cc6bbf1727f1"
 dependencies = [
- "base64 0.21.0",
+ "base64 0.21.1",
  "bytes",
  "dyn-clone",
  "lazy_static",
@@ -1946,7 +1946,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cde824a14b7c14f85caff81225f411faacc04a2013f41670f41443742b1c1c55"
 dependencies = [
  "async-compression",
- "base64 0.21.0",
+ "base64 0.21.1",
  "bytes",
  "cookie 0.16.2",
  "cookie_store",
@@ -2044,7 +2044,7 @@ version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d194b56d58803a43635bdc398cd17e383d6f71f9182b9a192c127ca42494a59b"
 dependencies = [
- "base64 0.21.0",
+ "base64 0.21.1",
 ]
 
 [[package]]
@@ -2570,7 +2570,7 @@ dependencies = [
  "async-stream",
  "axum",
  "axum-extra",
- "base64 0.21.0",
+ "base64 0.21.1",
  "chrono",
  "deadpool",
  "derive_more",
@@ -2614,7 +2614,7 @@ dependencies = [
  "async-stream",
  "axum",
  "axum-extra",
- "base64 0.21.0",
+ "base64 0.21.1",
  "chrono",
  "derive_more",
  "diesel",
