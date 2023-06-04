@@ -10,12 +10,12 @@ use crate::Registration;
 use crate::Tucan;
 use crate::TucanSession;
 
+use async_stream::stream;
 use axum::body::StreamBody;
 use futures::StreamExt;
 use reqwest::header;
 use tucant_core::MyError;
 
-use async_stream::try_stream;
 use axum::body::Bytes;
 
 use axum::extract::State;
@@ -48,10 +48,8 @@ enum ModuleOrCourse {
 }
 
 pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response, MyError> {
-    let stream = try_stream(move |mut stream| async move {
-        stream
-            .yield_item(Bytes::from("\nVV wird heruntergeladen..."))
-            .await;
+    let stream = stream! {
+        yield Ok::<_, std::io::Error>(Bytes::from("\nVV wird heruntergeladen..."));
 
         let root = tucan.vv_root().await.unwrap();
 
@@ -63,15 +61,11 @@ pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response,
         );
 
         while let Some(value) = inner_stream.next().await {
-            stream.yield_item(value).await;
+            yield Ok(value);
         }
 
-        stream.yield_item(Bytes::from("\nFertig!")).await;
-
-        let return_value: std::io::Result<()> = Ok(());
-
-        return_value
-    });
+        yield Ok(Bytes::from("\nFertig!"));
+    };
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 
@@ -82,12 +76,10 @@ fn prefetch_vv(
     tucan: Tucan<Unauthenticated>,
     action: Action,
 ) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
-    Box::pin(async_stream::stream(move |mut stream| async move {
+    Box::pin(async_stream::stream! {
         let value = tucan.vv(action).await.unwrap();
 
-        stream
-            .yield_item(Bytes::from(format!("\nvv {}", value.0.name)))
-            .await;
+        yield Bytes::from(format!("\nvv {}", value.0.name));
 
         let mut result = futures::stream::iter(value.1)
             .map(|submenu| {
@@ -102,9 +94,9 @@ fn prefetch_vv(
             .flatten_unordered(None);
 
         while let Some(value) = result.next().await {
-            stream.yield_item(value).await;
+            yield value;
         }
-    }))
+    })
 }
 
 fn fetch_registration(
@@ -112,12 +104,10 @@ fn fetch_registration(
     parent: Registration,
     modules_or_courses: ModulesOrCourses,
 ) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
-    Box::pin(async_stream::stream(move |mut stream| async move {
+    Box::pin(async_stream::stream! {
         let value = tucan.registration(parent.clone()).await.unwrap();
 
-        stream
-            .yield_item(Bytes::from(format!("\nmenu {}", value.0.name)))
-            .await;
+        yield Bytes::from(format!("\nmenu {}", value.0.name));
 
         let tucan_clone = tucan.clone();
 
@@ -135,7 +125,7 @@ fn fetch_registration(
             .flatten_unordered(None);
 
         while let Some(value) = result.next().await {
-            stream.yield_item(value).await;
+            yield value;
         }
 
         for module in value.1.modules_and_courses {
@@ -147,9 +137,7 @@ fn fetch_registration(
                         })
                         .await
                         .unwrap();
-                    stream
-                        .yield_item(Bytes::from(format!("\nmodule {:?}", module.0.title)))
-                        .await;
+                    yield Bytes::from(format!("\nmodule {:?}", module.0.title));
                 }
                 ModulesOrCourses::Courses => {}
             }
@@ -167,12 +155,10 @@ fn fetch_registration(
                             .unwrap()
                         {
                             tucant_core::tucan_user::CourseOrCourseGroup::Course(course) => {
-                                stream
-                                    .yield_item(Bytes::from(format!(
+                                yield Bytes::from(format!(
                                         "\ncourse {:?}",
                                         course.0.title
-                                    )))
-                                    .await;
+                                    ));
                             }
                             tucant_core::tucan_user::CourseOrCourseGroup::CourseGroup(_) => {
                                 panic!()
@@ -183,7 +169,7 @@ fn fetch_registration(
                 ModulesOrCourses::Modules => {}
             }
         }
-    }))
+    })
 }
 
 pub async fn setup(
@@ -191,12 +177,10 @@ pub async fn setup(
     session: TucanSession,
     _input: Json<()>,
 ) -> Result<Response, MyError> {
-    let stream = try_stream(move |mut stream| async move {
-        stream
-            .yield_item(Bytes::from(
+    let stream = stream! {
+        yield Ok::<_, anyhow::Error>(Bytes::from(
                 "\nAlle Module und Veranstaltungen werden heruntergeladen...",
-            ))
-            .await;
+            ));
 
         let tucan = tucan.continue_session(session).await?;
 
@@ -211,15 +195,11 @@ pub async fn setup(
         );
 
         while let Some(value) = inner_stream.next().await {
-            stream.yield_item(value).await;
+            yield Ok(value);
         }
 
-        stream.yield_item(Bytes::from("\nFertig!")).await;
-
-        let return_value: anyhow::Result<()> = Ok(());
-
-        return_value
-    });
+        yield Ok(Bytes::from("\nFertig!"));
+    };
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 
@@ -230,7 +210,7 @@ fn fetch_module_urls(
     tucan: Tucan<Authenticated>,
     parent: Registration,
 ) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
-    Box::pin(async_stream::stream(move |mut stream| async move {
+    Box::pin(async_stream::stream! {
         let value = tucan.registration(parent.clone()).await.unwrap();
 
         let tucan_clone = tucan.clone();
@@ -248,7 +228,7 @@ fn fetch_module_urls(
             .flatten_unordered(None);
 
         while let Some(value) = result.next().await {
-            stream.yield_item(value).await;
+            yield value;
         }
 
         for module in value.1.modules_and_courses {
@@ -256,14 +236,12 @@ fn fetch_module_urls(
                 id: module.0.tucan_id().clone(),
             }
             .into();
-            stream
-                .yield_item(Bytes::from(format!(
+            yield Bytes::from(format!(
                     "{}\n",
                     tucan_program.to_tucan_url(None)
-                )))
-                .await;
+                ));
         }
-    }))
+    })
 }
 
 pub async fn module_urls(
@@ -271,7 +249,7 @@ pub async fn module_urls(
     session: TucanSession,
     _input: Json<()>,
 ) -> Result<Response, MyError> {
-    let stream = try_stream(move |mut stream| async move {
+    let stream = stream! {
         let tucan = tucan.continue_session(session).await?;
 
         let root = tucan.root_registration().await.unwrap();
@@ -284,13 +262,9 @@ pub async fn module_urls(
         );
 
         while let Some(value) = inner_stream.next().await {
-            stream.yield_item(value).await;
+           yield Ok::<_, anyhow::Error>(value);
         }
-
-        let return_value: anyhow::Result<()> = Ok(());
-
-        return_value
-    });
+    };
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 

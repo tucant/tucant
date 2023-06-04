@@ -35,7 +35,7 @@ axum-extra              = { default-features = false, optional = true, version =
 tower-http              = { default-features = false, optional = true, version = "0.4", features = [ "cors" ] }
 serde                   = { default-features = false, optional = true, version = "1", features = [ "alloc", "std", "derive" ] }
 serde_json              = { default-features = false, optional = true, features = [ "default", "raw_value" ], version = "1" }
-async-stream            = { default-features = false, optional = true, git = "https://github.com/SabrinaJewson/async-stream.rs", rev = "1a43900aad6d8fd26653f084356420a5963f740a" }
+async-stream            = { default-features = false, optional = true, version = "0.3" }
 chrono                  = { default-features = false, optional = true, version = "0.4", features = ["serde"] }
 url                     = { default-features = false, optional = true, version = "2" }
 log                     = { default-features = false, optional = true, version = "0.4" }
@@ -44,7 +44,7 @@ derive_more             = { default-features = false, optional = true, version =
 itertools               = { default-features = false, optional = true, features = [ "use_std" ], version = "0.10" }
 either                  = { default-features = false, optional = true, version = "1" }
 once_cell               = { default-features = false, optional = true, version = "1" }
-diesel_full_text_search = { default-features = false, optional = true, git = "https://github.com/mohe2015/diesel_full_text_search", branch = "setweight" }
+diesel_full_text_search = { default-features = false, optional = true, version = "2" }
 base64                  = { default-features = false, optional = true, version = "0.21" }
 tucant_derive           = { default-features = false, optional = true, path = "../backend-rust-derive" }
 file-lock               = { default-features = false, optional = true, version = "2" }

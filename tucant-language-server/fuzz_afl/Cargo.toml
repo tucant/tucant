@@ -10,7 +10,7 @@ tucant-language-server-fuzz-common = { path = "../fuzz_common" }
 arbitrary   = { default-features = false, version = "1", features = ["derive"] }
 
 [[bin]]
-name = "fuzz_target_1"
+name = "afl_fuzz_target_1"
 path = "fuzz_targets/fuzz_target_1.rs"
 test = false
 doc = false
