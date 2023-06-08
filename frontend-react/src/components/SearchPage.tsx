@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import dompurify from "dompurify";
-import { useState, useTransition } from "react";
-import useSWR from "swr";
-import { SearchResult } from "../api";
 import { Link } from "../Navigation";
+import { SearchResult } from "../api";
 import InitialFetch from "../routes/InitialFetch";
 import SignOut from "../routes/Logout";
+import dompurify from "dompurify";
+import React, { useState, useTransition } from "react";
+import useSWR from "swr";
 
 export default function SearchPage(props: {
   title: string;

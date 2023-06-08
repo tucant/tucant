@@ -1,8 +1,8 @@
-import { Fragment } from "react";
-import { ModuleMenuResponse } from "../api";
 import { Link } from "../Navigation";
-import { ModuleEntry } from "./ModuleEntry";
+import { ModuleMenuResponse } from "../api";
 import { CourseEntry } from "./CourseEntry";
+import { ModuleEntry } from "./ModuleEntry";
+import { Fragment } from "react";
 
 type ModuleListProps = { listData: ModuleMenuResponse };
 export function ModuleList({ listData }: ModuleListProps) {

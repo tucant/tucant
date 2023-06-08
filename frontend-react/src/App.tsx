@@ -2,29 +2,29 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import React, { useTransition } from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "./scss/styles.scss";
 import Navigation from "./Navigation";
-import Modules from "./routes/Modules";
-import Login from "./routes/Login";
-import Welcome from "./routes/Welcome";
-import { SWRConfig } from "swr";
-import MyModules from "./routes/MyModules";
-import Logout from "./routes/Logout";
-import { SearchModules } from "./routes/SearchModules";
-import Module from "./routes/Module";
-import Course from "./routes/Course";
-import Credits from "./routes/Credits";
-import { SearchCourses } from "./routes/SearchCourses";
 import { NavigationContext } from "./NavigationContext";
-import MyCourses from "./routes/MyCourses";
-import { SearchModulesOpenSearch } from "./routes/SearchModulesOpenSearch";
-import MyExams from "./routes/MyExams";
-import Exam from "./routes/Exam";
+import Course from "./routes/Course";
 import CourseGroup from "./routes/CourseGroup";
 import Courses from "./routes/Courses";
+import Credits from "./routes/Credits";
+import Exam from "./routes/Exam";
+import Login from "./routes/Login";
+import Logout from "./routes/Logout";
+import Module from "./routes/Module";
+import Modules from "./routes/Modules";
+import MyCourses from "./routes/MyCourses";
+import MyExams from "./routes/MyExams";
+import MyModules from "./routes/MyModules";
+import { SearchCourses } from "./routes/SearchCourses";
+import { SearchModules } from "./routes/SearchModules";
+import { SearchModulesOpenSearch } from "./routes/SearchModulesOpenSearch";
+import Welcome from "./routes/Welcome";
+import "./scss/styles.scss";
+import React, { useTransition } from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { SWRConfig } from "swr";
 
 function App() {
   const [isLoading, startTransition] = useTransition();
@@ -62,7 +62,7 @@ function App() {
                     "You are not logged into TUCaN! Use this login hack after you logged in."
                   }
                 />
-                <Route index element={<Welcome />} />
+                <Route index={true} element={<Welcome />} />
                 <Route
                   path="*"
                   element={

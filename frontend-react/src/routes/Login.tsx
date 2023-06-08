@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { login } from "../api";
+import { isLoggedIn as getIsLoggedIn } from "../api_base";
 import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api";
-import { isLoggedIn as getIsLoggedIn } from "../api_base";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -15,7 +15,9 @@ export default function SignIn() {
 
   // if cookie id is set, redirect to home
   React.useEffect(() => {
-    if (isLoggedIn) navigate("/");
+    if (isLoggedIn) {
+      navigate("/");
+    }
   }, [isLoggedIn, navigate]);
 
   const [isLoading, setLoading] = useState(false);
@@ -77,7 +79,7 @@ export default function SignIn() {
               onChange={handleInputChange}
               value={form.username}
               name="username"
-              required
+              required={true}
               type="text"
               className="form-control"
               autoComplete="username"
@@ -91,7 +93,7 @@ export default function SignIn() {
               name="password"
               value={form.password}
               type="password"
-              required
+              required={true}
               className="form-control"
               autoComplete="current-password"
             />

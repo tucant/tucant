@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useParams } from "react-router-dom";
-import { exam } from "../api";
-import useSWR from "swr";
-import SignOut from "./Logout";
-import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
+import { exam } from "../api";
 import { formatLocalDate } from "../api_base";
+import { TucanUrlLink } from "../components/TucanUrlLink";
+import SignOut from "./Logout";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function Exam() {
   const { id } = useParams();

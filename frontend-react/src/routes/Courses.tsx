@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { Link } from "../Navigation";
+import { courses } from "../api";
+import { CourseEntry } from "../components/CourseEntry";
+import { TucanUrlLink } from "../components/TucanUrlLink";
+import InitialFetch from "./InitialFetch";
+import SignOut from "./Logout";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
-import { courses } from "../api";
-import { TucanUrlLink } from "../components/TucanUrlLink";
-import { Link } from "../Navigation";
-import SignOut from "./Logout";
-import { CourseEntry } from "../components/CourseEntry";
-import InitialFetch from "./InitialFetch";
 
 export default function Courses() {
   const { id } = useParams();

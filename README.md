@@ -120,6 +120,12 @@ yarn run dev
 
 ## Development Notes
 
+Rome on NixOS (waiting for https://github.com/rome/tools/issues/4516):
+```bash
+cp $(nix build --print-out-paths nixpkgs#rome)/bin/rome frontend-react/.yarn/unplugged/@rometools-cli-linux-x64-npm-*/node_modules/@rometools/cli-linux-x64/rome
+cp $(nix build --print-out-paths nixpkgs#rome)/bin/rome /home/moritz/.vscode-oss/extensions/rome.rome-0.24.3-linux-x64/server/rome
+```
+
 If you want automatic formatting and linting on commit
 
 ```bash

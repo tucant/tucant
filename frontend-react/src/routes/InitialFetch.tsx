@@ -13,18 +13,22 @@ export default function InitialFetch(props: { url: string }) {
     useState<buttonVariantType>("primary");
   const setSuccess = (success: boolean | null) => {
     switch (success) {
-      case null:
+      case null: {
         setButtonVariant("primary");
         break;
-      case false:
+      }
+      case false: {
         setButtonVariant("warning");
         break;
-      case true:
+      }
+      case true: {
         setButtonVariant("success");
         break;
-      default:
+      }
+      default: {
         setButtonVariant("primary");
         break;
+      }
     }
   };
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +71,7 @@ export default function InitialFetch(props: { url: string }) {
             });
 
             const reader = response.body?.getReader();
+            // rome-ignore lint/correctness/noUndeclaredVariables: no import available
             let value: ReadableStreamReadResult<Uint8Array> | undefined;
             value = await reader?.read();
             while (!value?.done) {
