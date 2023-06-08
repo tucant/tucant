@@ -312,7 +312,10 @@ fn main() -> anyhow::Result<()> {
 
             warn!("Starting server...");
 
-            let migrations = FileBasedMigrations::from_path("core/migrations")?;
+            let path = std::env::current_exe()?;
+            let path = path.parent().unwrap();
+            let path = path.join("../../core/migrations");
+            let migrations = FileBasedMigrations::from_path(path)?;
             dotenv().ok();
             let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
