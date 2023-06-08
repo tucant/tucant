@@ -4,6 +4,8 @@
 
 result
 
+dist/
+
 .pnp.*
 .yarn/*
 !.yarn/patches
