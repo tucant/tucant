@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import useSWR from "swr";
+import { Link } from "../Navigation";
 import { my_exams } from "../api";
 import { formatLocalDate } from "../api_base";
 import { TucanUrlLink } from "../components/TucanUrlLink";
-import { Link } from "../Navigation";
 import SignOut from "./Logout";
+import useSWR from "swr";
 
 export default function MyExams() {
   const { data } = useSWR("my-exams", () => my_exams(null));

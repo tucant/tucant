@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../frontend-react"
+		}
+	],
+	"settings": {
+		"typescript.tsdk": "frontend-react/.yarn/sdks/typescript/lib",
+		"typescript.enablePromptUseWorkspaceTsdk": true,
+	}
+}

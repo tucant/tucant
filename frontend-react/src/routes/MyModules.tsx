@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import useSWR from "swr";
 import { my_modules } from "../api";
 import { ModuleEntry } from "../components/ModuleEntry";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import SignOut from "./Logout";
+import useSWR from "swr";
 
 export default function MyModules() {
   const { data } = useSWR("my-modules", () => my_modules(null));

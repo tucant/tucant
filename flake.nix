@@ -4,7 +4,7 @@
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.fenix = {
-    url = "github:nix-community/fenix";
+    url = "github:nix-community/fenix/monthly";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -18,7 +18,7 @@
               let
                 rust =
                   fenix.packages.${system}.complete;
-                # fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-eMJethw5ZLrJHmoN2/l0bIyQjoTX1NsvalWSscTixpI="; };
+                  #fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-gdYqng0y9iHYzYPAdkC/ka3DRny3La/S5G8ASj0Ayyc="; };
               in
               with pkgs; [
                 bashInteractive
@@ -38,6 +38,7 @@
                 pkg-config
                 openssl.dev
                 emscripten
+                yarn
               ];
             buildInputs = with pkgs; [
               postgresql_15

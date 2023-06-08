@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import useSWR from "swr";
+import { Link } from "../Navigation";
 import { my_courses } from "../api";
 import { TucanUrlLink } from "../components/TucanUrlLink";
 import SignOut from "./Logout";
-import { Link } from "../Navigation";
+import useSWR from "swr";
 
 export default function MyCourses() {
   const { data } = useSWR("my-courses", () => my_courses(null));

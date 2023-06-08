@@ -63,7 +63,7 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 
 - [Docker](https://www.docker.com/)
 - [Node.js](https://nodejs.org/en/)
-- [NPM](https://www.npmjs.com/)
+- [Yarn Berry](https://yarnpkg.com/getting-started/install)
 - [Rust](https://www.rust-lang.org/)
 - [libpq-dev[_el_]](https://www.postgresql.org/docs/current/libpq.html) (might be called differently on other distributions)
 
@@ -112,13 +112,19 @@ RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run --bin server
 cd frontend-react
 
 # install dependencies each time the package.json changed
-npm ci
+yarn install --immutable
 
 # run this each time you want to run the frontend
-npm run dev
+yarn run dev
 ```
 
 ## Development Notes
+
+Rome on NixOS (waiting for https://github.com/rome/tools/issues/4516):
+```bash
+cp $(nix build --print-out-paths nixpkgs#rome)/bin/rome frontend-react/.yarn/unplugged/@rometools-cli-linux-x64-npm-*/node_modules/@rometools/cli-linux-x64/rome
+cp $(nix build --print-out-paths nixpkgs#rome)/bin/rome /home/moritz/.vscode-oss/extensions/rome.rome-0.24.3-linux-x64/server/rome
+```
 
 If you want automatic formatting and linting on commit
 

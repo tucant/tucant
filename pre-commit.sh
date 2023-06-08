@@ -15,8 +15,8 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-targets --all-features
 
 cd frontend-react
-npm ci
-npm run check-fix
+yarn install --immutable
+yarn run check-fix
 cd ..
 
 FILES=$(git diff --name-only --cached)

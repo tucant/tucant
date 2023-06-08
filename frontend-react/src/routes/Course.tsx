@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useParams } from "react-router-dom";
-import dompurify from "dompurify";
-import { course } from "../api";
-import useSWR from "swr";
-import SignOut from "./Logout";
-import { TucanUrlLink } from "../components/TucanUrlLink";
 import { Link } from "../Navigation";
+import { course } from "../api";
 import { ModuleEntry } from "../components/ModuleEntry";
+import { TucanUrlLink } from "../components/TucanUrlLink";
+import SignOut from "./Logout";
+import dompurify from "dompurify";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function CourseRoute() {
   const { id } = useParams();

@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useParams } from "react-router-dom";
-import dompurify from "dompurify";
-import { module } from "../api";
-import useSWR from "swr";
 import { Link } from "../Navigation";
-import SignOut from "./Logout";
-import { TucanUrlLink } from "../components/TucanUrlLink";
+import { module } from "../api";
 import { CourseEntry } from "../components/CourseEntry";
+import { TucanUrlLink } from "../components/TucanUrlLink";
+import SignOut from "./Logout";
+import dompurify from "dompurify";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function Module() {
   const { id } = useParams();
@@ -56,14 +56,14 @@ export default function Module() {
 
           <h2 className="text-center">Prüfungen</h2>
           <div className="list-group">
-            {data.inner.exam_types.map((exam_type) => {
+            {data.inner.exam_types.map((examType) => {
               return (
                 <Link
-                  key={exam_type.exam_type}
+                  key={examType.exam_type}
                   className="list-group-item list-group-item-action"
                   to="/not-implemented"
                 >
-                  {exam_type.exam_type}
+                  {examType.exam_type}
                 </Link>
               );
             })}

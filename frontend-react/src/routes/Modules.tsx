@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useParams } from "react-router-dom";
-import useSWR from "swr";
+import { Link } from "../Navigation";
 import { get_modules } from "../api";
 import { ModuleList } from "../components/ModuleList";
 import { TucanUrlLink } from "../components/TucanUrlLink";
-import { Link } from "../Navigation";
 import InitialFetch from "./InitialFetch";
 import SignOut from "./Logout";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function Modules() {
   const { id } = useParams();

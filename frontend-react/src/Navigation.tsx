@@ -1,3 +1,6 @@
+import { NavigationContext } from "./NavigationContext";
+import { isLoggedIn as getIsLoggedIn } from "./api_base";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -8,9 +11,6 @@ import {
   Outlet,
   useLinkClickHandler,
 } from "react-router-dom";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { NavigationContext } from "./NavigationContext";
-import { isLoggedIn as getIsLoggedIn } from "./api_base";
 
 export function Link({ ...props }: NavLinkProps & { children: ReactNode }) {
   const startTransition = useContext(NavigationContext);
@@ -60,7 +60,7 @@ export default function Navigation({ isLoading }: { isLoading: boolean }) {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <Link className="nav-link" to="/" end>
+                <Link className="nav-link" to="/" end={true}>
                   Startseite
                 </Link>
               </li>
