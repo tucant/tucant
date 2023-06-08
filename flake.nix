@@ -38,6 +38,7 @@
                 pkg-config
                 openssl.dev
                 emscripten
+                yarn
               ];
             buildInputs = with pkgs; [
               postgresql_15
