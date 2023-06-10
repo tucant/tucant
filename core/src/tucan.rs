@@ -857,6 +857,33 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     }
                 })
                 .collect();
+
+            let registration_time = document.select(&s(r#"table.tb.list.rw-table"#)).find(|e| {
+                e.select(&s("caption")).next().unwrap().inner_html().trim() == "Anmeldefristen"
+            });
+
+            if let Some(registration_time) = registration_time {
+                let registration_time = registration_time
+                    .select(&s("td.tbdata"))
+                    .map(|e| e.inner_html().trim().to_owned())
+                    .collect_vec();
+                println!("{registration_time:?}");
+                assert_eq!(registration_time.len(), 6);
+            } else {
+                println!(
+                    "{}",
+                    Into::<TucanProgram>::into(url.clone()).to_tucan_url(
+                        self.state
+                            .session()
+                            .map(|s| s.session_nr.try_into().unwrap())
+                    )
+                );
+            }
+
+            // it is unclear how we can find out to which semester an arbitrary course belongs
+            // not all courses have a registration time so hopefully all courses have events that lie within a semester.
+
+            //let semester;
             /*
                         // TODO FIXME only do this when logged in as otherwise this doesn't work
                         let contained_in_modules = document

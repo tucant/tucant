@@ -411,7 +411,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
         }
         "PROFCOURSES" => {
             number(&mut arguments);
-            assert_eq!(number(&mut arguments), 999);
+            assert!(matches!(
+                arguments.next(),
+                None | Some(TucanArgument::Number(_))
+            ));
             TucanProgram::Profcourses(Profcourses)
         }
         "STUDENTCHOICECOURSES" => {

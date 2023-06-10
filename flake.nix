@@ -4,7 +4,7 @@
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.fenix = {
-    url = "github:nix-community/fenix/monthly";
+    url = "github:nix-community/fenix";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 

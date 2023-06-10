@@ -12,6 +12,7 @@ use crate::TucanSession;
 
 use async_stream::stream;
 use axum::body::StreamBody;
+use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use reqwest::header;
 use tucant_core::MyError;
@@ -77,11 +78,11 @@ fn prefetch_vv(
     action: Action,
 ) -> Pin<Box<dyn futures::Stream<Item = Bytes> + Send>> {
     Box::pin(async_stream::stream! {
-        let value = tucan.vv(action).await.unwrap();
+        let (value0, value1, value2) = tucan.vv(action).await.unwrap();
 
-        yield Bytes::from(format!("\nvv {}", value.0.name));
+        yield Bytes::from(format!("\nvv menu {}", value0.name));
 
-        let mut result = futures::stream::iter(value.1)
+        let mut result = futures::stream::iter(value1)
             .map(|submenu| {
                 let t = tucan.clone();
                 prefetch_vv(
@@ -93,8 +94,17 @@ fn prefetch_vv(
             })
             .flatten_unordered(None);
 
+        let mut course_result: FuturesUnordered<_> = value2.iter()
+        .map(|course| {
+            tucan.course(Coursedetails { id: course.tucan_id().clone() })
+        }).collect();
+
         while let Some(value) = result.next().await {
             yield value;
+        }
+
+        while let Some(value) = course_result.next().await {
+            yield Bytes::from(format!("\nvv course {}", value.unwrap().0.title));
         }
     })
 }
