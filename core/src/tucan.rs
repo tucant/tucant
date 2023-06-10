@@ -867,12 +867,17 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             });
 
             if let Some(registration_time) = registration_time {
+                let tr_sel = s("tr");
                 let registration_time = registration_time
-                    .select(&s("td.tbdata"))
-                    .map(|e| e.inner_html().trim().to_owned())
+                    .select(&tr_sel)
+                    .map(|row| {
+                        row.select(&s("td.tbdata"))
+                            .map(|e| e.inner_html().trim().to_owned())
+                            .collect_vec()
+                    })
+                    .filter(|row| row.len() == 0)
                     .collect_vec();
                 println!("{registration_time:?}");
-                assert_eq!(registration_time.len(), 6);
             } else {
                 println!(
                     "{}",
