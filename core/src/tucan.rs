@@ -21,7 +21,9 @@ use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
 use regex::Regex;
-use reqwest::{header::HeaderValue, Client};
+use reqwest::header::HeaderValue;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::Semaphore;
 
@@ -76,7 +78,7 @@ impl GetTucanSession for Box<dyn GetTucanSession + Sync + Send> {
 
 #[derive(Clone)]
 pub struct Tucan<State: GetTucanSession + Sync + Send = Unauthenticated> {
-    pub(crate) client: Client,
+    pub(crate) client: ClientWithMiddleware,
     pub(crate) semaphore: Arc<Semaphore>,
     pub pool: Pool<ConnectionManager<SqliteConnection>>,
     pub state: State,
@@ -113,17 +115,19 @@ impl Tucan<Unauthenticated> {
                     .build()?;
                 let opensearch = OpenSearch::new(transport);
         */
-        let mut client = reqwest::Client::builder();
-        #[cfg(not(feature = "js"))]
-        {
-            client = client
-                .connection_verbose(true)
-                .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant");
-        }
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+
+        let client: ClientBuilder = ClientBuilder::new(
+            reqwest::Client::builder()
+                .user_agent("Tucant/0.1.0 https://github.com/tucant/tucant")
+                .build()
+                .unwrap(),
+        )
+        .with(RetryTransientMiddleware::new_with_policy(retry_policy));
 
         Ok(Self {
             pool,
-            client: client.build()?,
+            client: client.build(),
             semaphore: Arc::new(Semaphore::new(3)),
             state: Unauthenticated,
         })
