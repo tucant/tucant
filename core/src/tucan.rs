@@ -128,7 +128,7 @@ impl Tucan<Unauthenticated> {
         Ok(Self {
             pool,
             client: client.build(),
-            semaphore: Arc::new(Semaphore::new(3)),
+            semaphore: Arc::new(Semaphore::new(5)),
             state: Unauthenticated,
         })
     }
@@ -862,30 +862,30 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 })
                 .collect();
 
-            let registration_time = document.select(&s(r#"table.tb.list.rw-table"#)).find(|e| {
-                e.select(&s("caption")).next().unwrap().inner_html().trim() == "Anmeldefristen"
-            });
+            // TODO FIXME store this in database
+            let registration_time = document
+                .select(&s(r#"table.tb.list.rw-table"#))
+                .find(|e| {
+                    e.select(&s("caption")).next().unwrap().inner_html().trim() == "Anmeldefristen"
+                })
+                .map(|registration_time| {
+                    let tr_sel = s("tr");
+                    registration_time
+                        .select(&tr_sel)
+                        .map(|row| {
+                            row.select(&s("td.tbdata"))
+                                .map(|e| e.inner_html().trim().to_owned())
+                                .collect_vec()
+                        })
+                        .filter(|row| row.len() != 0)
+                        .collect_vec()
+                })
+                .unwrap_or(Vec::new());
 
-            if let Some(registration_time) = registration_time {
-                let tr_sel = s("tr");
-                let registration_time = registration_time
-                    .select(&tr_sel)
-                    .map(|row| {
-                        row.select(&s("td.tbdata"))
-                            .map(|e| e.inner_html().trim().to_owned())
-                            .collect_vec()
-                    })
-                    .filter(|row| row.len() == 0)
-                    .collect_vec();
-                println!("{registration_time:?}");
-            } else {
+            if events.len() == 0 && registration_time.len() == 0 {
                 println!(
-                    "{}",
-                    Into::<TucanProgram>::into(url.clone()).to_tucan_url(
-                        self.state
-                            .session()
-                            .map(|s| s.session_nr.try_into().unwrap())
-                    )
+                    "we're fucked {}",
+                    Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
                 );
             }
 
