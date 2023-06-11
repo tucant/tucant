@@ -883,6 +883,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .unwrap_or(Vec::new());
 
             if events.len() == 0 && registration_time.len() == 0 {
+                // this actually happens so we probably need to find this information by indexing the vv
                 println!(
                     "we're fucked {}",
                     Into::<TucanProgram>::into(url.clone()).to_tucan_url(None)
