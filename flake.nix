@@ -43,6 +43,7 @@
             buildInputs = with pkgs; [
               postgresql_15
               sqlite
+              mysql
             ];
             RUST_BACKTRACE = 1;
 

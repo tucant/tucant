@@ -20,6 +20,13 @@ CREATE TEXT SEARCH CONFIGURATION tucan (PARSER = default);
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hword, hword_asciipart, hword_part, word WITH german_hunspell, english_hunspell, german_stem; -- maybe german_stem but also with english stop words?
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 */
+CREATE TABLE semesters (
+    name TEXT NOT NULL,
+    timestamp_start TIMESTAMP NOT NULL,
+    timestamp_end TIMESTAMP NOT NULL,
+    PRIMARY KEY (name)
+);
+
 CREATE TABLE modules_unfinished (
     tucan_id BLOB NOT NULL PRIMARY KEY,
     tucan_last_checked TIMESTAMP NOT NULL,
@@ -100,6 +107,7 @@ CREATE TABLE courses_unfinished (
     course_id TEXT NOT NULL,
     sws SMALLINT NOT NULL,
     content TEXT NOT NULL,
+    semester TEXT NOT NULL REFERENCES semesters (name),
     done BOOLEAN NOT NULL DEFAULT FALSE/*,
     tsv tsvector NOT NULL GENERATED ALWAYS AS (
     setweight(to_tsvector('tucan', course_id), 'A') ||

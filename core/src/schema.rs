@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Text, Timestamp};
+    use diesel::sql_types::*;
 
     course_events (course, timestamp_start, timestamp_end, room) {
         course -> Binary,
@@ -13,7 +13,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::Binary;
+    use diesel::sql_types::*;
 
     course_exams (course_id, exam) {
         course_id -> Binary,
@@ -22,7 +22,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Text, Timestamp};
+    use diesel::sql_types::*;
 
     course_groups_events (course, timestamp_start, timestamp_end, room) {
         course -> Binary,
@@ -34,7 +34,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, Text};
+    use diesel::sql_types::*;
 
     course_groups_unfinished (tucan_id) {
         tucan_id -> Binary,
@@ -45,7 +45,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, SmallInt, Text, Timestamp};
+    use diesel::sql_types::*;
 
     courses_unfinished (tucan_id) {
         tucan_id -> Binary,
@@ -54,12 +54,13 @@ diesel::table! {
         course_id -> Text,
         sws -> SmallInt,
         content -> Text,
+        semester -> Text,
         done -> Bool,
     }
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, Nullable, Text, Timestamp};
+    use diesel::sql_types::*;
 
     exams_unfinished (tucan_id) {
         tucan_id -> Binary,
@@ -78,7 +79,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::Binary;
+    use diesel::sql_types::*;
 
     module_courses (module, course) {
         module -> Binary,
@@ -87,7 +88,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, SmallInt, Text};
+    use diesel::sql_types::*;
 
     module_exam_types (module_id, exam_type) {
         module_id -> Binary,
@@ -98,7 +99,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::Binary;
+    use diesel::sql_types::*;
 
     module_exams (module_id, exam) {
         module_id -> Binary,
@@ -107,7 +108,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::Binary;
+    use diesel::sql_types::*;
 
     module_menu_module (module_menu_id, module_id) {
         module_menu_id -> Binary,
@@ -116,7 +117,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, Nullable, Text, Timestamp};
+    use diesel::sql_types::*;
 
     module_menu_unfinished (tucan_id) {
         tucan_id -> Binary,
@@ -128,7 +129,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Bool, Integer, Text, Timestamp};
+    use diesel::sql_types::*;
 
     modules_unfinished (tucan_id) {
         tucan_id -> Binary,
@@ -142,7 +143,17 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{BigInt, Integer, Text};
+    use diesel::sql_types::*;
+
+    semesters (name) {
+        name -> Text,
+        timestamp_start -> Timestamp,
+        timestamp_end -> Timestamp,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
 
     sessions (matriculation_number, session_nr, session_id) {
         matriculation_number -> Integer,
@@ -152,7 +163,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Integer};
+    use diesel::sql_types::*;
 
     user_course_groups (user_id, course_group_id) {
         user_id -> Integer,
@@ -161,7 +172,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Integer};
+    use diesel::sql_types::*;
 
     user_courses (user_id, course_id) {
         user_id -> Integer,
@@ -170,7 +181,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Integer};
+    use diesel::sql_types::*;
 
     user_exams (matriculation_number, exam) {
         matriculation_number -> Integer,
@@ -179,7 +190,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Integer};
+    use diesel::sql_types::*;
 
     user_modules (user_id, module_id) {
         user_id -> Integer,
@@ -188,7 +199,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Bool, Integer, Nullable, Text, Timestamp};
+    use diesel::sql_types::*;
 
     users_unfinished (matriculation_number) {
         matriculation_number -> Integer,
@@ -218,7 +229,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Binary, Text};
+    use diesel::sql_types::*;
 
     vv_menu_courses (vv_menu_id, course_id) {
         vv_menu_id -> Text,
@@ -227,7 +238,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::{Bool, Nullable, Text, Timestamp};
+    use diesel::sql_types::*;
 
     vv_menu_unfinished (tucan_id) {
         tucan_id -> Text,
@@ -243,6 +254,7 @@ diesel::joinable!(course_exams -> courses_unfinished (course_id));
 diesel::joinable!(course_exams -> exams_unfinished (exam));
 diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
 diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
+diesel::joinable!(courses_unfinished -> semesters (semester));
 diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_exam_types -> modules_unfinished (module_id));
@@ -275,6 +287,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     module_menu_module,
     module_menu_unfinished,
     modules_unfinished,
+    semesters,
     sessions,
     user_course_groups,
     user_courses,
