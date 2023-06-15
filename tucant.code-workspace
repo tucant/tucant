@@ -1,10 +1,13 @@
 {
 	"folders": [
 		{
+			"path": "core"
+		},
+		{
 			"path": "tucant-vscode"
 		},
 		{
-			"path": "backend-rust"
+			"path": "backend"
 		},
 		{
 			"path": "backend-rust-derive"
