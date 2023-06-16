@@ -64,6 +64,7 @@ use s_search_module::SearchModuleOpensearchTs;
 
 use serde::{Deserialize, Serialize};
 use tucant_backend::typescript::TypescriptableApp;
+use tucant_core::url::Myexams;
 
 use std::collections::BTreeSet;
 use std::net::SocketAddr;
@@ -238,9 +239,17 @@ async fn login_hack(
             tucant_core::url::TucanProgram::Profcourses(_) => {
                 Redirect::to("http://localhost:5173/my-courses/")
             }
-            tucant_core::url::TucanProgram::Myexams(_) => {
-                Redirect::to("http://localhost:5173/my-exams/")
-            }
+            tucant_core::url::TucanProgram::Myexams(Myexams { semester }) => match semester {
+                tucant_core::url::Semester::CurrentSemester => {
+                    Redirect::to(&format!("http://localhost:5173/my-exams/"))
+                }
+                tucant_core::url::Semester::AllSemesters => {
+                    Redirect::to(&format!("http://localhost:5173/my-exams/*"))
+                }
+                tucant_core::url::Semester::Semester(semester) => {
+                    Redirect::to(&format!("http://localhost:5173/my-exams/{}", semester))
+                }
+            },
             other => {
                 println!("unknown redirect for {:?}", other);
                 Redirect::to("http://localhost:5173/")

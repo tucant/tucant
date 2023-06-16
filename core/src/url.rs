@@ -398,6 +398,20 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
     assert_eq!(url.path(), "/scripts/mgrqispi.dll");
     let query_pairs = url.query_pairs();
     let query_pairs = query_pairs.collect::<HashMap<_, _>>();
+
+    // TODO FIXME new URLSearchParams(new FormData(document.querySelector(`form.pageElementTop[method=POST][action="/scripts/mgrqispi.dll"]`))).toString()
+    // "semester=000000015116000&APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=sessionno%2Cmenuno%2Csemester&sessionno=848756870587019&menuno=000318"
+    // based on the ARGUMENTS replaced by its value this should be able to reconstruct the exact same url and then the code after should work equally
+    if query_pairs.is_empty() {
+        return TucanUrl {
+            session_nr: None,
+            program: TucanProgram::Externalpages(Externalpages {
+                id: 344,
+                name: "welcome".to_string(),
+            }),
+        };
+    }
+
     let app_name = query_pairs.get("APPNAME").unwrap().as_ref();
     let arguments = query_pairs.get("ARGUMENTS").unwrap().as_ref();
     let prgname = query_pairs.get("PRGNAME").unwrap().as_ref();

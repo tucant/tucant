@@ -54,6 +54,8 @@ When resetting the database remember to also remove `sessions.key`.
 The following bookmarklet opens the tucan page in tucant (and optionally logs you in):
 
 ```
+new URLSearchParams(new FormData(document.querySelector(`form.pageElementTop[method=POST][action="/scripts/mgrqispi.dll"]`))).toString()
+
 javascript:window.location.href = `http://localhost:8080/login-hack?${document.querySelector("#logoutButton") ? new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "session_nr=") + "&" : ""}${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")) ? "session_id=" + document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1] + "&" : ""}redirect=${encodeURIComponent(window.location.href)}`
 ```
 
