@@ -16,7 +16,7 @@ use crate::{
     tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
-        Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl,
+        Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl, Semester,
     },
 };
 use crate::{
@@ -586,7 +586,9 @@ impl Tucan<Authenticated> {
     }
 
     pub async fn fetch_my_courses(&self) -> anyhow::Result<()> {
-        let document = self.fetch_document(&Profcourses.clone().into()).await?;
+        let document = self.fetch_document(&Profcourses {
+            semester: Semester::AllSemesters
+        }.clone().into()).await?;
         let my_courses = {
             let document = Self::parse_document(&document);
 

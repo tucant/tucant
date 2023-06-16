@@ -15,6 +15,7 @@ use tucant_core::models::TucanSession;
 
 use tucant_core::tucan::Tucan;
 use tucant_core::url::Profcourses;
+use tucant_core::url::Semester;
 use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
@@ -30,8 +31,10 @@ pub async fn my_courses(
     let result = tucan.my_courses().await?;
 
     Ok(Json(WithTucanUrl {
-        tucan_url: Into::<TucanProgram>::into(Profcourses)
-            .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: Into::<TucanProgram>::into(Profcourses {
+            semester: Semester::AllSemesters,
+        })
+        .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
         inner: result,
     }))
 }
