@@ -16,7 +16,8 @@ use crate::{
     tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
-        Myexams, Mymodules, Persaddress, Registration, RootRegistration, TucanProgram, TucanUrl, Semester,
+        Myexams, Mymodules, Persaddress, Registration, RootRegistration, Semester, TucanProgram,
+        TucanUrl,
     },
 };
 use crate::{
@@ -194,7 +195,11 @@ impl Tucan<Authenticated> {
 
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
-    pub async fn fetch_registration(&self, url: Registration) -> anyhow::Result<()> {
+    pub async fn fetch_registration(
+        &self,
+        semester: Option<String>,
+        url: Registration,
+    ) -> anyhow::Result<()> {
         let document = self.fetch_document(&url.clone().into()).await?;
         let mut connection = self.pool.get()?;
 
@@ -296,6 +301,7 @@ impl Tucan<Authenticated> {
                                             panic!("{:?}", course.text().collect::<Vec<_>>())
                                         })
                                         .to_string(),
+                                    semester: semester.clone(),
                                 })
                             })
                             .collect::<Vec<_>>();
@@ -430,7 +436,8 @@ impl Tucan<Authenticated> {
             return Ok(value);
         }
 
-        self.fetch_registration(url.clone()).await?;
+        // TODO FIXME
+        self.fetch_registration(None, url.clone()).await?;
 
         Ok(self.cached_registration(url.clone()).await?.unwrap())
     }
@@ -586,9 +593,15 @@ impl Tucan<Authenticated> {
     }
 
     pub async fn fetch_my_courses(&self) -> anyhow::Result<()> {
-        let document = self.fetch_document(&Profcourses {
-            semester: Semester::AllSemesters
-        }.clone().into()).await?;
+        let document = self
+            .fetch_document(
+                &Profcourses {
+                    semester: Semester::AllSemesters,
+                }
+                .clone()
+                .into(),
+            )
+            .await?;
         let my_courses = {
             let document = Self::parse_document(&document);
 
@@ -1032,7 +1045,7 @@ impl Tucan<Authenticated> {
     }
 
     #[allow(clippy::too_many_lines)]
-    async fn fetch_my_exams(&self) -> anyhow::Result<()> {
+    async fn fetch_my_exams(&self, semester: Option<String>) -> anyhow::Result<()> {
         type ModuleExams = Vec<(MaybeCompleteModule, Exam)>;
         type CourseExams = Vec<(MaybeCompleteCourse, Exam)>;
 
@@ -1147,6 +1160,7 @@ impl Tucan<Authenticated> {
                         tucan_last_checked: Utc::now().naive_utc(),
                         course_id: String::new(),
                         title: v.2,
+                        semester: semester.clone(),
                     }),
                     v.1,
                 )),
@@ -1238,7 +1252,8 @@ impl Tucan<Authenticated> {
             return Ok(value);
         }
 
-        self.fetch_my_exams().await?;
+        // TODO FIXME pass semester
+        self.fetch_my_exams(None).await?;
 
         Ok(self.cached_my_exams().await?.unwrap())
     }

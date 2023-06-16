@@ -53,6 +53,7 @@ export type CompleteCourse =
   course_id: string,
   sws: number,
   content: string,
+  semester: string | null,
 }
 export type CompleteModule =
 {
@@ -159,6 +160,7 @@ export type PartialCourse =
   tucan_last_checked: string,
   title: string,
   course_id: string,
+  semester: string | null,
 }
 export type PartialModule =
 {

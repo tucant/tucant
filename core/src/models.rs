@@ -449,6 +449,7 @@ pub struct PartialCourse {
     pub tucan_last_checked: NaiveDateTime,
     pub title: String,
     pub course_id: String,
+    pub semester: Option<String>,
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
@@ -462,6 +463,7 @@ pub struct CompleteCourse {
     pub course_id: String,
     pub sws: i16,
     pub content: String,
+    pub semester: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
@@ -487,6 +489,7 @@ pub struct InternalCourse {
     pub course_id: String,
     pub sws: i16,
     pub content: String,
+    pub semester: Option<String>,
     pub done: bool,
 }
 
@@ -500,6 +503,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 course_id: value.course_id.clone(),
                 sws: 0,
                 content: String::new(),
+                semester: value.semester.clone(),
                 done: false,
             },
             MaybeCompleteCourse::Complete(value) => Self {
@@ -509,6 +513,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 course_id: value.course_id.clone(),
                 sws: value.sws,
                 content: value.content.clone(),
+                semester: value.semester.clone(),
                 done: true,
             },
         }
@@ -541,6 +546,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 course_id,
                 sws,
                 content,
+                semester,
                 done: true,
             } => Ok(Self::Complete(CompleteCourse {
                 tucan_id,
@@ -549,6 +555,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 course_id,
                 sws,
                 content,
+                semester,
             })),
             InternalCourse {
                 tucan_id,
@@ -557,12 +564,14 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 course_id,
                 sws: 0,
                 ref content,
+                semester,
                 done: false,
             } if content.is_empty() => Ok(Self::Partial(PartialCourse {
                 tucan_id,
                 tucan_last_checked,
                 title,
                 course_id,
+                semester,
             })),
             _ => Err(Box::new(std::io::Error::new(
                 ErrorKind::Other,
@@ -626,44 +635,110 @@ impl AsChangeset for &MaybeCompleteCourse {
     }
 }
 
-impl<DB: Backend> Queryable<(Binary, Timestamp, Text, Text, SmallInt, Text, Bool), DB>
-    for MaybeCompleteCourse
+impl<DB: Backend>
+    Queryable<
+        (
+            Binary,
+            Timestamp,
+            Text,
+            Text,
+            SmallInt,
+            Text,
+            Nullable<Text>,
+            Bool,
+        ),
+        DB,
+    > for MaybeCompleteCourse
 where
     Vec<u8>: FromSql<Binary, DB>,
     NaiveDateTime: FromSql<Timestamp, DB>,
     String: FromSql<Text, DB>,
+    Option<String>: FromSql<Nullable<Text>, DB>,
     i16: FromSql<SmallInt, DB>,
     bool: FromSql<Bool, DB>,
 {
     type Row = <InternalCourse as Queryable<
-        (Binary, Timestamp, Text, Text, SmallInt, Text, Bool),
+        (
+            Binary,
+            Timestamp,
+            Text,
+            Text,
+            SmallInt,
+            Text,
+            Nullable<Text>,
+            Bool,
+        ),
         DB,
     >>::Row;
 
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
-        let value: InternalCourse =
-            Queryable::<(Binary, Timestamp, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        let value: InternalCourse = Queryable::<
+            (
+                Binary,
+                Timestamp,
+                Text,
+                Text,
+                SmallInt,
+                Text,
+                Nullable<Text>,
+                Bool,
+            ),
+            DB,
+        >::build(row)?;
         value.try_into()
     }
 }
 
-impl<DB: Backend> Queryable<(Binary, Timestamp, Text, Text, SmallInt, Text, Bool), DB>
-    for CompleteCourse
+impl<DB: Backend>
+    Queryable<
+        (
+            Binary,
+            Timestamp,
+            Text,
+            Text,
+            SmallInt,
+            Text,
+            Nullable<Text>,
+            Bool,
+        ),
+        DB,
+    > for CompleteCourse
 where
     Vec<u8>: FromSql<Binary, DB>,
     NaiveDateTime: FromSql<Timestamp, DB>,
     String: FromSql<Text, DB>,
+    Option<String>: FromSql<Nullable<Text>, DB>,
     i16: FromSql<SmallInt, DB>,
     bool: FromSql<Bool, DB>,
 {
     type Row = <InternalCourse as Queryable<
-        (Binary, Timestamp, Text, Text, SmallInt, Text, Bool),
+        (
+            Binary,
+            Timestamp,
+            Text,
+            Text,
+            SmallInt,
+            Text,
+            Nullable<Text>,
+            Bool,
+        ),
         DB,
     >>::Row;
 
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
-        let value: InternalCourse =
-            Queryable::<(Binary, Timestamp, Text, Text, SmallInt, Text, Bool), DB>::build(row)?;
+        let value: InternalCourse = Queryable::<
+            (
+                Binary,
+                Timestamp,
+                Text,
+                Text,
+                SmallInt,
+                Text,
+                Nullable<Text>,
+                Bool,
+            ),
+            DB,
+        >::build(row)?;
         value.try_into()
     }
 }
@@ -1032,6 +1107,7 @@ pub const COURSES_UNFINISHED: (
     courses_unfinished::course_id,
     courses_unfinished::sws,
     courses_unfinished::content,
+    courses_unfinished::semester,
     courses_unfinished::done,
 ) = (
     courses_unfinished::tucan_id,
@@ -1040,5 +1116,6 @@ pub const COURSES_UNFINISHED: (
     courses_unfinished::course_id,
     courses_unfinished::sws,
     courses_unfinished::content,
+    courses_unfinished::semester,
     courses_unfinished::done,
 );

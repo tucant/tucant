@@ -222,7 +222,7 @@ impl Tucan<Unauthenticated> {
 
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
-    pub async fn fetch_vv(&self, url: Action) -> anyhow::Result<()> {
+    pub async fn fetch_vv(&self, semester: Option<String>, url: Action) -> anyhow::Result<()> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
@@ -316,6 +316,7 @@ impl Tucan<Unauthenticated> {
                                 course_id: course_id.to_string(),
                                 title: title.to_string(),
                                 tucan_id: id,
+                                semester: semester.clone(),
                             })]
                         }
                         TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
@@ -392,7 +393,8 @@ impl Tucan<Unauthenticated> {
             return Ok(value);
         }
 
-        self.fetch_vv(url.clone()).await?;
+        // TODO FIXME
+        self.fetch_vv(None, url.clone()).await?;
 
         Ok(self.cached_vv(url.clone()).await?.unwrap())
     }
@@ -412,20 +414,21 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .map(|node| {
                 let element_ref = ElementRef::wrap(node).unwrap();
                 let selector = &s("a");
-                let mut links = element_ref.select(selector);
+                let (link1, link2, link3) = element_ref.select(selector).collect_tuple().unwrap();
                 MaybeCompleteCourse::Partial(PartialCourse {
                     tucan_last_checked: Utc::now().naive_utc(),
-                    course_id: links.next().unwrap().inner_html(),
-                    title: links.next().unwrap().inner_html(),
+                    course_id: link1.inner_html(),
+                    title: link2.inner_html(),
                     tucan_id: TryInto::<Coursedetails>::try_into(
                         parse_tucan_url(&format!(
                             "https://www.tucan.tu-darmstadt.de{}",
-                            links.next().unwrap().value().attr("href").unwrap()
+                            link3.value().attr("href").unwrap()
                         ))
                         .program,
                     )
                     .unwrap()
                     .id,
+                    semester: Some(link3.inner_html()),
                 })
             })
             .collect::<Vec<_>>()
@@ -832,6 +835,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 sws,
                 course_id,
                 content,
+                semester: None,
             });
 
             let course_groups: Vec<CourseGroup> = document
@@ -1022,6 +1026,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             tucan_last_checked: Utc::now().naive_utc(),
             title: title.to_owned(),
             course_id: course_id.to_owned(),
+            semester: None, // TODO FIXME this will override the courses value (use Option<Option<T>> or a separate type?)
         });
 
         diesel::insert_into(courses_unfinished::table)
@@ -1486,7 +1491,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 diesel::insert_into(courses_unfinished::table)
                     .values(course)
                     .on_conflict(courses_unfinished::tucan_id)
-                    .do_nothing()
+                    .do_update()
+                    .set(course)
                     .execute(&mut connection)
             })
             .collect();
