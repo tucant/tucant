@@ -1051,8 +1051,18 @@ impl Tucan<Authenticated> {
 
         let matriculation_number = self.state.session.matriculation_number;
 
+        // TODO FIXME fetch list of semesters and then fetch them one by one while passing the semester
+
         let exams = {
-            let document = self.fetch_document(&Myexams.clone().into()).await?;
+            let document = self
+                .fetch_document(
+                    &Myexams {
+                        semester: Semester::AllSemesters,
+                    }
+                    .clone()
+                    .into(),
+                )
+                .await?;
             let document = Self::parse_document(&document);
 
             document

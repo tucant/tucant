@@ -1,5 +1,5 @@
 [workspace]
-members = ["tucant-language-server/fuzz_common", "tucant-language-server/fuzz_afl", "tucant-language-server/fuzz_libfuzzer", "backend", "core", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
+members = ["core", "tucant-language-server/fuzz_common", "tucant-language-server/fuzz_afl", "tucant-language-server/fuzz_libfuzzer", "backend", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
 resolver = "2"
 
 [profile.dev]

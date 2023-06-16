@@ -238,6 +238,9 @@ async fn login_hack(
             tucant_core::url::TucanProgram::Profcourses(_) => {
                 Redirect::to("http://localhost:5173/my-courses/")
             }
+            tucant_core::url::TucanProgram::Myexams(_) => {
+                Redirect::to("http://localhost:5173/my-exams/")
+            }
             other => {
                 println!("unknown redirect for {:?}", other);
                 Redirect::to("http://localhost:5173/")
