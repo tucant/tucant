@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { useParams } from "react-router-dom";
 import { Link } from "../Navigation";
 import { my_exams } from "../api";
 import { formatLocalDate } from "../api_base";
@@ -10,7 +11,9 @@ import SignOut from "./Logout";
 import useSWR from "swr";
 
 export default function MyExams() {
-  const { data } = useSWR("my-exams", () => my_exams(null));
+  const { semester } = useParams();
+
+  const { data } = useSWR("my-exams", () => my_exams(semester));
 
   if (data === null) {
     return <SignOut />;

@@ -13,7 +13,8 @@ use tucant_core::models::MaybeCompleteCourse;
 use tucant_core::models::MaybeCompleteModule;
 use tucant_core::models::TucanSession;
 use tucant_core::tucan::Tucan;
-use tucant_core::url::Mymodules;
+use tucant_core::url::Myexams;
+use tucant_core::url::Semester;
 use tucant_core::url::TucanProgram;
 use tucant_derive::ts;
 
@@ -22,7 +23,7 @@ use tucant_derive::ts;
 pub async fn my_exams(
     session: TucanSession,
     tucan: State<Tucan>,
-    _input: Json<()>,
+    input: Json<Option<u64>>,
 ) -> Result<
     Json<
         WithTucanUrl<(
@@ -34,11 +35,13 @@ pub async fn my_exams(
 > {
     let tucan = tucan.continue_session(session.clone()).await?;
 
-    let result = tucan.my_exams().await?;
+    let result = tucan.my_exams(input.0).await?;
 
     Ok(Json(WithTucanUrl {
-        tucan_url: Into::<TucanProgram>::into(Mymodules)
-            .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: Into::<TucanProgram>::into(Myexams {
+            semester: Semester::CurrentSemester,
+        })
+        .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
         inner: result,
     }))
 }

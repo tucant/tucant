@@ -32,6 +32,12 @@ impl Typescriptable for i64 {
     }
 }
 
+impl Typescriptable for u64 {
+    fn name() -> String {
+        "number".to_string()
+    }
+}
+
 impl Typescriptable for String {
     fn name() -> String {
         "string".to_string()

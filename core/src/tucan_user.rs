@@ -1045,7 +1045,10 @@ impl Tucan<Authenticated> {
     }
 
     #[allow(clippy::too_many_lines)]
-    async fn fetch_my_exams(&self, semester: Option<String>) -> anyhow::Result<()> {
+    async fn fetch_my_exams(
+        &self,
+        semester: Semester,
+    ) -> anyhow::Result<(Semester, Vec<Semester>)> {
         type ModuleExams = Vec<(MaybeCompleteModule, Exam)>;
         type CourseExams = Vec<(MaybeCompleteCourse, Exam)>;
 
@@ -1064,6 +1067,16 @@ impl Tucan<Authenticated> {
                 )
                 .await?;
             let document = Self::parse_document(&document);
+
+            let semesters = document.select(&s("#semester option"));
+            let active_semester = semesters
+                .find(|s| s.value().attr("selected").is_some())
+                .unwrap();
+            let active_semester_name = active_semester.inner_html();
+            let semesters = document
+                .select(&s("#semester option"))
+                .map(|s| s.value().attr("value").unwrap())
+                .collect();
 
             document
                 .select(&s("table tbody tr"))
@@ -1101,7 +1114,7 @@ impl Tucan<Authenticated> {
                         Exam {
                             tucan_id: examdetails.id,
                             exam_type: name_link.inner_html(),
-                            semester: String::new(),
+                            semester: active_semester_name.clone(),
                             exam_time_start: date.map(|d| d.1),
                             exam_time_end: date.map(|d| d.2),
                             registration_start: Utc::now().naive_utc(), // TODO FIXME remove
@@ -1170,7 +1183,7 @@ impl Tucan<Authenticated> {
                         tucan_last_checked: Utc::now().naive_utc(),
                         course_id: String::new(),
                         title: v.2,
-                        semester: semester.clone(),
+                        semester: None, // TODO FIXME semester may not be equal to exam semester so maybe leave blank? or it it always equal?
                     }),
                     v.1,
                 )),
@@ -1254,6 +1267,7 @@ impl Tucan<Authenticated> {
 
     pub async fn my_exams(
         &self,
+        semester: Semester,
     ) -> anyhow::Result<(
         Vec<(MaybeCompleteModule, Exam)>,
         Vec<(MaybeCompleteCourse, Exam)>,
@@ -1263,7 +1277,7 @@ impl Tucan<Authenticated> {
         }
 
         // TODO FIXME pass semester
-        self.fetch_my_exams(None).await?;
+        self.fetch_my_exams(semester).await?;
 
         Ok(self.cached_my_exams().await?.unwrap())
     }

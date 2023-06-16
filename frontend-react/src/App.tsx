@@ -46,7 +46,7 @@ function App() {
                 <Route path="search-courses" element={<SearchCourses />} />
                 <Route path="logout" element={<Logout />} />
                 <Route path="search-modules" element={<SearchModules />} />
-                <Route path="my-exams" element={<MyExams />} />
+                <Route path="my-exams/:semester" element={<MyExams />} />
                 <Route
                   path="search-modules-opensearch"
                   element={<SearchModulesOpenSearch />}

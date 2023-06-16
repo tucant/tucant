@@ -2,4 +2,6 @@
     "[rust]": {
         "editor.formatOnSave": true,
     },
+    "typescript.tsdk": "frontend-react/.yarn/sdks/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
 }

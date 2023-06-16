@@ -56,6 +56,16 @@ pub enum Semester {
     Semester(u64),
 }
 
+impl From<Option<u64>> for Semester {
+    fn from(value: Option<u64>) -> Self {
+        match value {
+            Some(999) => Semester::AllSemesters,
+            Some(semester) => Semester::Semester(semester),
+            None => Semester::CurrentSemester,
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Profcourses {
     pub semester: Semester,
