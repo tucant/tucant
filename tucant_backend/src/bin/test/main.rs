@@ -2,14 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use base64::Engine;
-use futures::{stream::FuturesUnordered, StreamExt};
+use tucant_core::tucan::Tucan;
 
-use tucant_core::{
-    tucan::{Authenticated, Tucan},
-    url::{Moduledetails, Registration},
-};
-
+/*
 #[async_recursion::async_recursion]
 async fn recursive_reg(
     tucan: &Tucan<Authenticated>,
@@ -48,6 +43,7 @@ async fn recursive_reg(
 
     Ok(())
 }
+*/
 
 fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_current_thread()
