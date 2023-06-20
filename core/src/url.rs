@@ -49,7 +49,7 @@ pub struct Mlsstart;
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Mymodules;
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum Semester {
     CurrentSemester,
     AllSemesters,
@@ -59,9 +59,17 @@ pub enum Semester {
 impl From<Option<u64>> for Semester {
     fn from(value: Option<u64>) -> Self {
         match value {
-            Some(999) => Semester::AllSemesters,
-            Some(semester) => Semester::Semester(semester),
+            Some(value) => value.into(),
             None => Semester::CurrentSemester,
+        }
+    }
+}
+
+impl From<u64> for Semester {
+    fn from(value: u64) -> Self {
+        match value {
+            999 => Semester::AllSemesters,
+            semester => Semester::Semester(semester),
         }
     }
 }

@@ -1000,8 +1000,9 @@ impl Tucan<Authenticated> {
             .unwrap())
     }
 
-    pub async fn cached_my_exams(
+    pub async fn cached_my_exams_semester(
         &self,
+        semester: Semester,
     ) -> anyhow::Result<
         Option<(
             Vec<(MaybeCompleteModule, Exam)>,
@@ -1054,31 +1055,31 @@ impl Tucan<Authenticated> {
 
         let matriculation_number = self.state.session.matriculation_number;
 
-        // TODO FIXME fetch list of semesters and then fetch them one by one while passing the semester
-
-        let exams = {
+        let (exams, semesters) = {
             let document = self
-                .fetch_document(
-                    &Myexams {
-                        semester: Semester::AllSemesters,
-                    }
-                    .clone()
-                    .into(),
-                )
+                .fetch_document(&Myexams { semester }.clone().into())
                 .await?;
             let document = Self::parse_document(&document);
 
-            let semesters = document.select(&s("#semester option"));
+            let semester_selector = &s("#semester option");
+            let mut semesters = document.select(semester_selector);
             let active_semester = semesters
                 .find(|s| s.value().attr("selected").is_some())
                 .unwrap();
             let active_semester_name = active_semester.inner_html();
-            let semesters = document
-                .select(&s("#semester option"))
-                .map(|s| s.value().attr("value").unwrap())
+            let semesters: Vec<Semester> = document
+                .select(semester_selector)
+                .map(|s| {
+                    s.value()
+                        .attr("value")
+                        .unwrap()
+                        .parse::<u64>()
+                        .unwrap()
+                        .into()
+                })
                 .collect();
 
-            document
+            let exams = document
                 .select(&s("table tbody tr"))
                 .map(|exam| {
                     let selector = s(r#"td"#);
@@ -1128,7 +1129,9 @@ impl Tucan<Authenticated> {
                         module_link.inner_html(),
                     )
                 })
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>();
+
+            (exams, semesters)
         };
 
         let mut connection = self.pool.get()?;
@@ -1262,23 +1265,35 @@ impl Tucan<Authenticated> {
             .set(users_unfinished::user_exams_last_checked.eq(Utc::now().naive_utc()))
             .execute(&mut connection)?;
 
-        Ok(())
+        // TODO FIXME maybe return actually fetched semester
+        Ok((semester, semesters))
     }
 
     pub async fn my_exams(
+        &self,
+    ) -> anyhow::Result<(
+        Vec<(MaybeCompleteModule, Exam)>,
+        Vec<(MaybeCompleteCourse, Exam)>,
+    )> {
+        todo!()
+    }
+
+    pub async fn my_exams_semester(
         &self,
         semester: Semester,
     ) -> anyhow::Result<(
         Vec<(MaybeCompleteModule, Exam)>,
         Vec<(MaybeCompleteCourse, Exam)>,
     )> {
-        if let Some(value) = self.cached_my_exams().await? {
+        if let Some(value) = self.cached_my_exams_semester(semester.clone()).await? {
             return Ok(value);
         }
 
-        // TODO FIXME pass semester
         self.fetch_my_exams(semester).await?;
 
-        Ok(self.cached_my_exams().await?.unwrap())
+        Ok(self
+            .cached_my_exams_semester(semester.clone())
+            .await?
+            .unwrap())
     }
 }

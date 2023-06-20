@@ -65,6 +65,9 @@ fn main() -> anyhow::Result<()> {
                 )
                 .await?;
 
+            tucan.my_exams().await?;
+
+            /*
             let _module = tucan
                 .module(Moduledetails {
                     id: base64::prelude::BASE64_URL_SAFE_NO_PAD
@@ -84,7 +87,7 @@ fn main() -> anyhow::Result<()> {
             .await?;
 
             //tucan.course_results().await?;
-            /*
+
                         let semesters = tucan.root_module_results().await?;
                         for semester in semesters {
                             tucan.module_results(semester).await?;

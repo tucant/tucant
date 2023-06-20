@@ -35,7 +35,7 @@ pub async fn my_exams(
 > {
     let tucan = tucan.continue_session(session.clone()).await?;
 
-    let result = tucan.my_exams(input.0).await?;
+    let result = tucan.my_exams_semester(input.0).await?;
 
     Ok(Json(WithTucanUrl {
         tucan_url: Into::<TucanProgram>::into(Myexams {
