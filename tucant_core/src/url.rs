@@ -74,6 +74,22 @@ impl From<u64> for Semester {
     }
 }
 
+impl From<Semester> for u64 {
+    fn from(value: Semester) -> Self {
+        value.into().unwrap()
+    }
+}
+
+impl From<Semester> for Option<u64> {
+    fn from(value: Semester) -> Self {
+        match value {
+            Semester::CurrentSemester => None,
+            Semester::AllSemesters => Some(999),
+            Semester::Semester(semester) => Some(semester),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Profcourses {
     pub semester: Semester,

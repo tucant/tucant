@@ -20,7 +20,7 @@ use chrono::NaiveDateTime;
 use diesel::backend::Backend;
 use diesel::deserialize::FromSql;
 #[cfg(feature = "diesel")]
-use diesel::prelude::{AsChangeset, Identifiable, Insertable, Queryable, QueryableByName};
+use diesel::prelude::*;
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Bool;
 
@@ -913,16 +913,24 @@ pub struct UserCourseGroup {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(
     feature = "diesel",
-    derive(Identifiable, Queryable, Insertable, AsChangeset, Typescriptable)
+    derive(
+        Identifiable,
+        Queryable,
+        Selectable,
+        Insertable,
+        AsChangeset,
+        Typescriptable
+    )
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = exams_unfinished))]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Exam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
-    pub semester: String,
+    pub semester: Option<String>,
     pub exam_time_start: Option<NaiveDateTime>,
     pub exam_time_end: Option<NaiveDateTime>,
     pub registration_start: NaiveDateTime,

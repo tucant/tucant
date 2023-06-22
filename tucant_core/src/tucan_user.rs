@@ -12,7 +12,7 @@ use crate::{
         ModuleExamType, ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule,
         UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
-    schema::course_groups_unfinished,
+    schema::{course_groups_unfinished, semester_exams},
     tucan::{s, Authenticated, Tucan, Unauthenticated},
     url::{
         parse_tucan_url, Coursedetails, Courseresults, Examdetails, Examresults, Moduledetails,
@@ -889,18 +889,20 @@ impl Tucan<Authenticated> {
             let unregistration_end =
                 NaiveDateTime::parse_from_str(unregistration_range.1, date_format)?;
 
-            let semester = name_document
-                .select(&s("table td b"))
-                .find(|e| e.inner_html() == "Semester")
-                .unwrap()
-                .next_sibling()
-                .unwrap()
-                .value()
-                .as_text()
-                .unwrap()
-                .trim()
-                .trim_start_matches(": ")
-                .to_string();
+            let semester = Some(
+                name_document
+                    .select(&s("table td b"))
+                    .find(|e| e.inner_html() == "Semester")
+                    .unwrap()
+                    .next_sibling()
+                    .unwrap()
+                    .value()
+                    .as_text()
+                    .unwrap()
+                    .trim()
+                    .trim_start_matches(": ")
+                    .to_string(),
+            );
 
             let examinator = name_document
                 .select(&s("table td b"))
@@ -1013,10 +1015,12 @@ impl Tucan<Authenticated> {
 
         let mut connection = self.pool.get()?;
 
-        let exams_already_fetched = users_unfinished::table
-            .filter(users_unfinished::matriculation_number.eq(&matriculation_number))
-            .select(users_unfinished::user_exams_last_checked)
-            .get_result::<Option<NaiveDateTime>>(&mut connection)?;
+        let exams_already_fetched = semester_exams::table
+            .filter(semester_exams::user_id.eq(&matriculation_number))
+            .filter(semester_exams::semester.eq(semester.into()))
+            .select(semester_exams::tucan_last_checked)
+            .get_result::<NaiveDateTime>(&mut connection)
+            .optional()?;
 
         if exams_already_fetched.is_some() {
             let modules = user_exams::table
@@ -1260,11 +1264,12 @@ impl Tucan<Authenticated> {
             .collect();
         res?;
 
-        diesel::update(users_unfinished::table)
-            .filter(users_unfinished::matriculation_number.eq(matriculation_number))
-            .set(users_unfinished::user_exams_last_checked.eq(Utc::now().naive_utc()))
-            .execute(&mut connection)?;
-
+        /*
+                diesel::update(users_unfinished::table)
+                    .filter(users_unfinished::matriculation_number.eq(matriculation_number))
+                    .set(users_unfinished::user_exams_last_checked.eq(Utc::now().naive_utc()))
+                    .execute(&mut connection)?;
+        */
         // TODO FIXME maybe return actually fetched semester
         Ok((semester, semesters))
     }
