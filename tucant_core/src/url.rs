@@ -76,7 +76,12 @@ impl From<u64> for Semester {
 
 impl From<Semester> for u64 {
     fn from(value: Semester) -> Self {
-        value.into().unwrap()
+        // TODO FIXME probably don't provide this impl
+        match value {
+            Semester::CurrentSemester => unreachable!(),
+            Semester::AllSemesters => 999,
+            Semester::Semester(semester) => semester,
+        }
     }
 }
 

@@ -26,7 +26,7 @@ tokio                   = { default-features = false, optional = true, version =
 scraper                 = { default-features = false, optional = true, version = "0.17" }
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
-diesel                  = { default-features = false, version = "2", features = [ "r2d2", "sqlite", "returning_clauses_for_sqlite_3_35", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
+diesel                  = { default-features = false, optional = true, version = "2", features = [ "r2d2", "sqlite", "returning_clauses_for_sqlite_3_35", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
@@ -60,7 +60,7 @@ reqwest-middleware = "0.2.2"
 reqwest-retry = "0.2.2"
 
 [features]
-default = ["core"]
+default = ["core", "diesel"] # currently running without diesel is not possible
 axum = [ "dep:axum", "dep:axum-extra" ]
 
 # should be executable in the browser in the optimal case
