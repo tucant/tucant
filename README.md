@@ -101,9 +101,12 @@ yarn install --immutable
 
 # run this each time you want to run the frontend
 yarn run dev
+
 ```
 
 ## Development Notes
+
+#   = note: failed to open file '/home/moritz/Documents/tucant/target/debug/deps/libtucant_core.rlib': Too many open files (os error 24)
 
 Rome on NixOS (waiting for https://github.com/rome/tools/issues/4516):
 ```bash
