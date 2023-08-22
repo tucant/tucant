@@ -1,5 +1,20 @@
 [workspace]
-members = ["tucant_core", "tucant_backend", "tucant-language-server/fuzz_common", "tucant-language-server/fuzz_afl", "tucant-language-server/fuzz_libfuzzer", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
+members = [
+    "tucant_core",
+    "tucant_backend",
+    "tucant_language_server/fuzz_common",
+    "tucant_language_server/fuzz_afl",
+    "tucant_language_server/fuzz_libfuzzer",
+    "tucant_derive",
+    "tucant_derive_lib",
+    "tucant_language_server",
+    "out_dir_include",
+    "tucant_language_server_derive_internal",
+    "tucant_language_server_derive_output",
+    "debug_adapter_protocol_macro_impl",
+    "debug_adapter_protocol",
+    "json_rpc_server"
+]
 
 [workspace.package]
 version = "0.1.0"
@@ -13,5 +28,17 @@ keywords = ["tucan"]
 categories = ["accessibility", "api-bindings", "caching"]
 
 [workspace.dependencies]
+tucant_core = { path = "./tucant_core" }
+tucant_backend = { path = "./tucant_backend" }
+tucant_language_server_fuzz_common = { path = "./tucant_language_server/fuzz_common" }
+tucant_language_server_fuzz_afl = { path = "./tucant_language_server/fuzz_afl" }
+tucant_language_server_fuzz_libfuzzer = { path = "./tucant_language_server/fuzz_libfuzzer" }
 tucant_derive = { path = "./tucant_derive" }
 tucant_derive_lib = { path = "./tucant_derive_lib" }
+tucant_language_server = { path = "./tucant_language_server" }
+out_dir_include = { path = "./out_dir_include" }
+tucant_language_server_derive_internal = { path = "./tucant_language_server_derive_internal" }
+tucant_language_server_derive_output = { path = "./tucant_language_server_derive_output" }
+debug_adapter_protocol_macro_impl = { path = "./debug_adapter_protocol_macro_impl" }
+debug_adapter_protocol = { path = "./debug_adapter_protocol" }
+json_rpc_server = { path = "./json_rpc_server" }

@@ -18,7 +18,7 @@ serde           = { default-features = false, features = [ "alloc", "std", "deri
 serde_repr      = { default-features = false, version = "0.1" }
 serde_with      = { default-features = false, features = [ "macros" ], version = "3" }
 
-out-dir-include = { default-features = false, workspace = true }
+out_dir_include = { default-features = false, workspace = true }
 
 [build-dependencies]
 tucant_language_server_derive_internal = { default-features = false, workspace = true }

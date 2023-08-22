@@ -13,17 +13,17 @@ categories.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-out-dir-include = { default-features = false, workspace = true }
+out_dir_include = { default-features = false, workspace = true }
 async-trait     = { default-features = false, version = "0.1" }
 tokio           = { default-features = false, version = "1" }
 anyhow          = { default-features = false, version = "1" }
 futures-util    = { default-features = false, version = "0.3" }
-json-rpc-server = { default-features = false, workspace = true }
+json_rpc_server = { default-features = false, workspace = true }
 serde_json      = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
 serde           = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
 
 [build-dependencies]
-debug-adapter-protocol-macro-impl = { default-features = false, workspace = true }
+debug_adapter_protocol_macro_impl = { default-features = false, workspace = true }
 prettyplease                      = { default-features = false, version = "0.2" }
 syn                               = { default-features = false, version = "2" }
 proc-macro2                       = { default-features = false, version = "1" }
