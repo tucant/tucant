@@ -165,7 +165,9 @@ impl TryFrom<InternalModule> for CompleteModule {
     fn try_from(value: InternalModule) -> Result<Self, Self::Error> {
         match TryInto::<MaybeCompleteModule>::try_into(value)? {
             MaybeCompleteModule::Complete(value) => Ok(value),
-            MaybeCompleteModule::Partial(_) => Err(anyhow!("expected complete module, got partial module")),
+            MaybeCompleteModule::Partial(_) => {
+                Err(anyhow!("expected complete module, got partial module"))
+            }
         }
     }
 }
@@ -434,7 +436,9 @@ impl TryFrom<InternalCourse> for CompleteCourse {
     fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
         match TryInto::<MaybeCompleteCourse>::try_into(value)? {
             MaybeCompleteCourse::Complete(value) => Ok(value),
-            MaybeCompleteCourse::Partial(_) => Err(anyhow!("expected complete course, got partial course")),
+            MaybeCompleteCourse::Partial(_) => {
+                Err(anyhow!("expected complete course, got partial course"))
+            }
         }
     }
 }
@@ -696,7 +700,7 @@ pub struct Exam {
     #[cfg_attr(feature = "diesel", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
-    pub semester: Option<i64>,
+    pub semester: Option<String>,
     pub exam_time_start: Option<NaiveDateTime>,
     pub exam_time_end: Option<NaiveDateTime>,
     pub registration_start: NaiveDateTime,

@@ -53,11 +53,11 @@ pub struct Mymodules;
 pub enum Semester {
     CurrentSemester,
     AllSemesters,
-    Semester(u64),
+    Semester(i64),
 }
 
-impl From<Option<u64>> for Semester {
-    fn from(value: Option<u64>) -> Self {
+impl From<Option<i64>> for Semester {
+    fn from(value: Option<i64>) -> Self {
         match value {
             Some(value) => value.into(),
             None => Semester::CurrentSemester,
@@ -65,8 +65,8 @@ impl From<Option<u64>> for Semester {
     }
 }
 
-impl From<u64> for Semester {
-    fn from(value: u64) -> Self {
+impl From<i64> for Semester {
+    fn from(value: i64) -> Self {
         match value {
             999 => Semester::AllSemesters,
             semester => Semester::Semester(semester),
@@ -74,7 +74,7 @@ impl From<u64> for Semester {
     }
 }
 
-impl From<Semester> for u64 {
+impl From<Semester> for i64 {
     fn from(value: Semester) -> Self {
         // TODO FIXME probably don't provide this impl
         match value {
@@ -85,7 +85,7 @@ impl From<Semester> for u64 {
     }
 }
 
-impl From<Semester> for Option<u64> {
+impl From<Semester> for Option<i64> {
     fn from(value: Semester) -> Self {
         match value {
             Semester::CurrentSemester => None,

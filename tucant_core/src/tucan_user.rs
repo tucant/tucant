@@ -8,10 +8,10 @@ use std::{collections::HashMap, convert::TryInto};
 use crate::{
     models::{
         self, CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup,
-        CourseGroupEvent, Exam, InternalModule, MaybeCompleteCourse, MaybeCompleteModule,
-        ModuleCourse, ModuleExam, ModuleExamType, ModuleMenu, ModuleMenuEntryModule, PartialCourse,
-        PartialModule, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
-        MODULES_UNFINISHED, InternalCourse,
+        CourseGroupEvent, Exam, InternalCourse, InternalModule, MaybeCompleteCourse,
+        MaybeCompleteModule, ModuleCourse, ModuleExam, ModuleExamType, ModuleMenu,
+        ModuleMenuEntryModule, PartialCourse, PartialModule, UndoneUser, UserCourseGroup, UserExam,
+        COURSES_UNFINISHED, MODULES_UNFINISHED,
     },
     schema::{course_groups_unfinished, semester_exams},
     tucan::{s, Authenticated, Tucan, Unauthenticated},
@@ -170,8 +170,8 @@ impl Tucan<Authenticated> {
                 .order(courses_unfinished::title)
                 .load::<(ModuleCourse, InternalCourse)>(&mut connection)?
                 .into_iter()
-                .map(|(mc,ic)| Ok::<_,anyhow::Error>((mc, MaybeCompleteCourse::try_from(ic)?)))
-                .collect::<Result<_,_>>()?;
+                .map(|(mc, ic)| Ok::<_, anyhow::Error>((mc, MaybeCompleteCourse::try_from(ic)?)))
+                .collect::<Result<_, _>>()?;
 
             let id_indices: HashMap<_, _> = submodules
                 .iter()
@@ -360,7 +360,7 @@ impl Tucan<Authenticated> {
             .map(|m| &m.0)
             .map(|module| -> Result<_, _> {
                 diesel::insert_into(modules_unfinished::table)
-                    .values(module)
+                    .values(InternalModule::from(module))
                     .on_conflict_do_nothing()
                     .execute(&mut connection)
             })
@@ -388,9 +388,9 @@ impl Tucan<Authenticated> {
         let res: Result<Vec<usize>, _> = modules
             .iter()
             .flat_map(|m| &m.1)
-            .map(|module| -> Result<_, _> {
+            .map(|course| -> Result<_, _> {
                 diesel::insert_into(courses_unfinished::table)
-                    .values(module)
+                    .values(InternalCourse::from(course))
                     .on_conflict_do_nothing()
                     .execute(&mut connection)
             })
@@ -469,7 +469,10 @@ impl Tucan<Authenticated> {
                         .inner_join(modules_unfinished::table)
                         .select(MODULES_UNFINISHED)
                         .order(modules_unfinished::title)
-                        .load::<MaybeCompleteModule>(&mut connection)?,
+                        .load::<InternalModule>(&mut connection)?
+                        .into_iter()
+                        .map(MaybeCompleteModule::try_from)
+                        .collect::<Result<_, _>>()?,
                 )
             } else {
                 None
@@ -588,7 +591,10 @@ impl Tucan<Authenticated> {
                         .inner_join(courses_unfinished::table)
                         .select(COURSES_UNFINISHED)
                         .order(courses_unfinished::title)
-                        .load(&mut connection)?,
+                        .load::<InternalCourse>(&mut connection)?
+                        .into_iter()
+                        .map(MaybeCompleteCourse::try_from)
+                        .collect::<Result<_, _>>()?,
                     user_course_groups::table
                         .filter(user_course_groups::user_id.eq(&matriculation_number))
                         .inner_join(course_groups_unfinished::table)
@@ -839,14 +845,20 @@ impl Tucan<Authenticated> {
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
-                .load(&mut connection)?;
+                .load::<InternalModule>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteModule::try_from)
+                .collect::<Result<_, _>>()?;
 
             let course_exams: Vec<MaybeCompleteCourse> = course_exams::table
                 .filter(course_exams::exam.eq(&exam_details.id))
                 .inner_join(courses_unfinished::table)
                 .select(COURSES_UNFINISHED)
                 .order(courses_unfinished::title)
-                .load(&mut connection)?;
+                .load::<InternalCourse>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteCourse::try_from)
+                .collect::<Result<_, _>>()?;
 
             Ok(Some((existing, module_exams, course_exams)))
         } else {
@@ -1027,7 +1039,7 @@ impl Tucan<Authenticated> {
 
         let exams_already_fetched = semester_exams::table
             .filter(semester_exams::user_id.eq(&matriculation_number))
-            .filter(semester_exams::semester.eq(semester.into()))
+            .filter(semester_exams::semester.eq(i64::from(semester)))
             .select(semester_exams::tucan_last_checked)
             .get_result::<NaiveDateTime>(&mut connection)
             .optional()?;
@@ -1041,7 +1053,10 @@ impl Tucan<Authenticated> {
                 )
                 .select((MODULES_UNFINISHED, exams_unfinished::all_columns))
                 .order((modules_unfinished::title, exams_unfinished::exam_time_start))
-                .load::<(MaybeCompleteModule, Exam)>(&mut connection)?;
+                .load::<(InternalModule, Exam)>(&mut connection)?
+                .into_iter()
+                .map(|(m, e)| Ok::<_, anyhow::Error>((MaybeCompleteModule::try_from(m)?, e)))
+                .collect::<Result<_, _>>()?;
 
             let courses = user_exams::table
                 .filter(user_exams::matriculation_number.eq(&matriculation_number))
@@ -1051,7 +1066,10 @@ impl Tucan<Authenticated> {
                 )
                 .select((COURSES_UNFINISHED, exams_unfinished::all_columns))
                 .order((courses_unfinished::title, exams_unfinished::exam_time_start))
-                .load::<(MaybeCompleteCourse, Exam)>(&mut connection)?;
+                .load::<(InternalCourse, Exam)>(&mut connection)?
+                .into_iter()
+                .map(|(m, e)| Ok::<_, anyhow::Error>((MaybeCompleteCourse::try_from(m)?, e)))
+                .collect::<Result<_, _>>()?;
 
             Ok(Some((modules, courses)))
         } else {
@@ -1214,7 +1232,7 @@ impl Tucan<Authenticated> {
             .into_iter()
             .map(|module_exam| -> Result<_, _> {
                 diesel::insert_into(modules_unfinished::table)
-                    .values(module_exam)
+                    .values(InternalModule::from(module_exam))
                     .on_conflict(modules_unfinished::tucan_id)
                     .do_nothing()
                     .execute(&mut connection)
@@ -1248,7 +1266,7 @@ impl Tucan<Authenticated> {
             .into_iter()
             .map(|course_exam| -> Result<_, _> {
                 diesel::insert_into(courses_unfinished::table)
-                    .values(course_exam)
+                    .values(InternalCourse::from(course_exam))
                     .on_conflict(courses_unfinished::tucan_id)
                     .do_nothing()
                     .execute(&mut connection)
