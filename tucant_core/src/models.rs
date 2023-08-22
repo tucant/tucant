@@ -700,7 +700,8 @@ pub struct Exam {
     #[cfg_attr(feature = "diesel", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
-    pub semester: Option<String>,
+    pub semester: Option<i64>, // may be extracted from liked url
+    pub semester_name: Option<String>,
     pub exam_time_start: Option<NaiveDateTime>,
     pub exam_time_end: Option<NaiveDateTime>,
     pub registration_start: NaiveDateTime,

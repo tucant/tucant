@@ -170,6 +170,7 @@ CREATE TABLE exams_unfinished (
     tucan_id BLOB NOT NULL PRIMARY KEY,
     exam_type TEXT NOT NULL,
     semester BIGINT REFERENCES semesters (id), -- TODO FIXME check whether this is actually the same semester as in the overview
+    semester_name TEXT,
     exam_time_start TIMESTAMP DEFAULT NULL,
     exam_time_end TIMESTAMP DEFAULT NULL,
     registration_start TIMESTAMP NOT NULL,

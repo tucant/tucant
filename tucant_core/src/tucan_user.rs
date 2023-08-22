@@ -983,7 +983,8 @@ impl Tucan<Authenticated> {
             Exam {
                 tucan_id: exam_details.id,
                 exam_type,
-                semester,
+                semester: None,
+                semester_name: semester,
                 exam_time_start: exam_time.map(|v| v.1),
                 exam_time_end: exam_time.map(|v| v.2),
                 registration_start,

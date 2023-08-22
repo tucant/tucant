@@ -32,7 +32,7 @@ use crate::{
         CompleteCourse, CompleteModule, CourseEvent, CourseGroup, CourseGroupEvent,
         MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExamType, PartialCourse,
         TucanSession, UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED,
-        MODULES_UNFINISHED,
+        MODULES_UNFINISHED, InternalCourse,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
@@ -922,10 +922,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
         debug!("[+] course {:?}", course);
         diesel::insert_into(courses_unfinished::table)
-            .values(&course)
+            .values(InternalCourse::from(&course))
             .on_conflict(courses_unfinished::tucan_id)
             .do_update()
-            .set(&course)
+            .set(InternalCourse::from(&course))
             .execute(connection)?;
 
         let res: Result<Vec<usize>, _> = course_groups

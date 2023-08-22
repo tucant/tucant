@@ -66,6 +66,7 @@ diesel::table! {
         tucan_id -> Binary,
         exam_type -> Text,
         semester -> Nullable<BigInt>,
+        semester_name -> Nullable<Text>,
         exam_time_start -> Nullable<Timestamp>,
         exam_time_end -> Nullable<Timestamp>,
         registration_start -> Timestamp,
