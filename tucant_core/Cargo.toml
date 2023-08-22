@@ -60,7 +60,7 @@ reqwest-middleware = "0.2.2"
 reqwest-retry = "0.2.2"
 
 [features]
-default = ["core", "diesel"] # currently running without diesel is not possible
+default = ["core", "diesel"] # currently running without diesel is not possible, make this not a non-default feature but simply required. or make it replaceable
 axum = [ "dep:axum", "dep:axum-extra" ]
 
 # should be executable in the browser in the optimal case

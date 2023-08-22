@@ -4,7 +4,7 @@ members = [
     "tucant_core",
     "tucant_backend",
     "tucant_language_server/fuzz_common",
-    "tucant_language_server/fuzz_afl",
+    #"tucant_language_server/fuzz_afl",
     "tucant_language_server/fuzz_libfuzzer",
     "tucant_derive",
     "tucant_derive_lib",
@@ -29,10 +29,10 @@ keywords = ["tucan"]
 categories = ["accessibility", "api-bindings", "caching"]
 
 [workspace.dependencies]
-tucant_core = { default-features = false, path = "./tucant_core" }
+tucant_core = { path = "./tucant_core" }
 tucant_backend = { default-features = false, path = "./tucant_backend" }
 tucant_language_server_fuzz_common = { default-features = false, path = "./tucant_language_server/fuzz_common" }
-tucant_language_server_fuzz_afl = { default-features = false, path = "./tucant_language_server/fuzz_afl" }
+#tucant_language_server_fuzz_afl = { default-features = false, path = "./tucant_language_server/fuzz_afl" }
 tucant_language_server_fuzz_libfuzzer = { default-features = false, path = "./tucant_language_server/fuzz_libfuzzer" }
 tucant_derive = { default-features = false, path = "./tucant_derive" }
 tucant_derive_lib = { default-features = false, path = "./tucant_derive_lib" }

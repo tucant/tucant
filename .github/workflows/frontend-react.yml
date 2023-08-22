@@ -19,7 +19,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: frontend-react
+        working-directory: tucant_react
 
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: frontend-react/yarn.lock
+          cache-dependency-path: tucant_react/yarn.lock
       - run: yarn install --immutable
       - run: yarn npm audit
       - run: yarn run build

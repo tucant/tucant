@@ -30,7 +30,7 @@ export async function module(input: string): Promise<WithTucanUrlTW9kdWxlUmVzcG9
 export async function my_courses(input: null): Promise<WithTucanUrlW01heWJlQ29tcGxldGVDb3Vyc2VbXSwgQ291cnNlR3JvdXBbXV0> {
         return await genericFetch("http://localhost:8080/my-courses", input) as WithTucanUrlW01heWJlQ29tcGxldGVDb3Vyc2VbXSwgQ291cnNlR3JvdXBbXV0
 }
-export async function my_exams(input: null): Promise<WithTucanUrlW1tNYXliZUNvbXBsZXRlTW9kdWxlLCBFeGFtXVtdLCBbTWF5YmVDb21wbGV0ZUNvdXJzZSwgRXhhbV1bXV0> {
+export async function my_exams(input: number | null): Promise<WithTucanUrlW1tNYXliZUNvbXBsZXRlTW9kdWxlLCBFeGFtXVtdLCBbTWF5YmVDb21wbGV0ZUNvdXJzZSwgRXhhbV1bXV0> {
         return await genericFetch("http://localhost:8080/my-exams", input) as WithTucanUrlW1tNYXliZUNvbXBsZXRlTW9kdWxlLCBFeGFtXVtdLCBbTWF5YmVDb21wbGV0ZUNvdXJzZSwgRXhhbV1bXV0
 }
 export async function my_modules(input: null): Promise<WithTucanUrlTWF5YmVDb21wbGV0ZU1vZHVsZVtd> {
@@ -53,7 +53,8 @@ export type CompleteCourse =
   course_id: string,
   sws: number,
   content: string,
-  semester: string | null,
+  semester: number | null,
+  semester_name: string | null,
 }
 export type CompleteModule =
 {
@@ -91,7 +92,8 @@ export type Exam =
 {
   tucan_id: string,
   exam_type: string,
-  semester: string,
+  semester: number | null,
+  semester_name: string | null,
   exam_time_start: string | null,
   exam_time_end: string | null,
   registration_start: string,
@@ -160,7 +162,8 @@ export type PartialCourse =
   tucan_last_checked: string,
   title: string,
   course_id: string,
-  semester: string | null,
+  semester: number | null,
+  semester_name: string | null,
 }
 export type PartialModule =
 {

@@ -165,126 +165,122 @@ impl TucanProgram {
     #[allow(clippy::too_many_lines)]
     #[must_use]
     pub fn to_tucan_url(&self, session_nr: Option<i64>) -> String {
-        let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
-            Self::Mlsstart(_) => todo!(),
-            Self::Mymodules(_) => (
-                "MYMODULES",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(275),
-                        TucanArgument::Number(999),
-                    ]
-                    .into_iter(),
+        let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) =
+            match self {
+                Self::Mlsstart(_) => todo!(),
+                Self::Mymodules(_) => (
+                    "MYMODULES",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(275),
+                            TucanArgument::Number(999),
+                        ]
+                        .into_iter(),
+                    ),
                 ),
-            ),
-            Self::Profcourses(Profcourses { semester }) => (
-                "PROFCOURSES",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(274),
-                    ]
-                    .into_iter()
-                    .chain(
-                        match semester {
+                Self::Profcourses(Profcourses { semester }) => (
+                    "PROFCOURSES",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(274),
+                        ]
+                        .into_iter()
+                        .chain(match semester {
                             Semester::CurrentSemester => vec![],
                             Semester::AllSemesters => vec![TucanArgument::Number(999)],
                             Semester::Semester(semester) => vec![TucanArgument::Number(*semester)],
-                        },
+                        }),
                     ),
                 ),
-            ),
-            Self::Studentchoicecourses(_) => todo!(),
-            Self::Registration(Registration { path }) => {
-                let mut a = path.chunks(std::mem::size_of::<i64>());
-                (
+                Self::Studentchoicecourses(_) => todo!(),
+                Self::Registration(Registration { path }) => {
+                    let mut a = path.chunks(std::mem::size_of::<i64>());
+                    (
+                        "REGISTRATION",
+                        Box::new(
+                            [
+                                TucanArgument::Number(session_nr.unwrap_or(1)),
+                                TucanArgument::Number(311),
+                                TucanArgument::Number(i64::from_be_bytes(
+                                    a.next().unwrap().try_into().unwrap(),
+                                )),
+                                TucanArgument::Number(0),
+                                TucanArgument::Number(i64::from_be_bytes(
+                                    a.next().unwrap().try_into().unwrap(),
+                                )),
+                                TucanArgument::Number(i64::from_be_bytes(
+                                    a.next().unwrap().try_into().unwrap(),
+                                )),
+                            ]
+                            .into_iter(),
+                        ),
+                    )
+                }
+                Self::RootRegistration(_) => (
                     "REGISTRATION",
                     Box::new(
                         [
                             TucanArgument::Number(session_nr.unwrap_or(1)),
                             TucanArgument::Number(311),
+                            TucanArgument::String(""),
+                        ]
+                        .into_iter(),
+                    ),
+                ),
+                Self::Myexams(Myexams { semester }) => (
+                    "MYEXAMS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(318),
+                        ]
+                        .into_iter()
+                        .chain(match semester {
+                            Semester::CurrentSemester => vec![],
+                            Semester::AllSemesters => vec![TucanArgument::Number(999)],
+                            Semester::Semester(semester) => vec![TucanArgument::Number(*semester)],
+                        }),
+                    ),
+                ),
+                Self::Courseresults(Courseresults { semester }) => (
+                    "COURSERESULTS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(324),
+                        ]
+                        .into_iter()
+                        .chain(semester.map(TucanArgument::Number)),
+                    ),
+                ),
+                Self::Examresults(_) => (
+                    "EXAMRESULTS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(325),
+                            TucanArgument::Number(999),
+                        ]
+                        .into_iter(),
+                    ),
+                ),
+                Self::StudentResult(_) => todo!(),
+                Self::Moduledetails(Moduledetails { id }) => (
+                    "MODULEDETAILS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(311),
                             TucanArgument::Number(i64::from_be_bytes(
-                                a.next().unwrap().try_into().unwrap(),
-                            )),
-                            TucanArgument::Number(0),
-                            TucanArgument::Number(i64::from_be_bytes(
-                                a.next().unwrap().try_into().unwrap(),
-                            )),
-                            TucanArgument::Number(i64::from_be_bytes(
-                                a.next().unwrap().try_into().unwrap(),
+                                id.as_slice().try_into().unwrap(),
                             )),
                         ]
                         .into_iter(),
                     ),
-                )
-            }
-            Self::RootRegistration(_) => (
-                "REGISTRATION",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(311),
-                        TucanArgument::String(""),
-                    ]
-                    .into_iter(),
                 ),
-            ),
-            Self::Myexams(Myexams { semester }) => (
-                "MYEXAMS",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(318),
-                    ]
-                    .into_iter()
-                    .chain(
-                        match semester {
-                            Semester::CurrentSemester => vec![],
-                            Semester::AllSemesters => vec![TucanArgument::Number(999)],
-                            Semester::Semester(semester) => vec![TucanArgument::Number(*semester)],
-                        },
-                    ),
-                ),
-            ),
-            Self::Courseresults(Courseresults { semester }) => (
-                "COURSERESULTS",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(324),
-                    ]
-                    .into_iter()
-                    .chain(semester.map(TucanArgument::Number)),
-                ),
-            ),
-            Self::Examresults(_) => (
-                "EXAMRESULTS",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(325),
-                        TucanArgument::Number(999),
-                    ]
-                    .into_iter(),
-                ),
-            ),
-            Self::StudentResult(_) => todo!(),
-            Self::Moduledetails(Moduledetails { id }) => (
-                "MODULEDETAILS",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(311),
-                        TucanArgument::Number(i64::from_be_bytes(
-                            id.as_slice().try_into().unwrap(),
-                        )),
-                    ]
-                    .into_iter(),
-                ),
-            ),
-            Self::Coursedetails(Coursedetails { id }) => {
-                (
+                Self::Coursedetails(Coursedetails { id }) => (
                     "COURSEDETAILS",
                     Box::new(
                         [
@@ -298,63 +294,62 @@ impl TucanProgram {
                         }))
                         .chain([TucanArgument::Number(0), TucanArgument::Number(0)]),
                     ),
-                )
-            }
-            Self::Persaddress(_) => (
-                "PERSADDRESS",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(339),
-                    ]
-                    .into_iter(),
                 ),
-            ),
-            Self::StartpageDispatch(_) => todo!(),
-            Self::Externalpages(Externalpages { id, name }) => (
-                "EXTERNALPAGES",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(*id),
-                        TucanArgument::String(name),
-                    ]
-                    .into_iter(),
+                Self::Persaddress(_) => (
+                    "PERSADDRESS",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(339),
+                        ]
+                        .into_iter(),
+                    ),
                 ),
-            ),
-            Self::Examdetails(Examdetails { id }) => {
-                let mut a = id.chunks(std::mem::size_of::<i64>());
-                (
-                    "EXAMDETAILS",
+                Self::StartpageDispatch(_) => todo!(),
+                Self::Externalpages(Externalpages { id, name }) => (
+                    "EXTERNALPAGES",
+                    Box::new(
+                        [
+                            TucanArgument::Number(session_nr.unwrap_or(1)),
+                            TucanArgument::Number(*id),
+                            TucanArgument::String(name),
+                        ]
+                        .into_iter(),
+                    ),
+                ),
+                Self::Examdetails(Examdetails { id }) => {
+                    let mut a = id.chunks(std::mem::size_of::<i64>());
+                    (
+                        "EXAMDETAILS",
+                        Box::new(
+                            [
+                                TucanArgument::Number(session_nr.unwrap_or(1)),
+                                TucanArgument::Number(318),
+                                TucanArgument::Number(i64::from_be_bytes(
+                                    a.next().unwrap().try_into().unwrap(),
+                                )),
+                            ]
+                            .into_iter(),
+                        ),
+                    )
+                }
+                Self::Courseprep(Courseprep { id }) => (
+                    "COURSEPREP",
                     Box::new(
                         [
                             TucanArgument::Number(session_nr.unwrap_or(1)),
                             TucanArgument::Number(318),
-                            TucanArgument::Number(i64::from_be_bytes(
-                                a.next().unwrap().try_into().unwrap(),
-                            )),
+                            TucanArgument::Number(0),
+                            TucanArgument::Number((*id).try_into().unwrap()),
                         ]
                         .into_iter(),
                     ),
-                )
-            }
-            Self::Courseprep(Courseprep { id }) => (
-                "COURSEPREP",
-                Box::new(
-                    [
-                        TucanArgument::Number(session_nr.unwrap_or(1)),
-                        TucanArgument::Number(318),
-                        TucanArgument::Number(0),
-                        TucanArgument::Number((*id).try_into().unwrap()),
-                    ]
-                    .into_iter(),
                 ),
-            ),
-            Self::Action(Action { magic }) => (
-                "ACTION",
-                Box::new(std::iter::once(TucanArgument::String(magic))),
-            ),
-        };
+                Self::Action(Action { magic }) => (
+                    "ACTION",
+                    Box::new(std::iter::once(TucanArgument::String(magic))),
+                ),
+            };
         let args = args.format(",");
 
         format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME={progname}&ARGUMENTS={args}")
@@ -571,8 +566,10 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             number(&mut arguments);
             number(&mut arguments);
             let prog = TucanProgram::Coursedetails(Coursedetails {
-                id: [number(&mut arguments).to_be_bytes(), // this *should* be unique per course
-                    number(&mut arguments).to_be_bytes()]
+                id: [
+                    number(&mut arguments).to_be_bytes(), // this *should* be unique per course
+                    number(&mut arguments).to_be_bytes(),
+                ]
                 .concat(),
             });
             assert_eq!(number(&mut arguments), 0);

@@ -38,7 +38,8 @@ use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use diesel::SqliteConnection;
 
-use diesel_migrations::FileBasedMigrations;
+use diesel_migrations::embed_migrations;
+use diesel_migrations::EmbeddedMigrations;
 use diesel_migrations::MigrationHarness;
 use dotenvy::dotenv;
 
@@ -298,6 +299,8 @@ struct AppState {
     tucan: Tucan,
 }
 
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../tucant_core/migrations");
+
 fn main() -> anyhow::Result<()> {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
@@ -327,10 +330,6 @@ fn main() -> anyhow::Result<()> {
 
             warn!("Starting server...");
 
-            let path = std::env::current_exe()?;
-            let path = path.parent().unwrap();
-            let path = path.join("../../core/migrations");
-            let migrations = FileBasedMigrations::from_path(path)?;
             dotenv().ok();
             let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
@@ -338,7 +337,7 @@ fn main() -> anyhow::Result<()> {
             let pool = r2d2::Pool::builder()
                 .build(manager)
                 .expect("Failed to create pool.");
-            pool.get()?.run_pending_migrations(migrations).unwrap();
+            pool.get()?.run_pending_migrations(MIGRATIONS).unwrap();
             drop(pool);
 
             let random_secret_key = Key::generate();
@@ -419,7 +418,7 @@ fn main() -> anyhow::Result<()> {
             let lock_for_writing = FileOptions::new().write(true).create(true).truncate(true);
 
             let mut filelock = match FileLock::lock(
-                "./frontend-react/src/api.ts",
+                "../tucant_react/src/api.ts",
                 should_we_block,
                 lock_for_writing,
             ) {

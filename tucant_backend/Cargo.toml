@@ -56,7 +56,7 @@ diesel_migrations       = { default-features = false, optional = true, version =
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.15.4" }
-tucant_core = { workspace = true, default-features = false, features = ["server"] }
+tucant_core = { workspace = true, features = ["server"] }
 time = "=0.3.25"
 
 [features]

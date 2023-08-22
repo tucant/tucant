@@ -14,7 +14,7 @@ cargo build --workspace --all-targets --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-targets --all-features
 
-cd frontend-react
+cd tucant_react
 yarn install --immutable
 yarn run check-fix
 cd ..

@@ -1328,9 +1328,6 @@ impl Tucan<Authenticated> {
 
         self.fetch_my_exams(semester).await?;
 
-        Ok(self
-            .cached_my_exams_semester(semester)
-            .await?
-            .unwrap())
+        Ok(self.cached_my_exams_semester(semester).await?.unwrap())
     }
 }
