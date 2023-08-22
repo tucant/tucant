@@ -208,7 +208,7 @@ impl Server {
         let value = match parse_from_str(&document) {
             Ok(value) => value,
             Err(Error {
-                partial_parse: _, ..
+                partial_parse: (), ..
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
@@ -289,7 +289,7 @@ impl Server {
         let value = match parse_from_str(&document) {
             Ok(value) => value,
             Err(Error {
-                partial_parse: _, ..
+                partial_parse: (), ..
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
@@ -326,7 +326,7 @@ impl Server {
         let value = match parse_from_str(&document) {
             Ok(value) => value,
             Err(Error {
-                partial_parse: _, ..
+                partial_parse: (), ..
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME,
         };
 
@@ -414,7 +414,7 @@ impl Server {
         let value = match parse_from_str(&document) {
             Ok(value) => value,
             Err(Error {
-                partial_parse: _, ..
+                partial_parse: (), ..
             }) => (Ast::List(vec![]), FAKE_SPAN.clone()), // TODO FIXME
         };
 
