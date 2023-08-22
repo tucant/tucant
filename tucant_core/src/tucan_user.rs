@@ -716,7 +716,7 @@ impl Tucan<Authenticated> {
         Ok(self.cached_my_courses().await?.unwrap())
     }
 
-    pub async fn root_module_results(&self) -> anyhow::Result<Vec<u64>> {
+    pub async fn root_module_results(&self) -> anyhow::Result<Vec<i64>> {
         let document = self
             .fetch_document(&Courseresults { semester: None }.clone().into())
             .await?;
@@ -730,7 +730,7 @@ impl Tucan<Authenticated> {
         Ok(semesters)
     }
 
-    pub async fn module_results(&self, semester: u64) -> anyhow::Result<()> {
+    pub async fn module_results(&self, semester: i64) -> anyhow::Result<()> {
         let modules = self.my_modules().await?;
 
         let document = self

@@ -29,10 +29,10 @@ use tokio::sync::Semaphore;
 
 use crate::{
     models::{
-        CompleteCourse, CompleteModule, CourseEvent, CourseGroup, CourseGroupEvent,
-        MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExamType, PartialCourse,
-        TucanSession, UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED,
-        MODULES_UNFINISHED, InternalCourse,
+        CompleteCourse, CompleteModule, CourseEvent, CourseGroup, CourseGroupEvent, InternalCourse,
+        InternalModule, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExamType,
+        PartialCourse, TucanSession, UndoneUser, VVMenuCourses, VVMenuItem, COURSES_UNFINISHED,
+        MODULES_UNFINISHED,
     },
     schema::{
         course_events, course_groups_events, course_groups_unfinished, courses_unfinished,
@@ -138,7 +138,10 @@ impl Tucan<Unauthenticated> {
 
         let _test: Vec<_> = courses_unfinished::table
             .select(COURSES_UNFINISHED)
-            .load::<InternalCourse>(&mut connection)?.into_iter().map(MaybeCompleteCourse::try_from).collect::<Result<_,_>>()?;
+            .load::<InternalCourse>(&mut connection)?
+            .into_iter()
+            .map(MaybeCompleteCourse::try_from)
+            .collect::<Result<_, _>>()?;
         Ok(())
     }
 
@@ -212,7 +215,10 @@ impl Tucan<Unauthenticated> {
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
                 .order(courses_unfinished::title)
-                .load::<InternalCourse>(&mut connection)?.into_iter().map(MaybeCompleteCourse::try_from).collect::<Result<_,_>>()?;
+                .load::<InternalCourse>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteCourse::try_from)
+                .collect::<Result<_, _>>()?;
 
             Ok(Some((vv_menu, submenus, submodules)))
         } else {
@@ -1040,10 +1046,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         });
 
         diesel::insert_into(courses_unfinished::table)
-            .values(&course)
+            .values(InternalCourse::from(&course))
             .on_conflict(courses_unfinished::tucan_id)
             .do_update()
-            .set(&course)
+            .set(InternalCourse::from(&course))
             .execute(connection)?;
 
         diesel::insert_into(course_groups_unfinished::table)
@@ -1093,8 +1099,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(courses_unfinished::tucan_id.eq(&url.id))
             .filter(courses_unfinished::done)
             .select(COURSES_UNFINISHED)
-            .get_result::<CompleteCourse>(&mut connection)
-            .optional()?;
+            .get_result::<InternalCourse>(&mut connection)
+            .optional()?
+            .map(CompleteCourse::try_from)
+            .transpose()?;
 
         if let Some(existing) = existing {
             debug!("[~] course {:?}", existing);
@@ -1118,7 +1126,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .inner_join(modules_unfinished::table)
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
-                .load::<MaybeCompleteModule>(&mut connection)?;
+                .load::<InternalModule>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteModule::try_from)
+                .collect::<Result<_, _>>()?;
 
             return Ok(Some((
                 existing,
@@ -1253,8 +1264,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .filter(modules_unfinished::done)
             .select(MODULES_UNFINISHED)
             .order(modules_unfinished::title)
-            .get_result::<CompleteModule>(&mut connection)
-            .optional()?;
+            .get_result::<InternalModule>(&mut connection)
+            .optional()?
+            .map(CompleteModule::try_from)
+            .transpose()?;
 
         if let Some(existing_module) = existing_module {
             debug!("[~] module {:?}", existing_module);
@@ -1264,7 +1277,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .inner_join(courses_unfinished::table)
                 .order(courses_unfinished::title)
                 .select(COURSES_UNFINISHED)
-                .load::<MaybeCompleteCourse>(&mut connection)?;
+                .load::<InternalCourse>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteCourse::try_from)
+                .collect::<Result<_, _>>()?;
 
             let exam_types = module_exam_types::table
                 .filter(module_exam_types::module_id.eq(&existing_module.tucan_id))
@@ -1488,10 +1504,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         debug!("[+] module {:?}", module);
 
         diesel::insert_into(modules_unfinished::table)
-            .values(&module)
+            .values(InternalModule::from(&module))
             .on_conflict(modules_unfinished::tucan_id)
             .do_update()
-            .set(&module)
+            .set(InternalModule::from(&module))
             .execute(&mut connection)?;
 
         // https://github.com/diesel-rs/diesel/discussions/3115#discussioncomment-2509647
@@ -1499,10 +1515,10 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             .iter()
             .map(|course| -> Result<_, _> {
                 diesel::insert_into(courses_unfinished::table)
-                    .values(course)
+                    .values(InternalCourse::from(course))
                     .on_conflict(courses_unfinished::tucan_id)
                     .do_update()
-                    .set(course)
+                    .set(InternalCourse::from(course))
                     .execute(&mut connection)
             })
             .collect();

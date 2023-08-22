@@ -12,7 +12,7 @@ use url::{Host, Origin, Url};
 #[allow(clippy::module_name_repetitions)]
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct TucanUrl {
-    pub session_nr: Option<u64>,
+    pub session_nr: Option<i64>,
     pub program: TucanProgram,
 }
 
@@ -21,7 +21,7 @@ pub struct StartpageDispatch;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Externalpages {
-    pub id: u64,
+    pub id: i64,
     pub name: String,
 }
 
@@ -110,12 +110,12 @@ pub struct Myexams {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Courseresults {
-    pub semester: Option<u64>,
+    pub semester: Option<i64>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
 pub struct Examresults {
-    pub semester: Option<u64>,
+    pub semester: Option<i64>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Clone)]
@@ -164,7 +164,7 @@ pub enum TucanProgram {
 impl TucanProgram {
     #[allow(clippy::too_many_lines)]
     #[must_use]
-    pub fn to_tucan_url(&self, session_nr: Option<u64>) -> String {
+    pub fn to_tucan_url(&self, session_nr: Option<i64>) -> String {
         let (progname, args): (&str, Box<dyn Iterator<Item = TucanArgument>>) = match self {
             Self::Mlsstart(_) => todo!(),
             Self::Mymodules(_) => (
@@ -198,21 +198,21 @@ impl TucanProgram {
             ),
             Self::Studentchoicecourses(_) => todo!(),
             Self::Registration(Registration { path }) => {
-                let mut a = path.chunks(std::mem::size_of::<u64>());
+                let mut a = path.chunks(std::mem::size_of::<i64>());
                 (
                     "REGISTRATION",
                     Box::new(
                         [
                             TucanArgument::Number(session_nr.unwrap_or(1)),
                             TucanArgument::Number(311),
-                            TucanArgument::Number(u64::from_be_bytes(
+                            TucanArgument::Number(i64::from_be_bytes(
                                 a.next().unwrap().try_into().unwrap(),
                             )),
                             TucanArgument::Number(0),
-                            TucanArgument::Number(u64::from_be_bytes(
+                            TucanArgument::Number(i64::from_be_bytes(
                                 a.next().unwrap().try_into().unwrap(),
                             )),
-                            TucanArgument::Number(u64::from_be_bytes(
+                            TucanArgument::Number(i64::from_be_bytes(
                                 a.next().unwrap().try_into().unwrap(),
                             )),
                         ]
@@ -278,7 +278,7 @@ impl TucanProgram {
                     [
                         TucanArgument::Number(session_nr.unwrap_or(1)),
                         TucanArgument::Number(311),
-                        TucanArgument::Number(u64::from_be_bytes(
+                        TucanArgument::Number(i64::from_be_bytes(
                             id.as_slice().try_into().unwrap(),
                         )),
                     ]
@@ -295,8 +295,8 @@ impl TucanProgram {
                             TucanArgument::Number(0),
                         ]
                         .into_iter()
-                        .chain(id.chunks(std::mem::size_of::<u64>()).map(|n| {
-                            TucanArgument::Number(u64::from_be_bytes(n.try_into().unwrap()))
+                        .chain(id.chunks(std::mem::size_of::<i64>()).map(|n| {
+                            TucanArgument::Number(i64::from_be_bytes(n.try_into().unwrap()))
                         }))
                         .chain([TucanArgument::Number(0), TucanArgument::Number(0)].into_iter()),
                     ),
@@ -325,14 +325,14 @@ impl TucanProgram {
                 ),
             ),
             Self::Examdetails(Examdetails { id }) => {
-                let mut a = id.chunks(std::mem::size_of::<u64>());
+                let mut a = id.chunks(std::mem::size_of::<i64>());
                 (
                     "EXAMDETAILS",
                     Box::new(
                         [
                             TucanArgument::Number(session_nr.unwrap_or(1)),
                             TucanArgument::Number(318),
-                            TucanArgument::Number(u64::from_be_bytes(
+                            TucanArgument::Number(i64::from_be_bytes(
                                 a.next().unwrap().try_into().unwrap(),
                             )),
                         ]
@@ -365,13 +365,13 @@ impl TucanProgram {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TucanArgument<'a> {
-    Number(u64),
+    Number(i64),
     String(&'a str),
 }
 
 impl<'a> TucanArgument<'a> {
     #[must_use]
-    pub fn number(&self) -> u64 {
+    pub fn number(&self) -> i64 {
         match self {
             TucanArgument::Number(number) => *number,
             TucanArgument::String(_) => panic!(),
@@ -409,7 +409,7 @@ pub fn parse_arguments(
         .peekable()
 }
 
-fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> u64 {
+fn number<'a>(arguments: &mut (impl Iterator<Item = TucanArgument<'a>> + std::fmt::Debug)) -> i64 {
     arguments.next().unwrap().number()
 }
 

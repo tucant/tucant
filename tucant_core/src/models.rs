@@ -489,7 +489,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 title,
                 course_id,
                 semester,
-                semester_name
+                semester_name,
             })),
             _ => Err(anyhow!("invalid enum in database")),
         }
