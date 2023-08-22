@@ -1,9 +1,17 @@
 [workspace]
 members = ["tucant_core", "tucant_backend", "tucant-language-server/fuzz_common", "tucant-language-server/fuzz_afl", "tucant-language-server/fuzz_libfuzzer", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
-resolver = "2"
 
-[profile.dev]
-split-debuginfo = "unpacked"
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+description = "A nicer, faster and more featureful frontend to TUCaN"
+license = "AGPL-3.0-or-later"
+authors = ["Moritz Hedtke <Moritz.Hedtke@t-online.de"]
+repository = "https://github.com/mohe2015/tucant"
+readme = "README.md"
+keywords = ["tucan"]
+categories = ["accessibility", "api-bindings", "caching"]
 
-[profile.release]
-debug = 1
+[workspace.dependencies]
+tucant_derive = { path = "./tucant_derive" }
+tucant_derive_lib = { path = "./tucant_derive_lib" }

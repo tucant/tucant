@@ -4,15 +4,15 @@
 
 [package]
 name = "tucant_core"
-version = "0.1.0"
-edition = "2021"
-readme = "README.md"
-authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
-description = "A nicer, faster and more featureful frontend to TUCaN"
-license = "AGPL-3.0-or-later"
-repository = "https://github.com/mohe2015/tucant"
-keywords = ["tucan"]
-categories = ["accessibility", "api-bindings", "caching"]
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -46,12 +46,12 @@ either                  = { default-features = false, optional = true, version =
 once_cell               = { default-features = false, optional = true, version = "1" }
 diesel_full_text_search = { default-features = false, optional = true, version = "2" }
 base64                  = { default-features = false, optional = true, version = "0.21" }
-tucant_derive           = { default-features = false, optional = true, path = "../backend-rust-derive" }
+tucant_derive           = { default-features = false, optional = true, workspace = true }
 file-lock               = { default-features = false, optional = true, version = "2" }
 tracing                 = { default-features = false, optional = true, version = "0.1" }
 opensearch              = { default-features = false, optional = true, features = [ "rustls-tls" ], version = "2" }
 rand                    = { default-features = false, optional = true, features = [ "default", "small_rng" ], version = "0.8" }
-tucant_derive_lib       = { default-features = false, optional = true, path = "../backend-rust-derive-lib" }
+tucant_derive_lib       = { default-features = false, optional = true, workspace = true }
 diesel_migrations       = { default-features = false, optional = true, version = "2" }
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }

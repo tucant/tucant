@@ -1,17 +1,18 @@
 [package]
 name = "trunk-template"
-version = "0.1.0"
-edition = "2021"
-readme = "README.md"
-repository = "https://github.com/mohe2015/tucant"
-description = "A nicer, faster and more featureful frontend to TUCaN"
-license = "AGPL-3.0-or-later"
-keywords = ["tucan"]
-categories = ["accessibility", "api-bindings", "caching"]
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 yew        = { default-features = false, git = "https://github.com/yewstack/yew/" }
 yew-router = { default-features = false, git = "https://github.com/yewstack/yew.git" }
 gloo-net   = { default-features = false, version = "0.2" }
-tucant     = { default-features = false, path = "../backend-rust" }
+tucant     = { default-features = false, workspace = true }

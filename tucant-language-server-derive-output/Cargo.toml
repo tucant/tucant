@@ -1,13 +1,14 @@
 [package]
 name = "tucant_language_server_derive_output"
-version = "0.1.0"
-edition = "2021"
-description = "A nicer, faster and more featureful frontend to TUCaN"
-license = "AGPL-3.0-or-later"
-repository = "https://github.com/mohe2015/tucant"
-readme = "README.md"
-keywords = ["tucan"]
-categories = ["accessibility", "api-bindings", "caching"]
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,10 +18,10 @@ serde           = { default-features = false, features = [ "alloc", "std", "deri
 serde_repr      = { default-features = false, version = "0.1" }
 serde_with      = { default-features = false, features = [ "macros" ], version = "3" }
 
-out-dir-include = { default-features = false, path = "../out-dir-include" }
+out-dir-include = { default-features = false, workspace = true }
 
 [build-dependencies]
-tucant_language_server_derive_internal = { default-features = false, path = "../tucant-language-server-derive-internal" }
+tucant_language_server_derive_internal = { default-features = false, workspace = true }
 prettyplease = { default-features = false, version = "0.2" }
 syn          = { default-features = false, version = "2" }
 proc-macro2  = { default-features = false, version = "1" }

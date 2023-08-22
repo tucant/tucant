@@ -1,29 +1,29 @@
 [package]
 name = "debug-adapter-protocol"
-version = "0.1.0"
-edition = "2021"
-readme = "README.md"
-authors = [ "Moritz Hedtke <Moritz.Hedtke@t-online.de>" ]
-description = "A nicer, faster and more featureful frontend to TUCaN"
-license = "AGPL-3.0-or-later"
-repository = "https://github.com/mohe2015/tucant"
-keywords = ["tucan"]
-categories = ["accessibility", "api-bindings", "caching"]
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-out-dir-include = { default-features = false, path = "../out-dir-include" }
+out-dir-include = { default-features = false, workspace = true }
 async-trait     = { default-features = false, version = "0.1" }
 tokio           = { default-features = false, version = "1" }
 anyhow          = { default-features = false, version = "1" }
 futures-util    = { default-features = false, version = "0.3" }
-json-rpc-server = { default-features = false, path = "../json-rpc-server" }
+json-rpc-server = { default-features = false, workspace = true }
 serde_json      = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
 serde           = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
 
 [build-dependencies]
-debug-adapter-protocol-macro-impl = { default-features = false, path = "../debug-adapter-protocol-macro-impl" }
+debug-adapter-protocol-macro-impl = { default-features = false, workspace = true }
 prettyplease                      = { default-features = false, version = "0.2" }
 syn                               = { default-features = false, version = "2" }
 proc-macro2                       = { default-features = false, version = "1" }
