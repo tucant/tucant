@@ -21,12 +21,11 @@ ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hwo
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 */
 CREATE TABLE semesters (
-    fake_id INTEGER NOT NULL,
     id BIGINT NOT NULL,
     name TEXT NOT NULL,
     timestamp_start TIMESTAMP NOT NULL,
     timestamp_end TIMESTAMP NOT NULL,
-    PRIMARY KEY (fake_id)
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE modules_unfinished (
