@@ -160,15 +160,12 @@ impl From<&MaybeCompleteModule> for InternalModule {
 }
 
 impl TryFrom<InternalModule> for CompleteModule {
-    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Error = anyhow::Error;
 
     fn try_from(value: InternalModule) -> Result<Self, Self::Error> {
         match TryInto::<MaybeCompleteModule>::try_into(value)? {
             MaybeCompleteModule::Complete(value) => Ok(value),
-            MaybeCompleteModule::Partial(_) => Err(Box::new(std::io::Error::new(
-                ErrorKind::Other,
-                "expected complete module, got partial module",
-            ))),
+            MaybeCompleteModule::Partial(_) => Err(anyhow!("expected complete module, got partial module")),
         }
     }
 }
@@ -374,7 +371,7 @@ pub struct CompleteCourse {
     pub course_id: String,
     pub sws: i16,
     pub content: String,
-    pub semester: Option<String>,
+    pub semester: Option<i64>,
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
@@ -432,21 +429,18 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
 }
 
 impl TryFrom<InternalCourse> for CompleteCourse {
-    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Error = anyhow::Error;
 
     fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
         match TryInto::<MaybeCompleteCourse>::try_into(value)? {
             MaybeCompleteCourse::Complete(value) => Ok(value),
-            MaybeCompleteCourse::Partial(_) => Err(Box::new(std::io::Error::new(
-                ErrorKind::Other,
-                "expected complete course, got partial course",
-            ))),
+            MaybeCompleteCourse::Partial(_) => Err(anyhow!("expected complete course, got partial course")),
         }
     }
 }
 
 impl TryFrom<InternalCourse> for MaybeCompleteCourse {
-    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Error = anyhow::Error;
 
     fn try_from(value: InternalCourse) -> Result<Self, Self::Error> {
         match value {
@@ -484,10 +478,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 course_id,
                 semester,
             })),
-            _ => Err(Box::new(std::io::Error::new(
-                ErrorKind::Other,
-                "invalid enum in database",
-            ))),
+            _ => Err(anyhow!("invalid enum in database")),
         }
     }
 }

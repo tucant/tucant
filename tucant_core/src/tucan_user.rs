@@ -154,7 +154,7 @@ impl Tucan<Authenticated> {
                 .load::<InternalModule>(&mut connection)?
                 .into_iter()
                 .map(MaybeCompleteModule::try_from)
-                .collect::<Result<_, Box<dyn std::error::Error + Send + Sync>>>()?;
+                .collect::<Result<_, _>>()?;
 
             // TODO FIXME maybe only return the latest course for courses with same course_id
             let module_courses: Vec<(ModuleCourse, MaybeCompleteCourse)> = module_courses::table
@@ -170,7 +170,8 @@ impl Tucan<Authenticated> {
                 .order(courses_unfinished::title)
                 .load::<(ModuleCourse, InternalCourse)>(&mut connection)?
                 .into_iter()
-                .map(|(mc,ic)| (mc, MaybeCompleteCourse::try_from(ic)));
+                .map(|(mc,ic)| Ok::<_,anyhow::Error>((mc, MaybeCompleteCourse::try_from(ic)?)))
+                .collect::<Result<_,_>>()?;
 
             let id_indices: HashMap<_, _> = submodules
                 .iter()
@@ -206,7 +207,7 @@ impl Tucan<Authenticated> {
     #[allow(clippy::unused_peekable)]
     pub async fn fetch_registration(
         &self,
-        semester: Option<String>,
+        semester: Option<i64>,
         url: Registration,
     ) -> anyhow::Result<()> {
         let document = self.fetch_document(&url.clone().into()).await?;
