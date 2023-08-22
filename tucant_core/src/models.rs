@@ -236,6 +236,7 @@ impl MaybeCompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl Insertable<modules_unfinished::table> for MaybeCompleteModule {
     type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
 
@@ -244,6 +245,7 @@ impl Insertable<modules_unfinished::table> for MaybeCompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl Insertable<modules_unfinished::table> for &MaybeCompleteModule {
     type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
 
@@ -252,6 +254,7 @@ impl Insertable<modules_unfinished::table> for &MaybeCompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl Insertable<modules_unfinished::table> for &CompleteModule {
     type Values = <InternalModule as Insertable<modules_unfinished::table>>::Values;
 
@@ -260,8 +263,10 @@ impl Insertable<modules_unfinished::table> for &CompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl UndecoratedInsertRecord<modules_unfinished::table> for MaybeCompleteModule {}
 
+#[cfg(feature = "diesel")]
 impl AsChangeset for &MaybeCompleteModule {
     type Target = <InternalModule as AsChangeset>::Target;
 
@@ -272,6 +277,7 @@ impl AsChangeset for &MaybeCompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl AsChangeset for &CompleteModule {
     type Target = <InternalModule as AsChangeset>::Target;
 
@@ -282,6 +288,7 @@ impl AsChangeset for &CompleteModule {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend> Queryable<(Binary, Timestamp, Text, Text, Int4, Text, Bool), DB>
     for MaybeCompleteModule
 where
@@ -301,6 +308,7 @@ where
     }
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend> Queryable<(Binary, Timestamp, Text, Text, Int4, Text, Bool), DB>
     for CompleteModule
 where
@@ -607,6 +615,7 @@ impl MaybeCompleteCourse {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
     type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
 
@@ -615,6 +624,7 @@ impl Insertable<courses_unfinished::table> for MaybeCompleteCourse {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
     type Values = <InternalCourse as Insertable<courses_unfinished::table>>::Values;
 
@@ -623,8 +633,10 @@ impl Insertable<courses_unfinished::table> for &MaybeCompleteCourse {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl UndecoratedInsertRecord<courses_unfinished::table> for MaybeCompleteCourse {}
 
+#[cfg(feature = "diesel")]
 impl AsChangeset for &MaybeCompleteCourse {
     type Target = <InternalCourse as AsChangeset>::Target;
 
@@ -635,6 +647,7 @@ impl AsChangeset for &MaybeCompleteCourse {
     }
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend>
     Queryable<
         (
@@ -689,6 +702,7 @@ where
     }
 }
 
+#[cfg(feature = "diesel")]
 impl<DB: Backend>
     Queryable<
         (
@@ -924,7 +938,7 @@ pub struct UserCourseGroup {
 )]
 #[cfg_attr(feature = "diesel", diesel(primary_key(tucan_id)))]
 #[cfg_attr(feature = "diesel", diesel(table_name = exams_unfinished))]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[cfg_attr(feature = "diesel", diesel(check_for_backend(diesel::sqlite::Sqlite)))]
 pub struct Exam {
     #[serde(serialize_with = "as_base64", deserialize_with = "from_base64")]
     #[cfg_attr(feature = "diesel", ts_type(String))]
