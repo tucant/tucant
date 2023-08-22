@@ -23,7 +23,7 @@ use tucant_derive::ts;
 pub async fn my_exams(
     session: TucanSession,
     tucan: State<Tucan>,
-    input: Json<Option<u64>>,
+    input: Json<Option<i64>>,
 ) -> Result<
     Json<
         WithTucanUrl<(

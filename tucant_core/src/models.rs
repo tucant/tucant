@@ -3,12 +3,7 @@
 use anyhow::anyhow;
 use base64::prelude::*;
 
-
-
 use diesel::sql_types::Binary;
-
-
-
 
 use std::collections::VecDeque;
 
@@ -18,8 +13,6 @@ use std::hash::Hash;
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
-
-
 
 use diesel::prelude::*;
 
@@ -39,7 +32,7 @@ use crate::schema::{
     module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_course_groups,
     user_courses, user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
 };
-
+use crate::MyError;
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
 where

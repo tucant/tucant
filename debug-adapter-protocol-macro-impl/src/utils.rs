@@ -14,7 +14,7 @@ pub struct LitStrOrd(pub LitStr);
 
 impl PartialOrd for LitStrOrd {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.value().partial_cmp(&other.0.value())
+        Some(self.cmp(other))
     }
 }
 
