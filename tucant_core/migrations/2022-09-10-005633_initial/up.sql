@@ -108,6 +108,7 @@ CREATE TABLE courses_unfinished (
     sws SMALLINT NOT NULL,
     content TEXT NOT NULL,
     semester BIGINT REFERENCES semesters (id),
+    semester_name TEXT,
     done BOOLEAN NOT NULL DEFAULT FALSE/*,
     tsv tsvector NOT NULL GENERATED ALWAYS AS (
     setweight(to_tsvector('tucan', course_id), 'A') ||

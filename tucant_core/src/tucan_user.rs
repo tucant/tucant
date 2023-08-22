@@ -312,6 +312,7 @@ impl Tucan<Authenticated> {
                                         })
                                         .to_string(),
                                     semester: semester.clone(),
+                                    semester_name: None,
                                 })
                             })
                             .collect::<Vec<_>>();
@@ -1106,7 +1107,7 @@ impl Tucan<Authenticated> {
                     s.value()
                         .attr("value")
                         .unwrap()
-                        .parse::<u64>()
+                        .parse::<i64>()
                         .unwrap()
                         .into()
                 })
@@ -1148,7 +1149,8 @@ impl Tucan<Authenticated> {
                         Exam {
                             tucan_id: examdetails.id,
                             exam_type: name_link.inner_html(),
-                            semester: Some(active_semester_name.clone()),
+                            semester_name: Some(active_semester_name.clone()),
+                            semester: None,
                             exam_time_start: date.map(|d| d.1),
                             exam_time_end: date.map(|d| d.2),
                             registration_start: Utc::now().naive_utc(), // TODO FIXME remove
@@ -1219,6 +1221,7 @@ impl Tucan<Authenticated> {
                         tucan_last_checked: Utc::now().naive_utc(),
                         course_id: String::new(),
                         title: v.2,
+                        semester_name: None,
                         semester: None, // TODO FIXME semester may not be equal to exam semester so maybe leave blank? or it it always equal?
                     }),
                     v.1,

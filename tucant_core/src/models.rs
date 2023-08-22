@@ -360,6 +360,7 @@ pub struct PartialCourse {
     pub title: String,
     pub course_id: String,
     pub semester: Option<i64>,
+    pub semester_name: Option<String>,
 }
 
 #[derive(Serialize, Debug, Deserialize, PartialEq, Eq, Clone)]
@@ -374,6 +375,7 @@ pub struct CompleteCourse {
     pub sws: i16,
     pub content: String,
     pub semester: Option<i64>,
+    pub semester_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Typescriptable)]
@@ -400,6 +402,7 @@ pub struct InternalCourse {
     pub sws: i16,
     pub content: String,
     pub semester: Option<i64>,
+    pub semester_name: Option<String>,
     pub done: bool,
 }
 
@@ -414,6 +417,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 sws: 0,
                 content: String::new(),
                 semester: value.semester.clone(),
+                semester_name: value.semester_name.clone(),
                 done: false,
             },
             MaybeCompleteCourse::Complete(value) => Self {
@@ -424,6 +428,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 sws: value.sws,
                 content: value.content.clone(),
                 semester: value.semester.clone(),
+                semester_name: value.semester_name.clone(),
                 done: true,
             },
         }
@@ -456,6 +461,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 sws,
                 content,
                 semester,
+                semester_name,
                 done: true,
             } => Ok(Self::Complete(CompleteCourse {
                 tucan_id,
@@ -465,6 +471,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 sws,
                 content,
                 semester,
+                semester_name,
             })),
             InternalCourse {
                 tucan_id,
@@ -474,6 +481,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 sws: 0,
                 ref content,
                 semester,
+                semester_name,
                 done: false,
             } if content.is_empty() => Ok(Self::Partial(PartialCourse {
                 tucan_id,
@@ -481,6 +489,7 @@ impl TryFrom<InternalCourse> for MaybeCompleteCourse {
                 title,
                 course_id,
                 semester,
+                semester_name
             })),
             _ => Err(anyhow!("invalid enum in database")),
         }
@@ -887,6 +896,7 @@ pub const COURSES_UNFINISHED: (
     courses_unfinished::sws,
     courses_unfinished::content,
     courses_unfinished::semester,
+    courses_unfinished::semester_name,
     courses_unfinished::done,
 ) = (
     courses_unfinished::tucan_id,
@@ -896,5 +906,6 @@ pub const COURSES_UNFINISHED: (
     courses_unfinished::sws,
     courses_unfinished::content,
     courses_unfinished::semester,
+    courses_unfinished::semester_name,
     courses_unfinished::done,
 );

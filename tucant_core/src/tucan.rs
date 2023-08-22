@@ -138,7 +138,7 @@ impl Tucan<Unauthenticated> {
 
         let _test: Vec<_> = courses_unfinished::table
             .select(COURSES_UNFINISHED)
-            .load::<MaybeCompleteCourse>(&mut connection)?;
+            .load::<InternalCourse>(&mut connection)?.into_iter().map(MaybeCompleteCourse::try_from).collect::<Result<_,_>>()?;
         Ok(())
     }
 
@@ -212,7 +212,7 @@ impl Tucan<Unauthenticated> {
                 .select(COURSES_UNFINISHED)
                 .filter(vv_menu_courses::vv_menu_id.eq(&url.magic))
                 .order(courses_unfinished::title)
-                .load::<MaybeCompleteCourse>(&mut connection)?;
+                .load::<InternalCourse>(&mut connection)?.into_iter().map(MaybeCompleteCourse::try_from).collect::<Result<_,_>>()?;
 
             Ok(Some((vv_menu, submenus, submodules)))
         } else {
@@ -222,7 +222,7 @@ impl Tucan<Unauthenticated> {
 
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::unused_peekable)]
-    pub async fn fetch_vv(&self, semester: Option<String>, url: Action) -> anyhow::Result<()> {
+    pub async fn fetch_vv(&self, semester: Option<i64>, url: Action) -> anyhow::Result<()> {
         let document = self.fetch_document(&url.clone().into()).await?;
 
         let (registration_list, course_list) = {
@@ -321,6 +321,7 @@ impl Tucan<Unauthenticated> {
                                     title: title.to_string(),
                                     tucan_id: id,
                                     semester: semester.clone(),
+                                    semester_name: None,
                                 })]
                             }
                             TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
@@ -352,7 +353,7 @@ impl Tucan<Unauthenticated> {
                 .into_iter()
                 .map(|course| -> Result<_, _> {
                     diesel::insert_into(courses_unfinished::table)
-                        .values(course)
+                        .values(InternalCourse::from(&course))
                         .on_conflict(courses_unfinished::tucan_id)
                         .do_nothing()
                         .execute(&mut connection)
@@ -432,7 +433,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                     )
                     .unwrap()
                     .id,
-                    semester: Some(link3.inner_html()),
+                    semester_name: Some(link3.inner_html()),
+                    semester: None,
                 })
             })
             .collect::<Vec<_>>()
@@ -840,6 +842,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 course_id,
                 content,
                 semester: None,
+                semester_name: None,
             });
 
             let course_groups: Vec<CourseGroup> = document
@@ -1032,6 +1035,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
             tucan_last_checked: Utc::now().naive_utc(),
             title: title.to_owned(),
             course_id: course_id.to_owned(),
+            semester_name: None,
             semester: None, // TODO FIXME this will override the courses value (use Option<Option<T>> or a separate type?)
         });
 

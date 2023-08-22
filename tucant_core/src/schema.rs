@@ -55,6 +55,7 @@ diesel::table! {
         sws -> SmallInt,
         content -> Text,
         semester -> Nullable<BigInt>,
+        semester_name -> Nullable<Text>,
         done -> Bool,
     }
 }
