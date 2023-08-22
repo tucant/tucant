@@ -1,5 +1,5 @@
 [package]
-name = "out-dir-include"
+name = "out_dir_include"
 version.workspace = true
 edition.workspace = true
 description.workspace = true

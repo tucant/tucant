@@ -638,10 +638,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "debug-adapter-protocol-macro-impl",
+ "debug_adapter_protocol_macro_impl",
  "futures-util",
- "json-rpc-server",
- "out-dir-include",
+ "json_rpc_server",
+ "out_dir_include",
  "prettyplease",
  "proc-macro2",
  "serde",
@@ -651,7 +651,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "debug-adapter-protocol-macro-impl"
+name = "debug_adapter_protocol_macro_impl"
 version = "0.1.0"
 dependencies = [
  "heck",
@@ -1361,7 +1361,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "json-rpc-server"
+name = "json_rpc_server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1637,7 +1637,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "out-dir-include"
+name = "out_dir_include"
 version = "0.1.0"
 dependencies = [
  "quote",
@@ -2759,7 +2759,7 @@ dependencies = [
  "async-trait",
  "futures-util",
  "itertools",
- "json-rpc-server",
+ "json_rpc_server",
  "num-bigint",
  "num-integer",
  "once_cell",
@@ -2924,7 +2924,7 @@ dependencies = [
 name = "tucant_language_server_derive_output"
 version = "0.1.0"
 dependencies = [
- "out-dir-include",
+ "out_dir_include",
  "prettyplease",
  "proc-macro2",
  "serde",

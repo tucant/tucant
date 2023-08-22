@@ -1,5 +1,5 @@
 [package]
-name = "debug-adapter-protocol-macro-impl"
+name = "debug_adapter_protocol_macro_impl"
 version.workspace = true
 edition.workspace = true
 description.workspace = true

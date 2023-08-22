@@ -1,5 +1,5 @@
 [package]
-name = "json-rpc-server"
+name = "json_rpc_server"
 version.workspace = true
 edition.workspace = true
 description.workspace = true
