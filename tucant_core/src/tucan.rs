@@ -301,34 +301,38 @@ impl Tucan<Unauthenticated> {
                 let document = Self::parse_document(&document);
 
                 let courses = document
-                .select(&s(r#"a[name="eventLink"]"#))
-                .flat_map(|node| {
-                    match parse_tucan_url(&format!(
-                        "https://www.tucan.tu-darmstadt.de{}",
-                        node.value().attr("href").unwrap()
-                    ))
-                    .program {
-                        TucanProgram::Coursedetails(Coursedetails { id }) => {
-                            let course_id_title = node.inner_html();
-                            let Some((course_id, title)) = course_id_title.split_once(' ') else {panic!()};
-                            vec![MaybeCompleteCourse::Partial(PartialCourse {
-                                tucan_last_checked: Utc::now().naive_utc(),
-                                course_id: course_id.to_string(),
-                                title: title.to_string(),
-                                tucan_id: id,
-                                semester: semester.clone(),
-                            })]
+                    .select(&s(r#"a[name="eventLink"]"#))
+                    .flat_map(|node| {
+                        match parse_tucan_url(&format!(
+                            "https://www.tucan.tu-darmstadt.de{}",
+                            node.value().attr("href").unwrap()
+                        ))
+                        .program
+                        {
+                            TucanProgram::Coursedetails(Coursedetails { id }) => {
+                                let course_id_title = node.inner_html();
+                                let Some((course_id, title)) = course_id_title.split_once(' ')
+                                else {
+                                    panic!()
+                                };
+                                vec![MaybeCompleteCourse::Partial(PartialCourse {
+                                    tucan_last_checked: Utc::now().naive_utc(),
+                                    course_id: course_id.to_string(),
+                                    title: title.to_string(),
+                                    tucan_id: id,
+                                    semester: semester.clone(),
+                                })]
+                            }
+                            TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
+                                // Don't handle as there is one in the whole thing
+                                vec![]
+                            }
+                            _ => {
+                                panic!();
+                            }
                         }
-                        TucanProgram::Moduledetails(Moduledetails { id: _ }) => {
-                            // Don't handle as there is one in the whole thing
-                            vec![]
-                        }
-                        _ => {
-                            panic!();
-                        }
-                    }
-                })
-                .collect::<Vec<_>>();
+                    })
+                    .collect::<Vec<_>>();
 
                 let vv_courses: Vec<_> = courses
                     .iter()
@@ -1019,7 +1023,9 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
         debug!("[+] course group {:?}", course_group);
 
-        let Some((course_id, title)) = h1.split_once('\n') else {panic!("{}", h1)};
+        let Some((course_id, title)) = h1.split_once('\n') else {
+            panic!("{}", h1)
+        };
 
         let course = MaybeCompleteCourse::Partial(PartialCourse {
             tucan_id: course_group.course.clone(),

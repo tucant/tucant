@@ -1,5 +1,6 @@
 #![allow(clippy::wildcard_imports)] // inside diesel macro
 
+use anyhow::anyhow;
 use base64::prelude::*;
 
 use diesel::query_builder::UndecoratedInsertRecord;
@@ -24,16 +25,13 @@ use diesel::prelude::*;
 
 use diesel::sql_types::Bool;
 
-
 use diesel::sql_types::Nullable;
 
 use diesel::sql_types::Text;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-
 use tucant_derive::Typescriptable;
-
 
 use crate::schema::{
     course_events, course_exams, course_groups_events, course_groups_unfinished,
@@ -176,7 +174,7 @@ impl TryFrom<InternalModule> for CompleteModule {
 }
 
 impl TryFrom<InternalModule> for MaybeCompleteModule {
-    type Error = Box<dyn std::error::Error + Send + Sync>;
+    type Error = anyhow::Error;
 
     fn try_from(value: InternalModule) -> Result<Self, Self::Error> {
         match value {
@@ -210,10 +208,7 @@ impl TryFrom<InternalModule> for MaybeCompleteModule {
                 title,
                 module_id,
             })),
-            _ => Err(Box::new(std::io::Error::new(
-                ErrorKind::Other,
-                "invalid enum in database",
-            ))),
+            _ => Err(anyhow!("invalid enum in database")),
         }
     }
 }
@@ -722,7 +717,6 @@ pub struct Exam {
     pub done: bool,
 }
 
-     
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel",

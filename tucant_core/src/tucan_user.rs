@@ -8,9 +8,10 @@ use std::{collections::HashMap, convert::TryInto};
 use crate::{
     models::{
         self, CompleteCourse, CompleteModule, CourseEvent, CourseExam, CourseGroup,
-        CourseGroupEvent, Exam, MaybeCompleteCourse, MaybeCompleteModule, ModuleCourse, ModuleExam,
-        ModuleExamType, ModuleMenu, ModuleMenuEntryModule, PartialCourse, PartialModule,
-        UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED, MODULES_UNFINISHED,
+        CourseGroupEvent, Exam, InternalModule, MaybeCompleteCourse, MaybeCompleteModule,
+        ModuleCourse, ModuleExam, ModuleExamType, ModuleMenu, ModuleMenuEntryModule, PartialCourse,
+        PartialModule, UndoneUser, UserCourseGroup, UserExam, COURSES_UNFINISHED,
+        MODULES_UNFINISHED, InternalCourse,
     },
     schema::{course_groups_unfinished, semester_exams},
     tucan::{s, Authenticated, Tucan, Unauthenticated},
@@ -150,7 +151,10 @@ impl Tucan<Authenticated> {
                 .select(MODULES_UNFINISHED)
                 .order(modules_unfinished::title)
                 .filter(module_menu_module::module_menu_id.eq(&url.path))
-                .load::<MaybeCompleteModule>(&mut connection)?;
+                .load::<InternalModule>(&mut connection)?
+                .into_iter()
+                .map(MaybeCompleteModule::try_from)
+                .collect::<Result<_, Box<dyn std::error::Error + Send + Sync>>>()?;
 
             // TODO FIXME maybe only return the latest course for courses with same course_id
             let module_courses: Vec<(ModuleCourse, MaybeCompleteCourse)> = module_courses::table
@@ -164,7 +168,9 @@ impl Tucan<Authenticated> {
                     COURSES_UNFINISHED,
                 ))
                 .order(courses_unfinished::title)
-                .load::<(ModuleCourse, MaybeCompleteCourse)>(&mut connection)?;
+                .load::<(ModuleCourse, InternalCourse)>(&mut connection)?
+                .into_iter()
+                .map(|(mc,ic)| (mc, MaybeCompleteCourse::try_from(ic)));
 
             let id_indices: HashMap<_, _> = submodules
                 .iter()
