@@ -13,7 +13,7 @@
 extern crate self as tucant;
 
 pub mod models;
-#[cfg(feature = "diesel")]
+
 pub mod schema;
 pub mod tucan;
 pub mod tucan_user;

@@ -26,9 +26,9 @@ tokio                   = { default-features = false, optional = true, version =
 scraper                 = { default-features = false, optional = true, version = "0.17" }
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
-diesel                  = { default-features = false, optional = true, version = "2", features = [ "r2d2", "sqlite", "returning_clauses_for_sqlite_3_35", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
+diesel                  = { default-features = false, version = "2", features = [ "r2d2", "sqlite", "returning_clauses_for_sqlite_3_35", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
-anyhow                  = { default-features = false, optional = true, features = [ "std" ], version = "1" }
+anyhow                  = { default-features = false, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
 axum                    = { default-features = false, optional = true, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
 axum-extra              = { default-features = false, optional = true, version = "0.7", features = [ "cookie", "cookie-private" ] }
@@ -60,7 +60,8 @@ reqwest-middleware = "0.2.2"
 reqwest-retry = "0.2.2"
 
 [features]
-default = ["server"]
+default = ["core"]
+core = []
 axum = [ "dep:axum", "dep:axum-extra" ]
-js = [ "dotenvy", "derive_more", "anyhow", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "ego-tree", "serde_json", "diesel", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
-server = ["async-recursion", "tucant_derive_lib", "chrono", "base64", "serde", "reqwest","tokio", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum" ]
+js = [ "dotenvy", "derive_more", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "ego-tree", "serde_json", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]
+server = ["async-recursion", "tucant_derive_lib", "chrono", "base64", "serde", "reqwest","tokio", "scraper", "ego-tree", "futures", "dotenvy", "regex", "serde_json", "async-stream", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum" ]

@@ -19,22 +19,22 @@ use std::io::ErrorKind;
 use chrono::NaiveDateTime;
 use diesel::backend::Backend;
 use diesel::deserialize::FromSql;
-#[cfg(feature = "diesel")]
+
 use diesel::prelude::*;
-#[cfg(feature = "diesel")]
+
 use diesel::sql_types::Bool;
 
-#[cfg(feature = "diesel")]
+
 use diesel::sql_types::Nullable;
-#[cfg(feature = "diesel")]
+
 use diesel::sql_types::Text;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "diesel")]
+
 use tucant_derive::Typescriptable;
 
-#[cfg(feature = "diesel")]
+
 use crate::schema::{
     course_events, course_exams, course_groups_events, course_groups_unfinished,
     courses_unfinished, exams_unfinished, module_courses, module_exam_types, module_exams,

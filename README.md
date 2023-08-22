@@ -72,7 +72,7 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 ### Database
 
 ```bash
-cd backend-rust
+cd tucant_backend
 
 podman build . --pull -f Dockerfile-postgres --tag postgres-hunspell
 podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
