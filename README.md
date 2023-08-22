@@ -54,6 +54,8 @@ When resetting the database remember to also remove `sessions.key`.
 The following bookmarklet opens the tucan page in tucant (and optionally logs you in):
 
 ```
+new URLSearchParams(new FormData(document.querySelector(`form.pageElementTop[method=POST][action="/scripts/mgrqispi.dll"]`))).toString()
+
 javascript:window.location.href = `http://localhost:8080/login-hack?${document.querySelector("#logoutButton") ? new URL(document.querySelector("#logoutButton").href).searchParams.get("ARGUMENTS").split(",")[0].replace("-N", "session_nr=") + "&" : ""}${document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")) ? "session_id=" + document.cookie.split(";").find((item) => item.trim().startsWith("cnsc=")).split("=")[1] + "&" : ""}redirect=${encodeURIComponent(window.location.href)}`
 ```
 
@@ -70,28 +72,11 @@ javascript:window.location.href = `http://localhost:8080/login-hack?${document.q
 ### Database
 
 ```bash
-cd backend-rust
+cd tucant_backend
 
 podman build . --pull -f Dockerfile-postgres --tag postgres-hunspell
 podman run --name tucant-postgres -d --restart unless-stopped -e POSTGRES_INITDB_ARGS="--data-checksums" -e POSTGRES_PASSWORD=password -p 5432:5432 -it postgres-hunspell
 ```
-
-https://sqlite.org/wasm/doc/trunk/index.md
-
-https://github.com/NixOS/nixpkgs/pull/217428
-
-https://github.com/NixOS/nixpkgs/blob/master/pkgs/top-level/emscripten-packages.nix
-
-https://github.com/rustwasm/wasm-bindgen/pull/2209
-
-https://users.rust-lang.org/t/wasm32-unknown-unknown-vs-wasm32-wasi/78325
-
-almost works:
-export EM_CACHE=$(pwd)/.emscriptencache
-cargo build --target wasm32-unknown-emscripten
-
-https://github.com/strawlab/iana-time-zone/blob/main/Cargo.toml
-seems like some dependencies use wasm-bindgen so we can't use emscripten?
 
 ### Backend
 
@@ -99,8 +84,8 @@ seems like some dependencies use wasm-bindgen so we can't use emscripten?
 cargo install diesel_cli --no-default-features --features sqlite
 cp env.sample .env
 
-cd backend-rust
-$HOME/.cargo/bin/diesel setup
+cd tucant_backend
+diesel setup
 
 # run this each time you want to run the backend
 RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run --bin server
@@ -109,16 +94,19 @@ RUST_BACKTRACE=1 RUST_LOG=tucan_scraper=info,info cargo run --bin server
 ### Frontend
 
 ```bash
-cd frontend-react
+cd tucant_react
 
 # install dependencies each time the package.json changed
 yarn install --immutable
 
 # run this each time you want to run the frontend
 yarn run dev
+
 ```
 
 ## Development Notes
+
+#   = note: failed to open file '/home/moritz/Documents/tucant/target/debug/deps/libtucant_core.rlib': Too many open files (os error 24)
 
 Rome on NixOS (waiting for https://github.com/rome/tools/issues/4516):
 ```bash

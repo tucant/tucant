@@ -1,0 +1,26 @@
+[package]
+name = "tucant_language_server_derive_internal"
+version.workspace = true
+edition.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+syn         = { default-features = false, version = "2" }
+quote       = { default-features = false, version = "1" }
+proc-macro2 = { default-features = false, version = "1" }
+serde_json  = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
+serde       = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
+itertools   = { default-features = false, features = [ "use_std" ], version = "0.11" }
+sha3        = { default-features = false, features = [ "std" ], version = "0.10" }
+hex         = { default-features = false, version = "0.4", features = [ "std" ] }
+rand        = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
+rand_chacha = { default-features = false, features = [ "std" ], version = "0.3" }
+heck        = { default-features = false, version = "0.4" }

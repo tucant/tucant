@@ -1,10 +1,10 @@
 {
-  # ln -sf /home/moritz/Documents/rome/target/debug/rome /home/moritz/Documents/tucant/frontend-react/node_modules/@rometools/cli-linux-x64/rome
+  # ln -sf /home/moritz/Documents/rome/target/debug/rome /home/moritz/Documents/tucant/tucant_react/node_modules/@rometools/cli-linux-x64/rome
   description = "my project description";
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.fenix = {
-    url = "github:nix-community/fenix/monthly";
+    url = "github:nix-community/fenix";
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
@@ -43,6 +43,7 @@
             buildInputs = with pkgs; [
               postgresql_15
               sqlite
+              mysql
             ];
             RUST_BACKTRACE = 1;
 

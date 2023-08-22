@@ -1,9 +1,45 @@
 [workspace]
-members = ["tucant-language-server/fuzz_common", "tucant-language-server/fuzz_afl", "tucant-language-server/fuzz_libfuzzer", "backend", "core", "backend-rust-derive", "backend-rust-derive-lib", "tucant-language-server", "out-dir-include", "tucant-language-server-derive-internal", "tucant-language-server-derive-output", "debug-adapter-protocol-macro-impl", "debug-adapter-protocol", "json-rpc-server"]
 resolver = "2"
+members = [
+    "tucant_core",
+    "tucant_backend",
+    "tucant_language_server/fuzz_common",
+    #"tucant_language_server/fuzz_afl",
+    "tucant_language_server/fuzz_libfuzzer",
+    "tucant_derive",
+    "tucant_derive_lib",
+    "tucant_language_server",
+    "out_dir_include",
+    "tucant_language_server_derive_internal",
+    "tucant_language_server_derive_output",
+    "debug_adapter_protocol_macro_impl",
+    "debug_adapter_protocol",
+    "json_rpc_server"
+]
 
-[profile.dev]
-split-debuginfo = "unpacked"
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+description = "A nicer, faster and more featureful frontend to TUCaN"
+license = "AGPL-3.0-or-later"
+authors = ["Moritz Hedtke <Moritz.Hedtke@t-online.de"]
+repository = "https://github.com/mohe2015/tucant"
+readme = "README.md"
+keywords = ["tucan"]
+categories = ["accessibility", "api-bindings", "caching"]
 
-[profile.release]
-debug = 1
+[workspace.dependencies]
+tucant_core = { path = "./tucant_core" }
+tucant_backend = { default-features = false, path = "./tucant_backend" }
+tucant_language_server_fuzz_common = { default-features = false, path = "./tucant_language_server/fuzz_common" }
+#tucant_language_server_fuzz_afl = { default-features = false, path = "./tucant_language_server/fuzz_afl" }
+tucant_language_server_fuzz_libfuzzer = { default-features = false, path = "./tucant_language_server/fuzz_libfuzzer" }
+tucant_derive = { default-features = false, path = "./tucant_derive" }
+tucant_derive_lib = { default-features = false, path = "./tucant_derive_lib" }
+tucant_language_server = { default-features = false, path = "./tucant_language_server" }
+out_dir_include = { default-features = false, path = "./out_dir_include" }
+tucant_language_server_derive_internal = { default-features = false, path = "./tucant_language_server_derive_internal" }
+tucant_language_server_derive_output = { default-features = false, path = "./tucant_language_server_derive_output" }
+debug_adapter_protocol_macro_impl = { default-features = false, path = "./debug_adapter_protocol_macro_impl" }
+debug_adapter_protocol = { default-features = false, path = "./debug_adapter_protocol" }
+json_rpc_server = { default-features = false, path = "./json_rpc_server" }

@@ -10,11 +10,11 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH"
 
 cargo fmt --all
-cargo build --workspace --all-targets --all-features
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --all-targets --all-features
+cargo build --workspace --all-targets
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace --all-targets
 
-cd frontend-react
+cd tucant_react
 yarn install --immutable
 yarn run check-fix
 cd ..

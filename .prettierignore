@@ -9,5 +9,5 @@ analyze.json
 node_modules/
 target/
 out/
-frontend-react/src/api.ts
+tucant_react/src/api.ts
 
