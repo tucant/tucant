@@ -27,8 +27,7 @@ pub async fn my_modules(
     let result = tucan.my_modules().await?;
 
     Ok(Json(WithTucanUrl {
-        tucan_url: Into::<TucanProgram>::into(Mymodules)
-            .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: Into::<TucanProgram>::into(Mymodules).to_tucan_url(Some(session.session_nr)),
         inner: result,
     }))
 }

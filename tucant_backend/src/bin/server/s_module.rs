@@ -72,7 +72,7 @@ pub async fn module(
             Into::<TucanProgram>::into(Moduledetails {
                 id: binary_path.clone(),
             })
-            .to_tucan_url(session.map(|s| s.session_nr.try_into().unwrap()))
+            .to_tucan_url(session.map(|s| s.session_nr))
         },
         inner: result,
     }))

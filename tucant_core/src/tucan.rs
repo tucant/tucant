@@ -95,8 +95,15 @@ pub fn element_by_selector<'a>(document: &'a Html, selector: &str) -> Option<Ele
     document.select(&s(selector)).next()
 }
 
+impl Default for Tucan<Unauthenticated> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Tucan<Unauthenticated> {
-    pub fn new() -> anyhow::Result<Self> {
+    #[must_use]
+    pub fn new() -> Self {
         dotenv().ok();
         let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
@@ -125,12 +132,12 @@ impl Tucan<Unauthenticated> {
         )
         .with(RetryTransientMiddleware::new_with_policy(retry_policy));
 
-        Ok(Self {
+        Self {
             pool,
             client: client.build(),
             semaphore: Arc::new(Semaphore::new(5)),
             state: Unauthenticated,
-        })
+        }
     }
 
     pub async fn test(&self) -> anyhow::Result<()> {
@@ -447,11 +454,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
     }
 
     pub(crate) async fn fetch_document(&self, url: &TucanProgram) -> anyhow::Result<String> {
-        let url = url.to_tucan_url(
-            self.state
-                .session()
-                .map(|session| session.session_nr.try_into().unwrap()),
-        );
+        let url = url.to_tucan_url(self.state.session().map(|session| session.session_nr));
         let mut request = self.client.get(url).build().unwrap();
 
         if let Some(session) = self.state.session() {
@@ -619,7 +622,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
 
                 res_headers.text().await?;
 
-                let session_nr = nr.try_into().unwrap();
+                let session_nr = nr;
                 #[cfg(not(feature = "js"))]
                 let session_id = id.to_string();
                 #[cfg(feature = "js")]
@@ -726,11 +729,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
-                Into::<TucanProgram>::into(url.clone()).to_tucan_url(
-                    self.state
-                        .session()
-                        .map(|s| s.session_nr.try_into().unwrap())
-                )
+                Into::<TucanProgram>::into(url.clone())
+                    .to_tucan_url(self.state.session().map(|s| s.session_nr))
             );
         };
 
@@ -797,11 +797,8 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         let unwrap_handler = || -> ! {
             panic!(
                 "{}",
-                Into::<TucanProgram>::into(url.clone()).to_tucan_url(
-                    self.state
-                        .session()
-                        .map(|s| s.session_nr.try_into().unwrap())
-                )
+                Into::<TucanProgram>::into(url.clone())
+                    .to_tucan_url(self.state.session().map(|s| s.session_nr))
             );
         };
 

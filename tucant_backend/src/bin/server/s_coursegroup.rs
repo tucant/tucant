@@ -74,8 +74,7 @@ pub async fn course_group(
     let my_calendar = my_calendar.done();
 
     Ok(Json(WithTucanUrl {
-        tucan_url: Into::<TucanProgram>::into(url)
-            .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: Into::<TucanProgram>::into(url).to_tucan_url(Some(session.session_nr)),
         inner: (
             course.0,
             course_group.0,

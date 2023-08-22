@@ -41,7 +41,7 @@ pub async fn my_exams(
         tucan_url: Into::<TucanProgram>::into(Myexams {
             semester: Semester::CurrentSemester,
         })
-        .to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        .to_tucan_url(Some(session.session_nr)),
         inner: result,
     }))
 }

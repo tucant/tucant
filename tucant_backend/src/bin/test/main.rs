@@ -53,7 +53,7 @@ fn main() -> anyhow::Result<()> {
         .block_on(async {
             env_logger::init();
 
-            let tucan = Tucan::new()?;
+            let tucan = Tucan::new();
             let tucan = tucan
                 .login(
                     &std::env::var("TUCAN_USERNAME")?,

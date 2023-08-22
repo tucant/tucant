@@ -357,7 +357,7 @@ fn main() -> anyhow::Result<()> {
             let secret_key_raw = fs::read("sessions.key").await?;
             let secret_key = Key::from(&secret_key_raw);
 
-            let tucan = Tucan::new()?;
+            let tucan = Tucan::new();
 
             let app_state = AppState {
                 key: secret_key,

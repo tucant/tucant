@@ -90,7 +90,7 @@ pub async fn get_modules(
     );
 
     Ok(Json(WithTucanUrl {
-        tucan_url: url.to_tucan_url(Some(session.session_nr.try_into().unwrap())),
+        tucan_url: url.to_tucan_url(Some(session.session_nr)),
         inner: value,
     }))
 }
