@@ -326,7 +326,7 @@ impl Tucan<Unauthenticated> {
                                     course_id: course_id.to_string(),
                                     title: title.to_string(),
                                     tucan_id: id,
-                                    semester: semester.clone(),
+                                    semester,
                                     semester_name: None,
                                 })]
                             }
@@ -885,7 +885,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                 .find(|e| {
                     e.select(&s("caption")).next().unwrap().inner_html().trim() == "Anmeldefristen"
                 })
-                .map(|registration_time| {
+                .map_or(Vec::new(), |registration_time| {
                     let tr_sel = s("tr");
                     registration_time
                         .select(&tr_sel)
@@ -894,12 +894,11 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
                                 .map(|e| e.inner_html().trim().to_owned())
                                 .collect_vec()
                         })
-                        .filter(|row| row.len() != 0)
+                        .filter(|row| !row.is_empty())
                         .collect_vec()
-                })
-                .unwrap_or(Vec::new());
+                });
 
-            if events.len() == 0 && registration_time.len() == 0 {
+            if events.is_empty() && registration_time.is_empty() {
                 // this actually happens so we probably need to find this information by indexing the vv
                 println!(
                     "we're fucked {}",

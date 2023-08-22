@@ -60,7 +60,7 @@ impl From<Option<i64>> for Semester {
     fn from(value: Option<i64>) -> Self {
         match value {
             Some(value) => value.into(),
-            None => Semester::CurrentSemester,
+            None => Self::CurrentSemester,
         }
     }
 }
@@ -68,8 +68,8 @@ impl From<Option<i64>> for Semester {
 impl From<i64> for Semester {
     fn from(value: i64) -> Self {
         match value {
-            999 => Semester::AllSemesters,
-            semester => Semester::Semester(semester),
+            999 => Self::AllSemesters,
+            semester => Self::Semester(semester),
         }
     }
 }
@@ -191,8 +191,7 @@ impl TucanProgram {
                             Semester::CurrentSemester => vec![],
                             Semester::AllSemesters => vec![TucanArgument::Number(999)],
                             Semester::Semester(semester) => vec![TucanArgument::Number(*semester)],
-                        }
-                        .into_iter(),
+                        },
                     ),
                 ),
             ),
@@ -244,8 +243,7 @@ impl TucanProgram {
                             Semester::CurrentSemester => vec![],
                             Semester::AllSemesters => vec![TucanArgument::Number(999)],
                             Semester::Semester(semester) => vec![TucanArgument::Number(*semester)],
-                        }
-                        .into_iter(),
+                        },
                     ),
                 ),
             ),
@@ -298,7 +296,7 @@ impl TucanProgram {
                         .chain(id.chunks(std::mem::size_of::<i64>()).map(|n| {
                             TucanArgument::Number(i64::from_be_bytes(n.try_into().unwrap()))
                         }))
-                        .chain([TucanArgument::Number(0), TucanArgument::Number(0)].into_iter()),
+                        .chain([TucanArgument::Number(0), TucanArgument::Number(0)]),
                     ),
                 )
             }
@@ -511,7 +509,7 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
                     let b = number(&mut arguments).to_be_bytes();
                     let c = number(&mut arguments).to_be_bytes();
                     TucanProgram::Registration(Registration {
-                        path: vec![a, b, c].concat(),
+                        path: [a, b, c].concat(),
                     })
                 }
                 TucanArgument::String(_) => {
@@ -573,10 +571,8 @@ pub fn parse_tucan_url(url: &str) -> TucanUrl {
             number(&mut arguments);
             number(&mut arguments);
             let prog = TucanProgram::Coursedetails(Coursedetails {
-                id: vec![
-                    number(&mut arguments).to_be_bytes(), // this *should* be unique per course
-                    number(&mut arguments).to_be_bytes(), // this *should* be different per sub-group in a course and the course itself - but you can't find out which of these is the top-level course page without fetching
-                ]
+                id: [number(&mut arguments).to_be_bytes(), // this *should* be unique per course
+                    number(&mut arguments).to_be_bytes()]
                 .concat(),
             });
             assert_eq!(number(&mut arguments), 0);

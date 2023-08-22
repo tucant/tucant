@@ -311,7 +311,7 @@ impl Tucan<Authenticated> {
                                             panic!("{:?}", course.text().collect::<Vec<_>>())
                                         })
                                         .to_string(),
-                                    semester: semester.clone(),
+                                    semester,
                                     semester_name: None,
                                 })
                             })
@@ -1322,14 +1322,14 @@ impl Tucan<Authenticated> {
         Vec<(MaybeCompleteModule, Exam)>,
         Vec<(MaybeCompleteCourse, Exam)>,
     )> {
-        if let Some(value) = self.cached_my_exams_semester(semester.clone()).await? {
+        if let Some(value) = self.cached_my_exams_semester(semester).await? {
             return Ok(value);
         }
 
         self.fetch_my_exams(semester).await?;
 
         Ok(self
-            .cached_my_exams_semester(semester.clone())
+            .cached_my_exams_semester(semester)
             .await?
             .unwrap())
     }

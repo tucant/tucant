@@ -3,23 +3,23 @@
 use anyhow::anyhow;
 use base64::prelude::*;
 
-use diesel::query_builder::UndecoratedInsertRecord;
+
 
 use diesel::sql_types::Binary;
-use diesel::sql_types::Int4;
-use diesel::sql_types::SmallInt;
-use diesel::sql_types::Timestamp;
+
+
+
 
 use std::collections::VecDeque;
 
 use std::hash::Hash;
-use std::io::ErrorKind;
+
 // SPDX-FileCopyrightText: The tucant Contributors
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 use chrono::NaiveDateTime;
-use diesel::backend::Backend;
-use diesel::deserialize::FromSql;
+
+
 
 use diesel::prelude::*;
 
@@ -39,7 +39,7 @@ use crate::schema::{
     module_menu_module, module_menu_unfinished, modules_unfinished, sessions, user_course_groups,
     user_courses, user_exams, user_modules, users_unfinished, vv_menu_courses, vv_menu_unfinished,
 };
-use crate::MyError;
+
 
 pub fn as_base64<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -416,7 +416,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 course_id: value.course_id.clone(),
                 sws: 0,
                 content: String::new(),
-                semester: value.semester.clone(),
+                semester: value.semester,
                 semester_name: value.semester_name.clone(),
                 done: false,
             },
@@ -427,7 +427,7 @@ impl From<&MaybeCompleteCourse> for InternalCourse {
                 course_id: value.course_id.clone(),
                 sws: value.sws,
                 content: value.content.clone(),
-                semester: value.semester.clone(),
+                semester: value.semester,
                 semester_name: value.semester_name.clone(),
                 done: true,
             },
