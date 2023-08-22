@@ -23,7 +23,7 @@ crate-type = ["cdylib", "rlib"]
 getrandom               = { default-features = false, features = ["js"], version = "0.2" }
 reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.11" }
 tokio                   = { default-features = false, optional = true, version = "1", features = ["fs"] }
-scraper                 = { default-features = false, optional = true, version = "0.16" }
+scraper                 = { default-features = false, optional = true, version = "0.17" }
 ego-tree                = { default-features = false, optional = true, version = "0.6" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
 diesel                  = { default-features = false, optional = true, version = "2", features = [ "postgres", "chrono", "32-column-tables" ] }
@@ -41,8 +41,7 @@ deadpool                = { default-features = false, optional = true, version =
 url                     = { default-features = false, optional = true, version = "2" }
 log                     = { default-features = false, optional = true, version = "0.4" }
 env_logger              = { default-features = false, optional = true, version = "0.10" }
-derive_more             = { default-features = false, optional = true, version = "0.99" }
-itertools               = { default-features = false, optional = true, features = [ "use_std" ], version = "0.10" }
+itertools               = { default-features = false, optional = true, features = [ "use_std" ], version = "0.11" }
 either                  = { default-features = false, optional = true, version = "1" }
 once_cell               = { default-features = false, optional = true, version = "1" }
 diesel_full_text_search = { default-features = false, optional = true, version = "2" }
@@ -58,8 +57,9 @@ async-recursion         = { default-features = false, optional = true, version =
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.15.4" }
 tucant_core = { path = "../tucant_core", default-features = false, features = ["server"] }
+time = "=0.3.25"
 
 [features]
 default = ["server"]
 full-text-search = []
-server = [ "chrono", "icalendar", "serde", "reqwest", "diesel_migrations", "tower-http", "tracing", "async-recursion", "permute", "rand", "base64", "opensearch", "tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "derive_more", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]
+server = [ "chrono", "icalendar", "serde", "reqwest", "diesel_migrations", "tower-http", "tracing", "async-recursion", "permute", "rand", "base64", "opensearch", "tokio", "axum-extra", "scraper", "ego-tree", "futures", "diesel", "dotenvy", "anyhow", "regex", "serde_json", "async-stream", "deadpool", "url", "log", "env_logger", "itertools", "either", "once_cell", "diesel_full_text_search", "tucant_derive", "file-lock", "axum", "tucant_derive_lib", "dotenvy"]

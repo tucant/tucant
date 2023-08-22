@@ -103,7 +103,10 @@ impl Tucan<Authenticated> {
         let TucanUrl {
             program: TucanProgram::Registration(url),
             ..
-        } = url else { panic!() };
+        } = url
+        else {
+            panic!()
+        };
 
         Ok(ModuleMenu {
             tucan_id: url.path,
