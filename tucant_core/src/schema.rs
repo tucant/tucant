@@ -54,7 +54,7 @@ diesel::table! {
         course_id -> Text,
         sws -> SmallInt,
         content -> Text,
-        semester -> Nullable<Text>,
+        semester -> Nullable<BigInt>,
         done -> Bool,
     }
 }
@@ -65,7 +65,7 @@ diesel::table! {
     exams_unfinished (tucan_id) {
         tucan_id -> Binary,
         exam_type -> Text,
-        semester -> Nullable<Text>,
+        semester -> Nullable<BigInt>,
         exam_time_start -> Nullable<Timestamp>,
         exam_time_end -> Nullable<Timestamp>,
         registration_start -> Timestamp,
@@ -147,7 +147,7 @@ diesel::table! {
 
     semester_exams (user_id, semester) {
         user_id -> Integer,
-        semester -> Nullable<Text>,
+        semester -> Nullable<BigInt>,
         tucan_last_checked -> Timestamp,
     }
 }
@@ -155,7 +155,9 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
 
-    semesters (name) {
+    semesters (fake_id) {
+        fake_id -> Integer,
+        id -> BigInt,
         name -> Text,
         timestamp_start -> Timestamp,
         timestamp_end -> Timestamp,
@@ -263,8 +265,6 @@ diesel::joinable!(course_exams -> courses_unfinished (course_id));
 diesel::joinable!(course_exams -> exams_unfinished (exam));
 diesel::joinable!(course_groups_events -> course_groups_unfinished (course));
 diesel::joinable!(course_groups_unfinished -> courses_unfinished (course));
-diesel::joinable!(courses_unfinished -> semesters (semester));
-diesel::joinable!(exams_unfinished -> semesters (semester));
 diesel::joinable!(module_courses -> courses_unfinished (course));
 diesel::joinable!(module_courses -> modules_unfinished (module));
 diesel::joinable!(module_exam_types -> modules_unfinished (module_id));
@@ -272,7 +272,6 @@ diesel::joinable!(module_exams -> exams_unfinished (exam));
 diesel::joinable!(module_exams -> modules_unfinished (module_id));
 diesel::joinable!(module_menu_module -> module_menu_unfinished (module_menu_id));
 diesel::joinable!(module_menu_module -> modules_unfinished (module_id));
-diesel::joinable!(semester_exams -> semesters (semester));
 diesel::joinable!(semester_exams -> users_unfinished (user_id));
 diesel::joinable!(sessions -> users_unfinished (matriculation_number));
 diesel::joinable!(user_course_groups -> course_groups_unfinished (course_group_id));

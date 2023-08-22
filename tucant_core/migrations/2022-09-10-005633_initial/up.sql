@@ -21,11 +21,12 @@ ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR asciihword, asciiword, hwo
 ALTER TEXT SEARCH CONFIGURATION tucan ADD MAPPING FOR email, file, float, host, hword_numpart, int, numhword, numword, sfloat, uint, url, url_path, version WITH simple;
 */
 CREATE TABLE semesters (
-    id INTEGER NOT NULL,
+    fake_id INTEGER NOT NULL,
+    id BIGINT NOT NULL,
     name TEXT NOT NULL,
     timestamp_start TIMESTAMP NOT NULL,
     timestamp_end TIMESTAMP NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (fake_id)
 );
 
 CREATE TABLE modules_unfinished (
@@ -107,7 +108,7 @@ CREATE TABLE courses_unfinished (
     course_id TEXT NOT NULL,
     sws SMALLINT NOT NULL,
     content TEXT NOT NULL,
-    semester INTEGER REFERENCES semesters (id),
+    semester BIGINT REFERENCES semesters (id),
     done BOOLEAN NOT NULL DEFAULT FALSE/*,
     tsv tsvector NOT NULL GENERATED ALWAYS AS (
     setweight(to_tsvector('tucan', course_id), 'A') ||
@@ -169,7 +170,7 @@ CREATE TABLE user_course_groups (
 CREATE TABLE exams_unfinished (
     tucan_id BLOB NOT NULL PRIMARY KEY,
     exam_type TEXT NOT NULL,
-    semester INTEGER REFERENCES semesters (id), -- TODO FIXME check whether this is actually the same semester as in the overview
+    semester BIGINT REFERENCES semesters (id), -- TODO FIXME check whether this is actually the same semester as in the overview
     exam_time_start TIMESTAMP DEFAULT NULL,
     exam_time_end TIMESTAMP DEFAULT NULL,
     registration_start TIMESTAMP NOT NULL,
@@ -183,7 +184,7 @@ CREATE TABLE exams_unfinished (
 
 CREATE TABLE semester_exams (
     user_id INTEGER NOT NULL REFERENCES users_unfinished (matriculation_number),
-    semester INTEGER REFERENCES semesters (id),
+    semester BIGINT REFERENCES semesters (id),
     tucan_last_checked TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, semester)
 );

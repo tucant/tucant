@@ -944,7 +944,7 @@ pub struct Exam {
     #[cfg_attr(feature = "diesel", ts_type(String))]
     pub tucan_id: Vec<u8>,
     pub exam_type: String,
-    pub semester: Option<String>,
+    pub semester: Option<u64>,
     pub exam_time_start: Option<NaiveDateTime>,
     pub exam_time_end: Option<NaiveDateTime>,
     pub registration_start: NaiveDateTime,
@@ -956,6 +956,7 @@ pub struct Exam {
     pub done: bool,
 }
 
+     
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(
     feature = "diesel",

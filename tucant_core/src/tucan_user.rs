@@ -1020,7 +1020,7 @@ impl Tucan<Authenticated> {
 
         let exams_already_fetched = semester_exams::table
             .filter(semester_exams::user_id.eq(&matriculation_number))
-            // TODO FIXME .filter(semester_exams::semester.eq(semester.into()))
+            .filter(semester_exams::semester.eq(semester.into()))
             .select(semester_exams::tucan_last_checked)
             .get_result::<NaiveDateTime>(&mut connection)
             .optional()?;
