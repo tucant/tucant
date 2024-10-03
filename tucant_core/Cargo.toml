@@ -62,6 +62,7 @@ reqwest-retry = "0.6.1"
 [features]
 default = ["core", "diesel"] # currently running without diesel is not possible, make this not a non-default feature but simply required. or make it replaceable
 axum = [ "dep:axum", "dep:axum-extra" ]
+js = []
 
 # should be executable in the browser in the optimal case
 core = [ "dotenvy", "derive_more", "regex", "tokio", "reqwest", "once_cell", "either", "url", "async-recursion", "itertools", "log", "scraper", "futures", "ego-tree", "serde_json", "base64", "chrono", "serde", "tucant_derive", "tucant_derive_lib" ]

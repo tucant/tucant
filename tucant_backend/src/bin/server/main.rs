@@ -273,7 +273,7 @@ async fn logout(
     cookie_jar: PrivateCookieJar,
     _input: Json<()>,
 ) -> Result<TsHide<PrivateCookieJar, Json<()>>, MyError> {
-    let cookie_jar = cookie_jar.remove(Cookie::named("session"));
+    let cookie_jar = cookie_jar.remove(Cookie::from("session"));
     Ok(TsHide {
         hidden: cookie_jar,
         visible: Json(()),
@@ -441,17 +441,17 @@ import { genericFetch } from "./api_base"
             filelock.unlock().unwrap();
 
             let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+            let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
             tracing::debug!("listening on {}", addr);
-            axum::Server::bind(&addr)
-                .serve(
-                    app.app
-                        .with_state::<()>(app_state)
-                        .layer(cors)
-                        //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
-                        .into_make_service(),
-                )
-                .await
-                .unwrap();
+            axum::serve(
+                listener,
+                app.app
+                    .with_state::<()>(app_state)
+                    .layer(cors)
+                    //.layer(CompressionLayer::new()) // https://github.com/tower-rs/tower-http/issues/292
+                    .into_make_service(),
+            )
+            .await?;
 
             Ok(())
         })

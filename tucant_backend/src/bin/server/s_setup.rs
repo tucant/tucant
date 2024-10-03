@@ -11,7 +11,7 @@ use crate::Tucan;
 use crate::TucanSession;
 
 use async_stream::stream;
-use axum::body::StreamBody;
+use axum::body::Body;
 use futures::stream::FuturesUnordered;
 use futures::StreamExt;
 use reqwest::header;
@@ -70,7 +70,7 @@ pub async fn setup_vv(tucan: State<Tucan>, _input: Json<()>) -> Result<Response,
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 
-    Ok((headers, StreamBody::new(stream)).into_response())
+    Ok((headers, Body::from_stream(stream)).into_response())
 }
 
 fn prefetch_vv(
@@ -213,7 +213,7 @@ pub async fn setup(
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 
-    Ok((headers, StreamBody::new(stream)).into_response())
+    Ok((headers, Body::from_stream(stream)).into_response())
 }
 
 fn fetch_module_urls(
@@ -278,5 +278,5 @@ pub async fn module_urls(
 
     let headers = [(header::CONTENT_TYPE, "text/plain")];
 
-    Ok((headers, StreamBody::new(stream)).into_response())
+    Ok((headers, Body::from_stream(stream)).into_response())
 }

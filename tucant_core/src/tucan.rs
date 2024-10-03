@@ -17,7 +17,6 @@ use diesel::{upsert::excluded, QueryDsl};
 
 use diesel::ExpressionMethods;
 use dotenvy::dotenv;
-use ego_tree::NodeRef;
 use itertools::Itertools;
 use log::debug;
 use regex::Regex;
@@ -428,7 +427,7 @@ impl<State: GetTucanSession + Sync + Send + 'static> Tucan<State> {
         document
             .select(&s(r#"a[name="eventLink"]"#))
             .map(|e| e.parent().unwrap().parent().unwrap())
-            .unique_by(NodeRef::id)
+            .unique_by(|arg0| arg0.id())
             .map(|node| {
                 let element_ref = ElementRef::wrap(node).unwrap();
                 let selector = &s("a");

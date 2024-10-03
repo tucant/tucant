@@ -30,7 +30,7 @@ diesel                  = { default-features = false, optional = true, version =
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
 anyhow                  = { default-features = false, optional = true, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
-axum                    = { default-features = false, optional = true, features = ["json", "query", "macros", "tokio"], version = "0.7" }
+axum                    = { default-features = false, optional = true, features = ["json", "query", "macros", "tokio", "http1"], version = "0.7" }
 axum-extra              = { default-features = false, optional = true, version = "0.9", features = ["cookie", "cookie-private"] }
 tower-http              = { default-features = false, optional = true, version = "0.6", features = ["cors"] }
 serde                   = { default-features = false, optional = true, version = "1", features = [ "alloc", "std", "derive" ] }
@@ -56,6 +56,8 @@ diesel_migrations       = { default-features = false, optional = true, version =
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.16.8" }
+http-body-util = "0.1"
+http-body = "1"
 tucant_core = { workspace = true, features = ["server"] }
 time = "0.3"
 
