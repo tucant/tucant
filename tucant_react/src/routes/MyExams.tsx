@@ -13,7 +13,7 @@ import useSWR from "swr";
 export default function MyExams() {
   const { semester } = useParams();
 
-  const { data } = useSWR("my-exams", () => my_exams(semester));
+  const { data } = useSWR("my-exams", () => my_exams(semester === undefined ? null : Number.parseInt(semester)));
 
   if (data === null) {
     return <SignOut />;
