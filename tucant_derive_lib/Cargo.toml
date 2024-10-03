@@ -14,4 +14,4 @@ categories.workspace = true
 
 [dependencies]
 chrono = { default-features = false, version = "0.4" }
-axum   = { default-features = false, features = [ "json" ], version = "0.6" }
+axum   = { default-features = false, features = ["json"], version = "0.7" }

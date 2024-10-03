@@ -14,7 +14,7 @@ categories.workspace = true
 
 [dependencies]
 tokio             = { default-features = false, features = [ "fs", "net" ], version = "1" }
-itertools         = { default-features = false, features = [ "use_std" ], version = "0.11" }
+itertools         = { default-features = false, features = ["use_std"], version = "0.13" }
 serde_json        = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
 serde             = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
 tucant_language_server_derive_output = { default-features = false, workspace = true }

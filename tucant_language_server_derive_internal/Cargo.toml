@@ -18,9 +18,9 @@ quote       = { default-features = false, version = "1" }
 proc-macro2 = { default-features = false, version = "1" }
 serde_json  = { default-features = false, features = [ "default", "raw_value" ], version = "1" }
 serde       = { default-features = false, features = [ "alloc", "std", "derive" ], version = "1" }
-itertools   = { default-features = false, features = [ "use_std" ], version = "0.11" }
+itertools   = { default-features = false, features = ["use_std"], version = "0.13" }
 sha3        = { default-features = false, features = [ "std" ], version = "0.10" }
 hex         = { default-features = false, version = "0.4", features = [ "std" ] }
 rand        = { default-features = false, features = [ "default", "small_rng" ], version = "0.8" }
 rand_chacha = { default-features = false, features = [ "std" ], version = "0.3" }
-heck        = { default-features = false, version = "0.4" }
+heck        = { default-features = false, version = "0.5" }

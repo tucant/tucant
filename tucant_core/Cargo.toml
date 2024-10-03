@@ -21,31 +21,31 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 getrandom               = { default-features = false, features = ["js"], version = "0.2" }
-reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.11" }
+reqwest                 = { default-features = false, optional = true, features = ["cookies"], version = "0.12" }
 tokio                   = { default-features = false, optional = true, version = "1" }
-scraper                 = { default-features = false, optional = true, version = "0.17" }
-ego-tree                = { default-features = false, optional = true, version = "0.6" }
+scraper                 = { default-features = false, optional = true, version = "0.20" }
+ego-tree                = { default-features = false, optional = true, version = "0.9" }
 futures                 = { default-features = false, optional = true, version = "0.3" }
 diesel                  = { default-features = false, optional = true, version = "2", features = [ "r2d2", "sqlite", "returning_clauses_for_sqlite_3_35", "chrono", "32-column-tables", "i-implement-a-third-party-backend-and-opt-into-breaking-changes" ] }
 dotenvy                 = { default-features = false, optional = true, version = "0.15" }
 anyhow                  = { default-features = false, features = [ "std" ], version = "1" }
 regex                   = { default-features = false, optional = true, features = [ "std", "unicode" ], version = "1" }
-axum                    = { default-features = false, optional = true, features = [ "json", "query", "macros", "tokio" ], version = "0.6" }
-axum-extra              = { default-features = false, optional = true, version = "0.7", features = [ "cookie", "cookie-private" ] }
-tower-http              = { default-features = false, optional = true, version = "0.4", features = [ "cors" ] }
+axum                    = { default-features = false, optional = true, features = ["json", "query", "macros", "tokio"], version = "0.7" }
+axum-extra              = { default-features = false, optional = true, version = "0.9", features = ["cookie", "cookie-private"] }
+tower-http              = { default-features = false, optional = true, version = "0.6", features = ["cors"] }
 serde                   = { default-features = false, optional = true, version = "1", features = [ "alloc", "std", "derive" ] }
 serde_json              = { default-features = false, optional = true, features = [ "default", "raw_value" ], version = "1" }
 async-stream            = { default-features = false, optional = true, version = "0.3" }
 chrono                  = { default-features = false, optional = true, version = "0.4", features = ["serde"] }
 url                     = { default-features = false, optional = true, version = "2" }
 log                     = { default-features = false, optional = true, version = "0.4" }
-env_logger              = { default-features = false, optional = true, version = "0.10" }
-derive_more             = { default-features = false, optional = true, version = "0.99", features = [ "from", "try_into" ] }
-itertools               = { default-features = false, optional = true, features = [ "use_std" ], version = "0.11" }
+env_logger              = { default-features = false, optional = true, version = "0.11" }
+derive_more             = { default-features = false, optional = true, version = "1.0", features = ["from", "try_into"] }
+itertools               = { default-features = false, optional = true, features = ["use_std"], version = "0.13" }
 either                  = { default-features = false, optional = true, version = "1" }
 once_cell               = { default-features = false, optional = true, version = "1" }
 diesel_full_text_search = { default-features = false, optional = true, version = "2" }
-base64                  = { default-features = false, optional = true, version = "0.21" }
+base64                  = { default-features = false, optional = true, version = "0.22" }
 tucant_derive           = { default-features = false, optional = true, workspace = true }
 file-lock               = { default-features = false, optional = true, version = "2" }
 tracing                 = { default-features = false, optional = true, version = "0.1" }
@@ -55,9 +55,9 @@ tucant_derive_lib       = { default-features = false, optional = true, workspace
 diesel_migrations       = { default-features = false, optional = true, version = "2" }
 async-recursion         = { default-features = false, optional = true, version = "1" }
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
-icalendar               = { default-features = false, optional = true, version = "0.15.4" }
-reqwest-middleware = "0.2.2"
-reqwest-retry = "0.2.2"
+icalendar               = { default-features = false, optional = true, version = "0.16.8" }
+reqwest-middleware = "0.3.3"
+reqwest-retry = "0.6.1"
 
 [features]
 default = ["core", "diesel"] # currently running without diesel is not possible, make this not a non-default feature but simply required. or make it replaceable
