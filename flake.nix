@@ -18,10 +18,11 @@
               let
                 rust =
                   fenix.packages.${system}.complete;
-                  #fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-gdYqng0y9iHYzYPAdkC/ka3DRny3La/S5G8ASj0Ayyc="; };
+                #fenix.packages.${system}.toolchainOf { channel = "stable"; sha256 = "sha256-gdYqng0y9iHYzYPAdkC/ka3DRny3La/S5G8ASj0Ayyc="; };
               in
               with pkgs; [
                 bashInteractive
+                biome
                 nixpkgs-fmt
                 (fenix.packages.${system}.combine [
                   rust.toolchain
@@ -52,6 +53,7 @@
             #             export PATH=$PATH:$HOME/Documents/rome/target/debug/
             shellHook = ''
               export LIBCLANG_PATH="${pkgs.llvmPackages_latest.libclang}/lib";
+              export BIOME_BINARY="${pkgs.biome}/bin/biome"
             '';
 
 
