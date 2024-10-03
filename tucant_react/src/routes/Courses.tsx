@@ -29,7 +29,6 @@ export default function Courses() {
           {data.inner[3].map((p) => (
             <nav
               key={p.map((pe) => pe.tucan_id).join()}
-              style={{ "--bs-breadcrumb-divider": "'>'" }}
               aria-label="breadcrumb"
             >
               <ol className="breadcrumb">
