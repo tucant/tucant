@@ -57,7 +57,7 @@ async-recursion         = { default-features = false, optional = true, version =
 permute                 = { default-features = false, optional = true, version = "0.2.1" }
 icalendar               = { default-features = false, optional = true, version = "0.16.8" }
 tucant_core = { workspace = true, features = ["server"] }
-time = "=0.3.25"
+time = "0.3"
 
 [features]
 default = ["server"]
