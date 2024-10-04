@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 
 async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
-    let resp = reqwest::get("https://httpbin.org/ip")
+    let resp = reqwest::get("https://www.tucan.tu-darmstadt.de/")
         .await?;
     println!("{resp:#?}");
     let content = resp.text().await?;
