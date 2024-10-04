@@ -152,6 +152,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12a0bb14ac04a9fcf170d0bbbef949b44cc492f4452bd20c095636956f653642"
 
 [[package]]
+name = "ego-tree"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c6ba7d4eec39eaa9ab24d44a0e73a7949a1095a8b3f3abb11eddf27dbb56a53"
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -916,7 +922,7 @@ checksum = "b90460b31bfe1fc07be8262e42c665ad97118d4585869de9345a84d501a9eaf0"
 dependencies = [
  "ahash",
  "cssparser",
- "ego-tree",
+ "ego-tree 0.6.3",
  "getopts",
  "html5ever",
  "once_cell",
@@ -1218,6 +1224,7 @@ name = "tucan-connector"
 version = "0.0.0"
 dependencies = [
  "bytes",
+ "ego-tree 0.9.0",
  "encoding_rs",
  "futures-core",
  "futures-util",

@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use encoding_rs::{Decoder, Encoding};
 use futures_util::TryStreamExt as _;
-use html_handler::{BeforeElement, HtmlHandler};
+use html_handler::BeforeElement;
 use reqwest::{Client, ClientBuilder, Response};
 use scraper::{html, Html};
 
@@ -45,19 +45,18 @@ impl Tucan {
         let content = resp.text().await?;
         let document = Html::parse_document(&content);
         println!("{}", document.html());
-        let mut html_handler = HtmlHandler {
-            state: BeforeElement {
-                element: document.root_element(),
-            },
-            phantom_data: PhantomData,
+        let mut html_handler = BeforeElement {
+            element: document.root_element(),
+            outer_state: (),
         };
         let html_handler = html_handler.tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
-        let html_handler = html_handler.tag_open_start("head");
+        let html_handler = html_handler.child_tag_open_start("head");
         let html_handler = html_handler.tag_open_end();
-        let html_handler = html_handler.tag_open_start("script");
+        let html_handler = html_handler.child_tag_open_start("script");
         let html_handler = html_handler.attribute("type", "text/javascript");
         let html_handler = html_handler.tag_open_end();
+        let html_handler = html_handler.close_element();
 
         Ok(Tucan { client })
     }
