@@ -41,4 +41,14 @@ impl<'a> HtmlHandler<'a, Open<'a>> {
             phantom_data: PhantomData,
         }
     }
+
+    pub fn tag_open_end(mut self) -> HtmlHandler<'a, BeforeElement<'a>> {
+        assert_eq!(self.state.attrs.next(), None);
+        HtmlHandler {
+            state: BeforeElement {
+                element: ElementRef::wrap(self.state.element.next_sibling().unwrap()).unwrap(),
+            },
+            phantom_data: PhantomData,
+        }
+    }
 }
