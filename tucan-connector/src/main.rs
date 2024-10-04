@@ -1,4 +1,8 @@
+pub mod streaming_http_parser;
+
+use futures_util::TryStreamExt as _;
 use reqwest::{Client, ClientBuilder, Response};
+use streaming_http_parser::StreamingHttpParser;
 
 fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_multi_thread()
@@ -21,6 +25,8 @@ pub struct Tucan {
 pub enum TucanError {
     #[error("HTTP error {0:?}")]
     Http(#[from] reqwest::Error),
+    #[error("IO error {0:?}")]
+    Io(#[from] std::io::Error),
 }
 
 impl Tucan {
@@ -32,8 +38,13 @@ impl Tucan {
             .await?
             .error_for_status()?;
         println!("{resp:#?}");
-        let content = resp.bytes().await?;
-        println!("{content:#?}");
+        let content = resp.bytes_stream();
+        let mut parser = StreamingHttpParser {
+            async_read: tokio_util::io::StreamReader::new(
+                content.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e)),
+            ),
+        };
+        parser.doctype().await?;
         Ok(Tucan { client })
     }
 }

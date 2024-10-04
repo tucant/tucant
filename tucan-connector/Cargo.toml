@@ -4,6 +4,10 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-reqwest = { default-features = false, version = "0.12", features = ["rustls-tls", "charset"] }
+reqwest = { default-features = false, version = "0.12", features = ["rustls-tls", "charset", "stream"] }
 tokio = { default-features = false, version = "1", features = ["rt-multi-thread"] }
 thiserror = { default-features = false, version = "1" }
+futures-core = "0.3.30"
+bytes = "1.7.2"
+futures-util = { version = "0.3.30", features = ["io"] }
+tokio-util = "0.7.12"
