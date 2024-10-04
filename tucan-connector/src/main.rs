@@ -1,4 +1,4 @@
-use reqwest::Response;
+use reqwest::{Client, ClientBuilder, Response};
 
 fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_multi_thread()
@@ -13,25 +13,27 @@ async fn async_main() -> Result<(), TucanError> {
     Ok(())
 }
 
-pub struct Tucan {}
+pub struct Tucan {
+    client: Client,
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum TucanError {
-    #[error("HTTP status code not 200")]
-    HttpNotOk(Response),
     #[error("HTTP error {0:?}")]
     Http(#[from] reqwest::Error),
 }
 
 impl Tucan {
     pub async fn new() -> Result<Self, TucanError> {
-        let resp = reqwest::get("https://www.tucan.tu-darmstadt.de/").await?;
-        if resp.status() != 200 {
-            return Err(TucanError::HttpNotOk(resp));
-        }
+        let client = ClientBuilder::new().build()?;
+        let resp = client
+            .get("https://www.tucan.tu-darmstadt.de/")
+            .send()
+            .await?
+            .error_for_status()?;
         println!("{resp:#?}");
-        let content = resp.text().await?;
+        let content = resp.bytes().await?;
         println!("{content:#?}");
-        Ok(Tucan {})
+        Ok(Tucan { client })
     }
 }
