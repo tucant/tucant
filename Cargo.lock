@@ -839,6 +839,7 @@ name = "tucan-connector"
 version = "0.0.0"
 dependencies = [
  "bytes",
+ "encoding_rs",
  "futures-core",
  "futures-util",
  "reqwest",
