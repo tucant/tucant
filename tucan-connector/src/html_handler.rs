@@ -3,55 +3,46 @@ use std::marker::PhantomData;
 use scraper::Element;
 use scraper::{node::Attrs, ElementRef, Html};
 
-pub struct BeforeElement<'a> {
+pub struct BeforeElement<'a, OuterState> {
     pub element: ElementRef<'a>,
+    pub outer_state: OuterState,
 }
 
-pub struct Open<'a> {
+pub struct Open<'a, OuterState> {
     element: ElementRef<'a>,
     attrs: Attrs<'a>,
+    pub outer_state: OuterState,
 }
 
-pub struct HtmlHandler<'a, State = BeforeElement<'a>> {
-    pub state: State,
-    pub phantom_data: PhantomData<&'a ()>,
-}
+impl<'a, OuterState> BeforeElement<'a, OuterState> {
+    pub fn tag_open_start(self, name: &str) -> Open<'a, OuterState> {
+        assert_eq!(self.element.value().name(), name);
 
-impl<'a> HtmlHandler<'a, BeforeElement<'a>> {
-    pub fn tag_open_start(self, name: &str) -> HtmlHandler<'a, Open<'a>> {
-        assert_eq!(self.state.element.value().name(), name);
-
-        HtmlHandler {
-            state: Open {
-                element: self.state.element,
-                attrs: self.state.element.value().attrs(),
-            },
-            phantom_data: PhantomData,
+        Open {
+            element: self.element,
+            attrs: self.element.value().attrs(),
+            outer_state: self.outer_state,
         }
     }
 }
 
-impl<'a> HtmlHandler<'a, Open<'a>> {
-    pub fn attribute(mut self, name: &str, value: &str) -> HtmlHandler<'a, Open<'a>> {
-        assert_eq!(self.state.attrs.next().unwrap(), (name, value));
-        HtmlHandler {
-            state: Open {
-                element: self.state.element,
-                attrs: self.state.attrs,
-            },
-            phantom_data: PhantomData,
+impl<'a, OuterState> Open<'a, OuterState> {
+    pub fn attribute(mut self, name: &str, value: &str) -> Open<'a, OuterState> {
+        assert_eq!(self.attrs.next().unwrap(), (name, value));
+        Open {
+            element: self.element,
+            attrs: self.attrs,
+            outer_state: self.outer_state,
         }
     }
 
-    pub fn tag_open_end(mut self) -> HtmlHandler<'a, BeforeElement<'a>> {
-        assert_eq!(self.state.attrs.next(), None);
+    pub fn tag_open_end(mut self) -> BeforeElement<'a, OuterState> {
+        assert_eq!(self.attrs.next(), None);
         // .next_sibling_element().unwrap(),
-        HtmlHandler {
-            state: BeforeElement {
-                // TODO FIXME I think this skips text
-                element: self.state.element.first_element_child().unwrap(),
-            },
-            phantom_data: PhantomData,
+        BeforeElement {
+            // TODO FIXME I think this skips text
+            element: self.element.first_element_child().unwrap(),
+            outer_state: self.outer_state,
         }
     }
 }
