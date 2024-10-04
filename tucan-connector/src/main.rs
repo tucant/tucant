@@ -1,6 +1,12 @@
+pub mod html_handler;
+
+use std::marker::PhantomData;
+
 use encoding_rs::{Decoder, Encoding};
 use futures_util::TryStreamExt as _;
+use html_handler::{BeforeElement, HtmlHandler};
 use reqwest::{Client, ClientBuilder, Response};
+use scraper::Html;
 
 fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_multi_thread()
@@ -37,8 +43,15 @@ impl Tucan {
             .error_for_status()?;
         println!("{resp:#?}");
         let content = resp.text().await?;
-        println!("{content:#?}");
-
+        let document = Html::parse_document(&content);
+        println!("{}", document.html());
+        let mut html_handler = HtmlHandler {
+            state: BeforeElement {
+                element: document.root_element(),
+            },
+            phantom_data: PhantomData,
+        };
+        let html_handler = html_handler.tag_open_start("html");
         Ok(Tucan { client })
     }
 }

@@ -12,3 +12,4 @@ bytes = "1.7.2"
 futures-util = { version = "0.3.30", features = ["io"] }
 tokio-util = "0.7.12"
 encoding_rs = "0.8.34"
+scraper = "0.20.0"
