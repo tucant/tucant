@@ -796,6 +796,7 @@ name = "tucan-connector"
 version = "0.0.0"
 dependencies = [
  "reqwest",
+ "thiserror",
  "tokio",
 ]
 
