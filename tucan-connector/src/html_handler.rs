@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use scraper::Element;
 use scraper::{node::Attrs, ElementRef, Html};
 
 pub struct BeforeElement<'a> {
@@ -36,7 +37,7 @@ impl<'a> HtmlHandler<'a, Open<'a>> {
         HtmlHandler {
             state: Open {
                 element: self.state.element,
-                attrs: self.state.element.value().attrs(),
+                attrs: self.state.attrs,
             },
             phantom_data: PhantomData,
         }
@@ -44,9 +45,11 @@ impl<'a> HtmlHandler<'a, Open<'a>> {
 
     pub fn tag_open_end(mut self) -> HtmlHandler<'a, BeforeElement<'a>> {
         assert_eq!(self.state.attrs.next(), None);
+        // .next_sibling_element().unwrap(),
         HtmlHandler {
             state: BeforeElement {
-                element: ElementRef::wrap(self.state.element.next_sibling().unwrap()).unwrap(),
+                // TODO FIXME I think this skips text
+                element: self.state.element.first_element_child().unwrap(),
             },
             phantom_data: PhantomData,
         }
