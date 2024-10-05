@@ -9,13 +9,27 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
-enum HtmlCommands {
+struct HtmlCommands {
+    commands: Vec<HtmlCommand>,
+}
+
+impl Parse for HtmlCommands {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut commands = Vec::new();
+        while !input.is_empty() {
+            commands.push(input.parse()?);
+        }
+        Ok(Self { commands })
+    }
+}
+
+enum HtmlCommand {
     ElementOpen(HtmlElement),
     Whitespace(HtmlWhitespace),
     ElementClose(HtmlElementClose),
 }
 
-impl Parse for HtmlCommands {
+impl Parse for HtmlCommand {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![_]) {
@@ -120,43 +134,48 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as HtmlCommands);
 
-    let expanded = match input {
-        HtmlCommands::ElementOpen(input) => {
-            let tag = input.element.to_string();
+    let expanded = input.commands.iter().map(|command| {
+        match command {
+            HtmlCommand::ElementOpen(input) => {
+                let tag = input.element.to_string();
 
-            let attributes = input.attributes.iter().map(|iter| {
-                let name = iter.ident.iter().map(|e| e.to_string()).join("-");
-                let value = &iter.value;
-                quote_spanned! {iter.ident.span()=>
-                    let html_handler = html_handler.attribute(#name, #value);
+                let attributes = input.attributes.iter().map(|iter| {
+                    let name = iter.ident.iter().map(|e| e.to_string()).join("-");
+                    let value = &iter.value;
+                    quote_spanned! {iter.ident.span()=>
+                        let html_handler = html_handler.attribute(#name, #value);
+                    }
+                });
+
+                let open = quote_spanned! {input.element.span()=>
+                    let html_handler = html_handler.next_child_tag_open_start(#tag);
+                };
+
+                // Build the output, possibly using quasi-quotation
+                quote! {
+                    #open
+                    #(
+                        #attributes
+                    )*
+                    let html_handler = html_handler.tag_open_end();
                 }
-            });
-
-            let open = quote_spanned! {input.element.span()=>
-                let html_handler = html_handler.next_child_tag_open_start(#tag);
-            };
-
-            // Build the output, possibly using quasi-quotation
-            quote! {
-                #open
-                #(
-                    #attributes
-                )*
-                let html_handler = html_handler.tag_open_end();
+            }
+            HtmlCommand::Whitespace(html_whitespace) => {
+                quote_spanned! {html_whitespace.underscore.span()=>
+                    let html_handler = html_handler.skip_whitespace();
+                }
+            }
+            HtmlCommand::ElementClose(html_element_close) => {
+                quote_spanned! {html_element_close.element.span()=>
+                    let html_handler = html_handler.close_element();
+                }
             }
         }
-        HtmlCommands::Whitespace(html_whitespace) => {
-            quote_spanned! {html_whitespace.underscore.span()=>
-                let html_handler = html_handler.skip_whitespace();
-            }
-        }
-        HtmlCommands::ElementClose(html_element_close) => {
-            quote_spanned! {html_element_close.element.span()=>
-                let html_handler = html_handler.close_element();
-            }
-        }
+    });
+    let result = quote! {
+        #(#expanded)*
     };
 
     // Hand the output tokens back to the compiler
-    proc_macro::TokenStream::from(expanded)
+    proc_macro::TokenStream::from(result)
 }
