@@ -360,6 +360,11 @@ version = "0.0.0"
 [[package]]
 name = "html-handler-proc-macro"
 version = "0.0.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "html5ever"

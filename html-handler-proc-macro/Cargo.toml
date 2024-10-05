@@ -8,6 +8,9 @@ version.workspace = true
 proc-macro = true
 
 [dependencies]
+syn = "2"
+quote = "1"
+proc-macro2 = "1"
 
 [lints]
 workspace = true
