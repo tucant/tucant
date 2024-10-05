@@ -70,7 +70,7 @@ impl Tucan {
         html!(<meta http-equiv="expires" content="-1">);
         let html_handler = html_handler.close_element();
         let html_handler = html_handler.skip_whitespace();
-        html!(<meta http-equiv="pragma" content="no-cache">);
+        html!(_<meta http-equiv="pragma" content="no-cache">);
 
         Ok(Self { client })
     }

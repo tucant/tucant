@@ -9,6 +9,41 @@ use syn::{
     DeriveInput, Ident, LitStr, Token,
 };
 
+enum HtmlCommands {
+    ElementOpen(HtmlElement),
+    Whitespace(HtmlWhitespace),
+    ElementClose(HtmlElementClose),
+}
+
+impl Parse for HtmlCommands {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(Token![_]) {
+            input.parse().map(Self::Whitespace)
+        } else if lookahead.peek(Token![<]) {
+            if input.peek2(Token![/]) {
+                input.parse().map(Self::ElementClose)
+            } else {
+                input.parse().map(Self::ElementOpen)
+            }
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+struct HtmlWhitespace {
+    underscore: Token![_],
+}
+
+impl Parse for HtmlWhitespace {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            underscore: input.parse()?,
+        })
+    }
+}
+
 struct HtmlAttribute {
     ident: Punctuated<Ident, Token![-]>,
     equals: Token![=],
@@ -58,32 +93,68 @@ impl Parse for HtmlElement {
     }
 }
 
+struct HtmlElementClose {
+    close: Token![<],
+    close_slash: Token![/],
+    element: Ident,
+    open_end: Token![>],
+}
+
+impl Parse for HtmlElementClose {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let close = input.parse()?;
+        let close_slash = input.parse()?;
+        let element = input.call(Ident::parse_any)?;
+        let open_end = input.parse()?;
+        Ok(Self {
+            close,
+            close_slash,
+            element,
+            open_end,
+        })
+    }
+}
+
 #[proc_macro]
 pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree
-    let input = parse_macro_input!(input as HtmlElement);
+    let input = parse_macro_input!(input as HtmlCommands);
 
-    let tag = input.element.to_string();
+    let expanded = match input {
+        HtmlCommands::ElementOpen(input) => {
+            let tag = input.element.to_string();
 
-    let attributes = input.attributes.iter().map(|iter| {
-        let name = iter.ident.iter().map(|e| e.to_string()).join("-");
-        let value = &iter.value;
-        quote_spanned! {iter.ident.span()=>
-            let html_handler = html_handler.attribute(#name, #value);
+            let attributes = input.attributes.iter().map(|iter| {
+                let name = iter.ident.iter().map(|e| e.to_string()).join("-");
+                let value = &iter.value;
+                quote_spanned! {iter.ident.span()=>
+                    let html_handler = html_handler.attribute(#name, #value);
+                }
+            });
+
+            let open = quote_spanned! {input.element.span()=>
+                let html_handler = html_handler.next_child_tag_open_start(#tag);
+            };
+
+            // Build the output, possibly using quasi-quotation
+            quote! {
+                #open
+                #(
+                    #attributes
+                )*
+                let html_handler = html_handler.tag_open_end();
+            }
         }
-    });
-
-    let open = quote_spanned! {input.element.span()=>
-        let html_handler = html_handler.next_child_tag_open_start(#tag);
-    };
-
-    // Build the output, possibly using quasi-quotation
-    let expanded = quote! {
-        #open
-        #(
-            #attributes
-        )*
-        let html_handler = html_handler.tag_open_end();
+        HtmlCommands::Whitespace(html_whitespace) => {
+            quote_spanned! {html_whitespace.underscore.span()=>
+                let html_handler = html_handler.skip_whitespace();
+            }
+        }
+        HtmlCommands::ElementClose(html_element_close) => {
+            quote_spanned! {html_element_close.element.span()=>
+                let html_handler = html_handler.close_element();
+            }
+        }
     };
 
     // Hand the output tokens back to the compiler
