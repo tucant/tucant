@@ -27,6 +27,7 @@ enum HtmlCommand {
     ElementOpen(HtmlElement),
     Whitespace(HtmlWhitespace),
     ElementClose(HtmlElementClose),
+    Comment(HtmlComment),
 }
 
 impl Parse for HtmlCommand {
@@ -37,6 +38,8 @@ impl Parse for HtmlCommand {
         } else if lookahead.peek(Token![<]) {
             if input.peek2(Token![/]) {
                 input.parse().map(Self::ElementClose)
+            } else if input.peek2(Token![!]) {
+                input.parse().map(Self::Comment)
             } else {
                 input.parse().map(Self::ElementOpen)
             }
@@ -129,6 +132,32 @@ impl Parse for HtmlElementClose {
     }
 }
 
+struct HtmlComment {
+    open1: Token![<],
+    open2: Token![!],
+    open3: Token![-],
+    open4: Token![-],
+    comment: LitStr,
+    close1: Token![-],
+    close2: Token![-],
+    close3: Token![>],
+}
+
+impl Parse for HtmlComment {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            open1: input.parse()?,
+            open2: input.parse()?,
+            open3: input.parse()?,
+            open4: input.parse()?,
+            comment: input.parse()?,
+            close1: input.parse()?,
+            close2: input.parse()?,
+            close3: input.parse()?,
+        })
+    }
+}
+
 #[proc_macro]
 pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree
@@ -168,6 +197,12 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             HtmlCommand::ElementClose(html_element_close) => {
                 quote_spanned! {html_element_close.element.span()=>
                     let html_handler = html_handler.close_element();
+                }
+            }
+            HtmlCommand::Comment(html_comment) => {
+                let comment = &html_comment.comment;
+                quote_spanned! {html_comment.comment.span()=>
+                    let html_handler = html_handler.skip_comment(#comment);
                 }
             }
         }

@@ -48,19 +48,21 @@ impl Tucan {
         let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
-        html!(<head>_);
-        let html_handler = html_handler.skip_comment("RMGklg_XASh8hhew3hZIhYXmZF9hdbOOrS4pTp7U4-Q");
-        let html_handler = html_handler.skip_whitespace();
-        html!(<script type="text/javascript"></script>_);
-        html!(<title>);
+        html!(
+            <head>_
+            <!--"RMGklg_XASh8hhew3hZIhYXmZF9hdbOOrS4pTp7U4-Q"-->_
+            <script type="text/javascript"></script>_
+            <title>
+        );
         let html_handler = html_handler.skip_text("Technische Universität Darmstadt");
-        html!(</title>_);
-        html!(<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_);
-        let html_handler = html_handler.skip_comment("y6RvLoAFlJ-yhWOzZ1eFLGpyCih6hv5vxd56zEkIHR4");
-        let html_handler = html_handler.skip_whitespace();
-        html!(<meta http-equiv="cache-control" content="no-cache"></meta>_);
-        html!(<meta http-equiv="expires" content="-1"></meta>_);
-        html!(<meta http-equiv="pragma" content="no-cache">);
+        html!(
+            </title>_
+            <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_
+            <!--"y6RvLoAFlJ-yhWOzZ1eFLGpyCih6hv5vxd56zEkIHR4"-->_
+            <meta http-equiv="cache-control" content="no-cache"></meta>_
+            <meta http-equiv="expires" content="-1"></meta>_
+            <meta http-equiv="pragma" content="no-cache">
+        );
 
         Ok(Self { client })
     }
