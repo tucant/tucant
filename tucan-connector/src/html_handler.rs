@@ -188,7 +188,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
-    pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
+    pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
         let element = self.element.value().as_element().unwrap();
         let child_node = self.children.next().unwrap();
         let child_element = child_node
