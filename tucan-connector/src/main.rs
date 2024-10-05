@@ -51,6 +51,8 @@ impl Tucan {
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.child_tag_open_start("head");
         let html_handler = html_handler.tag_open_end();
+        let html_handler = html_handler.skip_whitespace();
+        let html_handler = html_handler.skip_comment(&[]);
         let html_handler = html_handler.child_tag_open_start("script");
         let html_handler = html_handler.attribute("type", "text/javascript");
         let html_handler = html_handler.tag_open_end();

@@ -1,9 +1,12 @@
 use std::marker::PhantomData;
+use std::ops::Deref;
 
 use ego_tree::iter::Children;
 use ego_tree::{NodeRef, Tree};
 use scraper::{node::Attrs, ElementRef, Html};
 use scraper::{Element, Node};
+use sha3::digest::generic_array::GenericArray;
+use sha3::{Digest, Sha3_256};
 
 pub struct Root<'a> {
     node: NodeRef<'a, Node>,
@@ -71,6 +74,21 @@ impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
 }
 
 impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
+    pub fn skip_whitespace(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
+        let child_node = self.children.next().unwrap();
+        let child_element = child_node
+            .value()
+            .as_text()
+            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        assert!(child_element.trim().is_empty());
+        InRoot {
+            node: self.node,
+            children: self.children,
+            sub_state: AfterDoctype,
+            outer_state: self.outer_state,
+        }
+    }
+
     pub fn tag_open_start(mut self, name: &str) -> Open<'a, InRoot<'a, OuterState, AfterDoctype>> {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
@@ -126,6 +144,37 @@ impl<'a, OuterState> Open<'a, OuterState> {
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
+    pub fn skip_whitespace(mut self) -> InElement<'a, OuterState> {
+        let child_node = self.children.next().unwrap();
+        let child_element = child_node
+            .value()
+            .as_text()
+            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        assert!(child_element.trim().is_empty());
+        InElement {
+            element: self.element,
+            children: self.children,
+            outer_state: self.outer_state,
+        }
+    }
+
+    pub fn skip_comment(mut self, hash: &[u8]) -> InElement<'a, OuterState> {
+        let child_node = self.children.next().unwrap();
+        let child_element = child_node
+            .value()
+            .as_comment()
+            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        assert_eq!(
+            Sha3_256::digest(child_element.deref()),
+            *GenericArray::from_slice(hash)
+        );
+        InElement {
+            element: self.element,
+            children: self.children,
+            outer_state: self.outer_state,
+        }
+    }
+
     pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, InElement<'a, OuterState>> {
         let element = self.element.value().as_element().unwrap();
         let child_node = self.children.next().unwrap();

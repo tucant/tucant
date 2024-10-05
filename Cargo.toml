@@ -3,3 +3,8 @@ resolver = "2"
 members = [
     "tucan-connector",
 ]
+
+[workspace.package]
+license = "AGPL-3.0-or-later"
+edition = "2021"
+version = "0.0.0"
