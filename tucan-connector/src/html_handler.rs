@@ -1,4 +1,4 @@
-
+use data_encoding::{BASE64URL_NOPAD, HEXLOWER};
 use ego_tree::iter::Children;
 use ego_tree::NodeRef;
 use scraper::node::Attrs;
@@ -39,12 +39,14 @@ pub struct InElement<'a, OuterState> {
 }
 
 impl<'a> Root<'a> {
-    #[must_use] pub fn new(node: NodeRef<'a, Node>) -> Self {
+    #[must_use]
+    pub fn new(node: NodeRef<'a, Node>) -> Self {
         assert_eq!(*node.value(), Node::Document);
         Self { node }
     }
 
-    #[must_use] pub fn document_start(self) -> InRoot<'a, Self, BeforeDoctype> {
+    #[must_use]
+    pub fn document_start(self) -> InRoot<'a, Self, BeforeDoctype> {
         InRoot {
             node: self.node,
             children: self.node.children(),
@@ -156,16 +158,14 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
-    pub fn skip_comment(mut self, hash: &[u8]) -> Self {
+    pub fn skip_comment(mut self, expected_hash: &str) -> Self {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
             .value()
             .as_comment()
             .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
-        assert_eq!(
-            Sha3_256::digest(&**child_element),
-            *GenericArray::from_slice(hash)
-        );
+        let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
+        assert_eq!(actual_hash, expected_hash);
         InElement {
             element: self.element,
             children: self.children,

@@ -1,6 +1,6 @@
 pub mod html_handler;
 
-
+use data_encoding::HEXLOWER;
 use html_handler::Root;
 use reqwest::{Client, ClientBuilder};
 use scraper::Html;
@@ -50,7 +50,8 @@ impl Tucan {
         let html_handler = html_handler.child_tag_open_start("head");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.skip_whitespace();
-        let html_handler = html_handler.skip_comment(&[]);
+        let html_handler = html_handler.skip_comment("RMGklg_XASh8hhew3hZIhYXmZF9hdbOOrS4pTp7U4-Q");
+        let html_handler = html_handler.skip_whitespace();
         let html_handler = html_handler.child_tag_open_start("script");
         let html_handler = html_handler.attribute("type", "text/javascript");
         let html_handler = html_handler.tag_open_end();
