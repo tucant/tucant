@@ -69,17 +69,19 @@ impl Tucan {
                 <script type="text/javascript" src="/js/mobile_master/onmediaquery.min.js"></script>_
             </head>_
             <body>_
-            <div id="wrapper">_
-                <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">_
-                    <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>_
-                </a>_
-                <ul id="langMenu">_
-                    <!--"OKMmJxVa9MEpv1nT-faADAcITZqNMeN44hxFZOI5duQ"-->_
-                    <li><a class="img img_LangGerman" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001">"de"</a></li>_
-                    <!--"B_W58bA9r6Y9MF-DHPyZIP45rNK-6Ba3bAydB3VM8DM"-->_
-                    <li><a class="img img_LangEnglish" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000002">"en"</a></li>_
-                </ul>_
-            </div>
+                <div id="wrapper">_
+                    <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">_
+                        <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>_
+                    </a>_
+                    <ul id="langMenu">_
+                        <!--"OKMmJxVa9MEpv1nT-faADAcITZqNMeN44hxFZOI5duQ"-->_
+                        <li><a class="img img_LangGerman" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001">"de"</a></li>_
+                        <!--"B_W58bA9r6Y9MF-DHPyZIP45rNK-6Ba3bAydB3VM8DM"-->_
+                        <li><a class="img img_LangEnglish" href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000002">"en"</a></li>_
+                    </ul>_
+                </div>_
+            </body>
+            </html>
         );
 
         Ok(Self { client })

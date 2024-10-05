@@ -60,10 +60,9 @@ impl<'a> Root<'a> {
 impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
     pub fn doctype(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_doctype()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let Some(child_element) = child_node.value().as_doctype() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         InRoot {
             node: self.node,
             children: self.children,
@@ -74,12 +73,12 @@ impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
 }
 
 impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
+    #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_text()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         assert!(child_element.trim().is_empty());
         InRoot {
             node: self.node,
@@ -91,10 +90,9 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
 
     pub fn tag_open_start(mut self, name: &str) -> Open<'a, Self> {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_element()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let Some(child_element) = child_node.value().as_element() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         assert_eq!(child_element.name(), name);
         Open {
             element: child_node,
@@ -106,11 +104,9 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
 
 impl<'a, OuterState> BeforeNode<'a, OuterState> {
     pub fn tag_open_start(self, name: &str) -> Open<'a, OuterState> {
-        let element = self
-            .node
-            .value()
-            .as_element()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", self.node.value()));
+        let Some(element) = self.node.value().as_element() else {
+            panic!("unexpected element {:?}", self.node.value())
+        };
         assert_eq!(element.name(), name);
         Open {
             element: self.node,
