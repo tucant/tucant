@@ -1,6 +1,7 @@
 pub mod html_handler;
 
 use data_encoding::HEXLOWER;
+use html_extractor::html;
 use html_handler::Root;
 use reqwest::{Client, ClientBuilder};
 use scraper::Html;
@@ -28,17 +29,6 @@ pub enum TucanError {
     Http(#[from] reqwest::Error),
     #[error("IO error {0:?}")]
     Io(#[from] std::io::Error),
-}
-
-macro_rules! make_html {
-    ($html_handler: ident <$tag: literal $($attr_name:literal = $attr_value:literal)*>) => {
-        let html_handler = $html_handler.next_child_tag_open_start($tag);
-        $(
-        let html_handler = html_handler.attribute($attr_name, $attr_value);
-        )*
-        let html_handler = html_handler.tag_open_end();
-        let html_handler = html_handler.close_element();
-    };
 }
 
 impl Tucan {
@@ -92,8 +82,7 @@ impl Tucan {
         let html_handler = html_handler.attribute("content", "-1");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.close_element();
-        macro_rules! html { ($($rest: tt)*) => { make_html!(html_handler $($rest)*) }; }
-        html!(<"meta" "http-equiv"="pragma" "content"="no-cache">);
+        html!(<meta http-equiv="pragma" content="no-cache">);
 
         Ok(Self { client })
     }
