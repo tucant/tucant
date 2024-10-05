@@ -48,28 +48,19 @@ impl Tucan {
         let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
-        html!(<head>);
-        let html_handler = html_handler.skip_whitespace();
+        html!(<head>_);
         let html_handler = html_handler.skip_comment("RMGklg_XASh8hhew3hZIhYXmZF9hdbOOrS4pTp7U4-Q");
         let html_handler = html_handler.skip_whitespace();
-        html!(<script type="text/javascript">);
-        let html_handler = html_handler.close_element();
-        let html_handler = html_handler.skip_whitespace();
+        html!(<script type="text/javascript"></script>_);
         html!(<title>);
         let html_handler = html_handler.skip_text("Technische Universität Darmstadt");
-        let html_handler = html_handler.close_element();
-        let html_handler = html_handler.skip_whitespace();
-        html!(<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9">);
-        let html_handler = html_handler.close_element();
-        let html_handler = html_handler.skip_whitespace();
+        html!(</title>_);
+        html!(<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_);
         let html_handler = html_handler.skip_comment("y6RvLoAFlJ-yhWOzZ1eFLGpyCih6hv5vxd56zEkIHR4");
         let html_handler = html_handler.skip_whitespace();
-        html!(<meta http-equiv="cache-control" content="no-cache">);
-        let html_handler = html_handler.close_element();
-        let html_handler = html_handler.skip_whitespace();
-        html!(<meta http-equiv="expires" content="-1">);
-        let html_handler = html_handler.close_element();
-        html!(_<meta http-equiv="pragma" content="no-cache">);
+        html!(<meta http-equiv="cache-control" content="no-cache"></meta>_);
+        html!(<meta http-equiv="expires" content="-1"></meta>_);
+        html!(<meta http-equiv="pragma" content="no-cache">);
 
         Ok(Self { client })
     }
