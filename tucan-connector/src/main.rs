@@ -30,6 +30,17 @@ pub enum TucanError {
     Io(#[from] std::io::Error),
 }
 
+macro_rules! make_html {
+    ($html_handler: ident <$tag: literal $($attr_name:literal = $attr_value:literal)*>) => {
+        let html_handler = $html_handler.next_child_tag_open_start($tag);
+        $(
+        let html_handler = html_handler.attribute($attr_name, $attr_value);
+        )*
+        let html_handler = html_handler.tag_open_end();
+        let html_handler = html_handler.close_element();
+    };
+}
+
 impl Tucan {
     pub async fn new() -> Result<Self, TucanError> {
         let client = ClientBuilder::new().build()?;
@@ -43,6 +54,11 @@ impl Tucan {
         let document = Html::parse_document(&content);
         println!("{}", document.html());
         let html_handler = Root::new(document.tree.root());
+        macro_rules! html {
+            ($($rest: tt)*) => {
+                make_html!(html_handler $($rest)*)
+            };
+        }
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
@@ -81,6 +97,7 @@ impl Tucan {
         let html_handler = html_handler.attribute("content", "-1");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.close_element();
+        html!(<"meta" "http-equiv"="pragma" "content"="no-cache">);
 
         Ok(Self { client })
     }
