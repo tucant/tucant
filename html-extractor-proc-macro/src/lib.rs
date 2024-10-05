@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
+    ext::IdentExt as _,
     parse::{Parse, ParseStream},
     parse2, parse_macro_input,
     punctuated::Punctuated,
@@ -17,7 +18,7 @@ struct HtmlAttribute {
 impl Parse for HtmlAttribute {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut ident: Punctuated<Ident, Token![-]> = Punctuated::new();
-        ident.push_value(input.parse()?);
+        ident.push_value(input.call(Ident::parse_any)?);
         while input.peek(Token![-]) {
             ident.push_punct(input.parse()?);
             ident.push_value(input.parse()?);
@@ -42,7 +43,7 @@ struct HtmlElement {
 impl Parse for HtmlElement {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let open_start = input.parse()?;
-        let element = input.parse()?;
+        let element = input.call(Ident::parse_any)?;
         let mut attributes = Vec::new();
         while !input.peek(Token!(>)) {
             attributes.push(input.parse()?);
