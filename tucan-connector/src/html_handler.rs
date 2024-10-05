@@ -146,8 +146,10 @@ impl<'a, OuterState> Open<'a, OuterState> {
 impl<'a, OuterState> InElement<'a, OuterState> {
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
-        let child_node = self.children.next().unwrap();
-        let child_element = child_node.value().as_text().unwrap(); // _or_else(|| panic!("unexpected element {:?}", child_node.value()))
+        let child_node = self.children.next().expect("expected one more child");
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         assert!(child_element.trim().is_empty());
         InElement {
             element: self.element,
@@ -185,17 +187,21 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
+    #[track_caller]
     pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
-        let element = self.element.value().as_element().unwrap();
-        let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_element()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let element = self.element.value().as_element().expect("expected element");
+        let child_node = self.children.next().expect("expected one more child");
+        let Some(child_element) = child_node.value().as_element() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         assert_eq!(child_element.name(), name);
         Open {
             element: child_node,
-            attrs: child_node.value().as_element().unwrap().attrs(),
+            attrs: child_node
+                .value()
+                .as_element()
+                .expect("expected child to be element")
+                .attrs(),
             outer_state: InElement {
                 element: self.element,
                 children: self.children,

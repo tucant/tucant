@@ -28,12 +28,15 @@ enum HtmlCommand {
     Whitespace(HtmlWhitespace),
     ElementClose(HtmlElementClose),
     Comment(HtmlComment),
+    Text(HtmlText),
 }
 
 impl Parse for HtmlCommand {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(Ident::peek_any) {
+        if lookahead.peek(LitStr) {
+            input.parse().map(Self::Text)
+        } else if lookahead.peek(Ident::peek_any) {
             input.parse().map(Self::Whitespace)
         } else if lookahead.peek(Token![<]) {
             if input.peek2(Token![/]) {
@@ -46,6 +49,18 @@ impl Parse for HtmlCommand {
         } else {
             Err(lookahead.error())
         }
+    }
+}
+
+struct HtmlText {
+    text: LitStr,
+}
+
+impl Parse for HtmlText {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            text: input.parse()?,
+        })
     }
 }
 
@@ -203,6 +218,12 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 let comment = &html_comment.comment;
                 quote_spanned! {html_comment.comment.span()=>
                     let html_handler = html_handler.skip_comment(#comment);
+                }
+            }
+            HtmlCommand::Text(html_text) => {
+                let text = &html_text.text;
+                quote_spanned! {text.span()=>
+                    let html_handler = html_handler.skip_text(#text);
                 }
             }
         }
