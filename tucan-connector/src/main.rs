@@ -61,7 +61,18 @@ impl Tucan {
             <!--"y6RvLoAFlJ-yhWOzZ1eFLGpyCih6hv5vxd56zEkIHR4"-->_
             <meta http-equiv="cache-control" content="no-cache"></meta>_
             <meta http-equiv="expires" content="-1"></meta>_
-            <meta http-equiv="pragma" content="no-cache">
+            <meta http-equiv="pragma" content="no-cache"></meta>_
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>_
+            <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>_
+            <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>_
+            <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>_
+            <link rel="apple-touch-icon" href="/gfx/tuda/icons/iphone_touch_icon.png" type="image/gif"></link>_
+            <meta http-equiv="refresh" content="0; URL=/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001"></meta>_
+            <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>_
+            <script type="text/javascript" src="/js/mobile_master/jquery.js"></script>_
+            <script type="text/javascript" src="/js/mobile_master/onmediaquery.min.js"></script>_
+            </head>_
+            <body>_
         );
 
         Ok(Self { client })
