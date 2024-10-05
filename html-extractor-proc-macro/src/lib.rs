@@ -1,4 +1,4 @@
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     parse2, parse_macro_input,
@@ -60,9 +60,23 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as HtmlElement);
 
+    let tag = input.element.to_string();
+
+    let attributes = input.attributes.iter().map(|iter| {
+        let name = iter.ident.to_token_stream().to_string();
+        let value = &iter.value;
+        quote! {
+            let html_handler = html_handler.attribute(#name, #value);
+        }
+    });
+
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
-        // ...
+        let html_handler = html_handler.next_child_tag_open_start(#tag);
+        #(
+            #attributes
+        )*
+        let html_handler = html_handler.tag_open_end();
     };
 
     // Hand the output tokens back to the compiler
