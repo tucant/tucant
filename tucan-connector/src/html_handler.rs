@@ -1,32 +1,38 @@
 use std::marker::PhantomData;
 
 use ego_tree::iter::Children;
-use scraper::Element;
+use ego_tree::NodeRef;
 use scraper::{node::Attrs, ElementRef, Html};
+use scraper::{Element, Node};
 
-pub struct BeforeElement<'a, OuterState> {
-    pub element: ElementRef<'a>,
+pub struct BeforeNode<'a, OuterState> {
+    pub node: NodeRef<'a, Node>,
     pub outer_state: OuterState,
 }
 
 pub struct Open<'a, OuterState> {
-    element: ElementRef<'a>,
+    element: NodeRef<'a, Node>,
     attrs: Attrs<'a>,
     pub outer_state: OuterState,
 }
 
-pub struct InElement<'a, OuterState, I: Iterator<Item = ElementRef<'a>>> {
-    pub element: ElementRef<'a>,
-    pub children: I,
+pub struct InElement<'a, OuterState> {
+    pub element: NodeRef<'a, Node>,
+    pub children: Children<'a, Node>,
     pub outer_state: OuterState,
 }
 
-impl<'a, OuterState> BeforeElement<'a, OuterState> {
+impl<'a, OuterState> BeforeNode<'a, OuterState> {
     pub fn tag_open_start(self, name: &str) -> Open<'a, OuterState> {
-        assert_eq!(self.element.value().name(), name);
+        let element = self
+            .node
+            .value()
+            .as_element()
+            .unwrap_or_else(|| panic!("unexpected element {:?}", self.node.value()));
+        assert_eq!(element.name(), name);
         Open {
-            element: self.element,
-            attrs: self.element.value().attrs(),
+            element: self.node,
+            attrs: element.attrs(),
             outer_state: self.outer_state,
         }
     }
@@ -42,29 +48,32 @@ impl<'a, OuterState> Open<'a, OuterState> {
         }
     }
 
-    pub fn tag_open_end(
-        mut self,
-    ) -> InElement<'a, OuterState, impl Iterator<Item = ElementRef<'a>>> {
+    pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
+        let element = self.element.value().as_element().unwrap();
         assert_eq!(self.attrs.next(), None);
         // .next_sibling_element().unwrap(),
         // .first_element_child().unwrap()
         InElement {
-            // TODO FIXME I think this skips text
             element: self.element,
-            children: self.element.child_elements(),
+            children: self.element.children(),
             outer_state: self.outer_state,
         }
     }
 }
 
-impl<'a, OuterState, I: Iterator<Item = ElementRef<'a>>> InElement<'a, OuterState, I> {
-    pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, OuterState> {
+impl<'a, OuterState> InElement<'a, OuterState> {
+    pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, InElement<'a, OuterState>> {
+        let element = self.element.value().as_element().unwrap();
         let child = self.children.next().unwrap();
-        assert_eq!(child.value().name(), name);
+        assert_eq!(child.value().as_element().unwrap().name(), name);
         Open {
             element: child,
-            attrs: child.value().attrs(),
-            outer_state: self.outer_state,
+            attrs: child.value().as_element().unwrap().attrs(),
+            outer_state: InElement {
+                element: self.element,
+                children: self.children,
+                outer_state: self.outer_state,
+            },
         }
     }
 
