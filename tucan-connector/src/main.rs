@@ -65,6 +65,11 @@ impl Tucan {
         let html_handler = html_handler.child_tag_open_start("meta");
         let html_handler = html_handler.attribute("http-equiv", "X-UA-Compatible");
         let html_handler = html_handler.attribute("content", "IE=EmulateIE9");
+        let html_handler = html_handler.tag_open_end();
+
+        let html_handler = html_handler.child_tag_open_start("meta");
+        let html_handler = html_handler.attribute("cache-control", "no-cache");
+        let html_handler = html_handler.tag_open_end();
 
         Ok(Self { client })
     }
