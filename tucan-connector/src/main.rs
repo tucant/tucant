@@ -3,7 +3,7 @@ pub mod html_handler;
 use std::marker::PhantomData;
 
 use futures_util::TryStreamExt as _;
-use html_handler::BeforeNode;
+use html_handler::{BeforeNode, Root};
 use reqwest::{Client, ClientBuilder, Response};
 use scraper::{html, Html};
 
@@ -44,10 +44,10 @@ impl Tucan {
         let content = resp.text().await?;
         let document = Html::parse_document(&content);
         println!("{}", document.html());
-        let mut html_handler = BeforeNode {
+        let mut html_handler = Root {
             node: document.tree.root(),
-            outer_state: (),
         };
+        let html_handler = html_handler.document_start();
         let html_handler = html_handler.tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.child_tag_open_start("head");

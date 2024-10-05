@@ -5,21 +5,41 @@ use ego_tree::NodeRef;
 use scraper::{node::Attrs, ElementRef, Html};
 use scraper::{Element, Node};
 
-pub struct BeforeNode<'a, OuterState> {
+pub struct Root<'a> {
     pub node: NodeRef<'a, Node>,
-    pub outer_state: OuterState,
+}
+
+pub struct InRoot<'a, OuterState> {
+    node: NodeRef<'a, Node>,
+    children: Children<'a, Node>,
+    outer_state: OuterState,
+}
+
+pub struct BeforeNode<'a, OuterState> {
+    node: NodeRef<'a, Node>,
+    outer_state: OuterState,
 }
 
 pub struct Open<'a, OuterState> {
     element: NodeRef<'a, Node>,
     attrs: Attrs<'a>,
-    pub outer_state: OuterState,
+    outer_state: OuterState,
 }
 
 pub struct InElement<'a, OuterState> {
-    pub element: NodeRef<'a, Node>,
-    pub children: Children<'a, Node>,
-    pub outer_state: OuterState,
+    element: NodeRef<'a, Node>,
+    children: Children<'a, Node>,
+    outer_state: OuterState,
+}
+
+impl<'a> Root<'a> {
+    pub fn document_start(self) -> InRoot<'a, Root<'a>> {
+        InRoot {
+            node: self.node,
+            children: self.node.children(),
+            outer_state: self,
+        }
+    }
 }
 
 impl<'a, OuterState> BeforeNode<'a, OuterState> {
