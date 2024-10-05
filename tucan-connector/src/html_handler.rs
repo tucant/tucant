@@ -144,12 +144,10 @@ impl<'a, OuterState> Open<'a, OuterState> {
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
+    #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_text()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let child_element = child_node.value().as_text().unwrap(); // _or_else(|| panic!("unexpected element {:?}", child_node.value()))
         assert!(child_element.trim().is_empty());
         InElement {
             element: self.element,

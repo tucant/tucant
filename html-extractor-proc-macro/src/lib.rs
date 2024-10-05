@@ -32,7 +32,7 @@ enum HtmlCommand {
 impl Parse for HtmlCommand {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(Token![_]) {
+        if lookahead.peek(Ident::peek_any) {
             input.parse().map(Self::Whitespace)
         } else if lookahead.peek(Token![<]) {
             if input.peek2(Token![/]) {
