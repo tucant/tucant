@@ -2,8 +2,8 @@
 resolver = "2"
 members = [
     "tucan-connector",
-    "html-handler",
-    "html-handler-proc-macro",
+    "html-extractor",
+    "html-extractor-proc-macro",
 ]
 
 [workspace.package]

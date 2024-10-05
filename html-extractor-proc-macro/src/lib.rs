@@ -1,7 +1,7 @@
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
-pub fn my_macro(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+fn my_macro(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
 

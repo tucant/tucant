@@ -19,3 +19,4 @@ scraper = { version = "0.20", features = ["deterministic"] }
 ego-tree = "0.6"
 sha3 = "0.10.8"
 data-encoding = "2.6.0"
+html-extractor = { path = "../html-extractor" }
