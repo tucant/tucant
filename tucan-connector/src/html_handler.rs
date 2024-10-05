@@ -160,10 +160,9 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     pub fn skip_text(mut self, text: &str) -> Self {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_text()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         assert_eq!(&**child_element, text);
         InElement {
             element: self.element,
@@ -172,12 +171,12 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
+    #[track_caller]
     pub fn skip_comment(mut self, expected_hash: &str) -> Self {
         let child_node = self.children.next().unwrap();
-        let child_element = child_node
-            .value()
-            .as_comment()
-            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        let Some(child_element) = child_node.value().as_comment() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
         let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
         assert_eq!(actual_hash, expected_hash);
         InElement {
@@ -210,9 +209,21 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
-    pub fn close_element(mut self) -> OuterState {
-        assert_eq!(self.children.next(), None);
-        // TODO FIXME verify same element
+    #[track_caller]
+    pub fn close_element(mut self, name: &str) -> OuterState {
+        assert_eq!(
+            self.children.next().map(|child| child.value()),
+            None,
+            "expected there to be no more children"
+        );
+        assert_eq!(
+            self.element
+                .value()
+                .as_element()
+                .expect("expected element")
+                .name(),
+            name
+        );
         self.outer_state
     }
 }

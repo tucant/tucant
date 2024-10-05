@@ -210,8 +210,9 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 }
             }
             HtmlCommand::ElementClose(html_element_close) => {
+                let name = html_element_close.element.to_string();
                 quote_spanned! {html_element_close.element.span()=>
-                    let html_handler = html_handler.close_element();
+                    let html_handler = html_handler.close_element(#name);
                 }
             }
             HtmlCommand::Comment(html_comment) => {
