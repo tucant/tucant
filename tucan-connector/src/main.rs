@@ -56,6 +56,15 @@ impl Tucan {
         let html_handler = html_handler.attribute("type", "text/javascript");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.close_element();
+        let html_handler = html_handler.skip_whitespace();
+        let html_handler = html_handler.child_tag_open_start("title");
+        let html_handler = html_handler.tag_open_end();
+        let html_handler = html_handler.skip_text("Technische Universität Darmstadt");
+        let html_handler = html_handler.close_element();
+        let html_handler = html_handler.skip_whitespace();
+        let html_handler = html_handler.child_tag_open_start("meta");
+        let html_handler = html_handler.attribute("http-equiv", "X-UA-Compatible");
+        let html_handler = html_handler.attribute("content", "IE=EmulateIE9");
 
         Ok(Self { client })
     }

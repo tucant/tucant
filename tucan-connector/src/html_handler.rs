@@ -122,6 +122,7 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 
 impl<'a, OuterState> Open<'a, OuterState> {
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
+        // the attributes are randomly ordered
         assert_eq!(self.attrs.next().unwrap(), (name, value));
         Open {
             element: self.element,
@@ -151,6 +152,20 @@ impl<'a, OuterState> InElement<'a, OuterState> {
             .as_text()
             .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
         assert!(child_element.trim().is_empty());
+        InElement {
+            element: self.element,
+            children: self.children,
+            outer_state: self.outer_state,
+        }
+    }
+
+    pub fn skip_text(mut self, text: &str) -> Self {
+        let child_node = self.children.next().unwrap();
+        let child_element = child_node
+            .value()
+            .as_text()
+            .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
+        assert_eq!(&**child_element, text);
         InElement {
             element: self.element,
             children: self.children,
