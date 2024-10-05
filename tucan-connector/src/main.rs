@@ -54,11 +54,6 @@ impl Tucan {
         let document = Html::parse_document(&content);
         println!("{}", document.html());
         let html_handler = Root::new(document.tree.root());
-        macro_rules! html {
-            ($($rest: tt)*) => {
-                make_html!(html_handler $($rest)*)
-            };
-        }
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
@@ -97,6 +92,7 @@ impl Tucan {
         let html_handler = html_handler.attribute("content", "-1");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.close_element();
+        macro_rules! html { ($($rest: tt)*) => { make_html!(html_handler $($rest)*) }; }
         html!(<"meta" "http-equiv"="pragma" "content"="no-cache">);
 
         Ok(Self { client })

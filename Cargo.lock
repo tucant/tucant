@@ -354,6 +354,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
 
 [[package]]
+name = "html-handler"
+version = "0.0.0"
+
+[[package]]
+name = "html-handler-proc-macro"
+version = "0.0.0"
+
+[[package]]
 name = "html5ever"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

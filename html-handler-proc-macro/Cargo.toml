@@ -1,0 +1,13 @@
+[package]
+name = "html-handler-proc-macro"
+edition = "2021"
+license.workspace = true
+version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+
+[lints]
+workspace = true
