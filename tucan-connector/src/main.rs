@@ -44,10 +44,9 @@ impl Tucan {
         let content = resp.text().await?;
         let document = Html::parse_document(&content);
         println!("{}", document.html());
-        let mut html_handler = Root {
-            node: document.tree.root(),
-        };
+        let mut html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
+        let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.child_tag_open_start("head");
