@@ -1,9 +1,7 @@
-use std::marker::PhantomData;
-use std::ops::Deref;
 
 use ego_tree::iter::Children;
-use ego_tree::{NodeRef, Tree};
-use scraper::{node::Attrs, ElementRef, Html};
+use ego_tree::NodeRef;
+use scraper::node::Attrs;
 use scraper::{Element, Node};
 use sha3::digest::generic_array::GenericArray;
 use sha3::{Digest, Sha3_256};
@@ -41,12 +39,12 @@ pub struct InElement<'a, OuterState> {
 }
 
 impl<'a> Root<'a> {
-    pub fn new(node: NodeRef<'a, Node>) -> Self {
+    #[must_use] pub fn new(node: NodeRef<'a, Node>) -> Self {
         assert_eq!(*node.value(), Node::Document);
         Self { node }
     }
 
-    pub fn document_start(self) -> InRoot<'a, Root<'a>, BeforeDoctype> {
+    #[must_use] pub fn document_start(self) -> InRoot<'a, Self, BeforeDoctype> {
         InRoot {
             node: self.node,
             children: self.node.children(),
@@ -74,7 +72,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
 }
 
 impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
-    pub fn skip_whitespace(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
+    pub fn skip_whitespace(mut self) -> Self {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
             .value()
@@ -89,7 +87,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         }
     }
 
-    pub fn tag_open_start(mut self, name: &str) -> Open<'a, InRoot<'a, OuterState, AfterDoctype>> {
+    pub fn tag_open_start(mut self, name: &str) -> Open<'a, Self> {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
             .value()
@@ -121,7 +119,7 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 }
 
 impl<'a, OuterState> Open<'a, OuterState> {
-    pub fn attribute(mut self, name: &str, value: &str) -> Open<'a, OuterState> {
+    pub fn attribute(mut self, name: &str, value: &str) -> Self {
         assert_eq!(self.attrs.next().unwrap(), (name, value));
         Open {
             element: self.element,
@@ -144,7 +142,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
-    pub fn skip_whitespace(mut self) -> InElement<'a, OuterState> {
+    pub fn skip_whitespace(mut self) -> Self {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
             .value()
@@ -158,14 +156,14 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
-    pub fn skip_comment(mut self, hash: &[u8]) -> InElement<'a, OuterState> {
+    pub fn skip_comment(mut self, hash: &[u8]) -> Self {
         let child_node = self.children.next().unwrap();
         let child_element = child_node
             .value()
             .as_comment()
             .unwrap_or_else(|| panic!("unexpected element {:?}", child_node.value()));
         assert_eq!(
-            Sha3_256::digest(child_element.deref()),
+            Sha3_256::digest(&**child_element),
             *GenericArray::from_slice(hash)
         );
         InElement {
@@ -175,7 +173,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
-    pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, InElement<'a, OuterState>> {
+    pub fn child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
         let element = self.element.value().as_element().unwrap();
         let child_node = self.children.next().unwrap();
         let child_element = child_node

@@ -1,11 +1,9 @@
 pub mod html_handler;
 
-use std::marker::PhantomData;
 
-use futures_util::TryStreamExt as _;
-use html_handler::{BeforeNode, Root};
-use reqwest::{Client, ClientBuilder, Response};
-use scraper::{html, Html};
+use html_handler::Root;
+use reqwest::{Client, ClientBuilder};
+use scraper::Html;
 
 fn main() -> Result<(), TucanError> {
     tokio::runtime::Builder::new_multi_thread()
@@ -44,7 +42,7 @@ impl Tucan {
         let content = resp.text().await?;
         let document = Html::parse_document(&content);
         println!("{}", document.html());
-        let mut html_handler = Root::new(document.tree.root());
+        let html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
         let html_handler = html_handler.tag_open_start("html");
@@ -58,6 +56,6 @@ impl Tucan {
         let html_handler = html_handler.tag_open_end();
         let html_handler = html_handler.close_element();
 
-        Ok(Tucan { client })
+        Ok(Self { client })
     }
 }
