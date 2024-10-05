@@ -1,9 +1,10 @@
 use itertools::Itertools;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     parse2, parse_macro_input,
     punctuated::Punctuated,
+    spanned::Spanned,
     DeriveInput, Ident, LitStr, Token,
 };
 
@@ -66,14 +67,18 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let attributes = input.attributes.iter().map(|iter| {
         let name = iter.ident.iter().map(|e| e.to_string()).join("-");
         let value = &iter.value;
-        quote! {
+        quote_spanned! {iter.ident.span()=>
             let html_handler = html_handler.attribute(#name, #value);
         }
     });
 
+    let open = quote_spanned! {input.element.span()=>
+        let html_handler = html_handler.next_child_tag_open_start(#tag);
+    };
+
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
-        let html_handler = html_handler.next_child_tag_open_start(#tag);
+        #open
         #(
             #attributes
         )*

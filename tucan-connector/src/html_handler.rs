@@ -122,7 +122,6 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 
 impl<'a, OuterState> Open<'a, OuterState> {
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
-        // the attributes are randomly ordered
         assert_eq!(self.attrs.next().unwrap(), (name, value));
         Open {
             element: self.element,
