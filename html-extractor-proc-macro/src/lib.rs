@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -63,7 +64,7 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let tag = input.element.to_string();
 
     let attributes = input.attributes.iter().map(|iter| {
-        let name = iter.ident.to_token_stream().to_string();
+        let name = iter.ident.iter().map(|e| e.to_string()).join("-");
         let value = &iter.value;
         quote! {
             let html_handler = html_handler.attribute(#name, #value);

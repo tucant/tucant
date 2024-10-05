@@ -11,6 +11,7 @@ proc-macro = true
 syn = "2"
 quote = "1"
 proc-macro2 = "1"
+itertools = "0.13"
 
 [lints]
 workspace = true
