@@ -117,6 +117,7 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 }
 
 impl<'a, OuterState> Open<'a, OuterState> {
+    #[track_caller]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         assert_eq!(self.attrs.next().unwrap(), (name, value));
         Open {
@@ -126,6 +127,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
         }
     }
 
+    #[track_caller]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
         let element = self.element.value().as_element().unwrap();
         assert_eq!(self.attrs.next(), None);
