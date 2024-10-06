@@ -195,13 +195,17 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let html_handler = html_handler.next_child_tag_open_start(#tag);
                 };
 
+                let close = quote_spanned! {input.open_end.span()=>
+                    let html_handler = html_handler.tag_open_end();
+                };
+
                 // Build the output, possibly using quasi-quotation
                 quote! {
                     #open
                     #(
                         #attributes
                     )*
-                    let html_handler = html_handler.tag_open_end();
+                    #close
                 }
             }
             HtmlCommand::Whitespace(html_whitespace) => {

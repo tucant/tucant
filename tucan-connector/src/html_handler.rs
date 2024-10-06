@@ -130,7 +130,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
         let element = self.element.value().as_element().unwrap();
-        assert_eq!(self.attrs.next(), None);
+        assert_eq!(self.attrs.next(), None, "unexpected attribute");
         // .next_sibling_element().unwrap(),
         // .first_element_child().unwrap()
         InElement {
