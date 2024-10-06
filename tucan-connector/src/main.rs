@@ -144,7 +144,7 @@ impl Tucan {
         let html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
-        html!(<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">);
+        html!(<html xmlns="http://www.w3.org/1999/xhtml" lang="de" lang="de" msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" mso="urn:schemas-microsoft-com:office:office">);
 
         Ok(Self { client })
     }
