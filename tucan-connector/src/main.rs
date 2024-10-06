@@ -132,6 +132,20 @@ impl Tucan {
             </html>
         );
 
+        // we could directly use this url but we want to be safe that we don't accidentially use wrong urls
+        let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")
+        .send()
+        .await?
+        .error_for_status()?;
+        println!("{response:#?}");
+        let content = response.text().await?;
+        let document = Html::parse_document(&content);
+        println!("{}", document.html());
+        let html_handler = Root::new(document.tree.root());
+        let html_handler = html_handler.document_start();
+        let html_handler = html_handler.doctype();
+        html!(<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">);
+
         Ok(Self { client })
     }
 }
