@@ -144,7 +144,10 @@ impl<'a, OuterState> Open<'a, OuterState> {
 impl<'a, OuterState> InElement<'a, OuterState> {
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
-        let child_node = self.children.next().expect("expected one more child");
+        let child_node = self
+            .children
+            .next()
+            .expect("expected child with text but got no children. maybe there is a closing tag?");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -158,7 +161,10 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     pub fn skip_text(mut self, text: &str) -> Self {
-        let child_node = self.children.next().expect("expected child with text");
+        let child_node = self
+            .children
+            .next()
+            .expect("expected child with text but got no children. maybe there is a closing tag?");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };

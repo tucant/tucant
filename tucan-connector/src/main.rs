@@ -338,6 +338,33 @@ impl Tucan {
                     <!-- "WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM" -->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
                     <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
+                    <script type="text/javascript"></script>_
+                    <!--"1SdyF9DDr8Z_kEcqcOdFHDujurFGmYcPovwfandPimw"-->_
+                    <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
+                    <div id="inhalt" style="padding:0px; width:650px; margin:0px; background-color:#ffffff;">_
+                    <h1>"Herzlich willkommen bei TUCaN, dem Campus-Management-System der "<br></br>"TU Darmstadt! "</h1>_
+                    <!--"rjV7X6SdGjjerKiAcwXSu6am9MFlzsqzZJpMF0QGvyc"-->_
+                    <!--"QZYtNUT0elp2c-JwCE6e-d0tQPEo53cyPn2Gq13180w"-->_
+                    <br></br>_
+                    <!--"Ha9yU5aVvqveCwalKN4D9fNhg1O3MnuK8ck8kat0mAo"-->_
+                    <p style="line-height: 140%;"><strong>"Studierende, Lehrende, Stellvertretungen und Mitarbeitende der TU Darmstadt"</strong><br></br>
+                    "\nmelden sich mit ihrer TU-ID an, um das System zu nutzen."</p>_
+                    <ul>_
+                    <li><a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/index.de.jsp" target="_blank">"FAQ für Studierende"</a></li>_
+                    <li><a href="https://www.intern.tu-darmstadt.de/dez_ii/campusmanagement/cm_tucan/infos_fuer_lehrende/index.de.jsp" target="_blank">"FAQ für Lehrende"</a></li></ul>_
+                    <p style="line-height: 40%;">_</p>_
+                    <p style="line-height: 140%;"><strong>"Bewerber:innen und Gasthörer:innen"</strong><br></br>
+                    "\nlegen sich zunächst ein "<a href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">"TUCaN-Account"</a>
+                    "\n an,\n um ihre Zugangsdaten zu erhalten und melden sich anschließend mit \ndiesen Zugangsdaten an, bis sie ihre endgültige TU-ID erhalten."</p>_
+                    <ul>_
+                    <li><a href="https://www.tu-darmstadt.de/studieren/studieninteressierte/bewerbung_zulassung_tu/online_bewerbung/index.de.jsp" target="_blank">"FAQ für Bewerber:innen"</a></li>_
+                    <li><a href="https://www.tu-darmstadt.de/gasthoerer" target="_blank">"FAQ für Gasthörer:innen"</a></li>_
+                    </ul>_
+                    <p style="line-height: 40%;">_</p>_
+                    <p style="line-height: 140%;"><strong>"Promovierende zur Registrierung / Einschreibung"</strong><br></br>
+                    "\nbeachten bitte die Informationen auf den "<a href="http://www.tu-darmstadt.de/promotion-registrierung" target="_blank">"Webseiten"</a>". "</p>_
+                    <p style="line-height: 40%;">_</p>_
+
         );
 
         Ok(Self { client })
