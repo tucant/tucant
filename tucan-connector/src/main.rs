@@ -364,6 +364,23 @@ impl Tucan {
                     <p style="line-height: 140%;"><strong>"Promovierende zur Registrierung / Einschreibung"</strong><br></br>
                     "\nbeachten bitte die Informationen auf den "<a href="http://www.tu-darmstadt.de/promotion-registrierung" target="_blank">"Webseiten"</a>". "</p>_
                     <p style="line-height: 40%;">_</p>_
+                    <!--"DdY7X0SUBoVh1HeLdKUt8ZGyIAO6W4ecYeXtgEC_uu8"-->_
+                    <!--"MwqVejdKVpytAu5wfbJoIpGUOEeu3mBFVtYsoeJVZck"-->_
+                    <div style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;">_
+                    <p style="line-height: 140%;">_<strong>"Aktuelles: Vorlesungsverzeichnis Wintersemester 2024/25"</strong>_<br></br>
+                    "\n\n\nDas Vorlesungsverzeichnis für das Wintersemester 2024/25 ist jetzt in TUCaN verfügbar. Auch die \nAnmeldung zu Modulen und Lehrveranstaltungen ist freigeschaltet. " </p>_
+                    <p style="line-height: 140%;"><strong>"Hinweis für Erstsemester"</strong><br></br>
+                    "\n  In der Regel sollte unmittelbar nach \nIhrer Aktivierung der TU-ID auch Ihr Zugang zu TUCaN freigeschaltet \nsein. Sollte es ausnahmsweise zu Verzögerungen kommen, bitten wir Sie um\n etwas Geduld. Spätestens nach zwei Arbeitstagen können Sie sich in \nTUCaN einloggen. "
+                    <br></br>"→ " <a href="https://www.tu-darmstadt.de/einfachstudieren" target="_blank">"Alle wichtigen Infos für Erstsemester"</a></p>_
+                    <p style="line-height: 140%;"><strong>"Weiterleitung von Nachrichten"</strong>_<br></br>
+                    "\nDa wir sehr wichtige aktuelle Semesterinformationen  über TUCaN versenden, empfehlen wir Studierenden und Lehrenden dringend die Einrichtung der Weiterleitung der TUCaN-Nachrichten an Ihre E-Mail-Adresse - so bleiben Sie immer auf dem Laufenden!"<br></br>
+                    "\n→ Zur Anleitung " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_17153.de.jsp" target="_blank">"für Studierende"</a>
+                    " / "
+                    <a href="https://www.intern.tu-darmstadt.de/dez_ii/campusmanagement/cm_tucan/infos_fuer_lehrende/faq_lehrende/details_18368.de.jsp" target="_blank">"für Lehrende"</a></p>_
+                    <p style="line-height: 140%;"><strong>"Studienbescheinigung"</strong><br></br>
+                    "\n  Studierende können ihre Studienbescheinigung  selbst im TUCaN Webportal herunterladen. Die Bescheinigungen finden Sie nach dem Login unter "<em>"Service"</em> " / " <em>"Meine Dokumente"</em>".\n  "
+                    <br></br>"→ " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_55040.de.jsp" target="_blank">"Weitere Informationen"</a></p>_
+                    </div>
 
         );
 
