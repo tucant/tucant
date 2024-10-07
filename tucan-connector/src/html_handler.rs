@@ -88,7 +88,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         }
     }
 
-    pub fn tag_open_start(mut self, name: &str) -> Open<'a, Self> {
+    pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
         let child_node = self.children.next().unwrap();
         let Some(child_element) = child_node.value().as_element() else {
             panic!("unexpected element {:?}", child_node.value())
@@ -103,7 +103,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
 }
 
 impl<'a, OuterState> BeforeNode<'a, OuterState> {
-    pub fn tag_open_start(self, name: &str) -> Open<'a, OuterState> {
+    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, OuterState> {
         let Some(element) = self.node.value().as_element() else {
             panic!("unexpected element {:?}", self.node.value())
         };

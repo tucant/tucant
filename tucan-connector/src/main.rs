@@ -46,7 +46,7 @@ impl Tucan {
         let html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
-        let html_handler = html_handler.tag_open_start("html");
+        let html_handler = html_handler.next_child_tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
         html!(
             <head>_
@@ -95,7 +95,7 @@ impl Tucan {
         let html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
-        let html_handler = html_handler.tag_open_start("html");
+        let html_handler = html_handler.next_child_tag_open_start("html");
         let html_handler = html_handler.tag_open_end();
         html!(
             <head>_
