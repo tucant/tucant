@@ -156,12 +156,27 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         }
     }
 
+    #[track_caller]
     pub fn skip_text(mut self, text: &str) -> Self {
         let child_node = self.children.next().unwrap();
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        assert_eq!(&**child_element, text);
+        match BASE64URL_NOPAD.decode(text.as_bytes()) {
+            Ok(value) if value.len() == 32 => {
+                let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
+                assert_eq!(actual_hash, text);
+            }
+            _ => {
+                assert_eq!(
+                    &**child_element,
+                    text,
+                    "{}",
+                    BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element))
+                );
+            }
+        }
+
         InElement {
             element: self.element,
             children: self.children,

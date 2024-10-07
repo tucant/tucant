@@ -183,8 +183,8 @@ impl Tucan {
                 <!--"NIHfntnP_QYxOqBt0vrT3UIfpe7DzzHCCiQbHrVLrXE"-->_
                 <!--"x2WUiOGjWA_UDiUqZA9skrh_uNAWGlcC-R__ip9vYyg"-->_
                 <style type="text/css">
-                    "css"
-                </style>
+                    "oiK6m4ZNKQoGD_x_6V3-YFNSsLMUaXrX5lQwN4Q88fc"
+                </style>_
             </head>
         );
 
