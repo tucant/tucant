@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use proc_macro::TokenTree;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     ext::IdentExt as _,
@@ -76,17 +77,44 @@ impl Parse for HtmlWhitespace {
     }
 }
 
+enum DashOrColon {
+    Dash(Token![-]),
+    Colon(Token![:]),
+}
+
+impl DashOrColon {
+    fn span(&self) -> proc_macro2::Span {
+        match self {
+            DashOrColon::Dash(minus) => minus.span(),
+            DashOrColon::Colon(colon) => colon.span(),
+        }
+    }
+}
+
+impl Parse for DashOrColon {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(Token![-]) {
+            input.parse().map(Self::Dash)
+        } else if lookahead.peek(Token![:]) {
+            input.parse().map(Self::Colon)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
 struct HtmlAttribute {
-    ident: Punctuated<Ident, Token![-]>,
+    ident: Punctuated<Ident, DashOrColon>,
     equals: Token![=],
     value: LitStr,
 }
 
 impl Parse for HtmlAttribute {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut ident: Punctuated<Ident, Token![-]> = Punctuated::new();
+        let mut ident: Punctuated<Ident, DashOrColon> = Punctuated::new();
         ident.push_value(input.call(Ident::parse_any)?);
-        while input.peek(Token![-]) {
+        while input.peek(Token![-]) || input.peek(Token![:]) {
             ident.push_punct(input.parse()?);
             ident.push_value(input.parse()?);
         }
@@ -184,9 +212,20 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 let tag = input.element.to_string();
 
                 let attributes = input.attributes.iter().map(|iter| {
-                    let name = iter.ident.iter().map(|e| e.to_string()).join("-");
+                    let name = iter
+                        .ident
+                        .pairs()
+                        .map(|p| {
+                            p.value().to_string()
+                                + match p.punct() {
+                                    Some(DashOrColon::Colon(_)) => ":",
+                                    Some(DashOrColon::Dash(_)) => "-",
+                                    None => "",
+                                }
+                        })
+                        .join("");
                     let value = &iter.value;
-                    quote_spanned! {iter.ident.span()=>
+                    quote_spanned! {iter.ident.first().unwrap().span()=>
                         let html_handler = html_handler.attribute(#name, #value);
                     }
                 });
