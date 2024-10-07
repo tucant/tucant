@@ -287,8 +287,41 @@ impl Tucan {
                           </ul>
                         </li>
                         <li class="intern depth_1 linkItem " title="Hilfe" id="link000340"><a  class="depth_1 link000340 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000340,-Ahilfe%2Ehtml" >"Hilfe"</a></li>
-                      </ul>
-
+                      </ul>_
+                      </div>_
+                      <div id="pageHeadBottom_3" class="pageElementTop">_
+                            <div id="pageHeadSwitchLang" class="pageElementRight">_
+                                <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000002,-N002" class="img img_LangEnglish pageElementLeft" title="English">"English"</a>_
+                            </div>_
+                            <form name="cn_loginForm" id="cn_loginForm" action="/scripts/mgrqispi.dll" method="post" class="pageElementRight">_
+                                <div>_
+                                    <fieldset id="fieldSet_login">_
+                                        <legend>"Anmeldung"</legend>_
+                                        <div class="formRow nb">_
+                                            <div class="inputFieldLabel">_
+                                                <label for="field_user">"TU-ID:"</label>_
+                                                <input type="text" id="field_user" name="usrname"  size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>_
+                                            </div>_
+                                            <div class="inputFieldLabel">_
+                                                <label for="field_pass">"Passwort:"</label>_
+                                                <input type="password" id="field_pass" name="pass"  value="" size="15" class="login" maxlength="255" accesskey="p"></input>_
+                                            </div>_
+                                        </div>_
+                                    </fieldset>_
+                                    <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" 					value="Anmelden"       			onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>_
+                                    <!--"416mrhkWvn83zXJacA3wOy6ZHvHNbAfVlkkb_PMmkEg"-->_
+                                    <input name="APPNAME" 	type="hidden" value="CampusNet"></input>_
+                                    <input name="PRGNAME" 	type="hidden" value="LOGINCHECK"></input>_
+                                    <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
+                                    <input name="clino" 		type="hidden" value="000000000000001"></input>_
+                                    <input name="menuno" 		type="hidden" value="000344"></input>_
+                                    <input name="menu_type" type="hidden" value="classic"></input>_
+                                    <input name="browser" 	type="hidden" value=""></input>_
+                                    <input name="platform" 	type="hidden" value=""></input>_
+                                </div>_
+                            </form>_
+                        </div>_
+                  </div>
         );
 
         Ok(Self { client })
