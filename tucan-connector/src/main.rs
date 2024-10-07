@@ -31,6 +31,8 @@ pub enum TucanError {
     Io(#[from] std::io::Error),
 }
 
+// TODO write small program that converts html to this format? so this is even easier
+
 impl Tucan {
     pub async fn new() -> Result<Self, TucanError> {
         let client = ClientBuilder::new()
@@ -380,8 +382,42 @@ impl Tucan {
                     <p style="line-height: 140%;"><strong>"Studienbescheinigung"</strong><br></br>
                     "\n  Studierende können ihre Studienbescheinigung  selbst im TUCaN Webportal herunterladen. Die Bescheinigungen finden Sie nach dem Login unter "<em>"Service"</em> " / " <em>"Meine Dokumente"</em>".\n  "
                     <br></br>"→ " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_55040.de.jsp" target="_blank">"Weitere Informationen"</a></p>_
-                    </div>
-
+                    </div>_
+                    <!--"BXzL23o8zv_UsgZKGj3HBD_UH7DC2AqQtnCWdvcspHA"-->_
+                    <!--"kxxdx9oC13X6nNfsroMEL83B9YcEzTaGRyJ7fJawlxs"-->_
+                    <!--"0ggjGWdS9Efor0TAZW47IDLOzuE8oVxnUw6tFSZe_Is"-->_
+                    <p>_</p>
+                    "\n→ " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_37312.de.jsp" target="_blank">"TUCaN Wartungszeit: Dienstag um 6 - 9 Uhr"</a>_
+                    <br></br><br></br>
+                    "\n→ " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_344192.de.jsp" target="_blank">"Hinweise zum Datenschutz"</a>_
+                    <!--"Diq-FIUkmF-JjcTgujrkufLubS6eenSQeBajtbBaVPw"-->_
+                    <p>_</p>_
+                    <!--"IecUhiUBkSqz3ZJqC7gry_m5yl8ydiVd5GKzGwpO-ns"-->_
+                    <title></title></div>_
+                    </div>_
+                    </div>_
+                    </div>_
+                    <div id="pageFoot" class="pageElementTop">_
+                    <div id="pageFootControls" class="pageElementTop">_
+                        <div id="pageFootControlsLeft">_
+                            <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Aimprint" class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">"Impressum"</a>_
+                            <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Acontact"  class="img img_arrowContact pageElementLeft" id="pageFootControl_con">"Kontakt"</a>_
+                            <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">"Drucken"</a>_
+                        </div>_
+                        <div id="pageFootControlsRight">_
+                            <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_</a>_
+                        </div>_
+                    </div>_
+                </div>_
+                </div>_
+                <div id="IEdiv">_</div><!-- "sA0YIGyByIKeA31YLo4xBo8n4XODq22IfHyrzzrnD-w" -->_
+                <!-- "em2y7JxbjqWZd3r7SQA-YKIJZsneemykpZ46ZXTq7Tw" -->_
+                <!-- "VwiU8OlvNnMu2C0d8thjT7A2X3pYuFyyhLNGOJ87AXc" -->_
+                <div class="invAnchor">_
+                    <a name="bottom" class="invAnchor">_</a>_
+                </div>_
+            </body>
+        </html>
         );
 
         Ok(Self { client })
