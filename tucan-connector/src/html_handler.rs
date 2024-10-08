@@ -174,6 +174,25 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     }
 
     #[track_caller]
+    pub fn text(mut self) -> (Self, String) {
+        let child_node = self
+            .children
+            .next()
+            .expect("expected child with text but got no children. maybe there is a closing tag?");
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
+        (
+            InElement {
+                element: self.element,
+                children: self.children,
+                outer_state: self.outer_state,
+            },
+            child_element.to_string(),
+        )
+    }
+
+    #[track_caller]
     pub fn skip_text(mut self, text: &str) -> Self {
         let child_node = self
             .children

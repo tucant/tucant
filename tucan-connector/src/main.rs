@@ -82,11 +82,12 @@ impl Tucan {
                         <a style="text-decoration: underline;" href=href_link_2>"Startseite"</a>_
                 </div>_
                 <div id="sessionId" style="display: none;">session_id</div>_
-                <!-- "automatic redirect, no meta because firefox stops due to multiple redirects" -->_
+                <!-- "zhJ3t6XNo2cfpZZEFiqxHJQ9udSXk5D418ej5lEytG8" -->_
                 <script>
-                "ewfweff"
+                script_contents
                 </script>
         );
+        println!("href_link_1 {href_link_1} href_link_2 {href_link_2} session_id {session_id} script_contents {script_contents}");
 
         Ok(Self { client })
     }
