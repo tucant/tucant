@@ -2,6 +2,28 @@ use html_extractor::html;
 
 use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
 
+pub fn html_head_2<'a>(
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
+) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
+    html! {
+        <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
+            <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
+            <script type="text/javascript"></script>_
+            <title>"Technische Universität Darmstadt"</title>_
+            <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_
+            <meta http-equiv="cache-control" content="no-cache"></meta>_
+            <meta http-equiv="expires" content="-1"></meta>_
+            <meta http-equiv="pragma" content="no-cache"></meta>_
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>_
+            <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>_
+            <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>_
+            <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>_
+            <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>_
+            <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>_
+    };
+    html_handler
+}
+
 pub fn html_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {

@@ -2,7 +2,7 @@ use html_extractor::html;
 use reqwest::Client;
 use scraper::Html;
 
-use crate::{html_handler::Root, TucanError};
+use crate::{common::head::html_head_2, html_handler::Root, TucanError};
 
 async fn startpage_dispatch_1(client: &Client) -> Result<(), TucanError> {
     let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")
@@ -19,20 +19,11 @@ async fn startpage_dispatch_1(client: &Client) -> Result<(), TucanError> {
     html!(
         <html>
         <head>_
-            <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
-            <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
-            <script type="text/javascript"></script>_
-            <title>"Technische Universität Darmstadt"</title>_
-            <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_
-            <meta http-equiv="cache-control" content="no-cache"></meta>_
-            <meta http-equiv="expires" content="-1"></meta>_
-            <meta http-equiv="pragma" content="no-cache"></meta>_
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>_
-            <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>_
-            <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>_
-            <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>_
-            <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>_
-            <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>_
+    );
+    let html_handler = html_head_2(html_handler);
+
+    // TODO FIXME duplication, just grep some strings
+    html!(
         </head>_
         <body class="redirect">_
             <div id="wrapper">_

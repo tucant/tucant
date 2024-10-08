@@ -5,7 +5,7 @@ pub mod login;
 pub mod root;
 pub mod startpage_dispatch;
 
-use common::head::html_head;
+use common::head::{html_head, html_head_2};
 use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
@@ -54,6 +54,7 @@ impl Tucan {
         let result = login(&client, username.as_str(), password.as_str()).await?;
 
         let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", result.id))
+                .header("Cookie", format!("cnsc={}", result.cookie_cnsc))
                 .send()
                 .await?
                 .error_for_status()?;
@@ -65,12 +66,26 @@ impl Tucan {
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
         html!(
-            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+            <html>
             <head>_
         );
-        let html_handler = html_head(html_handler);
+        let html_handler = html_head_2(html_handler);
         html!(
             </head>_
+            <body class="redirect">_
+            <div id="wrapper">_
+                        <a href="http://http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">_
+                                <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>_
+                        </a>_
+                        <!-- "MA-hDUoCrkYqlM3RsS9EUjq0y_UcuN1AB82k4O5O8YU" -->_
+                        <h2><a href=href_link_1>"Sie werden zur Startseite weitergeleitet ..."</a></h2>_
+                        <a style="text-decoration: underline;" href=href_link_2>"Startseite"</a>_
+                </div>_
+                <div id="sessionId" style="display: none;">"299871689008982"</div>_
+                <!-- "automatic redirect, no meta because firefox stops due to multiple redirects" -->_
+                <script>
+                "ewfweff"
+                </script>
         );
 
         Ok(Self { client })
