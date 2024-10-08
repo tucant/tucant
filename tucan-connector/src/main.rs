@@ -504,6 +504,15 @@ impl Tucan {
         let document = Html::parse_document(&content);
         println!("{}", document.html());
 
+        let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{id},-N000019,-N000000000000000"))
+        .send()
+        .await?
+        .error_for_status()?;
+        println!("{response:?}");
+        let content = response.text().await?;
+        let document = Html::parse_document(&content);
+        println!("{}", document.html());
+
         Ok(Self { client })
     }
 }
