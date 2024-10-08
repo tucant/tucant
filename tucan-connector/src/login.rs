@@ -5,8 +5,8 @@ use scraper::Html;
 use crate::TucanError;
 
 pub struct LoginResponse {
-    id: u64,
-    cookie_cnsc: String,
+    pub id: u64,
+    pub cookie_cnsc: String,
 }
 
 pub async fn login(

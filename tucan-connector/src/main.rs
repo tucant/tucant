@@ -1,12 +1,15 @@
+pub mod common;
 pub mod externalpages;
 pub mod html_handler;
 pub mod login;
 pub mod root;
 pub mod startpage_dispatch;
 
+use common::head::html_head;
 use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
+use login::login;
 use regex::Regex;
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
@@ -48,16 +51,28 @@ impl Tucan {
         let username = std::env::var("USERNAME").unwrap();
         let password = std::env::var("PASSWORD").unwrap();
 
-        /*
-                let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{id},-N000019,-N000000000000000"))
+        let result = login(&client, username.as_str(), password.as_str()).await?;
+
+        let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", result.id))
                 .send()
                 .await?
                 .error_for_status()?;
-                println!("{response:#?}");
-                let content = response.text().await?;
-                let document = Html::parse_document(&content);
-                println!("{}", document.html());
-        */
+        println!("{response:#?}");
+        let content = response.text().await?;
+        let document = Html::parse_document(&content);
+        println!("{}", document.root_element().html());
+        let html_handler = Root::new(document.tree.root());
+        let html_handler = html_handler.document_start();
+        let html_handler = html_handler.doctype();
+        html!(
+            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+            <head>_
+        );
+        let html_handler = html_head(html_handler);
+        html!(
+            </head>_
+        );
+
         Ok(Self { client })
     }
 }
