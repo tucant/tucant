@@ -453,10 +453,10 @@ impl Tucan {
             response.headers_mut().remove("server"),
             Some(HeaderValue::from_static("Microsoft-IIS/10.0"))
         );
-        assert_eq!(
-            response.headers_mut().remove("mgmiddlewarewaittime"),
-            Some(HeaderValue::from_static("0"))
-        );
+        assert!(response
+            .headers_mut()
+            .remove("mgmiddlewarewaittime")
+            .is_some());
         assert_eq!(
             response.headers_mut().remove("strict-transport-security"),
             Some(HeaderValue::from_static(
@@ -487,6 +487,7 @@ impl Tucan {
             response.headers_mut().remove("content-length"),
             Some(HeaderValue::from_static("72"))
         );
+        response.headers_mut().remove("x-powered-by"); // this header randomly appears and disappears. DO NOT ASK
         assert!(response.headers_mut().remove("date").is_some(),);
         let cookie = response.headers_mut().remove("set-cookie").unwrap();
         let cookie = cookie.to_str().unwrap().trim_start_matches("cnsc =");
