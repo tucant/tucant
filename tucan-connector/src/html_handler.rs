@@ -128,6 +128,20 @@ impl<'a, OuterState> Open<'a, OuterState> {
     }
 
     #[track_caller]
+    pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
+        let (name, value) = self.attrs.next().unwrap();
+        assert_eq!(name, expected_name);
+        (
+            Open {
+                element: self.element,
+                attrs: self.attrs,
+                outer_state: self.outer_state,
+            },
+            value.to_owned(),
+        )
+    }
+
+    #[track_caller]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
         let element = self.element.value().as_element().unwrap();
         assert_eq!(self.attrs.next(), None, "unexpected attribute");

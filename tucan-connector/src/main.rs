@@ -81,7 +81,7 @@ impl Tucan {
                         <h2><a href=href_link_1>"Sie werden zur Startseite weitergeleitet ..."</a></h2>_
                         <a style="text-decoration: underline;" href=href_link_2>"Startseite"</a>_
                 </div>_
-                <div id="sessionId" style="display: none;">"299871689008982"</div>_
+                <div id="sessionId" style="display: none;">session_id</div>_
                 <!-- "automatic redirect, no meta because firefox stops due to multiple redirects" -->_
                 <script>
                 "ewfweff"

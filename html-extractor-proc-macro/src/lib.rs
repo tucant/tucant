@@ -104,10 +104,28 @@ impl Parse for DashOrColon {
     }
 }
 
+enum HtmlAttributeValue {
+    Literal(LitStr),
+    Variable(Ident),
+}
+
+impl Parse for HtmlAttributeValue {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(LitStr) {
+            input.parse().map(Self::Literal)
+        } else if lookahead.peek(Ident::peek_any) {
+            input.call(Ident::parse_any).map(Self::Variable)
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
 struct HtmlAttribute {
     ident: Punctuated<Ident, DashOrColon>,
     equals: Token![=],
-    value: LitStr,
+    value: HtmlAttributeValue,
 }
 
 impl Parse for HtmlAttribute {
@@ -225,8 +243,17 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         })
                         .join("");
                     let value = &iter.value;
-                    quote_spanned! {iter.ident.first().unwrap().span()=>
-                        let html_handler = html_handler.attribute(#name, #value);
+                    match value {
+                        HtmlAttributeValue::Literal(lit_str) => {
+                            quote_spanned! {iter.ident.first().unwrap().span()=>
+                                let html_handler = html_handler.attribute(#name, #lit_str);
+                            }
+                        }
+                        HtmlAttributeValue::Variable(ident) => {
+                            quote_spanned! {iter.ident.first().unwrap().span()=>
+                                let (html_handler, #ident) = html_handler.attribute_value(#name);
+                            }
+                        }
                     }
                 });
 
