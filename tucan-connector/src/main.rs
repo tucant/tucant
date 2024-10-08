@@ -3,7 +3,7 @@ pub mod html_handler;
 use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
-use reqwest::{Client, ClientBuilder};
+use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
 
 fn main() -> Result<(), TucanError> {
@@ -144,10 +144,8 @@ impl Tucan {
         .send()
         .await?
         .error_for_status()?;
-        println!("{response:#?}");
         let content = response.text().await?;
         let document = Html::parse_document(&content);
-        println!("{}", document.html());
         let html_handler = Root::new(document.tree.root());
         let html_handler = html_handler.document_start();
         let html_handler = html_handler.doctype();
@@ -424,7 +422,7 @@ impl Tucan {
         let username = std::env::var("USERNAME").unwrap();
         let password = std::env::var("PASSWORD").unwrap();
 
-        let response = client
+        let mut response = client
             .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
             .form(&[
                 ("usrname", username.as_str()),
@@ -446,6 +444,51 @@ impl Tucan {
             .error_for_status()?;
 
         println!("{response:#?}");
+        assert_eq!(
+            response.headers_mut().remove("content-type"),
+            Some(HeaderValue::from_static("text/html"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("server"),
+            Some(HeaderValue::from_static("Microsoft-IIS/10.0"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("mgmiddlewarewaittime"),
+            Some(HeaderValue::from_static("0"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("strict-transport-security"),
+            Some(HeaderValue::from_static(
+                "max-age=31536000; includeSubDomains"
+            ))
+        );
+        assert_eq!(
+            response.headers_mut().remove("x-xss-protection"),
+            Some(HeaderValue::from_static("1; mode=block"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("x-frame-options"),
+            Some(HeaderValue::from_static("SAMEORIGIN"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("referrer-policy"),
+            Some(HeaderValue::from_static("strict-origin"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("x-content-type-options"),
+            Some(HeaderValue::from_static("nosniff"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("content-security-policy"),
+            Some(HeaderValue::from_static("default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"))
+        );
+        assert_eq!(
+            response.headers_mut().remove("content-length"),
+            Some(HeaderValue::from_static("72"))
+        );
+        assert!(response.headers_mut().remove("date").is_some(),);
+        assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
+
         let content = response.text().await?;
         let document = Html::parse_document(&content);
         println!("{}", document.html());
