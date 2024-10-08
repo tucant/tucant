@@ -7,6 +7,7 @@ use reqwest::{Client, ClientBuilder};
 use scraper::Html;
 
 fn main() -> Result<(), TucanError> {
+    dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
@@ -302,24 +303,24 @@ impl Tucan {
                                         <div class="formRow nb">_
                                             <div class="inputFieldLabel">_
                                                 <label for="field_user">"TU-ID:"</label>_
-                                                <input type="text" id="field_user" name="usrname"  size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>_
+                                                <input type="text" id="field_user" name="usrname" size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>_
                                             </div>_
                                             <div class="inputFieldLabel">_
                                                 <label for="field_pass">"Passwort:"</label>_
-                                                <input type="password" id="field_pass" name="pass"  value="" size="15" class="login" maxlength="255" accesskey="p"></input>_
+                                                <input type="password" id="field_pass" name="pass" value="" size="15" class="login" maxlength="255" accesskey="p"></input>_
                                             </div>_
                                         </div>_
                                     </fieldset>_
-                                    <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" 					value="Anmelden"       			onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>_
+                                    <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" value="Anmelden" onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>_
                                     <!--"416mrhkWvn83zXJacA3wOy6ZHvHNbAfVlkkb_PMmkEg"-->_
-                                    <input name="APPNAME" 	type="hidden" value="CampusNet"></input>_
-                                    <input name="PRGNAME" 	type="hidden" value="LOGINCHECK"></input>_
+                                    <input name="APPNAME" type="hidden" value="CampusNet"></input>_
+                                    <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>_
                                     <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
-                                    <input name="clino" 		type="hidden" value="000000000000001"></input>_
-                                    <input name="menuno" 		type="hidden" value="000344"></input>_
+                                    <input name="clino" type="hidden" value="000000000000001"></input>_
+                                    <input name="menuno" type="hidden" value="000344"></input>_
                                     <input name="menu_type" type="hidden" value="classic"></input>_
-                                    <input name="browser" 	type="hidden" value=""></input>_
-                                    <input name="platform" 	type="hidden" value=""></input>_
+                                    <input name="browser" type="hidden" value=""></input>_
+                                    <input name="platform" type="hidden" value=""></input>_
                                 </div>_
                             </form>_
                         </div>_
@@ -419,6 +420,35 @@ impl Tucan {
             </body>
         </html>
         );
+
+        let username = std::env::var("USERNAME").unwrap();
+        let password = std::env::var("PASSWORD").unwrap();
+
+        let response = client
+            .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
+            .form(&[
+                ("usrname", username.as_str()),
+                ("pass", &password.as_str()),
+                ("APPNAME", "CampusNet"),
+                ("PRGNAME", "LOGINCHECK"),
+                (
+                    "ARGUMENTS",
+                    "clino,usrname,pass,menuno,menu_type,browser,platform",
+                ),
+                ("clino", "000000000000001"),
+                ("menuno", "000344"),
+                ("menu_type", "classic"),
+                ("browser", ""),
+                ("platform", ""),
+            ])
+            .send()
+            .await?
+            .error_for_status()?;
+
+        println!("{response:#?}");
+        let content = response.text().await?;
+        let document = Html::parse_document(&content);
+        println!("{}", document.html());
 
         Ok(Self { client })
     }
