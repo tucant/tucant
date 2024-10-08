@@ -3,6 +3,7 @@ pub mod html_handler;
 use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
+use regex::Regex;
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
 
@@ -487,7 +488,16 @@ impl Tucan {
             Some(HeaderValue::from_static("72"))
         );
         assert!(response.headers_mut().remove("date").is_some(),);
+        let cookie = response.headers_mut().remove("set-cookie").unwrap();
+        let cookie = cookie.to_str().unwrap().trim_start_matches("cnsc =");
+        let next_url_regex = Regex::new(
+            r#"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000"#,
+        ).unwrap();
+        let next_url = response.headers_mut().remove("refresh").unwrap();
+        let next_url = next_url.to_str().unwrap();
+        let id = &next_url_regex.captures(next_url).unwrap()["id"];
         assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
+        println!("cookie: {cookie}, id: {id}");
 
         let content = response.text().await?;
         let document = Html::parse_document(&content);
