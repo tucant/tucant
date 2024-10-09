@@ -168,12 +168,12 @@ pub fn vv_something<'a>(
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
 
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-                <a  class=_linkclass href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id},-N000463,-Avvarchivstart%2Ehtml")}>"Archiv"</a>
+                <a class=_linkclass href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000464,-Avvarchivstart%2Ehtml")}>"Archiv"</a>
                 <ul class="nav depth_3 linkItemContainer">
     );
     // TODO FIXME loop
     html!(
-                    <li class="intern depth_3 linkItem " title="Sommersemster 2023" id=_linkclass><a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AA4856HLHSpi8hiJEZ3iMV~xDjSbaqTo-WbSe7mhoLMouSmfsqW925rSAaVsKa2ITl0yAzpPLplsBi6aqnhfDi4TXD~FgypjbC1DRX1SUowuBuhwdl~mniKnM1rl1SNqGWv1CxrVwd49XsCOA8rqRBWIpYjWGQeAsL0lt3G93EGgAkhyWSkvqVYc5Wg__" >"Sommersemster 2023"</a></li>
+                    <li class="intern depth_3 linkItem " title="Sommersemster 2023" id=_linkclass><a  class=_linkclass href=_url >"Sommersemster 2023"</a></li>
     );
     html!( </ul>
             </li>
