@@ -1,6 +1,6 @@
 use html_extractor::html;
 use reqwest::Client;
-use scraper::Html;
+use scraper::{html, Html};
 
 use crate::{
     common::head::{html_head, html_head_2, page_start, vv_something},
@@ -174,7 +174,12 @@ pub async fn after_login(client: &Client, login_response: LoginResponse) -> Resu
               <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>date</a></td>_
               <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>hour</a></td>_
               <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>source</a></td>_
-              <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>message</a></td>_
+              <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>
+            );
+            let (html_handler, any_child) = html_handler.next_any_child();
+            println!("{:?}", any_child.value());
+            html!(
+              </a></td>_
               <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
             </tr>_
             );

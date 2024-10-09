@@ -162,6 +162,11 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         self.children.peek()
     }
 
+    pub fn next_any_child(mut self) -> (Self, NodeRef<'a, Node>) {
+        let next_child = self.children.next().unwrap();
+        (self, next_child)
+    }
+
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self
