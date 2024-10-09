@@ -10,7 +10,7 @@ use common::head::{html_head, html_head_2};
 use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
-use login::login;
+use login::{login, LoginResponse};
 use mlsstart::start_page::after_login;
 use regex::Regex;
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
@@ -53,7 +53,11 @@ impl Tucan {
         let username = std::env::var("USERNAME").unwrap();
         let password = std::env::var("PASSWORD").unwrap();
 
-        let result = login(&client, username.as_str(), password.as_str()).await?;
+        //let result = login(&client, username.as_str(), password.as_str()).await?;
+        let result = LoginResponse {
+            id: 42,
+            cookie_cnsc: String::new(),
+        };
 
         after_login(&client, result).await?;
 

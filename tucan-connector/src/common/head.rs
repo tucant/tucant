@@ -128,3 +128,53 @@ pub fn page_start<'a>(
     );
     html_handler
 }
+
+pub fn vv_something<'a>(
+    html_handler: InElement<
+        'a,
+        InElement<
+            'a,
+            InElement<
+                'a,
+                InElement<
+                    'a,
+                    InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+                >,
+            >,
+        >,
+    >,
+) -> InElement<
+    'a,
+    InElement<
+        'a,
+        InElement<
+            'a,
+            InElement<
+                'a,
+                InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+            >,
+        >,
+    >,
+> {
+    // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
+    html!(
+        <ul class="nav depth_2 linkItemContainer">
+            <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id><a  class=_class href=lehrveranstaltungssuche_url >"Lehrveranstaltungssuche"</a></li>
+            <li class="intern depth_2 linkItem " title="Raumsuche" id=_id><a  class=_class href=raumsuche_url >"Raumsuche"</a></li>
+            <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id><a  class=_class href=aktuell_url >"Aktuell - Wintersemester 2024/25"</a></li>
+            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >"Vorlesungsverzeichnis des SoSe2024"</a></li>
+            <li class="intern depth_2 linkItem " title="Vorlesungsverzeichnis des WiSe 2023/24" id=_linkclass><a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-Add~7axH7-kWlFTGYLiTX2eehoS0zRuiWOr7IG~9n5FlI97vOc5VaxmI5ENZrBrSDa5JgqYOEvFGqcd3pcPjtvRPxULjsMbU6XQt0PkvJXzBshpCxjRV5-NjI0Jn9YZ1mh6f~n~ZVcV7dsVEUmXsE4GV-ErL0NHptxFDvxABQD4UXZogIyT9Wmtd22g__" >"Vorlesungsverzeichnis des WiSe 2023/24"</a></li>
+            <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
+                <a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000463,-Avvarchivstart%2Ehtml" >"Archiv"</a>
+                <ul class="nav depth_3 linkItemContainer">
+    );
+    // TODO FIXME loop
+    html!(
+                    <li class="intern depth_3 linkItem " title="Sommersemster 2023" id=_linkclass><a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AA4856HLHSpi8hiJEZ3iMV~xDjSbaqTo-WbSe7mhoLMouSmfsqW925rSAaVsKa2ITl0yAzpPLplsBi6aqnhfDi4TXD~FgypjbC1DRX1SUowuBuhwdl~mniKnM1rl1SNqGWv1CxrVwd49XsCOA8rqRBWIpYjWGQeAsL0lt3G93EGgAkhyWSkvqVYc5Wg__" >"Sommersemster 2023"</a></li>
+    );
+    html!( </ul>
+            </li>
+        </ul>
+    );
+    html_handler
+}
