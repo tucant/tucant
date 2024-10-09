@@ -1,3 +1,4 @@
+use ego_tree::NodeRef;
 use html_extractor::html;
 
 use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
@@ -171,10 +172,15 @@ pub fn vv_something<'a>(
                 <a class=_linkclass href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000464,-Avvarchivstart%2Ehtml")}>"Archiv"</a>
                 <ul class="nav depth_3 linkItemContainer">
     );
-    // TODO FIXME loop
-    html!(
-                    <li class="intern depth_3 linkItem " title="Sommersemster 2023" id=_linkclass><a  class=_linkclass href=_url >"Sommersemster 2023"</a></li>
-    );
+    let mut html_handler = html_handler;
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(
+                <li class="intern depth_3 linkItem " title=_title id=_linkclass><a  class=_linkclass href=_url >_text</a></li>
+            );
+            html_handler
+        };
+    }
     html!( </ul>
             </li>
         </ul>

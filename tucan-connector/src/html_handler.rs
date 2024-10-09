@@ -1,3 +1,5 @@
+use std::iter::Peekable;
+
 use data_encoding::{BASE64URL_NOPAD, HEXLOWER};
 use ego_tree::iter::Children;
 use ego_tree::NodeRef;
@@ -34,7 +36,7 @@ pub struct Open<'a, OuterState> {
 
 pub struct InElement<'a, OuterState> {
     element: NodeRef<'a, Node>,
-    children: Children<'a, Node>,
+    children: Peekable<Children<'a, Node>>,
     outer_state: OuterState,
 }
 
@@ -149,13 +151,17 @@ impl<'a, OuterState> Open<'a, OuterState> {
         // .first_element_child().unwrap()
         InElement {
             element: self.element,
-            children: self.element.children(),
+            children: self.element.children().peekable(),
             outer_state: self.outer_state,
         }
     }
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
+    pub fn peek(&mut self) -> Option<&NodeRef<'a, Node>> {
+        self.children.peek()
+    }
+
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self
