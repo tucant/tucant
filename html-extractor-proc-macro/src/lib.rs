@@ -7,7 +7,8 @@ use syn::{
     parse2, parse_macro_input,
     punctuated::Punctuated,
     spanned::Spanned,
-    DeriveInput, Ident, LitStr, Token,
+    token::Brace,
+    DeriveInput, Expr, Ident, LitStr, Token,
 };
 
 struct HtmlCommands {
@@ -49,6 +50,8 @@ impl Parse for HtmlCommand {
             } else {
                 input.parse().map(Self::ElementOpen)
             }
+        } else if lookahead.peek(Brace) {
+            input.parse().map(Self::Text)
         } else {
             Err(lookahead.error())
         }
@@ -109,6 +112,7 @@ impl Parse for DashOrColon {
 enum StringLiteralOrVariable {
     Literal(LitStr),
     Variable(Ident),
+    Expression(Expr),
 }
 
 impl Parse for StringLiteralOrVariable {
@@ -118,6 +122,8 @@ impl Parse for StringLiteralOrVariable {
             input.parse().map(Self::Literal)
         } else if lookahead.peek(Ident::peek_any) {
             input.call(Ident::parse_any).map(Self::Variable)
+        } else if lookahead.peek(Brace) {
+            input.parse().map(Self::Expression)
         } else {
             Err(lookahead.error())
         }
@@ -247,12 +253,17 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let value = &iter.value;
                     match value {
                         StringLiteralOrVariable::Literal(lit_str) => {
-                            quote_spanned! {iter.ident.first().unwrap().span()=>
+                            quote_spanned! {lit_str.span()=>
                                 let html_handler = html_handler.attribute(#name, #lit_str);
                             }
                         }
+                        StringLiteralOrVariable::Expression(expr) => {
+                            quote_spanned! {expr.span()=>
+                                let html_handler = html_handler.attribute(#name, #expr);
+                            }
+                        }
                         StringLiteralOrVariable::Variable(ident) => {
-                            quote_spanned! {iter.ident.first().unwrap().span()=>
+                            quote_spanned! {ident.span()=>
                                 let (html_handler, #ident) = html_handler.attribute_value(#name);
                             }
                         }
@@ -297,6 +308,11 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 StringLiteralOrVariable::Literal(lit_str) => {
                     quote_spanned! {lit_str.span()=>
                         let html_handler = html_handler.skip_text(#lit_str);
+                    }
+                }
+                StringLiteralOrVariable::Expression(expr) => {
+                    quote_spanned! {expr.span()=>
+                        let html_handler = html_handler.skip_text(#expr);
                     }
                 }
                 StringLiteralOrVariable::Variable(ident) => {

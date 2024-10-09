@@ -162,10 +162,12 @@ pub fn vv_something<'a>(
             <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id><a  class=_class href=lehrveranstaltungssuche_url >"Lehrveranstaltungssuche"</a></li>
             <li class="intern depth_2 linkItem " title="Raumsuche" id=_id><a  class=_class href=raumsuche_url >"Raumsuche"</a></li>
             <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id><a  class=_class href=aktuell_url >"Aktuell - Wintersemester 2024/25"</a></li>
-            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >"Vorlesungsverzeichnis des SoSe2024"</a></li>
-            <li class="intern depth_2 linkItem " title="Vorlesungsverzeichnis des WiSe 2023/24" id=_linkclass><a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-Add~7axH7-kWlFTGYLiTX2eehoS0zRuiWOr7IG~9n5FlI97vOc5VaxmI5ENZrBrSDa5JgqYOEvFGqcd3pcPjtvRPxULjsMbU6XQt0PkvJXzBshpCxjRV5-NjI0Jn9YZ1mh6f~n~ZVcV7dsVEUmXsE4GV-ErL0NHptxFDvxABQD4UXZogIyT9Wmtd22g__" >"Vorlesungsverzeichnis des WiSe 2023/24"</a></li>
+            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
+            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
+            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
+
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-                <a  class=_linkclass href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000463,-Avvarchivstart%2Ehtml" >"Archiv"</a>
+                <a  class=_linkclass href={format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id},-N000463,-Avvarchivstart%2Ehtml")}>"Archiv"</a>
                 <ul class="nav depth_3 linkItemContainer">
     );
     // TODO FIXME loop
