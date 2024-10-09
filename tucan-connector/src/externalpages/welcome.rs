@@ -34,7 +34,7 @@ pub async fn welcome(client: &Client) -> Result<(), TucanError> {
     html!(
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344"><a  class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome" >"Startseite"</a></li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
-                      <a  class="depth_1 link000334 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AGffpSWCU7sIVWSJy1aAy1jmG3q4aceIY~XwaHIzVrLdvQPkP-lzDQQ9I-02qEpyWFwPxWu2KvTBYrd8xZxjMW2arnfw8HjKNILwdSW1BdRKtP9f8XQzmKYGi23J-ciyVwXcn6i2W1h-ZveH3jGph8bzvSoT4m2VUI5-Ib8n3mamkOhqkuRP3ifw27Q__" >"Vorlesungsverzeichnis (VV)"</a>
+                      <a  class="depth_1 link000334 navLink branchLink " href=_url>"Vorlesungsverzeichnis (VV)"</a>
     );
     let html_handler = vv_something(html_handler, 1);
     html!(
