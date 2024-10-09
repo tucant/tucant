@@ -34,8 +34,6 @@ pub async fn login(
         .send()
         .await?
         .error_for_status()?;
-
-    println!("{response:#?}");
     assert_eq!(
         response.headers_mut().remove("content-type"),
         Some(HeaderValue::from_static("text/html"))
@@ -89,11 +87,8 @@ pub async fn login(
     let next_url = next_url.to_str().unwrap();
     let id = &next_url_regex.captures(next_url).unwrap()["id"];
     assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
-    println!("cookie: {cookie_cnsc}, id: {id}");
-
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.html());
     Ok(LoginResponse {
         id: id.parse().unwrap(),
         cookie_cnsc: cookie_cnsc.to_owned(),

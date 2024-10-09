@@ -2,6 +2,7 @@ pub mod common;
 pub mod externalpages;
 pub mod html_handler;
 pub mod login;
+pub mod mlsstart;
 pub mod root;
 pub mod startpage_dispatch;
 
@@ -10,6 +11,7 @@ use data_encoding::HEXLOWER;
 use html_extractor::html;
 use html_handler::Root;
 use login::login;
+use mlsstart::start_page::after_login;
 use regex::Regex;
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
@@ -53,7 +55,7 @@ impl Tucan {
 
         let result = login(&client, username.as_str(), password.as_str()).await?;
 
-        // /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N421509280494350,-N000019,
+        after_login(&client, result).await?;
 
         Ok(Self { client })
     }
