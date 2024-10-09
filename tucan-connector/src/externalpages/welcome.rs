@@ -2,7 +2,11 @@ use html_extractor::html;
 use reqwest::Client;
 use scraper::Html;
 
-use crate::{common::head::html_head, html_handler::Root, TucanError};
+use crate::{
+    common::head::{html_head, page_start},
+    html_handler::Root,
+    TucanError,
+};
 
 pub async fn welcome(client: &Client) -> Result<(), TucanError> {
     let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")
@@ -25,55 +29,9 @@ pub async fn welcome(client: &Client) -> Result<(), TucanError> {
             </style>_
         </head>_
         <body class="external_pages">_
-            <div id="Cn-system-desc">_</div>_
-            <script type="text/javascript">
-                "JSQjAjNPl1OG1yTeHLoTj6JEhV74LO2CassBGq9DPqo"
-            </script>_
-            <div id="acc_pageDescription" class="hidden"><a name="keypadDescription" class="hidden">"keypadDescription"</a>
-                "TvMjLPj4FsS4YUVJn3nppMhuQYkGn5LXsWX2f54ngjY"
-                <a href="#mainNavi" accesskey="1">"1 Hauptmenü"</a>_
-                <a href="#mainContent" accesskey="2">"2 Inhalt"</a>_
-                <a href="#keypadDescription" accesskey="3">"3 Zurück zu dieser Anleitung"</a>_
-            </div>_
-            <div id="pageContainer" class="pageElementTop">_
-                <div class="invAnchor">_
-                    <a name="top" class="invAnchor"></a>_
-                </div>_
-                <div id="pageHead" class="pageElementTop">_
-                    <div id="pageHeadTop" class="pageElementTop">_
-                        <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Aimprint" class="img img_arrowImprint pageElementLeft">"Impressum"</a>_
-                        <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Acontact" class="img img_arrowContact pageElementLeft">"Kontakt"</a>_
-                        <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft">"Drucken"</a>_
-                        <a href="#bottom" class="img img_arrowDown pageElementRight">"Zum Ende der Seite"</a>_
-                    </div>_
-                    <div id="pageHeadCenter" class="pageElementTop">_
-                    <div id="pageHeadLeft" class="pageElementLeft">_
-                        <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">_
-                            <img id="imagePageHeadLeft" src="/gfx/tuda/logo.gif" alt="Logo Technische Universität Darmstadt"></img>_
-                        </a>_
-                    </div>_
-                    <div id="pageHeadRight" class="pageElementRight">
-                        _
-                    </div>_
-                </div>_
-                <div id="pageHeadBottom_1" class="pageElementTop">_
-                    <div id="pageHeadControlsLeft" class="pageElementLeft">_
-                        <a class="img pageHeadLink" href="#" id="extraNav_link1" target="_blank">"Homepage"</a>_
-                        <a class="img pageHeadLink" href="#" id="extraNav_link2" target="_blank">"standardLink undef"</a>_
-                    </div>_
-                    <div id="pageHeadControlsRight" class="pageElementRight">_
-                        <a class="img" href="#" id="extraNav_link3" target="_blank">"standardLink undef"</a>_
-                        <a class="img" href="#" id="extraNav_link4" target="_blank">"standardLink undef"</a>_
-                        <a class="img" href="#" id="extraNav_link5" target="_blank">_</a>_
-                    </div>_
-                </div>_
-                <div id="pageHeadBottom_2" class="pageElementTop">_
-                    <div id="pageHeadBottom_2sub_1" class="pageElementTop">_</div>_
-                    <div id="pageHeadBottom_2sub_2" class="pageElementTop">_</div>_
-                </div>_
-                <div id="pageTopNavi" class="pageElementTop">_<!--"ZBEoCwQSg8mkwKf8K01M4zjrmKcSX5rBMXmyr7o7Z5M"-->_
-                    <a name="mainNavi" class="hidden">_</a>_<!--"IC0hcooG1AR9WlCqc3It73C95p-H60EQzIprCbZQSoM"-->_
-                    <ul class="nav depth_1 linkItemContainer">
+    );
+    let html_handler = page_start(html_handler);
+    html!(
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344"><a  class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome" >"Startseite"</a></li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
                       <a  class="depth_1 link000334 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AGffpSWCU7sIVWSJy1aAy1jmG3q4aceIY~XwaHIzVrLdvQPkP-lzDQQ9I-02qEpyWFwPxWu2KvTBYrd8xZxjMW2arnfw8HjKNILwdSW1BdRKtP9f8XQzmKYGi23J-ciyVwXcn6i2W1h-ZveH3jGph8bzvSoT4m2VUI5-Ib8n3mamkOhqkuRP3ifw27Q__" >"Vorlesungsverzeichnis (VV)"</a>
