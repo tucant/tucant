@@ -49,7 +49,7 @@ pub async fn after_login(client: &Client, login_response: LoginResponse) -> Resu
                           <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
                             <a  class="depth_1 link000326 navLink branchLink " href=vv_url >"VV"</a>
     );
-    let html_handler = vv_something(html_handler);
+    let html_handler = vv_something(html_handler, login_response.id);
     html!(
                           </li>
                           <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">

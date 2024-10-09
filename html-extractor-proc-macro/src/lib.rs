@@ -2,6 +2,7 @@ use itertools::Itertools;
 use proc_macro::TokenTree;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{
+    braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
     parse2, parse_macro_input,
@@ -11,6 +12,7 @@ use syn::{
     DeriveInput, Expr, Ident, LitStr, Token,
 };
 
+#[derive(Debug)]
 struct HtmlCommands {
     commands: Vec<HtmlCommand>,
 }
@@ -25,6 +27,7 @@ impl Parse for HtmlCommands {
     }
 }
 
+#[derive(Debug)]
 enum HtmlCommand {
     ElementOpen(HtmlElement),
     Whitespace(HtmlWhitespace),
@@ -36,7 +39,9 @@ enum HtmlCommand {
 impl Parse for HtmlCommand {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(LitStr) {
+        if lookahead.peek(Brace) {
+            input.parse().map(Self::Text)
+        } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Text)
         } else if lookahead.peek(Token![_]) {
             input.parse().map(Self::Whitespace)
@@ -50,8 +55,6 @@ impl Parse for HtmlCommand {
             } else {
                 input.parse().map(Self::ElementOpen)
             }
-        } else if lookahead.peek(Brace) {
-            input.parse().map(Self::Text)
         } else {
             Err(lookahead.error())
         }
@@ -70,6 +73,7 @@ impl Parse for HtmlText {
     }
 }
 
+#[derive(Debug)]
 struct HtmlWhitespace {
     underscore: Token![_],
 }
@@ -82,6 +86,7 @@ impl Parse for HtmlWhitespace {
     }
 }
 
+#[derive(Debug)]
 enum DashOrColon {
     Dash(Token![-]),
     Colon(Token![:]),
@@ -109,6 +114,7 @@ impl Parse for DashOrColon {
     }
 }
 
+#[derive(Debug)]
 enum StringLiteralOrVariable {
     Literal(LitStr),
     Variable(Ident),
@@ -118,18 +124,22 @@ enum StringLiteralOrVariable {
 impl Parse for StringLiteralOrVariable {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(LitStr) {
+        if lookahead.peek(Brace) {
+            let content;
+            let _brace_token = braced!(content in input);
+            let expr = content.parse().map(Self::Expression);
+            expr
+        } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Literal)
         } else if lookahead.peek(Ident::peek_any) {
             input.call(Ident::parse_any).map(Self::Variable)
-        } else if lookahead.peek(Brace) {
-            input.parse().map(Self::Expression)
         } else {
             Err(lookahead.error())
         }
     }
 }
 
+#[derive(Debug)]
 struct HtmlAttribute {
     ident: Punctuated<Ident, DashOrColon>,
     equals: Token![=],
@@ -154,6 +164,7 @@ impl Parse for HtmlAttribute {
     }
 }
 
+#[derive(Debug)]
 struct HtmlElement {
     open_start: Token![<],
     element: Ident,
@@ -179,6 +190,7 @@ impl Parse for HtmlElement {
     }
 }
 
+#[derive(Debug)]
 struct HtmlElementClose {
     close: Token![<],
     close_slash: Token![/],
@@ -201,6 +213,7 @@ impl Parse for HtmlElementClose {
     }
 }
 
+#[derive(Debug)]
 struct HtmlComment {
     open1: Token![<],
     open2: Token![!],
@@ -231,6 +244,7 @@ impl Parse for HtmlComment {
 pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as HtmlCommands);
+    //eprintln!("{input:#?}");
 
     let expanded = input.commands.iter().map(|command| {
         match command {
