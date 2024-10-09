@@ -148,7 +148,32 @@ pub async fn after_login(client: &Client, login_response: LoginResponse) -> Resu
                     <div class="tbsubhead">
                 "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
             </div>_
-                  </div>
+                  </div>_
+
+                  <!-- "jcECXQ7Iovu3-f4IpT-2ykwKMYpSGOecnocvEf5bo3A" -->_
+                  <div class="tb rw-table">_
+                    <div class="tbhead">"Eingegangene Nachrichten:"</div>_
+                    <div class="tbcontrol">_
+                                   <a href=_archive class="img">"Archiv"</a>_
+                                 </div>_
+                              <table class="nb rw-table rw-all" summary="Eingegangene Nachrichten">_
+                          <tbody>
+                                 <tr class="tbsubhead rw-hide">_
+                          <th id="Datum">"Datum"</th>_
+                          <th id="Uhrzeit">"Uhrzeit"</th>_
+                          <th id="Absender">"Absender"</th>_
+                          <th id="Betreff">"Betreff"</th>_
+                          <th id="Aktion">"Aktion"</th>_
+                        </tr>_
+
+                          <tr class="tbdata">_
+                            <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>date</a></td>_
+                            <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>hour</a></td>_
+                            <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>source</a></td>_
+                            <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>message</a></td>_
+                            <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
+                          </tr>_
+
         );
     Ok(())
 }
