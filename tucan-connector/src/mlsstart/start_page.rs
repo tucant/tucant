@@ -165,15 +165,21 @@ pub async fn after_login(client: &Client, login_response: LoginResponse) -> Resu
                           <th id="Betreff">"Betreff"</th>_
                           <th id="Aktion">"Aktion"</th>_
                         </tr>_
-
-                          <tr class="tbdata">_
-                            <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>date</a></td>_
-                            <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>hour</a></td>_
-                            <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>source</a></td>_
-                            <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>message</a></td>_
-                            <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
-                          </tr>_
-
         );
+    let mut html_handler = html_handler;
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(
+              <tr class="tbdata">_
+              <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>date</a></td>_
+              <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>hour</a></td>_
+              <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>source</a></td>_
+              <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>message</a></td>_
+              <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
+            </tr>_
+            );
+            html_handler
+        };
+    }
     Ok(())
 }
