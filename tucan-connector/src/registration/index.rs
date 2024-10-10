@@ -45,9 +45,10 @@ pub async fn anmeldung(client: &Client, login_response: LoginResponse) -> Result
 
     <h1>"Anmeldung zu Modulen und Veranstaltungen"</h1>_
 
-    <!-- "SWITCH STUDIES" -->_
+    <!-- "UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA" -->_
             <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
                     <table class="tbcoursestatus rw-table rw-all">_
+                    <tbody>
                             <tr>_
                                     <td class="tbhead" colspan="100%">"Weitere Studien"</td>_
                             </tr>_
@@ -65,48 +66,43 @@ pub async fn anmeldung(client: &Client, login_response: LoginResponse) -> Result
                                         <input name="APPNAME" type="hidden" value="CampusNet"></input>_
                                         <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
                                         <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                                        <input name="sessionno" type="hidden" value="531875782768695"></input>_
+                                        <input name="sessionno" type="hidden" value={&id.to_string()}></input>_
                                         <input name="menuno" type="hidden" value="000311"></input>_
                                         <input name="pa rent1" type="hidden" value="000000000000000"></input>_
                                         <input name="parent2" type="hidden" value="000000000000000"></input>_
                                         <input name="changestudy" type="hidden" value="1"></input>_
                                     </td>_
                             </tr>_
+                        </tbody>
                     </table>_
             </form>_
-    <!-- "END STUDIES" -->_
-    <h2>
-            <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N0,-N0">"M.Sc. Informatik (2023)"</a>
-            " > "
-                    <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N<!$MG_SESSIONIDNAVI>,-N<!$MG_MENUIDNAVI>,-N<!$MG_STUDYNAVI>,-N0,-N<!$MG_STSRNAVI>,-N<!$MG_STCSNAVI>">"<!$MG_DESCNAVI>"</a>
-            </h2>
+    <!-- "mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0" -->_
+    <h2>_
+            <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
+            "\n        \u{a0}>\u{a0}\n                "
+                    <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N<!$MG_SESSIONIDNAVI>,-N<!$MG_MENUIDNAVI>,-N<!$MG_STUDYNAVI>,-N0,-N<!$MG_STSRNAVI>,-N<!$MG_STCSNAVI>"><!--"zod15DhaIU-eBopesyOTRRSisgnmekZ42pPsIcVwVy4"--></a>_
+            </h2>_
+            <ul>_
+    );
+    let mut html_handler = html_handler;
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(
+                <li>_
+                        <a href=url>item</a>_
+                    </li>_
+            );
+            println!("{item} {url}");
+            html_handler
+        };
+    }
 
-
-            <ul>
-                                <li>
-                        <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N383934077885362,-N000000000000000"> "Vertiefungen, Wahlbereiche und Studium Generale"</a>
-                    </li>
-                                <li>
-                        <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N383963665116343,-N000000000000000"> "Masterarbeit"</a>
-                    </li>
-                                <li>
-                        <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N384195230855950,-N000000000000000"> "Auflagen"</a>
-                    </li>
-                                <li>
-                        <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N383963761982346,-N000000000000000"> "Zusätzliche Leistungen"</a>
-                    </li>
-                                <li>
-                        <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=REGISTRATION&amp;ARGUMENTS=-N531875782768695,-N000311,-N391343674191079,-N0,-N999999999999999,-N000000000000000"> "Weitere Veranstaltungen"</a>
-                    </li>
-                        </ul>
-
-
-    <!-- "SHOW STUDY RULE DESCRIPTION" -->
-    <!-- "END STUDY RULE DESCRIPTION" -->
-    <br></br>
-
-    <!-- "END SELECTED_MODULE" -->
-
+    html!(
+                        </ul>_
+    <!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_
+    <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
+    <br></br>_
+    <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
     Ok(())
 }

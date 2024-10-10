@@ -273,7 +273,8 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         }
                         StringLiteralOrVariable::Expression(expr) => {
                             quote_spanned! {expr.span()=>
-                                let html_handler = html_handler.attribute(#name, #expr);
+                                let _tmp_internal_html_extractor_proc_macro: &str = #expr;
+                                let html_handler = html_handler.attribute(#name, _tmp_internal_html_extractor_proc_macro);
                             }
                         }
                         StringLiteralOrVariable::Variable(ident) => {
