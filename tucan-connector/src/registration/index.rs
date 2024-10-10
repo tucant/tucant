@@ -9,9 +9,13 @@ use crate::{
     TucanError,
 };
 
-pub async fn anmeldung(client: &Client, login_response: LoginResponse) -> Result<(), TucanError> {
+pub async fn anmeldung(
+    client: &Client,
+    login_response: &LoginResponse,
+    args: &str,
+) -> Result<(), TucanError> {
     let id = login_response.id;
-    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,-A", login_response.id))
+    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{args}", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
                 .send()
                 .await?

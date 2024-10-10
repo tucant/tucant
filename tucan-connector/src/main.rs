@@ -65,7 +65,13 @@ impl Tucan {
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
-        anmeldung(&client, result).await?;
+        anmeldung(&client, &result, ",-N000311,-A").await?;
+        anmeldung(
+            &client,
+            &result,
+            ",-N000311,-N391343674191079,-N0,-N383934077885362,-N000000000000000",
+        )
+        .await?;
 
         Ok(Self { client })
     }
