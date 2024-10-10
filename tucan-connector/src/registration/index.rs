@@ -20,10 +20,8 @@ pub async fn anmeldung(
                 .send()
                 .await?
                 .error_for_status()?;
-    println!("{response:#?}");
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -89,9 +87,13 @@ pub async fn anmeldung(
         html_handler = {
             html!(
                 "\n        \u{a0}>\u{a0}\n                "
-                <a href=url>item</a>_
+                <a href=url>
             );
-            println!("{item} {url}");
+            let (html_handler, any_child) = html_handler.next_any_child();
+            html!(
+                </a>_
+            );
+            println!("{:?} {url}", any_child.value());
             html_handler
         };
     }
