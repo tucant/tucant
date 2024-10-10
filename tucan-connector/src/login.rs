@@ -4,6 +4,7 @@ use scraper::Html;
 
 use crate::TucanError;
 
+#[derive(Debug)]
 pub struct LoginResponse {
     pub id: u64,
     pub cookie_cnsc: String,

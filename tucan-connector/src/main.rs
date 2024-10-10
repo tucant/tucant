@@ -8,6 +8,7 @@ pub mod startpage_dispatch;
 
 use common::head::{html_head, html_head_2};
 use data_encoding::HEXLOWER;
+use externalpages::studveranst::veranstaltungen;
 use html_extractor::html;
 use html_handler::Root;
 use login::{login, LoginResponse};
@@ -50,16 +51,19 @@ impl Tucan {
             .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
             .build()?;
 
-        let username = std::env::var("USERNAME").unwrap();
-        let password = std::env::var("PASSWORD").unwrap();
+        /*        let username = std::env::var("USERNAME").unwrap();
+                let password = std::env::var("PASSWORD").unwrap();
 
-        //let result = login(&client, username.as_str(), password.as_str()).await?;
+                let result = login(&client, username.as_str(), password.as_str()).await?;
+                println!("{:?}", result);
+        */
+
         let result = LoginResponse {
-            id: 62901525596893,
-            cookie_cnsc: String::new(),
+            id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
+            cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
-        after_login(&client, result).await?;
+        veranstaltungen(&client, result).await?;
 
         Ok(Self { client })
     }
