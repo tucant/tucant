@@ -3,7 +3,7 @@ use reqwest::Client;
 use scraper::Html;
 
 use crate::{
-    common::head::{html_head, page_start, vv_something},
+    common::head::{html_head, logged_in_head, page_start, vv_something},
     html_handler::Root,
     login::LoginResponse,
     TucanError,
@@ -33,26 +33,17 @@ pub async fn veranstaltungen(
     let html_handler = html_head(html_handler);
     html!(
         <style type="text/css">
-            "XN0jaYaHLeXpiJk0Z7v_FOEBkC5jmdtJaIxqyRqEMj4"
+            "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
         </style>_
         </head>_
-        <body class="currentevents">_
+        <body class="external_pages">_
     );
-    let html_handler = page_start(html_handler);
+    let html_handler = logged_in_head(html_handler, login_response.id);
     html!(
-                        <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
-                            <a  class="depth_1 link000019 navLink branchLink " href=aktuelles_url >"Aktuelles"</a>
-                            <ul class="nav depth_2 linkItemContainer">
-                              <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299"><a  class="depth_2 link000299 navLink " href=messages_url >"Nachrichten"</a></li>
-                            </ul>
-                          </li>
-                          <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
-                            <a  class="depth_1 link000326 navLink branchLink " href=vv_url >"VV"</a>
-    );
-    let html_handler = vv_something(html_handler, login_response.id);
-    html!(
-                              </li>
+    <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
+        <script type="text/javascript"></script>_
+        <!-- "n-Z4H5FHWoHAA64FTQESwvBoOya6RXPFuEU50U1jCJQ"-->_
 
-    );
+        );
     Ok(())
 }
