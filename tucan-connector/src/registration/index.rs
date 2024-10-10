@@ -83,10 +83,21 @@ pub async fn anmeldung(
     <!-- "mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0" -->_
     <h2>_
             <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
-            "\n        \u{a0}>\u{a0}\n                "
-                    <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N<!$MG_SESSIONIDNAVI>,-N<!$MG_MENUIDNAVI>,-N<!$MG_STUDYNAVI>,-N0,-N<!$MG_STSRNAVI>,-N<!$MG_STCSNAVI>"><!--"zod15DhaIU-eBopesyOTRRSisgnmekZ42pPsIcVwVy4"--></a>_
-            </h2>_
-            <ul>_
+    );
+    let mut html_handler = html_handler;
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(
+                "\n        \u{a0}>\u{a0}\n                "
+                <a href=url>item</a>_
+            );
+            println!("{item} {url}");
+            html_handler
+        };
+    }
+    html!(
+        </h2>_
+        <ul>_
     );
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
