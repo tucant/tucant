@@ -3,6 +3,7 @@ pub mod externalpages;
 pub mod html_handler;
 pub mod login;
 pub mod mlsstart;
+pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
 
@@ -14,6 +15,7 @@ use html_handler::Root;
 use login::{login, LoginResponse};
 use mlsstart::start_page::after_login;
 use regex::Regex;
+use registration::index::anmeldung;
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
 
@@ -63,7 +65,7 @@ impl Tucan {
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
-        veranstaltungen(&client, result).await?;
+        anmeldung(&client, result).await?;
 
         Ok(Self { client })
     }
