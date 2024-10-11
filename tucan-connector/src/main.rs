@@ -72,7 +72,12 @@ impl Tucan {
         println!("{anmeldung_response:#?}");
         for entry in anmeldung_response.entries {
             let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
-            println!("{anmeldung_response:#?}");
+            println!(" {anmeldung_response:#?}");
+
+            for entry in anmeldung_response.entries {
+                let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
+                println!("  {anmeldung_response:#?}");
+            }
         }
 
         Ok(Self { client })

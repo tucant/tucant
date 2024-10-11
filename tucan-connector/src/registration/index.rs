@@ -122,14 +122,14 @@ pub async fn anmeldung(
                 <a href=url>
             );
             let (html_handler, any_child) = html_handler.next_any_child();
-            html!(
-                </a>_
-            );
             match any_child.value() {
                 scraper::Node::Comment(comment) => {}
                 scraper::Node::Text(text) => path.push((text.to_string(), url)),
                 _ => panic!(),
             }
+            html!(
+                </a>
+            );
             html_handler
         };
     }
