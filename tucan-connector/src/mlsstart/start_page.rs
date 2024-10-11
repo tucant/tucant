@@ -3,8 +3,8 @@ use reqwest::Client;
 use scraper::{html, Html};
 
 use crate::{
-    common::head::{html_head, html_head_2, logged_in_head, page_start, vv_something},
-    html_handler::Root,
+    common::head::{footer, html_head, html_head_2, logged_in_head, page_start, vv_something},
+    html_handler::{self, Root},
     login::{self, LoginResponse},
     TucanError,
 };
@@ -98,27 +98,7 @@ pub async fn after_login(client: &Client, login_response: LoginResponse) -> Resu
      </div>_
     </div>_
     </div>_
-    <div id="pageFoot" class="pageElementTop">_
-    <div id="pageFootControls" class="pageElementTop">_
-     <div id="pageFootControlsLeft">_
-                             <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000019,-Aimprint")} class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">"Impressum"</a>_
-                                                                             <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000019,-Acontact")}  class="img img_arrowContact pageElementLeft" id="pageFootControl_con">"Kontakt"</a>_
-                                                 <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">"Drucken"</a>_
-                             </div>_
-     <div id="pageFootControlsRight">_
-       <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_</a>_
-     </div>_
-    </div>_
-    </div>_
-    </div>_
-    <div id="IEdiv">_</div><!-- "sA0YIGyByIKeA31YLo4xBo8n4XODq22IfHyrzzrnD-w"-->_
-    <!-- "em2y7JxbjqWZd3r7SQA-YKIJZsneemykpZ46ZXTq7Tw"-->_
-    <!--"VwiU8OlvNnMu2C0d8thjT7A2X3pYuFyyhLNGOJ87AXc"-->_
-    <div class="invAnchor">_
-    <a name="bottom" class="invAnchor">_</a>_
-    </div>_
-    </body>
-    </html>
         );
+    let html_handler = footer(html_handler, id, 311);
     Ok(())
 }

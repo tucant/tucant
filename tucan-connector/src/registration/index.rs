@@ -3,7 +3,7 @@ use reqwest::Client;
 use scraper::Html;
 
 use crate::{
-    common::head::{html_head, logged_in_head, page_start, vv_something},
+    common::head::{footer, html_head, logged_in_head, page_start, vv_something},
     html_handler::Root,
     login::LoginResponse,
     TucanError,
@@ -181,5 +181,34 @@ pub async fn anmeldung(
     <br></br>_
     <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
+    let html_handler = if entries.is_empty() {
+        html!(
+            <table class="tbcoursestatus rw-table rw-all">_
+            <tbody>
+            <tr>_
+                <td class="tbhead" colspan="100%">"Anmeldung zu Modulen und Veranstaltungen"</td>_
+            </tr>_
+
+                                    <tr>_
+                                  <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
+                        </tr>_
+                        </tbody>
+                        </table>_
+
+
+        );
+        html_handler
+    } else {
+        html_handler
+    };
+    html!(
+        <!-- "fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og" -->_
+
+                </div>_
+            </div>_
+        </div>_
+    );
+    let html_handler = footer(html_handler, id, 311);
+    // TODO FIXME parse rest of page
     Ok(AnmeldungResponse { path, entries })
 }

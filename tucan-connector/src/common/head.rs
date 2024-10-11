@@ -302,3 +302,34 @@ pub fn logged_in_head<'a>(
     );
     html_handler
 }
+
+pub fn footer<'a>(
+    html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+    id: u64,
+    subid: u64,
+) -> InRoot<'a, Root<'a>, AfterDoctype> {
+    html!(
+        <div id="pageFoot" class="pageElementTop">_
+    <div id="pageFootControls" class="pageElementTop">_
+     <div id="pageFootControlsLeft">_
+                             <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N{subid:06},-Aimprint")} class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">"Impressum"</a>_
+                                                                             <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N{subid:06},-Acontact")}  class="img img_arrowContact pageElementLeft" id="pageFootControl_con">"Kontakt"</a>_
+                                                 <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">"Drucken"</a>_
+                             </div>_
+     <div id="pageFootControlsRight">_
+       <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_</a>_
+     </div>_
+    </div>_
+    </div>_
+    </div>_
+    <div id="IEdiv">_</div><!-- "sA0YIGyByIKeA31YLo4xBo8n4XODq22IfHyrzzrnD-w"-->_
+    <!-- "em2y7JxbjqWZd3r7SQA-YKIJZsneemykpZ46ZXTq7Tw"-->_
+    <!--"VwiU8OlvNnMu2C0d8thjT7A2X3pYuFyyhLNGOJ87AXc"-->_
+    <div class="invAnchor">_
+    <a name="bottom" class="invAnchor">_</a>_
+    </div>_
+    </body>
+    </html>
+    );
+    html_handler
+}

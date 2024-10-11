@@ -3,7 +3,7 @@ use reqwest::Client;
 use scraper::Html;
 
 use crate::{
-    common::head::{html_head, page_start, vv_something},
+    common::head::{footer, html_head, page_start, vv_something},
     html_handler::Root,
     TucanError,
 };
@@ -155,27 +155,7 @@ pub async fn welcome(client: &Client) -> Result<(), TucanError> {
                 </div>_
                 </div>_
                 </div>_
-                <div id="pageFoot" class="pageElementTop">_
-                <div id="pageFootControls" class="pageElementTop">_
-                    <div id="pageFootControlsLeft">_
-                        <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Aimprint" class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">"Impressum"</a>_
-                        <a href="?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Acontact"  class="img img_arrowContact pageElementLeft" id="pageFootControl_con">"Kontakt"</a>_
-                        <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">"Drucken"</a>_
-                    </div>_
-                    <div id="pageFootControlsRight">_
-                        <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_</a>_
-                    </div>_
-                </div>_
-            </div>_
-            </div>_
-            <div id="IEdiv">_</div><!-- "sA0YIGyByIKeA31YLo4xBo8n4XODq22IfHyrzzrnD-w" -->_
-            <!-- "em2y7JxbjqWZd3r7SQA-YKIJZsneemykpZ46ZXTq7Tw" -->_
-            <!-- "VwiU8OlvNnMu2C0d8thjT7A2X3pYuFyyhLNGOJ87AXc" -->_
-            <div class="invAnchor">_
-                <a name="bottom" class="invAnchor">_</a>_
-            </div>_
-        </body>
-    </html>
     );
+    let html_handler = footer(html_handler, 1, 19);
     Ok(())
 }
