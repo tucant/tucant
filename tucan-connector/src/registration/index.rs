@@ -115,7 +115,15 @@ pub async fn anmeldung(
     );
     let mut path = Vec::new();
     let mut html_handler = html_handler;
-    while html_handler.peek().is_some() {
+    while !html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_text()
+        .unwrap()
+        .trim()
+        .is_empty()
+    {
         html_handler = {
             html!(
                 "\n        \u{a0}>\u{a0}\n                "
@@ -134,7 +142,7 @@ pub async fn anmeldung(
         };
     }
     html!(
-        </h2>_
+        _</h2>_
     );
     let mut entries = Vec::new();
     let html_handler = match html_handler.peek() {
