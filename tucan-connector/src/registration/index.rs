@@ -1,6 +1,6 @@
 use html_extractor::html;
 use reqwest::Client;
-use scraper::Html;
+use scraper::{ElementRef, Html};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head, page_start, vv_something},
@@ -174,7 +174,13 @@ pub async fn anmeldung(
     while !html_handler.peek().unwrap().value().is_comment() {
         let child;
         (html_handler, child) = html_handler.next_any_child();
-        println!("{:?}", child.value())
+        match child.value() {
+            scraper::Node::Text(text) => assert!(text.trim().is_empty()),
+            scraper::Node::Element(element) => {
+                println!("{}", ElementRef::wrap(child).unwrap().html())
+            }
+            _ => panic!(),
+        }
     }
     html!(
     <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
