@@ -135,32 +135,40 @@ pub async fn anmeldung(
     }
     html!(
         </h2>_
-        <ul>_
     );
     let mut entries = Vec::new();
-    let mut html_handler = html_handler;
-    while html_handler.peek().is_some() {
-        html_handler = {
-            html!(
-                <li>_
-                        <a href=url>item</a>_
-                    </li>_
+    let html_handler = match html_handler.peek() {
+        Some(elem) if elem.value().is_element() => {
+            html!(        <ul>_
             );
-            let url = url.trim_start_matches(&format!(
+            let mut html_handler = html_handler;
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html!(
+                        <li>_
+                                <a href=url>item</a>_
+                            </li>_
+                    );
+                    let url = url.trim_start_matches(&format!(
                 "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
             ));
-            entries.push((
-                item,
-                AnmeldungRequest {
-                    arguments: url.to_owned(),
-                },
-            ));
-            html_handler
-        };
-    }
+                    entries.push((
+                        item,
+                        AnmeldungRequest {
+                            arguments: url.to_owned(),
+                        },
+                    ));
+                    html_handler
+                };
+            }
 
+            html!(
+                        </ul>_);
+            html_handler
+        }
+        _ => html_handler,
+    };
     html!(
-                        </ul>_
     <!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_
     <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
     <br></br>_

@@ -268,13 +268,13 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     match value {
                         StringLiteralOrVariable::Literal(lit_str) => {
                             quote_spanned! {lit_str.span()=>
-                                let html_handler = html_handler.attribute(#name, #lit_str);
+                                let mut html_handler = html_handler.attribute(#name, #lit_str);
                             }
                         }
                         StringLiteralOrVariable::Expression(expr) => {
                             quote_spanned! {expr.span()=>
                                 let _tmp_internal_html_extractor_proc_macro: &str = #expr;
-                                let html_handler = html_handler.attribute(#name, _tmp_internal_html_extractor_proc_macro);
+                                let mut html_handler = html_handler.attribute(#name, _tmp_internal_html_extractor_proc_macro);
                             }
                         }
                         StringLiteralOrVariable::Variable(ident) => {
@@ -286,11 +286,11 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 });
 
                 let open = quote_spanned! {input.element.span()=>
-                    let html_handler = html_handler.next_child_tag_open_start(#tag);
+                    let mut html_handler = html_handler.next_child_tag_open_start(#tag);
                 };
 
                 let close = quote_spanned! {input.open_end.span()=>
-                    let html_handler = html_handler.tag_open_end();
+                    let mut html_handler = html_handler.tag_open_end();
                 };
 
                 // Build the output, possibly using quasi-quotation
@@ -304,30 +304,30 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
             HtmlCommand::Whitespace(html_whitespace) => {
                 quote_spanned! {html_whitespace.underscore.span()=>
-                    let html_handler = html_handler.skip_whitespace();
+                    let mut html_handler = html_handler.skip_whitespace();
                 }
             }
             HtmlCommand::ElementClose(html_element_close) => {
                 let name = html_element_close.element.to_string();
                 quote_spanned! {html_element_close.element.span()=>
-                    let html_handler = html_handler.close_element(#name);
+                    let mut html_handler = html_handler.close_element(#name);
                 }
             }
             HtmlCommand::Comment(html_comment) => {
                 let comment = &html_comment.comment;
                 quote_spanned! {html_comment.comment.span()=>
-                    let html_handler = html_handler.skip_comment(#comment);
+                    let mut html_handler = html_handler.skip_comment(#comment);
                 }
             }
             HtmlCommand::Text(html_text) => match html_text {
                 StringLiteralOrVariable::Literal(lit_str) => {
                     quote_spanned! {lit_str.span()=>
-                        let html_handler = html_handler.skip_text(#lit_str);
+                        let mut html_handler = html_handler.skip_text(#lit_str);
                     }
                 }
                 StringLiteralOrVariable::Expression(expr) => {
                     quote_spanned! {expr.span()=>
-                        let html_handler = html_handler.skip_text(#expr);
+                        let mut html_handler = html_handler.skip_text(#expr);
                     }
                 }
                 StringLiteralOrVariable::Variable(ident) => {
