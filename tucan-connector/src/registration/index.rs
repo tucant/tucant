@@ -44,7 +44,7 @@ pub async fn anmeldung(
         .error_for_status()?;
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.html());
+    //println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -170,6 +170,13 @@ pub async fn anmeldung(
     };
     html!(
     <!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_
+    );
+    while !html_handler.peek().unwrap().value().is_comment() {
+        let child;
+        (html_handler, child) = html_handler.next_any_child();
+        println!("{:?}", child.value())
+    }
+    html!(
     <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
     <br></br>_
     <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
