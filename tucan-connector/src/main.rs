@@ -43,6 +43,8 @@ pub enum TucanError {
     Http(#[from] reqwest::Error),
     #[error("IO error {0:?}")]
     Io(#[from] std::io::Error),
+    #[error("Tucan session timeout")]
+    Timeout,
 }
 
 // TODO write small program that converts html to this format? so this is even easier

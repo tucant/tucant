@@ -22,6 +22,7 @@ pub async fn anmeldung(
                 .error_for_status()?;
     let content = response.text().await?;
     let document = Html::parse_document(&content);
+    println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -29,7 +30,15 @@ pub async fn anmeldung(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>_
     );
-    let html_handler = html_head(html_handler);
+    let mut html_handler = html_head(html_handler);
+    if html_handler.peek().is_none() {
+        // timeout?
+        html!(
+            </head>_
+        <body class="timeout">
+        );
+        return Err(TucanError::Timeout);
+    }
     html!(
         <style type="text/css">
             "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
