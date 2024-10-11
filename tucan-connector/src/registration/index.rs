@@ -9,23 +9,38 @@ use crate::{
     TucanError,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct AnmeldungRequest {
+    arguments: String,
+}
+
+impl AnmeldungRequest {
+    pub fn new() -> Self {
+        Self {
+            arguments: ",-N000311,-A".to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct AnmeldungResponse {
-    path: Vec<(String, String)>,
-    entries: Vec<(String, String)>,
+    pub path: Vec<(String, String)>,
+    pub entries: Vec<(String, AnmeldungRequest)>,
 }
 
 pub async fn anmeldung(
     client: &Client,
     login_response: &LoginResponse,
-    args: &str,
+    args: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
-    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{args}", login_response.id))
-                .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-                .send()
-                .await?
-                .error_for_status()?;
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
+    let response = client
+        .get(url)
+        .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
+        .send()
+        .await?
+        .error_for_status()?;
     let content = response.text().await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
@@ -129,7 +144,15 @@ pub async fn anmeldung(
                         <a href=url>item</a>_
                     </li>_
             );
-            entries.push((item, url));
+            let url = url.trim_start_matches(&format!(
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+            ));
+            entries.push((
+                item,
+                AnmeldungRequest {
+                    arguments: url.to_owned(),
+                },
+            ));
             html_handler
         };
     }

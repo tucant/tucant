@@ -15,7 +15,7 @@ use html_handler::Root;
 use login::{login, LoginResponse};
 use mlsstart::start_page::after_login;
 use regex::Regex;
-use registration::index::anmeldung;
+use registration::index::{anmeldung, AnmeldungRequest};
 use reqwest::{header::HeaderValue, Client, ClientBuilder};
 use scraper::Html;
 
@@ -67,14 +67,14 @@ impl Tucan {
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
-        let anmeldung_response = anmeldung(&client, &result, ",-N000311,-A").await?;
+        let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
 
         println!("{anmeldung_response:#?}");
 
         anmeldung(
             &client,
             &result,
-            ",-N000311,-N391343674191079,-N0,-N383934077885362,-N000000000000000",
+            anmeldung_response.entries.first().unwrap().1.to_owned(),
         )
         .await?;
 
