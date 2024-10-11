@@ -70,13 +70,10 @@ impl Tucan {
         let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
 
         println!("{anmeldung_response:#?}");
-
-        anmeldung(
-            &client,
-            &result,
-            anmeldung_response.entries.first().unwrap().1.to_owned(),
-        )
-        .await?;
+        for entry in anmeldung_response.entries {
+            let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
+            println!("{anmeldung_response:#?}");
+        }
 
         Ok(Self { client })
     }

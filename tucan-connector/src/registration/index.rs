@@ -35,6 +35,7 @@ pub async fn anmeldung(
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
+    println!("{url}");
     let response = client
         .get(url)
         .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
@@ -43,6 +44,7 @@ pub async fn anmeldung(
         .error_for_status()?;
     let content = response.text().await?;
     let document = Html::parse_document(&content);
+    println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
