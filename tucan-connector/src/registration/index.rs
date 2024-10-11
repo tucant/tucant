@@ -9,11 +9,17 @@ use crate::{
     TucanError,
 };
 
+#[derive(Debug)]
+pub struct AnmeldungResponse {
+    path: Vec<(String, String)>,
+    entries: Vec<(String, String)>,
+}
+
 pub async fn anmeldung(
     client: &Client,
     login_response: &LoginResponse,
     args: &str,
-) -> Result<(), TucanError> {
+) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{args}", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
@@ -90,6 +96,7 @@ pub async fn anmeldung(
     <h2>_
             <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
     );
+    let mut path = Vec::new();
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
@@ -101,7 +108,11 @@ pub async fn anmeldung(
             html!(
                 </a>_
             );
-            println!("{:?} {url}", any_child.value());
+            match any_child.value() {
+                scraper::Node::Comment(comment) => {}
+                scraper::Node::Text(text) => path.push((text.to_string(), url)),
+                _ => panic!(),
+            }
             html_handler
         };
     }
@@ -109,6 +120,7 @@ pub async fn anmeldung(
         </h2>_
         <ul>_
     );
+    let mut entries = Vec::new();
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
@@ -117,7 +129,7 @@ pub async fn anmeldung(
                         <a href=url>item</a>_
                     </li>_
             );
-            println!("{item} {url}");
+            entries.push((item, url));
             html_handler
         };
     }
@@ -129,5 +141,5 @@ pub async fn anmeldung(
     <br></br>_
     <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
-    Ok(())
+    Ok(AnmeldungResponse { path, entries })
 }
