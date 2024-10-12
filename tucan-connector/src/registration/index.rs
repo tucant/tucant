@@ -243,28 +243,41 @@ pub async fn anmeldung(
                 </td>_
                 <td class="tbsubhead">_</td>_
             </tr>_
+            );
 
-            <tr>_
-                <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
-                </td>_
-                <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
-                <td class="tbsubhead dl-inner" >_
-                    <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
-                    <p>"N.N."</p>_
-                </td>_
-                <td class="tbsubhead">
-                    date<br></br>_
-                </td>_
-                <td class="tbsubhead rw-qbf">_
-                </td>_
-                <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-            </tr>_
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html!(
+                                <tr>_
+                        <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                        <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
+                        </td>_
+                        <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
+                        <td class="tbsubhead dl-inner" >_
+                            <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
+                            <p>"N.N."</p>_
+                        </td>_
+                        <td class="tbsubhead">
+                            date<br></br>_
+                        </td>_
+                        <td class="tbsubhead rw-qbf">_
+                        </td>_
+                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                        <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                        <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                        <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                        <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                    </tr>_
+                            );
+                    let url = url.trim_start_matches(&format!(
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+            ));
+                    html_handler
+                };
+            }
+
+            html!(
             </tbody>
             </table>_
                     );
