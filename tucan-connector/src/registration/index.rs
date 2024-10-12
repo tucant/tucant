@@ -255,7 +255,7 @@ pub async fn anmeldung(
                             </td>_
                             <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
                             <td class="tbsubhead dl-inner" >_
-                                <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
+                                <p><strong><a href=url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
                                 <p>"N.N."</p>_
                             </td>_
                             <td class="tbsubhead">
@@ -291,27 +291,28 @@ pub async fn anmeldung(
                         </tr>_
 
                         // course
-                        <tr>
-                            <!-- "MODULE END" -->
-                            <!-- "MODULE PART" -->
-                            <!-- "MODULE PART END" -->
-                            <!-- "COURSE" -->_<!-- "FIXME TDs ... Course Level ??" -->
-                            <!-- "logo column" -->
-                            <td class="tbdata">
-                            </td>
-                            <td class="tbdata dl-inner">
-                                <p><strong><a href=course_url name="eventLink">"20-00-0014-iv "<span class="eventTitle">"Visual Computing "</span></a></strong></p>
-                                <p>"Prof. Dr. Arjan Kuijper"</p>
-                                <p>"Fr, 18. Okt. 2024 [08:55] - Fr, 14. Feb. 2025 [11:25]"</p>
-                                <p></p>
-                            </td>
+                        <tr>_
+                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                            <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                            <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                            <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
+                            <td class="tbdata">_
+                            </td>_
+                            <td class="tbdata dl-inner">_
+                                <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
+                                <p>lecturers</p>_
+                                <p>begin_and_end</p>_
+                                <p></p>_
+                            </td>_
                                 <td class="tbdata">
-                                "28.02.2025"<br></br>"- | 432"
-                                </td>
-                            <td class="tbdata rw-qbf">
-                            </td>
-                            <!-- "COURSE END" -->
-                        </tr>
+                                date<br></br>limit_and_size
+                                </td>_
+                            <td class="tbdata rw-qbf">_
+                            </td>_
+                            <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                        </tr>_
                     );
                     html_handler
                 };
