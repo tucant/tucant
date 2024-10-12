@@ -73,7 +73,7 @@ impl Tucan {
             &client,
             &result,
             AnmeldungRequest {
-                arguments: ",-N000311,-N391343674191079,-N0,-N383963761990356,-N335044207387177"
+                arguments: ",-N000311,-N391343674191079,-N0,-N383963762024372,-N371164083833733"
                     .to_owned(),
             },
         )
