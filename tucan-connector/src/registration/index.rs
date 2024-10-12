@@ -368,7 +368,13 @@ pub async fn anmeldung(
                                 <p>lecturers</p>_
                                 <p>);
                             let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(begin_and_end</p>_ <p>location);
+                                html!(begin_and_end</p>_ <p>);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            let mut html_handler = if (html_handler.peek().is_some()) {
+                                html!(location);
                                 html_handler
                             } else {
                                 html_handler
