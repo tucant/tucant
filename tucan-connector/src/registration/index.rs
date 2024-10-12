@@ -248,31 +248,71 @@ pub async fn anmeldung(
             while html_handler.peek().is_some() {
                 html_handler = {
                     html!(
-                                <tr>_
-                        <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                        <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
-                        </td>_
-                        <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
-                        <td class="tbsubhead dl-inner" >_
-                            <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
-                            <p>"N.N."</p>_
-                        </td>_
-                        <td class="tbsubhead">
-                            date<br></br>_
-                        </td>_
-                        <td class="tbsubhead rw-qbf">_
-                        </td>_
-                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                        <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                        <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                        <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                        <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                    </tr>_
-                            );
-                    let url = url.trim_start_matches(&format!(
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
-            ));
+                        // module
+                        <tr>_
+                            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                            <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
+                            </td>_
+                            <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
+                            <td class="tbsubhead dl-inner" >_
+                                <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
+                                <p>"N.N."</p>_
+                            </td>_
+                            <td class="tbsubhead">
+                                date<br></br>_
+                            </td>_
+                            <td class="tbsubhead rw-qbf">_
+                            </td>_
+                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                            <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                            <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                            <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                        </tr>_
+
+                        // exam
+                        <tr>_
+                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                            </td>_
+                            <td class="tbdata">
+                            exam_name
+                            <br></br>
+                            exam_type
+                            </td>_
+                            <td class="tbdata">_</td>_
+                            <td class="tbdata">_</td>_
+                            <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                            <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                            <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                        </tr>_
+
+                        // course
+                        <tr>
+                            <!-- "MODULE END" -->
+                            <!-- "MODULE PART" -->
+                            <!-- "MODULE PART END" -->
+                            <!-- "COURSE" -->_<!-- "FIXME TDs ... Course Level ??" -->
+                            <!-- "logo column" -->
+                            <td class="tbdata">
+                            </td>
+                            <td class="tbdata dl-inner">
+                                <p><strong><a href=course_url name="eventLink">"20-00-0014-iv "<span class="eventTitle">"Visual Computing "</span></a></strong></p>
+                                <p>"Prof. Dr. Arjan Kuijper"</p>
+                                <p>"Fr, 18. Okt. 2024 [08:55] - Fr, 14. Feb. 2025 [11:25]"</p>
+                                <p></p>
+                            </td>
+                                <td class="tbdata">
+                                "28.02.2025"<br></br>"- | 432"
+                                </td>
+                            <td class="tbdata rw-qbf">
+                            </td>
+                            <!-- "COURSE END" -->
+                        </tr>
+                    );
                     html_handler
                 };
             }
