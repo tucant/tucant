@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungRequest {
-    arguments: String,
+    pub arguments: String,
 }
 
 impl AnmeldungRequest {
@@ -228,42 +228,42 @@ pub async fn anmeldung(
         } else {
             html!(
                 <td class="tbsubhead">_
-                    <!-- "Logo column" -->_
-                </td>_
-                <td class="tbsubhead">_
-                    "Veranstaltung"<br></br>_
-                    "Dozenten"
-                    <br></br>"Zeitraum"
-                    <br></br>"Anmeldegruppe"
-                    <br></br>"Standort"
+                    <!-- "OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc" -->_
                 </td>_
                 <td class="tbsubhead">
-                    "Anmeld. bis"
-                    <br></br>_
-                    "Max.Teiln.|Anm."
+                    "\n\n\t\t\t\t\t\tVeranstaltung"<br></br>
+                    "\n\t\t\t\t\t\tDozenten\n\t\t\t\t\t\t\t\t\t\t\t\t\t"<br></br>
+                    "Zeitraum\n\t\t\t\t\t\t\t\t\t\t\t\t"<br></br>
+                    "Anmeldegruppe\n\t\t\t\t\t\t"<br></br>
+                    "Standort\n\t\t\t\t\t"
+                </td>_
+                <td class="tbsubhead">
+                    "\n\t\t\t\t\t\t\t\t\t\t\t\tAnmeld. bis\n\t\t\t\t\t\t\t\t\t\t"<br></br>
+                    "\n\t\t\t\t\tMax.Teiln.|Anm.\n\t\t\t   "
                 </td>_
                 <td class="tbsubhead">_</td>_
             </tr>_
 
             <tr>_
-                <!--"logo column"-->_
-                <td class="tbsubhead"> <!-- "FIXME TDs ... Module Level ??" -->_
+                <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
                 </td>_
-                <!-- "MODULE" -->_
+                <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
                 <td class="tbsubhead dl-inner" >_
-                    <p><strong><a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=MODULEDETAILS&amp;ARGUMENTS=-N559411740841178,-N000311,-N383203116623058,-APfHZP-nZWfLkYSP5PQR5vDwTWZpKQgpTHQHZYQoEvMp7vUoxWIU9OQRWQD6eRDmURuHHmdRMejWS4DGl3om8cDUqOMRoc-LlOWl9YSPUxUV-PULaVDGp7ucj4fljvZKwmZoZPQHAPNlAVvZtmdUtvqFwRfG3Rqm6fZW7vNLNxBmHRdLA3ocAvjLECWBZmzUS7YHgWSUeOQiNHUR9xWUDOfwfOupPHqB-7dZtmqH-xDw3CupTxMmy7fWXVdAYPWmNHzLdQjaw4YLARQVjeqob7DwkeMHW7MASfzwZxUpgmBUSHgPCVzHwOZe-OQ5emMAk3oRpxupU4B5C4WDA3QLwxYW-3BoWvIHacoPVVjUfcZUFHIWmxMUuvBD6f-PgWNGhHUetYgmYmDWDxQUvYBweWUWYYWo-PqR6PzLY3oHFHDoNOMeZvuUsWYPqmNPYvBUqO-RuYYPJfjp8CYo-PfLHfDGpvQPBxDLuHWpVRfDNWYWxHQLXHZLvRSmK7fWBVWpBcMR9RYmPWgHEVqPqrqm7fkin">"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
+                    <p><strong><a href=url>"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
                     <p>"N.N."</p>_
                 </td>_
-                <td class="tbsubhead">_
-                    "28.02.2023"<br></br>_
+                <td class="tbsubhead">
+                    date<br></br>_
                 </td>_
                 <td class="tbsubhead rw-qbf">_
                 </td>_
-                <!-- "MODULE END"-->_
-                <!--"MODULE PART" -->_
-                <!--"MODULE PART END"-->_
-                <!--"COURSE" --> <!-- "FIXME TDs ... Course Level ??" -->_
-                <!--"COURSE END" -->_
+                <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
             </tr>_
             </tbody>
             </table>_
