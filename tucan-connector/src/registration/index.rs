@@ -365,21 +365,36 @@ pub async fn anmeldung(
                             </td>_
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
-                                <p>lecturers</p>_
                                 <p>);
                             let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(begin_and_end</p>_ <p>);
+                                html!(lecturers</p>_<p>);
                                 html_handler
                             } else {
                                 html_handler
                             };
                             let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(location);
+                                html!(begin_and_end</p>_<p>);
                                 html_handler
                             } else {
                                 html_handler
                             };
-                            html!(</p>_
+                            let mut html_handler = if (html_handler.peek().is_some()) {
+                                let (html_handler, location_or_additional_info) =
+                                    html_handler.next_any_child();
+                                html!(</p>_);
+                                html_handler
+                            } else {
+                                html!(</p>_);
+                                html_handler
+                            };
+                            // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
+                            let mut html_handler = if (html_handler.peek().is_some()) {
+                                html!(<p>location</p>_);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html!(
                                     </td>_
                                         <td class="tbdata">
                                         date<br></br>limit_and_size
