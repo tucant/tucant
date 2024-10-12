@@ -279,7 +279,7 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         }
                         StringLiteralOrVariable::Variable(ident) => {
                             quote_spanned! {ident.span()=>
-                                let (html_handler, #ident) = html_handler.attribute_value(#name);
+                                let (mut html_handler, #ident) = html_handler.attribute_value(#name);
                             }
                         }
                     }
@@ -332,7 +332,7 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 }
                 StringLiteralOrVariable::Variable(ident) => {
                     quote_spanned! {ident.span()=>
-                        let (html_handler, #ident) = html_handler.text();
+                        let (mut html_handler, #ident) = html_handler.text();
                     }
                 }
             },

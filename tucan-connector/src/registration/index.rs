@@ -264,6 +264,7 @@ pub async fn anmeldung(
                             <td class="tbsubhead rw-qbf">_
 
                     );
+                    println!("{module_id}");
                     let html_handler = if (html_handler.peek().is_some()) {
                         html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
                         html_handler
@@ -289,8 +290,14 @@ pub async fn anmeldung(
                             </td>_
                             <td class="tbdata">
                             exam_name
-                            <br></br>
-                            exam_type
+                    );
+                    let html_handler = if (html_handler.peek().is_some()) {
+                        html!(<br></br>exam_type);
+                        html_handler
+                    } else {
+                        html_handler
+                    };
+                    html!(
                             </td>_
                             <td class="tbdata">_</td>_
                             <td class="tbdata">_</td>_

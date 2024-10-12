@@ -17,8 +17,9 @@ futures-util = { version = "0.3", features = ["io"] }
 tokio-util = "0.7"
 scraper = { version = "0.20", features = ["deterministic"] }
 ego-tree = "0.6"
-sha3 = "0.10.8"
-data-encoding = "2.6.0"
+sha3 = "0.10"
+data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
-dotenvy = "0.15.7"
-regex = "1.11.0"
+dotenvy = "0.15"
+regex = "1.11"
+itertools = "0.13"

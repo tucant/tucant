@@ -1396,6 +1396,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "html-extractor",
+ "itertools",
  "regex",
  "reqwest",
  "scraper",
