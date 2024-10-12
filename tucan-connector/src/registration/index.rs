@@ -389,7 +389,14 @@ pub async fn anmeldung(
                             };
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
                             let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(<p>location</p>_);
+                                html!(<p>);
+                                let mut html_handler = if (html_handler.peek().is_some()) {
+                                    html!(location);
+                                    html_handler
+                                } else {
+                                    html_handler
+                                };
+                                html!(</p>_);
                                 html_handler
                             } else {
                                 html_handler
