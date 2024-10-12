@@ -296,26 +296,35 @@ pub async fn anmeldung(
                     .as_comment()
                     .unwrap()
                     .to_string()
-                        == " MODULE END"
+                        != "logo column"
                     {
                         html_handler = {
-                            html!(
-                                // exam
-                                <tr>_
-                                    <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                    <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                    <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                                    </td>_
-                                    <td class="tbdata">
-                                    exam_name
-                            );
-                            let html_handler = if (html_handler.peek().is_some()) {
-                                html!(<br></br>exam_type);
-                                html_handler
-                            } else {
-                                html_handler
-                            };
-                            html!(
+                            let html_handler = if !html_handler
+                                .peek()
+                                .unwrap()
+                                .children()
+                                .nth(5)
+                                .unwrap()
+                                .value()
+                                .is_comment()
+                            {
+                                html!(
+                                    // exam
+                                    <tr>_
+                                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                        <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                                        </td>_
+                                        <td class="tbdata">
+                                        exam_name
+                                );
+                                let html_handler = if (html_handler.peek().is_some()) {
+                                    html!(<br></br>exam_type);
+                                    html_handler
+                                } else {
+                                    html_handler
+                                };
+                                html!(
                             </td>_
                             <td class="tbdata">_</td>_
                             <td class="tbdata">_</td>_
@@ -323,8 +332,13 @@ pub async fn anmeldung(
                             <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                        </tr>_
+                        </tr>_);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
 
+                            html!(
                         // course
                         <tr>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_

@@ -67,6 +67,8 @@ impl Tucan {
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
+        let mut progress = 1;
+
         let anmeldung_response = anmeldung(
             &client,
             &result,
@@ -78,14 +80,16 @@ impl Tucan {
         )
         .await?;
 
-        println!("{anmeldung_response:#?}");
+        println!("{progress} {anmeldung_response:#?}");
         for entry in &anmeldung_response.entries {
             let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
-            println!(" {anmeldung_response:#?}");
+            progress += 1;
+            println!("{progress} {anmeldung_response:#?}");
 
             for entry in anmeldung_response.entries {
                 let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
-                println!("  {anmeldung_response:#?}");
+                progress += 1;
+                println!("{progress} {anmeldung_response:#?}");
             }
         }
 
