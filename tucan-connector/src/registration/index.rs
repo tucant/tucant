@@ -256,7 +256,7 @@ pub async fn anmeldung(
                             <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
                             <td class="tbsubhead dl-inner" >_
                                 <p><strong><a href=url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
-                                <p>"N.N."</p>_
+                                <p>lecturer</p>_
                             </td>_
                             <td class="tbsubhead">
                                 date<br></br>_

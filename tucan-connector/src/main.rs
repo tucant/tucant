@@ -70,21 +70,23 @@ impl Tucan {
         let anmeldung_response = anmeldung(
             &client,
             &result,
-            AnmeldungRequest {
+            /*AnmeldungRequest {
                 arguments: ",-N000311,-N391343674191079,-N0,-N385084147296255,-N384746188087978"
                     .to_owned(),
-            },
+            }*/
+            AnmeldungRequest::new(),
         )
         .await?;
 
         println!("{anmeldung_response:#?}");
-        let entry = &anmeldung_response.entries[2];
-        let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
-        println!(" {anmeldung_response:#?}");
-
-        for entry in anmeldung_response.entries {
+        for entry in &anmeldung_response.entries {
             let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
-            println!("  {anmeldung_response:#?}");
+            println!(" {anmeldung_response:#?}");
+
+            for entry in anmeldung_response.entries {
+                let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
+                println!("  {anmeldung_response:#?}");
+            }
         }
 
         Ok(Self { client })
