@@ -262,6 +262,16 @@ pub async fn anmeldung(
                                 date<br></br>_
                             </td>_
                             <td class="tbsubhead rw-qbf">_
+
+                    );
+                    let html_handler = if (html_handler.peek().is_some()) {
+                        html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
+                        html_handler
+                    } else {
+                        html_handler
+                    };
+                    html!(
+                                // optionally anmelden button?
                             </td>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
                             <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
