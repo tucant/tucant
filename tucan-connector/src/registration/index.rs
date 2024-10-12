@@ -320,8 +320,14 @@ pub async fn anmeldung(
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>lecturers</p>_
-                                <p>begin_and_end</p>_
-                                <p></p>_
+                                <p>);
+                    let html_handler = if (html_handler.peek().is_some()) {
+                        html!(begin_and_end</p>_ <p>);
+                        html_handler
+                    } else {
+                        html_handler
+                    };
+                    html!(</p>_
                             </td>_
                                 <td class="tbdata">
                                 date<br></br>limit_and_size
