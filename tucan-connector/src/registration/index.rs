@@ -247,31 +247,44 @@ pub async fn anmeldung(
 
             while html_handler.peek().is_some() {
                 html_handler = {
-                    html!(
-                        // module
-                        <tr>_
-                            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                            <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
-                            </td>_
-                            <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
-                            <td class="tbsubhead dl-inner" >_
-                                <p><strong><a href=url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
-                                <p>lecturer</p>_
-                            </td>_
-                            <td class="tbsubhead">
-                                date<br></br>limit_and_size
-                            </td>_
-                            <td class="tbsubhead rw-qbf">_
+                    let mut html_handler = if html_handler.peek().is_some()
+                        && html_handler
+                            .peek()
+                            .unwrap()
+                            .children()
+                            .nth(1)
+                            .unwrap()
+                            .value()
+                            .as_comment()
+                            .unwrap()
+                            .to_string()
+                            == "logo column"
+                    {
+                        html!(
+                            // module
+                            <tr>_
+                                <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                                <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
+                                </td>_
+                                <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
+                                <td class="tbsubhead dl-inner" >_
+                                    <p><strong><a href=url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
+                                    <p>lecturer</p>_
+                                </td>_
+                                <td class="tbsubhead">
+                                    date<br></br>limit_and_size
+                                </td>_
+                                <td class="tbsubhead rw-qbf">_
 
-                    );
-                    println!("{module_id}");
-                    let html_handler = if (html_handler.peek().is_some()) {
-                        html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
-                        html_handler
-                    } else {
-                        html_handler
-                    };
-                    html!(
+                        );
+                        println!("{module_id}");
+                        let html_handler = if (html_handler.peek().is_some()) {
+                            html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
+                            html_handler
+                        } else {
+                            html_handler
+                        };
+                        html!(
                                 // optionally anmelden button?
                             </td>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
@@ -281,6 +294,10 @@ pub async fn anmeldung(
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
+                        html_handler
+                    } else {
+                        html_handler
+                    };
 
                     while html_handler.peek().is_some()
                         && html_handler
