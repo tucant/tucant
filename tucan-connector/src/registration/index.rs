@@ -198,7 +198,7 @@ pub async fn anmeldung(
     <br></br>_
     <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
-    let html_handler = if entries.is_empty() {
+    let html_handler = if html_handler.peek().unwrap().value().is_element() {
         html!(
             <table class="tbcoursestatus rw-table rw-all">_
             <tbody>
