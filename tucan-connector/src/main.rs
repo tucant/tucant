@@ -67,6 +67,9 @@ impl Tucan {
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
 
+        // TODO FIXME retry on
+        // Error: Http(reqwest::Error { kind: Decode, source: hyper::Error(Body, Os { code: 104, kind: ConnectionReset, message: "Connection reset by peer" }) })
+
         let mut progress = 1;
 
         let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
@@ -91,7 +94,7 @@ impl Tucan {
             }
         }
 
-        // 27
+        // 108
 
         Ok(Self { client })
     }
