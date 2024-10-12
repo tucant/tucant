@@ -259,7 +259,7 @@ pub async fn anmeldung(
                                 <p>lecturer</p>_
                             </td>_
                             <td class="tbsubhead">
-                                date<br></br>_
+                                date<br></br>limit_and_size
                             </td>_
                             <td class="tbsubhead rw-qbf">_
 

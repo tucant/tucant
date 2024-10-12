@@ -72,11 +72,10 @@ impl Tucan {
         let anmeldung_response = anmeldung(
             &client,
             &result,
-            /*AnmeldungRequest {
-                arguments: ",-N000311,-N391343674191079,-N0,-N385084147296255,-N384746188087978"
+            AnmeldungRequest {
+                arguments: ",-N000311,-N391343674191079,-N0,-N383963761940361,-N334985282832177"
                     .to_owned(),
-            }*/
-            AnmeldungRequest::new(),
+            },
         )
         .await?;
 

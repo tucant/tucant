@@ -81,7 +81,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        assert!(child_element.trim().is_empty());
+        assert!(child_element.trim().is_empty(), "{:?}", child_element);
         InRoot {
             node: self.node,
             children: self.children,
@@ -176,7 +176,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        assert!(child_element.trim().is_empty());
+        assert!(child_element.trim().is_empty(), "{:?}", child_element);
         InElement {
             element: self.element,
             children: self.children,
