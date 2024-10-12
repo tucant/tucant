@@ -185,7 +185,10 @@ pub async fn anmeldung(
         match child.value() {
             scraper::Node::Text(text) => assert!(text.trim().is_empty()),
             scraper::Node::Element(element) => {
-                println!("{}", ElementRef::wrap(child).unwrap().html())
+                println!(
+                    "information node: {}",
+                    ElementRef::wrap(child).unwrap().html()
+                )
             }
             _ => panic!(),
         }
@@ -203,14 +206,71 @@ pub async fn anmeldung(
                 <td class="tbhead" colspan="100%">"Anmeldung zu Modulen und Veranstaltungen"</td>_
             </tr>_
 
-                                    <tr>_
-                                  <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
-                        </tr>_
-                        </tbody>
-                        </table>_
-
-
+            <tr>_
         );
+        let html_handler = if (html_handler
+            .peek()
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attr("class")
+            .unwrap()
+            == "tbdata")
+        {
+            html!(
+                <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
+                    </tr>_
+                    </tbody>
+                    </table>_
+            );
+            html_handler
+        } else {
+            html!(
+                <td class="tbsubhead">_
+                    <!-- "Logo column" -->_
+                </td>_
+                <td class="tbsubhead">_
+                    "Veranstaltung"<br></br>_
+                    "Dozenten"
+                    <br></br>"Zeitraum"
+                    <br></br>"Anmeldegruppe"
+                    <br></br>"Standort"
+                </td>_
+                <td class="tbsubhead">
+                    "Anmeld. bis"
+                    <br></br>_
+                    "Max.Teiln.|Anm."
+                </td>_
+                <td class="tbsubhead">_</td>_
+            </tr>_
+
+            <tr>_
+                <!--"logo column"-->_
+                <td class="tbsubhead"> <!-- "FIXME TDs ... Module Level ??" -->_
+                </td>_
+                <!-- "MODULE" -->_
+                <td class="tbsubhead dl-inner" >_
+                    <p><strong><a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&amp;PRGNAME=MODULEDETAILS&amp;ARGUMENTS=-N559411740841178,-N000311,-N383203116623058,-APfHZP-nZWfLkYSP5PQR5vDwTWZpKQgpTHQHZYQoEvMp7vUoxWIU9OQRWQD6eRDmURuHHmdRMejWS4DGl3om8cDUqOMRoc-LlOWl9YSPUxUV-PULaVDGp7ucj4fljvZKwmZoZPQHAPNlAVvZtmdUtvqFwRfG3Rqm6fZW7vNLNxBmHRdLA3ocAvjLECWBZmzUS7YHgWSUeOQiNHUR9xWUDOfwfOupPHqB-7dZtmqH-xDw3CupTxMmy7fWXVdAYPWmNHzLdQjaw4YLARQVjeqob7DwkeMHW7MASfzwZxUpgmBUSHgPCVzHwOZe-OQ5emMAk3oRpxupU4B5C4WDA3QLwxYW-3BoWvIHacoPVVjUfcZUFHIWmxMUuvBD6f-PgWNGhHUetYgmYmDWDxQUvYBweWUWYYWo-PqR6PzLY3oHFHDoNOMeZvuUsWYPqmNPYvBUqO-RuYYPJfjp8CYo-PfLHfDGpvQPBxDLuHWpVRfDNWYWxHQLXHZLvRSmK7fWBVWpBcMR9RYmPWgHEVqPqrqm7fkin">"20-00-0014 "<span class="eventTitle">"Visual Computing (WiSe 2022/23)"</span></a></strong></p>_
+                    <p>"N.N."</p>_
+                </td>_
+                <td class="tbsubhead">_
+                    "28.02.2023"<br></br>_
+                </td>_
+                <td class="tbsubhead rw-qbf">_
+                </td>_
+                <!-- "MODULE END"-->_
+                <!--"MODULE PART" -->_
+                <!--"MODULE PART END"-->_
+                <!--"COURSE" --> <!-- "FIXME TDs ... Course Level ??" -->_
+                <!--"COURSE END" -->_
+            </tr>_
+            </tbody>
+            </table>_
+                    );
+            html_handler
+        };
+
         html_handler
     } else {
         html_handler
