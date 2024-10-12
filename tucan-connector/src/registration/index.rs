@@ -1,6 +1,6 @@
 use html_extractor::html;
 use reqwest::Client;
-use scraper::{ElementRef, Html};
+use scraper::{html, ElementRef, Html};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head, page_start, vv_something},
@@ -280,24 +280,42 @@ pub async fn anmeldung(
                             <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                        </tr>_
+                        </tr>_);
 
-                        // exam
-                        <tr>_
-                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                            </td>_
-                            <td class="tbdata">
-                            exam_name
-                    );
-                    let html_handler = if (html_handler.peek().is_some()) {
-                        html!(<br></br>exam_type);
-                        html_handler
-                    } else {
-                        html_handler
-                    };
-                    html!(
+                    while html_handler.peek().is_some() && {
+                        let node = html_handler
+                            .peek()
+                            .unwrap()
+                            .children()
+                            .nth(1)
+                            .unwrap()
+                            .value();
+                        println!("{node:?}");
+                        node
+                    }
+                    .as_comment()
+                    .unwrap()
+                    .to_string()
+                        == " MODULE END"
+                    {
+                        html_handler = {
+                            html!(
+                                // exam
+                                <tr>_
+                                    <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                    <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                    <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                                    </td>_
+                                    <td class="tbdata">
+                                    exam_name
+                            );
+                            let html_handler = if (html_handler.peek().is_some()) {
+                                html!(<br></br>exam_type);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html!(
                             </td>_
                             <td class="tbdata">_</td>_
                             <td class="tbdata">_</td>_
@@ -321,22 +339,25 @@ pub async fn anmeldung(
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>lecturers</p>_
                                 <p>);
-                    let html_handler = if (html_handler.peek().is_some()) {
-                        html!(begin_and_end</p>_ <p>);
-                        html_handler
-                    } else {
-                        html_handler
-                    };
-                    html!(</p>_
-                            </td>_
-                                <td class="tbdata">
-                                date<br></br>limit_and_size
-                                </td>_
-                            <td class="tbdata rw-qbf">_
-                            </td>_
-                            <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                        </tr>_
-                    );
+                            let html_handler = if (html_handler.peek().is_some()) {
+                                html!(begin_and_end</p>_ <p>);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html!(</p>_
+                                    </td>_
+                                        <td class="tbdata">
+                                        date<br></br>limit_and_size
+                                        </td>_
+                                    <td class="tbdata rw-qbf">_
+                                    </td>_
+                                    <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                                </tr>_
+                            );
+                            html_handler
+                        };
+                    }
                     html_handler
                 };
             }
