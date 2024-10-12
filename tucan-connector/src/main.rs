@@ -81,6 +81,13 @@ impl Tucan {
                 let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
                 progress += 1;
                 println!("{progress} {anmeldung_response:#?}");
+
+                for entry in anmeldung_response.entries {
+                    let anmeldung_response =
+                        anmeldung(&client, &result, entry.1.to_owned()).await?;
+                    progress += 1;
+                    println!("{progress} {anmeldung_response:#?}");
+                }
             }
         }
 

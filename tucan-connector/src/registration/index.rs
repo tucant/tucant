@@ -282,21 +282,18 @@ pub async fn anmeldung(
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
 
-                    while html_handler.peek().is_some() && {
-                        let node = html_handler
+                    while html_handler.peek().is_some()
+                        && html_handler
                             .peek()
                             .unwrap()
                             .children()
                             .nth(1)
                             .unwrap()
-                            .value();
-                        println!("{node:?}");
-                        node
-                    }
-                    .as_comment()
-                    .unwrap()
-                    .to_string()
-                        != "logo column"
+                            .value()
+                            .as_comment()
+                            .unwrap()
+                            .to_string()
+                            != "logo column"
                     {
                         html_handler = {
                             let html_handler = if !html_handler
