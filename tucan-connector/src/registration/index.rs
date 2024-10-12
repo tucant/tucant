@@ -367,8 +367,8 @@ pub async fn anmeldung(
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>lecturers</p>_
                                 <p>);
-                            let html_handler = if (html_handler.peek().is_some()) {
-                                html!(begin_and_end</p>_ <p>);
+                            let mut html_handler = if (html_handler.peek().is_some()) {
+                                html!(begin_and_end</p>_ <p>location);
                                 html_handler
                             } else {
                                 html_handler
@@ -379,6 +379,14 @@ pub async fn anmeldung(
                                         date<br></br>limit_and_size
                                         </td>_
                                     <td class="tbdata rw-qbf">_
+                            );
+                            let html_handler = if (html_handler.peek().is_some()) {
+                                html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html!(
                                     </td>_
                                     <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                                 </tr>_

@@ -69,7 +69,15 @@ impl Tucan {
 
         let mut progress = 1;
 
-        let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
+        let anmeldung_response = anmeldung(
+            &client,
+            &result,
+            AnmeldungRequest {
+                arguments: ",-N000311,-N391343674191079,-N0,-N383963761990356,-N335044207387177"
+                    .to_owned(),
+            },
+        )
+        .await?;
 
         println!("{progress} {anmeldung_response:#?}");
         for entry in &anmeldung_response.entries {
