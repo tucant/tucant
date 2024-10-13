@@ -34,6 +34,7 @@ pub struct AnmeldungResponse {
 #[derive(Debug, Clone)]
 pub struct AnmeldungEntry {
     module: Option<AnmeldungModule>,
+    courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)>,
 }
 
 #[derive(Debug, Clone)]
@@ -356,6 +357,7 @@ pub async fn anmeldung(
                         (html_handler, None)
                     };
 
+                    let mut courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)> = Vec::new();
                     while html_handler.peek().is_some()
                         && html_handler
                             .peek()
@@ -496,10 +498,11 @@ pub async fn anmeldung(
                                 limit_and_size,
                                 registration_button_link,
                             };
+                            courses.push((exam, course));
                             html_handler
                         };
                     }
-                    entries.push(AnmeldungEntry { module: module });
+                    entries.push(AnmeldungEntry { module, courses });
                     html_handler
                 };
             }
