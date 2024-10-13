@@ -1,5 +1,6 @@
 use html_extractor::html;
 use reqwest::Client;
+use reqwest_middleware::ClientWithMiddleware;
 use scraper::{html, Html};
 
 use crate::{
@@ -9,7 +10,10 @@ use crate::{
     TucanError,
 };
 
-pub async fn after_login(client: &Client, login_response: LoginResponse) -> Result<(), TucanError> {
+pub async fn after_login(
+    client: &ClientWithMiddleware,
+    login_response: LoginResponse,
+) -> Result<(), TucanError> {
     let id = login_response.id;
     /*let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))

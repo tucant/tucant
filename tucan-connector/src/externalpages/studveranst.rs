@@ -1,5 +1,6 @@
 use html_extractor::html;
 use reqwest::Client;
+use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
 use crate::{
@@ -10,7 +11,7 @@ use crate::{
 };
 
 pub async fn veranstaltungen(
-    client: &Client,
+    client: &ClientWithMiddleware,
     login_response: LoginResponse,
 ) -> Result<(), TucanError> {
     let id = login_response.id;

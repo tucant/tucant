@@ -1,10 +1,11 @@
 use html_extractor::html;
 use reqwest::Client;
+use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
 use crate::{html_handler::Root, TucanError};
 
-pub async fn root(client: &Client) -> Result<(), TucanError> {
+pub async fn root(client: &ClientWithMiddleware) -> Result<(), TucanError> {
     let response = client
         .get("https://www.tucan.tu-darmstadt.de/")
         .send()

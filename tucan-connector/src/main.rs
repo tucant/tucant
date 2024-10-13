@@ -7,6 +7,8 @@ pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
 
+use std::time::Duration;
+
 use common::head::{html_head, html_head_2};
 use data_encoding::HEXLOWER;
 use externalpages::studveranst::veranstaltungen;
@@ -16,7 +18,9 @@ use login::{login, LoginResponse};
 use mlsstart::start_page::after_login;
 use regex::Regex;
 use registration::index::{anmeldung, AnmeldungRequest};
-use reqwest::{header::HeaderValue, Client, ClientBuilder};
+use reqwest::{header::HeaderValue, Client};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use scraper::Html;
 
 fn main() -> Result<(), TucanError> {
@@ -34,13 +38,15 @@ async fn async_main() -> Result<(), TucanError> {
 }
 
 pub struct Tucan {
-    client: Client,
+    client: ClientWithMiddleware,
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum TucanError {
     #[error("HTTP error {0:?}")]
     Http(#[from] reqwest::Error),
+    #[error("HTTP middleware error {0:?}")]
+    HttpMiddleware(#[from] reqwest_middleware::Error),
     #[error("IO error {0:?}")]
     Io(#[from] std::io::Error),
     #[error("Tucan session timeout")]
@@ -51,9 +57,17 @@ pub enum TucanError {
 
 impl Tucan {
     pub async fn new() -> Result<Self, TucanError> {
-        let client = ClientBuilder::new()
-            .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
-            .build()?;
+        let retry_policy = ExponentialBackoff::builder()
+            .build_with_total_retry_duration_and_max_retries(Duration::from_secs(90));
+        let client = ClientBuilder::new(
+            reqwest::Client::builder()
+                .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
+                .build()
+                .unwrap(),
+        )
+        // Retry failed requests.
+        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+        .build();
 
         /*        let username = std::env::var("USERNAME").unwrap();
                 let password = std::env::var("PASSWORD").unwrap();
