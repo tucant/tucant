@@ -89,26 +89,35 @@ impl Tucan {
         let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
 
         println!("{progress} {anmeldung_response:#?}");
-        for entry in &anmeldung_response.entries {
+        for entry in &anmeldung_response.submenus {
             let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
             progress += 1;
             println!("{progress} {anmeldung_response:#?}");
 
-            for entry in anmeldung_response.entries {
+            for entry in anmeldung_response.submenus {
                 let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
                 progress += 1;
                 println!("{progress} {anmeldung_response:#?}");
 
-                for entry in anmeldung_response.entries {
+                for entry in anmeldung_response.submenus {
                     let anmeldung_response =
                         anmeldung(&client, &result, entry.1.to_owned()).await?;
                     progress += 1;
                     println!("{progress} {anmeldung_response:#?}");
+
+                    for entry in anmeldung_response.submenus {
+                        let anmeldung_response =
+                            anmeldung(&client, &result, entry.1.to_owned()).await?;
+                        progress += 1;
+                        println!("{progress} {anmeldung_response:#?}");
+                    }
                 }
             }
         }
 
-        // 108
+        // 281
+
+        // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N145497569815170,-N000311,-N391343674191079,-N0,-N383963762024372,-N346654580556776
 
         Ok(Self { client })
     }

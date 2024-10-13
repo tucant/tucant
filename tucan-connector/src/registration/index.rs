@@ -25,8 +25,25 @@ impl AnmeldungRequest {
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungResponse {
-    pub path: Vec<(String, String)>,
-    pub entries: Vec<(String, AnmeldungRequest)>,
+    pub path: Vec<(String, AnmeldungRequest)>,
+    pub submenus: Vec<(String, AnmeldungRequest)>,
+    pub entries: Vec<AnmeldungEntry>,
+    pub additional_information: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnmeldungEntry {
+    module: Option<AnmeldungModule>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnmeldungModule {
+    id: String,
+    name: String,
+    lecturer: String,
+    date: String,
+    limit_and_size: String,
+    registration_button_link: Option<String>,
 }
 
 pub async fn anmeldung(
@@ -114,7 +131,7 @@ pub async fn anmeldung(
     <h2>_
             <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
     );
-    let mut path = Vec::new();
+    let mut path: Vec<(String, AnmeldungRequest)> = Vec::new();
     let mut html_handler = html_handler;
     while !html_handler
         .peek()
@@ -132,8 +149,18 @@ pub async fn anmeldung(
             );
             let (html_handler, any_child) = html_handler.next_any_child();
             match any_child.value() {
-                scraper::Node::Comment(comment) => {}
-                scraper::Node::Text(text) => path.push((text.to_string(), url)),
+                scraper::Node::Comment(_comment) => {}
+                scraper::Node::Text(text) => {
+                    let url = url.trim_start_matches(&format!(
+                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+                    ));
+                    path.push((
+                        text.to_string(),
+                        AnmeldungRequest {
+                            arguments: url.to_owned(),
+                        },
+                    ))
+                }
                 _ => panic!(),
             }
             html!(
@@ -145,23 +172,22 @@ pub async fn anmeldung(
     html!(
         _</h2>_
     );
-    let mut entries = Vec::new();
+    let mut submenus: Vec<(String, AnmeldungRequest)> = Vec::new();
     let html_handler = match html_handler.peek() {
         Some(elem) if elem.value().is_element() => {
-            html!(        <ul>_
-            );
+            html!(<ul>_);
             let mut html_handler = html_handler;
             while html_handler.peek().is_some() {
                 html_handler = {
                     html!(
                         <li>_
-                                <a href=url>item</a>_
-                            </li>_
+                            <a href=url>item</a>_
+                        </li>_
                     );
                     let url = url.trim_start_matches(&format!(
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
-            ));
-                    entries.push((
+                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+                    ));
+                    submenus.push((
                         item,
                         AnmeldungRequest {
                             arguments: url.to_owned(),
@@ -177,28 +203,25 @@ pub async fn anmeldung(
         }
         _ => html_handler,
     };
-    html!(
-    <!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_
-    );
+    html!(<!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_);
+    let mut additional_information = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
         let child;
         (html_handler, child) = html_handler.next_any_child();
         match child.value() {
             scraper::Node::Text(text) => assert!(text.trim().is_empty()),
             scraper::Node::Element(element) => {
-                println!(
-                    "information node: {}",
-                    ElementRef::wrap(child).unwrap().html()
-                )
+                additional_information.push(ElementRef::wrap(child).unwrap().html())
             }
             _ => panic!(),
         }
     }
     html!(
-    <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
-    <br></br>_
-    <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
+        <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
+        <br></br>_
+        <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
+    let mut entries: Vec<AnmeldungEntry> = Vec::new();
     let html_handler = if html_handler.peek().unwrap().value().is_element() {
         html!(
             <table class="tbcoursestatus rw-table rw-all">_
@@ -248,7 +271,7 @@ pub async fn anmeldung(
 
             while html_handler.peek().is_some() {
                 html_handler = {
-                    let mut html_handler = if html_handler.peek().is_some()
+                    let (mut html_handler, module) = if html_handler.peek().is_some()
                         && html_handler
                             .peek()
                             .unwrap()
@@ -278,12 +301,15 @@ pub async fn anmeldung(
                                 <td class="tbsubhead rw-qbf">_
 
                         );
-                        println!("{module_id}");
-                        let html_handler = if (html_handler.peek().is_some()) {
+
+                        let (html_handler, registration_button_link) = if (html_handler
+                            .peek()
+                            .is_some())
+                        {
                             html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
-                            html_handler
+                            (html_handler, Some(registration_button_link))
                         } else {
-                            html_handler
+                            (html_handler, None)
                         };
                         html!(
                                 // optionally anmelden button?
@@ -295,9 +321,17 @@ pub async fn anmeldung(
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
-                        html_handler
+                        let module = AnmeldungModule {
+                            id: module_id,
+                            name: module_name,
+                            lecturer,
+                            date,
+                            limit_and_size,
+                            registration_button_link,
+                        };
+                        (html_handler, Some(module))
                     } else {
-                        html_handler
+                        (html_handler, None)
                     };
 
                     while html_handler.peek().is_some()
@@ -423,6 +457,7 @@ pub async fn anmeldung(
                             html_handler
                         };
                     }
+                    entries.push(AnmeldungEntry { module: module });
                     html_handler
                 };
             }
@@ -447,5 +482,10 @@ pub async fn anmeldung(
     );
     let html_handler = footer(html_handler, id, 311);
     // TODO FIXME parse rest of page
-    Ok(AnmeldungResponse { path, entries })
+    Ok(AnmeldungResponse {
+        path,
+        entries,
+        additional_information,
+        submenus,
+    })
 }
