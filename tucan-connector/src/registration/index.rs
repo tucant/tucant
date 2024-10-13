@@ -207,7 +207,7 @@ pub async fn anmeldung(
                         "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
                     ));
                     submenus.push((
-                        item,
+                        item.trim().to_owned(),
                         AnmeldungRequest {
                             arguments: url.to_owned(),
                         },
@@ -393,7 +393,7 @@ pub async fn anmeldung(
                                 );
                                 let (html_handler, exam_type) = if (html_handler.peek().is_some()) {
                                     html!(<br></br>exam_type);
-                                    (html_handler, Some(exam_type))
+                                    (html_handler, Some(exam_type.trim().to_owned()))
                                 } else {
                                     (html_handler, None)
                                 };
@@ -407,7 +407,7 @@ pub async fn anmeldung(
                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
                                 let exam = AnmeldungExam {
-                                    name: exam_name,
+                                    name: exam_name.trim().to_owned(),
                                     typ: exam_type,
                                 };
                                 (html_handler, Some(exam))
@@ -490,12 +490,12 @@ pub async fn anmeldung(
                             );
                             let course = AnmeldungCourse {
                                 url: course_url,
-                                id: course_id,
-                                name: course_name,
+                                id: course_id.trim().to_owned(),
+                                name: course_name.trim().to_owned(),
                                 lecturers,
                                 begin_and_end,
-                                registration_until,
-                                limit_and_size,
+                                registration_until: registration_until.trim().to_owned(),
+                                limit_and_size: limit_and_size.trim().to_owned(),
                                 registration_button_link,
                             };
                             courses.push((exam, course));
