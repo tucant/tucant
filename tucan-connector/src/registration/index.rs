@@ -40,8 +40,26 @@ pub struct AnmeldungEntry {
 pub struct AnmeldungModule {
     id: String,
     name: String,
-    lecturer: String,
+    lecturer: Option<String>,
     date: String,
+    limit_and_size: String,
+    registration_button_link: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnmeldungExam {
+    name: String,
+    typ: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnmeldungCourse {
+    url: String,
+    id: String,
+    name: String,
+    lecturers: Option<String>,
+    begin_and_end: Option<String>,
+    registration_until: String,
     limit_and_size: String,
     registration_button_link: Option<String>,
 }
@@ -322,11 +340,15 @@ pub async fn anmeldung(
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
                         let module = AnmeldungModule {
-                            id: module_id,
+                            id: module_id.trim().to_owned(),
                             name: module_name,
-                            lecturer,
-                            date,
-                            limit_and_size,
+                            lecturer: if lecturer == "N.N." {
+                                None
+                            } else {
+                                Some(lecturer)
+                            },
+                            date: date.trim().to_owned(),
+                            limit_and_size: limit_and_size.trim().to_owned(),
                             registration_button_link,
                         };
                         (html_handler, Some(module))
@@ -348,7 +370,7 @@ pub async fn anmeldung(
                             != "logo column"
                     {
                         html_handler = {
-                            let html_handler = if !html_handler
+                            let (html_handler, exam) = if !html_handler
                                 .peek()
                                 .unwrap()
                                 .children()
@@ -367,11 +389,11 @@ pub async fn anmeldung(
                                         <td class="tbdata">
                                         exam_name
                                 );
-                                let html_handler = if (html_handler.peek().is_some()) {
+                                let (html_handler, exam_type) = if (html_handler.peek().is_some()) {
                                     html!(<br></br>exam_type);
-                                    html_handler
+                                    (html_handler, Some(exam_type))
                                 } else {
-                                    html_handler
+                                    (html_handler, None)
                                 };
                                 html!(
                             </td>_
@@ -382,9 +404,13 @@ pub async fn anmeldung(
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
-                                html_handler
+                                let exam = AnmeldungExam {
+                                    name: exam_name,
+                                    typ: exam_type,
+                                };
+                                (html_handler, Some(exam))
                             } else {
-                                html_handler
+                                (html_handler, None)
                             };
 
                             html!(
@@ -401,59 +427,75 @@ pub async fn anmeldung(
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>);
-                            let mut html_handler = if (html_handler.peek().is_some()) {
+                            let (mut html_handler, lecturers) = if (html_handler.peek().is_some()) {
                                 html!(lecturers</p>_<p>);
-                                html_handler
+                                (html_handler, Some(lecturers))
                             } else {
-                                html_handler
+                                (html_handler, None)
                             };
-                            let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(begin_and_end</p>_<p>);
-                                html_handler
-                            } else {
-                                html_handler
-                            };
-                            let mut html_handler = if (html_handler.peek().is_some()) {
-                                let (html_handler, location_or_additional_info) =
-                                    html_handler.next_any_child();
-                                html!(</p>_);
-                                html_handler
-                            } else {
-                                html!(</p>_);
-                                html_handler
-                            };
-                            // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
-                            let mut html_handler = if (html_handler.peek().is_some()) {
-                                html!(<p>);
-                                let mut html_handler = if (html_handler.peek().is_some()) {
-                                    html!(location);
-                                    html_handler
+                            let (mut html_handler, begin_and_end) =
+                                if (html_handler.peek().is_some()) {
+                                    html!(begin_and_end</p>_<p>);
+                                    (html_handler, Some(begin_and_end))
                                 } else {
-                                    html_handler
+                                    (html_handler, None)
                                 };
+                            let (mut html_handler, location_or_additional_info) =
+                                if (html_handler.peek().is_some()) {
+                                    let (html_handler, location_or_additional_info) =
+                                        html_handler.next_any_child();
+                                    html!(</p>_);
+                                    (html_handler, Some(location_or_additional_info))
+                                } else {
+                                    html!(</p>_);
+                                    (html_handler, None)
+                                };
+                            // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
+                            let (mut html_handler, location) = if (html_handler.peek().is_some()) {
+                                html!(<p>);
+                                let (mut html_handler, location) =
+                                    if (html_handler.peek().is_some()) {
+                                        html!(location);
+                                        (html_handler, Some(location))
+                                    } else {
+                                        (html_handler, None)
+                                    };
                                 html!(</p>_);
-                                html_handler
+                                (html_handler, location)
                             } else {
-                                html_handler
+                                (html_handler, None)
                             };
                             html!(
                                     </td>_
                                         <td class="tbdata">
-                                        date<br></br>limit_and_size
+                                        registration_until<br></br>limit_and_size
                                         </td>_
                                     <td class="tbdata rw-qbf">_
                             );
-                            let html_handler = if (html_handler.peek().is_some()) {
+                            let (html_handler, registration_button_link) = if (html_handler
+                                .peek()
+                                .is_some())
+                            {
                                 html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
-                                html_handler
+                                (html_handler, Some(registration_button_link))
                             } else {
-                                html_handler
+                                (html_handler, None)
                             };
                             html!(
                                     </td>_
                                     <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                                 </tr>_
                             );
+                            let course = AnmeldungCourse {
+                                url: course_url,
+                                id: course_id,
+                                name: course_name,
+                                lecturers,
+                                begin_and_end,
+                                registration_until,
+                                limit_and_size,
+                                registration_button_link,
+                            };
                             html_handler
                         };
                     }
