@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "tucan-connector",
     "html-extractor",
-    "html-extractor-proc-macro",
+    "html-extractor-proc-macro", "tucan-injector",
 ]
 
 [workspace.package]

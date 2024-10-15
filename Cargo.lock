@@ -1565,6 +1565,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "tucan-injector"
+version = "0.0.0"
+
+[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

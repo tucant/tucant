@@ -1,0 +1,10 @@
+[package]
+name = "tucan-injector"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true
