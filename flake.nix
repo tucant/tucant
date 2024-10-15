@@ -18,9 +18,9 @@
         in
         {
           devShells.default = pkgs.mkShell {
-            buildInputs = [ pkgs.bashInteractive pkgs.openssl pkgs.wasm-pack ];
+            buildInputs = [ pkgs.openssl ];
 
-            nativeBuildInputs = [ pkgs.pkg-config ];
+            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.trunk pkgs.nodejs ];
           };
         }
       );

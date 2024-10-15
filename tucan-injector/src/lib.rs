@@ -22,5 +22,6 @@ fn App() -> Html {
 
 #[wasm_bindgen(start)]
 pub fn run() {
+    // trunk serve --filehash false
     yew::Renderer::<App>::new().render();
 }
