@@ -21,7 +21,9 @@ fn App() -> Html {
 }
 
 #[wasm_bindgen(start)]
-pub fn run() {
-    // trunk serve --filehash false
+fn start() {
+    // cargo build --target=wasm32-unknown-unknown
+    // wasm-bindgen --out-dir=dist --target=web --omit-default-module-path ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
+    // npm run build
     yew::Renderer::<App>::new().render();
 }

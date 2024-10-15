@@ -10,8 +10,8 @@ export default defineConfig({
     build: {
         lib: {
             name: "tucan_injector",
-            entry: "./pkg/tucan_injector.js",
-            formats: ["iife"]
+            entry: "./dist/tucan_injector.js",
+            formats: ["es"]
         },
         minify: false
     }

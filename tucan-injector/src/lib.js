@@ -1,1 +1,0 @@
-document.head.appendChild(document.createElement('script')).src = 'http://localhost:8080/tucan-injector.js';

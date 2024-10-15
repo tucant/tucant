@@ -20,7 +20,7 @@
           devShells.default = pkgs.mkShell {
             buildInputs = [ pkgs.openssl ];
 
-            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.trunk pkgs.nodejs ];
+            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.trunk pkgs.nodejs pkgs.wasm-bindgen-cli ];
           };
         }
       );
