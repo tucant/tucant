@@ -12,7 +12,7 @@ use yew::{
     suspense::{self, Suspension, SuspensionResult},
 };
 
-async fn evil_stuff() -> AnmeldungResponse {
+async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
     let tucan = Tucan::new().await.unwrap();
 
     let window = web_sys::window().unwrap();
@@ -53,7 +53,7 @@ async fn evil_stuff() -> AnmeldungResponse {
             .unwrap(),
     };
 
-    let anmeldung_response = anmeldung(&tucan.client, &result, AnmeldungRequest::new())
+    let anmeldung_response = anmeldung(&tucan.client, &result, anmeldung_request)
         .await
         .unwrap();
 
@@ -62,14 +62,16 @@ async fn evil_stuff() -> AnmeldungResponse {
 }
 
 #[hook]
-fn use_anmeldung() -> SuspensionResult<AnmeldungResponse> {
-    let s = suspense::use_future(|| evil_stuff())?;
+fn use_anmeldung(anmeldung_request: &AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
+    let s = suspense::use_future(|| evil_stuff(anmeldung_request.clone()))?;
     Ok((*s).clone())
 }
 
 #[function_component(Content)]
 fn content() -> HtmlResult {
-    let data = use_anmeldung()?;
+    let anmeldung_request = use_state(|| AnmeldungRequest::new());
+
+    let data = use_anmeldung(&*anmeldung_request)?;
     Ok(html! {
         <>
             <h2 class="text-center">{"Submenus"}</h2>
