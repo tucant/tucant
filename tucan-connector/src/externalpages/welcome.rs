@@ -1,15 +1,13 @@
 use html_extractor::html;
-use reqwest::Client;
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
 use crate::{
     common::head::{footer, html_head, page_start, vv_something},
     html_handler::Root,
-    TucanError,
+    MyClient, TucanError,
 };
 
-pub async fn welcome(client: &ClientWithMiddleware) -> Result<(), TucanError> {
+pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")
     .send()
     .await?

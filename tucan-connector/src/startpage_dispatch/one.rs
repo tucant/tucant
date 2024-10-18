@@ -1,11 +1,9 @@
 use html_extractor::html;
-use reqwest::Client;
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
-use crate::{common::head::html_head_2, html_handler::Root, TucanError};
+use crate::{common::head::html_head_2, html_handler::Root, MyClient, TucanError};
 
-async fn startpage_dispatch_1(client: &ClientWithMiddleware) -> Result<(), TucanError> {
+async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
     let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")
                     .send()
                     .await?

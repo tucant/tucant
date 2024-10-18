@@ -1,13 +1,11 @@
 use html_extractor::html;
-use reqwest::Client;
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::{html, ElementRef, Html};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head, page_start, vv_something},
     html_handler::Root,
     login::LoginResponse,
-    TucanError,
+    MyClient, TucanError,
 };
 
 #[derive(Debug, Clone)]
@@ -66,7 +64,7 @@ pub struct AnmeldungCourse {
 }
 
 pub async fn anmeldung(
-    client: &ClientWithMiddleware,
+    client: &MyClient,
     login_response: &LoginResponse,
     args: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {

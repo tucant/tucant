@@ -1,12 +1,12 @@
 use html_extractor::html;
-use reqwest::Client;
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
-use crate::{common::head::html_head_2, html_handler::Root, login::LoginResponse, TucanError};
+use crate::{
+    common::head::html_head_2, html_handler::Root, login::LoginResponse, MyClient, TucanError,
+};
 
 pub async fn redirect_after_login(
-    client: &ClientWithMiddleware,
+    client: &MyClient,
     login_response: LoginResponse,
 ) -> Result<(), TucanError> {
     let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", login_response.id))

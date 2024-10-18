@@ -1,28 +1,26 @@
 use html_extractor::html;
-use reqwest::Client;
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::{html, Html};
 
 use crate::{
     common::head::{footer, html_head, html_head_2, logged_in_head, page_start, vv_something},
     html_handler::{self, Root},
     login::{self, LoginResponse},
-    TucanError,
+    MyClient, TucanError,
 };
 
 pub async fn after_login(
-    client: &ClientWithMiddleware,
+    client: &MyClient,
     login_response: LoginResponse,
 ) -> Result<(), TucanError> {
     let id = login_response.id;
-    /*let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id))
+    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
                 .send()
                 .await?
                 .error_for_status()?;
     println!("{response:#?}");
-    let content = response.text().await?;*/
-    let content = tokio::fs::read_to_string("input.html").await?;
+    let content = response.text().await?;
+    //let content = tokio::fs::read_to_string("input.html").await?;
     let document = Html::parse_document(&content);
     println!("{}", document.html());
     //tokio::fs::write("input.html", document.html()).await;

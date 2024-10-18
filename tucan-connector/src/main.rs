@@ -1,31 +1,22 @@
-pub mod common;
-pub mod externalpages;
-pub mod html_handler;
-pub mod login;
-pub mod mlsstart;
-pub mod registration;
-pub mod root;
-pub mod startpage_dispatch;
-
 use std::time::Duration;
 
-use common::head::{html_head, html_head_2};
 use data_encoding::HEXLOWER;
-use externalpages::studveranst::veranstaltungen;
 use html_extractor::html;
-use html_handler::Root;
-use login::{login, LoginResponse};
-use mlsstart::start_page::after_login;
 use regex::Regex;
-use registration::index::{anmeldung, AnmeldungRequest};
 use reqwest::{header::HeaderValue, Client};
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use scraper::Html;
+use tucan_connector::common::head::{html_head, html_head_2};
+use tucan_connector::externalpages::studveranst::veranstaltungen;
+use tucan_connector::html_handler::Root;
+use tucan_connector::login::{login, LoginResponse};
+use tucan_connector::mlsstart::start_page::after_login;
+use tucan_connector::registration::index::{anmeldung, AnmeldungRequest};
+use tucan_connector::{Tucan, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
-    tokio::runtime::Builder::new_multi_thread()
+    tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap()
@@ -34,91 +25,42 @@ fn main() -> Result<(), TucanError> {
 
 async fn async_main() -> Result<(), TucanError> {
     let tucan = Tucan::new().await?;
-    Ok(())
-}
 
-pub struct Tucan {
-    client: ClientWithMiddleware,
-}
+    let result = LoginResponse {
+        id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
+        cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
+    };
 
-#[derive(thiserror::Error, Debug)]
-pub enum TucanError {
-    #[error("HTTP error {0:?}")]
-    Http(#[from] reqwest::Error),
-    #[error("HTTP middleware error {0:?}")]
-    HttpMiddleware(#[from] reqwest_middleware::Error),
-    #[error("IO error {0:?}")]
-    Io(#[from] std::io::Error),
-    #[error("Tucan session timeout")]
-    Timeout,
-}
+    let mut progress = 1;
 
-// TODO write small program that converts html to this format? so this is even easier
+    let anmeldung_response = anmeldung(&tucan.client, &result, AnmeldungRequest::new()).await?;
 
-impl Tucan {
-    pub async fn new() -> Result<Self, TucanError> {
-        let retry_policy = ExponentialBackoff::builder()
-            .build_with_total_retry_duration_and_max_retries(Duration::from_secs(90));
-        let client = ClientBuilder::new(
-            reqwest::Client::builder()
-                .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
-                .build()
-                .unwrap(),
-        )
-        // Retry failed requests.
-        .with(RetryTransientMiddleware::new_with_policy(retry_policy))
-        .build();
-
-        /*        let username = std::env::var("USERNAME").unwrap();
-                let password = std::env::var("PASSWORD").unwrap();
-
-                let result = login(&client, username.as_str(), password.as_str()).await?;
-                println!("{:?}", result);
-        */
-
-        let result = LoginResponse {
-            id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
-            cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
-        };
-
-        // TODO FIXME retry on
-        // Error: Http(reqwest::Error { kind: Decode, source: hyper::Error(Body, Os { code: 104, kind: ConnectionReset, message: "Connection reset by peer" }) })
-
-        let mut progress = 1;
-
-        let anmeldung_response = anmeldung(&client, &result, AnmeldungRequest::new()).await?;
-
+    println!("{progress} {anmeldung_response:#?}");
+    for entry in &anmeldung_response.submenus {
+        let anmeldung_response = anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
+        progress += 1;
         println!("{progress} {anmeldung_response:#?}");
-        for entry in &anmeldung_response.submenus {
-            let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
+
+        for entry in anmeldung_response.submenus {
+            let anmeldung_response = anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
             progress += 1;
             println!("{progress} {anmeldung_response:#?}");
 
             for entry in anmeldung_response.submenus {
-                let anmeldung_response = anmeldung(&client, &result, entry.1.to_owned()).await?;
+                let anmeldung_response =
+                    anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
                 progress += 1;
                 println!("{progress} {anmeldung_response:#?}");
 
                 for entry in anmeldung_response.submenus {
                     let anmeldung_response =
-                        anmeldung(&client, &result, entry.1.to_owned()).await?;
+                        anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
                     progress += 1;
                     println!("{progress} {anmeldung_response:#?}");
-
-                    for entry in anmeldung_response.submenus {
-                        let anmeldung_response =
-                            anmeldung(&client, &result, entry.1.to_owned()).await?;
-                        progress += 1;
-                        println!("{progress} {anmeldung_response:#?}");
-                    }
                 }
             }
         }
-
-        // 281
-
-        // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N145497569815170,-N000311,-N391343674191079,-N0,-N383963762024372,-N346654580556776
-
-        Ok(Self { client })
     }
+
+    Ok(())
 }

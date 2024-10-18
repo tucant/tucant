@@ -1,9 +1,8 @@
 use regex::Regex;
 use reqwest::{header::HeaderValue, Client};
-use reqwest_middleware::ClientWithMiddleware;
 use scraper::Html;
 
-use crate::TucanError;
+use crate::{MyClient, TucanError};
 
 #[derive(Debug)]
 pub struct LoginResponse {
@@ -12,7 +11,7 @@ pub struct LoginResponse {
 }
 
 pub async fn login(
-    client: &ClientWithMiddleware,
+    client: &MyClient,
     username: &str,
     password: &str,
 ) -> Result<LoginResponse, TucanError> {
