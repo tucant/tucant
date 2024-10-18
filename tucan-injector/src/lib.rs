@@ -77,7 +77,7 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.into_iter().map(|entry| {
-                        html!{<li class="list-group-item">{ format!("{}", entry.0) }</li>}
+                        html!{<a href={entry.1.arguments} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
                     }).collect::<Html>()
                 }
             </ul>
