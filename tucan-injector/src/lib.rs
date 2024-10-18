@@ -80,7 +80,22 @@ fn content(props: &ContentProps) -> HtmlResult {
     let data = use_anmeldung(props.anmeldung_request.clone())?;
     Ok(html! {
         <>
-            {format!("{:?}", props.anmeldung_request)}
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    {
+                        data.path.into_iter().map(|entry| {
+                            let anmeldung_request_cb = Callback::from({
+                                let anmeldung_request_state = props.anmeldung_request_setter.clone();
+                                let entry_link = Rc::new(entry.1.clone());
+                                move |event| {
+                                    anmeldung_request_state.set((&*entry_link).clone());
+                                }
+                            });
+                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                        }).collect::<Html>()
+                    }
+                </ol>
+            </nav>
 
             <h2 class="text-center">{"Submenus"}</h2>
 
