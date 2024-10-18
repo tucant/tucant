@@ -67,26 +67,32 @@ fn use_anmeldung(anmeldung_request: &AnmeldungRequest) -> SuspensionResult<Anmel
     Ok((*s).clone())
 }
 
-#[function_component(Content)]
-fn content() -> HtmlResult {
-    let anmeldung_request = use_state(|| AnmeldungRequest::new());
+#[derive(Properties, PartialEq)]
+pub struct ContentProps {
+    anmeldung_request: AnmeldungRequest,
+    anmeldung_request_setter: UseStateSetter<AnmeldungRequest>,
+}
 
-    let data = use_anmeldung(&*anmeldung_request)?;
+#[function_component(Content)]
+fn content(props: &ContentProps) -> HtmlResult {
+    let data = use_anmeldung(&props.anmeldung_request)?;
     Ok(html! {
         <>
+            {format!("{:?}", props.anmeldung_request)}
+
             <h2 class="text-center">{"Submenus"}</h2>
 
             <ul class="list-group">
                 {
                     data.submenus.into_iter().map(|entry| {
                         let anmeldung_request_cb = Callback::from({
-                            let anmeldung_request_state = anmeldung_request.clone();
+                            let anmeldung_request_state = props.anmeldung_request_setter.clone();
                             let entry_link = Rc::new(entry.1.clone());
                             move |event| {
                                 anmeldung_request_state.set((&*entry_link).clone());
                             }
                         });
-                        html!{<a onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
+                        html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -107,6 +113,8 @@ fn content() -> HtmlResult {
 
 #[function_component]
 fn App() -> HtmlResult {
+    let anmeldung_request: UseStateHandle<AnmeldungRequest> = use_state(|| AnmeldungRequest::new());
+
     let fallback = html! {
         <>
             <h2 class="text-center">{"Submenus"}</h2>
@@ -139,7 +147,7 @@ fn App() -> HtmlResult {
                 <h2 class="text-center">{"Registration"}</h2>
 
                 <Suspense {fallback}>
-                    <Content />
+                    <Content anmeldung_request={(&*anmeldung_request).clone()} anmeldung_request_setter={anmeldung_request.setter()} />
                 </Suspense>
             </div>
         </>

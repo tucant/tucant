@@ -8,7 +8,7 @@ use crate::{
     MyClient, TucanError,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AnmeldungRequest {
     pub arguments: String,
 }
