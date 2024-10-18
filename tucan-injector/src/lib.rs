@@ -1,16 +1,18 @@
+use std::{ops::Deref, rc::Rc};
+
 use log::info;
 use tucan_connector::{
     login::LoginResponse,
-    registration::index::{anmeldung, AnmeldungRequest},
+    registration::index::{anmeldung, AnmeldungRequest, AnmeldungResponse},
     Tucan,
 };
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast as _};
 use yew::{
     prelude::*,
-    suspense::{Suspension, SuspensionResult},
+    suspense::{self, Suspension, SuspensionResult},
 };
 
-async fn evil_stuff() {
+async fn evil_stuff() -> AnmeldungResponse {
     let tucan = Tucan::new().await.unwrap();
 
     let window = web_sys::window().unwrap();
@@ -56,27 +58,38 @@ async fn evil_stuff() {
         .unwrap();
 
     info!("{:?}", anmeldung_response);
+    anmeldung_response
+}
+
+#[hook]
+fn use_anmeldung() -> SuspensionResult<AnmeldungResponse> {
+    let s = suspense::use_future(|| evil_stuff())?;
+    Ok((*s).clone())
+}
+
+#[function_component(Content)]
+fn content() -> HtmlResult {
+    let data = use_anmeldung()?;
+    Ok(html! {
+        <div>
+            {
+                data.submenus.into_iter().map(|entry| {
+                    html!{<div>{ format!("Module {}", entry.0) }</div>}
+                }).collect::<Html>()
+            }
+        </div>
+    })
 }
 
 #[function_component]
-fn App() -> Html {
-    let data = Suspension::from_future(evil_stuff());
-    let counter = use_state(|| 3);
-    let onclick = {
-        let counter = counter.clone();
-        move |_| {
-            let value = *counter + 1;
-            counter.set(value);
-        }
-    };
+fn App() -> HtmlResult {
+    let fallback = html! {<div>{"Loading..."}</div>};
 
-    html! {
-        <div>
-            <button {onclick}>{ "+1" }</button>
-            <p>{ *counter }</p>
-            {data}
-        </div>
-    }
+    Ok(html! {
+        <Suspense {fallback}>
+            <Content />
+        </Suspense>
+    })
 }
 
 #[wasm_bindgen(start)]

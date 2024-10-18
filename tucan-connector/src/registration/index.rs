@@ -31,18 +31,18 @@ pub struct AnmeldungResponse {
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungEntry {
-    module: Option<AnmeldungModule>,
-    courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)>,
+    pub module: Option<AnmeldungModule>,
+    pub courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)>,
 }
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungModule {
-    id: String,
-    name: String,
-    lecturer: Option<String>,
-    date: String,
-    limit_and_size: String,
-    registration_button_link: Option<String>,
+    pub id: String,
+    pub name: String,
+    pub lecturer: Option<String>,
+    pub date: String,
+    pub limit_and_size: String,
+    pub registration_button_link: Option<String>,
 }
 
 #[derive(Debug, Clone)]
