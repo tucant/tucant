@@ -134,7 +134,7 @@ pub async fn anmeldung(
                                         <input name="APPNAME" type="hidden" value="CampusNet"></input>_
                                         <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
                                         <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                                        <input name="sessionno" type="hidden" value={&id.to_string()}></input>_
+                                        <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
                                         <input name="menuno" type="hidden" value="000311"></input>_
                                         <input name="pa rent1" type="hidden" value="000000000000000"></input>_
                                         <input name="parent2" type="hidden" value="000000000000000"></input>_

@@ -1,3 +1,4 @@
+use log::info;
 use tucan_connector::{
     login::LoginResponse,
     registration::index::{anmeldung, AnmeldungRequest},
@@ -54,7 +55,7 @@ async fn evil_stuff() {
         .await
         .unwrap();
 
-    println!("{:?}", anmeldung_response);
+    info!("{:?}", anmeldung_response);
 }
 
 #[function_component]
@@ -80,6 +81,8 @@ fn App() -> Html {
 
 #[wasm_bindgen(start)]
 fn start() {
+    console_log::init().unwrap();
+
     // cargo build --target=wasm32-unknown-unknown
     // wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
     // npm run build
