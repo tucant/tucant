@@ -79,7 +79,14 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.into_iter().map(|entry| {
-                        html!{<a href={entry.1.arguments} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
+                        let anmeldung_request_cb = Callback::from({
+                            let anmeldung_request_state = anmeldung_request.clone();
+                            let entry_link = Rc::new(entry.1.clone());
+                            move |event| {
+                                anmeldung_request_state.set((&*entry_link).clone());
+                            }
+                        });
+                        html!{<a onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
                     }).collect::<Html>()
                 }
             </ul>
