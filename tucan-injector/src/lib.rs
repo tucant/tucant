@@ -71,19 +71,52 @@ fn use_anmeldung() -> SuspensionResult<AnmeldungResponse> {
 fn content() -> HtmlResult {
     let data = use_anmeldung()?;
     Ok(html! {
-        <ul class="list-group">
-            {
-                data.submenus.into_iter().map(|entry| {
-                    html!{<li class="list-group-item">{ format!("{}", entry.0) }</li>}
-                }).collect::<Html>()
-            }
-        </ul>
+        <>
+            <h2 class="text-center">{"Submenus"}</h2>
+
+            <ul class="list-group">
+                {
+                    data.submenus.into_iter().map(|entry| {
+                        html!{<li class="list-group-item">{ format!("{}", entry.0) }</li>}
+                    }).collect::<Html>()
+                }
+            </ul>
+
+            <h2 class="text-center">{"Modules and courses"}</h2>
+
+            <ul class="list-group">
+                {
+                    data.entries.into_iter().map(|entry| {
+                        html!{<li class="list-group-item">{ format!("{}", entry.module.map(|module| module.name).unwrap_or_default()) }</li>}
+                    }).collect::<Html>()
+                }
+            </ul>
+
+        </>
     })
 }
 
 #[function_component]
 fn App() -> HtmlResult {
-    let fallback = html! {<div>{"Loading..."}</div>};
+    let fallback = html! {
+        <>
+            <h2 class="text-center">{"Submenus"}</h2>
+
+            <ul class="list-group">
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+            </ul>
+
+            <h2 class="text-center">{"Modules and courses"}</h2>
+
+            <ul class="list-group">
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
+            </ul>
+        </>
+    };
 
     Ok(html! {
         <>
@@ -93,9 +126,13 @@ fn App() -> HtmlResult {
             <script>
                 {include_str!("./bootstrap.bundle.min.js")}
             </script>
-            <Suspense {fallback}>
-                <Content />
-            </Suspense>
+            <div class="container">
+                <h2 class="text-center">{"Registration"}</h2>
+
+                <Suspense {fallback}>
+                    <Content />
+                </Suspense>
+            </div>
         </>
     })
 }
