@@ -3,7 +3,7 @@ use tucan_connector::{
     registration::index::{anmeldung, AnmeldungRequest},
     Tucan,
 };
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{prelude::wasm_bindgen, JsCast as _};
 use yew::{
     prelude::*,
     suspense::{Suspension, SuspensionResult},
@@ -12,9 +12,42 @@ use yew::{
 async fn evil_stuff() {
     let tucan = Tucan::new().await.unwrap();
 
+    let window = web_sys::window().unwrap();
+    let document = window.document().unwrap();
+    let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+    let cookie = html_document.cookie().unwrap();
+
     let result = LoginResponse {
-        id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
-        cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
+        id: url::Url::parse(&window.location().href().unwrap())
+            .unwrap()
+            .query_pairs()
+            .find_map(|param| {
+                if param.0 == "ARGUMENTS" {
+                    Some(
+                        param
+                            .1
+                            .split_once(",")
+                            .unwrap()
+                            .0
+                            .trim_start_matches("-N")
+                            .parse()
+                            .unwrap(),
+                    )
+                } else {
+                    None
+                }
+            })
+            .unwrap(),
+        cookie_cnsc: cookie::Cookie::split_parse(cookie)
+            .find_map(|cookie| {
+                let cookie = cookie.unwrap();
+                if cookie.name() == "cnsc" {
+                    Some(cookie.value().to_string())
+                } else {
+                    None
+                }
+            })
+            .unwrap(),
     };
 
     let anmeldung_response = anmeldung(&tucan.client, &result, AnmeldungRequest::new())
