@@ -149,6 +149,12 @@ pub async fn anmeldung(
             <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
     );
     let mut path: Vec<(String, AnmeldungRequest)> = Vec::new();
+    path.push((
+        "M.Sc. Informatik (2023)".to_owned(),
+        AnmeldungRequest {
+            arguments: ",-N000311,-N391343674191079,-N0,-N0,-N0".to_owned(),
+        },
+    ));
     let mut html_handler = html_handler;
     while !html_handler
         .peek()

@@ -134,6 +134,12 @@ fn App() -> HtmlResult {
 
     let fallback = html! {
         <>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a><span class="placeholder w-100"></span></a></li>
+                </ol>
+            </nav>
+
             <h2 class="text-center">{"Submenus"}</h2>
 
             <ul class="list-group">
