@@ -62,8 +62,10 @@ async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
 }
 
 #[hook]
-fn use_anmeldung(anmeldung_request: &AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
-    let s = suspense::use_future(|| evil_stuff(anmeldung_request.clone()))?;
+fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
+    let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
+        evil_stuff((&*anmeldung_request).clone())
+    })?;
     Ok((*s).clone())
 }
 
@@ -75,7 +77,7 @@ pub struct ContentProps {
 
 #[function_component(Content)]
 fn content(props: &ContentProps) -> HtmlResult {
-    let data = use_anmeldung(&props.anmeldung_request)?;
+    let data = use_anmeldung(props.anmeldung_request.clone())?;
     Ok(html! {
         <>
             {format!("{:?}", props.anmeldung_request)}
