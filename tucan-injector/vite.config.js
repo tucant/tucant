@@ -8,11 +8,13 @@ export default defineConfig({
         topLevelAwait()
     ],
     build: {
+        target: "esnext",
         lib: {
             name: "tucan_injector",
-            entry: "./dist/tucan_injector.js",
+            entry: "./src/main.js",
             formats: ["es"]
         },
-        minify: false
+        assetsInlineLimit: (filePath, content) => true,
+        minify: false,
     }
 });
