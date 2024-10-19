@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use log::info;
+use serde::{Deserialize, Serialize};
 use tucan_connector::{
     login::LoginResponse,
     registration::index::{anmeldung, AnmeldungRequest, AnmeldungResponse},
@@ -15,7 +16,10 @@ use yew::{
     prelude::*,
     suspense::{self, SuspensionResult},
 };
-use yew_router::{BrowserRouter, Routable, Switch};
+use yew_router::{
+    hooks::{use_location, use_navigator, use_route},
+    BrowserRouter, Routable, Switch,
+};
 
 async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
     let tucan = Tucan::new().await.unwrap();
@@ -75,14 +79,15 @@ fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<Anmeld
 }
 
 #[derive(Properties, PartialEq)]
-pub struct ContentProps {
+pub struct AnmeldungRequestProps {
     anmeldung_request: AnmeldungRequest,
-    anmeldung_request_setter: UseStateSetter<AnmeldungRequest>,
 }
 
 #[function_component(Content)]
-fn content(props: &ContentProps) -> HtmlResult {
+fn content(props: &AnmeldungRequestProps) -> HtmlResult {
+    let navigator = use_navigator().unwrap();
     let data = use_anmeldung(props.anmeldung_request.clone())?;
+
     Ok(html! {
         <>
             <nav aria-label="breadcrumb">
@@ -90,10 +95,11 @@ fn content(props: &ContentProps) -> HtmlResult {
                     {
                         data.path.into_iter().map(|entry| {
                             let anmeldung_request_cb = Callback::from({
-                                let anmeldung_request_state = props.anmeldung_request_setter.clone();
+                                let navigator = navigator.clone();
                                 let entry_link = Rc::new(entry.1.clone());
                                 move |_event| {
-                                    anmeldung_request_state.set((*entry_link).clone());
+                                    // TODO add id
+                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() });
                                 }
                             });
                             html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
@@ -108,10 +114,11 @@ fn content(props: &ContentProps) -> HtmlResult {
                 {
                     data.submenus.into_iter().map(|entry| {
                         let anmeldung_request_cb = Callback::from({
-                            let anmeldung_request_state = props.anmeldung_request_setter.clone();
+                            let navigator = navigator.clone();
                             let entry_link = Rc::new(entry.1.clone());
                             move |_event| {
-                                anmeldung_request_state.set((*entry_link).clone());
+                                // TODO add id
+                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() });
                             }
                         });
                         html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
@@ -142,17 +149,44 @@ enum Route {
     NotFound,
 }
 
+#[function_component]
+fn switch_inner() -> HtmlResult {
+    let location = use_location().unwrap();
+    let test: URLFormat = location.query::<URLFormat>().unwrap();
+    match test.PRGNAME.as_str() {
+        "REGISTRATION" => {
+            let anmeldung_request = AnmeldungRequest {
+                arguments: test
+                    .ARGUMENTS
+                    .split_once(',')
+                    .unwrap()
+                    .0
+                    .trim_start_matches("-N")
+                    .parse()
+                    .unwrap(),
+            };
+            Ok(html! { <Registration {anmeldung_request} /> })
+        }
+        _ => Ok(html! { <div>{"unknown"}</div> }),
+    }
+}
+
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home => html! { <Registration /> },
+        Route::Home => html! { <switch_inner /> },
         Route::NotFound => html! { <div>{"404"}</div> },
     }
 }
 
-#[function_component(Registration)]
-fn registration() -> HtmlResult {
-    let anmeldung_request: UseStateHandle<AnmeldungRequest> = use_state(AnmeldungRequest::new);
+#[derive(Serialize, Deserialize)]
+struct URLFormat {
+    APPNAME: String,
+    PRGNAME: String,
+    ARGUMENTS: String,
+}
 
+#[function_component(Registration)]
+fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
     let fallback = html! {
         <>
             <nav aria-label="breadcrumb">
@@ -193,7 +227,7 @@ fn registration() -> HtmlResult {
                 <h2 class="text-center">{"Registration"}</h2>
 
                 <Suspense {fallback}>
-                    <Content anmeldung_request={(*anmeldung_request).clone()} anmeldung_request_setter={anmeldung_request.setter()} />
+                    <Content anmeldung_request={(props.anmeldung_request).clone()} />
                 </Suspense>
             </div>
         </>
