@@ -15,6 +15,7 @@ use yew::{
     prelude::*,
     suspense::{self, SuspensionResult},
 };
+use yew_router::{BrowserRouter, Routable, Switch};
 
 async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
     let tucan = Tucan::new().await.unwrap();
@@ -132,8 +133,20 @@ fn content(props: &ContentProps) -> HtmlResult {
     })
 }
 
-#[function_component]
-fn App() -> HtmlResult {
+#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+enum Route {
+    #[at("/scripts/mgrqispi.dll")]
+    Home,
+}
+
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Home => html! { <Registration /> },
+    }
+}
+
+#[function_component(Registration)]
+fn registration() -> HtmlResult {
     let anmeldung_request: UseStateHandle<AnmeldungRequest> = use_state(AnmeldungRequest::new);
 
     let fallback = html! {
@@ -180,6 +193,15 @@ fn App() -> HtmlResult {
                 </Suspense>
             </div>
         </>
+    })
+}
+
+#[function_component(App)]
+fn app() -> HtmlResult {
+    Ok(html! {
+        <BrowserRouter>
+            <Switch<Route> render={switch} />
+        </BrowserRouter>
     })
 }
 
