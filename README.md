@@ -13,6 +13,6 @@ bacon
 // @author       You
 // @match        https://www.tucan.tu-darmstadt.de/*
 // @grant        none
-// @require      file:///home/moritz/Documents/tucant/tucan-injector/dist/tucan-injector.js
+// @require      file:///you/path/to/tucant/checkout/tucan-injector/dist/tucan-injector.js
 // ==/UserScript==
 ```
