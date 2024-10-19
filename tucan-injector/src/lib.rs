@@ -137,11 +137,15 @@ fn content(props: &ContentProps) -> HtmlResult {
 enum Route {
     #[at("/scripts/mgrqispi.dll")]
     Home,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
 fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Registration /> },
+        Route::NotFound => html! { <div>{"404"}</div> },
     }
 }
 
