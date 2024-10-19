@@ -18,7 +18,12 @@ Add a Tampermonkey script with the following content:
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.tucan.tu-darmstadt.de/*
-// @grant        none
-// @require      http://localhost:8000/tucan-injector.js
+// @run-at       document-start
+// @grant        GM_addElement
 // ==/UserScript==
+
+GM_addElement('script', {
+    src: 'http://localhost:8000/tucan-injector.js',
+    type: 'text/javascript'
+});
 ```
