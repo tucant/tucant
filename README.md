@@ -1,6 +1,14 @@
 ```
-bacon go
+nix develop
+cd tucan-injector
+bacon
+
+cd tucan-injector/dist
+python -m http.server
 ```
+
+Install Tampermonkey.
+Add a Tampermonkey script with the following content:
 
 ```
 // ==UserScript==
@@ -10,7 +18,12 @@ bacon go
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.tucan.tu-darmstadt.de/*
-// @grant        none
-// @require      file:///home/moritz/Documents/tucant/tucan-injector/dist/tucan-injector.js
+// @run-at       document-start
+// @grant        GM_addElement
 // ==/UserScript==
+
+GM_addElement('script', {
+    src: 'http://localhost:8000/tucan-injector.js',
+    type: 'text/javascript'
+});
 ```
