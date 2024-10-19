@@ -18,6 +18,7 @@ pub struct AfterDoctype;
 pub struct InRoot<'a, OuterState, RootSubState> {
     node: NodeRef<'a, Node>,
     children: Children<'a, Node>,
+    #[allow(unused)]
     sub_state: RootSubState,
     outer_state: OuterState,
 }
@@ -61,7 +62,7 @@ impl<'a> Root<'a> {
 impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
     pub fn doctype(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
         let child_node = self.children.next().unwrap();
-        let Some(child_element) = child_node.value().as_doctype() else {
+        let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
         };
         InRoot {
@@ -144,10 +145,8 @@ impl<'a, OuterState> Open<'a, OuterState> {
 
     #[track_caller]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
-        let element = self.element.value().as_element().unwrap();
+        let _element = self.element.value().as_element().unwrap();
         assert_eq!(self.attrs.next(), None, "unexpected attribute");
-        // .next_sibling_element().unwrap(),
-        // .first_element_child().unwrap()
         InElement {
             element: self.element,
             children: self.element.children().peekable(),
@@ -250,7 +249,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
-        let element = self.element.value().as_element().expect("expected element");
+        let _element = self.element.value().as_element().expect("expected element");
         let child_node = self.children.next().expect("expected one more child");
         let Some(child_element) = child_node.value().as_element() else {
             panic!("unexpected element {:?}", child_node.value())

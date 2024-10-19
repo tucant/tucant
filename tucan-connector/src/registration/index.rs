@@ -92,6 +92,7 @@ pub async fn anmeldung(
             </head>_
         <body class="timeout">
         );
+        let _html_handler = html_handler;
         return Err(TucanError::Timeout);
     }
     html!(
@@ -231,7 +232,7 @@ pub async fn anmeldung(
         (html_handler, child) = html_handler.next_any_child();
         match child.value() {
             scraper::Node::Text(text) => assert!(text.trim().is_empty()),
-            scraper::Node::Element(element) => {
+            scraper::Node::Element(_element) => {
                 additional_information.push(ElementRef::wrap(child).unwrap().html())
             }
             _ => panic!(),
@@ -526,8 +527,7 @@ pub async fn anmeldung(
             </div>_
         </div>_
     );
-    let html_handler = footer(html_handler, id, 311);
-    // TODO FIXME parse rest of page
+    let _html_handler = footer(html_handler, id, 311);
     Ok(AnmeldungResponse {
         path,
         entries,

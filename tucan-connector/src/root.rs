@@ -52,5 +52,6 @@ pub async fn root(client: &MyClient) -> Result<(), TucanError> {
         </body>
         </html>
     );
+    let _html_handler = html_handler;
     Ok(())
 }

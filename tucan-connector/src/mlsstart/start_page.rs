@@ -101,6 +101,6 @@ pub async fn after_login(
     </div>_
     </div>_
         );
-    let html_handler = footer(html_handler, id, 311);
+    let _html_handler = footer(html_handler, id, 311);
     Ok(())
 }

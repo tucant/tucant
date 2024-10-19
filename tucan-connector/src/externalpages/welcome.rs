@@ -155,6 +155,6 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                 </div>_
                 </div>_
     );
-    let html_handler = footer(html_handler, 1, 19);
+    let _html_handler = footer(html_handler, 1, 19);
     Ok(())
 }

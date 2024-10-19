@@ -12,7 +12,6 @@ pub async fn veranstaltungen(
     client: &MyClient,
     login_response: LoginResponse,
 ) -> Result<(), TucanError> {
-    let id = login_response.id;
     let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
                 .send()
@@ -84,5 +83,6 @@ pub async fn veranstaltungen(
         </ul><p></p>_
         <p style="line-height: 140%;">"FAQ zu Problemen bei der Anmeldung finden Sie " <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp" target="_blank">"hier"</a>". Bei  weiteren Fragen hilft Ihnen " <a href="https://www.tu-darmstadt.de/studienbueros" target="_blank">"Ihr Studienbüro"</a>"."</p>
         );
+    let _html_handler = html_handler;
     Ok(())
 }

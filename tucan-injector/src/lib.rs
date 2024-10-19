@@ -87,7 +87,7 @@ fn content(props: &ContentProps) -> HtmlResult {
                             let anmeldung_request_cb = Callback::from({
                                 let anmeldung_request_state = props.anmeldung_request_setter.clone();
                                 let entry_link = Rc::new(entry.1.clone());
-                                move |event| {
+                                move |_event| {
                                     anmeldung_request_state.set((*entry_link).clone());
                                 }
                             });
@@ -105,7 +105,7 @@ fn content(props: &ContentProps) -> HtmlResult {
                         let anmeldung_request_cb = Callback::from({
                             let anmeldung_request_state = props.anmeldung_request_setter.clone();
                             let entry_link = Rc::new(entry.1.clone());
-                            move |event| {
+                            move |_event| {
                                 anmeldung_request_state.set((*entry_link).clone());
                             }
                         });

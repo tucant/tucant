@@ -9,7 +9,7 @@ default_job = "check"
 
 [jobs.go]
 command = ["./run.sh"]
-need_stdout = true
+need_stdout = false
 
 [jobs.check]
 command = ["cargo", "check", "--color", "always"]
