@@ -1,5 +1,5 @@
 use regex::Regex;
-use reqwest::{header::HeaderValue, Client};
+use reqwest::header::HeaderValue;
 use scraper::Html;
 
 use crate::{MyClient, TucanError};
@@ -89,7 +89,7 @@ pub async fn login(
     let id = &next_url_regex.captures(next_url).unwrap()["id"];
     assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
     let content = response.text().await?;
-    let document = Html::parse_document(&content);
+    let _document = Html::parse_document(&content);
     Ok(LoginResponse {
         id: id.parse().unwrap(),
         cookie_cnsc: cookie_cnsc.to_owned(),

@@ -1,8 +1,8 @@
 use html_extractor::html;
-use scraper::{html, ElementRef, Html};
+use scraper::{ElementRef, Html};
 
 use crate::{
-    common::head::{footer, html_head, logged_in_head, page_start, vv_something},
+    common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
     MyClient, TucanError,
@@ -47,20 +47,20 @@ pub struct AnmeldungModule {
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungExam {
-    name: String,
-    typ: Option<String>,
+    pub name: String,
+    pub typ: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungCourse {
-    url: String,
-    id: String,
-    name: String,
-    lecturers: Option<String>,
-    begin_and_end: Option<String>,
-    registration_until: String,
-    limit_and_size: String,
-    registration_button_link: Option<String>,
+    pub url: String,
+    pub id: String,
+    pub name: String,
+    pub lecturers: Option<String>,
+    pub begin_and_end: Option<String>,
+    pub registration_until: String,
+    pub limit_and_size: String,
+    pub registration_button_link: Option<String>,
 }
 
 pub async fn anmeldung(
@@ -79,7 +79,6 @@ pub async fn anmeldung(
         .error_for_status()?;
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    //println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -89,7 +88,6 @@ pub async fn anmeldung(
     );
     let mut html_handler = html_head(html_handler);
     if html_handler.peek().is_none() {
-        // timeout?
         html!(
             </head>_
         <body class="timeout">
@@ -255,7 +253,7 @@ pub async fn anmeldung(
 
             <tr>_
         );
-        let html_handler = if (html_handler
+        let html_handler = if html_handler
             .peek()
             .unwrap()
             .value()
@@ -263,7 +261,7 @@ pub async fn anmeldung(
             .unwrap()
             .attr("class")
             .unwrap()
-            == "tbdata")
+            == "tbdata"
         {
             html!(
                 <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
@@ -325,9 +323,9 @@ pub async fn anmeldung(
 
                         );
 
-                        let (html_handler, registration_button_link) = if (html_handler
+                        let (html_handler, registration_button_link) = if html_handler
                             .peek()
-                            .is_some())
+                            .is_some()
                         {
                             html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
                             (html_handler, Some(registration_button_link))
@@ -395,7 +393,7 @@ pub async fn anmeldung(
                                         <td class="tbdata">
                                         exam_name
                                 );
-                                let (html_handler, exam_type) = if (html_handler.peek().is_some()) {
+                                let (html_handler, exam_type) = if html_handler.peek().is_some() {
                                     html!(<br></br>exam_type);
                                     (html_handler, Some(exam_type.trim().to_owned()))
                                 } else {
@@ -433,21 +431,21 @@ pub async fn anmeldung(
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>);
-                            let (mut html_handler, lecturers) = if (html_handler.peek().is_some()) {
+                            let (mut html_handler, lecturers) = if html_handler.peek().is_some() {
                                 html!(lecturers</p>_<p>);
                                 (html_handler, Some(lecturers))
                             } else {
                                 (html_handler, None)
                             };
-                            let (mut html_handler, begin_and_end) =
-                                if (html_handler.peek().is_some()) {
-                                    html!(begin_and_end</p>_<p>);
-                                    (html_handler, Some(begin_and_end))
-                                } else {
-                                    (html_handler, None)
-                                };
+                            let (mut html_handler, begin_and_end) = if html_handler.peek().is_some()
+                            {
+                                html!(begin_and_end</p>_<p>);
+                                (html_handler, Some(begin_and_end))
+                            } else {
+                                (html_handler, None)
+                            };
                             let (mut html_handler, location_or_additional_info) =
-                                if (html_handler.peek().is_some()) {
+                                if html_handler.peek().is_some() {
                                     let (html_handler, location_or_additional_info) =
                                         html_handler.next_any_child();
                                     html!(</p>_);
@@ -457,15 +455,14 @@ pub async fn anmeldung(
                                     (html_handler, None)
                                 };
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
-                            let (mut html_handler, location) = if (html_handler.peek().is_some()) {
+                            let (html_handler, location) = if html_handler.peek().is_some() {
                                 html!(<p>);
-                                let (mut html_handler, location) =
-                                    if (html_handler.peek().is_some()) {
-                                        html!(location);
-                                        (html_handler, Some(location))
-                                    } else {
-                                        (html_handler, None)
-                                    };
+                                let (html_handler, location) = if html_handler.peek().is_some() {
+                                    html!(location);
+                                    (html_handler, Some(location))
+                                } else {
+                                    (html_handler, None)
+                                };
                                 html!(</p>_);
                                 (html_handler, location)
                             } else {
@@ -478,9 +475,9 @@ pub async fn anmeldung(
                                         </td>_
                                     <td class="tbdata rw-qbf">_
                             );
-                            let (html_handler, registration_button_link) = if (html_handler
+                            let (html_handler, registration_button_link) = if html_handler
                                 .peek()
-                                .is_some())
+                                .is_some()
                             {
                                 html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
                                 (html_handler, Some(registration_button_link))

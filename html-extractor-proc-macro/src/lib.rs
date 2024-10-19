@@ -1,15 +1,14 @@
 use itertools::Itertools;
-use proc_macro::TokenTree;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned};
 use syn::{
     braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
-    parse2, parse_macro_input,
+    parse_macro_input,
     punctuated::Punctuated,
     spanned::Spanned,
     token::Brace,
-    DeriveInput, Expr, Ident, LitStr, Token,
+    Expr, Ident, LitStr, Token,
 };
 
 #[derive(Debug)]
@@ -61,18 +60,6 @@ impl Parse for HtmlCommand {
     }
 }
 
-struct HtmlText {
-    text: LitStr,
-}
-
-impl Parse for HtmlText {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            text: input.parse()?,
-        })
-    }
-}
-
 #[derive(Debug)]
 struct HtmlWhitespace {
     underscore: Token![_],
@@ -88,26 +75,17 @@ impl Parse for HtmlWhitespace {
 
 #[derive(Debug)]
 enum DashOrColon {
-    Dash(Token![-]),
-    Colon(Token![:]),
-}
-
-impl DashOrColon {
-    fn span(&self) -> proc_macro2::Span {
-        match self {
-            DashOrColon::Dash(minus) => minus.span(),
-            DashOrColon::Colon(colon) => colon.span(),
-        }
-    }
+    Dash,
+    Colon,
 }
 
 impl Parse for DashOrColon {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![-]) {
-            input.parse().map(Self::Dash)
+            input.parse().map(|_: Token![-]| Self::Dash)
         } else if lookahead.peek(Token![:]) {
-            input.parse().map(Self::Colon)
+            input.parse().map(|_: Token![:]| Self::Colon)
         } else {
             Err(lookahead.error())
         }
@@ -142,7 +120,6 @@ impl Parse for StringLiteralOrVariable {
 #[derive(Debug)]
 struct HtmlAttribute {
     ident: Punctuated<Ident, DashOrColon>,
-    equals: Token![=],
     value: StringLiteralOrVariable,
 }
 
@@ -154,19 +131,14 @@ impl Parse for HtmlAttribute {
             ident.push_punct(input.parse()?);
             ident.push_value(input.parse()?);
         }
-        let equals = input.parse()?;
+        input.parse::<Token![=]>()?;
         let value = input.parse()?;
-        Ok(Self {
-            ident,
-            equals,
-            value,
-        })
+        Ok(Self { ident, value })
     }
 }
 
 #[derive(Debug)]
 struct HtmlElement {
-    open_start: Token![<],
     element: Ident,
     attributes: Vec<HtmlAttribute>,
     open_end: Token![>],
@@ -174,7 +146,7 @@ struct HtmlElement {
 
 impl Parse for HtmlElement {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let open_start = input.parse()?;
+        input.parse::<Token![<]>()?;
         let element = input.call(Ident::parse_any)?;
         let mut attributes = Vec::new();
         while !input.peek(Token!(>)) {
@@ -182,7 +154,6 @@ impl Parse for HtmlElement {
         }
         let open_end = input.parse()?;
         Ok(HtmlElement {
-            open_start,
             element,
             attributes,
             open_end,
@@ -192,59 +163,41 @@ impl Parse for HtmlElement {
 
 #[derive(Debug)]
 struct HtmlElementClose {
-    close: Token![<],
-    close_slash: Token![/],
     element: Ident,
-    open_end: Token![>],
 }
 
 impl Parse for HtmlElementClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let close = input.parse()?;
-        let close_slash = input.parse()?;
+        input.parse::<Token![<]>()?;
+        input.parse::<Token![/]>()?;
         let element = input.call(Ident::parse_any)?;
-        let open_end = input.parse()?;
-        Ok(Self {
-            close,
-            close_slash,
-            element,
-            open_end,
-        })
+        input.parse::<Token![>]>()?;
+        Ok(Self { element })
     }
 }
 
 #[derive(Debug)]
 struct HtmlComment {
-    open1: Token![<],
-    open2: Token![!],
-    open3: Token![-],
-    open4: Token![-],
     comment: LitStr,
-    close1: Token![-],
-    close2: Token![-],
-    close3: Token![>],
 }
 
 impl Parse for HtmlComment {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            open1: input.parse()?,
-            open2: input.parse()?,
-            open3: input.parse()?,
-            open4: input.parse()?,
-            comment: input.parse()?,
-            close1: input.parse()?,
-            close2: input.parse()?,
-            close3: input.parse()?,
-        })
+        input.parse::<Token![<]>()?;
+        input.parse::<Token![!]>()?;
+        input.parse::<Token![-]>()?;
+        input.parse::<Token![-]>()?;
+        let comment: LitStr = input.parse()?;
+        input.parse::<Token![-]>()?;
+        input.parse::<Token![-]>()?;
+        input.parse::<Token![>]>()?;
+        Ok(Self { comment })
     }
 }
 
 #[proc_macro]
 pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as HtmlCommands);
-    //eprintln!("{input:#?}");
 
     let expanded = input.commands.iter().map(|command| {
         match command {
@@ -258,8 +211,8 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         .map(|p| {
                             p.value().to_string()
                                 + match p.punct() {
-                                    Some(DashOrColon::Colon(_)) => ":",
-                                    Some(DashOrColon::Dash(_)) => "-",
+                                    Some(DashOrColon::Colon) => ":",
+                                    Some(DashOrColon::Dash) => "-",
                                     None => "",
                                 }
                         })
@@ -298,7 +251,6 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let mut html_handler = html_handler.tag_open_end();
                 };
 
-                // Build the output, possibly using quasi-quotation
                 quote! {
                     #open
                     #(
@@ -353,6 +305,5 @@ pub fn html(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #(#expanded)*
     };
 
-    // Hand the output tokens back to the compiler
     proc_macro::TokenStream::from(result)
 }

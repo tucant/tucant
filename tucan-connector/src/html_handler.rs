@@ -1,11 +1,10 @@
 use std::iter::Peekable;
 
-use data_encoding::{BASE64URL_NOPAD, HEXLOWER};
+use data_encoding::BASE64URL_NOPAD;
 use ego_tree::iter::Children;
 use ego_tree::NodeRef;
 use scraper::node::Attrs;
-use scraper::{Element, Node};
-use sha3::digest::generic_array::GenericArray;
+use scraper::Node;
 use sha3::{Digest, Sha3_256};
 
 pub struct Root<'a> {
