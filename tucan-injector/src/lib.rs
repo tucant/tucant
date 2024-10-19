@@ -131,9 +131,9 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                     for data.entries.into_iter().map(|entry| {
                         let module = entry.module.as_ref();
                         html!{
-                            <a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned()) } class="list-group-item list-group-item-action">
+                            <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }</h5>
+                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
@@ -147,9 +147,9 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                 {
                                     for entry.courses.into_iter().map(|course| {
                                         html! {
-                                            <a href={ course.1.url } class="list-group-item list-group-item-action">
+                                            <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1">{ format!("Kurs {} {}", course.1.id, course.1.name) }</h5>
+                                                    <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
@@ -161,12 +161,12 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                                 <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
 
                                                 <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
-                                            </a>
+                                            </li>
                                         }
                                     })
                                 }
                                 </ul>
-                            </a>
+                            </li>
                         }
                     })
                 }
