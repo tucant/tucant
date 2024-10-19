@@ -86,6 +86,7 @@ pub struct AnmeldungRequestProps {
 fn content(props: &AnmeldungRequestProps) -> HtmlResult {
     let navigator = use_navigator().unwrap();
     let data = use_anmeldung(props.anmeldung_request.clone())?;
+    let login_response = use_login_response();
 
     Ok(html! {
         <>
@@ -97,8 +98,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                 let navigator = navigator.clone();
                                 let entry_link = Rc::new(entry.1.clone());
                                 move |_event| {
-                                    // TODO add id
-                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() }).unwrap();
+                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                                 }
                             });
                             html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
@@ -116,8 +116,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                             let navigator = navigator.clone();
                             let entry_link = Rc::new(entry.1.clone());
                             move |_event| {
-                                // TODO add id
-                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() }).unwrap();
+                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                             }
                         });
                         html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
