@@ -183,8 +183,24 @@ fn App() -> HtmlResult {
 fn start() {
     console_log::init().unwrap();
 
-    // cargo build --target=wasm32-unknown-unknown
-    // wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
-    // npm run build
-    yew::Renderer::<App>::new().render();
+    let window = web_sys::window().unwrap();
+    let prgname = url::Url::parse(&window.location().href().unwrap())
+        .unwrap()
+        .query_pairs()
+        .find_map(|p| {
+            if p.0 == "PRGNAME" {
+                Some(p.1.to_string())
+            } else {
+                None
+            }
+        });
+    let prgname = prgname.as_deref();
+
+    match prgname {
+        None => {}
+        Some("EXTERNALPAGES") => {
+            yew::Renderer::<App>::new().render();
+        }
+        Some(_) => {}
+    }
 }
