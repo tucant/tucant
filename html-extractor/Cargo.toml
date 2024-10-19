@@ -1,0 +1,11 @@
+[package]
+name = "html-extractor"
+edition = "2021"
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+html-extractor-proc-macro = { path = "../html-extractor-proc-macro" }
+
+[lints]
+workspace = true

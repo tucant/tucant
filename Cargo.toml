@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = [
+    "tucan-connector",
+    "html-extractor",
+    "html-extractor-proc-macro", "tucan-injector",
+]
+
+[workspace.package]
+license = "AGPL-3.0-or-later"
+edition = "2021"
+version = "0.0.0"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+missing_panics_doc = "allow"
+missing_errors_doc = "allow"

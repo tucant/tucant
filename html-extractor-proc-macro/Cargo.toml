@@ -1,0 +1,17 @@
+[package]
+name = "html-extractor-proc-macro"
+edition = "2021"
+license.workspace = true
+version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+itertools = "0.13"
+
+[lints]
+workspace = true
