@@ -5,11 +5,11 @@
 # You can also check bacon's own bacon.toml file
 #  as an example: https://github.com/Canop/bacon/blob/main/bacon.toml
 
-default_job = "check"
+default_job = "tampermonkey"
 
-[jobs.go]
+[jobs.tampermonkey]
 command = ["./run.sh"]
-need_stdout = false
+need_stdout = true
 
 [jobs.check]
 command = ["cargo", "check", "--color", "always"]

@@ -131,7 +131,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                     for data.entries.into_iter().map(|entry| {
                         let module = entry.module.as_ref();
                         html!{
-                            <a href="#" class="list-group-item list-group-item-action">
+                            <a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned()) } class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }</h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
@@ -141,7 +141,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                     <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
                                 </div>
 
-                                <span class="text-body-secondary"><a href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
+                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
 
                                 <ul class="list-group">
                                 {
@@ -160,7 +160,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
                                                 <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
 
-                                                <span class="text-body-secondary"><a href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
                                             </a>
                                         }
                                     })

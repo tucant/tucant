@@ -37,6 +37,7 @@ pub struct AnmeldungEntry {
 
 #[derive(Debug, Clone)]
 pub struct AnmeldungModule {
+    pub url: String,
     pub id: String,
     pub name: String,
     pub lecturer: Option<String>,
@@ -334,7 +335,6 @@ pub async fn anmeldung(
                             (html_handler, None)
                         };
                         html!(
-                                // optionally anmelden button?
                             </td>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
                             <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
@@ -344,6 +344,7 @@ pub async fn anmeldung(
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
                         let module = AnmeldungModule {
+                            url,
                             id: module_id.trim().to_owned(),
                             name: module_name,
                             lecturer: if lecturer == "N.N." {
