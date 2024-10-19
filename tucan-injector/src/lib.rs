@@ -21,34 +21,38 @@ use yew_router::{
     BrowserRouter, Routable, Switch,
 };
 
-async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
+async fn evil_stuff(
+    login_response: LoginResponse,
+    anmeldung_request: AnmeldungRequest,
+) -> AnmeldungResponse {
     let tucan = Tucan::new().await.unwrap();
+
+    let anmeldung_response = anmeldung(&tucan.client, &login_response, anmeldung_request)
+        .await
+        .unwrap();
+
+    info!("{:?}", anmeldung_response);
+    anmeldung_response
+}
+
+#[hook]
+fn use_login_response() -> LoginResponse {
+    let location = use_location().unwrap();
+    let test: URLFormat = location.query::<URLFormat>().unwrap();
 
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    let result = LoginResponse {
-        id: url::Url::parse(&window.location().href().unwrap())
+    LoginResponse {
+        id: test
+            .ARGUMENTS
+            .split_once(',')
             .unwrap()
-            .query_pairs()
-            .find_map(|param| {
-                if param.0 == "ARGUMENTS" {
-                    Some(
-                        param
-                            .1
-                            .split_once(',')
-                            .unwrap()
-                            .0
-                            .trim_start_matches("-N")
-                            .parse()
-                            .unwrap(),
-                    )
-                } else {
-                    None
-                }
-            })
+            .0
+            .trim_start_matches("-N")
+            .parse()
             .unwrap(),
         cookie_cnsc: cookie::Cookie::split_parse(cookie)
             .find_map(|cookie| {
@@ -60,20 +64,15 @@ async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
                 }
             })
             .unwrap(),
-    };
-
-    let anmeldung_response = anmeldung(&tucan.client, &result, anmeldung_request)
-        .await
-        .unwrap();
-
-    info!("{:?}", anmeldung_response);
-    anmeldung_response
+    }
 }
 
 #[hook]
 fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
+    let login_response = use_login_response();
+
     let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
-        evil_stuff((*anmeldung_request).clone())
+        evil_stuff(login_response, (*anmeldung_request).clone())
     })?;
     Ok((*s).clone())
 }
@@ -99,7 +98,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                 let entry_link = Rc::new(entry.1.clone());
                                 move |_event| {
                                     // TODO add id
-                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() });
+                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() }).unwrap();
                                 }
                             });
                             html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
@@ -118,7 +117,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                             let entry_link = Rc::new(entry.1.clone());
                             move |_event| {
                                 // TODO add id
-                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() });
+                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: entry_link.arguments.clone() }).unwrap();
                             }
                         });
                         html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
