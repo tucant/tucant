@@ -148,10 +148,13 @@ enum Route {
     NotFound,
 }
 
-#[function_component]
+#[function_component(SwitchInner)]
 fn switch_inner() -> HtmlResult {
+    info!("hi");
     let location = use_location().unwrap();
     let test: URLFormat = location.query::<URLFormat>().unwrap();
+    info!("jo");
+
     match test.PRGNAME.as_str() {
         "REGISTRATION" => {
             let anmeldung_request = AnmeldungRequest {
@@ -171,8 +174,9 @@ fn switch_inner() -> HtmlResult {
 }
 
 fn switch(routes: Route) -> Html {
+    info!("weffw");
     match routes {
-        Route::Home => html! { <switch_inner /> },
+        Route::Home => html! { <SwitchInner></SwitchInner> },
         Route::NotFound => html! { <div>{"404"}</div> },
     }
 }
