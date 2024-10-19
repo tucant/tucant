@@ -1,5 +1,6 @@
 ```
-bacon go
+cd tucan-injector
+bacon
 ```
 
 ```
