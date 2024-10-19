@@ -1,4 +1,5 @@
 ```
+nix develop
 cd tucan-injector
 bacon
 ```
