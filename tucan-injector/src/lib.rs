@@ -1,4 +1,4 @@
-use std::{ops::Deref, rc::Rc};
+use std::rc::Rc;
 
 use log::info;
 use tucan_connector::{
@@ -9,7 +9,7 @@ use tucan_connector::{
 use wasm_bindgen::{prelude::wasm_bindgen, JsCast as _};
 use yew::{
     prelude::*,
-    suspense::{self, Suspension, SuspensionResult},
+    suspense::{self, SuspensionResult},
 };
 
 async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
@@ -29,7 +29,7 @@ async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
                     Some(
                         param
                             .1
-                            .split_once(",")
+                            .split_once(',')
                             .unwrap()
                             .0
                             .trim_start_matches("-N")
@@ -64,7 +64,7 @@ async fn evil_stuff(anmeldung_request: AnmeldungRequest) -> AnmeldungResponse {
 #[hook]
 fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
     let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
-        evil_stuff((&*anmeldung_request).clone())
+        evil_stuff((*anmeldung_request).clone())
     })?;
     Ok((*s).clone())
 }
@@ -88,7 +88,7 @@ fn content(props: &ContentProps) -> HtmlResult {
                                 let anmeldung_request_state = props.anmeldung_request_setter.clone();
                                 let entry_link = Rc::new(entry.1.clone());
                                 move |event| {
-                                    anmeldung_request_state.set((&*entry_link).clone());
+                                    anmeldung_request_state.set((*entry_link).clone());
                                 }
                             });
                             html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
@@ -106,7 +106,7 @@ fn content(props: &ContentProps) -> HtmlResult {
                             let anmeldung_request_state = props.anmeldung_request_setter.clone();
                             let entry_link = Rc::new(entry.1.clone());
                             move |event| {
-                                anmeldung_request_state.set((&*entry_link).clone());
+                                anmeldung_request_state.set((*entry_link).clone());
                             }
                         });
                         html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
@@ -130,7 +130,7 @@ fn content(props: &ContentProps) -> HtmlResult {
 
 #[function_component]
 fn App() -> HtmlResult {
-    let anmeldung_request: UseStateHandle<AnmeldungRequest> = use_state(|| AnmeldungRequest::new());
+    let anmeldung_request: UseStateHandle<AnmeldungRequest> = use_state(AnmeldungRequest::new);
 
     let fallback = html! {
         <>
@@ -172,7 +172,7 @@ fn App() -> HtmlResult {
                 <h2 class="text-center">{"Registration"}</h2>
 
                 <Suspense {fallback}>
-                    <Content anmeldung_request={(&*anmeldung_request).clone()} anmeldung_request_setter={anmeldung_request.setter()} />
+                    <Content anmeldung_request={(*anmeldung_request).clone()} anmeldung_request_setter={anmeldung_request.setter()} />
                 </Suspense>
             </div>
         </>
