@@ -2,14 +2,12 @@
 nix develop
 cd tucan-injector
 bacon
+
+cd tucan-injector/dist
+python -m http.server
 ```
 
-You need to use Chromium to load the Tampermonkey script from a local file url.
-
-Install https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
-
-In Chrome extension settings, enable "Allow access to file URLs".
-
+Install Tampermonkey.
 Add a Tampermonkey script with the following content:
 
 ```
@@ -21,6 +19,6 @@ Add a Tampermonkey script with the following content:
 // @author       You
 // @match        https://www.tucan.tu-darmstadt.de/*
 // @grant        none
-// @require      file:///path/to/tucant/checkout/tucan-injector/dist/tucan-injector.js
+// @require      http://localhost:8000/tucan-injector.js
 // ==/UserScript==
 ```
