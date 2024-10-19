@@ -128,9 +128,47 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
             <ul class="list-group">
                 {
-                    data.entries.into_iter().map(|entry| {
-                        html!{<li class="list-group-item">{ format!("{}", entry.module.map(|module| module.name).unwrap_or_default()) }</li>}
-                    }).collect::<Html>()
+                    for data.entries.into_iter().map(|entry| {
+                        let module = entry.module.as_ref();
+                        html!{
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
+                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
+                                </div>
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
+                                    <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
+                                </div>
+
+                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
+
+                                <ul class="list-group">
+                                {
+                                    for entry.courses.into_iter().map(|course| {
+                                        html! {
+                                            <li class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
+                                                </div>
+
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.unwrap_or_default()) }</h6>
+                                                    <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
+                                                </div>
+
+                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
+
+                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                            </li>
+                                        }
+                                    })
+                                }
+                                </ul>
+                            </li>
+                        }
+                    })
                 }
             </ul>
 
