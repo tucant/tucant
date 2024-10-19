@@ -4,6 +4,14 @@ cd tucan-injector
 bacon
 ```
 
+You need to use Chromium to load the Tampermonkey script from a local file url.
+
+Install https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
+
+In Chrome extension settings, enable "Allow access to file URLs".
+
+Add a Tampermonkey script with the following content:
+
 ```
 // ==UserScript==
 // @name         New Userscript
