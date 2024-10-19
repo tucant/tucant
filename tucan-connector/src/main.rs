@@ -1,16 +1,4 @@
-use std::time::Duration;
-
-use data_encoding::HEXLOWER;
-use html_extractor::html;
-use regex::Regex;
-use reqwest::{header::HeaderValue, Client};
-use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
-use scraper::Html;
-use tucan_connector::common::head::{html_head, html_head_2};
-use tucan_connector::externalpages::studveranst::veranstaltungen;
-use tucan_connector::html_handler::Root;
-use tucan_connector::login::{login, LoginResponse};
-use tucan_connector::mlsstart::start_page::after_login;
+use tucan_connector::login::LoginResponse;
 use tucan_connector::registration::index::{anmeldung, AnmeldungRequest};
 use tucan_connector::{Tucan, TucanError};
 

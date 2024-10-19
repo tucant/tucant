@@ -1,4 +1,3 @@
-use ego_tree::NodeRef;
 use html_extractor::html;
 
 use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
@@ -93,8 +92,8 @@ pub fn page_start<'a>(
                 </div>_
                 <div id="pageHead" class="pageElementTop">_
                     <div id="pageHeadTop" class="pageElementTop">_
-                        <a href=imprint_url class="img img_arrowImprint pageElementLeft">"Impressum"</a>_
-                        <a href=contact_url class="img img_arrowContact pageElementLeft">"Kontakt"</a>_
+                        <a href=_imprint_url class="img img_arrowImprint pageElementLeft">"Impressum"</a>_
+                        <a href=_contact_url class="img img_arrowContact pageElementLeft">"Kontakt"</a>_
                         <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft">"Drucken"</a>_
                         <a href="#bottom" class="img img_arrowDown pageElementRight">"Zum Ende der Seite"</a>_
                     </div>_
@@ -161,9 +160,9 @@ pub fn vv_something<'a>(
     // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
     html!(
         <ul class="nav depth_2 linkItemContainer">
-            <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id><a  class=_class href=lehrveranstaltungssuche_url >"Lehrveranstaltungssuche"</a></li>
-            <li class="intern depth_2 linkItem " title="Raumsuche" id=_id><a  class=_class href=raumsuche_url >"Raumsuche"</a></li>
-            <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id><a  class=_class href=aktuell_url >"Aktuell - Wintersemester 2024/25"</a></li>
+            <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id><a  class=_class href=_lehrveranstaltungssuche_url >"Lehrveranstaltungssuche"</a></li>
+            <li class="intern depth_2 linkItem " title="Raumsuche" id=_id><a  class=_class href=_raumsuche_url >"Raumsuche"</a></li>
+            <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id><a  class=_class href=_aktuell_url >"Aktuell - Wintersemester 2024/25"</a></li>
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass><a  class=_linkclass href=_url >_t</a></li>
@@ -204,13 +203,13 @@ pub fn logged_in_head<'a>(
     let html_handler = page_start(html_handler);
     html!(
                         <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
-                            <a  class="depth_1 link000019 navLink branchLink " href=aktuelles_url >"Aktuelles"</a>
+                            <a  class="depth_1 link000019 navLink branchLink " href=_aktuelles_url >"Aktuelles"</a>
                             <ul class="nav depth_2 linkItemContainer">
-                              <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299"><a  class="depth_2 link000299 navLink " href=messages_url >"Nachrichten"</a></li>
+                              <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299"><a  class="depth_2 link000299 navLink " href=_messages_url >"Nachrichten"</a></li>
                             </ul>
                           </li>
                           <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
-                            <a  class="depth_1 link000326 navLink branchLink " href=vv_url >"VV"</a>
+                            <a  class="depth_1 link000326 navLink branchLink " href=_vv_url >"VV"</a>
     );
     let html_handler = vv_something(html_handler, id);
     html!(
@@ -294,7 +293,7 @@ pub fn logged_in_head<'a>(
                         <div id="pageContentTop" class="pageElementTop">_
                                                     <div id="loginData">_
                                 <span class="loginDataLoggedAs"><b>"Sie sind angemeldet als"<span class="colon">":"</span>_</b></span>_
-                                <span class="loginDataName" id="loginDataName"><b>Name<span class="colon">":"</span>_</b>"Moritz Hedtke"</span>_<span class="loginDataDate"><b>"am"<span class="colon">":"</span></b>_date</span>_<span class="loginDataTime"><b>um<span class="colon time_colon">":"</span></b>_time</span>_
+                                <span class="loginDataName" id="loginDataName"><b>"Name"<span class="colon">":"</span>_</b>_full_name</span>_<span class="loginDataDate"><b>"am"<span class="colon">":"</span></b>_date</span>_<span class="loginDataTime"><b>"um"<span class="colon time_colon">":"</span></b>_time</span>_
                             </div>_
                                                 </div>_
                         <div id="contentSpacer_IE" class="pageElementTop"><!-- "WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM" -->_

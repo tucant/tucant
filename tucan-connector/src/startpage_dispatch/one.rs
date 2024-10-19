@@ -3,7 +3,7 @@ use scraper::Html;
 
 use crate::{common::head::html_head_2, html_handler::Root, MyClient, TucanError};
 
-async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
+pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
     let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")
                     .send()
                     .await?
@@ -41,5 +41,6 @@ async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
         </body>
         </html>
     );
+    let _html_handler = html_handler;
     Ok(())
 }

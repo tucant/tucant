@@ -1,10 +1,10 @@
 use html_extractor::html;
-use scraper::{html, Html};
+use scraper::Html;
 
 use crate::{
-    common::head::{footer, html_head, html_head_2, logged_in_head, page_start, vv_something},
-    html_handler::{self, Root},
-    login::{self, LoginResponse},
+    common::head::{footer, html_head, logged_in_head},
+    html_handler::Root,
+    login::LoginResponse,
     MyClient, TucanError,
 };
 
@@ -43,7 +43,7 @@ pub async fn after_login(
     html!(
     <!--"EkIRwtbzV1S0qAPx6If3Ye8Ey0JkAZsONsPW8C2Tf3Y"-->_
         <script type="text/javascript"></script>_
-        <h1>"Herzlich willkommen, Moritz Hedtke!"</h1>_
+        <h1>_welcome_message</h1>_
         <h2>_</h2>_
         <h2>_text</h2>_
               <div class="tb rw-table">_
@@ -77,9 +77,9 @@ pub async fn after_login(
         html_handler = {
             html!(
               <tr class="tbdata">_
-              <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>date</a></td>_
-              <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>hour</a></td>_
-              <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>source</a></td>_
+              <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>_date</a></td>_
+              <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>_hour</a></td>_
+              <td headers="Absender" class="rw rw-mailpers"><a class="link" href=_url>_source</a></td>_
               <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>
             );
             let (html_handler, any_child) = html_handler.next_any_child();
@@ -101,6 +101,6 @@ pub async fn after_login(
     </div>_
     </div>_
         );
-    let html_handler = footer(html_handler, id, 311);
+    let _html_handler = footer(html_handler, id, 311);
     Ok(())
 }

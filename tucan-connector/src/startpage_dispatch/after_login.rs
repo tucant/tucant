@@ -34,15 +34,15 @@ pub async fn redirect_after_login(
                             <img border="0" id="logo" src="/gfx/tuda/logo.png" alt="Logo Technische Universität Darmstadt"></img>_
                     </a>_
                     <!-- "MA-hDUoCrkYqlM3RsS9EUjq0y_UcuN1AB82k4O5O8YU" -->_
-                    <h2><a href=href_link_1>"Sie werden zur Startseite weitergeleitet ..."</a></h2>_
-                    <a style="text-decoration: underline;" href=href_link_2>"Startseite"</a>_
+                    <h2><a href=_href_link_1>"Sie werden zur Startseite weitergeleitet ..."</a></h2>_
+                    <a style="text-decoration: underline;" href=_href_link_2>"Startseite"</a>_
             </div>_
-            <div id="sessionId" style="display: none;">session_id</div>_
+            <div id="sessionId" style="display: none;">_session_id</div>_
             <!-- "zhJ3t6XNo2cfpZZEFiqxHJQ9udSXk5D418ej5lEytG8" -->_
             <script>
-            script_contents
+            _script_contents
             </script>
     );
-    println!("href_link_1 {href_link_1} href_link_2 {href_link_2} session_id {session_id} script_contents {script_contents}");
+    let _html_handler = html_handler;
     Ok(())
 }

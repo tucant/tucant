@@ -7,8 +7,6 @@ pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
 
-use std::time::Duration;
-
 pub struct Tucan {
     #[cfg(target_arch = "wasm32")]
     pub client: reqwest::Client,
@@ -41,7 +39,9 @@ impl Tucan {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let retry_policy = reqwest_retry::policies::ExponentialBackoff::builder()
-                .build_with_total_retry_duration_and_max_retries(Duration::from_secs(90));
+                .build_with_total_retry_duration_and_max_retries(std::time::Duration::from_secs(
+                    90,
+                ));
             let client = reqwest_middleware::ClientBuilder::new(
                 reqwest::Client::builder()
                     .user_agent(
