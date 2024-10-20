@@ -20,6 +20,7 @@ log = "0.4"
 console_error_panic_hook = "0.1"
 gloo-history = "0.2"
 serde = { version = "1", features = ["derive"] }
+indexed-db = "0.4.1"
 
 [lints]
 workspace = true

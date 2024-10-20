@@ -1,17 +1,21 @@
 use std::rc::Rc;
 
+use indexed_db::Factory;
 use log::info;
 use serde::{Deserialize, Serialize};
 use tucan_connector::{
     login::LoginResponse,
     registration::index::{anmeldung, AnmeldungRequest, AnmeldungResponse},
-    Tucan,
+    Tucan, TucanError,
 };
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
 };
-use web_sys::{js_sys::Function, Node};
+use web_sys::{
+    js_sys::{Function, JsString},
+    Node,
+};
 use yew::{
     prelude::*,
     suspense::{self, SuspensionResult},
@@ -25,6 +29,25 @@ async fn evil_stuff(
     login_response: LoginResponse,
     anmeldung_request: AnmeldungRequest,
 ) -> AnmeldungResponse {
+    // https://github.com/rustwasm/wasm-bindgen/issues/3798
+
+    let factory = Factory::<TucanError>::get().unwrap();
+
+    let db = factory
+        .open("database", 1, |evt| async move {
+            let db = evt.database();
+            let store = db.build_object_store("store").create()?;
+
+            // You can also add objects from this callback
+            store
+                .add_kv(&JsString::from("foo"), &JsString::from("foo"))
+                .await?;
+
+            Ok(())
+        })
+        .await
+        .unwrap();
+
     let tucan = Tucan::new().await.unwrap();
 
     let anmeldung_response = anmeldung(&tucan.client, &login_response, anmeldung_request)
@@ -315,6 +338,8 @@ fn start() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     console_log::init().unwrap();
+
+    info!("hi");
 
     let window = web_sys::window().unwrap();
     let prgname = url::Url::parse(&window.location().href().unwrap())
