@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
 use indexed_db::Factory;
+use leptos::*;
+use leptos_router::*;
 use log::info;
 use serde::{Deserialize, Serialize};
 use tucan_connector::{
@@ -16,14 +18,29 @@ use web_sys::{
     js_sys::{Function, JsString},
     Node,
 };
-use yew::{
-    prelude::*,
-    suspense::{self, SuspensionResult},
-};
-use yew_router::{
-    hooks::{use_location, use_navigator, use_route},
-    BrowserRouter, Routable, Switch,
-};
+
+#[component]
+pub fn SimpleCounter(initial_value: i32) -> impl IntoView {
+    // create a reactive signal with the initial value
+    let (value, set_value) = create_signal(initial_value);
+
+    // create event handlers for our buttons
+    // note that `value` and `set_value` are `Copy`, so it's super easy to move them into closures
+    let clear = move |_| set_value.set(0);
+    let decrement = move |_| set_value.update(|value| *value -= 1);
+    let increment = move |_| set_value.update(|value| *value += 1);
+
+    // create user interfaces with the declarative `view!` macro
+    view! {
+        <div>
+            <button on:click=clear>Clear</button>
+            <button on:click=decrement>-1</button>
+            // text nodes can be quoted or unquoted
+            <span>"Value: " {value} "!"</span>
+            <button on:click=increment>+1</button>
+        </div>
+    }
+}
 
 async fn evil_stuff(
     login_response: LoginResponse,
@@ -87,25 +104,28 @@ async fn evil_stuff(
     anmeldung_response
 }
 
-#[hook]
 fn use_login_response() -> LoginResponse {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
+    let test = use_query::<URLFormat>();
 
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    LoginResponse {
-        id: test
-            .ARGUMENTS
-            .split_once(',')
-            .unwrap()
-            .0
-            .trim_start_matches("-N")
-            .parse()
-            .unwrap(),
+    let response = LoginResponse {
+        id: test.with(|test| {
+            test.as_ref()
+                .unwrap()
+                .ARGUMENTS
+                .as_ref()
+                .unwrap()
+                .split_once(',')
+                .unwrap()
+                .0
+                .trim_start_matches("-N")
+                .parse()
+                .unwrap()
+        }),
         cookie_cnsc: cookie::Cookie::split_parse(cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
@@ -116,31 +136,21 @@ fn use_login_response() -> LoginResponse {
                 }
             })
             .unwrap(),
-    }
+    };
+    response
 }
 
-#[hook]
-fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
-    let login_response = use_login_response();
-
-    let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
-        evil_stuff(login_response, (*anmeldung_request).clone())
-    })?;
-    Ok((*s).clone())
-}
-
-#[derive(Properties, PartialEq)]
+#[derive(PartialEq)]
 pub struct AnmeldungRequestProps {
     anmeldung_request: AnmeldungRequest,
 }
 
-#[function_component(Content)]
-fn content(props: &AnmeldungRequestProps) -> HtmlResult {
-    let navigator = use_navigator().unwrap();
-    let data = use_anmeldung(props.anmeldung_request.clone())?;
+#[component]
+fn content(props: AnmeldungRequestProps) -> impl IntoView {
     let login_response = use_login_response();
+    let data = evil_stuff(login_response, props.anmeldung_request.clone());
 
-    Ok(html! {
+    view! {
         <>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -153,7 +163,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                     navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                                 }
                             });
-                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                            view!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -171,7 +181,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                 navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                             }
                         });
-                        html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
+                        view!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -182,7 +192,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                 {
                     for data.entries.into_iter().map(|entry| {
                         let module = entry.module.as_ref();
-                        html!{
+                        view!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
@@ -198,7 +208,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                 <ul class="list-group">
                                 {
                                     for entry.courses.into_iter().map(|course| {
-                                        html! {
+                                        view! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
@@ -225,51 +235,34 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
             </ul>
 
         </>
-    })
+    }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Routable)]
-enum Route {
-    #[at("/scripts/mgrqispi.dll")]
-    Home,
-    #[not_found]
-    #[at("/404")]
-    NotFound,
-}
-
-#[function_component(SwitchInner)]
-fn switch_inner() -> HtmlResult {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
+#[component]
+fn SwitchInner() -> impl IntoView {
+    let test = use_query::<URLFormat>();
 
     match test.PRGNAME.as_str() {
         "REGISTRATION" => {
             let anmeldung_request = AnmeldungRequest {
                 arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
             };
-            Ok(html! { <Registration {anmeldung_request} /> })
+            view! { <Registration {anmeldung_request} /> }
         }
-        _ => Ok(html! { <div>{"unknown"}</div> }),
+        _ => view! { <div>{"unknown"}</div> },
     }
 }
 
-fn switch(routes: Route) -> Html {
-    match routes {
-        Route::Home => html! { <SwitchInner></SwitchInner> },
-        Route::NotFound => html! { <div>{"404"}</div> },
-    }
-}
-
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Params, PartialEq)]
 struct URLFormat {
-    APPNAME: String,
-    PRGNAME: String,
-    ARGUMENTS: String,
+    APPNAME: Option<String>,
+    PRGNAME: Option<String>,
+    ARGUMENTS: Option<String>,
 }
 
-#[function_component(Registration)]
-fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
-    let fallback = html! {
+#[component]
+fn registration(props: &AnmeldungRequestProps) -> impl IntoView {
+    let fallback = view! {
         <>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -297,7 +290,7 @@ fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
         </>
     };
 
-    Ok(html! {
+    view! {
         <>
             <style>
                 {include_str!("./bootstrap.min.css")}
@@ -313,16 +306,21 @@ fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
                 </Suspense>
             </div>
         </>
-    })
+    }
 }
 
-#[function_component(App)]
-fn app() -> HtmlResult {
-    Ok(html! {
-        <BrowserRouter>
-            <Switch<Route> render={switch} />
-        </BrowserRouter>
-    })
+#[component]
+pub fn App() -> impl IntoView {
+    view! {
+      <Router>
+        <nav>
+          /* ... */
+        </nav>
+        <main>
+            <Route path="/scripts/mgrqispi.dll" view=SwitchInner />
+        </main>
+      </Router>
+    }
 }
 
 fn inject() {
@@ -359,7 +357,19 @@ fn inject() {
         .for_each(closure.as_ref().unchecked_ref())
         .unwrap();
 
-    yew::Renderer::<App>::new().render();
+    document
+        .query_selector("body")
+        .unwrap()
+        .unwrap()
+        .child_nodes()
+        .for_each(closure.as_ref().unchecked_ref())
+        .unwrap();
+
+    mount_to_body(|| {
+        view! {
+            <SimpleCounter initial_value=3 />
+        }
+    });
 }
 
 #[wasm_bindgen(start)]
