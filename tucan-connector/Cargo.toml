@@ -23,6 +23,7 @@ html-extractor = { path = "../html-extractor" }
 dotenvy = "0.15"
 regex = "1.11"
 itertools = "0.13"
+serde = { version = "1", features = ["derive"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest-middleware = "0.3"

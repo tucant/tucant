@@ -48,9 +48,38 @@ async fn evil_stuff(
         .await
         .unwrap();
 
+    let key = anmeldung_request.arguments.clone();
+    let result = db
+        .transaction(&["store"])
+        .run(|t| async move {
+            let store = t.object_store("store")?;
+            let value = store.get(&key.into()).await.unwrap();
+
+            Ok(value)
+        })
+        .await
+        .unwrap();
+
+    if let Some(result) = result {
+        return serde_wasm_bindgen::from_value(result).unwrap();
+    }
+
     let tucan = Tucan::new().await.unwrap();
 
+    let key = anmeldung_request.arguments.clone();
     let anmeldung_response = anmeldung(&tucan.client, &login_response, anmeldung_request)
+        .await
+        .unwrap();
+
+    let value = serde_wasm_bindgen::to_value(&anmeldung_response).unwrap();
+    db.transaction(&["store"])
+        .rw()
+        .run(|t| async move {
+            let store = t.object_store("store")?;
+            let value = store.put_kv(&key.into(), &value).await.unwrap();
+
+            Ok(value)
+        })
         .await
         .unwrap();
 
