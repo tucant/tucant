@@ -1,5 +1,6 @@
 use html_extractor::html;
 use scraper::{ElementRef, Html};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head},
@@ -8,7 +9,7 @@ use crate::{
     MyClient, TucanError,
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AnmeldungRequest {
     pub arguments: String,
 }
@@ -21,7 +22,7 @@ impl AnmeldungRequest {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungResponse {
     pub path: Vec<(String, AnmeldungRequest)>,
     pub submenus: Vec<(String, AnmeldungRequest)>,
@@ -29,13 +30,13 @@ pub struct AnmeldungResponse {
     pub additional_information: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungEntry {
     pub module: Option<AnmeldungModule>,
     pub courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungModule {
     pub url: String,
     pub id: String,
@@ -46,13 +47,13 @@ pub struct AnmeldungModule {
     pub registration_button_link: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungExam {
     pub name: String,
     pub typ: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungCourse {
     pub url: String,
     pub id: String,
