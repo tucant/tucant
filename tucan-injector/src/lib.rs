@@ -151,11 +151,28 @@ fn content(props: AnmeldungRequestProps) -> impl IntoView {
     let data = evil_stuff(login_response, props.anmeldung_request.clone());
 
     view! {
-        <>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        {
+                            data.path.into_iter().map(|entry| {
+                                let anmeldung_request_cb = Callback::from({
+                                    let navigator = navigator.clone();
+                                    let entry_link = Rc::new(entry.1.clone());
+                                    move |_event| {
+                                        navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
+                                    }
+                                });
+                                view!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                            }).collect::<Html>()
+                        }
+                    </ol>
+                </nav>
+    /*
+                <h2 class="text-center">{"Submenus"}</h2>
+
+                <ul class="list-group">
                     {
-                        data.path.into_iter().map(|entry| {
+                        data.submenus.into_iter().map(|entry| {
                             let anmeldung_request_cb = Callback::from({
                                 let navigator = navigator.clone();
                                 let entry_link = Rc::new(entry.1.clone());
@@ -163,79 +180,60 @@ fn content(props: AnmeldungRequestProps) -> impl IntoView {
                                     navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                                 }
                             });
-                            view!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                            view!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
                         }).collect::<Html>()
                     }
-                </ol>
-            </nav>
+                </ul>
 
-            <h2 class="text-center">{"Submenus"}</h2>
+                <h2 class="text-center">{"Modules and courses"}</h2>
 
-            <ul class="list-group">
-                {
-                    data.submenus.into_iter().map(|entry| {
-                        let anmeldung_request_cb = Callback::from({
-                            let navigator = navigator.clone();
-                            let entry_link = Rc::new(entry.1.clone());
-                            move |_event| {
-                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
+                <ul class="list-group">
+                    {
+                        for data.entries.into_iter().map(|entry| {
+                            let module = entry.module.as_ref();
+                            view!{
+                                <li class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
+                                        <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
+                                    </div>
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
+                                        <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
+                                    </div>
+
+                                    <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
+
+                                    <ul class="list-group">
+                                    {
+                                        for entry.courses.into_iter().map(|course| {
+                                            view! {
+                                                <li class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                        <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
+                                                    </div>
+
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">{ format!("{}", course.1.lecturers.unwrap_or_default()) }</h6>
+                                                        <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
+                                                    </div>
+
+                                                    <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
+
+                                                    <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                                </li>
+                                            }
+                                        })
+                                    }
+                                    </ul>
+                                </li>
                             }
-                        });
-                        view!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
-                    }).collect::<Html>()
-                }
-            </ul>
-
-            <h2 class="text-center">{"Modules and courses"}</h2>
-
-            <ul class="list-group">
-                {
-                    for data.entries.into_iter().map(|entry| {
-                        let module = entry.module.as_ref();
-                        view!{
-                            <li class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
-                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
-                                </div>
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
-                                    <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
-                                </div>
-
-                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
-
-                                <ul class="list-group">
-                                {
-                                    for entry.courses.into_iter().map(|course| {
-                                        view! {
-                                            <li class="list-group-item">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
-                                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
-                                                </div>
-
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.unwrap_or_default()) }</h6>
-                                                    <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
-                                                </div>
-
-                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
-
-                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
-                                            </li>
-                                        }
-                                    })
-                                }
-                                </ul>
-                            </li>
-                        }
-                    })
-                }
-            </ul>
-
-        </>
-    }
+                        })
+                    }
+                </ul>
+    */
+        }
 }
 
 #[component]
