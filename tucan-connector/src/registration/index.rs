@@ -330,8 +330,22 @@ pub async fn anmeldung(
                             .peek()
                             .is_some()
                         {
-                            html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
-                            (html_handler, Some(registration_button_link))
+                            if html_handler
+                                .peek()
+                                .unwrap()
+                                .value()
+                                .as_element()
+                                .unwrap()
+                                .attr("class")
+                                .unwrap()
+                                == "img noFloat register"
+                            {
+                                html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
+                                (html_handler, Some(registration_button_link))
+                            } else {
+                                html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">"Abmelden"</a>_);
+                                (html_handler, Some(registration_button_link))
+                            }
                         } else {
                             (html_handler, None)
                         };
@@ -482,8 +496,22 @@ pub async fn anmeldung(
                                 .peek()
                                 .is_some()
                             {
-                                html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
-                                (html_handler, Some(registration_button_link))
+                                if html_handler
+                                    .peek()
+                                    .unwrap()
+                                    .value()
+                                    .as_element()
+                                    .unwrap()
+                                    .attr("class")
+                                    .unwrap()
+                                    == "img noFLoat register"
+                                {
+                                    html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
+                                    (html_handler, Some(registration_button_link))
+                                } else {
+                                    html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">" Abmelden"</a>_);
+                                    (html_handler, Some(registration_button_link))
+                                }
                             } else {
                                 (html_handler, None)
                             };

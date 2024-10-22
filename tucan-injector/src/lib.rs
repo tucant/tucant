@@ -134,7 +134,6 @@ fn content() -> HtmlResult {
         arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
     };
 
-    let navigator = use_navigator().unwrap();
     let login_response = use_login_response();
 
     let data = use_state(|| AnmeldungResponse {
