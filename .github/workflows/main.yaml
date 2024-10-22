@@ -35,6 +35,8 @@ jobs:
       working-directory: tucan-injector
     - run: wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
       working-directory: tucan-injector
+    - run: npm install
+      working-directory: tucan-injector
     - run: npm run build
       working-directory: tucan-injector
     - uses: actions/attest-build-provenance@v1
