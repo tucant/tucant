@@ -1,0 +1,62 @@
+permissions:
+  id-token: write
+  attestations: write
+
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - uses: actions/checkout@v4
+    - run: rustup target add wasm32-unknown-unknown
+    - run: cargo install -f wasm-bindgen-cli --version 0.2.95
+    - run: cargo build --target=wasm32-unknown-unknown
+      working-directory: tucan-injector
+    - run: wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
+      working-directory: tucan-injector
+    - run: npm install
+      working-directory: tucan-injector
+    - run: npm run build
+      working-directory: tucan-injector
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucan-injector.js
+        path: tucan-injector/dist/tucan-injector.js
+    - uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: tucan-injector/dist/tucan-injector.js
+    - name: Upload static files as artifact
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: tucan-injector/dist/
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
