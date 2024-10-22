@@ -30,7 +30,7 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - uses: actions/checkout@v4
     - run: rustup target add wasm32-unknown-unknown
-    - run: cargo install wasm-bindgen-cli
+    - run: cargo install -f wasm-bindgen-cli --version 0.2.95
     - run: cargo build --target=wasm32-unknown-unknown
       working-directory: tucan-injector
     - run: wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
