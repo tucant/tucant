@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use tucan_connector::registration::index::RegistrationState;
 
 use indexed_db::Factory;
 use log::info;
@@ -12,6 +13,7 @@ use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
 };
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{
     js_sys::{Function, JsString},
     Node,
@@ -22,6 +24,7 @@ use yew::{
 };
 use yew_router::{
     hooks::{use_location, use_navigator, use_route},
+    prelude::Link,
     BrowserRouter, Routable, Switch,
 };
 
@@ -119,41 +122,53 @@ fn use_login_response() -> LoginResponse {
     }
 }
 
-#[hook]
-fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
-    let login_response = use_login_response();
-
-    let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
-        evil_stuff(login_response, (*anmeldung_request).clone())
-    })?;
-    Ok((*s).clone())
-}
-
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
     anmeldung_request: AnmeldungRequest,
 }
 
 #[function_component(Content)]
-fn content(props: &AnmeldungRequestProps) -> HtmlResult {
-    let navigator = use_navigator().unwrap();
-    let data = use_anmeldung(props.anmeldung_request.clone())?;
+fn content() -> HtmlResult {
+    let location = use_location().unwrap();
+    let test: URLFormat = location.query::<URLFormat>().unwrap();
+    let anmeldung_request = AnmeldungRequest {
+        arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
+    };
+
+    let login_response = use_login_response();
+
+    let data = use_state(|| AnmeldungResponse {
+        path: vec![],
+        submenus: vec![],
+        entries: vec![],
+        additional_information: vec![],
+    });
+    let loading = use_state(|| false);
+    {
+        let data = data.clone();
+        let loading = loading.clone();
+        use_effect_with(anmeldung_request.clone(), move |anmeldung_request| {
+            loading.set(true);
+            let anmeldung_request = anmeldung_request.clone();
+            let data = data.clone();
+            spawn_local(async move {
+                let s = evil_stuff(login_response, anmeldung_request).await;
+                data.set(s);
+                loading.set(false);
+            })
+        });
+    }
+
     let login_response = use_login_response();
 
     Ok(html! {
         <>
+
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
-                        data.path.into_iter().map(|entry| {
-                            let anmeldung_request_cb = Callback::from({
-                                let navigator = navigator.clone();
-                                let entry_link = Rc::new(entry.1.clone());
-                                move |_event| {
-                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
-                                }
-                            });
-                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                        data.path.iter().map(|entry| {
+                            html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -163,15 +178,8 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
             <ul class="list-group">
                 {
-                    data.submenus.into_iter().map(|entry| {
-                        let anmeldung_request_cb = Callback::from({
-                            let navigator = navigator.clone();
-                            let entry_link = Rc::new(entry.1.clone());
-                            move |_event| {
-                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
-                            }
-                        });
-                        html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
+                    data.submenus.iter().map(|entry| {
+                        html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -180,7 +188,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
             <ul class="list-group">
                 {
-                    for data.entries.into_iter().map(|entry| {
+                    for data.entries.iter().map(|entry| {
                         let module = entry.module.as_ref();
                         html!{
                             <li class="list-group-item">
@@ -193,26 +201,40 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                     <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
                                 </div>
 
-                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
+                                {
+                                    module.map(|module| {
+                                        match &module.registration_button_link {
+                                            RegistrationState::Unknown => html! { },
+                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Modul abmelden"}</a> },
+                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Modul anmelden"}</a> },
+                                        }
+                                    })
+                                }
 
                                 <ul class="list-group">
                                 {
-                                    for entry.courses.into_iter().map(|course| {
+                                    for entry.courses.iter().map(|course| {
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ course.1.url.clone() }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.unwrap_or_default()) }</h6>
+                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
                                                     <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
                                                 </div>
 
-                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
+                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }</h6>
 
-                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                                {
+                                                    match &course.1.registration_button_link {
+                                                        RegistrationState::Unknown => html! { },
+                                                        RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Kurs abmelden"}</a> },
+                                                        RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Kurs anmelden"}</a> },
+                                                    }
+                                                }
                                             </li>
                                         }
                                     })
@@ -224,6 +246,13 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                 }
             </ul>
 
+            if *loading {
+                <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
+                    <div class="spinner-grow" role="status">
+                        <span class="visually-hidden">{"Loading..."}</span>
+                    </div>
+                </div>
+            }
         </>
     })
 }
@@ -243,12 +272,7 @@ fn switch_inner() -> HtmlResult {
     let test: URLFormat = location.query::<URLFormat>().unwrap();
 
     match test.PRGNAME.as_str() {
-        "REGISTRATION" => {
-            let anmeldung_request = AnmeldungRequest {
-                arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
-            };
-            Ok(html! { <Registration {anmeldung_request} /> })
-        }
+        "REGISTRATION" => Ok(html! { <Registration /> }),
         _ => Ok(html! { <div>{"unknown"}</div> }),
     }
 }
@@ -260,7 +284,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
 struct URLFormat {
     APPNAME: String,
     PRGNAME: String,
@@ -268,7 +292,7 @@ struct URLFormat {
 }
 
 #[function_component(Registration)]
-fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
+fn registration() -> HtmlResult {
     let fallback = html! {
         <>
             <nav aria-label="breadcrumb">
@@ -308,9 +332,7 @@ fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
             <div class="container">
                 <h2 class="text-center">{"Registration"}</h2>
 
-                <Suspense {fallback}>
-                    <Content anmeldung_request={(props.anmeldung_request).clone()} />
-                </Suspense>
+                <Content />
             </div>
         </>
     })
