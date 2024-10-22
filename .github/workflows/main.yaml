@@ -48,7 +48,7 @@ jobs:
       id: deployment
       uses: actions/upload-pages-artifact@v3
       with:
-        path: tucan-injector/dist/tucan-injector.js
+        path: tucan-injector/dist/
 
   deploy:
     environment:
