@@ -12,6 +12,7 @@ use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
 };
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{
     js_sys::{Function, JsString},
     Node,
@@ -119,16 +120,6 @@ fn use_login_response() -> LoginResponse {
     }
 }
 
-#[hook]
-fn use_anmeldung(anmeldung_request: AnmeldungRequest) -> SuspensionResult<AnmeldungResponse> {
-    let login_response = use_login_response();
-
-    let s = suspense::use_future_with(anmeldung_request, |anmeldung_request| {
-        evil_stuff(login_response, (*anmeldung_request).clone())
-    })?;
-    Ok((*s).clone())
-}
-
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
     anmeldung_request: AnmeldungRequest,
@@ -137,7 +128,26 @@ pub struct AnmeldungRequestProps {
 #[function_component(Content)]
 fn content(props: &AnmeldungRequestProps) -> HtmlResult {
     let navigator = use_navigator().unwrap();
-    let data = use_anmeldung(props.anmeldung_request.clone())?;
+    let login_response = use_login_response();
+
+    let data = use_state(|| AnmeldungResponse {
+        path: vec![],
+        submenus: vec![],
+        entries: vec![],
+        additional_information: vec![],
+    });
+    {
+        let data = data.clone();
+        use_effect_with(props.anmeldung_request.clone(), move |anmeldung_request| {
+            let anmeldung_request = anmeldung_request.clone();
+            let data = data.clone();
+            spawn_local(async move {
+                let s = evil_stuff(login_response, anmeldung_request).await;
+                data.set(s);
+            })
+        });
+    }
+
     let login_response = use_login_response();
 
     Ok(html! {
@@ -145,7 +155,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
-                        data.path.into_iter().map(|entry| {
+                        data.path.iter().map(|entry| {
                             let anmeldung_request_cb = Callback::from({
                                 let navigator = navigator.clone();
                                 let entry_link = Rc::new(entry.1.clone());
@@ -153,7 +163,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                                     navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
                                 }
                             });
-                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0}</a></li>}
+                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0.clone()}</a></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -163,7 +173,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
             <ul class="list-group">
                 {
-                    data.submenus.into_iter().map(|entry| {
+                    data.submenus.iter().map(|entry| {
                         let anmeldung_request_cb = Callback::from({
                             let navigator = navigator.clone();
                             let entry_link = Rc::new(entry.1.clone());
@@ -180,7 +190,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
             <ul class="list-group">
                 {
-                    for data.entries.into_iter().map(|entry| {
+                    for data.entries.iter().map(|entry| {
                         let module = entry.module.as_ref();
                         html!{
                             <li class="list-group-item">
@@ -197,22 +207,22 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
                                 <ul class="list-group">
                                 {
-                                    for entry.courses.into_iter().map(|course| {
+                                    for entry.courses.iter().map(|course| {
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ course.1.url }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ course.1.url.clone() }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.unwrap_or_default()) }</h6>
+                                                    <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
                                                     <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
                                                 </div>
 
-                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.unwrap_or_default()) }</h6>
+                                                <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }</h6>
 
-                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.clone().unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
                                             </li>
                                         }
                                     })
@@ -308,9 +318,7 @@ fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
             <div class="container">
                 <h2 class="text-center">{"Registration"}</h2>
 
-                <Suspense {fallback}>
-                    <Content anmeldung_request={(props.anmeldung_request).clone()} />
-                </Suspense>
+                <Content anmeldung_request={(props.anmeldung_request).clone()} />
             </div>
         </>
     })
