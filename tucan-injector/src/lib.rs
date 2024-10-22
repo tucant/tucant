@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use tucan_connector::registration::index::RegistrationState;
 
 use indexed_db::Factory;
 use log::info;
@@ -200,7 +201,15 @@ fn content() -> HtmlResult {
                                     <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
                                 </div>
 
-                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", module.map(|module| module.registration_button_link.clone().unwrap_or_default()).unwrap_or_default()) }>{"Zum Modul anmelden"}</a></span>
+                                {
+                                    module.map(|module| {
+                                        match &module.registration_button_link {
+                                            RegistrationState::Unknown => html! { },
+                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Modul abmelden"}</a> },
+                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Modul anmelden"}</a> },
+                                        }
+                                    })
+                                }
 
                                 <ul class="list-group">
                                 {
@@ -219,7 +228,13 @@ fn content() -> HtmlResult {
 
                                                 <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }</h6>
 
-                                                <span class="text-body-secondary"><a class="btn btn-primary mb-1" role="button" href={ format!("{}", course.1.registration_button_link.clone().unwrap_or_default()) }>{"Zum Kurs anmelden"}</a></span>
+                                                {
+                                                    match &course.1.registration_button_link {
+                                                        RegistrationState::Unknown => html! { },
+                                                        RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Kurs abmelden"}</a> },
+                                                        RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Kurs anmelden"}</a> },
+                                                    }
+                                                }
                                             </li>
                                         }
                                     })

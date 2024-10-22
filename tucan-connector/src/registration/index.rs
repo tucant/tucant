@@ -37,6 +37,13 @@ pub struct AnmeldungEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RegistrationState {
+    Unknown,
+    Registered { unregister_link: String },
+    NotRegistered { register_link: String },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungModule {
     pub url: String,
     pub id: String,
@@ -44,7 +51,7 @@ pub struct AnmeldungModule {
     pub lecturer: Option<String>,
     pub date: String,
     pub limit_and_size: String,
-    pub registration_button_link: Option<String>,
+    pub registration_button_link: RegistrationState,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,7 +69,7 @@ pub struct AnmeldungCourse {
     pub begin_and_end: Option<String>,
     pub registration_until: String,
     pub limit_and_size: String,
-    pub registration_button_link: Option<String>,
+    pub registration_button_link: RegistrationState,
 }
 
 pub async fn anmeldung(
@@ -341,13 +348,23 @@ pub async fn anmeldung(
                                 == "img noFloat register"
                             {
                                 html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
-                                (html_handler, Some(registration_button_link))
+                                (
+                                    html_handler,
+                                    RegistrationState::NotRegistered {
+                                        register_link: registration_button_link,
+                                    },
+                                )
                             } else {
                                 html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">"Abmelden"</a>_);
-                                (html_handler, Some(registration_button_link))
+                                (
+                                    html_handler,
+                                    RegistrationState::Registered {
+                                        unregister_link: registration_button_link,
+                                    },
+                                )
                             }
                         } else {
-                            (html_handler, None)
+                            (html_handler, RegistrationState::Unknown)
                         };
                         html!(
                             </td>_
@@ -507,13 +524,23 @@ pub async fn anmeldung(
                                     == "img noFLoat register"
                                 {
                                     html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
-                                    (html_handler, Some(registration_button_link))
+                                    (
+                                        html_handler,
+                                        RegistrationState::NotRegistered {
+                                            register_link: registration_button_link,
+                                        },
+                                    )
                                 } else {
                                     html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">" Abmelden"</a>_);
-                                    (html_handler, Some(registration_button_link))
+                                    (
+                                        html_handler,
+                                        RegistrationState::Registered {
+                                            unregister_link: registration_button_link,
+                                        },
+                                    )
                                 }
                             } else {
-                                (html_handler, None)
+                                (html_handler, RegistrationState::Unknown)
                             };
                             html!(
                                     </td>_
