@@ -20,6 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - run: rustup target add wasm32-unknown-unknown
     - run: cd tucan-injector
     - run: cargo build --verbose --target=wasm32-unknown-unknown
     - run: wasm-bindgen --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
