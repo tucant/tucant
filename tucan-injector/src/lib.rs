@@ -126,7 +126,13 @@ pub struct AnmeldungRequestProps {
 }
 
 #[function_component(Content)]
-fn content(props: &AnmeldungRequestProps) -> HtmlResult {
+fn content() -> HtmlResult {
+    let location = use_location().unwrap();
+    let test: URLFormat = location.query::<URLFormat>().unwrap();
+    let anmeldung_request = AnmeldungRequest {
+        arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
+    };
+
     let navigator = use_navigator().unwrap();
     let login_response = use_login_response();
 
@@ -136,14 +142,18 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
         entries: vec![],
         additional_information: vec![],
     });
+    let loading = use_state(|| false);
     {
         let data = data.clone();
-        use_effect_with(props.anmeldung_request.clone(), move |anmeldung_request| {
+        let loading = loading.clone();
+        use_effect_with(anmeldung_request.clone(), move |anmeldung_request| {
+            loading.set(true);
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
                 let s = evil_stuff(login_response, anmeldung_request).await;
                 data.set(s);
+                loading.set(false);
             })
         });
     }
@@ -152,6 +162,7 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
 
     Ok(html! {
         <>
+
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
@@ -234,6 +245,13 @@ fn content(props: &AnmeldungRequestProps) -> HtmlResult {
                 }
             </ul>
 
+            if *loading {
+                <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
+                    <div class="spinner-grow" role="status">
+                        <span class="visually-hidden">{"Loading..."}</span>
+                    </div>
+                </div>
+            }
         </>
     })
 }
@@ -253,12 +271,7 @@ fn switch_inner() -> HtmlResult {
     let test: URLFormat = location.query::<URLFormat>().unwrap();
 
     match test.PRGNAME.as_str() {
-        "REGISTRATION" => {
-            let anmeldung_request = AnmeldungRequest {
-                arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
-            };
-            Ok(html! { <Registration {anmeldung_request} /> })
-        }
+        "REGISTRATION" => Ok(html! { <Registration /> }),
         _ => Ok(html! { <div>{"unknown"}</div> }),
     }
 }
@@ -278,7 +291,7 @@ struct URLFormat {
 }
 
 #[function_component(Registration)]
-fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
+fn registration() -> HtmlResult {
     let fallback = html! {
         <>
             <nav aria-label="breadcrumb">
@@ -318,7 +331,7 @@ fn registration(props: &AnmeldungRequestProps) -> HtmlResult {
             <div class="container">
                 <h2 class="text-center">{"Registration"}</h2>
 
-                <Content anmeldung_request={(props.anmeldung_request).clone()} />
+                <Content />
             </div>
         </>
     })
