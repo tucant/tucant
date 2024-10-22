@@ -39,6 +39,10 @@ jobs:
       working-directory: tucan-injector
     - run: npm run build
       working-directory: tucan-injector
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucan-injector.js
+        path: tucan-injector/dist/tucan-injector.js
     - uses: actions/attest-build-provenance@v1
       with:
         subject-path: tucan-injector/dist/tucan-injector.js
