@@ -23,6 +23,7 @@ use yew::{
 };
 use yew_router::{
     hooks::{use_location, use_navigator, use_route},
+    prelude::Link,
     BrowserRouter, Routable, Switch,
 };
 
@@ -167,14 +168,7 @@ fn content() -> HtmlResult {
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            let anmeldung_request_cb = Callback::from({
-                                let navigator = navigator.clone();
-                                let entry_link = Rc::new(entry.1.clone());
-                                move |_event| {
-                                    navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
-                                }
-                            });
-                            html!{<li class="breadcrumb-item"><a href="#" onclick={anmeldung_request_cb}>{entry.0.clone()}</a></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -185,14 +179,7 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        let anmeldung_request_cb = Callback::from({
-                            let navigator = navigator.clone();
-                            let entry_link = Rc::new(entry.1.clone());
-                            move |_event| {
-                                navigator.push_with_query(&Route::Home, &URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry_link.arguments.clone())}).unwrap();
-                            }
-                        });
-                        html!{<a href="#" onclick={anmeldung_request_cb} class="list-group-item list-group-item-action">{ format!("{}", entry.0) }</a>}
+                        html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -283,7 +270,7 @@ fn switch(routes: Route) -> Html {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
 struct URLFormat {
     APPNAME: String,
     PRGNAME: String,
