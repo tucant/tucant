@@ -18,6 +18,8 @@
         in
         {
           devShells.default = pkgs.mkShell {
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.openssl ];
+
             shellHook = ''
               export PATH=$PATH:~/.cargo/bin
             '';
