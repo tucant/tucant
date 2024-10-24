@@ -1,54 +1,98 @@
-use indexed_db::Factory;
-use js_sys::wasm_bindgen::JsValue;
+use sqlx::Executor;
 
 pub struct Database {
+    #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
+    #[cfg(not(target_arch = "wasm32"))]
+    database: sqlx::Pool<sqlx::Sqlite>,
 }
 
 impl Database {
     pub async fn new() -> Self {
-        let factory = Factory::<std::io::Error>::get().unwrap();
+        #[cfg(target_arch = "wasm32")]
+        {
+            let factory = indexed_db::Factory::<std::io::Error>::get().unwrap();
 
-        let database = factory
-            .open("database", 1, |evt| async move {
-                let db = evt.database();
-                db.build_object_store("store").create()?;
-                Ok(())
-            })
-            .await
-            .unwrap();
+            let database = factory
+                .open("database", 1, |evt| async move {
+                    let db = evt.database();
+                    db.build_object_store("store").create()?;
+                    Ok(())
+                })
+                .await
+                .unwrap();
 
-        Database { database }
+            Database { database }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            use sqlx::Connection;
+            let database = sqlx::SqlitePool::connect("sqlite://data.db").await.unwrap();
+            sqlx::query("CREATE TABLE store IF NOT EXISTS (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
+                .execute(&database)
+                .await
+                .unwrap();
+            Database { database }
+        }
     }
 
     pub async fn get<V: serde::de::DeserializeOwned>(&mut self, key: &str) -> Option<V> {
-        let key = JsValue::from(key);
-        let result = self
-            .database
-            .transaction(&["store"])
-            .run(|t| async move {
-                let store = t.object_store("store")?;
-                let value = store.get(&key).await.unwrap();
+        #[cfg(target_arch = "wasm32")]
+        {
+            let key = js_sys::wasm_bindgen::JsValue::from(key);
+            let result = self
+                .database
+                .transaction(&["store"])
+                .run(|t| async move {
+                    let store = t.object_store("store")?;
+                    let value = store.get(&key).await.unwrap();
 
-                Ok(value.unwrap())
-            })
-            .await
-            .unwrap();
-        serde_wasm_bindgen::from_value(result).unwrap()
+                    Ok(value.unwrap())
+                })
+                .await
+                .unwrap();
+            serde_wasm_bindgen::from_value(result).unwrap()
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            #[derive(sqlx::FromRow)]
+            struct Value {
+                value: String,
+            }
+
+            let result = sqlx::query_as::<_, Value>("SELECT value FROM store WHERE key = ?")
+                .bind(key)
+                .fetch_optional(&self.database)
+                .await
+                .unwrap();
+            result.map(|result| serde_json::from_str(&result.value).unwrap())
+        }
     }
 
     pub async fn put<V: serde::ser::Serialize + ?Sized>(&mut self, key: &str, value: &V) {
-        let key = JsValue::from(key);
-        let value = serde_wasm_bindgen::to_value(value).unwrap();
-        self.database
-            .transaction(&["store"])
-            .rw()
-            .run(|t| async move {
-                let store = t.object_store("store")?;
-                store.put_kv(&key, &value).await.unwrap();
-                Ok(())
-            })
-            .await
-            .unwrap();
+        #[cfg(target_arch = "wasm32")]
+        {
+            let key = js_sys::wasm_bindgen::from(key);
+            let value = serde_wasm_bindgen::to_value(value).unwrap();
+            self.database
+                .transaction(&["store"])
+                .rw()
+                .run(|t| async move {
+                    let store = t.object_store("store")?;
+                    store.put_kv(&key, &value).await.unwrap();
+                    Ok(())
+                })
+                .await
+                .unwrap();
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            sqlx::query("UPDATE store SET value = ? WHERE key = ?")
+                .bind(serde_json::to_string(value).unwrap())
+                .bind(key)
+                .execute(&self.database)
+                .await
+                .unwrap();
+        }
     }
 }
