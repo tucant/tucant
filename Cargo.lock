@@ -1165,6 +1165,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "key-value-database"
+version = "0.0.0"
+dependencies = [
+ "indexed-db",
+ "js-sys",
+ "serde",
+ "serde-wasm-bindgen 0.6.5",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.161"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2506,7 +2516,7 @@ dependencies = [
  "console_log",
  "cookie",
  "gloo-history 0.2.2",
- "indexed-db",
+ "key-value-database",
  "log",
  "serde",
  "serde-wasm-bindgen 0.6.5",
