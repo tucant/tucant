@@ -18,9 +18,13 @@
         in
         {
           devShells.default = pkgs.mkShell {
+            shellHook = ''
+              export PATH=$PATH:~/.cargo/bin
+            '';
+
             buildInputs = [ pkgs.openssl ];
 
-            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.wasm-bindgen-cli pkgs.bacon ];
+            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.bacon ];
           };
         }
       );
