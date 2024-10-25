@@ -79,7 +79,6 @@ impl Tucan {
                 let password = std::env::var("PASSWORD").unwrap();
 
                 let result = login(&client, username.as_str(), password.as_str()).await?;
-                println!("{:?}", result);
         */
 
         // TODO FIXME retry on

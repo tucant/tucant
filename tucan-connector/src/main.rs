@@ -23,28 +23,17 @@ async fn async_main() -> Result<(), TucanError> {
 
     let anmeldung_response = anmeldung_cached(&tucan, &result, AnmeldungRequest::new()).await?;
 
-    println!("{progress} {anmeldung_response:#?}");
     for entry in &anmeldung_response.submenus {
         let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
         progress += 1;
-        println!("{progress} {anmeldung_response:#?}");
 
         for entry in anmeldung_response.submenus {
             let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
             progress += 1;
-            println!("{progress} {anmeldung_response:#?}");
 
-            for entry in anmeldung_response.submenus {
-                let anmeldung_response =
-                    anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
-                progress += 1;
-                println!("{progress} {anmeldung_response:#?}");
-
-                for entry in anmeldung_response.submenus {
-                    let anmeldung_response =
-                        anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
-                    progress += 1;
-                    println!("{progress} {anmeldung_response:#?}");
+            for entry in anmeldung_response.entries {
+                if let Some(module) = entry.module {
+                    println!("{}", module.url);
                 }
             }
         }

@@ -14,10 +14,8 @@ pub async fn redirect_after_login(
                 .send()
                 .await?
                 .error_for_status()?;
-    println!("{response:#?}");
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.root_element().html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

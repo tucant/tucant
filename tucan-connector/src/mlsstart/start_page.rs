@@ -18,11 +18,9 @@ pub async fn after_login(
                 .send()
                 .await?
                 .error_for_status()?;
-    println!("{response:#?}");
     let content = response.text().await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.html());
     //tokio::fs::write("input.html", document.html()).await;
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
@@ -83,7 +81,6 @@ pub async fn after_login(
               <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>
             );
             let (html_handler, any_child) = html_handler.next_any_child();
-            println!("{:?}", any_child.value());
             html!(
               </a></td>_
               <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
