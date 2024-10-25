@@ -25,6 +25,11 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
                 + &" ".repeat(depth)
                 + "<"
                 + element.name()
+                + &element
+                    .attrs
+                    .iter()
+                    .map(|(key, value)| format!(" {}=\"{}\"", key.local, value))
+                    .join("")
                 + ">"
                 + &node
                     .children()
