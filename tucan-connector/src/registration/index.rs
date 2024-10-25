@@ -1,4 +1,5 @@
 use html_extractor::html;
+use key_value_database::Database;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +7,7 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
-    MyClient, TucanError,
+    MyClient, Tucan, TucanError,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -72,15 +73,34 @@ pub struct AnmeldungCourse {
     pub registration_button_link: RegistrationState,
 }
 
+pub async fn anmeldung_cached(
+    tucan: &Tucan,
+    login_response: &LoginResponse,
+    anmeldung_request: AnmeldungRequest,
+) -> Result<AnmeldungResponse, TucanError> {
+    let key = anmeldung_request.arguments.clone();
+    if let Some(anmeldung_response) = tucan.database.get(&key).await {
+        return Ok(anmeldung_response);
+    }
+
+    let key = anmeldung_request.arguments.clone();
+    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request).await?;
+
+    tucan.database.put(&key, &anmeldung_response).await;
+
+    Ok(anmeldung_response)
+}
+
 pub async fn anmeldung(
-    client: &MyClient,
+    tucan: &Tucan,
     login_response: &LoginResponse,
     args: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
     println!("{url}");
-    let response = client
+    let response = tucan
+        .client
         .get(url)
         .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
         .send()

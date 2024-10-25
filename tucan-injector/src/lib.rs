@@ -1,7 +1,7 @@
+use key_value_database::Database;
 use std::rc::Rc;
 use tucan_connector::registration::index::RegistrationState;
 
-use indexed_db::Factory;
 use log::info;
 use serde::{Deserialize, Serialize};
 use tucan_connector::{
@@ -32,59 +32,21 @@ async fn evil_stuff(
     login_response: LoginResponse,
     anmeldung_request: AnmeldungRequest,
 ) -> AnmeldungResponse {
-    // https://github.com/rustwasm/wasm-bindgen/issues/3798
-
-    let factory = Factory::<TucanError>::get().unwrap();
-
-    let db = factory
-        .open("database", 1, |evt| async move {
-            let db = evt.database();
-            let store = db.build_object_store("store").create()?;
-
-            // You can also add objects from this callback
-            store
-                .add_kv(&JsString::from("foo"), &JsString::from("foo"))
-                .await?;
-
-            Ok(())
-        })
-        .await
-        .unwrap();
+    let mut database = Database::new().await;
 
     let key = anmeldung_request.arguments.clone();
-    let result = db
-        .transaction(&["store"])
-        .run(|t| async move {
-            let store = t.object_store("store")?;
-            let value = store.get(&key.into()).await.unwrap();
-
-            Ok(value)
-        })
-        .await
-        .unwrap();
-
-    if let Some(result) = result {
-        return serde_wasm_bindgen::from_value(result).unwrap();
+    if let Some(anmeldung_response) = database.get(&key).await {
+        return anmeldung_response;
     }
 
     let tucan = Tucan::new().await.unwrap();
 
     let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(&tucan.client, &login_response, anmeldung_request)
+    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request)
         .await
         .unwrap();
 
-    let value = serde_wasm_bindgen::to_value(&anmeldung_response).unwrap();
-    db.transaction(&["store"])
-        .rw()
-        .run(|t| async move {
-            let store = t.object_store("store")?;
-            let value = store.put_kv(&key.into(), &value).await.unwrap();
-
-            Ok(value)
-        })
-        .await
-        .unwrap();
+    database.put(&key, &anmeldung_response).await;
 
     info!("{:?}", anmeldung_response);
     anmeldung_response

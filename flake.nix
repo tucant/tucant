@@ -18,9 +18,15 @@
         in
         {
           devShells.default = pkgs.mkShell {
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.openssl ];
+
+            shellHook = ''
+              export PATH=$PATH:~/.cargo/bin
+            '';
+
             buildInputs = [ pkgs.openssl ];
 
-            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.wasm-bindgen-cli pkgs.bacon ];
+            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.bacon pkgs.sqlitebrowser ];
           };
         }
       );

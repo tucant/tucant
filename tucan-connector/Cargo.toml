@@ -25,6 +25,7 @@ regex = "1.11"
 itertools = "0.13"
 serde = { version = "1", features = ["derive"] }
 getrandom = { version = "0.2", features = ["js"] }
+key-value-database = { path = "../key-value-database" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest-middleware = "0.3"
