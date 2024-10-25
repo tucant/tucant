@@ -1,5 +1,5 @@
 use html_extractor::html;
-use scraper::Html;
+use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -100,11 +100,25 @@ pub async fn moduledetails(
                         <br></br><br></br>_
                         <b>"Startsemester: "</b>
                         start_semester
-                        <br></br><br></br>
-                        <!-- "Start participant selection" -->
-                        <!-- "End participant selection" -->
-                        <!-- "Start Descriptions" -->
+                        <br></br><br></br>_
+                        <!-- "ht3ZhEBbY24m_TsTzk888qBQdrwgMawUHy-7WLRZ64E" -->_
+                        <!-- "dTJeqGsAPhiwl6lY8BwASSkwEUwc22jswDtjP8U2nwk" -->_
+                        <!-- "FAZCaZTDbb4OpO3ZiNhfY9eB8iBPTRyUJmS1mRrUbG4" -->_
     );
+    let mut description = Vec::new();
+    while !html_handler.peek().unwrap().value().is_comment() {
+        let child;
+        (html_handler, child) = html_handler.next_any_child();
+        match child.value() {
+            scraper::Node::Text(text) => description.push(text.trim().to_owned()),
+            scraper::Node::Element(_element) => {
+                description.push(ElementRef::wrap(child).unwrap().html())
+            }
+            _ => panic!(),
+        }
+    }
+    println!("{:#?}", description);
+    html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->);
 
     Ok(todo!())
 }
