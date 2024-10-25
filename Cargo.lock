@@ -3110,6 +3110,7 @@ dependencies = [
  "getrandom",
  "html-extractor",
  "itertools",
+ "key-value-database",
  "regex",
  "reqwest",
  "reqwest-middleware",

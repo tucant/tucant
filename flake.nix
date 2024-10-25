@@ -26,7 +26,7 @@
 
             buildInputs = [ pkgs.openssl ];
 
-            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.bacon ];
+            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.bacon pkgs.sqlitebrowser ];
           };
         }
       );

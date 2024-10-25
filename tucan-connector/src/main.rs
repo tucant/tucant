@@ -1,5 +1,5 @@
 use tucan_connector::login::LoginResponse;
-use tucan_connector::registration::index::{anmeldung, AnmeldungRequest};
+use tucan_connector::registration::index::{anmeldung, anmeldung_cached, AnmeldungRequest};
 use tucan_connector::{Tucan, TucanError};
 
 fn main() -> Result<(), TucanError> {
@@ -21,28 +21,31 @@ async fn async_main() -> Result<(), TucanError> {
 
     let mut progress = 1;
 
-    let anmeldung_response = anmeldung(&tucan.client, &result, AnmeldungRequest::new()).await?;
+    let anmeldung_response =
+        anmeldung_cached(&tucan.client, &result, AnmeldungRequest::new()).await?;
 
     println!("{progress} {anmeldung_response:#?}");
     for entry in &anmeldung_response.submenus {
-        let anmeldung_response = anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
+        let anmeldung_response =
+            anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
         progress += 1;
         println!("{progress} {anmeldung_response:#?}");
 
         for entry in anmeldung_response.submenus {
-            let anmeldung_response = anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
+            let anmeldung_response =
+                anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
             progress += 1;
             println!("{progress} {anmeldung_response:#?}");
 
             for entry in anmeldung_response.submenus {
                 let anmeldung_response =
-                    anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
+                    anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
                 progress += 1;
                 println!("{progress} {anmeldung_response:#?}");
 
                 for entry in anmeldung_response.submenus {
                     let anmeldung_response =
-                        anmeldung(&tucan.client, &result, entry.1.to_owned()).await?;
+                        anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
                     progress += 1;
                     println!("{progress} {anmeldung_response:#?}");
                 }

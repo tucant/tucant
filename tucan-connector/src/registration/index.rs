@@ -1,4 +1,5 @@
 use html_extractor::html;
+use key_value_database::Database;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
@@ -70,6 +71,26 @@ pub struct AnmeldungCourse {
     pub registration_until: String,
     pub limit_and_size: String,
     pub registration_button_link: RegistrationState,
+}
+
+pub async fn anmeldung_cached(
+    client: &MyClient,
+    login_response: &LoginResponse,
+    anmeldung_request: AnmeldungRequest,
+) -> Result<AnmeldungResponse, TucanError> {
+    let mut database = Database::new().await;
+
+    let key = anmeldung_request.arguments.clone();
+    if let Some(anmeldung_response) = database.get(&key).await {
+        return Ok(anmeldung_response);
+    }
+
+    let key = anmeldung_request.arguments.clone();
+    let anmeldung_response = anmeldung(&client, &login_response, anmeldung_request).await?;
+
+    database.put(&key, &anmeldung_response).await;
+
+    Ok(anmeldung_response)
 }
 
 pub async fn anmeldung(
