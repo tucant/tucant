@@ -118,7 +118,31 @@ pub async fn moduledetails(
         }
     }
     println!("{:#?}", description);
-    html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->);
+    html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->_
+        </td>_
+        </tr>_
+        </tbody>
+    </table>_
+    <!-- "g4GIjAX9XWI8KdgiZYN9CpX0xleUBUwHkZKUxJfi6EQ" -->_
+    <table class="tb rw-table rw-all">_
+        <caption>"Anmeldefristen "</caption>_
+        <tbody>
+            <tr class="tbsubhead rw-hide">_
+            <td>" Phase "</td>_
+            <td>" Block "</td>_
+            <td>" Anmeldung von | bis "</td>_
+            <td>" Ende Abmeldung"</td>_
+        </tr>_
+        <tr class="tbdata">_
+            <td class="rw rw-detail-phase">" Direkte Zulassung "</td>_
+            <td class="rw rw-detail-block">" Vorlesungszeit "</td>_
+            <td class="rw rw-detail-regstart">" 01.09.2022 00:00 | 28.02.2023 00:00 "</td>_
+            <td class="rw rw-detail-unreg">" 28.02.2023 00:00 "</td>_
+        </tr>_
+        </tbody>
+    </table>_
+    <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8" -->_
+    );
 
     Ok(todo!())
 }
