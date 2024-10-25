@@ -62,8 +62,49 @@ pub async fn moduledetails(
     );
     let html_handler = logged_in_head(html_handler, login_response.id);
     html!(
-        <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
-        <script type="text/javascript"></script>_
+            <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
+            <script type="text/javascript"></script>_
+            <h1>module_id</h1>_
+    <form name="moduleform" id="moduleform" action="/scripts/mgrqispi.dll" method="post">_
+    <div class="contentlayoutleft" id="contentlayoutleft">_
+        <table class="tb">_
+            <caption>"Moduldetails"</caption>_
+            <tbody>
+                <tr class="tbsubhead">_
+                    <td colspan="3">
+                        "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
+                    </td>_
+                </tr>_
+                <tr class="tbcontrol">_
+                    <td>_
+                        //<a href=url class="arrow">"Schließen"</a>_
+                    </td>_
+                </tr>_
+                <tr class="tbdata">_
+                    <td colspan="3">_
+                        <b>"Modulverantwortliche: "</b>_
+                        <span id="dozenten">"N.N."</span>_
+                        <br></br><br></br>_
+                        <b>"Anzeige im Stundenplan: "</b>
+                        display_in_timetable
+                        <br></br><br></br>_
+                        <b>"Dauer: "</b>
+                        length
+                        <br></br><br></br>_
+                        <b>"Anzahl Wahlkurse: "</b>
+                        count_elective_courses
+                        <br></br><br></br>_
+                        <b>"Credits: "</b>
+                        credits
+                        <br></br>"Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
+                        <br></br><br></br>_
+                        <b>"Startsemester: "</b>
+                        start_semester
+                        <br></br><br></br>
+                        <!-- "Start participant selection" -->
+                        <!-- "End participant selection" -->
+                        <!-- "Start Descriptions" -->
     );
+
     Ok(todo!())
 }
