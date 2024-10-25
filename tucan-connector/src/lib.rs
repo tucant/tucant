@@ -5,6 +5,7 @@ pub mod externalpages;
 pub mod html_handler;
 pub mod login;
 pub mod mlsstart;
+pub mod moduledetails;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;

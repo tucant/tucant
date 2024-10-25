@@ -7,6 +7,7 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
+    moduledetails::index::ModuleDetailsRequest,
     MyClient, Tucan, TucanError,
 };
 
@@ -46,7 +47,7 @@ pub enum RegistrationState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungModule {
-    pub url: String,
+    pub url: ModuleDetailsRequest,
     pub id: String,
     pub name: String,
     pub lecturer: Option<String>,
@@ -399,7 +400,9 @@ pub async fn anmeldung(
                         ));
                         let module_url = module_url.split_once(",-A").unwrap().0;
                         let module = AnmeldungModule {
-                            url: module_url.to_owned(),
+                            url: ModuleDetailsRequest {
+                                arguments: module_url.to_owned(),
+                            },
                             id: module_id.trim().to_owned(),
                             name: module_name,
                             lecturer: if lecturer == "N.N." {
