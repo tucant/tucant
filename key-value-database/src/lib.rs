@@ -1,5 +1,3 @@
-use sqlx::Executor;
-
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -38,7 +36,7 @@ impl Database {
         }
     }
 
-    pub async fn get<V: serde::de::DeserializeOwned>(&mut self, key: &str) -> Option<V> {
+    pub async fn get<V: serde::de::DeserializeOwned>(&self, key: &str) -> Option<V> {
         #[cfg(target_arch = "wasm32")]
         {
             let key = js_sys::wasm_bindgen::JsValue::from(key);
@@ -71,10 +69,10 @@ impl Database {
         }
     }
 
-    pub async fn put<V: serde::ser::Serialize + ?Sized>(&mut self, key: &str, value: &V) {
+    pub async fn put<V: serde::ser::Serialize + ?Sized>(&self, key: &str, value: &V) {
         #[cfg(target_arch = "wasm32")]
         {
-            let key = js_sys::wasm_bindgen::from(key);
+            let key = js_sys::wasm_bindgen::JsValue::from(key);
             let value = serde_wasm_bindgen::to_value(value).unwrap();
             self.database
                 .transaction(&["store"])

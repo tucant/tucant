@@ -21,31 +21,28 @@ async fn async_main() -> Result<(), TucanError> {
 
     let mut progress = 1;
 
-    let anmeldung_response =
-        anmeldung_cached(&tucan.client, &result, AnmeldungRequest::new()).await?;
+    let anmeldung_response = anmeldung_cached(&tucan, &result, AnmeldungRequest::new()).await?;
 
     println!("{progress} {anmeldung_response:#?}");
     for entry in &anmeldung_response.submenus {
-        let anmeldung_response =
-            anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
+        let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
         progress += 1;
         println!("{progress} {anmeldung_response:#?}");
 
         for entry in anmeldung_response.submenus {
-            let anmeldung_response =
-                anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
+            let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
             progress += 1;
             println!("{progress} {anmeldung_response:#?}");
 
             for entry in anmeldung_response.submenus {
                 let anmeldung_response =
-                    anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
+                    anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
                 progress += 1;
                 println!("{progress} {anmeldung_response:#?}");
 
                 for entry in anmeldung_response.submenus {
                     let anmeldung_response =
-                        anmeldung_cached(&tucan.client, &result, entry.1.to_owned()).await?;
+                        anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
                     progress += 1;
                     println!("{progress} {anmeldung_response:#?}");
                 }

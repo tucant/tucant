@@ -42,7 +42,7 @@ async fn evil_stuff(
     let tucan = Tucan::new().await.unwrap();
 
     let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(&tucan.client, &login_response, anmeldung_request)
+    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request)
         .await
         .unwrap();
 

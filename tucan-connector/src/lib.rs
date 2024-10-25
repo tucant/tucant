@@ -1,3 +1,5 @@
+use key_value_database::Database;
+
 pub mod common;
 pub mod externalpages;
 pub mod html_handler;
@@ -12,6 +14,7 @@ pub struct Tucan {
     pub client: reqwest::Client,
     #[cfg(not(target_arch = "wasm32"))]
     pub client: reqwest_middleware::ClientWithMiddleware,
+    pub database: Database,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -55,7 +58,10 @@ impl Tucan {
                 retry_policy,
             ))
             .build();
-            Ok(Self { client })
+            Ok(Self {
+                client,
+                database: Database::new().await,
+            })
         }
         #[cfg(target_arch = "wasm32")]
         {
@@ -63,7 +69,10 @@ impl Tucan {
                 .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
                 .build()
                 .unwrap();
-            Ok(Self { client })
+            Ok(Self {
+                client,
+                database: Database::new().await,
+            })
         }
 
         /*        let username = std::env::var("USERNAME").unwrap();
