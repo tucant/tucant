@@ -1,6 +1,6 @@
 use key_value_database::Database;
 use std::rc::Rc;
-use tucan_connector::registration::index::RegistrationState;
+use tucan_connector::registration::index::{anmeldung_cached, RegistrationState};
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -32,24 +32,10 @@ async fn evil_stuff(
     login_response: LoginResponse,
     anmeldung_request: AnmeldungRequest,
 ) -> AnmeldungResponse {
-    let mut database = Database::new().await;
-
-    let key = anmeldung_request.arguments.clone();
-    if let Some(anmeldung_response) = database.get(&key).await {
-        return anmeldung_response;
-    }
-
     let tucan = Tucan::new().await.unwrap();
-
-    let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request)
+    anmeldung_cached(&tucan, &login_response, anmeldung_request)
         .await
-        .unwrap();
-
-    database.put(&key, &anmeldung_response).await;
-
-    info!("{:?}", anmeldung_response);
-    anmeldung_response
+        .unwrap()
 }
 
 #[hook]
