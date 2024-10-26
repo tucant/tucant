@@ -3,7 +3,7 @@ use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    common::head::{html_head, logged_in_head},
+    common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
     registration::index::{AnmeldungRequest, AnmeldungResponse},
@@ -119,125 +119,136 @@ pub async fn moduledetails(
     }
     println!("{:#?}", description);
     html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->_
-        </td>_
-        </tr>_
-        </tbody>
-    </table>_
-    <!-- "g4GIjAX9XWI8KdgiZYN9CpX0xleUBUwHkZKUxJfi6EQ" -->_
-    <table class="tb rw-table rw-all">_
-        <caption>"Anmeldefristen "</caption>_
-        <tbody>
-            <tr class="tbsubhead rw-hide">_
-            <td>" Phase "</td>_
-            <td>" Block "</td>_
-            <td>" Anmeldung von | bis "</td>_
-            <td>" Ende Abmeldung"</td>_
-        </tr>_
-        <tr class="tbdata">_
-            <td class="rw rw-detail-phase">" Direkte Zulassung "</td>_
-            <td class="rw rw-detail-block">" Vorlesungszeit "</td>_
-            <td class="rw rw-detail-regstart">" 01.09.2022 00:00 | 28.02.2023 00:00 "</td>_
-            <td class="rw rw-detail-unreg">" 28.02.2023 00:00 "</td>_
-        </tr>_
-        </tbody>
-    </table>_
-    <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8" -->_
-    <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
-    <table class="tb rw-table rw-all">_
-        <caption>"Kurse"</caption>_
-        <tbody>
-        <tr class="tbsubhead rw-hide">_
-            <td>
-            <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
-            <td>"Nummer"</td>_
-            <td>"Name"</td>_
-            <td>"Pflicht"</td>_
-            <td>"Semester"</td>_
-            <td>"Credits"</td>_
-            <td>_</td>_</tr>_
-        <tr class="tbsubhead">_
-            <td class="rw rw-detail-logo">
-            <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
-            <td class="rw rw-detail-courseno">"20-00-0014-iv"</td>_
-            <td class="rw rw-detail-name">"Visual Computing"</td>_
-            <td class="rw rw-detail-mandatory">" Ja "</td>_
-            <td class="rw rw-detail-semester">"1"</td>_
-            <td class="rw rw-detail-credits">"  0,0"</td>_
-            <td>_</td>_</tr>_
-        <tr class="tbdata">_
-            <td class="tbdata">
-            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_1>"20-00-0014-iv"</a></td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_1>"Visual Computing"</a></td>_
-            <td>_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_1>"WiSe 2022/23"</a></td>_
-            <td>_</td>_
-            <td>_</td>_</tr>_
-        <tr class="tbdata">_
-            <td class="tbdata">
-            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_2>"20-00-0014-iv"</a></td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_2>"Visual Computing"</a></td>_
-            <td>_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_2>"WiSe 2023/24"</a></td>_
-            <td>_</td>_
-            <td>_</td>_</tr>_
-        <tr class="tbdata">_
-            <td class="tbdata">
-            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_3>"20-00-0014-iv"</a></td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_3>"Visual Computing"</a></td>_
-            <td>_</td>_
-            <td>
-            <a name="eventLink" class="link" href=course_url_3>"WiSe 2024/25"</a></td>_
-            <td>_</td>_
-            <td>_</td>_</tr>_</tbody></table>_
-    <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
-    <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
-    <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
-    <!--"RbiwK6SpZ7Au8p2XBS1t7LR2XF4kwjqMkFfIEgv-rKc"-->_
-    <!--"WYZJEW9m0LQLxHI4fNLAXyP9Usi68W5DvBNIymfLpa0"-->_
-    <!--"RiWbv8Xb_X5unLSu-h2dOXvsMSfM9vnOkC0FzKSUbIY"-->_
-    <!--"IM7UyQ8J2Prc4k7ngbYVxLKq5_3M-nyvLH65J72ju_c"-->_
-    <!--"G_ubVsxEEhlOjm-QIAX4HfC7IIP5TBrEBFAo95WO3GM"-->_
-    <table class="tb rw-table rw-all" summary="Leistungen">_
-        <caption>"Leistungen"</caption>_
-        <thead>_
-        <tr class="tbsubhead rw-hide">_
-            <th scope="col">"Kurs/Modulabschlussleistungen"</th>_
-            <th scope="col">"Leistungen"</th>_
-            <th scope="col">"Bestehenspflicht"</th>_
-            <th scope="col">"Gewichtung"</th>_</tr>_</thead>_
-        <tbody>_
-        <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
-        <tr>_
-            <td rowspan="0001" class="tbsubhead level02_color ">"\n\t\t\t20-00-0014-iv\n\t\t\t\tVisual Computing\n\t\t\t                        \t\t"</td>_
-            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-            <td class="tbborderleft rw rw-detail-reqachieve">examination_type</td>_
-            <td class="rw rw-detail-compulsory">"\tJa"</td>_
-            <td class="rw rw-detail-weight alignRight">" 100% \n\t\t\t\t\t"</td>_</tr>_</tbody>_</table>_
-    <!--"2ZbUIAyW1jo5-WUMeTNt-IKv23wZ26ul3DgqOFYk-Cs"-->_
-    <!--"yzI2g2lOkYEZ9daP_HPMEVsNji03iv9OjslJBotOfZ0"-->_
-    <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
-        <caption>"Modulabschlussprüfungen"</caption>_
-        <thead>_
-        <tr class="tbsubhead rw-hide">_
-            <th scope="col">"Leistungskombination"</th>_
-            <th scope="col">"Prüfung"</th>_
-            <th scope="col">"Datum"</th>_
-            <th scope="col">"Lehrende"</th>_
-            <th scope="col">"Bestehenspflicht"</th>_</tr>_</thead>_
-        <tbody>_</tbody>_</table>_
-    <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_</div>_
-    );
+                </td>_
+                </tr>_
+                </tbody>
+            </table>_
+            <!-- "g4GIjAX9XWI8KdgiZYN9CpX0xleUBUwHkZKUxJfi6EQ" -->_
+            <table class="tb rw-table rw-all">_
+                <caption>"Anmeldefristen "</caption>_
+                <tbody>
+                    <tr class="tbsubhead rw-hide">_
+                    <td>" Phase "</td>_
+                    <td>" Block "</td>_
+                    <td>" Anmeldung von | bis "</td>_
+                    <td>" Ende Abmeldung"</td>_
+                </tr>_
+                <tr class="tbdata">_
+                    <td class="rw rw-detail-phase">" Direkte Zulassung "</td>_
+                    <td class="rw rw-detail-block">" Vorlesungszeit "</td>_
+                    <td class="rw rw-detail-regstart">registration_range</td>_
+                    <td class="rw rw-detail-unreg">unregistration</td>_
+                </tr>_
+                </tbody>
+            </table>_
+            <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8" -->_
+            <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
+            <table class="tb rw-table rw-all">_
+                <caption>"Kurse"</caption>_
+                <tbody>
+                <tr class="tbsubhead rw-hide">_
+                    <td>
+                    <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
+                    <td>"Nummer"</td>_
+                    <td>"Name"</td>_
+                    <td>"Pflicht"</td>_
+                    <td>"Semester"</td>_
+                    <td>"Credits"</td>_
+                    <td>_</td>_</tr>_
+                <tr class="tbsubhead">_
+                    <td class="rw rw-detail-logo">
+                    <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
+                    <td class="rw rw-detail-courseno">course_no</td>_
+                    <td class="rw rw-detail-name">name</td>_
+                    <td class="rw rw-detail-mandatory">" Ja "</td>_
+                    <td class="rw rw-detail-semester">"1"</td>_
+                    <td class="rw rw-detail-credits">"  0,0"</td>_
+                    <td>_</td>_</tr>_
+                <tr class="tbdata">_
+                    <td class="tbdata">
+                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_1>course_no</a></td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_1>name</a></td>_
+                    <td>_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_1>semester</a></td>_
+                    <td>_</td>_
+                    <td>_</td>_</tr>_
+                <tr class="tbdata">_
+                    <td class="tbdata">
+                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_2>course_no</a></td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_2>name</a></td>_
+                    <td>_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_2>semester</a></td>_
+                    <td>_</td>_
+                    <td>_</td>_</tr>_
+                <tr class="tbdata">_
+                    <td class="tbdata">
+                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_3>course_no</a></td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_3>name</a></td>_
+                    <td>_</td>_
+                    <td>
+                    <a name="eventLink" class="link" href=course_url_3>semester</a></td>_
+                    <td>_</td>_
+                    <td>_</td>_</tr>_</tbody></table>_
+            <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
+            <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
+            <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
+            <!--"RbiwK6SpZ7Au8p2XBS1t7LR2XF4kwjqMkFfIEgv-rKc"-->_
+            <!--"WYZJEW9m0LQLxHI4fNLAXyP9Usi68W5DvBNIymfLpa0"-->_
+            <!--"RiWbv8Xb_X5unLSu-h2dOXvsMSfM9vnOkC0FzKSUbIY"-->_
+            <!--"IM7UyQ8J2Prc4k7ngbYVxLKq5_3M-nyvLH65J72ju_c"-->_
+            <!--"G_ubVsxEEhlOjm-QIAX4HfC7IIP5TBrEBFAo95WO3GM"-->_
+            <table class="tb rw-table rw-all" summary="Leistungen">_
+                <caption>"Leistungen"</caption>_
+                <thead>_
+                <tr class="tbsubhead rw-hide">_
+                    <th scope="col">"Kurs/Modulabschlussleistungen"</th>_
+                    <th scope="col">"Leistungen"</th>_
+                    <th scope="col">"Bestehenspflicht"</th>_
+                    <th scope="col">"Gewichtung"</th>_</tr>_</thead>_
+                <tbody>_
+                <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
+                <tr>_
+                    <td rowspan="0001" class="tbsubhead level02_color ">"\n\t\t\t20-00-0014-iv\n\t\t\t\tVisual Computing\n\t\t\t                        \t\t"</td>_
+                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    <td class="tbborderleft rw rw-detail-reqachieve">examination_type</td>_
+                    <td class="rw rw-detail-compulsory">"\tJa"</td>_
+                    <td class="rw rw-detail-weight alignRight">" 100% \n\t\t\t\t\t"</td>_</tr>_</tbody>_</table>_
+            <!--"2ZbUIAyW1jo5-WUMeTNt-IKv23wZ26ul3DgqOFYk-Cs"-->_
+            <!--"yzI2g2lOkYEZ9daP_HPMEVsNji03iv9OjslJBotOfZ0"-->_
+            <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
+                <caption>"Modulabschlussprüfungen"</caption>_
+                <thead>_
+                <tr class="tbsubhead rw-hide">_
+                    <th scope="col">"Leistungskombination"</th>_
+                    <th scope="col">"Prüfung"</th>_
+                    <th scope="col">"Datum"</th>_
+                    <th scope="col">"Lehrende"</th>_
+                    <th scope="col">"Bestehenspflicht"</th>_</tr>_</thead>_
+                <tbody>_</tbody>_</table>_
+            <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_</div>_
+        <!-- "Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ" -->_
+        <div class="contentlayoutright" id="contentlayoutright">_
+            </div>_
+        <!-- "SzJAJfnnubn5SpplE3qoUsG2QoqW6EEMiB36flFP3BQ" -->_
+    <br style="clear:both;"></br>_
+    </form>_
+    <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_
+    </div>_
+    </div>_
+    </div>_
+            );
+    let html_handler = footer(html_handler, id, 311);
 
-    Ok(todo!())
+    Ok(ModuleDetailsResponse {})
 }
