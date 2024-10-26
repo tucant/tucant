@@ -164,42 +164,26 @@ pub async fn moduledetails(
                     <td class="rw rw-detail-semester">"1"</td>_
                     <td class="rw rw-detail-credits">"  0,0"</td>_
                     <td>_</td>_</tr>_
-                <tr class="tbdata">_
-                    <td class="tbdata">
-                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_1>course_no</a></td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_1>name</a></td>_
-                    <td>_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_1>semester</a></td>_
-                    <td>_</td>_
-                    <td>_</td>_</tr>_
-                <tr class="tbdata">_
-                    <td class="tbdata">
-                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_2>course_no</a></td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_2>name</a></td>_
-                    <td>_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_2>semester</a></td>_
-                    <td>_</td>_
-                    <td>_</td>_</tr>_
-                <tr class="tbdata">_
-                    <td class="tbdata">
-                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_3>course_no</a></td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_3>name</a></td>_
-                    <td>_</td>_
-                    <td>
-                    <a name="eventLink" class="link" href=course_url_3>semester</a></td>_
-                    <td>_</td>_
-                    <td>_</td>_</tr>_</tbody></table>_
+    );
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(<tr class="tbdata">_
+        <td class="tbdata">
+        <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
+        <td>
+        <a name="eventLink" class="link" href=course_url_1>course_no</a></td>_
+        <td>
+        <a name="eventLink" class="link" href=course_url_1>name</a></td>_
+        <td>_</td>_
+        <td>
+        <a name="eventLink" class="link" href=course_url_1>semester</a></td>_
+        <td>_</td>_
+        <td>_</td>_</tr>_);
+            html_handler
+        }
+    }
+
+    html!(</tbody></table>_
             <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
             <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
             <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -219,7 +203,7 @@ pub async fn moduledetails(
                 <tbody>_
                 <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
                 <tr>_
-                    <td rowspan="0001" class="tbsubhead level02_color ">"\n\t\t\t20-00-0014-iv\n\t\t\t\tVisual Computing\n\t\t\t                        \t\t"</td>_
+                    <td rowspan="0001" class="tbsubhead level02_color ">module_name</td>_
                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     <td class="tbborderleft rw rw-detail-reqachieve">examination_type</td>_
                     <td class="rw rw-detail-compulsory">"\tJa"</td>_
