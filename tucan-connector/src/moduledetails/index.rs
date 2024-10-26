@@ -100,7 +100,7 @@ pub async fn moduledetails(
                     <tr class="tbdata">_
                         <td colspan="3">_
                             <b>"Modulverantwortliche: "</b>_
-                            <span id="dozenten">"N.N."</span>_
+                            <span id="dozenten">dozenten</span>_
                             <br></br><br></br>_
                             <b>"Anzeige im Stundenplan: "</b>
                             display_in_timetable
@@ -170,7 +170,7 @@ pub async fn moduledetails(
                 <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
 
     );
-    let html_handler = if registered {
+    let html_handler = if html_handler.peek().unwrap().value().is_element() {
         html!(<table class="tb rw-table rw-all">_
                     <caption>"Kurse"</caption>_
                     <tbody>
@@ -189,7 +189,15 @@ pub async fn moduledetails(
                         <td class="rw rw-detail-courseno">course_no</td>_
                         <td class="rw rw-detail-name">name</td>_
                         <td class="rw rw-detail-mandatory">" Ja "</td>_
-                        <td class="rw rw-detail-semester">"1"</td>_
+                        <td class="rw rw-detail-semester">);
+        let html_handler = if html_handler.peek().is_some() {
+            html!(semester);
+            html_handler
+        } else {
+            html_handler
+        };
+
+        html!(</td>_
                         <td class="rw rw-detail-credits">"  0,0"</td>_
                         <td>_</td>_</tr>_
         );
@@ -246,13 +254,38 @@ pub async fn moduledetails(
             <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
                 <caption>"Modulabschlussprüfungen"</caption>_
                 <thead>_
-                <tr class="tbsubhead rw-hide">_
-                    <th scope="col">"Leistungskombination"</th>_ // oh no this is not always in the table
-                    <th scope="col">"Prüfung"</th>_
+                <tr class="tbsubhead rw-hide">_<th scope="col">);
+    let html_handler =
+        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+            html!("Leistungskombination"</th>_<th scope="col">); // oh no this is not always in the table
+            html_handler
+        } else {
+            html_handler
+        };
+    html!("Prüfung"</th>_
                     <th scope="col">"Datum"</th>_
                     <th scope="col">"Lehrende"</th>_
                     <th scope="col">"Bestehenspflicht"</th>_</tr>_</thead>_
-                <tbody>_</tbody>_</table>_
+                <tbody>_);
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html!(<!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    <tr class="tbdata">_
+                     <td class="tbborderleft rw rw-detail-exam">
+                        exam_type
+                        </td>_
+                <td class="rw rw-detail-date">
+                exam_date
+            </td>_
+                <td class="rw rw-detail-instructors">instructor</td>_
+                <td class="rw rw-detail-compulsory">
+                compulsory
+                </td>_
+            </tr>_);
+            html_handler
+        }
+    }
+    html!(</tbody>_</table>_
             <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_</div>_
         <!-- "Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ" -->_
         <div class="contentlayoutright" id="contentlayoutright">_
