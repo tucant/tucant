@@ -8,10 +8,8 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
                     .send()
                     .await?
                     .error_for_status()?;
-    println!("{response:#?}");
     let content = response.text().await?;
     let document = Html::parse_document(&content);
-    println!("{}", document.html());
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

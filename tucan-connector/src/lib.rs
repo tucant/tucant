@@ -5,6 +5,7 @@ pub mod externalpages;
 pub mod html_handler;
 pub mod login;
 pub mod mlsstart;
+pub mod moduledetails;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
@@ -79,7 +80,6 @@ impl Tucan {
                 let password = std::env::var("PASSWORD").unwrap();
 
                 let result = login(&client, username.as_str(), password.as_str()).await?;
-                println!("{:?}", result);
         */
 
         // TODO FIXME retry on

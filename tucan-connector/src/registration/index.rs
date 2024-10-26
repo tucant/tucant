@@ -7,6 +7,7 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
+    moduledetails::index::ModuleDetailsRequest,
     MyClient, Tucan, TucanError,
 };
 
@@ -46,7 +47,7 @@ pub enum RegistrationState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnmeldungModule {
-    pub url: String,
+    pub url: ModuleDetailsRequest,
     pub id: String,
     pub name: String,
     pub lecturer: Option<String>,
@@ -98,7 +99,6 @@ pub async fn anmeldung(
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
-    println!("{url}");
     let response = tucan
         .client
         .get(url)
@@ -343,7 +343,7 @@ pub async fn anmeldung(
                                 </td>_
                                 <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
                                 <td class="tbsubhead dl-inner" >_
-                                    <p><strong><a href=url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
+                                    <p><strong><a href=module_url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
                                     <p>lecturer</p>_
                                 </td>_
                                 <td class="tbsubhead">
@@ -395,8 +395,14 @@ pub async fn anmeldung(
                             <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
+                        let module_url = module_url.trim_start_matches(&format!(
+                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"
+                        ));
+                        let module_url = module_url.split_once(",-A").unwrap().0;
                         let module = AnmeldungModule {
-                            url,
+                            url: ModuleDetailsRequest {
+                                arguments: module_url.to_owned(),
+                            },
                             id: module_id.trim().to_owned(),
                             name: module_name,
                             lecturer: if lecturer == "N.N." {
@@ -567,8 +573,12 @@ pub async fn anmeldung(
                                     <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                                 </tr>_
                             );
+                            let course_url = course_url.trim_start_matches(&format!(
+                                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015}"
+                            ));
+                            let course_url = course_url.split_once(",-A").unwrap().0;
                             let course = AnmeldungCourse {
-                                url: course_url,
+                                url: course_url.to_owned(),
                                 id: course_id.trim().to_owned(),
                                 name: course_name.trim().to_owned(),
                                 lecturers,

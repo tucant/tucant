@@ -1,6 +1,6 @@
 use key_value_database::Database;
 use std::rc::Rc;
-use tucan_connector::registration::index::RegistrationState;
+use tucan_connector::registration::index::{anmeldung_cached, RegistrationState};
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -32,24 +32,10 @@ async fn evil_stuff(
     login_response: LoginResponse,
     anmeldung_request: AnmeldungRequest,
 ) -> AnmeldungResponse {
-    let mut database = Database::new().await;
-
-    let key = anmeldung_request.arguments.clone();
-    if let Some(anmeldung_response) = database.get(&key).await {
-        return anmeldung_response;
-    }
-
     let tucan = Tucan::new().await.unwrap();
-
-    let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request)
+    anmeldung_cached(&tucan, &login_response, anmeldung_request)
         .await
-        .unwrap();
-
-    database.put(&key, &anmeldung_response).await;
-
-    info!("{:?}", anmeldung_response);
-    anmeldung_response
+        .unwrap()
 }
 
 #[hook]
@@ -155,7 +141,7 @@ fn content() -> HtmlResult {
                         html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone()).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
+                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
