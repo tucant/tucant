@@ -25,6 +25,7 @@ pub async fn moduledetails(
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
+    println!("{}", url);
     let response = tucan
         .client
         .get(url)
@@ -70,34 +71,57 @@ pub async fn moduledetails(
         <table class="tb">_
             <caption>"Moduldetails"</caption>_
             <tbody>
-                <tr class="tbsubhead">_
+    );
+    let html_handler = if html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .attr("class")
+        .unwrap()
+        == "tbsubhead"
+    {
+        html!(<tr class="tbsubhead">_
                     <td colspan="3">
                         "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
                     </td>_
-                </tr>_
-                <tr class="tbcontrol">_
-                    <td>_
-                        //<a href=url class="arrow">"Schließen"</a>_
-                    </td>_
-                </tr>_
-                <tr class="tbdata">_
-                    <td colspan="3">_
-                        <b>"Modulverantwortliche: "</b>_
-                        <span id="dozenten">"N.N."</span>_
-                        <br></br><br></br>_
-                        <b>"Anzeige im Stundenplan: "</b>
-                        display_in_timetable
-                        <br></br><br></br>_
-                        <b>"Dauer: "</b>
-                        length
-                        <br></br><br></br>_
-                        <b>"Anzahl Wahlkurse: "</b>
-                        count_elective_courses
-                        <br></br><br></br>_
-                        <b>"Credits: "</b>
-                        credits
-                        <br></br>"Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
-                        <br></br><br></br>_
+                </tr>_);
+        html_handler
+    } else {
+        html_handler
+    };
+    html!(<tr class="tbcontrol">_
+                        <td>_
+                            //<a href=url class="arrow">"Schließen"</a>_
+                        </td>_
+                    </tr>_
+                    <tr class="tbdata">_
+                        <td colspan="3">_
+                            <b>"Modulverantwortliche: "</b>_
+                            <span id="dozenten">"N.N."</span>_
+                            <br></br><br></br>_
+                            <b>"Anzeige im Stundenplan: "</b>
+                            display_in_timetable
+                            <br></br><br></br>_
+                            <b>"Dauer: "</b>
+                            length
+                            <br></br><br></br>_
+                            <b>"Anzahl Wahlkurse: "</b>
+                            count_elective_courses
+                            <br></br><br></br>_
+                            <b>"Credits: "</b>
+                            credits
+                            <br></br>
+    );
+    let html_handler = if html_handler.peek().unwrap().value().is_text() {
+        html!("Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
+                        <br></br>);
+        html_handler
+    } else {
+        html_handler
+    };
+    html!(<br></br>_
                         <b>"Startsemester: "</b>
                         start_semester
                         <br></br><br></br>_
