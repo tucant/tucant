@@ -72,7 +72,8 @@ pub async fn moduledetails(
             <caption>"Moduldetails"</caption>_
             <tbody>
     );
-    let html_handler = if html_handler
+
+    let (html_handler, registered) = if html_handler
         .peek()
         .unwrap()
         .value()
@@ -87,9 +88,9 @@ pub async fn moduledetails(
                         "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
                     </td>_
                 </tr>_);
-        html_handler
+        (html_handler, true)
     } else {
-        html_handler
+        (html_handler, false)
     };
     html!(<tr class="tbcontrol">_
                         <td>_
@@ -143,55 +144,58 @@ pub async fn moduledetails(
     }
     println!("{:#?}", description);
     html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->_
-                </td>_
-                </tr>_
-                </tbody>
-            </table>_
-            <!-- "g4GIjAX9XWI8KdgiZYN9CpX0xleUBUwHkZKUxJfi6EQ" -->_
-            <table class="tb rw-table rw-all">_
-                <caption>"Anmeldefristen "</caption>_
-                <tbody>
-                    <tr class="tbsubhead rw-hide">_
-                    <td>" Phase "</td>_
-                    <td>" Block "</td>_
-                    <td>" Anmeldung von | bis "</td>_
-                    <td>" Ende Abmeldung"</td>_
-                </tr>_
-                <tr class="tbdata">_
-                    <td class="rw rw-detail-phase">" Direkte Zulassung "</td>_
-                    <td class="rw rw-detail-block">" Vorlesungszeit "</td>_
-                    <td class="rw rw-detail-regstart">registration_range</td>_
-                    <td class="rw rw-detail-unreg">unregistration</td>_
-                </tr>_
-                </tbody>
-            </table>_
-            <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8" -->_
-            <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
-            <table class="tb rw-table rw-all">_
-                <caption>"Kurse"</caption>_
-                <tbody>
-                <tr class="tbsubhead rw-hide">_
-                    <td>
-                    <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
-                    <td>"Nummer"</td>_
-                    <td>"Name"</td>_
-                    <td>"Pflicht"</td>_
-                    <td>"Semester"</td>_
-                    <td>"Credits"</td>_
-                    <td>_</td>_</tr>_
-                <tr class="tbsubhead">_
-                    <td class="rw rw-detail-logo">
-                    <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
-                    <td class="rw rw-detail-courseno">course_no</td>_
-                    <td class="rw rw-detail-name">name</td>_
-                    <td class="rw rw-detail-mandatory">" Ja "</td>_
-                    <td class="rw rw-detail-semester">"1"</td>_
-                    <td class="rw rw-detail-credits">"  0,0"</td>_
-                    <td>_</td>_</tr>_
+                    </td>_
+                    </tr>_
+                    </tbody>
+                </table>_
+                <!-- "g4GIjAX9XWI8KdgiZYN9CpX0xleUBUwHkZKUxJfi6EQ" -->_
+                <table class="tb rw-table rw-all">_
+                    <caption>"Anmeldefristen "</caption>_
+                    <tbody>
+                        <tr class="tbsubhead rw-hide">_
+                        <td>" Phase "</td>_
+                        <td>" Block "</td>_
+                        <td>" Anmeldung von | bis "</td>_
+                        <td>" Ende Abmeldung"</td>_
+                    </tr>_
+                    <tr class="tbdata">_
+                        <td class="rw rw-detail-phase">" Direkte Zulassung "</td>_
+                        <td class="rw rw-detail-block">" Vorlesungszeit "</td>_
+                        <td class="rw rw-detail-regstart">registration_range</td>_
+                        <td class="rw rw-detail-unreg">unregistration</td>_
+                    </tr>_
+                    </tbody>
+                </table>_
+                <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8" -->_
+                <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
+
     );
-    while html_handler.peek().is_some() {
-        html_handler = {
-            html!(<tr class="tbdata">_
+    let html_handler = if registered {
+        html!(<table class="tb rw-table rw-all">_
+                    <caption>"Kurse"</caption>_
+                    <tbody>
+                    <tr class="tbsubhead rw-hide">_
+                        <td>
+                        <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
+                        <td>"Nummer"</td>_
+                        <td>"Name"</td>_
+                        <td>"Pflicht"</td>_
+                        <td>"Semester"</td>_
+                        <td>"Credits"</td>_
+                        <td>_</td>_</tr>_
+                    <tr class="tbsubhead">_
+                        <td class="rw rw-detail-logo">
+                        <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"--></td>_
+                        <td class="rw rw-detail-courseno">course_no</td>_
+                        <td class="rw rw-detail-name">name</td>_
+                        <td class="rw rw-detail-mandatory">" Ja "</td>_
+                        <td class="rw rw-detail-semester">"1"</td>_
+                        <td class="rw rw-detail-credits">"  0,0"</td>_
+                        <td>_</td>_</tr>_
+        );
+        while html_handler.peek().is_some() {
+            html_handler = {
+                html!(<tr class="tbdata">_
         <td class="tbdata">
         <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
         <td>
@@ -203,11 +207,16 @@ pub async fn moduledetails(
         <a name="eventLink" class="link" href=course_url_1>semester</a></td>_
         <td>_</td>_
         <td>_</td>_</tr>_);
-            html_handler
+                html_handler
+            }
         }
-    }
-
-    html!(</tbody></table>_
+        html!(</tbody></table>_
+        );
+        html_handler
+    } else {
+        html_handler
+    };
+    html!(
             <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
             <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
             <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -238,7 +247,7 @@ pub async fn moduledetails(
                 <caption>"Modulabschlussprüfungen"</caption>_
                 <thead>_
                 <tr class="tbsubhead rw-hide">_
-                    <th scope="col">"Leistungskombination"</th>_
+                    <th scope="col">"Leistungskombination"</th>_ // oh no this is not always in the table
                     <th scope="col">"Prüfung"</th>_
                     <th scope="col">"Datum"</th>_
                     <th scope="col">"Lehrende"</th>_
