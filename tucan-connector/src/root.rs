@@ -14,7 +14,7 @@ pub async fn root(client: &MyClient) -> Result<(), TucanError> {
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html>
         <head>_
             <!--"RMGklg_XASh8hhew3hZIhYXmZF9hdbOOrS4pTp7U4-Q"-->_

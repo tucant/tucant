@@ -19,12 +19,12 @@ pub async fn redirect_after_login(
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html>
         <head>_
     );
     let html_handler = html_head_2(html_handler);
-    html!(
+    html_extractor::html!(
         </head>_
         <body class="redirect">_
         <div id="wrapper">_

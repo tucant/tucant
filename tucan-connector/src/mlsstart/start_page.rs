@@ -25,12 +25,12 @@ pub async fn after_login(
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>_
     );
     let html_handler = html_head(html_handler);
-    html!(
+    html_extractor::html!(
         <style type="text/css">
             "XN0jaYaHLeXpiJk0Z7v_FOEBkC5jmdtJaIxqyRqEMj4"
         </style>_
@@ -38,7 +38,7 @@ pub async fn after_login(
         <body class="currentevents">_
     );
     let html_handler = logged_in_head(html_handler, login_response.id);
-    html!(
+    html_extractor::html!(
     <!--"EkIRwtbzV1S0qAPx6If3Ye8Ey0JkAZsONsPW8C2Tf3Y"-->_
         <script type="text/javascript"></script>_
         <h1>_welcome_message</h1>_
@@ -73,7 +73,7 @@ pub async fn after_login(
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
-            html!(
+            html_extractor::html!(
               <tr class="tbdata">_
               <td headers="Datum" class="rw rw-maildate"><a class="link" href=_url>_date</a></td>_
               <td headers="Uhrzeit" class="rw rw-mailtime"><a class="link" href=_url>_hour</a></td>_
@@ -81,7 +81,7 @@ pub async fn after_login(
               <td headers="Betreff" class="rw rw-mailsubject"><a class="link" href=_url>
             );
             let (html_handler, any_child) = html_handler.next_any_child();
-            html!(
+            html_extractor::html!(
               </a></td>_
               <td headers="Aktion" class="rw rw-maildel"><a class="link" href=_url>"Löschen"</a></td>_
             </tr>_
@@ -89,7 +89,7 @@ pub async fn after_login(
             html_handler
         };
     }
-    html!(
+    html_extractor::html!(
       </tbody>
           </table>_
           </div>_

@@ -111,20 +111,20 @@ pub async fn anmeldung(
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>_
     );
     let mut html_handler = html_head(html_handler);
     if html_handler.peek().is_none() {
-        html!(
+        html_extractor::html!(
             </head>_
         <body class="timeout">
         );
         let _html_handler = html_handler;
         return Err(TucanError::Timeout);
     }
-    html!(
+    html_extractor::html!(
         <style type="text/css">
             "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
         </style>_
@@ -135,7 +135,7 @@ pub async fn anmeldung(
         <body class="registration">_
     );
     let html_handler = logged_in_head(html_handler, login_response.id);
-    html!(
+    html_extractor::html!(
         <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
             <script type="text/javascript"></script>_
 
@@ -194,7 +194,7 @@ pub async fn anmeldung(
         .is_empty()
     {
         html_handler = {
-            html!(
+            html_extractor::html!(
                 "\n        \u{a0}>\u{a0}\n                "
                 <a href=url>
             );
@@ -214,23 +214,23 @@ pub async fn anmeldung(
                 }
                 _ => panic!(),
             }
-            html!(
+            html_extractor::html!(
                 </a>
             );
             html_handler
         };
     }
-    html!(
+    html_extractor::html!(
         _</h2>_
     );
     let mut submenus: Vec<(String, AnmeldungRequest)> = Vec::new();
     let html_handler = match html_handler.peek() {
         Some(elem) if elem.value().is_element() => {
-            html!(<ul>_);
+            html_extractor::html!(<ul>_);
             let mut html_handler = html_handler;
             while html_handler.peek().is_some() {
                 html_handler = {
-                    html!(
+                    html_extractor::html!(
                         <li>_
                             <a href=url>item</a>_
                         </li>_
@@ -248,13 +248,13 @@ pub async fn anmeldung(
                 };
             }
 
-            html!(
+            html_extractor::html!(
                         </ul>_);
             html_handler
         }
         _ => html_handler,
     };
-    html!(<!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_);
+    html_extractor::html!(<!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_);
     let mut additional_information = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
         let child;
@@ -267,14 +267,14 @@ pub async fn anmeldung(
             _ => panic!(),
         }
     }
-    html!(
+    html_extractor::html!(
         <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
         <br></br>_
         <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
     );
     let mut entries: Vec<AnmeldungEntry> = Vec::new();
     let html_handler = if html_handler.peek().unwrap().value().is_element() {
-        html!(
+        html_extractor::html!(
             <table class="tbcoursestatus rw-table rw-all">_
             <tbody>
             <tr>_
@@ -293,7 +293,7 @@ pub async fn anmeldung(
             .unwrap()
             == "tbdata"
         {
-            html!(
+            html_extractor::html!(
                 <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
                     </tr>_
                     </tbody>
@@ -301,7 +301,7 @@ pub async fn anmeldung(
             );
             html_handler
         } else {
-            html!(
+            html_extractor::html!(
                 <td class="tbsubhead">_
                     <!-- "OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc" -->_
                 </td>_
@@ -335,7 +335,7 @@ pub async fn anmeldung(
                             .to_string()
                             == "logo column"
                     {
-                        html!(
+                        html_extractor::html!(
                             // module
                             <tr>_
                                 <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
@@ -367,7 +367,7 @@ pub async fn anmeldung(
                                 .unwrap()
                                 == "img noFloat register"
                             {
-                                html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
+                                html_extractor::html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
                                 (
                                     html_handler,
                                     RegistrationState::NotRegistered {
@@ -375,7 +375,7 @@ pub async fn anmeldung(
                                     },
                                 )
                             } else {
-                                html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">"Abmelden"</a>_);
+                                html_extractor::html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">"Abmelden"</a>_);
                                 (
                                     html_handler,
                                     RegistrationState::Registered {
@@ -386,7 +386,7 @@ pub async fn anmeldung(
                         } else {
                             (html_handler, RegistrationState::Unknown)
                         };
-                        html!(
+                        html_extractor::html!(
                             </td>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
                             <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
@@ -443,7 +443,7 @@ pub async fn anmeldung(
                                 .value()
                                 .is_comment()
                             {
-                                html!(
+                                html_extractor::html!(
                                     // exam
                                     <tr>_
                                         <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
@@ -454,12 +454,12 @@ pub async fn anmeldung(
                                         exam_name
                                 );
                                 let (html_handler, exam_type) = if html_handler.peek().is_some() {
-                                    html!(<br></br>exam_type);
+                                    html_extractor::html!(<br></br>exam_type);
                                     (html_handler, Some(exam_type.trim().to_owned()))
                                 } else {
                                     (html_handler, None)
                                 };
-                                html!(
+                                html_extractor::html!(
                             </td>_
                             <td class="tbdata">_</td>_
                             <td class="tbdata">_</td>_
@@ -477,7 +477,7 @@ pub async fn anmeldung(
                                 (html_handler, None)
                             };
 
-                            html!(
+                            html_extractor::html!(
                         // course
                         <tr>_
                             <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
@@ -492,14 +492,14 @@ pub async fn anmeldung(
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>);
                             let (mut html_handler, lecturers) = if html_handler.peek().is_some() {
-                                html!(lecturers</p>_<p>);
+                                html_extractor::html!(lecturers</p>_<p>);
                                 (html_handler, Some(lecturers))
                             } else {
                                 (html_handler, None)
                             };
                             let (mut html_handler, begin_and_end) = if html_handler.peek().is_some()
                             {
-                                html!(begin_and_end</p>_<p>);
+                                html_extractor::html!(begin_and_end</p>_<p>);
                                 (html_handler, Some(begin_and_end))
                             } else {
                                 (html_handler, None)
@@ -508,27 +508,27 @@ pub async fn anmeldung(
                                 if html_handler.peek().is_some() {
                                     let (html_handler, location_or_additional_info) =
                                         html_handler.next_any_child();
-                                    html!(</p>_);
+                                    html_extractor::html!(</p>_);
                                     (html_handler, Some(location_or_additional_info))
                                 } else {
-                                    html!(</p>_);
+                                    html_extractor::html!(</p>_);
                                     (html_handler, None)
                                 };
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
                             let (html_handler, location) = if html_handler.peek().is_some() {
-                                html!(<p>);
+                                html_extractor::html!(<p>);
                                 let (html_handler, location) = if html_handler.peek().is_some() {
-                                    html!(location);
+                                    html_extractor::html!(location);
                                     (html_handler, Some(location))
                                 } else {
                                     (html_handler, None)
                                 };
-                                html!(</p>_);
+                                html_extractor::html!(</p>_);
                                 (html_handler, location)
                             } else {
                                 (html_handler, None)
                             };
-                            html!(
+                            html_extractor::html!(
                                     </td>_
                                         <td class="tbdata">
                                         registration_until<br></br>limit_and_size
@@ -549,7 +549,7 @@ pub async fn anmeldung(
                                     .unwrap()
                                     == "img noFLoat register"
                                 {
-                                    html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
+                                    html_extractor::html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
                                     (
                                         html_handler,
                                         RegistrationState::NotRegistered {
@@ -557,7 +557,7 @@ pub async fn anmeldung(
                                         },
                                     )
                                 } else {
-                                    html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">" Abmelden"</a>_);
+                                    html_extractor::html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">" Abmelden"</a>_);
                                     (
                                         html_handler,
                                         RegistrationState::Registered {
@@ -568,7 +568,7 @@ pub async fn anmeldung(
                             } else {
                                 (html_handler, RegistrationState::Unknown)
                             };
-                            html!(
+                            html_extractor::html!(
                                     </td>_
                                     <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                                 </tr>_
@@ -596,7 +596,7 @@ pub async fn anmeldung(
                 };
             }
 
-            html!(
+            html_extractor::html!(
             </tbody>
             </table>_
                     );
@@ -607,7 +607,7 @@ pub async fn anmeldung(
     } else {
         html_handler
     };
-    html!(
+    html_extractor::html!(
         <!-- "fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og" -->_
 
                 </div>_

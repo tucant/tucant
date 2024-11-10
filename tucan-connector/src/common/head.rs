@@ -5,7 +5,7 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
 pub fn html_head_2<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
-    html! {
+    html_extractor::html! {
         <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
             <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
             <script type="text/javascript"></script>_
@@ -27,7 +27,7 @@ pub fn html_head_2<'a>(
 pub fn html_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
-    html! {
+    html_extractor::html! {
         <title>"Technische Universität Darmstadt"</title>_
             <!--"iPRTdQsauRZVOSpz0PmEl_ubhHccJRCaNU_bI6seaq0"-->_
             <!--"muh4fptckC_Ch7T74xLI7ivPp07sWskCVg2gy3woY28"-->_
@@ -75,7 +75,7 @@ pub fn page_start<'a>(
         >,
     >,
 > {
-    html!(
+    html_extractor::html!(
         <div id="Cn-system-desc">_</div>_
             <script type="text/javascript">
                 "JSQjAjNPl1OG1yTeHLoTj6JEhV74LO2CassBGq9DPqo"
@@ -158,7 +158,7 @@ pub fn vv_something<'a>(
     >,
 > {
     // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
-    html!(
+    html_extractor::html!(
         <ul class="nav depth_2 linkItemContainer">
             <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id><a  class=_class href=_lehrveranstaltungssuche_url >"Lehrveranstaltungssuche"</a></li>
             <li class="intern depth_2 linkItem " title="Raumsuche" id=_id><a  class=_class href=_raumsuche_url >"Raumsuche"</a></li>
@@ -174,13 +174,13 @@ pub fn vv_something<'a>(
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
-            html!(
+            html_extractor::html!(
                 <li class="intern depth_3 linkItem " title=_title id=_linkclass><a  class=_linkclass href=_url >_text</a></li>
             );
             html_handler
         };
     }
-    html!( </ul>
+    html_extractor::html!( </ul>
             </li>
         </ul>
     );
@@ -201,7 +201,7 @@ pub fn logged_in_head<'a>(
     >,
 > {
     let html_handler = page_start(html_handler);
-    html!(
+    html_extractor::html!(
                         <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
                             <a  class="depth_1 link000019 navLink branchLink " href=_aktuelles_url >"Aktuelles"</a>
                             <ul class="nav depth_2 linkItemContainer">
@@ -212,7 +212,7 @@ pub fn logged_in_head<'a>(
                             <a  class="depth_1 link000326 navLink branchLink " href=_vv_url >"VV"</a>
     );
     let html_handler = vv_something(html_handler, id);
-    html!(
+    html_extractor::html!(
                               </li>
                               <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
                                 <a  class="depth_1 link000268 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000268,-A,-A,-N1")} >"Stundenplan"</a>
@@ -307,7 +307,7 @@ pub fn footer<'a>(
     id: u64,
     subid: u64,
 ) -> InRoot<'a, Root<'a>, AfterDoctype> {
-    html!(
+    html_extractor::html!(
         <div id="pageFoot" class="pageElementTop">_
     <div id="pageFootControls" class="pageElementTop">_
      <div id="pageFootControlsLeft">_

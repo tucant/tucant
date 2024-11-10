@@ -17,12 +17,12 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">
         <head>_
     );
     let html_handler = html_head(html_handler);
-    html!(
+    html_extractor::html!(
             <style type="text/css">
                 "oiK6m4ZNKQoGD_x_6V3-YFNSsLMUaXrX5lQwN4Q88fc"
             </style>_
@@ -30,13 +30,13 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
         <body class="external_pages">_
     );
     let html_handler = page_start(html_handler);
-    html!(
+    html_extractor::html!(
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344"><a  class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome" >"Startseite"</a></li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
                       <a  class="depth_1 link000334 navLink branchLink " href=_url>"Vorlesungsverzeichnis (VV)"</a>
     );
     let html_handler = vv_something(html_handler, 1);
-    html!(
+    html_extractor::html!(
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
                       <a  class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml" >"TUCaN-Account"</a>

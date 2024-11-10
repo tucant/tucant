@@ -109,14 +109,14 @@ fn content() -> HtmlResult {
 
     let login_response = use_login_response();
 
-    Ok(html! {
+    Ok(html_extractor::html! {
         <>
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
+                            html_extractor::html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -127,7 +127,7 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
+                        html_extractor::html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -138,7 +138,7 @@ fn content() -> HtmlResult {
                 {
                     for data.entries.iter().map(|entry| {
                         let module = entry.module.as_ref();
-                        html!{
+                        html_extractor::html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1"><a href={ module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
@@ -152,9 +152,9 @@ fn content() -> HtmlResult {
                                 {
                                     module.map(|module| {
                                         match &module.registration_button_link {
-                                            RegistrationState::Unknown => html! { },
-                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Modul abmelden"}</a> },
-                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Modul anmelden"}</a> },
+                                            RegistrationState::Unknown => html_extractor::html! { },
+                                            RegistrationState::Registered { unregister_link } => html_extractor::html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Modul abmelden"}</a> },
+                                            RegistrationState::NotRegistered { register_link } => html_extractor::html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Modul anmelden"}</a> },
                                         }
                                     })
                                 }
@@ -162,7 +162,7 @@ fn content() -> HtmlResult {
                                 <ul class="list-group">
                                 {
                                     for entry.courses.iter().map(|course| {
-                                        html! {
+                                        html_extractor::html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h5 class="mb-1"><a href={ course.1.url.clone() }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
@@ -178,9 +178,9 @@ fn content() -> HtmlResult {
 
                                                 {
                                                     match &course.1.registration_button_link {
-                                                        RegistrationState::Unknown => html! { },
-                                                        RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Kurs abmelden"}</a> },
-                                                        RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Kurs anmelden"}</a> },
+                                                        RegistrationState::Unknown => html_extractor::html! { },
+                                                        RegistrationState::Registered { unregister_link } => html_extractor::html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Kurs abmelden"}</a> },
+                                                        RegistrationState::NotRegistered { register_link } => html_extractor::html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Kurs anmelden"}</a> },
                                                     }
                                                 }
                                             </li>
@@ -220,15 +220,15 @@ fn switch_inner() -> HtmlResult {
     let test: URLFormat = location.query::<URLFormat>().unwrap();
 
     match test.PRGNAME.as_str() {
-        "REGISTRATION" => Ok(html! { <Registration /> }),
-        _ => Ok(html! { <div>{"unknown"}</div> }),
+        "REGISTRATION" => Ok(html_extractor::html! { <Registration /> }),
+        _ => Ok(html_extractor::html! { <div>{"unknown"}</div> }),
     }
 }
 
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home => html! { <SwitchInner></SwitchInner> },
-        Route::NotFound => html! { <div>{"404"}</div> },
+        Route::Home => html_extractor::html! { <SwitchInner></SwitchInner> },
+        Route::NotFound => html_extractor::html! { <div>{"404"}</div> },
     }
 }
 
@@ -241,7 +241,7 @@ struct URLFormat {
 
 #[function_component(Registration)]
 fn registration() -> HtmlResult {
-    let fallback = html! {
+    let fallback = html_extractor::html! {
         <>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -269,7 +269,7 @@ fn registration() -> HtmlResult {
         </>
     };
 
-    Ok(html! {
+    Ok(html_extractor::html! {
         <>
             <style>
                 {include_str!("./bootstrap.min.css")}
@@ -288,7 +288,7 @@ fn registration() -> HtmlResult {
 
 #[function_component(App)]
 fn app() -> HtmlResult {
-    Ok(html! {
+    Ok(html_extractor::html! {
         <BrowserRouter>
             <Switch<Route> render={switch} />
         </BrowserRouter>

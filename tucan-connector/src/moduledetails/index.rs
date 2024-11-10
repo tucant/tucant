@@ -38,20 +38,20 @@ pub async fn moduledetails(
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html!(
+    html_extractor::html!(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
         <head>_
     );
     let mut html_handler = html_head(html_handler);
     if html_handler.peek().is_none() {
-        html!(
+        html_extractor::html!(
             </head>_
         <body class="timeout">
         );
         let _html_handler = html_handler;
         return Err(TucanError::Timeout);
     }
-    html!(
+    html_extractor::html!(
         <style type="text/css">
             "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
         </style>_
@@ -62,7 +62,7 @@ pub async fn moduledetails(
         <body class="moduledetails">_
     );
     let html_handler = logged_in_head(html_handler, login_response.id);
-    html!(
+    html_extractor::html!(
             <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
             <script type="text/javascript"></script>_
             <h1>module_id</h1>_
@@ -83,7 +83,7 @@ pub async fn moduledetails(
         .unwrap()
         == "tbsubhead"
     {
-        html!(<tr class="tbsubhead">_
+        html_extractor::html!(<tr class="tbsubhead">_
                     <td colspan="3">
                         "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
                     </td>_
@@ -92,7 +92,7 @@ pub async fn moduledetails(
     } else {
         (html_handler, false)
     };
-    html!(<tr class="tbcontrol">_
+    html_extractor::html!(<tr class="tbcontrol">_
                         <td>_
                             //<a href=url class="arrow">"Schließen"</a>_
                         </td>_
@@ -116,13 +116,13 @@ pub async fn moduledetails(
                             <br></br>
     );
     let html_handler = if html_handler.peek().unwrap().value().is_text() {
-        html!("Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
+        html_extractor::html!("Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
                         <br></br>);
         html_handler
     } else {
         html_handler
     };
-    html!(<br></br>_
+    html_extractor::html!(<br></br>_
                         <b>"Startsemester: "</b>
                         start_semester
                         <br></br><br></br>_
@@ -143,7 +143,7 @@ pub async fn moduledetails(
         }
     }
     println!("{:#?}", description);
-    html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->_
+    html_extractor::html!(<!-- "QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg" -->_
                     </td>_
                     </tr>_
                     </tbody>
@@ -171,7 +171,7 @@ pub async fn moduledetails(
 
     );
     let html_handler = if html_handler.peek().unwrap().value().is_element() {
-        html!(<table class="tb rw-table rw-all">_
+        html_extractor::html!(<table class="tb rw-table rw-all">_
                     <caption>"Kurse"</caption>_
                     <tbody>
                     <tr class="tbsubhead rw-hide">_
@@ -191,19 +191,19 @@ pub async fn moduledetails(
                         <td class="rw rw-detail-mandatory">" Ja "</td>_
                         <td class="rw rw-detail-semester">);
         let html_handler = if html_handler.peek().is_some() {
-            html!(semester);
+            html_extractor::html!(semester);
             html_handler
         } else {
             html_handler
         };
 
-        html!(</td>_
+        html_extractor::html!(</td>_
                         <td class="rw rw-detail-credits">"  0,0"</td>_
                         <td>_</td>_</tr>_
         );
         while html_handler.peek().is_some() {
             html_handler = {
-                html!(<tr class="tbdata">_
+                html_extractor::html!(<tr class="tbdata">_
         <td class="tbdata">
         <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_</td>_
         <td>
@@ -218,13 +218,13 @@ pub async fn moduledetails(
                 html_handler
             }
         }
-        html!(</tbody></table>_
+        html_extractor::html!(</tbody></table>_
         );
         html_handler
     } else {
         html_handler
     };
-    html!(
+    html_extractor::html!(
             <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
             <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
             <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -257,19 +257,19 @@ pub async fn moduledetails(
                 <tr class="tbsubhead rw-hide">_<th scope="col">);
     let html_handler =
         if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
-            html!("Leistungskombination"</th>_<th scope="col">); // oh no this is not always in the table
+            html_extractor::html!("Leistungskombination"</th>_<th scope="col">); // oh no this is not always in the table
             html_handler
         } else {
             html_handler
         };
-    html!("Prüfung"</th>_
+    html_extractor::html!("Prüfung"</th>_
                     <th scope="col">"Datum"</th>_
                     <th scope="col">"Lehrende"</th>_
                     <th scope="col">"Bestehenspflicht"</th>_</tr>_</thead>_
                 <tbody>_);
     while html_handler.peek().is_some() {
         html_handler = {
-            html!(<!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+            html_extractor::html!(<!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     <tr class="tbdata">_
                      <td class="tbborderleft rw rw-detail-exam">
                         exam_type
@@ -285,7 +285,7 @@ pub async fn moduledetails(
             html_handler
         }
     }
-    html!(</tbody>_</table>_
+    html_extractor::html!(</tbody>_</table>_
             <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_</div>_
         <!-- "Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ" -->_
         <div class="contentlayoutright" id="contentlayoutright">_
