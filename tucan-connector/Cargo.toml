@@ -29,4 +29,4 @@ key-value-database = { path = "../key-value-database" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest-middleware = "0.3"
-reqwest-retry = "0.6"
+reqwest-retry = "0.7"
