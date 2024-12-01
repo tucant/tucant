@@ -1,4 +1,16 @@
-# Usage
+# tucant
+
+## How does it work
+
+This software consists of the tucan-connector component that extracts information from the html of [TUCaN](https://www.tucan.tu-darmstadt.de) and provides it as a nicer to use programming API. The tucan-injector component can then be used to show that data with a nicer UI that is written using the Rust frontend library [Yew](https://yew.rs/) and that is compiled to [WebAssembly](https://webassembly.org/). This WebAssembly can be injected into the actual TUCaN website using [Tampermonkey](https://www.tampermonkey.net/). Then, some pages provide an overlay with the information in a nicer format and caching.
+
+## Features
+
+Currently, the following TUCaN pages have a nicer UI and caching:
+- Veranstaltungen -> Anmeldung
+  ![Veranstaltungen -> Anmeldung with nicer UI](./.github/veranstaltungen_anmeldung.png)
+
+## Usage
 
 Install Tampermonkey.
 Add a Tampermonkey script with the following content:
@@ -20,7 +32,7 @@ GM_addElement('script', {
 });
 ```
 
-# Development
+## Development
 
 ```
 nix develop
