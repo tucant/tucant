@@ -16,7 +16,7 @@ bytes = "1"
 futures-util = { version = "0.3", features = ["io"] }
 tokio-util = "0.7"
 scraper = { version = "0.20", features = ["deterministic"] }
-ego-tree = "0.6"
+ego-tree = "0.9"
 sha3 = "0.10"
 data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
