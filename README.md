@@ -48,11 +48,11 @@ Add a Tampermonkey script with the following content:
 
 ```javascript
 // ==UserScript==
-// @name         New Userscript
+// @name         tucant
 // @namespace    https://www.tucan.tu-darmstadt.de
-// @version      2024-10-18
-// @description  try to take over the world!
-// @author       You
+// @version      2024-10-24
+// @description  A nicer, faster and more featureful frontend to TUCaN
+// @author       Moritz Hedtke <Moritz.Hedtke@t-online.de>
 // @match        https://www.tucan.tu-darmstadt.de/*
 // @run-at       document-start
 // @grant        GM_addElement
