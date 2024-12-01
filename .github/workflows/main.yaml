@@ -64,3 +64,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# cargo install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
