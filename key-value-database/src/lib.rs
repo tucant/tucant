@@ -50,11 +50,11 @@ impl Database {
                     let store = t.object_store("store")?;
                     let value = store.get(&key).await.unwrap();
 
-                    Ok(value.unwrap())
+                    Ok(value)
                 })
                 .await
                 .unwrap();
-            serde_wasm_bindgen::from_value(result).unwrap()
+            result.map(|result| serde_wasm_bindgen::from_value(result).unwrap())
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
