@@ -4,8 +4,14 @@ edition = "2021"
 license.workspace = true
 version.workspace = true
 
+[lib]
+proc-macro = true
+
 [dependencies]
-html-extractor-proc-macro = { path = "../html-extractor-proc-macro" }
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+itertools = "0.13"
 
 [lints]
 workspace = true

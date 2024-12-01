@@ -28,10 +28,13 @@ impl Database {
             let database = sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
                 .await
                 .unwrap();
-            sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)")
-                .execute(&database)
-                .await
-                .unwrap();
+            sqlx::query(
+                "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT \
+                 NULL)",
+            )
+            .execute(&database)
+            .await
+            .unwrap();
             Database { database }
         }
     }
@@ -87,12 +90,15 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1")
-                .bind(key)
-                .bind(serde_json::to_string(value).unwrap())
-                .execute(&self.database)
-                .await
-                .unwrap();
+            sqlx::query(
+                "INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET \
+                 value = ?2 WHERE key = ?1",
+            )
+            .bind(key)
+            .bind(serde_json::to_string(value).unwrap())
+            .execute(&self.database)
+            .await
+            .unwrap();
         }
     }
 }
