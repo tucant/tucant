@@ -112,7 +112,7 @@ pub async fn anmeldung(
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
     html_extractor::html! {
-                             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
     };
     let mut html_handler = html_head(html_handler);
