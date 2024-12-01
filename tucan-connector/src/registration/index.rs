@@ -111,71 +111,84 @@ pub async fn anmeldung(
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    html_extractor::html!(
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-        <head>_
-    );
+    html_extractor::html! {
+                             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+            <head>_
+    };
     let mut html_handler = html_head(html_handler);
     if html_handler.peek().is_none() {
-        html_extractor::html!(
+        html_extractor::html! {
             </head>_
-        <body class="timeout">
-        );
+            <body class="timeout">
+        };
         let _html_handler = html_handler;
         return Err(TucanError::Timeout);
     }
-    html_extractor::html!(
-        <style type="text/css">
-            "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
-        </style>_
-        <style type="text/css">
-            "3CC0xpJgjHprYY59D1krvfwrI2LSV2-OtaN3CviYnG8"
-        </style>_
+    html_extractor::html! {
+            <style type="text/css">
+                "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
+            </style>_
+            <style type="text/css">
+                "3CC0xpJgjHprYY59D1krvfwrI2LSV2-OtaN3CviYnG8"
+            </style>_
         </head>_
         <body class="registration">_
-    );
+    };
     let html_handler = logged_in_head(html_handler, login_response.id);
-    html_extractor::html!(
+    html_extractor::html! {
         <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
-            <script type="text/javascript"></script>_
-
-    <h1>"Anmeldung zu Modulen und Veranstaltungen"</h1>_
-
-    <!-- "UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA" -->_
-            <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
-                    <table class="tbcoursestatus rw-table rw-all">_
-                    <tbody>
-                            <tr>_
-                                    <td class="tbhead" colspan="100%">"Weitere Studien"</td>_
-                            </tr>_
-                            <tr>_
-                                <td class="tbcontrol" colspan="100%">_
-
-                                           <div class="inputFieldLabel">_
-                                                    <label for="study">"Studium:"</label>_
-                                                    <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
-                                                                                                                            <option value="376333755785484" >"B.Sc. Informatik (2015)"</option>_
-                                                                                                                            <option value="391343674191079" selected="selected">"M.Sc. Informatik (2023)"</option>_
-                                                                                                            </select>_
-                                                    <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
-                                            </div>_
-                                        <input name="APPNAME" type="hidden" value="CampusNet"></input>_
-                                        <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
-                                        <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                                        <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
-                                        <input name="menuno" type="hidden" value="000311"></input>_
-                                        <input name="pa rent1" type="hidden" value="000000000000000"></input>_
-                                        <input name="parent2" type="hidden" value="000000000000000"></input>_
-                                        <input name="changestudy" type="hidden" value="1"></input>_
-                                    </td>_
-                            </tr>_
-                        </tbody>
-                    </table>_
-            </form>_
-    <!-- "mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0" -->_
-    <h2>_
-            <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-N391343674191079,-N0,-N0,-N0")}>"M.Sc. Informatik (2023)"</a>
-    );
+        <script type="text/javascript">
+        </script>_
+        <h1>
+            "Anmeldung zu Modulen und Veranstaltungen"
+        </h1>_
+        <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
+        <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
+            <table class="tbcoursestatus rw-table rw-all">_
+                <tbody>
+                    <tr>_
+                        <td class="tbhead" colspan="100%">
+                            "Weitere Studien"
+                        </td>_
+                    </tr>_
+                    <tr>_
+                        <td class="tbcontrol" colspan="100%">_
+                            <div class="inputFieldLabel">_
+                                <label for="study">
+                                    "Studium:"
+                                </label>_
+                                <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
+                                    <option value="376333755785484">
+                                        "B.Sc. Informatik (2015)"
+                                    </option>_
+                                    <option value="391343674191079" selected="selected">
+                                        "M.Sc. Informatik (2023)"
+                                    </option>_
+                                </select>_
+                                <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
+                            </div>_
+                            <input name="APPNAME" type="hidden" value="CampusNet"></input>_
+                            <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
+                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
+                            <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
+                            <input name="menuno" type="hidden" value="000311"></input>_
+                            <input name="pa rent1" type="hidden" value="000000000000000"></input>_
+                            <input name="parent2" type="hidden" value="000000000000000"></input>_
+                            <input name="changestudy" type="hidden" value="1"></input>_
+                        </td>_
+                    </tr>_
+                </tbody>
+            </table>_
+        </form>_
+        <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
+        <h2>_
+            <a href={&format!(
+                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:\
+                 015},-N000311,-N391343674191079,-N0,-N0,-N0"
+            )}>
+                "M.Sc. Informatik (2023)"
+            </a>
+    };
     let mut path: Vec<(String, AnmeldungRequest)> = Vec::new();
     path.push((
         "M.Sc. Informatik (2023)".to_owned(),
@@ -194,10 +207,10 @@ pub async fn anmeldung(
         .is_empty()
     {
         html_handler = {
-            html_extractor::html!(
+            html_extractor::html! {
                 "\n        \u{a0}>\u{a0}\n                "
                 <a href=url>
-            );
+            };
             let (html_handler, any_child) = html_handler.next_any_child();
             match any_child.value() {
                 scraper::Node::Comment(_comment) => {}
@@ -215,27 +228,31 @@ pub async fn anmeldung(
                 }
                 _ => panic!(),
             }
-            html_extractor::html!(
+            html_extractor::html! {
                 </a>
-            );
+            };
             html_handler
         };
     }
-    html_extractor::html!(
-        _</h2>_
-    );
+    html_extractor::html! {_
+        </h2>_
+    };
     let mut submenus: Vec<(String, AnmeldungRequest)> = Vec::new();
     let html_handler = match html_handler.peek() {
         Some(elem) if elem.value().is_element() => {
-            html_extractor::html!(<ul>_);
+            html_extractor::html! {
+                <ul>_
+            };
             let mut html_handler = html_handler;
             while html_handler.peek().is_some() {
                 html_handler = {
-                    html_extractor::html!(
+                    html_extractor::html! {
                         <li>_
-                            <a href=url>item</a>_
+                            <a href=url>
+                                item
+                            </a>_
                         </li>_
-                    );
+                    };
                     let url = url.trim_start_matches(&format!(
                         "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
                          ARGUMENTS=-N{id:015}"
@@ -250,13 +267,16 @@ pub async fn anmeldung(
                 };
             }
 
-            html_extractor::html!(
-                        </ul>_);
+            html_extractor::html! {
+                </ul>_
+            };
             html_handler
         }
         _ => html_handler,
     };
-    html_extractor::html!(<!-- "gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4" -->_);
+    html_extractor::html! {
+        <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
+    };
     let mut additional_information = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
         let child;
@@ -269,22 +289,23 @@ pub async fn anmeldung(
             _ => panic!(),
         }
     }
-    html_extractor::html!(
-        <!-- "PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs" -->_
+    html_extractor::html! {
+        <!--"PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs"-->_
         <br></br>_
-        <!-- "9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA" -->_
-    );
+        <!--"9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA"-->_
+    };
     let mut entries: Vec<AnmeldungEntry> = Vec::new();
     let html_handler = if html_handler.peek().unwrap().value().is_element() {
-        html_extractor::html!(
+        html_extractor::html! {
             <table class="tbcoursestatus rw-table rw-all">_
-            <tbody>
-            <tr>_
-                <td class="tbhead" colspan="100%">"Anmeldung zu Modulen und Veranstaltungen"</td>_
-            </tr>_
-
-            <tr>_
-        );
+                <tbody>
+                    <tr>_
+                        <td class="tbhead" colspan="100%">
+                            "Anmeldung zu Modulen und Veranstaltungen"
+                        </td>_
+                    </tr>_
+                    <tr>_
+        };
         let html_handler = if html_handler
             .peek()
             .unwrap()
@@ -295,32 +316,40 @@ pub async fn anmeldung(
             .unwrap()
             == "tbdata"
         {
-            html_extractor::html!(
-                <td class="tbdata" colspan="4">"Keine Module oder Veranstaltungen zur Anmeldung gefunden"</td>_
-                    </tr>_
+            html_extractor::html! {
+                            <td class="tbdata" colspan="4">
+                                "Keine Module oder Veranstaltungen zur Anmeldung gefunden"
+                            </td>_
+                        </tr>_
                     </tbody>
-                    </table>_
-            );
+                </table>_
+            };
             html_handler
         } else {
-            html_extractor::html!(
-                <td class="tbsubhead">_
-                    <!-- "OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc" -->_
-                </td>_
-                <td class="tbsubhead">
-                    "\n\n\t\t\t\t\t\tVeranstaltung"<br></br>
-                    "\n\t\t\t\t\t\tDozenten\n\t\t\t\t\t\t\t\t\t\t\t\t\t"<br></br>
-                    "Zeitraum\n\t\t\t\t\t\t\t\t\t\t\t\t"<br></br>
-                    "Anmeldegruppe\n\t\t\t\t\t\t"<br></br>
-                    "Standort\n\t\t\t\t\t"
-                </td>_
-                <td class="tbsubhead">
-                    "\n\t\t\t\t\t\t\t\t\t\t\t\tAnmeld. bis\n\t\t\t\t\t\t\t\t\t\t"<br></br>
-                    "\n\t\t\t\t\tMax.Teiln.|Anm.\n\t\t\t   "
-                </td>_
-                <td class="tbsubhead">_</td>_
-            </tr>_
-            );
+            html_extractor::html! {
+                    <td class="tbsubhead">_
+                        <!--"OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc"-->_
+                    </td>_
+                    <td class="tbsubhead">
+                        "\n\n\t\t\t\t\t\tVeranstaltung"
+                        <br></br>
+                        "\n\t\t\t\t\t\tDozenten\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
+                        <br></br>
+                        "Zeitraum\n\t\t\t\t\t\t\t\t\t\t\t\t"
+                        <br></br>
+                        "Anmeldegruppe\n\t\t\t\t\t\t"
+                        <br></br>
+                        "Standort\n\t\t\t\t\t"
+                    </td>_
+                    <td class="tbsubhead">
+                        "\n\t\t\t\t\t\t\t\t\t\t\t\tAnmeld. bis\n\t\t\t\t\t\t\t\t\t\t"
+                        <br></br>
+                        "\n\t\t\t\t\tMax.Teiln.|Anm.\n\t\t\t   "
+                    </td>_
+                    <td class="tbsubhead">_
+                    </td>_
+                </tr>_
+            };
 
             while html_handler.peek().is_some() {
                 html_handler = {
@@ -600,10 +629,10 @@ pub async fn anmeldung(
                 };
             }
 
-            html_extractor::html!(
-            </tbody>
-            </table>_
-                    );
+            html_extractor::html! {
+                    </tbody>
+                </table>_
+            };
             html_handler
         };
 
@@ -611,13 +640,12 @@ pub async fn anmeldung(
     } else {
         html_handler
     };
-    html_extractor::html!(
-        <!-- "fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og" -->_
-
+    html_extractor::html! {
+                    <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_
                 </div>_
             </div>_
         </div>_
-    );
+    };
     let _html_handler = footer(html_handler, id, 311);
     Ok(AnmeldungResponse {
         path,

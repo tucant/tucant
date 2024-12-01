@@ -15,6 +15,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  check-fmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/.crates.toml
+          ~/.cargo/.crates2.json
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - uses: actions/checkout@v4
+    - run: rustup component remove rustfmt
+    - run: cargo install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly --force
+    - run: cargo fmt --check
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -64,5 +83,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# cargo install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
