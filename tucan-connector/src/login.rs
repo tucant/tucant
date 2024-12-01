@@ -70,9 +70,12 @@ pub async fn login(
         Some(HeaderValue::from_static("nosniff"))
     );
     assert_eq!(
-    response.headers_mut().remove("content-security-policy"),
-    Some(HeaderValue::from_static("default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"))
-);
+        response.headers_mut().remove("content-security-policy"),
+        Some(HeaderValue::from_static(
+            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' \
+             'unsafe-inline' 'unsafe-eval';"
+        ))
+    );
     assert_eq!(
         response.headers_mut().remove("content-length"),
         Some(HeaderValue::from_static("72"))

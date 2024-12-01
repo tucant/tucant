@@ -203,7 +203,8 @@ pub async fn anmeldung(
                 scraper::Node::Comment(_comment) => {}
                 scraper::Node::Text(text) => {
                     let url = url.trim_start_matches(&format!(
-                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
+                         ARGUMENTS=-N{id:015}"
                     ));
                     path.push((
                         text.to_string(),
@@ -236,7 +237,8 @@ pub async fn anmeldung(
                         </li>_
                     );
                     let url = url.trim_start_matches(&format!(
-                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
+                         ARGUMENTS=-N{id:015}"
                     ));
                     submenus.push((
                         item.trim().to_owned(),
@@ -396,7 +398,8 @@ pub async fn anmeldung(
                             <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                         </tr>_);
                         let module_url = module_url.trim_start_matches(&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"
+                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&\
+                             ARGUMENTS=-N{id:015}"
                         ));
                         let module_url = module_url.split_once(",-A").unwrap().0;
                         let module = AnmeldungModule {
@@ -574,7 +577,8 @@ pub async fn anmeldung(
                                 </tr>_
                             );
                             let course_url = course_url.trim_start_matches(&format!(
-                                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015}"
+                                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&\
+                                 ARGUMENTS=-N{id:015}"
                             ));
                             let course_url = course_url.split_once(",-A").unwrap().0;
                             let course = AnmeldungCourse {
