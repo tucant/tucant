@@ -30,10 +30,11 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - uses: actions/checkout@v4
-    - run: rustup component add rust-src rustc-dev llvm-tools-preview
-    - run: rustup component remove rustfmt
-    - run: cargo install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly --force
-    - run: cargo fmt --check
+    - run: rustup install nightly-2024-09-10
+    - run: rustup component add --toolchain nightly-2024-09-10 rustc-dev llvm-tools-preview
+    - run: rustup component remove --toolchain nightly-2024-09-10 rustfmt
+    - run: cargo +nightly-2024-09-10 install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly --force
+    - run: cargo +nightly-2024-09-10 fmt --check
 
   build:
     runs-on: ubuntu-latest
