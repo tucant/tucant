@@ -8,7 +8,8 @@ This software consists of the tucan-connector component that extracts informatio
 
 Currently, the following TUCaN pages have a nicer UI and caching:
 - Veranstaltungen -> Anmeldung
-  ![Veranstaltungen -> Anmeldung with nicer UI](./.github/veranstaltungen_anmeldung.png)
+  ![Veranstaltungen -> Anmeldung submenu with nicer UI](./.github/veranstaltungen_anmeldung.png)
+  ![Veranstaltungen -> Anmeldung modules and courses with nicer UI](./.github/veranstaltungen_anmeldung_2.png)
 
 ## Usage
 
