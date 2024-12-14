@@ -18,6 +18,15 @@ https://raw.githubusercontent.com/tucant/tucant/refs/heads/main/tampermonkey.js
 
 ## Development
 
+### Tauri
+
+```
+cd tucant-tauri
+WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
+```
+
+### Injector
+
 ```
 nix develop
 cd tucan-injector
