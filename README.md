@@ -23,6 +23,9 @@ https://raw.githubusercontent.com/tucant/tucant/refs/heads/main/tampermonkey.js
 ```
 cd tucant-tauri
 WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
+
+cd tucant-tauri
+ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android dev
 ```
 
 ### Injector

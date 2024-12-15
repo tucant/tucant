@@ -48,6 +48,9 @@
               #pkgs.cargo
               #pkgs.cargo-tauri
               pkgs.nodejs
+              pkgs.android-tools
+              pkgs.lsb-release
+              pkgs.openjdk
             ];
           };
         }
