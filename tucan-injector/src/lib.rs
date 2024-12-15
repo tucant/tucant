@@ -7,7 +7,7 @@ use wasm_bindgen::{
 use web_sys::Node;
 
 fn inject() {
-    info!("Supported URL detected, injecting");
+    info!("Supported URL detected, injecting...");
 
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
