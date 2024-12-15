@@ -5361,6 +5361,19 @@ dependencies = [
 name = "trunk-template"
 version = "0.1.0"
 dependencies = [
+ "console_error_panic_hook",
+ "console_log",
+ "cookie",
+ "gloo-history",
+ "key-value-database",
+ "log",
+ "serde",
+ "serde-wasm-bindgen",
+ "tucan-connector",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
  "yew",
  "yew-router",
 ]
@@ -5403,19 +5416,10 @@ version = "0.0.0"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
- "cookie",
- "gloo-history",
- "key-value-database",
  "log",
- "serde",
- "serde-wasm-bindgen",
- "tucan-connector",
  "url",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "web-sys",
- "yew",
- "yew-router",
 ]
 
 [[package]]
