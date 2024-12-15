@@ -1,8 +1,6 @@
-mod app;
-
-use app::App;
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    console_error_panic_hook::set_once();
-    yew::Renderer::<App>::new().render();
+    tucant_tauri_lib::run()
 }
