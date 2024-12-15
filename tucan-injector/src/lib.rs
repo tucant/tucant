@@ -1,4 +1,5 @@
 use log::info;
+use tucant_yew::App;
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,

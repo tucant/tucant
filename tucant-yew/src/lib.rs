@@ -287,7 +287,7 @@ fn registration() -> HtmlResult {
 }
 
 #[function_component(App)]
-fn app() -> HtmlResult {
+pub fn app() -> HtmlResult {
     Ok(html! {
         <BrowserRouter>
             <Switch<Route> render={switch} />

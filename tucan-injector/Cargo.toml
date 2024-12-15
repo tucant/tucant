@@ -14,6 +14,8 @@ wasm-bindgen = "0.2"
 log = "0.4"
 console_error_panic_hook = "0.1"
 url = "2"
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+tucant-yew = { path = "../tucant-yew" }
 
 [lints]
 workspace = true
