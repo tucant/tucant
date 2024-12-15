@@ -4,9 +4,15 @@
   "version": "0.1.0",
   "identifier": "de.selfmade4u.tucant",
   "build": {
-    "beforeDevCommand": "trunk serve",
+    "beforeDevCommand": {
+      "cwd": "../tucant-yew",
+      "script": "trunk serve"
+    },
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "trunk build",
+    "beforeBuildCommand": {
+      "cwd": "../tucant-yew",
+      "script": "trunk build"
+    },
     "frontendDist": "../dist"
   },
   "app": {
