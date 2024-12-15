@@ -10,13 +10,13 @@ workspace = true
 [dependencies]
 reqwest = { version = "0.12", features = ["rustls-tls", "charset", "stream"] }
 tokio = { version = "1", features = ["rt"] }
-thiserror = { version = "1" }
+thiserror = "2"
 futures-core = "0.3"
 bytes = "1"
 futures-util = { version = "0.3", features = ["io"] }
 tokio-util = "0.7"
-scraper = { version = "0.20", features = ["deterministic"] }
-ego-tree = "0.6"
+scraper = { version = "0.22", features = ["deterministic"] }
+ego-tree = "0.10"
 sha3 = "0.10"
 data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
@@ -28,5 +28,5 @@ getrandom = { version = "0.2", features = ["js"] }
 key-value-database = { path = "../key-value-database" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest-middleware = "0.3"
-reqwest-retry = "0.6"
+reqwest-middleware = "0.4"
+reqwest-retry = "0.7"

@@ -24,9 +24,34 @@
               export PATH=$PATH:~/.cargo/bin
             '';
 
-            buildInputs = [ pkgs.openssl ];
+            buildInputs = [
+              pkgs.at-spi2-atk
+              pkgs.atkmm
+              pkgs.cairo
+              pkgs.gdk-pixbuf
+              pkgs.glib
+              pkgs.gtk3
+              pkgs.harfbuzz
+              pkgs.librsvg
+              pkgs.libsoup_3
+              pkgs.pango
+              pkgs.webkitgtk_4_1
+              pkgs.openssl
+            ];
 
-            nativeBuildInputs = [ pkgs.bashInteractive pkgs.pkg-config pkgs.nodejs pkgs.bacon pkgs.sqlitebrowser ];
+            nativeBuildInputs = [
+              pkgs.bashInteractive
+              pkgs.pkg-config
+              pkgs.bacon
+              pkgs.sqlitebrowser
+              pkgs.gobject-introspection
+              #pkgs.cargo
+              #pkgs.cargo-tauri
+              pkgs.nodejs
+              pkgs.android-tools
+              pkgs.lsb-release
+              pkgs.openjdk
+            ];
           };
         }
       );
