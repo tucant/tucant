@@ -5,6 +5,9 @@ members = [
     "html-extractor",
     "tucan-injector",
     "key-value-database",
+    "tucant-yew",
+    "tucant-tauri",
+    "tucant-tauri/src-tauri"
 ]
 
 [workspace.package]
