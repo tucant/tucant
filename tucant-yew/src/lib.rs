@@ -16,7 +16,7 @@ use wasm_bindgen::{
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{
     js_sys::{Function, JsString},
-    Node,
+    HtmlInputElement, Node,
 };
 use yew::{
     prelude::*,
@@ -205,10 +205,46 @@ fn content() -> HtmlResult {
     })
 }
 
+#[function_component(LoginPage)]
+fn login() -> HtmlResult {
+    let username_value_handle = use_state(String::default);
+    let username_value = (*username_value_handle).clone();
+
+    let on_username_change = {
+        let username_value_handle = username_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            username_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
+        })
+    };
+
+    Ok(html! {
+        <div class="container">
+
+    <form>
+        <h1 class="h3 mb-3 fw-normal">{"Please sign in"}</h1>
+
+        <div class="form-floating">
+            <input onchange={on_username_change} value={username_value.clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
+            <label for="floatingInput">{"TU-ID"}</label>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" />
+            <label for="floatingPassword">{"Password"}</label>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2" type="submit">{"Sign in"}</button>
+        </form>
+        </div>
+      })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 enum Route {
     #[at("/scripts/mgrqispi.dll")]
     Home,
+    #[at("/")]
+    Root,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -229,6 +265,7 @@ fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <SwitchInner></SwitchInner> },
         Route::NotFound => html! { <div>{"404"}</div> },
+        Route::Root => html! { <LoginPage /> },
     }
 }
 
@@ -271,12 +308,6 @@ fn registration() -> HtmlResult {
 
     Ok(html! {
         <>
-            <style>
-                {include_str!("./bootstrap.min.css")}
-            </style>
-            <script>
-                {include_str!("./bootstrap.bundle.min.js")}
-            </script>
             <div class="container">
                 <h2 class="text-center">{"Registration"}</h2>
 
@@ -289,8 +320,16 @@ fn registration() -> HtmlResult {
 #[function_component(App)]
 pub fn app() -> HtmlResult {
     Ok(html! {
+        <>
+        <style>
+            {include_str!("./bootstrap.min.css")}
+        </style>
+        <script>
+            {include_str!("./bootstrap.bundle.min.js")}
+        </script>
         <BrowserRouter>
             <Switch<Route> render={switch} />
         </BrowserRouter>
+        </>
     })
 }
