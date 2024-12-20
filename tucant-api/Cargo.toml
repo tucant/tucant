@@ -1,0 +1,12 @@
+[package]
+name = "tucant-api"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+axum = "0.7.9"
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true
