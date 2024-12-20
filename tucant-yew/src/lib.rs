@@ -208,7 +208,6 @@ fn content() -> HtmlResult {
 #[function_component(LoginPage)]
 fn login() -> HtmlResult {
     let username_value_handle = use_state(String::default);
-    let username_value = (*username_value_handle).clone();
 
     let on_username_change = {
         let username_value_handle = username_value_handle.clone();
@@ -218,18 +217,38 @@ fn login() -> HtmlResult {
         })
     };
 
+    let password_value_handle = use_state(String::default);
+
+    let on_password_change = {
+        let password_value_handle = password_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            password_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
+        })
+    };
+
+    let on_submit = {
+        let username_value_handle = username_value_handle.clone();
+
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            // TODO submit
+            info!("logging in {}", (*username_value_handle).clone());
+        })
+    };
+
     Ok(html! {
         <div class="container">
 
-    <form>
+    <form onsubmit={on_submit}>
         <h1 class="h3 mb-3 fw-normal">{"Please sign in"}</h1>
 
         <div class="form-floating">
-            <input onchange={on_username_change} value={username_value.clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
+            <input onchange={on_username_change} value={(*username_value_handle).clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
             <label for="floatingInput">{"TU-ID"}</label>
         </div>
         <div class="form-floating">
-            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" />
+            <input onchange={on_password_change} value={ (*password_value_handle).clone()} type="password" class="form-control" id="floatingPassword" placeholder="Password" />
             <label for="floatingPassword">{"Password"}</label>
         </div>
 
