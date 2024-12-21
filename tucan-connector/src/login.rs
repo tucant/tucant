@@ -1,10 +1,12 @@
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
+use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::{MyClient, TucanError};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LoginResponse {
     pub id: u64,
     pub cookie_cnsc: String,

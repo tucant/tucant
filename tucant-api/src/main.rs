@@ -1,4 +1,5 @@
 use axum::{
+    debug_handler,
     extract::{Path, Query},
     http::StatusCode,
     response::IntoResponse,
@@ -6,8 +7,12 @@ use axum::{
     Json, Router,
 };
 use serde::Deserialize;
-use tucan_connector::{login::LoginResponse, TucanError};
+use tucan_connector::{
+    login::{login, LoginResponse},
+    Tucan, TucanError,
+};
 use utoipa::{IntoParams, OpenApi};
+use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
 // https://docs.rs/utoipa/latest/utoipa/attr.path.html#axum_extras-feature-support-for-axum
@@ -27,6 +32,7 @@ const TUCANT_TAG: &str = "tucant";
     )]
 struct ApiDoc;
 
+#[derive(Deserialize)]
 struct LoginRequest {
     username: String,
     password: String,
@@ -34,32 +40,40 @@ struct LoginRequest {
 
 #[utoipa::path(
     post,
-    path = "",
+    path = "/api/v1/login",
     tag = TUCANT_TAG,
     responses(
-        (status = 201, description = "Todo item created successfully", body = LoginResponse),
-        (status = 409, description = "Todo already exists", body = TucanError)
+        (status = 200, description = "Login successful", body = LoginResponse),
+        (status = 500, description = "Some TUCaN error")
     )
 )]
-async fn login(Json(todo): Json<LoginRequest>) -> impl IntoResponse {
-    (StatusCode::CREATED, Json(todo)).into_response()
+#[debug_handler]
+async fn login_endpoint(
+    Json(login_request): Json<LoginRequest>,
+) -> Result<impl IntoResponse, TucanError> {
+    let tucan = Tucan::new().await?;
+
+    let response = login(
+        &tucan.client,
+        &login_request.username,
+        &login_request.password,
+    )
+    .await?;
+
+    Ok((StatusCode::CREATED, Json(response)).into_response())
 }
 
 #[tokio::main]
 async fn main() {
     // our router
-    let app = Router::new()
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .route("/todo", get(get_todo))
-        .route("/search_todos", get(search_todos));
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .routes(routes!(login_endpoint))
+        .split_for_parts();
 
-    // which calls one of these handlers
-    async fn root() {}
-    async fn get_foo() {}
-    async fn post_foo() {}
-    async fn foo_bar() {}
+    let router =
+        router.merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api.clone()));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, router).await.unwrap();
 }
