@@ -4,6 +4,7 @@ use tucant_types::{
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse,
 };
+use url::Url;
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -93,8 +94,14 @@ fn content() -> HtmlResult {
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let s = todo!(); //evil_stuff(login_response, anmeldung_request).await;
-                data.set(s);
+                let client = reqwest::Client::new();
+                let mut url = Url::parse("http://localhost:1420/api/v1/registration").unwrap();
+                url.path_segments_mut()
+                    .unwrap()
+                    .push(&anmeldung_request.arguments);
+                let response: AnmeldungResponse =
+                    client.get(url).send().await.unwrap().json().await.unwrap();
+                data.set(response);
                 loading.set(false);
             })
         });
