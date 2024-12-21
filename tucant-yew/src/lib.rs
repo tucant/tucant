@@ -262,11 +262,11 @@ fn login() -> HtmlResult {
         <h1 class="h3 mb-3 fw-normal">{"Please sign in"}</h1>
 
         <div class="form-floating">
-            <input onchange={on_username_change} value={(*username_value_handle).clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
+            <input required=true onchange={on_username_change} value={(*username_value_handle).clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
             <label for="floatingInput">{"TU-ID"}</label>
         </div>
         <div class="form-floating">
-            <input onchange={on_password_change} value={ (*password_value_handle).clone()} type="password" class="form-control" id="floatingPassword" placeholder="Password" />
+            <input required=true onchange={on_password_change} value={ (*password_value_handle).clone()} type="password" class="form-control" id="floatingPassword" placeholder="Password" />
             <label for="floatingPassword">{"Password"}</label>
         </div>
 

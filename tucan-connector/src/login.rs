@@ -22,6 +22,8 @@ pub async fn login(
     client: &MyClient,
     login_request: &LoginRequest,
 ) -> Result<LoginResponse, TucanError> {
+    assert_ne!(login_request.username, "");
+    assert_ne!(login_request.password, "");
     let mut response = client
         .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
         .form(&[
