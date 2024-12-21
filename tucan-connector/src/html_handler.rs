@@ -81,7 +81,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        assert!(child_element.trim().is_empty(), "{:?}", child_element);
+        assert!(child_element.trim().is_empty(), "{child_element:?}");
         InRoot {
             node: self.node,
             children: self.children,
@@ -122,25 +122,14 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         assert_eq!(self.attrs.next().unwrap(), (name, value));
-        Open {
-            element: self.element,
-            attrs: self.attrs,
-            outer_state: self.outer_state,
-        }
+        self
     }
 
     #[track_caller]
     pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
         let (name, value) = self.attrs.next().unwrap();
         assert_eq!(name, expected_name);
-        (
-            Open {
-                element: self.element,
-                attrs: self.attrs,
-                outer_state: self.outer_state,
-            },
-            value.to_owned(),
-        )
+        (self, value.to_owned())
     }
 
     #[track_caller]
@@ -174,12 +163,8 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        assert!(child_element.trim().is_empty(), "{:?}", child_element);
-        InElement {
-            element: self.element,
-            children: self.children,
-            outer_state: self.outer_state,
-        }
+        assert!(child_element.trim().is_empty(), "{child_element:?}");
+        self
     }
 
     #[track_caller]
@@ -191,14 +176,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        (
-            InElement {
-                element: self.element,
-                children: self.children,
-                outer_state: self.outer_state,
-            },
-            child_element.to_string(),
-        )
+        (self, child_element.to_string())
     }
 
     #[track_caller]
@@ -225,11 +203,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
             }
         }
 
-        InElement {
-            element: self.element,
-            children: self.children,
-            outer_state: self.outer_state,
-        }
+        self
     }
 
     #[track_caller]
@@ -240,11 +214,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         };
         let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
         assert_eq!(actual_hash, expected_hash);
-        InElement {
-            element: self.element,
-            children: self.children,
-            outer_state: self.outer_state,
-        }
+        self
     }
 
     #[track_caller]
@@ -262,11 +232,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
                 .as_element()
                 .expect("expected child to be element")
                 .attrs(),
-            outer_state: InElement {
-                element: self.element,
-                children: self.children,
-                outer_state: self.outer_state,
-            },
+            outer_state: self,
         }
     }
 

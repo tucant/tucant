@@ -1,14 +1,16 @@
+use api_server::ApiServerTucan;
 use key_value_database::Database;
 use std::rc::Rc;
-use tucan_connector::registration::index::{anmeldung_cached, RegistrationState};
+use tauri::TauriTucan;
+use tucant_types::{
+    registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
+    LoginRequest, LoginResponse, Tucan,
+};
+use url::Url;
 
 use log::info;
 use serde::{Deserialize, Serialize};
-use tucan_connector::{
-    login::LoginResponse,
-    registration::index::{anmeldung, AnmeldungRequest, AnmeldungResponse},
-    Tucan, TucanError,
-};
+
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
@@ -16,7 +18,7 @@ use wasm_bindgen::{
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{
     js_sys::{Function, JsString},
-    Node,
+    HtmlInputElement, Node,
 };
 use yew::{
     prelude::*,
@@ -27,16 +29,15 @@ use yew_router::{
     prelude::Link,
     BrowserRouter, Routable, Switch,
 };
+mod api_server;
+mod tauri;
 
-async fn evil_stuff(
-    login_response: LoginResponse,
-    anmeldung_request: AnmeldungRequest,
-) -> AnmeldungResponse {
-    let tucan = Tucan::new().await.unwrap();
-    anmeldung_cached(&tucan, &login_response, anmeldung_request)
-        .await
-        .unwrap()
-}
+#[cfg(feature = "tauri")]
+type TucanType = TauriTucan;
+#[cfg(not(feature = "tauri"))]
+type TucanType = ApiServerTucan;
+
+// http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
 
 #[hook]
 fn use_login_response() -> LoginResponse {
@@ -47,6 +48,8 @@ fn use_login_response() -> LoginResponse {
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
+
+    // here
 
     LoginResponse {
         id: test
@@ -100,8 +103,10 @@ fn content() -> HtmlResult {
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let s = evil_stuff(login_response, anmeldung_request).await;
-                data.set(s);
+                let response = TucanType::anmeldung(login_response, anmeldung_request)
+                    .await
+                    .unwrap();
+                data.set(response);
                 loading.set(false);
             })
         });
@@ -205,10 +210,98 @@ fn content() -> HtmlResult {
     })
 }
 
+#[function_component(LoginPage)]
+fn login() -> HtmlResult {
+    let navigator = use_navigator().unwrap();
+
+    let username_value_handle = use_state(String::default);
+
+    let on_username_change = {
+        let username_value_handle = username_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            username_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
+        })
+    };
+
+    let password_value_handle = use_state(String::default);
+
+    let on_password_change = {
+        let password_value_handle = password_value_handle.clone();
+
+        Callback::from(move |e: Event| {
+            password_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
+        })
+    };
+
+    let on_submit = {
+        let username = (*username_value_handle).clone();
+        let password = (*password_value_handle).clone();
+
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            // TODO submit
+            info!("logging in {}", username);
+            let username = username.clone();
+            let password = password.clone();
+            let navigator = navigator.clone();
+
+            spawn_local(async move {
+                let response = TucanType::login(LoginRequest { username, password })
+                    .await
+                    .unwrap();
+
+                let window = web_sys::window().unwrap();
+                let document = window.document().unwrap();
+                let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+                html_document
+                    .set_cookie(&format!("id={}; SameSite=Strict", response.id))
+                    .unwrap();
+                html_document
+                    .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
+                    .unwrap();
+
+                navigator
+                    .push_with_query(
+                        &Route::Home,
+                        &URLFormat {
+                            APPNAME: "CampusNet".to_owned(),
+                            PRGNAME: "REGISTRATION".to_owned(),
+                            ARGUMENTS: format!("-N{:015},-N000311,-A", response.id),
+                        },
+                    )
+                    .unwrap();
+            })
+        })
+    };
+
+    Ok(html! {
+        <div class="container">
+
+    <form onsubmit={on_submit}>
+        <h1 class="h3 mb-3 fw-normal">{"Please sign in"}</h1>
+
+        <div class="form-floating">
+            <input required=true onchange={on_username_change} value={(*username_value_handle).clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
+            <label for="floatingInput">{"TU-ID"}</label>
+        </div>
+        <div class="form-floating">
+            <input required=true onchange={on_password_change} value={ (*password_value_handle).clone()} type="password" class="form-control" id="floatingPassword" placeholder="Password" />
+            <label for="floatingPassword">{"Password"}</label>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2" type="submit">{"Sign in"}</button>
+        </form>
+        </div>
+      })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Routable)]
 enum Route {
     #[at("/scripts/mgrqispi.dll")]
     Home,
+    #[at("/")]
+    Root,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -229,6 +322,7 @@ fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <SwitchInner></SwitchInner> },
         Route::NotFound => html! { <div>{"404"}</div> },
+        Route::Root => html! { <LoginPage /> },
     }
 }
 
@@ -271,12 +365,6 @@ fn registration() -> HtmlResult {
 
     Ok(html! {
         <>
-            <style>
-                {include_str!("./bootstrap.min.css")}
-            </style>
-            <script>
-                {include_str!("./bootstrap.bundle.min.js")}
-            </script>
             <div class="container">
                 <h2 class="text-center">{"Registration"}</h2>
 
@@ -289,8 +377,16 @@ fn registration() -> HtmlResult {
 #[function_component(App)]
 pub fn app() -> HtmlResult {
     Ok(html! {
+        <>
+        <style>
+            {include_str!("./bootstrap.min.css")}
+        </style>
+        <script>
+            {include_str!("./bootstrap.bundle.min.js")}
+        </script>
         <BrowserRouter>
             <Switch<Route> render={switch} />
         </BrowserRouter>
+        </>
     })
 }

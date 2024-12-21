@@ -6,14 +6,14 @@
   "build": {
     "beforeDevCommand": {
       "cwd": "../tucant-yew",
-      "script": "trunk serve"
+      "script": "trunk serve --features tauri"
     },
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": {
       "cwd": "../tucant-yew",
-      "script": "trunk build"
+      "script": "trunk build --features tauri"
     },
-    "frontendDist": "../dist"
+    "frontendDist": "../tucant-yew/dist"
   },
   "app": {
     "withGlobalTauri": true,

@@ -1,4 +1,7 @@
+use axum_core::response::{IntoResponse, Response};
 use key_value_database::Database;
+use reqwest::StatusCode;
+use tucant_types::TucanError;
 
 pub mod common;
 pub mod externalpages;
@@ -16,19 +19,6 @@ pub struct Tucan {
     #[cfg(not(target_arch = "wasm32"))]
     pub client: reqwest_middleware::ClientWithMiddleware,
     pub database: Database,
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum TucanError {
-    #[error("HTTP error {0:?}")]
-    Http(#[from] reqwest::Error),
-    #[cfg(not(target_arch = "wasm32"))]
-    #[error("HTTP middleware error {0:?}")]
-    HttpMiddleware(#[from] reqwest_middleware::Error),
-    #[error("IO error {0:?}")]
-    Io(#[from] std::io::Error),
-    #[error("Tucan session timeout")]
-    Timeout,
 }
 
 #[cfg(not(target_arch = "wasm32"))]

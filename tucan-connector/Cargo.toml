@@ -8,7 +8,7 @@ version.workspace = true
 workspace = true
 
 [dependencies]
-reqwest = { version = "0.12", features = ["rustls-tls", "charset", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "charset", "stream"] }
 tokio = { version = "1", features = ["rt"] }
 thiserror = "2"
 futures-core = "0.3"
@@ -26,6 +26,9 @@ itertools = "0.13"
 serde = { version = "1", features = ["derive"] }
 getrandom = { version = "0.2", features = ["js"] }
 key-value-database = { path = "../key-value-database" }
+utoipa = "5.3.0"
+axum-core = "0.4.5"
+tucant-types = { version = "0.0.0", path = "../tucant-types" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest-middleware = "0.4"

@@ -105,8 +105,8 @@ impl Parse for StringLiteralOrVariable {
         if lookahead.peek(Brace) {
             let content;
             let _brace_token = braced!(content in input);
-            let expr = content.parse().map(Self::Expression);
-            expr
+
+            content.parse().map(Self::Expression)
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Literal)
         } else if lookahead.peek(Ident::peek_any) {
@@ -153,7 +153,7 @@ impl Parse for HtmlElement {
             attributes.push(input.parse()?);
         }
         let open_end = input.parse()?;
-        Ok(HtmlElement {
+        Ok(Self {
             element,
             attributes,
             open_end,

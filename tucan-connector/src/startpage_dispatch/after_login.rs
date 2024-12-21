@@ -1,9 +1,7 @@
-use html_extractor::html;
 use scraper::Html;
+use tucant_types::LoginResponse;
 
-use crate::{
-    common::head::html_head_2, html_handler::Root, login::LoginResponse, MyClient, TucanError,
-};
+use crate::{common::head::html_head_2, html_handler::Root, MyClient, TucanError};
 
 pub async fn redirect_after_login(
     client: &MyClient,

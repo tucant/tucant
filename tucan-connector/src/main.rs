@@ -1,7 +1,8 @@
-use tucan_connector::login::LoginResponse;
 use tucan_connector::moduledetails::index::moduledetails;
-use tucan_connector::registration::index::{anmeldung, anmeldung_cached, AnmeldungRequest};
-use tucan_connector::{Tucan, TucanError};
+use tucan_connector::registration::index::anmeldung_cached;
+use tucan_connector::Tucan;
+use tucant_types::registration::AnmeldungRequest;
+use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
@@ -25,11 +26,11 @@ async fn async_main() -> Result<(), TucanError> {
     let anmeldung_response = anmeldung_cached(&tucan, &result, AnmeldungRequest::new()).await?;
 
     for entry in &anmeldung_response.submenus {
-        let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
+        let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.clone()).await?;
         progress += 1;
 
         for entry in anmeldung_response.submenus {
-            let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.to_owned()).await?;
+            let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.clone()).await?;
             progress += 1;
 
             for entry in anmeldung_response.entries {
