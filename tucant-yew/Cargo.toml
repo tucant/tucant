@@ -9,6 +9,9 @@ license = "MIT OR Apache-2.0"
 keywords = ["yew", "trunk"]
 categories = ["gui", "wasm", "web-programming"]
 
+[features]
+tauri = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }

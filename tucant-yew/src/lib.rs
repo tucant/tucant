@@ -1,5 +1,7 @@
+use api_server::ApiServerTucan;
 use key_value_database::Database;
 use std::rc::Rc;
+use tauri::TauriTucan;
 use tucant_types::{
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse,
@@ -27,7 +29,13 @@ use yew_router::{
     prelude::Link,
     BrowserRouter, Routable, Switch,
 };
+mod api_server;
 mod tauri;
+
+#[cfg(feature = "tauri")]
+type TucanType = TauriTucan;
+#[cfg(not(feature = "tauri"))]
+type TucanType = ApiServerTucan;
 
 // http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
 
