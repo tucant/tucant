@@ -29,8 +29,10 @@ ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri
 
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android build --debug --target aarch64
 
-adb install ./tucant-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+adb install ./gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 adb shell run-as de.selfmade4u.tucant logcat
+
+/**/
 ```
 
 ### Injector

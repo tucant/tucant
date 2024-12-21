@@ -8,6 +8,17 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "shell:default"
+    "shell:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://www.tucan.tu-darmstadt.de/*"
+        },
+        {
+          "url": "http://localhost:1420/*"
+        }
+      ]
+    }
   ]
 }

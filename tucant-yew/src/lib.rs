@@ -242,7 +242,8 @@ fn login() -> HtmlResult {
 
                 // maybe abstract this away into an api client crate that can optionally skip the whole server?
                 let response: LoginResponse = client
-                    .post("http://localhost:1420/api/v1/login")
+                    .post("https://www.tucan.tu-darmstadt.de/")
+                    .header("Origin", "https://www.tucan.tu-darmstadt.de/")
                     .json(&LoginRequest { username, password })
                     .send()
                     .await
