@@ -1,9 +1,9 @@
 use axum::{debug_handler, extract::Path, http::StatusCode, response::IntoResponse, Json};
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use tucan_connector::{login::login, registration::index::anmeldung_cached, Tucan, TucanError};
+use tucan_connector::{login::login, registration::index::anmeldung_cached, Tucan};
 use tucant_types::{
     registration::{AnmeldungRequest, AnmeldungResponse},
-    LoginRequest, LoginResponse,
+    LoginRequest, LoginResponse, TucanError,
 };
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},

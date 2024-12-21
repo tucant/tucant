@@ -5766,7 +5766,10 @@ name = "tucant-types"
 version = "0.0.0"
 dependencies = [
  "axum-core",
+ "reqwest",
+ "reqwest-middleware",
  "serde",
+ "thiserror 2.0.7",
  "utoipa",
 ]
 
