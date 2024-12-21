@@ -1,7 +1,9 @@
 use key_value_database::Database;
 use std::rc::Rc;
-use tucan_connector::registration::index::{anmeldung_cached, RegistrationState};
-use tucant_api::LoginRequest;
+use tucan_connector::{
+    login::LoginRequest,
+    registration::index::{anmeldung_cached, RegistrationState},
+};
 
 use log::info;
 use serde::{Deserialize, Serialize};

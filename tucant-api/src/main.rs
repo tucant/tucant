@@ -8,10 +8,9 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tucan_connector::{
-    login::{login, LoginResponse},
+    login::{login, LoginRequest, LoginResponse},
     Tucan, TucanError,
 };
-use tucant_api::LoginRequest;
 use utoipa::{IntoParams, OpenApi, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
@@ -33,7 +32,6 @@ const TUCANT_TAG: &str = "tucant";
     )]
 struct ApiDoc;
 
-#[debug_handler]
 #[utoipa::path(
     post,
     path = "/api/v1/login",
@@ -44,19 +42,15 @@ struct ApiDoc;
         (status = 500, description = "Some TUCaN error")
     )
 )]
+#[debug_handler]
 async fn login_endpoint(
     Json(login_request): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, TucanError> {
     let tucan = Tucan::new().await?;
 
-    let response = login(
-        &tucan.client,
-        &login_request.username,
-        &login_request.password,
-    )
-    .await?;
+    let response = login(&tucan.client, &login_request).await?;
 
-    Ok((StatusCode::CREATED, Json(response)).into_response())
+    Ok((StatusCode::OK, Json(response)).into_response())
 }
 
 #[tokio::main]

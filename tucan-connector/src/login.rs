@@ -1,10 +1,16 @@
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::{MyClient, TucanError};
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct LoginRequest {
+    pub username: String,
+    pub password: String,
+}
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct LoginResponse {
@@ -14,14 +20,13 @@ pub struct LoginResponse {
 
 pub async fn login(
     client: &MyClient,
-    username: &str,
-    password: &str,
+    login_request: &LoginRequest,
 ) -> Result<LoginResponse, TucanError> {
     let mut response = client
         .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
         .form(&[
-            ("usrname", username),
-            ("pass", &password),
+            ("usrname", login_request.username.as_str()),
+            ("pass", login_request.password.as_str()),
             ("APPNAME", "CampusNet"),
             ("PRGNAME", "LOGINCHECK"),
             (
