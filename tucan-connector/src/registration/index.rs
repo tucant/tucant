@@ -1,5 +1,3 @@
-use html_extractor::html;
-use key_value_database::Database;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
@@ -7,17 +5,22 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
-    moduledetails::index::ModuleDetailsRequest,
-    MyClient, Tucan, TucanError,
+    moduledetails::index::ModuleDetailsRequest, Tucan, TucanError,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AnmeldungRequest {
     pub arguments: String,
 }
 
+impl Default for AnmeldungRequest {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AnmeldungRequest {
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self {
             arguments: ",-N000311,-A".to_owned(),
         }
@@ -85,7 +88,7 @@ pub async fn anmeldung_cached(
     }
 
     let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(&tucan, &login_response, anmeldung_request).await?;
+    let anmeldung_response = anmeldung(tucan, login_response, anmeldung_request).await?;
 
     tucan.database.put(&key, &anmeldung_response).await;
 
@@ -224,7 +227,7 @@ pub async fn anmeldung(
                         AnmeldungRequest {
                             arguments: url.to_owned(),
                         },
-                    ))
+                    ));
                 }
                 _ => panic!(),
             }
@@ -284,7 +287,7 @@ pub async fn anmeldung(
         match child.value() {
             scraper::Node::Text(text) => assert!(text.trim().is_empty()),
             scraper::Node::Element(_element) => {
-                additional_information.push(ElementRef::wrap(child).unwrap().html())
+                additional_information.push(ElementRef::wrap(child).unwrap().html());
             }
             _ => panic!(),
         }
@@ -647,10 +650,5 @@ pub async fn anmeldung(
         </div>_
     };
     let _html_handler = footer(html_handler, id, 311);
-    Ok(AnmeldungResponse {
-        path,
-        entries,
-        additional_information,
-        submenus,
-    })
+    Ok(AnmeldungResponse { path, submenus, entries, additional_information })
 }

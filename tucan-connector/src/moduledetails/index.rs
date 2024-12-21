@@ -1,4 +1,3 @@
-use html_extractor::html;
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
 
@@ -6,11 +5,10 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     login::LoginResponse,
-    registration::index::{AnmeldungRequest, AnmeldungResponse},
     Tucan, TucanError,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleDetailsRequest {
     pub arguments: String,
 }
@@ -25,7 +23,7 @@ pub async fn moduledetails(
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
-    println!("{}", url);
+    println!("{url}");
     let response = tucan
         .client
         .get(url)
@@ -166,12 +164,12 @@ pub async fn moduledetails(
         match child.value() {
             scraper::Node::Text(text) => description.push(text.trim().to_owned()),
             scraper::Node::Element(_element) => {
-                description.push(ElementRef::wrap(child).unwrap().html())
+                description.push(ElementRef::wrap(child).unwrap().html());
             }
             _ => panic!(),
         }
     }
-    println!("{:#?}", description);
+    println!("{description:#?}");
     html_extractor::html! {
                         <!--"QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg"-->_
                     </td>_

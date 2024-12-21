@@ -99,7 +99,7 @@ pub async fn login(
     let cookie_cnsc = response.headers_mut().remove("set-cookie").unwrap();
     let cookie_cnsc = cookie_cnsc.to_str().unwrap().trim_start_matches("cnsc =");
     let next_url_regex = Regex::new(
-    r#"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000"#,
+    r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000",
 ).unwrap();
     let next_url = response.headers_mut().remove("refresh").unwrap();
     let next_url = next_url.to_str().unwrap();

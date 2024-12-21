@@ -35,7 +35,7 @@ impl Database {
             .execute(&database)
             .await
             .unwrap();
-            Database { database }
+            Self { database }
         }
     }
 

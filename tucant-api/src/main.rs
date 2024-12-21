@@ -1,17 +1,14 @@
 use axum::{
     debug_handler,
-    extract::{Path, Query},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
-    Json, Router,
+    Json,
 };
-use serde::{Deserialize, Serialize};
 use tucan_connector::{
     login::{login, LoginRequest, LoginResponse},
     Tucan, TucanError,
 };
-use utoipa::{IntoParams, OpenApi, ToSchema};
+use utoipa::{OpenApi, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
