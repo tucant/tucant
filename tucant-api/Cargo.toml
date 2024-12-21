@@ -9,6 +9,7 @@ axum = "0.7.9"
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 utoipa = "5.3.0"
 serde = { version = "1.0", features = ["derive"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
 
 [lints]
 workspace = true
