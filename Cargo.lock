@@ -5606,6 +5606,7 @@ dependencies = [
  "gloo-history",
  "key-value-database",
  "log",
+ "reqwest",
  "serde",
  "serde-wasm-bindgen",
  "tucan-connector",

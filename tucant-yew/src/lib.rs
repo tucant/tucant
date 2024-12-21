@@ -234,6 +234,14 @@ fn login() -> HtmlResult {
             e.prevent_default();
             // TODO submit
             info!("logging in {}", (*username_value_handle).clone());
+            spawn_local(async move {
+                reqwest::get("http://localhost:1420/api/v1/login")
+                    .await
+                    .unwrap()
+                    .text()
+                    .await
+                    .unwrap();
+            })
         })
     };
 
