@@ -24,9 +24,13 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            let database = sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
-                .await
-                .unwrap();
+            let database = sqlx::SqlitePool::connect(if cfg!(target_os = "android") {
+                "sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc"
+            } else {
+                "sqlite://data.db?mode=rwc"
+            })
+            .await
+            .unwrap();
             sqlx::query(
                 "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT \
                  NULL)",
