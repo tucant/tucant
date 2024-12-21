@@ -42,7 +42,7 @@ impl Tucan for TauriTucan {
                 "tucant_registration",
                 serde_wasm_bindgen::to_value(&json!({
                     "request": request,
-                    "login_response": login_response,
+                    "loginResponse": login_response,
                 }))
                 .unwrap(),
             )

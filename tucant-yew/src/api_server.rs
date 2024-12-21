@@ -1,4 +1,8 @@
-use tucant_types::{LoginRequest, LoginResponse, Tucan};
+use tucant_types::{
+    registration::{AnmeldungRequest, AnmeldungResponse},
+    LoginRequest, LoginResponse, Tucan,
+};
+use url::Url;
 
 pub struct ApiServerTucan;
 
@@ -22,8 +26,13 @@ impl Tucan for ApiServerTucan {
 
     async fn anmeldung(
         login_response: tucant_types::LoginResponse,
-        request: tucant_types::registration::AnmeldungRequest,
+        request: AnmeldungRequest,
     ) -> Result<tucant_types::registration::AnmeldungResponse, tucant_types::TucanError> {
-        todo!()
+        let client = reqwest::Client::new();
+        let mut url = Url::parse("http://localhost:1420/api/v1/registration").unwrap();
+        url.path_segments_mut().unwrap().push(&request.arguments);
+        let response: AnmeldungResponse =
+            client.get(url).send().await.unwrap().json().await.unwrap();
+        Ok(response)
     }
 }

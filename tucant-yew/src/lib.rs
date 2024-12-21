@@ -103,13 +103,9 @@ fn content() -> HtmlResult {
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let client = reqwest::Client::new();
-                let mut url = Url::parse("http://localhost:1420/api/v1/registration").unwrap();
-                url.path_segments_mut()
-                    .unwrap()
-                    .push(&anmeldung_request.arguments);
-                let response: AnmeldungResponse =
-                    client.get(url).send().await.unwrap().json().await.unwrap();
+                let response = TucanType::anmeldung(login_response, anmeldung_request)
+                    .await
+                    .unwrap();
                 data.set(response);
                 loading.set(false);
             })
@@ -216,6 +212,8 @@ fn content() -> HtmlResult {
 
 #[function_component(LoginPage)]
 fn login() -> HtmlResult {
+    let navigator = use_navigator().unwrap();
+
     let username_value_handle = use_state(String::default);
 
     let on_username_change = {
@@ -246,6 +244,8 @@ fn login() -> HtmlResult {
             info!("logging in {}", username);
             let username = username.clone();
             let password = password.clone();
+            let navigator = navigator.clone();
+
             spawn_local(async move {
                 let response = TucanType::login(LoginRequest { username, password })
                     .await
@@ -259,6 +259,17 @@ fn login() -> HtmlResult {
                     .unwrap();
                 html_document
                     .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
+                    .unwrap();
+
+                navigator
+                    .push_with_query(
+                        &Route::Home,
+                        &URLFormat {
+                            APPNAME: "CampusNet".to_owned(),
+                            PRGNAME: "REGISTRATION".to_owned(),
+                            ARGUMENTS: format!("-N{:015},-N000311,-A", response.id),
+                        },
+                    )
                     .unwrap();
             })
         })
