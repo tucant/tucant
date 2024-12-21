@@ -44,9 +44,9 @@ impl IntoResponse for TucanError {
 pub trait Tucan {
     fn login(
         request: LoginRequest,
-    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>> + Send;
+    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
     fn anmeldung(
         request: AnmeldungRequest,
-    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>> + Send;
+    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 }

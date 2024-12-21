@@ -27,6 +27,7 @@ use yew_router::{
     prelude::Link,
     BrowserRouter, Routable, Switch,
 };
+mod tauri;
 
 // http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
 
