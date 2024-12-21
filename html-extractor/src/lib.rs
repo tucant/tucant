@@ -105,7 +105,7 @@ impl Parse for StringLiteralOrVariable {
         if lookahead.peek(Brace) {
             let content;
             let _brace_token = braced!(content in input);
-            
+
             content.parse().map(Self::Expression)
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Literal)

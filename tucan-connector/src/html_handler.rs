@@ -129,10 +129,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
         let (name, value) = self.attrs.next().unwrap();
         assert_eq!(name, expected_name);
-        (
-            self,
-            value.to_owned(),
-        )
+        (self, value.to_owned())
     }
 
     #[track_caller]
@@ -179,10 +176,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
-        (
-            self,
-            child_element.to_string(),
-        )
+        (self, child_element.to_string())
     }
 
     #[track_caller]

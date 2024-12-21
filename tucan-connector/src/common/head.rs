@@ -1,7 +1,7 @@
-
 use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
 
-#[must_use] pub fn html_head_2<'a>(
+#[must_use]
+pub fn html_head_2<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
     html_extractor::html! {
@@ -26,7 +26,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
     html_handler
 }
 
-#[must_use] pub fn html_head<'a>(
+#[must_use]
+pub fn html_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
     html_extractor::html! {
@@ -74,7 +75,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
     html_handler
 }
 
-#[must_use] pub fn page_start<'a>(
+#[must_use]
+pub fn page_start<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<
     'a,
@@ -172,7 +174,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
     html_handler
 }
 
-#[must_use] pub fn vv_something<'a>(
+#[must_use]
+pub fn vv_something<'a>(
     html_handler: InElement<
         'a,
         InElement<
@@ -263,7 +266,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
     html_handler
 }
 
-#[must_use] pub fn logged_in_head<'a>(
+#[must_use]
+pub fn logged_in_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
     id: u64,
 ) -> InElement<
@@ -619,7 +623,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
     html_handler
 }
 
-#[must_use] pub fn footer<'a>(
+#[must_use]
+pub fn footer<'a>(
     html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
     id: u64,
     subid: u64,
