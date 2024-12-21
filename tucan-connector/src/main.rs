@@ -1,7 +1,8 @@
-use tucan_connector::login::LoginResponse;
 use tucan_connector::moduledetails::index::moduledetails;
-use tucan_connector::registration::index::{anmeldung_cached, AnmeldungRequest};
+use tucan_connector::registration::index::anmeldung_cached;
 use tucan_connector::{Tucan, TucanError};
+use tucant_types::registration::AnmeldungRequest;
+use tucant_types::LoginResponse;
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

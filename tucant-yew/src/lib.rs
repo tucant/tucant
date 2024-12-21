@@ -1,17 +1,13 @@
 use key_value_database::Database;
 use std::rc::Rc;
-use tucan_connector::{
-    login::LoginRequest,
-    registration::index::{anmeldung_cached, RegistrationState},
+use tucant_types::{
+    registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
+    LoginRequest, LoginResponse,
 };
 
 use log::info;
 use serde::{Deserialize, Serialize};
-use tucan_connector::{
-    login::LoginResponse,
-    registration::index::{anmeldung, AnmeldungRequest, AnmeldungResponse},
-    Tucan, TucanError,
-};
+
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
@@ -31,15 +27,7 @@ use yew_router::{
     BrowserRouter, Routable, Switch,
 };
 
-async fn evil_stuff(
-    login_response: LoginResponse,
-    anmeldung_request: AnmeldungRequest,
-) -> AnmeldungResponse {
-    let tucan = Tucan::new().await.unwrap();
-    anmeldung_cached(&tucan, &login_response, anmeldung_request)
-        .await
-        .unwrap()
-}
+// http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
 
 #[hook]
 fn use_login_response() -> LoginResponse {
@@ -105,7 +93,7 @@ fn content() -> HtmlResult {
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let s = evil_stuff(login_response, anmeldung_request).await;
+                let s = todo!(); //evil_stuff(login_response, anmeldung_request).await;
                 data.set(s);
                 loading.set(false);
             })

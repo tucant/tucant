@@ -6,7 +6,7 @@ members = [
     "tucan-injector",
     "key-value-database",
     "tucant-yew",
-    "tucant-tauri", "tucant-api",
+    "tucant-tauri", "tucant-api", "tucant-types",
 ]
 
 [workspace.package]

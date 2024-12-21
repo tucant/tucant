@@ -1,0 +1,13 @@
+[package]
+name = "tucant-types"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+utoipa = "5.3.0"
+axum-core = "0.4.5"
+
+[lints]
+workspace = true

@@ -1,20 +1,15 @@
 use scraper::{ElementRef, Html};
 use serde::{Deserialize, Serialize};
+use tucant_types::{
+    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
+    LoginResponse,
+};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
-    login::LoginResponse,
     Tucan, TucanError,
 };
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ModuleDetailsRequest {
-    pub arguments: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModuleDetailsResponse {}
 
 pub async fn moduledetails(
     tucan: &Tucan,

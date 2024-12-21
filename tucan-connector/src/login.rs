@@ -2,21 +2,10 @@ use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
 use serde::{Deserialize, Serialize};
+use tucant_types::{LoginRequest, LoginResponse};
 use utoipa::ToSchema;
 
 use crate::{MyClient, TucanError};
-
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct LoginRequest {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct LoginResponse {
-    pub id: u64,
-    pub cookie_cnsc: String,
-}
 
 pub async fn login(
     client: &MyClient,

@@ -1,13 +1,6 @@
-use axum::{
-    debug_handler,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
-use tucan_connector::{
-    login::{login, LoginRequest, LoginResponse},
-    Tucan, TucanError,
-};
+use axum::{debug_handler, http::StatusCode, response::IntoResponse, Json};
+use tucan_connector::{login::login, Tucan, TucanError};
+use tucant_types::{LoginRequest, LoginResponse};
 use utoipa::{OpenApi, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;

@@ -5570,6 +5570,7 @@ dependencies = [
  "thiserror 2.0.7",
  "tokio",
  "tokio-util",
+ "tucant-types",
  "utoipa",
 ]
 
@@ -5595,6 +5596,7 @@ dependencies = [
  "serde",
  "tokio",
  "tucan-connector",
+ "tucant-types",
  "utoipa",
  "utoipa-axum",
  "utoipa-swagger-ui",
@@ -5613,6 +5615,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tucant-types"
+version = "0.0.0"
+dependencies = [
+ "axum-core",
+ "serde",
+ "utoipa",
+]
+
+[[package]]
 name = "tucant-yew"
 version = "0.1.0"
 dependencies = [
@@ -5625,7 +5636,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde-wasm-bindgen",
- "tucan-connector",
+ "tucant-types",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
