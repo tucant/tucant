@@ -13,7 +13,7 @@
       "cwd": "../tucant-yew",
       "script": "trunk build"
     },
-    "frontendDist": "../dist"
+    "frontendDist": "../tucant-yew/dist"
   },
   "app": {
     "withGlobalTauri": true,

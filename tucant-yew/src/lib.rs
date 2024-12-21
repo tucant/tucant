@@ -239,6 +239,8 @@ fn login() -> HtmlResult {
             let password = password.clone();
             spawn_local(async move {
                 let client = reqwest::Client::new();
+
+                // maybe abstract this away into an api client crate that can optionally skip the whole server?
                 let response: LoginResponse = client
                     .post("http://localhost:1420/api/v1/login")
                     .json(&LoginRequest { username, password })

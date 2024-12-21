@@ -26,6 +26,11 @@ WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
 
 cd tucant-tauri
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android dev
+
+ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android build --debug --target aarch64
+
+adb install ./tucant-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+adb shell run-as de.selfmade4u.tucant logcat
 ```
 
 ### Injector
