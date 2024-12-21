@@ -17,7 +17,7 @@ use utoipa_swagger_ui::SwaggerUi;
 #[derive(OpenApi)]
 #[openapi(
         tags(
-            (name = "todo", description = "Todo items management API")
+            (name = "todo", description = "Todo items management APIefeffwdw")
         )
     )]
 struct ApiDoc;
