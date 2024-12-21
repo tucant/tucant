@@ -1,7 +1,14 @@
-use axum::{debug_handler, http::StatusCode, response::IntoResponse, Json};
-use tucan_connector::{login::login, Tucan, TucanError};
-use tucant_types::{LoginRequest, LoginResponse};
-use utoipa::{OpenApi, ToSchema};
+use axum::{debug_handler, extract::Path, http::StatusCode, response::IntoResponse, Json};
+use axum_extra::extract::{cookie::Cookie, CookieJar};
+use tucan_connector::{login::login, registration::index::anmeldung_cached, Tucan, TucanError};
+use tucant_types::{
+    registration::{AnmeldungRequest, AnmeldungResponse},
+    LoginRequest, LoginResponse,
+};
+use utoipa::{
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
+    Modify, OpenApi, ToSchema,
+};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -16,11 +23,25 @@ const TUCANT_TAG: &str = "tucant";
 
 #[derive(OpenApi)]
 #[openapi(
+    modifiers(&SecurityAddon),
         tags(
             (name = TUCANT_TAG, description = "TUCaN't API")
         )
     )]
 struct ApiDoc;
+
+struct SecurityAddon;
+
+impl Modify for SecurityAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "api_key",
+                SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("api_key"))),
+            )
+        }
+    }
+}
 
 #[utoipa::path(
     post,
@@ -34,11 +55,49 @@ struct ApiDoc;
 )]
 #[debug_handler]
 async fn login_endpoint(
+    jar: CookieJar,
     Json(login_request): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, TucanError> {
     let tucan = Tucan::new().await?;
 
     let response = login(&tucan.client, &login_request).await?;
+
+    let jar = jar.add(Cookie::new(
+        "api_key",
+        serde_json::to_string(&response).unwrap(),
+    ));
+
+    Ok((StatusCode::OK, jar, Json(response)).into_response())
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/registration/{registration}",
+    tag = TUCANT_TAG,
+    params(("registration" = String, Path)),
+    responses(
+        (status = 200, description = "Successful", body = AnmeldungResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+#[debug_handler]
+async fn registration_endpoint(
+    jar: CookieJar,
+    Path(registration): Path<String>,
+) -> Result<impl IntoResponse, TucanError> {
+    let tucan = Tucan::new().await?;
+
+    let login_response: LoginResponse =
+        serde_json::from_str(jar.get("api_key").unwrap().value()).unwrap();
+
+    let response = anmeldung_cached(
+        &tucan,
+        &login_response,
+        AnmeldungRequest {
+            arguments: registration,
+        },
+    )
+    .await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -47,7 +106,7 @@ async fn login_endpoint(
 async fn main() {
     // our router
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .routes(routes!(login_endpoint))
+        .routes(routes!(login_endpoint, registration_endpoint))
         .split_for_parts();
 
     let router =

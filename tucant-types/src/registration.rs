@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::moduledetails::ModuleDetailsRequest;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct AnmeldungRequest {
     pub arguments: String,
 }
@@ -22,7 +23,7 @@ impl AnmeldungRequest {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungResponse {
     pub path: Vec<(String, AnmeldungRequest)>,
     pub submenus: Vec<(String, AnmeldungRequest)>,
@@ -30,20 +31,20 @@ pub struct AnmeldungResponse {
     pub additional_information: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungEntry {
     pub module: Option<AnmeldungModule>,
     pub courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub enum RegistrationState {
     Unknown,
     Registered { unregister_link: String },
     NotRegistered { register_link: String },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungModule {
     pub url: ModuleDetailsRequest,
     pub id: String,
@@ -54,13 +55,13 @@ pub struct AnmeldungModule {
     pub registration_button_link: RegistrationState,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungExam {
     pub name: String,
     pub typ: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungCourse {
     pub url: String,
     pub id: String,
