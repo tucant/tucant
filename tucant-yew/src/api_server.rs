@@ -1,4 +1,4 @@
-use tucant_types::Tucan;
+use tucant_types::{LoginRequest, LoginResponse, Tucan};
 
 pub struct ApiServerTucan;
 
@@ -6,7 +6,18 @@ impl Tucan for ApiServerTucan {
     async fn login(
         request: tucant_types::LoginRequest,
     ) -> Result<tucant_types::LoginResponse, tucant_types::TucanError> {
-        todo!()
+        let client = reqwest::Client::new();
+
+        let response: LoginResponse = client
+            .post("http://localhost:1420/api/v1/login")
+            .json(&request)
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        Ok(response)
     }
 
     async fn anmeldung(
