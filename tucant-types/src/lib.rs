@@ -47,6 +47,7 @@ pub trait Tucan {
     ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
     fn anmeldung(
+        login_response: LoginResponse,
         request: AnmeldungRequest,
     ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 }

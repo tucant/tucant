@@ -12,11 +12,11 @@ async fn tucant_login(request: LoginRequest) -> LoginResponse {
 
 #[tauri::command]
 async fn tucant_registration(
-    login_request: LoginResponse,
+    login_response: LoginResponse,
     request: AnmeldungRequest,
 ) -> AnmeldungResponse {
     let tucan = tucan_connector::Tucan::new().await.unwrap();
-    anmeldung_cached(&tucan, &login_request, request)
+    anmeldung_cached(&tucan, &login_response, request)
         .await
         .unwrap()
 }
