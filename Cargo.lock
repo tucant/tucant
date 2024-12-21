@@ -5656,6 +5656,8 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-shell",
+ "tucan-connector",
+ "tucant-types",
 ]
 
 [[package]]

@@ -20,7 +20,7 @@ impl Tucan for TauriTucan {
     ) -> Result<tucant_types::LoginResponse, tucant_types::TucanError> {
         Ok(serde_wasm_bindgen::from_value(
             invoke(
-                "tucan.login",
+                "tucant_login",
                 serde_wasm_bindgen::to_value(&request).unwrap(),
             )
             .await,
@@ -33,7 +33,7 @@ impl Tucan for TauriTucan {
     ) -> Result<tucant_types::registration::AnmeldungResponse, tucant_types::TucanError> {
         Ok(serde_wasm_bindgen::from_value(
             invoke(
-                "tucan.anmeldung",
+                "tucant_anmeldung",
                 serde_wasm_bindgen::to_value(&request).unwrap(),
             )
             .await,
