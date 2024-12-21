@@ -1,6 +1,7 @@
 use key_value_database::Database;
 use std::rc::Rc;
 use tucan_connector::registration::index::{anmeldung_cached, RegistrationState};
+use tucant_api::LoginRequest;
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -228,14 +229,21 @@ fn login() -> HtmlResult {
     };
 
     let on_submit = {
-        let username_value_handle = username_value_handle.clone();
+        let username = (*username_value_handle).clone();
+        let password = (*password_value_handle).clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             // TODO submit
-            info!("logging in {}", (*username_value_handle).clone());
+            info!("logging in {}", username);
+            let username = username.clone();
+            let password = password.clone();
             spawn_local(async move {
-                reqwest::get("http://localhost:1420/api/v1/login")
+                let client = reqwest::Client::new();
+                client
+                    .post("http://localhost:1420/api/v1/login")
+                    .json(&LoginRequest { username, password })
+                    .send()
                     .await
                     .unwrap()
                     .text()

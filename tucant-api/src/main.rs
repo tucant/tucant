@@ -6,11 +6,12 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tucan_connector::{
     login::{login, LoginResponse},
     Tucan, TucanError,
 };
+use tucant_api::LoginRequest;
 use utoipa::{IntoParams, OpenApi, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
@@ -31,12 +32,6 @@ const TUCANT_TAG: &str = "tucant";
         )
     )]
 struct ApiDoc;
-
-#[derive(Deserialize, ToSchema)]
-struct LoginRequest {
-    username: String,
-    password: String,
-}
 
 #[debug_handler]
 #[utoipa::path(
