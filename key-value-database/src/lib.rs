@@ -24,7 +24,6 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            use sqlx::Connection;
             let database = sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
                 .await
                 .unwrap();

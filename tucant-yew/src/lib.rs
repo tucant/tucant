@@ -51,6 +51,8 @@ fn use_login_response() -> LoginResponse {
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
+    // here
+
     LoginResponse {
         id: test
             .ARGUMENTS
@@ -242,14 +244,24 @@ fn login() -> HtmlResult {
             let password = password.clone();
             spawn_local(async move {
                 let client = reqwest::Client::new();
-                client
+                let response: LoginResponse = client
                     .post("http://localhost:1420/api/v1/login")
                     .json(&LoginRequest { username, password })
                     .send()
                     .await
                     .unwrap()
-                    .text()
+                    .json()
                     .await
+                    .unwrap();
+
+                let window = web_sys::window().unwrap();
+                let document = window.document().unwrap();
+                let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+                html_document
+                    .set_cookie(&format!("id={}; SameSite=Strict", response.id))
+                    .unwrap();
+                html_document
+                    .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
                     .unwrap();
             })
         })
