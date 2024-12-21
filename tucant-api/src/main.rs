@@ -11,7 +11,7 @@ use tucan_connector::{
     login::{login, LoginResponse},
     Tucan, TucanError,
 };
-use utoipa::{IntoParams, OpenApi};
+use utoipa::{IntoParams, OpenApi, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -32,22 +32,23 @@ const TUCANT_TAG: &str = "tucant";
     )]
 struct ApiDoc;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 struct LoginRequest {
     username: String,
     password: String,
 }
 
+#[debug_handler]
 #[utoipa::path(
     post,
     path = "/api/v1/login",
     tag = TUCANT_TAG,
+    request_body = LoginRequest,
     responses(
         (status = 200, description = "Login successful", body = LoginResponse),
         (status = 500, description = "Some TUCaN error")
     )
 )]
-#[debug_handler]
 async fn login_endpoint(
     Json(login_request): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, TucanError> {

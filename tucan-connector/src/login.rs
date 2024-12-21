@@ -78,10 +78,15 @@ pub async fn login(
              'unsafe-inline' 'unsafe-eval';"
         ))
     );
-    assert_eq!(
-        response.headers_mut().remove("content-length"),
-        Some(HeaderValue::from_static("72"))
-    );
+    let content_length = response.headers_mut().remove("content-length");
+    if content_length == Some(HeaderValue::from_static("27205")) {
+        // login failed
+        let content = response.text().await?;
+        assert!(content
+            .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."));
+        return Err(TucanError::InvalidCredentials);
+    }
+    assert_eq!(content_length, Some(HeaderValue::from_static("72")));
     response.headers_mut().remove("x-powered-by"); // this header randomly appears and disappears. DO NOT ASK
     assert!(response.headers_mut().remove("date").is_some(),);
     let cookie_cnsc = response.headers_mut().remove("set-cookie").unwrap();

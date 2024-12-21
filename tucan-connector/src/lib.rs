@@ -32,6 +32,8 @@ pub enum TucanError {
     Io(#[from] std::io::Error),
     #[error("Tucan session timeout")]
     Timeout,
+    #[error("Invalid credentials for TUCaN")]
+    InvalidCredentials,
 }
 
 impl IntoResponse for TucanError {
