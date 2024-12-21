@@ -5580,6 +5580,7 @@ dependencies = [
  "axum",
  "serde",
  "tokio",
+ "tucan-connector",
  "utoipa",
  "utoipa-swagger-ui",
 ]

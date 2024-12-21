@@ -1,9 +1,12 @@
 use axum::{
     extract::{Path, Query},
+    http::StatusCode,
+    response::IntoResponse,
     routing::get,
     Json, Router,
 };
 use serde::Deserialize;
+use tucan_connector::{login::LoginResponse, TucanError};
 use utoipa::{IntoParams, OpenApi};
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -14,51 +17,32 @@ use utoipa_swagger_ui::SwaggerUi;
 
 // http://localhost:3000/api-docs/openapi.json
 
+const TUCANT_TAG: &str = "tucant";
+
 #[derive(OpenApi)]
 #[openapi(
         tags(
-            (name = "todo", description = "Todo items management APIefeffwdw")
+            (name = TUCANT_TAG, description = "TUCaN't API")
         )
     )]
 struct ApiDoc;
 
-/// Get todo by id and name.
-#[utoipa::path(
-    get,
-    path = "/todo/{id}",
-    params(
-        ("id", description = "Todo id"),
-        ("name", description = "Todo name")
-    ),
-    responses(
-        (status = 200, description = "Get todo success", body = String)
-    )
-)]
-async fn get_todo(Path((id, name)): Path<(i32, String)>) -> String {
-    String::new()
+struct LoginRequest {
+    username: String,
+    password: String,
 }
 
-#[derive(Deserialize, IntoParams)]
-struct TodoSearchQuery {
-    /// Search by value. Search is incase sensitive.
-    value: String,
-    /// Search by `done` status.
-    done: bool,
-}
-
-/// Search Todos by query params.
 #[utoipa::path(
-    get,
-    path = "/todo/search",
-    params(
-        TodoSearchQuery
-    ),
+    post,
+    path = "",
+    tag = TUCANT_TAG,
     responses(
-        (status = 200, description = "List matching todos by query", body = [String])
+        (status = 201, description = "Todo item created successfully", body = LoginResponse),
+        (status = 409, description = "Todo already exists", body = TucanError)
     )
 )]
-async fn search_todos(query: Query<TodoSearchQuery>) -> Json<Vec<String>> {
-    Json(vec![])
+async fn login(Json(todo): Json<LoginRequest>) -> impl IntoResponse {
+    (StatusCode::CREATED, Json(todo)).into_response()
 }
 
 #[tokio::main]
