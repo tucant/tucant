@@ -3,9 +3,8 @@ use std::fs;
 use ego_tree::NodeRef;
 use itertools::Itertools;
 use scraper::{Html, Node};
-use tucan_connector::html_handler::Root;
 
-pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
+#[must_use] pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
     match node.value() {
         Node::Document => node.children().map(|child| to_string(child, 0)).join(""),
         Node::Fragment => todo!(),

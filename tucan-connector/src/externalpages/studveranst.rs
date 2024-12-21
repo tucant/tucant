@@ -1,10 +1,9 @@
-use html_extractor::html;
 use scraper::Html;
+use tucant_types::LoginResponse;
 
 use crate::{
     common::head::{html_head, logged_in_head},
     html_handler::Root,
-    login::LoginResponse,
     MyClient, TucanError,
 };
 

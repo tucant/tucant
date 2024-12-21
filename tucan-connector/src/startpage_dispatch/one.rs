@@ -1,4 +1,3 @@
-use html_extractor::html;
 use scraper::Html;
 
 use crate::{common::head::html_head_2, html_handler::Root, MyClient, TucanError};

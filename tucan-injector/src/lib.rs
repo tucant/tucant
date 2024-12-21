@@ -25,17 +25,17 @@ fn inject() {
         .for_each(closure.as_ref().unchecked_ref())
         .unwrap();
     document
-        .query_selector_all(r#"style"#)
+        .query_selector_all(r"style")
         .unwrap()
         .for_each(closure.as_ref().unchecked_ref())
         .unwrap();
     document
-        .query_selector_all(r#"script"#)
+        .query_selector_all(r"script")
         .unwrap()
         .for_each(closure.as_ref().unchecked_ref())
         .unwrap();
     document
-        .query_selector_all(r#"[style]"#)
+        .query_selector_all(r"[style]")
         .unwrap()
         .for_each(closure.as_ref().unchecked_ref())
         .unwrap();
