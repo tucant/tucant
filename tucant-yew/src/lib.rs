@@ -138,7 +138,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                         html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
+                                    <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
