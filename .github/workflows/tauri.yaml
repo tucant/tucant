@@ -113,7 +113,7 @@ jobs:
       - id: artifact-path
         run: |
           echo "my_output<<EOF" >> $GITHUB_OUTPUT
-          printf "${{ join(fromJson(steps.tauri.outputs.artifactPaths), '\n') }}" >> $GITHUB_OUTPUT
+          printf "${{ join(fromJson(steps.tauri.outputs.artifactPaths), '\n') }}\n" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v4
         with:
