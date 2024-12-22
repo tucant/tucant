@@ -27,6 +27,8 @@ WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
 WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri build
 
 cd tucant-tauri
+ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri android init
+
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android dev
 
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android build --debug --target aarch64

@@ -105,6 +105,13 @@ jobs:
       - name: install trunk
         run: cargo install --locked --no-default-features --features rustls trunk
 
+      - name: install tauri-cli
+        run: cargo install --locked tauri-cli
+
+      - env:
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: cargo tauri android init
+
       - uses: tauri-apps/tauri-action@mobile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
