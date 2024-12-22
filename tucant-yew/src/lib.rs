@@ -3,6 +3,7 @@ use key_value_database::Database;
 use std::rc::Rc;
 use tauri::TauriTucan;
 use tucant_types::{
+    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse, Tucan,
 };
@@ -36,13 +37,10 @@ mod tauri;
 type TucanType = TauriTucan;
 #[cfg(not(feature = "tauri"))]
 type TucanType = ApiServerTucan;
-
-// http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
-
+/*
 #[hook]
 fn use_login_response() -> LoginResponse {
     let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
 
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
@@ -71,22 +69,18 @@ fn use_login_response() -> LoginResponse {
             })
             .unwrap(),
     }
-}
+}*/
 
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
     anmeldung_request: AnmeldungRequest,
 }
 
-#[function_component(Content)]
-fn content() -> HtmlResult {
+#[function_component(Registration)]
+fn registration(AnmeldungRequestProps { anmeldung_request }: &AnmeldungRequestProps) -> HtmlResult {
     let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
-    let anmeldung_request = AnmeldungRequest {
-        arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
-    };
 
-    let login_response = use_login_response();
+    //let login_response = use_login_response();
 
     let data = use_state(|| AnmeldungResponse {
         path: vec![],
@@ -112,16 +106,14 @@ fn content() -> HtmlResult {
         });
     }
 
-    let login_response = use_login_response();
-
     Ok(html! {
-        <>
-
+        <div class="container">
+        <h2 class="text-center">{"Registration"}</h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -132,7 +124,7 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
+                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -206,7 +198,7 @@ fn content() -> HtmlResult {
                     </div>
                 </div>
             }
-        </>
+        </div>
     })
 }
 
@@ -261,16 +253,9 @@ fn login() -> HtmlResult {
                     .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
                     .unwrap();
 
-                navigator
-                    .push_with_query(
-                        &Route::Home,
-                        &URLFormat {
-                            APPNAME: "CampusNet".to_owned(),
-                            PRGNAME: "REGISTRATION".to_owned(),
-                            ARGUMENTS: format!("-N{:015},-N000311,-A", response.id),
-                        },
-                    )
-                    .unwrap();
+                navigator.push(&Route::Registration {
+                    registration: format!("-N{:015},-N000311,-A", response.id),
+                });
             })
         })
     };
@@ -296,82 +281,59 @@ fn login() -> HtmlResult {
       })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+#[derive(Debug, Clone, PartialEq, Routable)]
 enum Route {
-    #[at("/scripts/mgrqispi.dll")]
-    Home,
     #[at("/")]
     Root,
     #[not_found]
     #[at("/404")]
     NotFound,
-}
-
-#[function_component(SwitchInner)]
-fn switch_inner() -> HtmlResult {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
-
-    match test.PRGNAME.as_str() {
-        "REGISTRATION" => Ok(html! { <Registration /> }),
-        _ => Ok(html! { <div>{"unknown"}</div> }),
-    }
+    #[at("/module-details/:module")]
+    ModuleDetails { module: String },
+    #[at("/registration/:registration")]
+    Registration { registration: String },
 }
 
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home => html! { <SwitchInner></SwitchInner> },
+        Route::Registration { registration } => {
+            html! { <Registration registration={registration} /> }
+        }
         Route::NotFound => html! { <div>{"404"}</div> },
         Route::Root => html! { <LoginPage /> },
+        Route::ModuleDetails { module } => html! { <ModuleDetails module={module} /> },
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
-struct URLFormat {
-    APPNAME: String,
-    PRGNAME: String,
-    ARGUMENTS: String,
-}
-
-#[function_component(Registration)]
-fn registration() -> HtmlResult {
-    let fallback = html! {
-        <>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                </ol>
-            </nav>
-
-            <h2 class="text-center">{"Submenus"}</h2>
-
-            <ul class="list-group">
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-            </ul>
-
-            <h2 class="text-center">{"Modules and courses"}</h2>
-
-            <ul class="list-group">
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-            </ul>
-        </>
+#[function_component(ModuleDetails)]
+fn module_details() -> HtmlResult {
+    let location = use_location().unwrap();
+    let request = ModuleDetailsRequest {
+        arguments: "".to_string(),
     };
 
-    Ok(html! {
-        <>
-            <div class="container">
-                <h2 class="text-center">{"Registration"}</h2>
+    //let login_response = use_login_response();
 
-                <Content />
-            </div>
-        </>
-    })
+    let data = use_state(|| ModuleDetailsResponse {});
+    let loading = use_state(|| false);
+    {
+        let data = data.clone();
+        let loading = loading.clone();
+        use_effect_with(request, move |request| {
+            loading.set(true);
+            let request = request.clone();
+            let data = data.clone();
+            spawn_local(async move {
+                let response = TucanType::module_details(&login_response, request)
+                    .await
+                    .unwrap();
+                data.set(response);
+                loading.set(false);
+            })
+        });
+    }
+
+    Ok(html! {})
 }
 
 #[function_component(App)]
