@@ -1955,7 +1955,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "html-extractor"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "itertools",
  "proc-macro2",
@@ -2494,7 +2494,7 @@ dependencies = [
 
 [[package]]
 name = "key-value-database"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "indexed-db",
  "js-sys",
@@ -2502,6 +2502,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]
@@ -5399,7 +5400,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "tucan-connector"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "axum-core",
  "bytes",
@@ -5428,7 +5429,7 @@ dependencies = [
 
 [[package]]
 name = "tucan-injector"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
@@ -5442,7 +5443,7 @@ dependencies = [
 
 [[package]]
 name = "tucant-api"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "axum-extra",
@@ -5458,7 +5459,7 @@ dependencies = [
 
 [[package]]
 name = "tucant-tauri"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -5472,7 +5473,7 @@ dependencies = [
 
 [[package]]
 name = "tucant-types"
-version = "0.0.0"
+version = "0.1.1"
 dependencies = [
  "axum-core",
  "reqwest",
@@ -5484,7 +5485,7 @@ dependencies = [
 
 [[package]]
 name = "tucant-yew"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
