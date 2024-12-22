@@ -58,6 +58,9 @@ jobs:
             args: ""
           - platform: "windows-latest"
             args: ""
+          - platform: 'ubuntu-latest'
+            args: '--verbose'
+            android: true
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -71,8 +74,7 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'wasm32-unknown-unknown,aarch64-apple-darwin,x86_64-apple-darwin' || 'wasm32-unknown-unknown' }}
+          targets: wasm32-unknown-unknown,aarch64-apple-darwin,x86_64-apple-darwin,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
@@ -82,15 +84,35 @@ jobs:
         # webkitgtk 4.0 is for Tauri v1 - webkitgtk 4.1 is for Tauri v2.
         # You can remove the one that doesn't apply to your app to speed up the workflow a bit.
 
+      - name: Setup Java
+        if: matrix.android
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: matrix.android
+        uses: android-actions/setup-android@v3
+      - name: Setup Android NDK
+        if: matrix.android
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+          link-to-sdk: true
+    
       - name: install trunk
         run: cargo install --locked --no-default-features --features rustls trunk
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@mobile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         with:
           projectPath: tucant-tauri
           releaseId: ${{ needs.create-release.outputs.release_id }}
+          mobile: ${{ matrix.android || matrix.ios }}
           args: ${{ matrix.args }}
 
   publish-release:
