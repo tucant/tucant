@@ -12,7 +12,7 @@ pub struct ModuleDetailsResponse {
     pub registered: bool,
     pub dozenten: String,
     pub display_in_timetable: String,
-    pub length: String,
+    pub duration: String,
     pub count_elective_courses: String,
     pub credits: String,
     pub description: Vec<String>,

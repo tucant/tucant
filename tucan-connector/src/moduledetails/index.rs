@@ -445,6 +445,6 @@ pub async fn moduledetails(
         description,
         display_in_timetable,
         dozenten,
-        length,
+        duration: length,
     })
 }
