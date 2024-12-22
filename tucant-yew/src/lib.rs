@@ -318,7 +318,7 @@ pub struct ModuleDetailsProps {
 fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
     let login_response = use_login_response();
 
-    let data = use_state(|| ModuleDetailsResponse {});
+    let data = use_state(|| None);
     let loading = use_state(|| false);
     {
         let data = data.clone();
@@ -331,13 +331,19 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
                 let response = TucanType::module_details(&login_response, request)
                     .await
                     .unwrap();
-                data.set(response);
+                data.set(Some(response));
                 loading.set(false);
             })
         });
     }
 
-    Ok(html! {})
+    Ok(html! {
+        data.as_ref().map(|module| {
+            html!{
+                { &module.module_id }
+            }
+        }).unwrap_or_else(|| html! { "Loading" })
+    })
 }
 
 #[function_component(App)]
