@@ -76,6 +76,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown,aarch64-apple-darwin,x86_64-apple-darwin,aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
         run: |
@@ -105,10 +110,12 @@ jobs:
       - name: install trunk
         run: cargo install --locked --no-default-features --features rustls trunk
 
-      - name: install tauri-cli
+      - if: matrix.android
+        name: install tauri-cli
         run: cargo install --locked tauri-cli
 
-      - env:
+      - if: matrix.android
+        env:
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: cargo tauri android init
 
