@@ -1,6 +1,9 @@
 name: "publish"
 
-on: pull_request
+on:
+  push:
+    tags:
+      - '*'
 
 # `tauri-action` can also upload app bundles to an existing GitHub release.
 # This workflow uses different actions to create and publish the release.
@@ -34,9 +37,9 @@ jobs:
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `app-v${process.env.PACKAGE_VERSION}`,
-              name: `Desktop App v${process.env.PACKAGE_VERSION}`,
-              body: 'Take a look at the assets to download and install this app.',
+              tag_name: `tucant-v${process.env.PACKAGE_VERSION}`,
+              name: `Tucant v${process.env.PACKAGE_VERSION}`,
+              body: 'Take a look at the assets to download and install tucant.',
               draft: true,
               prerelease: false
             })
@@ -64,7 +67,7 @@ jobs:
             args: ""
           - dist: android
             platform: 'ubuntu-latest'
-            args: '--apk'
+            args: '--apk --split-per-abi'
             android: true
 
     runs-on: ${{ matrix.platform }}

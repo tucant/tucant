@@ -2502,6 +2502,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "sqlx",
+ "tokio",
 ]
 
 [[package]]

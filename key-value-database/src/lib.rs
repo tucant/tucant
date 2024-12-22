@@ -1,3 +1,5 @@
+use tokio::fs;
+
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -24,13 +26,20 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            let database = sqlx::SqlitePool::connect(if cfg!(target_os = "android") {
-                "sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc"
+            let database = if cfg!(target_os = "android") {
+                fs::create_dir("/data/data/de.selfmade4u.tucant/files")
+                    .await
+                    .unwrap();
+                sqlx::SqlitePool::connect(
+                    "sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc",
+                )
+                .await
+                .unwrap()
             } else {
-                "sqlite://data.db?mode=rwc"
-            })
-            .await
-            .unwrap();
+                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
+                    .await
+                    .unwrap()
+            };
             sqlx::query(
                 "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT \
                  NULL)",
