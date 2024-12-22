@@ -50,15 +50,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Arm based macs (M1 and above).
+          - dist: macos-aarch64
+            platform: "macos-latest" # for Arm based macs (M1 and above).
             args: "--target aarch64-apple-darwin"
-          - platform: "macos-latest" # for Intel based macs.
+          - dist: macos-x86_64
+            platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
-          - platform: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
+          - dist: linux
+            platform: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ""
-          - platform: "windows-latest"
+          - dist: windows
+            platform: "windows-latest"
             args: ""
-          - platform: 'ubuntu-latest'
+          - dist: android
+            platform: 'ubuntu-latest'
             args: '--apk'
             android: true
 
@@ -80,6 +85,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           cache-on-failure: true
+          key: ${{ matrix.dist }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
