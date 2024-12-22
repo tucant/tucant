@@ -22,8 +22,9 @@ jobs:
         with:
           node-version: lts/*
 
-      - name: get version
-        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      - name: get version#
+        working-directory: tucant-tauri
+        run: echo "PACKAGE_VERSION=$(cargo pkgid | cut -d "#" -f2)" >> $GITHUB_ENV
 
       - name: create release
         id: create-release
@@ -81,10 +82,11 @@ jobs:
         # webkitgtk 4.0 is for Tauri v1 - webkitgtk 4.1 is for Tauri v2.
         # You can remove the one that doesn't apply to your app to speed up the workflow a bit.
 
-      - name: install frontend dependencies
-        run: yarn install # change this to npm, pnpm or bun depending on which one you use.
+      - name: install trunk
+        run: cargo install --locked trunk
 
       - uses: tauri-apps/tauri-action@v0
+        working-directory: tucant-tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
