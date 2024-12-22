@@ -3,6 +3,7 @@ use key_value_database::Database;
 use std::rc::Rc;
 use tauri::TauriTucan;
 use tucant_types::{
+    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse, Tucan,
 };
@@ -37,30 +38,27 @@ type TucanType = TauriTucan;
 #[cfg(not(feature = "tauri"))]
 type TucanType = ApiServerTucan;
 
-// http://localhost:1420/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N218653534694253,-N000311,-A
-
 #[hook]
 fn use_login_response() -> LoginResponse {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
-
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    // here
-
     LoginResponse {
-        id: test
-            .ARGUMENTS
-            .split_once(',')
+        id: cookie::Cookie::split_parse(&cookie)
+            .find_map(|cookie| {
+                let cookie = cookie.unwrap();
+                if cookie.name() == "id" {
+                    Some(cookie.value().to_string())
+                } else {
+                    None
+                }
+            })
             .unwrap()
-            .0
-            .trim_start_matches("-N")
             .parse()
             .unwrap(),
-        cookie_cnsc: cookie::Cookie::split_parse(cookie)
+        cookie_cnsc: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
                 if cookie.name() == "cnsc" {
@@ -75,17 +73,11 @@ fn use_login_response() -> LoginResponse {
 
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
-    anmeldung_request: AnmeldungRequest,
+    registration: AnmeldungRequest,
 }
 
-#[function_component(Content)]
-fn content() -> HtmlResult {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
-    let anmeldung_request = AnmeldungRequest {
-        arguments: ",".to_owned() + test.ARGUMENTS.split_once(',').unwrap().1,
-    };
-
+#[function_component(Registration)]
+fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
     let login_response = use_login_response();
 
     let data = use_state(|| AnmeldungResponse {
@@ -98,7 +90,7 @@ fn content() -> HtmlResult {
     {
         let data = data.clone();
         let loading = loading.clone();
-        use_effect_with(anmeldung_request.clone(), move |anmeldung_request| {
+        use_effect_with(registration.clone(), move |anmeldung_request| {
             loading.set(true);
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
@@ -115,13 +107,13 @@ fn content() -> HtmlResult {
     let login_response = use_login_response();
 
     Ok(html! {
-        <>
-
+        <div class="container">
+        <h2 class="text-center">{"Registration"}</h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route, URLFormat>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -132,7 +124,7 @@ fn content() -> HtmlResult {
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        html!{<Link<Route, URLFormat> to={Route::Home} query={URLFormat { APPNAME: "CampusNet".to_owned(), PRGNAME: "REGISTRATION".to_owned(), ARGUMENTS: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route, URLFormat>>}
+                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -146,7 +138,7 @@ fn content() -> HtmlResult {
                         html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><a href={ module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</a></h5>
+                                    <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
@@ -206,7 +198,7 @@ fn content() -> HtmlResult {
                     </div>
                 </div>
             }
-        </>
+        </div>
     })
 }
 
@@ -261,16 +253,9 @@ fn login() -> HtmlResult {
                     .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
                     .unwrap();
 
-                navigator
-                    .push_with_query(
-                        &Route::Home,
-                        &URLFormat {
-                            APPNAME: "CampusNet".to_owned(),
-                            PRGNAME: "REGISTRATION".to_owned(),
-                            ARGUMENTS: format!("-N{:015},-N000311,-A", response.id),
-                        },
-                    )
-                    .unwrap();
+                navigator.push(&Route::Registration {
+                    registration: format!("-N{:015},-N000311,-A", response.id),
+                });
             })
         })
     };
@@ -296,81 +281,96 @@ fn login() -> HtmlResult {
       })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Routable)]
+#[derive(Debug, Clone, PartialEq, Routable)]
 enum Route {
-    #[at("/scripts/mgrqispi.dll")]
-    Home,
     #[at("/")]
     Root,
     #[not_found]
     #[at("/404")]
     NotFound,
-}
-
-#[function_component(SwitchInner)]
-fn switch_inner() -> HtmlResult {
-    let location = use_location().unwrap();
-    let test: URLFormat = location.query::<URLFormat>().unwrap();
-
-    match test.PRGNAME.as_str() {
-        "REGISTRATION" => Ok(html! { <Registration /> }),
-        _ => Ok(html! { <div>{"unknown"}</div> }),
-    }
+    #[at("/module-details/:module")]
+    ModuleDetails { module: String },
+    #[at("/registration/:registration")]
+    Registration { registration: String },
 }
 
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home => html! { <SwitchInner></SwitchInner> },
+        Route::Registration { registration } => {
+            html! { <Registration registration={AnmeldungRequest {arguments: registration}} /> }
+        }
         Route::NotFound => html! { <div>{"404"}</div> },
         Route::Root => html! { <LoginPage /> },
+        Route::ModuleDetails { module } => {
+            html! { <ModuleDetails module_details={ModuleDetailsRequest {
+                arguments: module
+            }} /> }
+        }
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
-struct URLFormat {
-    APPNAME: String,
-    PRGNAME: String,
-    ARGUMENTS: String,
+#[derive(Properties, PartialEq)]
+pub struct ModuleDetailsProps {
+    module_details: ModuleDetailsRequest,
 }
 
-#[function_component(Registration)]
-fn registration() -> HtmlResult {
-    let fallback = html! {
-        <>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                    <li class="breadcrumb-item"><a href="#" class="placeholder-glow"><span class="placeholder placeholder-xs">{"Some path that is cool"}</span></a></li>
-                </ol>
-            </nav>
+#[function_component(ModuleDetails)]
+fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
+    let login_response = use_login_response();
 
-            <h2 class="text-center">{"Submenus"}</h2>
-
-            <ul class="list-group">
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-            </ul>
-
-            <h2 class="text-center">{"Modules and courses"}</h2>
-
-            <ul class="list-group">
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-                <li class="list-group-item placeholder-glow"><span class="placeholder w-100"></span></li>
-            </ul>
-        </>
-    };
+    let data = use_state(|| None);
+    let loading = use_state(|| false);
+    {
+        let data = data.clone();
+        let loading = loading.clone();
+        use_effect_with(module_details.to_owned(), move |request| {
+            loading.set(true);
+            let request = request.clone();
+            let data = data.clone();
+            spawn_local(async move {
+                let response = TucanType::module_details(&login_response, request)
+                    .await
+                    .unwrap();
+                data.set(Some(response));
+                loading.set(false);
+            })
+        });
+    }
 
     Ok(html! {
-        <>
-            <div class="container">
-                <h2 class="text-center">{"Registration"}</h2>
+        <div class="container">
+        {
+            data.as_ref().map(|module| {
+                html!{
+                    <div>
+                        <h1>{ &module.module_id }</h1>
 
-                <Content />
-            </div>
-        </>
+                        <div>{ format!("Registered: {}", if module.registered { "Yes" } else { "No" }) }</div>
+
+                        <div>{ format!("Dozenten: {}", module.dozenten) }</div>
+
+                        <div>{ format!("Display in timetable: {}", module.display_in_timetable) }</div>
+
+                        <div>{ format!("Duration: {}", module.duration) }</div>
+
+                        <div>{ format!("Credits: {}", module.credits) }</div>
+
+                        <div>{ format!("Count of elective courses: {}", module.count_elective_courses) }</div>
+
+                        // TODO FIXME this is dangerous
+                        { Html::from_html_unchecked(module.description.join("\n").into()) }
+
+                    </div>
+                }
+            }).unwrap_or_else(|| html! { if *loading {
+                <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
+                    <div class="spinner-grow" role="status">
+                        <span class="visually-hidden">{"Loading..."}</span>
+                    </div>
+                </div>
+            } })
+        }
+        </div>
     })
 }
 

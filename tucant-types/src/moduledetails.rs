@@ -7,4 +7,13 @@ pub struct ModuleDetailsRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModuleDetailsResponse {}
+pub struct ModuleDetailsResponse {
+    pub module_id: String,
+    pub registered: bool,
+    pub dozenten: String,
+    pub display_in_timetable: String,
+    pub duration: String,
+    pub count_elective_courses: String,
+    pub credits: String,
+    pub description: Vec<String>,
+}

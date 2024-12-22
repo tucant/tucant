@@ -164,7 +164,6 @@ pub async fn moduledetails(
             _ => panic!(),
         }
     }
-    println!("{description:#?}");
     html_extractor::html! {
                         <!--"QHWpWjdi1Od1UH7a5kQVEbkt567_ZwnRI-Za5HHOrHg"-->_
                     </td>_
@@ -438,5 +437,14 @@ pub async fn moduledetails(
     };
     let html_handler = footer(html_handler, id, 311);
 
-    Ok(ModuleDetailsResponse {})
+    Ok(ModuleDetailsResponse {
+        module_id,
+        registered,
+        count_elective_courses,
+        credits,
+        description,
+        display_in_timetable,
+        dozenten,
+        duration: length,
+    })
 }
