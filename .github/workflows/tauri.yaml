@@ -1,6 +1,12 @@
 name: "tauri"
 
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+        - main
+  push:
+    branches:
+      - main
 
 jobs:
   build-tauri:
@@ -45,7 +51,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-          key: ${{ matrix.dist }}
+          shared-key: ${{ matrix.dist }}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
