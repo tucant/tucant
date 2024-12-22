@@ -119,7 +119,8 @@ jobs:
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: cargo tauri android init
 
-      - name: setup Android signing
+      - if: matrix.android
+        name: setup Android signing
         run: |
           cp tucant-tauri/build.gradle.kts tucant-tauri/gen/android/app/build.gradle.kts
           cd tucant-tauri/gen/android
