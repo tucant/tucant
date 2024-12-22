@@ -111,6 +111,7 @@ jobs:
           mobile: ${{ matrix.android || matrix.ios }}
           args: ${{ matrix.args }}
       - id: artifact-path
+        shell: bash
         run: |
           echo "my_output<<EOF" >> $GITHUB_OUTPUT
           echo '${{ steps.tauri.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
