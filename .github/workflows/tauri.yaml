@@ -96,7 +96,7 @@ jobs:
         run: |
           cp tucant-tauri/build.gradle.kts tucant-tauri/gen/android/app/build.gradle.kts
           cd tucant-tauri/gen/android
-          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "keyAlias=${{ vars.ANDROID_KEY_ALIAS }}" > keystore.properties
           echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
           base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
@@ -110,8 +110,14 @@ jobs:
           projectPath: tucant-tauri
           mobile: ${{ matrix.android || matrix.ios }}
           args: ${{ matrix.args }}
+      - id: artifact-path
+        shell: bash
+        run: |
+          echo "my_output<<EOF" >> $GITHUB_OUTPUT
+          echo '${{ steps.tauri.outputs.artifactPaths }}' | jq -r '.[]' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v4
         with:
-          name: tauri
-          path: ${{ steps.tauri.outputs.artifactPaths }}
+          name: tauri-${{ matrix.dist }}
+          path: ${{ steps.artifact-path.outputs.my_output }}
         

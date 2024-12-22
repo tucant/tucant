@@ -25,7 +25,7 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir("/data/data/de.selfmade4u.tucant/files")
+                tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucant/files")
                     .await
                     .unwrap();
                 sqlx::SqlitePool::connect(
