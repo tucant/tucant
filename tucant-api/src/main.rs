@@ -1,7 +1,10 @@
 use axum::{debug_handler, extract::Path, http::StatusCode, response::IntoResponse, Json};
 use axum_extra::extract::{cookie::Cookie, CookieJar};
-use tucan_connector::{login::login, registration::index::anmeldung_cached, Tucan};
+use tucan_connector::{
+    login::login, moduledetails::index::moduledetails, registration::index::anmeldung_cached, Tucan,
+};
 use tucant_types::{
+    moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
     LoginRequest, LoginResponse, TucanError,
 };
@@ -102,11 +105,43 @@ async fn registration_endpoint(
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/module-details/{module}",
+    tag = TUCANT_TAG,
+    params(("module" = String, Path)),
+    responses(
+        (status = 200, description = "Successful", body = AnmeldungResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+#[debug_handler]
+async fn module_details_endpoint(
+    jar: CookieJar,
+    Path(module): Path<String>,
+) -> Result<impl IntoResponse, TucanError> {
+    let tucan = Tucan::new().await?;
+
+    let login_response: LoginResponse =
+        serde_json::from_str(jar.get("api_key").unwrap().value()).unwrap();
+
+    let response = moduledetails(
+        &tucan,
+        &login_response,
+        ModuleDetailsRequest { arguments: module },
+    )
+    .await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
 #[tokio::main]
 async fn main() {
     // our router
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .routes(routes!(login_endpoint, registration_endpoint))
+        .routes(routes!(login_endpoint))
+        .routes(routes!(registration_endpoint))
+        .routes(routes!(module_details_endpoint))
         .split_for_parts();
 
     let router =

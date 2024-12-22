@@ -2,6 +2,7 @@ pub mod moduledetails;
 pub mod registration;
 
 use axum_core::response::{IntoResponse, Response};
+use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -50,4 +51,9 @@ pub trait Tucan {
         login_response: LoginResponse,
         request: AnmeldungRequest,
     ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
+
+    fn module_details(
+        login_response: &LoginResponse,
+        request: ModuleDetailsRequest,
+    ) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
 }
