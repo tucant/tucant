@@ -1,5 +1,3 @@
-use tokio::fs;
-
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -27,7 +25,7 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                fs::create_dir("/data/data/de.selfmade4u.tucant/files")
+                tokio::fs::create_dir("/data/data/de.selfmade4u.tucant/files")
                     .await
                     .unwrap();
                 sqlx::SqlitePool::connect(
