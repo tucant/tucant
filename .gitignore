@@ -1,3 +1,9 @@
 *.db
 target
-gen
+!tucant-tauri/gen/
+tucant-tauri/gen/*
+!tucant-tauri/gen/android/
+tucant-tauri/gen/android/*
+!tucant-tauri/gen/android/app/
+tucant-tauri/gen/android/app/*
+!tucant-tauri/gen/android/app/build.gradle.kts

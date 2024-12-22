@@ -59,7 +59,7 @@ jobs:
           - platform: "windows-latest"
             args: ""
           - platform: 'ubuntu-latest'
-            args: '--verbose'
+            args: '--apk'
             android: true
 
     runs-on: ${{ matrix.platform }}
@@ -119,7 +119,17 @@ jobs:
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: cargo tauri android init
 
-      - uses: tauri-apps/tauri-action@mobile
+      - name: setup Android signing
+        run: |
+          cd tucant-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+
+      # /home/runner/work/tucant/tucant/tucant-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+
+      - uses: mohe2015/tauri-action@mobile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
