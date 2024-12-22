@@ -111,7 +111,10 @@ jobs:
           mobile: ${{ matrix.android || matrix.ios }}
           args: ${{ matrix.args }}
       - id: artifact-path
-        run: echo "::set-output name=my_output::${{ join(fromJson(steps.tauri.outputs.artifactPaths), '%0A') }}"
+        run: |
+          echo "my_output<<EOF" >> $GITHUB_OUTPUT
+          printf "${{ join(fromJson(steps.tauri.outputs.artifactPaths), '\n') }}" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v4
         with:
           name: tauri-${{ matrix.dist }}
