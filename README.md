@@ -24,10 +24,15 @@ https://raw.githubusercontent.com/tucant/tucant/refs/heads/main/tampermonkey.js
 cd tucant-tauri
 WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
 
+WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri build
+
 cd tucant-tauri
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android dev
 
 ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android build --debug --target aarch64
+
+ANDROID_HOME=~/Android/Sdk NDK_HOME=~/Android/Sdk/ndk/28.0.12674087/ cargo tauri --verbose android build --apk --target aarch64
+
 
 adb install ./gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 adb shell run-as de.selfmade4u.tucant logcat
