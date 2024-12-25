@@ -3,16 +3,6 @@
     "name": "TUCaN't",
     "version": "0.1.0",
     "description": "Quality of life improvements for TUCaN",
-    "content_scripts": [
-        {
-            "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
-            ],
-            "js": [
-                "index.js"
-            ]
-        }
-    ],
     "declarative_net_request": {
         "rule_resources": [
             {
@@ -27,18 +17,5 @@
     ],
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*"
-    ],
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "/index.html"
-            ],
-            "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
-            ]
-        }
-    ],
-    "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-    }
+    ]
 }
