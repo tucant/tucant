@@ -31,11 +31,16 @@ use yew_router::{
     BrowserRouter, Routable, Switch,
 };
 mod api_server;
+#[cfg(feature = "direct")]
+mod direct;
 mod tauri;
 
+// TODO FIXME don't do it this way because of feature unification
 #[cfg(feature = "tauri")]
 type TucanType = TauriTucan;
-#[cfg(not(feature = "tauri"))]
+#[cfg(feature = "direct")]
+type TucanType = direct::DirectTucan;
+#[cfg(not(any(feature = "tauri", feature = "direct")))]
 type TucanType = ApiServerTucan;
 
 #[hook]

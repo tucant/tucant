@@ -15,7 +15,7 @@ log = "0.4"
 console_error_panic_hook = "0.1"
 url = "2"
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
-tucant-yew = { path = "../tucant-yew" }
+tucant-yew = { path = "../tucant-yew", features = ["direct"] }
 
 [lints]
 workspace = true
