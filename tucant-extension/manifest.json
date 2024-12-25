@@ -1,22 +1,22 @@
 {
     "manifest_version": 3,
-    "name": "Minimal Manifest",
-    "version": "1.0.0",
-    "description": "A basic example extension with only required keys",
+    "name": "TUCaN't",
+    "version": "0.1.0",
+    "description": "Quality of life improvements for TUCaN",
     "content_scripts": [
         {
             "matches": [
                 "https://www.tucan.tu-darmstadt.de/*"
             ],
             "js": [
-                "content-script.js"
+                "index.js"
             ]
         }
     ],
     "declarative_net_request": {
         "rule_resources": [
             {
-                "id": "ruleset_1",
+                "id": "ruleset",
                 "enabled": true,
                 "path": "rules.json"
             }
