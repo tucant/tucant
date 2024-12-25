@@ -1,0 +1,15 @@
+[
+    {
+        "id": 1,
+        "priority": 1,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "extensionPath": "/sw.js"
+            }
+        },
+        "condition": {
+            "urlFilter": "|https://www.tucan.tu-darmstadt.de/test.js|"
+        }
+    }
+]

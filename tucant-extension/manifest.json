@@ -1,0 +1,42 @@
+{
+    "manifest_version": 3,
+    "name": "Minimal Manifest",
+    "version": "1.0.0",
+    "description": "A basic example extension with only required keys",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ],
+            "js": [
+                "content-script.js"
+            ]
+        }
+    ],
+    "declarative_net_request": {
+        "rule_resources": [
+            {
+                "id": "ruleset_1",
+                "enabled": true,
+                "path": "rules.json"
+            }
+        ]
+    },
+    "permissions": [
+        "declarativeNetRequest",
+        "declarativeNetRequestFeedback"
+    ],
+    "host_permissions": [
+        "https://www.tucan.tu-darmstadt.de/*"
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "sw.js"
+            ],
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ]
+        }
+    ]
+}
