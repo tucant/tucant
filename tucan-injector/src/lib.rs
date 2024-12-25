@@ -4,7 +4,8 @@ use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
     JsCast as _,
 };
-use web_sys::Node;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{Node, RegistrationOptions};
 
 fn inject() {
     info!("Supported URL detected, injecting...");
@@ -44,7 +45,7 @@ fn inject() {
 }
 
 #[wasm_bindgen(start)]
-fn start() {
+async fn start() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     console_log::init().unwrap();
@@ -71,4 +72,16 @@ fn start() {
         }
         Some(_) => {}
     }
+
+    let navigator = window.navigator();
+    let service_worker = navigator.service_worker();
+    let registration_options = RegistrationOptions::new();
+    registration_options.set_scope("/");
+    // http://localhost:8000/test.js
+    let registration = JsFuture::from(
+        service_worker
+            .register_with_options("data:text/javascript,alert(1)", &registration_options),
+    )
+    .await
+    .unwrap();
 }
