@@ -31,8 +31,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "/index.html",
-                "/wasm-bindgen/tucan_injector.js"
+                "/index.html"
             ],
             "matches": [
                 "https://www.tucan.tu-darmstadt.de/*"
