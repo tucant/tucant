@@ -5459,6 +5459,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tucant-extension"
+version = "0.1.2"
+dependencies = [
+ "console_error_panic_hook",
+ "console_log",
+ "log",
+ "tucant-yew",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "tucant-tauri"
 version = "0.1.2"
 dependencies = [
