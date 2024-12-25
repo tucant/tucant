@@ -9,7 +9,10 @@
             }
         },
         "condition": {
-            "urlFilter": "|https://www.tucan.tu-darmstadt.de/test.js|"
+            "resourceTypes": [
+                "main_frame"
+            ],
+            "urlFilter": "|https://www.tucan.tu-darmstadt.de/sw.js|"
         }
     }
 ]
