@@ -17,5 +17,10 @@
     ],
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*"
-    ]
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "tucant@selfmade4u.de"
+        }
+    }
 }

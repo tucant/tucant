@@ -1,4 +1,9 @@
 ```
+zip -1 tucant.zip rules.json manifest.json
+
+
+web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.firefox
+
 /
 ->
 /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
