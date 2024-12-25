@@ -33,6 +33,22 @@
     },
     {
         "id": 3,
+        "priority": 2,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000019,"
+            }
+        },
+        "condition": {
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N000019,-N000000000000000",
+            "resourceTypes": [
+                "main_frame"
+            ]
+        }
+    },
+    {
+        "id": 999,
         "priority": 1,
         "action": {
             "type": "redirect",
