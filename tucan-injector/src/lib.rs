@@ -65,14 +65,15 @@ async fn start() {
         });
     let prgname = prgname.as_deref();
 
-    match prgname {
-        None => {}
-        Some("REGISTRATION") => {
-            inject();
-        }
-        Some(_) => {}
-    }
+    // match prgname {
+    //    None => {}
+    //   Some("REGISTRATION") => {
+    inject();
+    //  }
+    //  Some(_) => {}
+    // }
 
+    /*/
     let navigator = window.navigator();
     let service_worker = navigator.service_worker();
     let registration_options = RegistrationOptions::new();
@@ -83,5 +84,5 @@ async fn start() {
             .register_with_options("data:text/javascript,alert(1)", &registration_options),
     )
     .await
-    .unwrap();
+    .unwrap();*/
 }
