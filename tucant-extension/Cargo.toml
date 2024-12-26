@@ -1,5 +1,5 @@
 [package]
-name = "tucan-injector"
+name = "tucant-extension"
 license.workspace = true
 edition.workspace = true
 version.workspace = true

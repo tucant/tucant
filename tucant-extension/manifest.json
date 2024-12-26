@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "TUCaN't",
+    "version": "0.1.0",
+    "description": "Quality of life improvements for TUCaN",
+    "declarative_net_request": {
+        "rule_resources": [
+            {
+                "id": "ruleset",
+                "enabled": true,
+                "path": "rules.json"
+            }
+        ]
+    },
+    "permissions": [
+        "declarativeNetRequestWithHostAccess"
+    ],
+    "host_permissions": [
+        "https://www.tucan.tu-darmstadt.de/*"
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "tucant@selfmade4u.de"
+        }
+    },
+    "icons": {
+        "128": "icon.png"
+    }
+}

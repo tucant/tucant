@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.create-release.outputs.result }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -23,8 +24,9 @@ jobs:
           node-version: lts/*
 
       - name: get version
+        id: version
         working-directory: tucant-tauri
-        run: echo "PACKAGE_VERSION=$(cargo pkgid | cut -d "#" -f2)" >> $GITHUB_ENV
+        run: echo "version=$(cargo pkgid | cut -d "#" -f2)" >> $GITHUB_OUTPUT
 
       - name: create release
         id: create-release
@@ -34,13 +36,27 @@ jobs:
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `tucant-v${process.env.PACKAGE_VERSION}`,
-              name: `Tucant v${process.env.PACKAGE_VERSION}`,
+              tag_name: `tucant-v${{ steps.version.outputs.version }}`,
+              name: `Tucant v${{ steps.version.outputs.version }}}`,
               body: 'Take a look at the assets to download and install tucant.',
               draft: true,
               prerelease: false
             })
             return data.id
+
+  build-extension:
+    needs: create-release
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: zip -1 tucant.zip rules.json manifest.json
+        working-directory: tucant-extension
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh release upload tucant-v${{ needs.create-release.outputs.version }} tucant-extension/tucant.zip
 
   build-tauri:
     needs: create-release
@@ -64,7 +80,7 @@ jobs:
             args: ""
           - dist: android
             platform: 'ubuntu-latest'
-            args: '--apk --split-per-abi'
+            args: '--aab --apk'
             android: true
 
     runs-on: ${{ matrix.platform }}
