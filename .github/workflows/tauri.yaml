@@ -9,6 +9,17 @@ on:
       - main
 
 jobs:
+  build-extension:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: zip -1 tucant.zip rules.json manifest.json
+        working-directory: tucant-extension
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension
+          path: tucant-extension/tucant.zip
+
   build-tauri:
     permissions:
       contents: write
@@ -30,7 +41,7 @@ jobs:
             args: ""
           - dist: android
             platform: 'ubuntu-latest'
-            args: '--apk --split-per-abi'
+            args: '--aab --apk'
             android: true
 
     runs-on: ${{ matrix.platform }}
