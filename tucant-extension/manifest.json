@@ -22,5 +22,8 @@
         "gecko": {
             "id": "tucant@selfmade4u.de"
         }
+    },
+    "icons": {
+        "128": "icon.png"
     }
 }
