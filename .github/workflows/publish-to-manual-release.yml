@@ -42,6 +42,21 @@ jobs:
             })
             return data.id
 
+  build-extension:
+    needs: create-release
+    permissions:
+      contents: write
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: zip -1 tucant.zip rules.json manifest.json
+        working-directory: tucant-extension
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh release upload ${{ needs.create-release.outputs.release_id }} tucant-extension/tucant.zip
+
+
   build-tauri:
     needs: create-release
     permissions:
