@@ -28,7 +28,7 @@ use yew::{
 use yew_router::{
     hooks::{use_location, use_navigator, use_route},
     prelude::Link,
-    BrowserRouter, Routable, Switch,
+    BrowserRouter, HashRouter, Routable, Switch,
 };
 mod api_server;
 #[cfg(feature = "direct")]
@@ -386,12 +386,10 @@ pub fn app() -> HtmlResult {
         <style>
             {include_str!("./bootstrap.min.css")}
         </style>
-        <script>
-            {include_str!("./bootstrap.bundle.min.js")}
-        </script>
-        <BrowserRouter>
+
+        <HashRouter>
             <Switch<Route> render={switch} />
-        </BrowserRouter>
+        </HashRouter>
         </>
     })
 }

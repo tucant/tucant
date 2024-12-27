@@ -1,5 +1,5 @@
 {
     "editor.formatOnSave": true,
-    "terminal.integrated.scrollback": 1000,
+    "terminal.integrated.scrollback": 100000,
     //"rust-analyzer.cargo.target": "wasm32-unknown-unknown"
 }

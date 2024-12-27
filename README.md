@@ -2,7 +2,7 @@
 
 ## How does it work
 
-This software consists of the tucan-connector component that extracts information from the html of [TUCaN](https://www.tucan.tu-darmstadt.de) and provides it as a nicer to use programming API. The tucan-injector component can then be used to show that data with a nicer UI that is written using the Rust frontend library [Yew](https://yew.rs/) and that is compiled to [WebAssembly](https://webassembly.org/). This WebAssembly can be injected into the actual TUCaN website using [Tampermonkey](https://www.tampermonkey.net/). Then, some pages provide an overlay with the information in a nicer format and caching.
+This software consists of the tucan-connector component that extracts information from the html of [TUCaN](https://www.tucan.tu-darmstadt.de) and provides it as a nicer to use programming API. The tucan-injector component can then be used to show that data with a nicer UI that is written using the Rust frontend library [Yew](https://yew.rs/) and that is compiled to [WebAssembly](https://webassembly.org/). This WebAssembly can be injected into the actual TUCaN website using an extension. Then, some pages provide an overlay with the information in a nicer format and caching.
 
 ## Features
 
@@ -13,8 +13,7 @@ Currently, the following TUCaN pages have a nicer UI and caching:
 
 ## Usage
 
-Install Tampermonkey, go to Utilities tab and import from url
-https://raw.githubusercontent.com/tucant/tucant/refs/heads/main/tampermonkey.js
+Install the extension in ./tucant-extension
 
 ## Development
 
@@ -39,36 +38,4 @@ adb install /home/moritz/Documents/tucant/tucant-tauri/gen/android/app/build/out
 
 adb install ./gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 adb shell run-as de.selfmade4u.tucant logcat
-```
-
-### Injector
-
-```
-nix develop
-cd tucan-injector
-bacon
-
-cd tucan-injector/dist
-python -m http.server
-```
-
-Install Tampermonkey.
-Add a Tampermonkey script with the following content:
-
-```javascript
-// ==UserScript==
-// @name         tucant
-// @namespace    https://www.tucan.tu-darmstadt.de
-// @version      2024-10-24
-// @description  A nicer, faster and more featureful frontend to TUCaN
-// @author       Moritz Hedtke <Moritz.Hedtke@t-online.de>
-// @match        https://www.tucan.tu-darmstadt.de/*
-// @run-at       document-start
-// @grant        GM_addElement
-// ==/UserScript==
-
-GM_addElement('script', {
-    src: 'http://localhost:8000/tucan-injector.js',
-    type: 'text/javascript'
-});
 ```

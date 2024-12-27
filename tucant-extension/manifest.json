@@ -18,6 +18,18 @@
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*"
     ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N001",
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N002"
+            ],
+            "js": [
+                "content-script.js"
+            ],
+            "run_at": "document_start"
+        }
+    ],
     "browser_specific_settings": {
         "gecko": {
             "id": "tucant@selfmade4u.de"
@@ -25,5 +37,24 @@
     },
     "icons": {
         "128": "icon.png"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "dist/index.html"
+            ],
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
     }
 }

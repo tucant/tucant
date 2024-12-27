@@ -1,5 +1,18 @@
 #!/bin/sh
 
-cargo build --color always --target=wasm32-unknown-unknown
-wasm-bindgen --target web --out-dir=wasm-bindgen ../target/wasm32-unknown-unknown/debug/tucan_injector.wasm
-#npm run build
+cd ../tucant-yew
+trunk build --dist ../tucant-extension/dist --public-url /dist
+
+#ls -lh pkg/tucant_extension_bg.wasm
+
+#wasm-pack build --profiling
+
+#wasm2wat --output=pkg/tucant_extension_bg.wat pkg/tucant_extension_bg.wasm
+
+#twiggy top pkg/tucant_extension_bg.wasm | less
+
+#cargo llvm-lines --release --target=wasm32-unknown-unknown
+
+#cargo tree --target=wasm32-unknown-unknown
+
+#-rw-r--r-- 1 moritz users 1,8M Dez 27 13:14 pkg/tucant_extension_bg.wasm
