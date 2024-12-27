@@ -45,19 +45,6 @@
             "background.js"
         ]
     },
-    "web_accessible_resources": [
-        {
-            "resources": [
-                "dist/index.html"
-            ],
-            "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
-            ]
-        }
-    ],
-    "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-    },
     "action": {
         "default_icon": {
             "128": "icon.png"
