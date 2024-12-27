@@ -4,12 +4,11 @@ license.workspace = true
 edition.workspace = true
 version.workspace = true
 
-[profile.release]
-lto = true
-opt-level = 'z'
-
 [package.metadata.wasm-pack.profile.profiling]
-wasm-opt = ['-O4', '-g']
+wasm-opt = ['-Oz', '-g']
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Oz']
 
 [lib]
 crate-type = ["cdylib", "rlib"]
