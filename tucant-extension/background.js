@@ -29,7 +29,14 @@ chrome.webNavigation.onCommitted.addListener((details) => {
         const match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N(\\d+),-N000019,$", "g").exec(details.url);
         console.log(match)
         if (match !== null) {
-            console.log(`logged in with session id ${match[1]}`)
+            console.log(`logged in with session id ${match[1]}`);
+            chrome.action.setBadgeText("L")
+            chrome.action.setBadgeBackgroundColor(
+                { color: 'green' }
+            )
+            chrome.action.setBadgeTextColor({ color: "red" });
         }
     }
 }, { url: [{ urlPrefix: "https://www.tucan.tu-darmstadt.de" }] });
+
+// https://developer.chrome.com/docs/extensions/reference/api/action#badge
