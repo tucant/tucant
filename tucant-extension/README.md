@@ -1,3 +1,14 @@
+# tucant-extension
+
+The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usability. Therefore this extension adds some quality of life improvements.
+
+* TUCaN sometimes chains redirects. In some known places the intermediate redirect is skipped by the extension to speed up the navigation. Furthermore, there are some pages that wait for 500 milliseconds before redirecting. These pages are also skipped at some known places.
+* The URL contains your session ID. Therefore sharing URLs with others does not work. The extension automatically changes the session ID in the url to your session ID so sharing URLs works for users of the extension.
+
+The screenshot shows one exemplary redirect page which is now not shown any more leading to a faster navigation.
+
+The source code of this extension is available at https://github.com/tucant/tucant/tree/main/tucant-extension
+
 ```
  /*"web_accessible_resources": [
         {
