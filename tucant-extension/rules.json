@@ -79,7 +79,7 @@
         "action": {
             "type": "redirect",
             "redirect": {
-                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000350"
+                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000350,"
             }
         },
         "condition": {
@@ -89,4 +89,19 @@
             ]
         }
     },
+    {
+        "id": 7,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000019,"
+            }
+        },
+        "condition": {
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N(\\d+),-N001",
+            "resourceTypes": [
+                "main_frame"
+            ]
+        }
+    }
 ]
