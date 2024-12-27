@@ -20,6 +20,16 @@ chrome.declarativeNetRequest.updateDynamicRules({
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {
+    console.log(details)
+    if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.transitionType === "form_submit") {
+        console.log("login attempt")
+        chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [1338, 1339, 1340],
+            addRules: [],
+        });
+        chrome.action.setBadgeText({ text: "" })
+    }
+
     if (JSON.stringify(details.transitionQualifiers.sort()) === JSON.stringify(["server_redirect", "client_redirect"].sort()) && details.transitionType === "link") {
         const match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N(\\d+),-N000019,$", "g").exec(details.url);
         if (match !== null) {
@@ -86,11 +96,6 @@ chrome.webNavigation.onCommitted.addListener((details) => {
         if (logoutMatch !== null) {
             console.log(`logged out`);
             chrome.action.setBadgeText({ text: "" })
-
-            chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1338, 1339, 1340],
-                addRules: [],
-            });
         }
     }
 
