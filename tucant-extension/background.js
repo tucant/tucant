@@ -43,14 +43,16 @@ chrome.webNavigation.onCommitted.addListener((details) => {
                 id: 1338,
                 action: {
                     type: 'redirect',
-                    redirect: { regexSubstitution: "https://selfmade4u.de/" + '#\\0' },
+                    redirect: {
+                        regexSubstitution: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=\\1&ARGUMENTS=-N${sessionId},\\2`,
+                    },
                 },
                 "condition": {
                     "isUrlFilterCaseSensitive": true,
                     "resourceTypes": [
                         "main_frame"
                     ],
-                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N(\\d+),(.+)$`
+                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N\\d+,(.+)$`
                 }
             }, {
                 id: 1339,
