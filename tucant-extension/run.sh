@@ -2,13 +2,13 @@
 
 wasm-pack build --release
 
-ls -lh pkg/tucant_extension_bg.wasm
+#ls -lh pkg/tucant_extension_bg.wasm
 
-wasm-pack build --profiling
+#wasm-pack build --profiling
 
 #wasm2wat --output=pkg/tucant_extension_bg.wat pkg/tucant_extension_bg.wasm
 
-twiggy top pkg/tucant_extension_bg.wasm | less
+#twiggy top pkg/tucant_extension_bg.wasm | less
 
 #cargo llvm-lines --release --target=wasm32-unknown-unknown
 
