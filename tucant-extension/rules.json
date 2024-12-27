@@ -43,5 +43,50 @@
                 "main_frame"
             ]
         }
-    }
+    },
+    {
+        "id": 4,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "url": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome"
+            }
+        },
+        "condition": {
+            "resourceTypes": [
+                "main_frame"
+            ],
+            "urlFilter": "|https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000001,-N001|"
+        }
+    },
+    {
+        "id": 5,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "url": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000002,-N000034,-Aewelcome"
+            }
+        },
+        "condition": {
+            "resourceTypes": [
+                "main_frame"
+            ],
+            "urlFilter": "|https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000002,-N002|"
+        }
+    },
+    {
+        "id": 6,
+        "action": {
+            "type": "redirect",
+            "redirect": {
+                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000350"
+            }
+        },
+        "condition": {
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N(\\d+),-N002",
+            "resourceTypes": [
+                "main_frame"
+            ]
+        }
+    },
 ]
