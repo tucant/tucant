@@ -386,7 +386,7 @@ pub fn app() -> HtmlResult {
         <style>
             {include_str!("./bootstrap.min.css")}
         </style>
-        <script data-trunk=true src="./bootstrap.bundle.min.js"></script>
+
         <BrowserRouter>
             <Switch<Route> render={switch} />
         </BrowserRouter>
