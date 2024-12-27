@@ -1,9 +1,13 @@
+name: Rust
+
+defaults:
+  run:
+    shell: bash
+
 permissions:
   id-token: write
   attestations: write
   pages: write
-
-name: Rust
 
 on:
   push:
