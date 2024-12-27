@@ -1,5 +1,5 @@
 ```
-zip -1 tucant.zip rules.json manifest.json
+zip -1 tucant.zip rules.json manifest.json content-script.js icon.png
 
 
 web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.firefox

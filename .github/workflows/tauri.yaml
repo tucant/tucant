@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: zip -1 tucant.zip rules.json manifest.json
+      - run: zip -1 tucant.zip rules.json manifest.json content-script.js icon.png
         working-directory: tucant-extension
       - uses: actions/upload-artifact@v4
         with:
