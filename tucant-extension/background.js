@@ -41,8 +41,6 @@ chrome.webNavigation.onCommitted.addListener((details) => {
             )
             chrome.action.setBadgeTextColor({ color: "white" });
 
-            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N166632378335734,-N000274,-N380005141348847,-N388203828671910,-N388203828624911,-N0,-N0
-
             /** @type {chrome.declarativeNetRequest.Rule[]} */
             const RULES = [{
                 id: 1338,
