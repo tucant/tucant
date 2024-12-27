@@ -1,4 +1,4 @@
-const EXT_PAGE = chrome.runtime.getURL('/index.html');
+const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
 const RULES = [{
     id: 1337,
     action: {
