@@ -33,17 +33,13 @@ chrome.webNavigation.onCommitted.addListener((details) => {
             chrome.action.setBadgeBackgroundColor(
                 { color: 'green' }
             )
-            chrome.action.setBadgeTextColor({ color: "red" });
+            chrome.action.setBadgeTextColor({ color: "white" });
         }
 
         const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome$", "g").exec(details.url);
         if (logoutMatch !== null) {
             console.log(`logged out`);
             chrome.action.setBadgeText({ text: "" })
-            chrome.action.setBadgeBackgroundColor(
-                { color: 'green' }
-            )
-            chrome.action.setBadgeTextColor({ color: "red" });
         }
     }
 
