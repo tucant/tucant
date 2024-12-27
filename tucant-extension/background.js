@@ -86,6 +86,11 @@ chrome.webNavigation.onCommitted.addListener((details) => {
         if (logoutMatch !== null) {
             console.log(`logged out`);
             chrome.action.setBadgeText({ text: "" })
+
+            chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: [1338, 1339, 1340],
+                addRules: [],
+            });
         }
     }
 
