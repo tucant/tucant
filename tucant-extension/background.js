@@ -19,21 +19,42 @@ chrome.declarativeNetRequest.updateDynamicRules({
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {
-    console.log(details.transitionQualifiers +
-        ' at ' +
-        details.transitionType +
-        ' milliseconds since the epoch.'
-        + details.url
-    );
     if (JSON.stringify(details.transitionQualifiers.sort()) === JSON.stringify(["server_redirect", "client_redirect"].sort()) && details.transitionType === "link") {
         const match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N(\\d+),-N000019,$", "g").exec(details.url);
         if (match !== null) {
-            console.log(`logged in with session id ${match[1]}`);
+            const sessionId = match[1]
+            console.log(`logged in with session id ${sessionId}`);
             chrome.action.setBadgeText({ text: "L" })
             chrome.action.setBadgeBackgroundColor(
                 { color: 'green' }
             )
             chrome.action.setBadgeTextColor({ color: "white" });
+
+            // N628581235999313
+            // N843473130956881
+            // N208504055404716
+            // N486415145950940
+            const regexSessionId = [...sessionId].map(c => `[^${c}]`).join("")
+            const RULES = [{
+                id: 1338,
+                action: {
+                    type: 'redirect',
+                    redirect: { regexSubstitution: "https://selfmade4u.de/" + '#\\0' },
+                },
+                "condition": {
+                    "isUrlFilterCaseSensitive": true,
+                    "resourceTypes": [
+                        "main_frame"
+                    ],
+                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=[A-Z]+&ARGUMENTS=-N${regexSessionId},(.+)$`
+                }
+            }];
+            chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: RULES.map(r => r.id),
+                addRules: RULES,
+            });
+
+
         }
 
         const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome$", "g").exec(details.url);
@@ -45,5 +66,3 @@ chrome.webNavigation.onCommitted.addListener((details) => {
 
 
 }, { url: [{ urlPrefix: "https://www.tucan.tu-darmstadt.de" }] });
-
-// https://developer.chrome.com/docs/extensions/reference/api/action#badge
