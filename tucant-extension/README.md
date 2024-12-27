@@ -1,4 +1,18 @@
 ```
+ /*"web_accessible_resources": [
+        {
+            "resources": [
+                "dist/index.html"
+            ],
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ]
+        }
+    ],
+     "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    },*/
+
 zip -1 tucant.zip rules.json manifest.json content-script.js icon.png
 
 

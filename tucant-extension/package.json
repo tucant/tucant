@@ -1,0 +1,15 @@
+{
+  "name": "tucant-extension",
+  "version": "1.0.0",
+  "description": "``` zip -1 tucant.zip rules.json manifest.json content-script.js icon.png",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chrome-types": "^0.1.327",
+    "typescript": "^5.7.2"
+  }
+}
