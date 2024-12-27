@@ -30,7 +30,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
         console.log(match)
         if (match !== null) {
             console.log(`logged in with session id ${match[1]}`);
-            chrome.action.setBadgeText("L")
+            chrome.action.setBadgeText({ text: "L" })
             chrome.action.setBadgeBackgroundColor(
                 { color: 'green' }
             )
