@@ -58,7 +58,8 @@ jobs:
     - run: cargo install --locked trunk
     - run: ./run.sh
       working-directory: tucant-extension
-    - run: zip tucant-extension.zip tucant-extension/* -r
+    - run: mkdir pages
+    - run: zip pages/tucant-extension.zip tucant-extension/* -r
     - uses: actions/upload-artifact@v4
       with:
         name: tucant-extension
@@ -68,12 +69,12 @@ jobs:
         subject-path: tucant-extension
     - uses: actions/attest-build-provenance@v1
       with:
-        subject-path: tucant-extension.zip
+        subject-path: pages/tucant-extension.zip
     - name: Upload static files as artifact
       id: deployment
       uses: actions/upload-pages-artifact@v3
       with:
-        path: tucant-extension.zip
+        path: pages/
 
   deploy:
     environment:
