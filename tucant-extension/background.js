@@ -65,8 +65,21 @@ chrome.webNavigation.onCommitted.addListener((details) => {
                     ],
                     "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N${sessionId},(.+)$`
                 }
+            }, {
+                id: 1340,
+                priority: 2,
+                action: {
+                    type: 'allow'
+                },
+                "condition": {
+                    "isUrlFilterCaseSensitive": true,
+                    "resourceTypes": [
+                        "main_frame"
+                    ],
+                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N000000000000001,(.+)$`
+                }
             }];
-            chrome.declarativeNetRequest.updateDynamicRules({
+            chrome.declarativeNetRequest.updateSessionRules({
                 removeRuleIds: RULES.map(r => r.id),
                 addRules: RULES,
             });
