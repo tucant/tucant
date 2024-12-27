@@ -36,12 +36,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
             // N486415145950940
             //  000000000000001
             // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N166632378335734,-N000274,-N380005141348847,-N388203828671910,-N388203828624911,-N0,-N0
-            const regexSessionId = [...sessionId].map(c => `[^${c}]`).join("")
 
-            // ahh we can create a higher priority rule with our session id...
-
-            const regex = `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N${regexSessionId},(.+)$`
-            console.log(regex)
             const RULES = [{
                 id: 1338,
                 action: {
@@ -53,15 +48,26 @@ chrome.webNavigation.onCommitted.addListener((details) => {
                     "resourceTypes": [
                         "main_frame"
                     ],
-                    "regexFilter": regex
+                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N(\\d+),(.+)$`
+                }
+            }, {
+                id: 1339,
+                priority: 2,
+                action: {
+                    type: 'allow'
+                },
+                "condition": {
+                    "isUrlFilterCaseSensitive": true,
+                    "resourceTypes": [
+                        "main_frame"
+                    ],
+                    "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N${sessionId},(.+)$`
                 }
             }];
             chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: RULES.map(r => r.id),
                 addRules: RULES,
             });
-
-
         }
 
         const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome$", "g").exec(details.url);
