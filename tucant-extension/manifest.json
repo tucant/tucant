@@ -21,7 +21,7 @@
     "content_scripts": [
         {
             "matches": [
-                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N205439515619234,-N002"
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N002"
             ],
             "js": [
                 "content-script.js"
