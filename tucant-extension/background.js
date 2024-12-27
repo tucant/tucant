@@ -1,5 +1,5 @@
-const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
-/** @type {chrome.declarativeNetRequest.Rule[]} */
+/*const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
+/** @type {chrome.declarativeNetRequest.Rule[]} * /
 const RULES = [{
     id: 1337,
     action: {
@@ -17,7 +17,7 @@ const RULES = [{
 chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: RULES.map(r => r.id),
     addRules: RULES,
-});
+});*/
 
 chrome.webNavigation.onCommitted.addListener((details) => {
     console.log(details)
