@@ -19,14 +19,17 @@ chrome.declarativeNetRequest.updateDynamicRules({
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {
-    chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icon.png',
-        title: 'page loaded',
-        message:
-            details.transitionQualifiers +
-            ' at ' +
-            details.transitionType +
-            ' milliseconds since the epoch.'
-    });
+    console.log(details.transitionQualifiers +
+        ' at ' +
+        details.transitionType +
+        ' milliseconds since the epoch.'
+        + details.url
+    );
+    if (JSON.stringify(details.transitionQualifiers.sort()) === JSON.stringify(["server_redirect", "client_redirect"].sort()) && details.transitionType === "link") {
+        const match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N(\\d+),-N000019,$", "g").exec(details.url);
+        console.log(match)
+        if (match !== null) {
+            console.log(`logged in with session id ${match[1]}`)
+        }
+    }
 }, { url: [{ urlPrefix: "https://www.tucan.tu-darmstadt.de" }] });
