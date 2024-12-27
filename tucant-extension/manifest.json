@@ -21,12 +21,12 @@
     "content_scripts": [
         {
             "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N205439515619234,-N002"
             ],
             "js": [
                 "content-script.js"
             ],
-            "run_at": "document_end"
+            "run_at": "document_start"
         }
     ],
     "browser_specific_settings": {

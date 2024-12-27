@@ -1,4 +1,1 @@
-if (document.body.classList.contains("redirect")) {
-    console.log("REDIRECTING")
-    window.location.href = (/** @type {HTMLAnchorElement} */ document.querySelector("h2 a")).href;
-}
+window.location.href = '/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N205439515619234,-N000350,';
