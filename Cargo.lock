@@ -5417,19 +5417,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucan-injector"
-version = "0.1.2"
-dependencies = [
- "log",
- "tucant-yew",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
-]
-
-[[package]]
 name = "tucant-api"
 version = "0.1.2"
 dependencies = [

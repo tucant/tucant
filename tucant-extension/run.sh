@@ -1,6 +1,6 @@
 #!/bin/sh
 
-wasm-pack build --release
+wasm-pack build --release --target web
 
 #ls -lh pkg/tucant_extension_bg.wasm
 

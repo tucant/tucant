@@ -1,3 +1,3 @@
-import init from '/wasm-bindgen/tucan_injector.js';
+import init from '/pkg/tucant_extension.js';
 
 init();

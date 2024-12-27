@@ -39,14 +39,3 @@ adb install /home/moritz/Documents/tucant/tucant-tauri/gen/android/app/build/out
 adb install ./gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 adb shell run-as de.selfmade4u.tucant logcat
 ```
-
-### Injector
-
-```
-nix develop
-cd tucan-injector
-bacon
-
-cd tucan-injector/dist
-python -m http.server
-```
