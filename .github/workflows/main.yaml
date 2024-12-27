@@ -55,7 +55,7 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - uses: actions/checkout@v4
     - run: rustup target add wasm32-unknown-unknown
-    - run: cargo install -f wasm-bindgen-cli --version 0.2.99
+    - run: cargo install --locked trunk
     - run: ./run.sh
       working-directory: tucant-extension
     - run: zip tucant-extension.zip tucant-extension/* -r
