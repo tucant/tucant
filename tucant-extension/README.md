@@ -9,7 +9,13 @@ The screenshot shows one exemplary redirect page which is now not shown any more
 
 The source code of this extension is available at https://github.com/tucant/tucant/tree/main/tucant-extension
 
+## Development
+
 ```
+web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.firefox
+```
+
+```javascript
  /*"web_accessible_resources": [
         {
             "resources": [
@@ -23,20 +29,4 @@ The source code of this extension is available at https://github.com/tucant/tuca
      "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
     },*/
-
-zip -1 tucant.zip rules.json manifest.json content-script.js icon.png
-
-
-web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.firefox
-
-/
-->
-/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
--> 
-/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome
-
-
-/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N$ID,-N000019,-N000000000000000
-->
-/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N$ID,-N000019,
 ```
