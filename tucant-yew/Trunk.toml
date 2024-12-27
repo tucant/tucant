@@ -10,5 +10,5 @@ backend = "http://localhost:3000/api"
 
 [[hooks]]
 stage = "post_build"  # When to run hook, must be one of "pre_build", "build", "post_build"
-command = "./fixup.sh"        # Command to run
-command_arguments = [] # Arguments to pass to command
+command = "bash"        # Command to run
+command_arguments = ["./fixup.sh"] # Arguments to pass to command
