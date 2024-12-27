@@ -31,11 +31,6 @@ chrome.webNavigation.onCommitted.addListener((details) => {
             )
             chrome.action.setBadgeTextColor({ color: "white" });
 
-            // N628581235999313
-            // N843473130956881
-            // N208504055404716
-            // N486415145950940
-            //  000000000000001
             // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N166632378335734,-N000274,-N380005141348847,-N388203828671910,-N388203828624911,-N0,-N0
 
             /** @type {chrome.declarativeNetRequest.Rule[]} */
@@ -81,7 +76,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
                     "regexFilter": `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N000000000000001,(.+)$`
                 }
             }];
-            chrome.declarativeNetRequest.updateSessionRules({
+            chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: RULES.map(r => r.id),
                 addRules: RULES,
             });
