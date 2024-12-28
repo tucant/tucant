@@ -22,6 +22,16 @@ chrome.declarativeNetRequest.updateDynamicRules({
 // runtime.openOptionsPage()
 // https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
 
+chrome.storage.onChanged((changes) => {
+    for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+        console.log(
+            `Storage key "${key}" in namespace "${namespace}" changed.`,
+            `Old value was "${oldValue}", new value is "${newValue}".`
+        );
+    }
+});
+
+
 chrome.scripting.registerContentScripts(
     [{
         id: "mobile",
