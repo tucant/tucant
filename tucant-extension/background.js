@@ -28,25 +28,39 @@ chrome.storage.sync.onChanged.addListener((changes) => {
             `Storage key "${key}" changed.`,
             `Old value was "${oldValue}", new value is "${newValue}".`
         );
+        if (key === "mobileDesign") {
+            if (newValue) {
+                enableMobileDesign()
+            } else {
+                disableMobileDesign()
+            }
+        }
     }
 });
 
-chrome.scripting.registerContentScripts(
-    [{
-        id: "mobile",
-        "matches": [
-            "https://www.tucan.tu-darmstadt.de/*"
-        ],
-        "css": [
-            "mobile.css"
-        ],
-        "js": [
-            "mobile.js"
-        ],
-        "runAt": "document_end"
-    }]
-)
+function enableMobileDesign() {
+    chrome.scripting.registerContentScripts(
+        [{
+            id: "mobile",
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ],
+            "css": [
+                "mobile.css"
+            ],
+            "js": [
+                "mobile.js"
+            ],
+            "runAt": "document_end"
+        }]
+    )
+}
 
+function disableMobileDesign() {
+    chrome.scripting.unregisterContentScripts({
+        ids: ["mobile"]
+    })
+}
 
 chrome.webNavigation.onCommitted.addListener((details) => {
     console.log(details)
