@@ -21,17 +21,16 @@ Open Chromium -> chrome://extensions/ -> Pack extension -> Choose folder -> Pack
 chromium --pack-extension=tucant-extension --pack-extension-key=/path/to/tucant-extension.pem
 ```
 
-// runtime.openOptionsPage()
-
-// https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
-
 ### Firefox
 
 https://extensionworkshop.com/documentation/publish/distribute-sideloading/
 
+ZIP the extension files.
 
 For Developer Edition, Nightly, ESR: `about:config` `xpinstall.signatures.required` set to `false`.
 Android only has Nightly available.
+
+Otherwise upload to AMO as unlisted extension and pray that it gets signed quickly.
 
 ## Installation
 

@@ -19,6 +19,9 @@ chrome.declarativeNetRequest.updateDynamicRules({
     addRules: RULES,
 });*/
 
+// runtime.openOptionsPage()
+// https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
+
 chrome.scripting.registerContentScripts(
     [{
         id: "mobile",
