@@ -9,6 +9,22 @@ The screenshot shows one exemplary redirect page which is now not shown any more
 
 The source code of this extension is available at https://github.com/tucant/tucant/tree/main/tucant-extension
 
+## Packaging
+
+### First-time packaging
+
+#### Chromium
+
+https://developer.chrome.com/docs/extensions/how-to/distribute/host-on-linux#packaging
+
+Open Chromium -> chrome://extensions/ -> Pack extension -> Choose folder -> Pack. Store private key in a secure place
+
+```bash
+chromium --pack-extension=tucant-extension --pack-extension-key=/path/to/tucant-extension.pem
+```
+
+## Installation
+
 ## Development
 
 ```
