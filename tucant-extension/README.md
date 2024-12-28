@@ -11,7 +11,17 @@ The source code of this extension is available at https://github.com/tucant/tuca
 
 ## Installation
 
-### Firefox / Firefox on Android
+### Firefox on Android
+
+1. Open Firefox
+2. Download the .xpi file for Firefox from https://tucant.github.io/tucant/
+2. Go to Settings
+3. Scroll all the way down and click on About Firefox
+3. press the logo five times, it should say that the debug menu got activated
+4. go back
+5. Click on Install extension from file and select the downloaded .xpi file
+
+### Firefox (Desktop)
 
 #### Released version
 
