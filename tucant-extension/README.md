@@ -23,11 +23,13 @@ The source code of this extension is available at https://github.com/tucant/tuca
 
 ### Firefox (Desktop)
 
-#### Released version
-
-Download from https://tucant.github.io/tucant/
+Go to https://tucant.github.io/tucant/ and download the file for Firefox.
 
 ### Chromium
+
+1. Go to https://tucant.github.io/tucant/ and download the file for Chromium.
+2. In the Chromium Menu, go to Extensions -> Manage Extensions
+3. Drag and drop the downloaded file into this area
 
 ## Packaging
 
