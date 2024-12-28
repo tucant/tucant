@@ -1,0 +1,15 @@
+#pageContainer {
+    min-width: auto !important;
+}
+
+#pageHeadCenter {
+    min-width: auto !important;
+}
+
+#pageTopNavi {
+    width: auto !important;
+}
+
+#inhalt>div[style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;"] {
+    width: auto !important;
+}
