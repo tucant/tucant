@@ -67,3 +67,22 @@
 #pageContent {
     float: none;
 }
+
+#pageTopNavi {
+    position: inherit;
+    height: auto;
+}
+
+#pageHeadCenter {
+    position: inherit;
+}
+
+#pageTopNavi ul.nav li.tree ul.nav {
+    position: inherit;
+
+}
+
+#pageTopNavi ul.nav.depth_2 {
+    position: inherit;
+    top: 0;
+}
