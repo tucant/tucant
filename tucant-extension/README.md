@@ -11,9 +11,7 @@ The source code of this extension is available at https://github.com/tucant/tuca
 
 ## Packaging
 
-### First-time packaging
-
-#### Chromium
+### Chromium
 
 https://developer.chrome.com/docs/extensions/how-to/distribute/host-on-linux#packaging
 
@@ -22,6 +20,18 @@ Open Chromium -> chrome://extensions/ -> Pack extension -> Choose folder -> Pack
 ```bash
 chromium --pack-extension=tucant-extension --pack-extension-key=/path/to/tucant-extension.pem
 ```
+
+// runtime.openOptionsPage()
+
+// https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
+
+### Firefox
+
+https://extensionworkshop.com/documentation/publish/distribute-sideloading/
+
+
+For Developer Edition, Nightly, ESR: `about:config` `xpinstall.signatures.required` set to `false`.
+Android only has Nightly available.
 
 ## Installation
 
