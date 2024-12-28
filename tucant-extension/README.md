@@ -34,6 +34,10 @@ Otherwise upload to AMO as unlisted extension and pray that it gets signed quick
 
 ## Installation
 
+### Firefox
+
+### Chromium
+
 ## Development
 
 ```

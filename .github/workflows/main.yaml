@@ -7,7 +7,6 @@ defaults:
 permissions:
   id-token: write
   attestations: write
-  pages: write
 
 on:
   push:
@@ -58,32 +57,12 @@ jobs:
     - run: cargo install --locked trunk
     - run: ./run.sh
       working-directory: tucant-extension
-    - run: mkdir pages
-    - run: zip pages/tucant-extension.zip tucant-extension/* -r
+    - run: mkdir dist
+    - run: zip dist/tucant-extension.zip tucant-extension/* -r
+    - uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: dist/tucant-extension.zip
     - uses: actions/upload-artifact@v4
       with:
         name: tucant-extension
-        path: tucant-extension
-    - uses: actions/attest-build-provenance@v1
-      with:
-        subject-path: tucant-extension
-    - uses: actions/attest-build-provenance@v1
-      with:
-        subject-path: pages/tucant-extension.zip
-    - name: Upload static files as artifact
-      id: deployment
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: pages/
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        path: dist/tucant-extension.zip
