@@ -9,6 +9,35 @@ The screenshot shows one exemplary redirect page which is now not shown any more
 
 The source code of this extension is available at https://github.com/tucant/tucant/tree/main/tucant-extension
 
+## Packaging
+
+### Chromium
+
+https://developer.chrome.com/docs/extensions/how-to/distribute/host-on-linux#packaging
+
+Open Chromium -> chrome://extensions/ -> Pack extension -> Choose folder -> Pack. Store private key in a secure place
+
+```bash
+chromium --pack-extension=tucant-extension --pack-extension-key=/path/to/tucant-extension.pem
+```
+
+### Firefox
+
+https://extensionworkshop.com/documentation/publish/distribute-sideloading/
+
+ZIP the extension files.
+
+For Developer Edition, Nightly, ESR: `about:config` `xpinstall.signatures.required` set to `false`.
+Android only has Nightly available.
+
+Otherwise upload to AMO as unlisted extension and pray that it gets signed quickly.
+
+## Installation
+
+### Firefox
+
+### Chromium
+
 ## Development
 
 ```

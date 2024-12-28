@@ -19,6 +19,26 @@ chrome.declarativeNetRequest.updateDynamicRules({
     addRules: RULES,
 });*/
 
+// runtime.openOptionsPage()
+// https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
+
+chrome.scripting.registerContentScripts(
+    [{
+        id: "mobile",
+        "matches": [
+            "https://www.tucan.tu-darmstadt.de/*"
+        ],
+        "css": [
+            "mobile.css"
+        ],
+        "js": [
+            "mobile.js"
+        ],
+        "runAt": "document_end"
+    }]
+)
+
+
 chrome.webNavigation.onCommitted.addListener((details) => {
     console.log(details)
     if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.transitionType === "form_submit") {

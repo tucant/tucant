@@ -1,0 +1,140 @@
+#pageContainer {
+    min-width: auto;
+}
+
+#pageHeadCenter {
+    min-width: auto;
+}
+
+#pageTopNavi {
+    width: auto;
+}
+
+#inhalt {
+    width: auto !important;
+}
+
+#inhalt>div[style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;"] {
+    width: auto !important;
+}
+
+#pageHeadCenter {
+    display: none;
+}
+
+.pageElementLeft {
+    float: none;
+}
+
+#pageLeft {
+    min-height: auto;
+}
+
+#pageContent {
+    padding-top: 0;
+}
+
+#pageTopNavi {
+    background-image: none;
+}
+
+#pageContentTop {
+    height: auto;
+}
+
+#pageContainer {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    border-left: initial;
+    border-right: initial;
+}
+
+#pageFoot {
+    padding: 0;
+    left: 0;
+}
+
+#pageFootControlsRight {
+    display: none;
+}
+
+#pageLeft {
+    float: none;
+}
+
+#pageContent {
+    float: none;
+}
+
+#pageTopNavi {
+    position: inherit;
+    height: auto;
+}
+
+#pageHeadCenter {
+    position: inherit;
+}
+
+#pageTopNavi ul.nav li.tree ul.nav {
+    position: inherit;
+
+}
+
+#pageTopNavi ul.nav.depth_2 {
+    position: inherit;
+    top: 0;
+}
+
+#pageTopNavi ul.nav li.depth_1 {
+    display: block;
+}
+
+#pageTopNavi ul.nav li.depth_1 ul.nav.depth_2 {
+    width: auto;
+}
+
+#pageTopNavi ul.nav.depth_2 {
+    height: auto;
+}
+
+#pageTopNavi ul.nav li a.depth_1 {
+    float: inherit;
+}
+
+#loginData {
+    position: inherit;
+}
+
+#pageTopNavi ul.nav.depth_1.linkItemContainer {
+    padding-left: 0;
+}
+
+#pageTopNavi ul.nav.depth_1 {
+    padding-left: 0;
+}
+
+#pageContainer {
+    margin-bottom: 0;
+}
+
+#IEdiv {
+    display: none;
+}
+
+.invAnchor {
+    display: none;
+}
+
+#pageFoot {
+    height: auto;
+}
+
+#pageFootControls {
+    height: auto;
+}
+
+#pageFootControlsLeft {
+    float: inherit;
+}
