@@ -134,3 +134,7 @@
 #pageFootControls {
     height: auto;
 }
+
+#pageFootControlsLeft {
+    float: inherit;
+}
