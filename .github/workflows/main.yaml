@@ -41,17 +41,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/cache@v4
+    - uses: swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/.crates.toml
-          ~/.cargo/.crates2.json
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        cache-on-failure: true
     - uses: actions/checkout@v4
     - run: rustup target add wasm32-unknown-unknown
     - run: cargo install --locked trunk
