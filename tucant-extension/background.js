@@ -72,7 +72,9 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
         });
         chrome.action.setBadgeText({ text: "" })
 
-        const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N-N(\\d+),-N000019,-N000000000000000$", "g").exec(details.responseHeaders?.filter(v => v.name === "REFRESH").map(v => v.value).find(v => true) ?? "");
+        const refreshHeader = details.responseHeaders?.filter(v => v.name === "REFRESH").map(v => v.value).find(v => true) ?? "";
+        console.log(refreshHeader)
+        const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N000019,-N000000000000000$", "g").exec(refreshHeader);
         if (match !== null) {
             const sessionId = match[1]
             console.log(`logged in with session id ${sessionId}`);
@@ -131,12 +133,13 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
             });
         }
 
-        const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome$", "g").exec(details.url);
-        if (logoutMatch !== null) {
-            console.log(`logged out`);
-            chrome.action.setBadgeText({ text: "" })
-        }
+
     }
 
-
-}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll"] });
+    console.log(details.url)
+    const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&.*$", "g").exec(details.url);
+    if (logoutMatch !== null) {
+        console.log(`logged out`);
+        chrome.action.setBadgeText({ text: "" })
+    }
+}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);
