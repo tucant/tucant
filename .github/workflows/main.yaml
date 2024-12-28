@@ -21,17 +21,9 @@ jobs:
   check-fmt:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/cache@v4
+    - uses: swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/.crates.toml
-          ~/.cargo/.crates2.json
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        cache-on-failure: true
     - uses: actions/checkout@v4
     - run: rustup install nightly-2024-09-10
     - run: rustup component add --toolchain nightly-2024-09-10 rustc-dev llvm-tools-preview
