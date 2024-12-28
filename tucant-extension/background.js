@@ -62,19 +62,17 @@ function disableMobileDesign() {
     })
 }
 
-chrome.webNavigation.onCommitted.addListener((details) => {
+chrome.webRequest.onHeadersReceived.addListener((details) => {
     console.log(details)
-    if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.transitionType === "form_submit") {
+    if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
         console.log("login attempt")
         chrome.declarativeNetRequest.updateDynamicRules({
             removeRuleIds: [1338, 1339, 1340],
             addRules: [],
         });
         chrome.action.setBadgeText({ text: "" })
-    }
 
-    if (JSON.stringify(details.transitionQualifiers.sort()) === JSON.stringify(["server_redirect", "client_redirect"].sort()) && details.transitionType === "link") {
-        const match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N(\\d+),-N000019,$", "g").exec(details.url);
+        const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N-N(\\d+),-N000019,-N000000000000000$", "g").exec(details.responseHeaders?.filter(v => v.name === "REFRESH").map(v => v.value).find(v => true) ?? "");
         if (match !== null) {
             const sessionId = match[1]
             console.log(`logged in with session id ${sessionId}`);
@@ -141,4 +139,4 @@ chrome.webNavigation.onCommitted.addListener((details) => {
     }
 
 
-}, { url: [{ urlPrefix: "https://www.tucan.tu-darmstadt.de" }] });
+}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll"] });
