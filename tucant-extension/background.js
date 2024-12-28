@@ -62,6 +62,18 @@ function disableMobileDesign() {
     })
 }
 
+chrome.webRequest.onBeforeRequest.addListener((details) => {
+    console.log(details)
+    if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
+        console.log("login attempt")
+        chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [1338, 1339, 1340],
+            addRules: [],
+        });
+        chrome.action.setBadgeText({ text: "" })
+    }
+}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll"] })
+
 chrome.webRequest.onHeadersReceived.addListener((details) => {
     console.log(details)
     if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
