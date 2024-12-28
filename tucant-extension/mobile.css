@@ -1,15 +1,55 @@
 #pageContainer {
-    min-width: auto !important;
+    min-width: auto;
 }
 
 #pageHeadCenter {
-    min-width: auto !important;
+    min-width: auto;
 }
 
 #pageTopNavi {
+    width: auto;
+}
+
+#inhalt {
     width: auto !important;
 }
 
 #inhalt>div[style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;"] {
     width: auto !important;
+}
+
+/* more invasive */
+
+#pageHeadCenter {
+    display: none;
+}
+
+.pageElementLeft {
+    float: none;
+}
+
+#pageLeft {
+    min-height: auto;
+}
+
+#pageContent {
+    padding-top: 0;
+}
+
+#pageTopNavi {
+    background-image: none;
+}
+
+#pageContentTop {
+    height: auto;
+}
+
+
+#pageContainer {
+    padding-left: 0;
+    /* padding-right: 0;*/
+    margin-left: 0;
+    margin-right: 0;
+    border-left: none;
+    border-right: none;
 }
