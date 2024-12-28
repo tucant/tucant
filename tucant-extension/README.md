@@ -9,6 +9,16 @@ The screenshot shows one exemplary redirect page which is now not shown any more
 
 The source code of this extension is available at https://github.com/tucant/tucant/tree/main/tucant-extension
 
+## Installation
+
+### Firefox / Firefox on Android
+
+#### Released version
+
+Download from https://tucant.github.io/tucant/
+
+### Chromium
+
 ## Packaging
 
 ### Chromium
@@ -31,12 +41,6 @@ For Developer Edition, Nightly, ESR: `about:config` `xpinstall.signatures.requir
 Android only has Nightly available.
 
 Otherwise upload to AMO as unlisted extension and pray that it gets signed quickly.
-
-## Installation
-
-### Firefox
-
-### Chromium
 
 ## Development
 
