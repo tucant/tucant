@@ -86,3 +86,51 @@
     position: inherit;
     top: 0;
 }
+
+#pageTopNavi ul.nav li.depth_1 {
+    display: block;
+}
+
+#pageTopNavi ul.nav li.depth_1 ul.nav.depth_2 {
+    width: auto;
+}
+
+#pageTopNavi ul.nav.depth_2 {
+    height: auto;
+}
+
+#pageTopNavi ul.nav li a.depth_1 {
+    float: inherit;
+}
+
+#loginData {
+    position: inherit;
+}
+
+#pageTopNavi ul.nav.depth_1.linkItemContainer {
+    padding-left: 0;
+}
+
+#pageTopNavi ul.nav.depth_1 {
+    padding-left: 0;
+}
+
+#pageContainer {
+    margin-bottom: 0;
+}
+
+#IEdiv {
+    display: none;
+}
+
+.invAnchor {
+    display: none;
+}
+
+#pageFoot {
+    height: auto;
+}
+
+#pageFootControls {
+    height: auto;
+}
