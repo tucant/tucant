@@ -17,27 +17,28 @@
           lib = pkgs.lib;
         in
         {
-          packages.tucant-extension = pkgs.rustPlatform.buildRustPackage {
-              pname = "tucant-extension";
-              version = "0.5.0";
+          packages.tucant-extension = pkgs.stdenv.mkDerivation rec {
+            pname = "tucant-extension";
+            version = "0.5.0";
 
-              src = ./.;
+            src = ./.;
 
-              /*cargoLock = {
-                lockFile = ./Cargo.lock;
-                 outputHashes = {
-                  "web-extensions-sys-0.4.1" = "sha256-BfWWPbITueBwU2lPA2hCjR9w+YTpS4s6fYOmyGdPIro=";
-                  "yew-0.21.0" = "sha256-H0pWPhWtpIDsVwl2j0dp2lA9oQwk0145KeDzoXSvjeM=";
-                };
-              };*/
-              cargoLock = {
-                lockFile = ./Cargo.lock;
-                allowBuiltinFetchGit = true;
-              };
-             
-
-              # ...
+            cargoDeps = pkgs.rustPlatform.importCargoLock {
+              lockFile = ./Cargo.lock;
+              allowBuiltinFetchGit = true;
             };
+
+            nativeBuildInputs = [
+              pkgs.rustPlatform.cargoSetupHook
+              pkgs.rustc
+              pkgs.cargo
+            ];
+
+            buildPhase = ''
+              cd tucant-yew
+              ${pkgs.trunk}/bin/trunk build --features direct --dist ../tucant-extension/dist --public-url /dist
+            '';
+          };
 
           devShells.default = pkgs.mkShell {
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.openssl ];
@@ -73,6 +74,7 @@
               pkgs.android-tools
               pkgs.lsb-release
               pkgs.openjdk
+              pkgs.nixpkgs-fmt
             ];
           };
         }
