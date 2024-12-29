@@ -1,23 +1,34 @@
-/*const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
-/** @type {chrome.declarativeNetRequest.Rule[]} * /
-const RULES = [{
-    id: 1337,
-    action: {
-        type: 'redirect',
-        redirect: { regexSubstitution: EXT_PAGE + '#\\0' },
-    },
-    "condition": {
-        "isUrlFilterCaseSensitive": true,
-        "resourceTypes": [
-            "main_frame"
-        ],
-        "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
-    }
-}];
-chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: RULES.map(r => r.id),
-    addRules: RULES,
-});*/
+console.log("background script")
+
+chrome.runtime.onInstalled.addListener(() => {
+    console.log("on installed")
+
+    const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
+    /** @type {chrome.declarativeNetRequest.Rule[]} */
+    const RULES = [{
+        id: 1337,
+        priority: 3,
+        action: {
+            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+            redirect: { regexSubstitution: EXT_PAGE + '#/registration/,-N000311,-A' },
+        },
+        "condition": {
+            "isUrlFilterCaseSensitive": true,
+            "resourceTypes": [
+                /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+            ],
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
+        }
+    }];
+    chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: RULES.map(r => r.id),
+        addRules: RULES,
+    }).then(() => {
+        console.log("registered")
+    }).catch(error => {
+        console.error(error)
+    });
+});
 
 // runtime.openOptionsPage()
 // https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
@@ -143,9 +154,11 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
                 removeRuleIds: RULES.map(r => r.id),
                 addRules: RULES,
             });
+
+            chrome.storage.local.set(
+                { sessionId },
+            );
         }
-
-
     }
 
     console.log(details.url)
@@ -153,5 +166,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
     if (logoutMatch !== null) {
         console.log(`logged out`);
         chrome.action.setBadgeText({ text: "" })
+
+        chrome.storage.local.remove("sessionId")
     }
 }, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);

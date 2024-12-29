@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TUCaN't",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Quality of life improvements for TUCaN",
     "declarative_net_request": {
         "rule_resources": [
@@ -16,7 +16,8 @@
         "declarativeNetRequestWithHostAccess",
         "webRequest",
         "scripting",
-        "storage"
+        "storage",
+        "cookies"
     ],
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*"
@@ -45,7 +46,8 @@
         "service_worker": "background.js",
         "scripts": [
             "background.js"
-        ]
+        ],
+        "type": "module"
     },
     "action": {
         "default_icon": {
@@ -56,5 +58,18 @@
     "options_ui": {
         "page": "options.html",
         "open_in_tab": false
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "dist/index.html"
+            ],
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/*"
+            ]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
     }
 }

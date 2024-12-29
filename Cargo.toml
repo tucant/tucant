@@ -5,14 +5,16 @@ members = [
     "html-extractor",
     "key-value-database",
     "tucant-yew",
-    "tucant-tauri", "tucant-api", "tucant-types",
-    "tucant-extension"
+    "tucant-tauri",
+    "tucant-api",
+    "tucant-types",
 ]
 
 [workspace.package]
 license = "AGPL-3.0-or-later"
 edition = "2021"
 version = "0.1.2"
+rust-version = "1.82"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

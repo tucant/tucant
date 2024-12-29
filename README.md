@@ -39,3 +39,10 @@ adb install /home/moritz/Documents/tucant/tucant-tauri/gen/android/app/build/out
 adb install ./gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
 adb shell run-as de.selfmade4u.tucant logcat
 ```
+
+## Reproducibility
+
+```
+nix build .#extension
+nix build --rebuild --keep-failed .#extension
+```
