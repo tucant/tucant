@@ -57,3 +57,5 @@ cp --dereference result /tmp/result-4
 ```
 
 wasm-opt?
+
+RUST_LOG=trace,walrus=info,wasm_bindgen_wasm_interpreter=info,wasm_bindgen_cli_support=info trunk build --release
