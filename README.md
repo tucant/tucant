@@ -52,6 +52,8 @@ nix build -L --rebuild --keep-failed .#default
 nix build --rebuild --keep-failed .#extension
 
 nix run github:utdemir/nix-tree -- --derivation .#
+
+cp --dereference result /tmp/result-4
 ```
 
-/nix/store/jw4jxa02ph56wk87lzcxxckyav1x30kz-trunk-workspace-tucant-yew-trunk-0.1.2
+wasm-opt?
