@@ -46,12 +46,12 @@ type TucanType = direct::DirectTucan;
 type TucanType = ApiServerTucan;
 
 #[derive(Clone, Debug, PartialEq)]
-struct CurrentSession {
-    id: String,
-    cnsc: String,
+pub struct CurrentSession {
+    pub id: String,
+    pub cnsc: String,
 }
 
-async fn login_response() -> LoginResponse {
+pub async fn login_response() -> LoginResponse {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
