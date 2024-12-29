@@ -42,8 +42,9 @@
               (file: lib.any file.hasExt [ "html" "scss" ])
               unfilteredRoot
             )
-            # Example of a folder for images, icons, etc
-            (lib.fileset.maybeMissing ./assets)
+            ./tucant-yew/src/bootstrap.bundle.min.js
+            ./tucant-yew/src/bootstrap.min.css
+            ./tucant-yew/fixup.sh
           ];
         };
 
