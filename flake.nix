@@ -146,11 +146,14 @@
           };
 
           buildPhase = ''
-            cp -r $src .
-            cp -r ${myClient} dist
+            FILES=$(mktemp -d)
+
+            cp -r $src/. $FILES/
+            cp -r ${myClient}/. $FILES/dist/
           '';
 
           installPhase = ''
+            cd $FILES
             ${pkgs.zip}/bin/zip -r $out *
           '';
         };
