@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener(() => {
         priority: 3,
         action: {
             type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-            redirect: { regexSubstitution: EXT_PAGE + '#/registration/abc' },
+            redirect: { regexSubstitution: EXT_PAGE + '#/registration/,-N000311,-A' },
         },
         "condition": {
             "isUrlFilterCaseSensitive": true,
