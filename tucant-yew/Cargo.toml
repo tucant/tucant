@@ -34,4 +34,4 @@ serde_json = "1"
 web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
 yew-autoprops = "0.4.1"
 tucan-connector = { optional = true, path = "../tucan-connector" }
-js-sys = "0.3.76"
+js-sys = "0.3"

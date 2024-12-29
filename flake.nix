@@ -17,7 +17,7 @@
           lib = pkgs.lib;
         in
         {
-          packages.tucant-extension = pkgs.stdenv.mkDerivation rec {
+          packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
             pname = "tucant-extension";
             version = "0.5.0";
 
@@ -32,6 +32,8 @@
               pkgs.rustPlatform.cargoSetupHook
               pkgs.rustc
               pkgs.cargo
+              pkgs.llvmPackages_19.bintools
+              pkgs.wasm-bindgen-cli
             ];
 
             buildPhase = ''
