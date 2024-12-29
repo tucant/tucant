@@ -1,0 +1,28 @@
+[package]
+name = "tucant-extension"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['-Oz', '-g']
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Oz']
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "Navigator", "ServiceWorker", "ServiceWorkerContainer", "RegistrationOptions"] }
+#console_log = { version = "1", features = ["color"] }
+wasm-bindgen = "0.2"
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+#console_error_panic_hook = "0.1"
+url = "2"
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+tucant-yew = { path = "../tucant-yew", features = ["direct"] }
+wasm-bindgen-futures = "0.4.49"
+
+[lints]
+workspace = true

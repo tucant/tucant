@@ -98,6 +98,7 @@
         # Build the frontend of the application.
         # This derivation is a directory you can put on a webserver.
         myClient = craneLib.buildTrunkPackage (wasmArgs // {
+          trunkExtraBuildArgs = "--features direct --public-url /dist";
           pname = "trunk-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
           # Trunk expects the current directory to be the crate to compile
