@@ -29,7 +29,7 @@ use yew::{
 };
 use yew_router::{
     hooks::{use_location, use_navigator, use_route},
-    prelude::Link,
+    prelude::{Link, Redirect},
     BrowserRouter, HashRouter, Routable, Switch,
 };
 mod api_server;
@@ -142,6 +142,20 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
         });
     }
     let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
+    let navigator = use_navigator().unwrap();
+
+    if (data.submenus.len() == 1
+        && data.additional_information.is_empty()
+        && data.entries.is_empty()
+        && !*loading)
+    {
+        navigator.replace(&Route::Registration {
+            registration: format!("{}", data.submenus[0].1.arguments.clone()),
+        });
+        return Ok(html! {
+            <></>
+        });
+    }
 
     Ok(html! {
         <div class="container">
