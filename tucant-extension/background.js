@@ -4,7 +4,7 @@ const RULES = [{
     id: 1337,
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#\\0' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/registration/abc' },
     },
     "condition": {
         "isUrlFilterCaseSensitive": true,
