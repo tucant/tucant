@@ -60,19 +60,3 @@ Otherwise upload to AMO as unlisted extension and pray that it gets signed quick
 ```
 web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.firefox
 ```
-
-```javascript
- /*"web_accessible_resources": [
-        {
-            "resources": [
-                "dist/index.html"
-            ],
-            "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
-            ]
-        }
-    ],
-     "content_security_policy": {
-        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
-    },*/
-```

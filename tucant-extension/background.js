@@ -1,15 +1,15 @@
-/*const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
-/** @type {chrome.declarativeNetRequest.Rule[]} * /
+const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
+/** @type {chrome.declarativeNetRequest.Rule[]} */
 const RULES = [{
     id: 1337,
     action: {
-        type: 'redirect',
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
         redirect: { regexSubstitution: EXT_PAGE + '#\\0' },
     },
     "condition": {
         "isUrlFilterCaseSensitive": true,
         "resourceTypes": [
-            "main_frame"
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
     }
@@ -17,7 +17,7 @@ const RULES = [{
 chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: RULES.map(r => r.id),
     addRules: RULES,
-});*/
+});
 
 // runtime.openOptionsPage()
 // https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
