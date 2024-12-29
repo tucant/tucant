@@ -8,6 +8,7 @@ use tucant_types::{
     LoginRequest, LoginResponse, Tucan,
 };
 use url::Url;
+use web_extensions_sys::CookieDetails;
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -43,14 +44,23 @@ type TucanType = direct::DirectTucan;
 #[cfg(not(any(feature = "tauri", feature = "direct")))]
 type TucanType = ApiServerTucan;
 
-#[hook]
-fn use_login_response() -> LoginResponse {
+async fn login_response() -> LoginResponse {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    LoginResponse {
+    let cnsc = web_extensions_sys::chrome()
+        .cookies()
+        .get(CookieDetails {
+            name: "cnsc".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
+            partition_key: None,
+            store_id: None,
+        })
+        .await;
+
+    /*LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
@@ -73,7 +83,8 @@ fn use_login_response() -> LoginResponse {
                 }
             })
             .unwrap(),
-    }
+    }*/
+    todo!()
 }
 
 #[derive(Properties, PartialEq)]
@@ -83,8 +94,6 @@ pub struct AnmeldungRequestProps {
 
 #[function_component(Registration)]
 fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
-    let login_response = use_login_response();
-
     let data = use_state(|| AnmeldungResponse {
         path: vec![],
         submenus: vec![],
@@ -100,7 +109,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::anmeldung(login_response, anmeldung_request)
+                let response = TucanType::anmeldung(login_response().await, anmeldung_request)
                     .await
                     .unwrap();
                 data.set(response);
@@ -108,8 +117,6 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             })
         });
     }
-
-    let login_response = use_login_response();
 
     Ok(html! {
         <div class="container">
@@ -321,8 +328,6 @@ pub struct ModuleDetailsProps {
 
 #[function_component(ModuleDetails)]
 fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
-    let login_response = use_login_response();
-
     let data = use_state(|| None);
     let loading = use_state(|| false);
     {
@@ -333,7 +338,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
             let request = request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::module_details(&login_response, request)
+                let response = TucanType::module_details(&login_response().await, request)
                     .await
                     .unwrap();
                 data.set(Some(response));
