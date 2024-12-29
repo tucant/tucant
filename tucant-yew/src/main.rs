@@ -4,9 +4,9 @@ use yew::props;
 
 #[wasm_bindgen(main)]
 async fn main() {
-    //std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
 
-    //console_log::init().unwrap();
+    console_log::init().unwrap();
 
     let login_response = login_response().await;
 

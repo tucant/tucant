@@ -7,6 +7,7 @@ chrome.runtime.onInstalled.addListener(() => {
     /** @type {chrome.declarativeNetRequest.Rule[]} */
     const RULES = [{
         id: 1337,
+        priority: 3,
         action: {
             type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
             redirect: { regexSubstitution: EXT_PAGE + '#/registration/abc' },
