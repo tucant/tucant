@@ -43,11 +43,24 @@ adb shell run-as de.selfmade4u.tucant logcat
 ## Reproducibility
 
 ```
+podman build --output . .
+cp tucant-extension.zip ~/Downloads/tucant-extension-1.zip
+podman build --output . .
+
+
 nix build .#extension
 
 nix build --rebuild --keep-failed .#default.cargoArtifacts
 
-nix build --rebuild --keep-failed .#default
+nix build -L --rebuild --keep-failed .#default
 
 nix build --rebuild --keep-failed .#extension
+
+nix run github:utdemir/nix-tree -- --derivation .#
+
+cp --dereference result /tmp/result-4
 ```
+
+wasm-opt?
+
+RUST_LOG=trace,walrus=info,wasm_bindgen_wasm_interpreter=info,wasm_bindgen_cli_support=info trunk build --release

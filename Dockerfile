@@ -1,3 +1,5 @@
+# podman build --output . .
+# or
 # sudo docker build --output . .
 FROM docker.io/nixos/nix:2.25.3 AS build
 WORKDIR /workdir
