@@ -43,7 +43,9 @@
             '';
 
             installPhase = ''
-              ${pkgs.zip}/bin/zip $out -r tucant-extension/* -x "node_modules/*" icon-512.png jsconfig.json package-lock.json package.json run.sh README.md screenshot-large.png
+              cd tucant-extension
+              ${pkgs.zip}/bin/zip $out -r * -x "node_modules/*" icon-512.png jsconfig.json package-lock.json package.json run.sh README.md screenshot-large.png
+              cd ..
             '';
           };
 
