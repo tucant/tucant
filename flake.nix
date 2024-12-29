@@ -5,24 +5,32 @@
     nixpkgs.url = "github:nixos/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     crate2nix.url = "github:nix-community/crate2nix";
+    cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.11.0";
   };
 
-  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix }:
+  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix, cargo2nix }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
           pkgs = import nixpkgs {
             inherit system;
-            overlays = [ ];
+            overlays = [cargo2nix.overlays.default];
           };
           lib = pkgs.lib;
           cargoNix = inputs.crate2nix.tools.${system}.appliedCargoNix {
             name = "tucant-extension";
             src = ./.;
           };
+          rustPkgs = pkgs.rustBuilder.makePackageSet {
+            rustVersion = "1.83.0";
+            packageFun = import ./Cargo.nix;
+            target = "wasm32-unknown-unknown";
+          };
         in
         {
-          packages.tucant-extension-incremental = cargoNix.workspaceMembers.tucant-yew.build.override { features = ["direct"]; };
+          # nix run github:cargo2nix/cargo2nix
+          packages.tucant-extension-incremental = (rustPkgs.workspace.tucant-yew {});
+          #packages.tucant-extension-incremental = cargoNix.workspaceMembers.tucant-yew.build.override { features = ["direct"]; };
 
           packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
             pname = "tucant-extension.zip";
