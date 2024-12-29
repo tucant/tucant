@@ -20,7 +20,7 @@ use wasm_bindgen::{
 };
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{
-    js_sys::{Function, JsString},
+    js_sys::{Function, JsString, Reflect},
     HtmlInputElement, Node,
 };
 use yew::{
@@ -62,9 +62,13 @@ pub async fn login_response() -> LoginResponse {
         .local()
         .get(&JsValue::from_str("sessionId"))
         .await
-        .unwrap()
-        .as_string()
         .unwrap();
+
+    info!("session_id: {:?}", session_id);
+    let session_id = js_sys::Reflect::get(&session_id, &JsValue::from_str("sessionId")).unwrap();
+    info!("session_id: {:?}", session_id);
+    let session_id = session_id.as_string().unwrap();
+    info!("session_id: {:?}", session_id);
 
     let cnsc = web_extensions_sys::chrome()
         .cookies()

@@ -5515,6 +5515,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "cookie",
+ "js-sys",
  "key-value-database",
  "log",
  "reqwest",
