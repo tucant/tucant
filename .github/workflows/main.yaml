@@ -53,6 +53,7 @@ jobs:
         purge-created: 0
         # except the version with the `primary-key`, if it exists
         purge-primary-key: never
+    - uses: actions/checkout@v4
     - run: nix --extra-experimental-features nix-command --extra-experimental-features flakes build .#extension
     - run: cp result tucant-extension.zip
     - uses: actions/attest-build-provenance@v1
