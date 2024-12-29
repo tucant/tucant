@@ -5,8 +5,9 @@ members = [
     "html-extractor",
     "key-value-database",
     "tucant-yew",
-    "tucant-tauri", "tucant-api", "tucant-types",
-    "tucant-extension"
+    "tucant-tauri",
+    "tucant-api",
+    "tucant-types",
 ]
 
 [workspace.package]

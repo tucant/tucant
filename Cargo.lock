@@ -5471,19 +5471,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucant-extension"
-version = "0.1.2"
-dependencies = [
- "log",
- "tucant-yew",
- "url",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
-]
-
-[[package]]
 name = "tucant-tauri"
 version = "0.1.2"
 dependencies = [
@@ -6492,7 +6479,7 @@ dependencies = [
 [[package]]
 name = "yew"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew/#69e3b5f8140180acd1c2de41e421960cbacf768f"
+source = "git+https://github.com/mohe2015/yew/?branch=fix-crate2nix#7b132da9fdd644a3e4337a0d304c2aa0a392bda8"
 dependencies = [
  "console_error_panic_hook",
  "futures",
@@ -6527,7 +6514,7 @@ dependencies = [
 [[package]]
 name = "yew-macro"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew/#69e3b5f8140180acd1c2de41e421960cbacf768f"
+source = "git+https://github.com/mohe2015/yew/?branch=fix-crate2nix#7b132da9fdd644a3e4337a0d304c2aa0a392bda8"
 dependencies = [
  "once_cell",
  "prettyplease",
@@ -6540,7 +6527,7 @@ dependencies = [
 [[package]]
 name = "yew-router"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew/#69e3b5f8140180acd1c2de41e421960cbacf768f"
+source = "git+https://github.com/mohe2015/yew/?branch=fix-crate2nix#7b132da9fdd644a3e4337a0d304c2aa0a392bda8"
 dependencies = [
  "gloo",
  "js-sys",
@@ -6558,7 +6545,7 @@ dependencies = [
 [[package]]
 name = "yew-router-macro"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew/#69e3b5f8140180acd1c2de41e421960cbacf768f"
+source = "git+https://github.com/mohe2015/yew/?branch=fix-crate2nix#7b132da9fdd644a3e4337a0d304c2aa0a392bda8"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
+    crate2nix.url = "github:nix-community/crate2nix";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -15,8 +16,14 @@
             overlays = [ ];
           };
           lib = pkgs.lib;
+          cargoNix = inputs.crate2nix.tools.${system}.appliedCargoNix {
+            name = "tucant-extension";
+            src = ./.;
+          };
         in
         {
+          packages.tucant-extension-incremental = cargoNix.rootCrate.build;
+
           packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
             pname = "tucant-extension.zip";
             version = "0.5.0";
