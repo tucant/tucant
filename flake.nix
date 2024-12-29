@@ -122,6 +122,38 @@
             # cargoHash = lib.fakeHash;
           };
         });
+
+        extension = pkgs.stdenv.mkDerivation {
+          pname = "tucant-extension.zip";
+          version = "0.5.0";
+
+          src = lib.fileset.toSource {
+              root = ./tucant-extension;
+              fileset = lib.fileset.unions [
+                ./tucant-extension/background.js
+                ./tucant-extension/content-script.js
+                ./tucant-extension/icon.png
+                ./tucant-extension/manifest.json
+                ./tucant-extension/mobile.css
+                ./tucant-extension/mobile.js
+                ./tucant-extension/options.html
+                ./tucant-extension/options.js
+                ./tucant-extension/popup.html
+                ./tucant-extension/popup.js
+                ./tucant-extension/rules.json
+                ./tucant-extension/screenshot.png
+              ];
+          };
+
+          buildPhase = ''
+            cp -r $src .
+            cp -r ${myClient} dist
+          '';
+
+          installPhase = ''
+            ${pkgs.zip}/bin/zip -r $out *
+          '';
+        };
       in
       {
         checks = {
@@ -146,6 +178,7 @@
         };
 
         packages.default = myClient;
+        packages.extension = extension;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
