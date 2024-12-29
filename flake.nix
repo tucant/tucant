@@ -5,10 +5,16 @@
     nixpkgs.url = "github:nixos/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     crate2nix.url = "github:nix-community/crate2nix";
+
+    rust-overlay.url = "github:oxalica/rust-overlay/stable";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.11.0";
+    cargo2nix.inputs.nixpkgs.follows = "nixpkgs";
+    cargo2nix.inputs.flake-utils.follows = "flake-utils";
+    cargo2nix.inputs.rust-overlay.follows = "rust-overlay";
   };
 
-  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix, cargo2nix }:
+  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix, cargo2nix, rust-overlay }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
