@@ -44,9 +44,7 @@
             combine [
               minimal.rustc
               minimal.cargo
-              targets.x86_64-unknown-linux-musl.latest.rust-std
-              targets.x86_64-pc-windows-gnu.latest.rust-std
-              targets.i686-pc-windows-gnu.latest.rust-std
+              targets.wasm32-unknown-unknown.latest.rust-std
             ];
 
           naersk' = naersk.lib.${system}.override {
@@ -61,7 +59,7 @@
             );
         in
         {
-          packages.tucant-extension-two-drvs = naerskBuildPackage "x86_64-pc-windows-gnu" {
+          packages.tucant-extension-two-drvs = naerskBuildPackage "wasm32-unknown-unknown" {
             src = ./.;
             doCheck = true;
             strictDeps = true;
