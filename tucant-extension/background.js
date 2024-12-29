@@ -143,9 +143,11 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
                 removeRuleIds: RULES.map(r => r.id),
                 addRules: RULES,
             });
+
+            chrome.storage.sync.set(
+                { sessionId },
+            );
         }
-
-
     }
 
     console.log(details.url)
@@ -153,5 +155,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
     if (logoutMatch !== null) {
         console.log(`logged out`);
         chrome.action.setBadgeText({ text: "" })
+
+        chrome.storage.sync.remove("sessionId")
     }
 }, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);

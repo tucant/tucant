@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 
 use wasm_bindgen::{
     prelude::{wasm_bindgen, Closure},
-    JsCast as _,
+    JsCast as _, JsValue,
 };
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{
@@ -47,7 +47,7 @@ type TucanType = ApiServerTucan;
 
 #[derive(Clone, Debug, PartialEq)]
 struct CurrentSession {
-    id: u64,
+    id: String,
     cnsc: String,
 }
 
@@ -57,6 +57,15 @@ async fn login_response() -> LoginResponse {
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
+    let session_id = web_extensions_sys::chrome()
+        .storage()
+        .sync()
+        .get(&JsValue::from_str("sessionId"))
+        .await
+        .unwrap()
+        .as_string()
+        .unwrap();
+
     let cnsc = web_extensions_sys::chrome()
         .cookies()
         .get(CookieDetails {
@@ -65,7 +74,8 @@ async fn login_response() -> LoginResponse {
             partition_key: None,
             store_id: None,
         })
-        .await;
+        .await
+        .unwrap();
 
     /*LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
@@ -91,7 +101,10 @@ async fn login_response() -> LoginResponse {
             })
             .unwrap(),
     }*/
-    todo!()
+    LoginResponse {
+        id: session_id.parse().unwrap(),
+        cookie_cnsc: cnsc.value,
+    }
 }
 
 #[derive(Properties, PartialEq)]
@@ -133,7 +146,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id).unwrap_or(1), entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id.as_str()).unwrap_or("1"), entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -144,7 +157,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id).unwrap_or(1), entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id.as_str()).unwrap_or("1"), entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>()
                 }
             </ul>
