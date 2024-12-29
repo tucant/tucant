@@ -22,7 +22,7 @@
           };
         in
         {
-          packages.tucant-extension-incremental = cargoNix.rootCrate.build;
+          packages.tucant-extension-incremental = cargoNix.workspaceMembers.tucant-yew.build.override { features = ["direct"]; };
 
           packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
             pname = "tucant-extension.zip";
