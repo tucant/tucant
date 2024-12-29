@@ -24,7 +24,7 @@
           };
           crossPkgs = import nixpkgs {
             inherit system;
-            crossSystem = nixpkgs.lib.systems.examples.wasi32;
+            crossSystem = nixpkgs.lib.systems.examples.wasm32-unknown-none;
             overlays = [cargo2nix.overlays.default];
           };
           lib = pkgs.lib;
