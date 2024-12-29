@@ -6,15 +6,18 @@
     flake-utils.url = "github:numtide/flake-utils";
     crate2nix.url = "github:nix-community/crate2nix";
 
+    naersk.url = "github:nix-community/naersk";
+    fenix.url = "github:nix-community/fenix";
+
     rust-overlay.url = "github:oxalica/rust-overlay/stable";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    cargo2nix.url = "github:mohe2015/cargo2nix/24ebb6c";
+    cargo2nix.url = "github:mohe2015/cargo2nix/";
     cargo2nix.inputs.nixpkgs.follows = "nixpkgs";
     cargo2nix.inputs.flake-utils.follows = "flake-utils";
     cargo2nix.inputs.rust-overlay.follows = "rust-overlay";
   };
 
-  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix, cargo2nix, rust-overlay }:
+  outputs = inputs @ { self, nixpkgs, flake-utils, crate2nix, cargo2nix, rust-overlay, naersk, fenix }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -37,10 +40,41 @@
             packageFun = import ./Cargo.nix;
             target = "wasm32-unknown-unknown";
           };
+          toolchain = with fenix.packages.${system};
+            combine [
+              minimal.rustc
+              minimal.cargo
+              targets.x86_64-unknown-linux-musl.latest.rust-std
+              targets.x86_64-pc-windows-gnu.latest.rust-std
+              targets.i686-pc-windows-gnu.latest.rust-std
+            ];
+
+          naersk' = naersk.lib.${system}.override {
+            cargo = toolchain;
+            rustc = toolchain;
+          };
+
+          naerskBuildPackage = target: args:
+            naersk'.buildPackage (
+              args
+                // { CARGO_BUILD_TARGET = target; }
+            );
         in
         {
+          packages.tucant-extension-two-drvs = naerskBuildPackage "x86_64-pc-windows-gnu" {
+            src = ./.;
+            doCheck = true;
+            strictDeps = true;
+
+            depsBuildBuild = with pkgs; [
+            ];
+
+            nativeBuildInputs = with pkgs; [
+            ];
+          };
+
           # nix run github:mohe2015/cargo2nix/24ebb6c
-          packages.tucant-extension-incremental = (rustPkgs.workspace.tucant-yew {});
+          #packages.tucant-extension-incremental = (rustPkgs.workspace.tucant-yew {});
           #packages.tucant-extension-incremental = cargoNix.workspaceMembers.tucant-yew.build.override { features = ["direct"]; };
 
           packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
