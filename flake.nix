@@ -17,6 +17,28 @@
           lib = pkgs.lib;
         in
         {
+          packages.tucant-extension = pkgs.rustPlatform.buildRustPackage {
+              pname = "tucant-extension";
+              version = "0.5.0";
+
+              src = ./.;
+
+              /*cargoLock = {
+                lockFile = ./Cargo.lock;
+                 outputHashes = {
+                  "web-extensions-sys-0.4.1" = "sha256-BfWWPbITueBwU2lPA2hCjR9w+YTpS4s6fYOmyGdPIro=";
+                  "yew-0.21.0" = "sha256-H0pWPhWtpIDsVwl2j0dp2lA9oQwk0145KeDzoXSvjeM=";
+                };
+              };*/
+              cargoLock = {
+                lockFile = ./Cargo.lock;
+                allowBuiltinFetchGit = true;
+              };
+             
+
+              # ...
+            };
+
           devShells.default = pkgs.mkShell {
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.openssl ];
 
