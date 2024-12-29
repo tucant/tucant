@@ -43,6 +43,11 @@ adb shell run-as de.selfmade4u.tucant logcat
 ## Reproducibility
 
 ```
+podman build --output . .
+cp tucant-extension.zip ~/Downloads/tucant-extension-1.zip
+podman build --output . .
+
+
 nix build .#extension
 
 nix build --rebuild --keep-failed .#default.cargoArtifacts
