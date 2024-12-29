@@ -8,7 +8,7 @@
 
     rust-overlay.url = "github:oxalica/rust-overlay/stable";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/main";
+    cargo2nix.url = "github:mohe2015/cargo2nix/24ebb6c";
     cargo2nix.inputs.nixpkgs.follows = "nixpkgs";
     cargo2nix.inputs.flake-utils.follows = "flake-utils";
     cargo2nix.inputs.rust-overlay.follows = "rust-overlay";
@@ -22,19 +22,24 @@
             inherit system;
             overlays = [cargo2nix.overlays.default];
           };
+          crossPkgs = import nixpkgs {
+            inherit system;
+            crossSystem = nixpkgs.lib.systems.examples.wasi32;
+            overlays = [cargo2nix.overlays.default];
+          };
           lib = pkgs.lib;
           cargoNix = inputs.crate2nix.tools.${system}.appliedCargoNix {
             name = "tucant-extension";
             src = ./.;
           };
-          rustPkgs = pkgs.rustBuilder.makePackageSet {
+          rustPkgs = crossPkgs.rustBuilder.makePackageSet {
             rustVersion = "1.83.0";
             packageFun = import ./Cargo.nix;
             target = "wasm32-unknown-unknown";
           };
         in
         {
-          # nix run github:cargo2nix/cargo2nix
+          # nix run github:mohe2015/cargo2nix/24ebb6c
           packages.tucant-extension-incremental = (rustPkgs.workspace.tucant-yew {});
           #packages.tucant-extension-incremental = cargoNix.workspaceMembers.tucant-yew.build.override { features = ["direct"]; };
 
