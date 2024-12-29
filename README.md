@@ -44,5 +44,10 @@ adb shell run-as de.selfmade4u.tucant logcat
 
 ```
 nix build .#extension
+
+nix build --rebuild --keep-failed .#default.cargoArtifacts
+
+nix build --rebuild --keep-failed .#default
+
 nix build --rebuild --keep-failed .#extension
 ```

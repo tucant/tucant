@@ -157,6 +157,10 @@
             cd $FILES
             ${pkgs.zip}/bin/zip -r $out *
           '';
+
+          fixupPhase = ''
+            ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
+          '';
         };
       in
       {
@@ -200,6 +204,8 @@
           # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = [
             pkgs.trunk
+            pkgs.bashInteractive
+            pkgs.diffoscope
           ];
         };
       });
