@@ -32,5 +32,6 @@ reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tl
 tucant-types = { path = "../tucant-types" }
 serde_json = "1"
 web-extensions-sys = { path = "../../web-extensions-sys" }
+yew-autoprops = "0.4.1"
 
 tucan-connector = { optional = true, path = "../tucan-connector" }

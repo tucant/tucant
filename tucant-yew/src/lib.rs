@@ -9,6 +9,7 @@ use tucant_types::{
 };
 use url::Url;
 use web_extensions_sys::CookieDetails;
+use yew_autoprops::autoprops;
 
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -43,6 +44,12 @@ type TucanType = TauriTucan;
 type TucanType = direct::DirectTucan;
 #[cfg(not(any(feature = "tauri", feature = "direct")))]
 type TucanType = ApiServerTucan;
+
+#[derive(Clone, Debug, PartialEq)]
+struct CurrentSession {
+    id: u64,
+    cnsc: String,
+}
 
 async fn login_response() -> LoginResponse {
     let window = web_sys::window().unwrap();
@@ -117,6 +124,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             })
         });
     }
+    let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
 
     Ok(html! {
         <div class="container">
@@ -125,7 +133,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                 <ol class="breadcrumb">
                     {
                         data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id).unwrap_or(1), entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>()
                     }
                 </ol>
@@ -136,7 +144,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             <ul class="list-group">
                 {
                     data.submenus.iter().map(|entry| {
-                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", login_response.id, entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                        html!{<Link<Route> to={Route::Registration { registration: format!("-N{:015}{}", current_session.as_ref().map(|s| s.id).unwrap_or(1), entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>()
                 }
             </ul>
@@ -384,17 +392,22 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
     })
 }
 
+#[autoprops]
 #[function_component(App)]
-pub fn app() -> HtmlResult {
+pub fn app(initial_session: &Option<CurrentSession>) -> HtmlResult {
+    let ctx = use_state(|| initial_session.clone());
+
     Ok(html! {
         <>
         <style>
             {include_str!("./bootstrap.min.css")}
         </style>
 
-        <HashRouter>
-            <Switch<Route> render={switch} />
-        </HashRouter>
+        <ContextProvider<Option<CurrentSession>> context={(*ctx).clone()}>
+            <HashRouter>
+                <Switch<Route> render={switch} />
+            </HashRouter>
+        </ContextProvider<Option<CurrentSession>>>
         </>
     })
 }
