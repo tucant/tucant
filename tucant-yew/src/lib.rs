@@ -59,7 +59,7 @@ pub async fn login_response() -> LoginResponse {
 
     let session_id = web_extensions_sys::chrome()
         .storage()
-        .sync()
+        .local()
         .get(&JsValue::from_str("sessionId"))
         .await
         .unwrap()
