@@ -36,7 +36,7 @@
 
             buildPhase = ''
               cd tucant-yew
-              ${pkgs.trunk}/bin/trunk build --features direct --dist ../tucant-extension/dist --public-url /dist
+              ${pkgs.trunk}/bin/trunk build --skip-version-check --offline --features direct --dist ../tucant-extension/dist --public-url /dist
             '';
           };
 
