@@ -201,19 +201,18 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                     module.map(|module| {
                                         match &module.registration_button_link {
                                             RegistrationState::Unknown => html! { },
-                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Modul abmelden"}</a> },
-                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Modul anmelden"}</a> },
+                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Modul abmelden"}</a> },
+                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>{"Zum Modul anmelden"}</a> },
                                         }
                                     })
                                 }
-
                                 <ul class="list-group">
                                 {
                                     for entry.courses.iter().map(|course| {
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ course.1.url.clone() }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}",  current_session.as_ref().map(|s| s.id.as_str()).unwrap_or("1"), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
@@ -227,8 +226,8 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                                 {
                                                     match &course.1.registration_button_link {
                                                         RegistrationState::Unknown => html! { },
-                                                        RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={unregister_link.clone()}>{"Vom Kurs abmelden"}</a> },
-                                                        RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={register_link.clone()}>{"Zum Kurs anmelden"}</a> },
+                                                        RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Kurs abmelden"}</a> },
+                                                        RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",register_link.clone())}>{"Zum Kurs anmelden"}</a> },
                                                     }
                                                 }
                                             </li>
