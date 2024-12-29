@@ -5913,6 +5913,7 @@ dependencies = [
 [[package]]
 name = "web-extensions-sys"
 version = "0.4.1"
+source = "git+https://github.com/mohe2015/web-extensions-sys?branch=cookies#03c3cd1121f6e02672277238fe463b6af286f0b2"
 dependencies = [
  "js-sys",
  "serde",
