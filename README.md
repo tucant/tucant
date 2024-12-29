@@ -47,7 +47,11 @@ nix build .#extension
 
 nix build --rebuild --keep-failed .#default.cargoArtifacts
 
-nix build --rebuild --keep-failed .#default
+nix build -L --rebuild --keep-failed .#default
 
 nix build --rebuild --keep-failed .#extension
+
+nix run github:utdemir/nix-tree -- --derivation .#
 ```
+
+/nix/store/jw4jxa02ph56wk87lzcxxckyav1x30kz-trunk-workspace-tucant-yew-trunk-0.1.2
