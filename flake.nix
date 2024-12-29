@@ -8,7 +8,7 @@
 
     rust-overlay.url = "github:oxalica/rust-overlay/stable";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.11.0";
+    cargo2nix.url = "github:cargo2nix/cargo2nix/main";
     cargo2nix.inputs.nixpkgs.follows = "nixpkgs";
     cargo2nix.inputs.flake-utils.follows = "flake-utils";
     cargo2nix.inputs.rust-overlay.follows = "rust-overlay";

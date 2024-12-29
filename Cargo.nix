@@ -2784,7 +2784,7 @@ in
     name = "html-extractor";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/html-extractor");
     dependencies = {
       itertools = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".itertools."0.13.0" { inherit profileName; }).out;
       proc_macro2 = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".proc-macro2."1.0.92" { inherit profileName; }).out;
@@ -3513,7 +3513,7 @@ in
     name = "key-value-database";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/key-value-database");
     dependencies = {
       indexed_db = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".indexed-db."0.4.1" { inherit profileName; }).out;
       js_sys = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".js-sys."0.3.76" { inherit profileName; }).out;
@@ -7704,7 +7704,7 @@ in
     name = "tucan-connector";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/tucan-connector");
     dependencies = {
       axum_core = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".axum-core."0.4.5" { inherit profileName; }).out;
       bytes = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".bytes."1.9.0" { inherit profileName; }).out;
@@ -7736,7 +7736,7 @@ in
     name = "tucant-api";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/tucant-api");
     dependencies = {
       axum = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".axum."0.7.9" { inherit profileName; }).out;
       axum_extra = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".axum-extra."0.9.6" { inherit profileName; }).out;
@@ -7755,7 +7755,7 @@ in
     name = "tucant-tauri";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/tucant-tauri");
     dependencies = {
       serde = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".serde."1.0.217" { inherit profileName; }).out;
       serde_json = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".serde_json."1.0.134" { inherit profileName; }).out;
@@ -7774,7 +7774,7 @@ in
     name = "tucant-types";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/tucant-types");
     dependencies = {
       axum_core = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".axum-core."0.4.5" { inherit profileName; }).out;
       reqwest = (rustPackages."registry+https://github.com/rust-lang/crates.io-index".reqwest."0.12.11" { inherit profileName; }).out;
@@ -7789,7 +7789,7 @@ in
     name = "tucant-yew";
     version = "0.1.2";
     registry = "unknown";
-    src = fetchCrateLocal workspaceSrc;
+    src = fetchCrateLocal (workspaceSrc + "/tucant-yew");
     features = builtins.concatLists [
       (lib.optional (rootFeatures' ? "tucant-yew/direct") "direct")
       (lib.optional (rootFeatures' ? "tucant-yew/tauri") "tauri")
@@ -8310,7 +8310,7 @@ in
     version = "0.4.1";
     registry = "git+https://github.com/mohe2015/web-extensions-sys";
     src = fetchCrateGit {
-      url = https://github.com/mohe2015/web-extensions-sys;
+      url = "https://github.com/mohe2015/web-extensions-sys";
       name = "web-extensions-sys";
       version = "0.4.1";
       rev = "03c3cd1121f6e02672277238fe463b6af286f0b2";
@@ -9314,7 +9314,7 @@ in
     version = "0.21.0";
     registry = "git+https://github.com/mohe2015/yew/";
     src = fetchCrateGit {
-      url = https://github.com/mohe2015/yew/;
+      url = "https://github.com/mohe2015/yew/";
       name = "yew";
       version = "0.21.0";
       rev = "7b132da9fdd644a3e4337a0d304c2aa0a392bda8";
@@ -9361,7 +9361,7 @@ in
     version = "0.21.0";
     registry = "git+https://github.com/mohe2015/yew/";
     src = fetchCrateGit {
-      url = https://github.com/mohe2015/yew/;
+      url = "https://github.com/mohe2015/yew/";
       name = "yew-macro";
       version = "0.21.0";
       rev = "7b132da9fdd644a3e4337a0d304c2aa0a392bda8";
@@ -9381,7 +9381,7 @@ in
     version = "0.18.0";
     registry = "git+https://github.com/mohe2015/yew/";
     src = fetchCrateGit {
-      url = https://github.com/mohe2015/yew/;
+      url = "https://github.com/mohe2015/yew/";
       name = "yew-router";
       version = "0.18.0";
       rev = "7b132da9fdd644a3e4337a0d304c2aa0a392bda8";
@@ -9406,7 +9406,7 @@ in
     version = "0.18.0";
     registry = "git+https://github.com/mohe2015/yew/";
     src = fetchCrateGit {
-      url = https://github.com/mohe2015/yew/;
+      url = "https://github.com/mohe2015/yew/";
       name = "yew-router-macro";
       version = "0.18.0";
       rev = "7b132da9fdd644a3e4337a0d304c2aa0a392bda8";
