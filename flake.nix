@@ -18,7 +18,7 @@
         in
         {
           packages.tucant-extension = pkgs.clangStdenv.mkDerivation rec {
-            pname = "tucant-extension";
+            pname = "tucant-extension.zip";
             version = "0.5.0";
 
             src = ./.;
@@ -33,12 +33,17 @@
               pkgs.rustc
               pkgs.cargo
               pkgs.llvmPackages_19.bintools
-              pkgs.wasm-bindgen-cli
+              (pkgs.wasm-bindgen-cli.override { version = "0.2.99"; hash = "sha256-1AN2E9t/lZhbXdVznhTcniy+7ZzlaEp/gwLEAucs6EA="; cargoHash = "sha256-DbwAh8RJtW38LJp+J9Ht8fAROK9OabaJ85D9C/Vkve4="; })
             ];
 
             buildPhase = ''
               cd tucant-yew
               ${pkgs.trunk}/bin/trunk build --skip-version-check --offline --features direct --dist ../tucant-extension/dist --public-url /dist
+              cd ..
+            '';
+
+            installPhase = ''
+              ${pkgs.zip}/bin/zip $out tucant-extension/* -r
             '';
           };
 
