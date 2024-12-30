@@ -33,9 +33,7 @@
 
         # When filtering sources, we want to allow assets other than .rs files
         unfilteredRoot = ./.; # The original, unfiltered source
-        src = lib.fileset.toSource {
-          root = unfilteredRoot;
-          fileset = lib.fileset.unions [
+        fileset = lib.fileset.unions [
             # Default files from crane (Rust and cargo files)
             (craneLib.fileset.commonCargoSources unfilteredRoot)
             (lib.fileset.fileFilter
@@ -45,7 +43,10 @@
             ./tucant-yew/src/bootstrap.bundle.min.js
             ./tucant-yew/src/bootstrap.min.css
             ./tucant-yew/fixup.sh
-          ];
+        ];
+        src = lib.fileset.toSource {
+          root = unfilteredRoot;
+          fileset = fileset;
         };
 
         # Arguments to be used by both the client and the server
@@ -124,44 +125,60 @@
           };
         });
 
-        extension = pkgs.stdenv.mkDerivation {
+        fileset-extension = lib.fileset.unions [
+          ./tucant-extension/background.js
+          ./tucant-extension/content-script.js
+          ./tucant-extension/icon.png
+          ./tucant-extension/manifest.json
+          ./tucant-extension/mobile.css
+          ./tucant-extension/mobile.js
+          ./tucant-extension/options.html
+          ./tucant-extension/options.js
+          ./tucant-extension/popup.html
+          ./tucant-extension/popup.js
+          ./tucant-extension/rules.json
+          ./tucant-extension/screenshot.png
+        ];
+
+        extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucant-extension.zip";
           version = "0.5.0";
 
           src = lib.fileset.toSource {
               root = ./tucant-extension;
-              fileset = lib.fileset.unions [
-                ./tucant-extension/background.js
-                ./tucant-extension/content-script.js
-                ./tucant-extension/icon.png
-                ./tucant-extension/manifest.json
-                ./tucant-extension/mobile.css
-                ./tucant-extension/mobile.js
-                ./tucant-extension/options.html
-                ./tucant-extension/options.js
-                ./tucant-extension/popup.html
-                ./tucant-extension/popup.js
-                ./tucant-extension/rules.json
-                ./tucant-extension/screenshot.png
-              ];
+              fileset = fileset-extension;
           };
 
-          buildPhase = ''
-            FILES=$(mktemp -d)
-
-            cp -r $src/. $FILES/
-            cp -r ${myClient}/. $FILES/dist/
-          '';
-
           installPhase = ''
-            cd $FILES
-            ${pkgs.zip}/bin/zip -r $out *
-          '';
-
-          fixupPhase = ''
-            ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
+            mkdir $out
+            cp -r $src/. $out/
+            cp -r ${myClient}/. $out/dist/
           '';
         };
+
+        extension = pkgs.runCommand "ucant-extension.zip" {} ''
+          cd ${extension-unpacked}
+          ${pkgs.zip}/bin/zip -r $out *
+          ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
+        '';
+
+        source-with-build-instructions = lib.fileset.toSource {
+          root = unfilteredRoot;
+          fileset = lib.fileset.unions [
+            fileset
+            fileset-extension
+            ./flake.nix
+            ./flake.lock
+            ./Dockerfile
+            ./README.md 
+          ];
+        };
+
+        source = pkgs.runCommand "tucant-extension-source.zip" {} ''
+          cd ${source-with-build-instructions}
+          ${pkgs.zip}/bin/zip -r $out *
+          ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
+        '';
       in
       {
         checks = {
@@ -187,6 +204,9 @@
 
         packages.default = myClient;
         packages.extension = extension;
+        packages.extension-unpacked = extension-unpacked;
+        packages.extension-source = source;
+        packages.extension-source-unpacked = src;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
