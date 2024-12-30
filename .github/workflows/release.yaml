@@ -64,13 +64,58 @@ jobs:
         path: tucant-extension-${{ steps.version.outputs.VERSION }}.xpi
     - run: |
         mkdir pages
-        cp tucant-${{ steps.version.outputs.VERSION }}.crx pages/
+        cp tucant-extension-${{ steps.version.outputs.VERSION }}.crx pages/
         cp tucant-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
+        cat << EOF > pages/README.md
+        For a description of the features see https://github.com/tucant/tucant/blob/main/README.md
+
+        # Installation
+
+        ## Firefox (with autoupdates)
+
+        1. [Download extension for Firefox](tucant-extension-${{ steps.version.outputs.VERSION }}.xpi)
+
+        On Android continue with the following steps:
+        1. Go to Settings
+        2. Scroll all the way down and click on About Firefox
+        3. press the logo five times, it should say that the debug menu got activated
+        4. go back
+        5. Click on Install extension from file and select the downloaded .xpi file
+
+        ## Chromium (with autoupdates)
+
+        1. Right click on [Download extension for Chromium](tucant-extension-${{ steps.version.outputs.VERSION }}.crx) and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
+        2. In the Chromium Menu, go to Extensions -> Manage Extensions
+        3. Enable developer mode in the top right corner
+        5. Uninstall the non-autoupdate version if you have installed it
+        4. Drag and drop the downloaded file into this area
+        EOF
+        cat << EOF > pages/updates.xml
+        <?xml version='1.0' encoding='UTF-8'?>
+        <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+          <app appid='ohpjpeodokebaeilcpfejcaipbeeekkj'>
+            <updatecheck codebase='https://tucant.github.io/tucant/tucant-extension-${{ steps.version.outputs.VERSION }}.crx' version='${{ steps.version.outputs.VERSION }}' status='ok' />
+          </app>
+        </gupdate>
+        EOF
+        cat << EOF > pages/updates.json
+        {
+          "addons": {
+            "tucant@selfmade4u.de": {
+              "updates": [
+                {
+                  "version": "${{ steps.version.outputs.VERSION }}",
+                  "update_link": "https://tucant.github.io/tucant/tucant-extension-${{ steps.version.outputs.VERSION }}.xpi"
+                }
+              ]
+            }
+          }
+        }
+        EOF
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        # Upload entire repository
-        path: '.'
+        path: pages
 
   deploy:
     environment:
