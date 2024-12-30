@@ -5,7 +5,7 @@ use tucant_types::{
 };
 
 use crate::{
-    common::head::{footer, html_head, logged_in_head},
+    common::head::{footer, html_head, logged_in_head, logged_out_head},
     html_handler::Root,
     Tucan, TucanError,
 };
@@ -53,7 +53,11 @@ pub async fn moduledetails(
         </head>_
         <body class="moduledetails">_
     };
-    let html_handler = logged_in_head(html_handler, login_response.id);
+    let html_handler = if login_response.id != 1 {
+        logged_in_head(html_handler, login_response.id)
+    } else {
+        logged_out_head(html_handler)
+    };
     html_extractor::html! {
         <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
         <script type="text/javascript">
