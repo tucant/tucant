@@ -179,6 +179,10 @@
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
         '';
+
+        source-unpacked = pkgs.runCommand "tucant-extension-source.zip" {} ''
+          cp -r ${source-with-build-instructions} $out
+        '';
       in
       {
         checks = {
@@ -206,7 +210,7 @@
         packages.extension = extension;
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
-        packages.extension-source-unpacked = src;
+        packages.extension-source-unpacked = source-unpacked;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
