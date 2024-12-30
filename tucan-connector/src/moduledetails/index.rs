@@ -1,3 +1,4 @@
+use scraper::CaseSensitivity::CaseSensitive;
 use scraper::{ElementRef, Html};
 use tucant_types::{
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -241,69 +242,81 @@ pub async fn moduledetails(
                         <td>_
                         </td>_
                     </tr>_
-                    <tr class="tbsubhead">_
-                        <td class="rw rw-detail-logo">
-                            <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
-                        </td>_
-                        <td class="rw rw-detail-courseno">
-                            course_no
-                        </td>_
-                        <td class="rw rw-detail-name">
-                            name
-                        </td>_
-                        <td class="rw rw-detail-mandatory">
-                            " Ja "
-                        </td>_
-                        <td class="rw rw-detail-semester">
-        };
-        let html_handler = if html_handler.peek().is_some() {
-            html_extractor::html! {
-                semester
-            };
-            html_handler
-        } else {
-            html_handler
-        };
 
-        html_extractor::html! {
-                </td>_
-                <td class="rw rw-detail-credits">
-                    "  0,0"
-                </td>_
-                <td>_
-                </td>_
-            </tr>_
         };
         while html_handler.peek().is_some() {
             html_handler = {
                 html_extractor::html! {
-                    <tr class="tbdata">_
-                        <td class="tbdata">
-                            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                            <tr class="tbsubhead">_
+                                <td class="rw rw-detail-logo">
+                                    <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
+                                </td>_
+                                <td class="rw rw-detail-courseno">
+                                    course_no
+                                </td>_
+                                <td class="rw rw-detail-name">
+                                    name
+                                </td>_
+                                <td class="rw rw-detail-mandatory">
+                                    " Ja "
+                                </td>_
+                                <td class="rw rw-detail-semester">
+                };
+                let html_handler = if html_handler.peek().is_some() {
+                    html_extractor::html! {
+                        semester
+                    };
+                    html_handler
+                } else {
+                    html_handler
+                };
+
+                html_extractor::html! {
                         </td>_
-                        <td>
-                            <a name="eventLink" class="link" href=course_url_1>
-                                course_no
-                            </a>
-                        </td>_
-                        <td>
-                            <a name="eventLink" class="link" href=course_url_1>
-                                name
-                            </a>
-                        </td>_
-                        <td>_
-                        </td>_
-                        <td>
-                            <a name="eventLink" class="link" href=course_url_1>
-                                semester
-                            </a>
-                        </td>_
-                        <td>_
+                        <td class="rw rw-detail-credits">
+                            "  0,0"
                         </td>_
                         <td>_
                         </td>_
                     </tr>_
                 };
+                while let Some(true) = html_handler
+                    .peek()
+                    .and_then(|e| e.value().as_element())
+                    .map(|e| e.has_class("tbdata", CaseSensitive))
+                {
+                    html_handler = {
+                        html_extractor::html! {
+                            <tr class="tbdata">_
+                                <td class="tbdata">
+                                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                                </td>_
+                                <td>
+                                    <a name="eventLink" class="link" href=course_url_1>
+                                        course_no
+                                    </a>
+                                </td>_
+                                <td>
+                                    <a name="eventLink" class="link" href=course_url_1>
+                                        name
+                                    </a>
+                                </td>_
+                                <td>_
+                                </td>_
+                                <td>
+                                    <a name="eventLink" class="link" href=course_url_1>
+                                        semester
+                                    </a>
+                                </td>_
+                                <td>_
+                                </td>_
+                                <td>_
+                                </td>_
+                            </tr>_
+                        };
+                        html_handler
+                    }
+                }
                 html_handler
             }
         }
