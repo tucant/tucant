@@ -35,4 +35,7 @@ jobs:
         WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
         WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
       run: nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#web-ext -- sign --channel unlisted --source-dir result-chmod/ --upload-source-code result-source-code.zip
-  
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucant-extension-xpi
+        path: web-ext-artifacts/tucant-*.xpi
