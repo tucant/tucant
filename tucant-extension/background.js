@@ -30,9 +30,6 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-// runtime.openOptionsPage()
-// https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
-
 chrome.storage.sync.onChanged.addListener((changes) => {
     for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
         console.log(
