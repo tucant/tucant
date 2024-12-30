@@ -626,7 +626,16 @@ pub fn logged_in_head<'a>(
 
 pub fn logged_out_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
-) -> InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>> {
+) -> InElement<
+    'a,
+    InElement<
+        'a,
+        InElement<
+            'a,
+            InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+        >,
+    >,
+> {
     let html_handler = page_start(html_handler);
     html_extractor::html! {
         <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
@@ -707,6 +716,22 @@ pub fn logged_out_head<'a>(
                 </form>_
             </div>_
         </div>_
+        <div id="pageContentContainer" class="pageElementTop">_
+            <!--"kZd6CmmgS-q3ZJsbi_QXJmy4uIhbl0Pt05ddWHx3vcs"-->_
+            <div id="pageLeft" class="pageElementLeft">_
+                <!--"bhHbWVACRyHBE-MoOAfeLy6SUZbsJmGyCbT94cYBHHI"-->_
+                <div id="pageLeftTop">
+                </div>_
+            </div>_
+            <div id="pageContent" class="pageElementLeft">_
+                <div id="featureBanner">
+                </div>_
+                <a name="mainContent" class="hidden">_
+                </a>_
+                <!--"up1YWWVw7bFlV69jn_wheiJ5MLDQ9_KdGWCUZ5gGeuw"-->_
+                <div id="pageContentTop" class="pageElementTop">_
+                </div>_
+                <div id="contentSpacer_IE" class="pageElementTop">
     }
     html_handler
 }

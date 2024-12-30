@@ -30,22 +30,6 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     };
     let html_handler = logged_out_head(html_handler);
     html_extractor::html! {
-        <div id="pageContentContainer" class="pageElementTop">_
-            <!--"kZd6CmmgS-q3ZJsbi_QXJmy4uIhbl0Pt05ddWHx3vcs"-->_
-            <div id="pageLeft" class="pageElementLeft">_
-                <!--"bhHbWVACRyHBE-MoOAfeLy6SUZbsJmGyCbT94cYBHHI"-->_
-                <div id="pageLeftTop">
-                </div>_
-            </div>_
-            <div id="pageContent" class="pageElementLeft">_
-                <div id="featureBanner">
-                </div>_
-                <a name="mainContent" class="hidden">_
-                </a>_
-                <!--"up1YWWVw7bFlV69jn_wheiJ5MLDQ9_KdGWCUZ5gGeuw"-->_
-                <div id="pageContentTop" class="pageElementTop">_
-                </div>_
-                <div id="contentSpacer_IE" class="pageElementTop">
                     <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
                     <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
