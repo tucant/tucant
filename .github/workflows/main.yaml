@@ -63,3 +63,30 @@ jobs:
       with:
         name: tucant-extension
         path: tucant-extension.zip
+
+  reproducibility:
+    strategy:
+      matrix:
+        attempt: [1, 2]
+    steps:
+    - uses: nixbuild/nix-quick-install-action@v27
+    - uses: actions/checkout@v4
+    - run: nix --extra-experimental-features nix-command --extra-experimental-features flakes build .#extension
+    - run: cp result tucant-extension.zip
+    - uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: tucant-extension.zip
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucant-extension-${{ matrix.attempt }}
+        path: tucant-extension.zip
+
+  reproducibility-check:
+    needs: [reproducibility]
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: tucant-extension
+        pattern: tucant-extension-*
+    - run: ls -la tucant-extension*
+    - run: diff tucant-extension-1/tucant-extension.zip tucant-extension-2/tucant-extension.zip
