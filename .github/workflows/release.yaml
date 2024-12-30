@@ -27,6 +27,15 @@ jobs:
         purge-primary-key: never
     - uses: actions/checkout@v4
     - run: nix --extra-experimental-features nix-command --extra-experimental-features flakes build .#extension-unpacked .#extension-source
+    - env:
+        CHROMIUM_EXTENSION_SIGNING_KEY: ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }}
+      run: |
+        echo $CHROMIUM_EXTENSION_SIGNING_KEY | base64 --decode > cert.pem
+    - run: chromium --pack-extension=result/ --pack-extension-key=cert.pem
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucant-extension-crx
+        path: result.crx
     - run: cp -r result/. result-chmod/
     - run: chmod -R ug+rw result-chmod/
     - run: cp result-1 result-source-code.zip
@@ -39,3 +48,4 @@ jobs:
       with:
         name: tucant-extension-xpi
         path: web-ext-artifacts/tucant-*.xpi
+    
