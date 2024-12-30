@@ -231,16 +231,22 @@ pub fn vv_something<'a>(
                     _t
                 </a>
             </li>
+    };
+    let html_handler = if id != 1 {
+        html_extractor::html! {
             <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
-                <a class=_linkclass href=_url>
-                    _t
-                </a>
-            </li>
+            <a class=_linkclass href=_url>
+                _t
+            </a>
+        </li>
+        }
+        html_handler
+    } else {
+        html_handler
+    };
+    html_extractor::html! {
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-                <a class=_linkclass href={&format!(
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                     ARGUMENTS=-N{id:015},-N000463,-Avvarchivstart%2Ehtml"
-                )}>
+                <a class=_linkclass href=_url>
                     "Archiv"
                 </a>
                 <ul class="nav depth_3 linkItemContainer">
