@@ -10,7 +10,13 @@
     <h1>TUCaN't</h1>
 
     <button id="go-to-options">Go to options</button>
-    <script src="popup.js"></script>
+
+    <div id="grant-permission-area" style="display: none;">
+        The extension does not have permission to access the TUCaN page which is needed for all functionality.
+        <button id="grant-permission">Grant access</button>
+    </div>
+
+    <script type="module" src="popup.js"></script>
 </body>
 
 </html>

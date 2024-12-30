@@ -30,15 +30,6 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-chrome.action.onClicked.addListener(async (tab) => {
-    console.log("onclicked")
-    await chrome.permissions.request({
-        origins: ['https://www.tucan.tu-darmstadt.de/']
-    })
-    //await chrome.action.setPopup({ popup: 'popup.html' });
-    //await chrome.action.openPopup()
-});
-
 // runtime.openOptionsPage()
 // https://stackoverflow.com/questions/70640859/manifest-v3-pageaction-show
 
