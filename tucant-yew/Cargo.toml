@@ -24,7 +24,6 @@ cookie = "0.18"
 url = "2"
 console_log = { version = "1", features = ["color"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
-console_error_panic_hook = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 wasm-bindgen-futures = "0.4"

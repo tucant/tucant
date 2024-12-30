@@ -2934,7 +2934,6 @@ dependencies = [
 name = "tucant-yew"
 version = "0.1.2"
 dependencies = [
- "console_error_panic_hook",
  "console_log",
  "cookie",
  "js-sys",
