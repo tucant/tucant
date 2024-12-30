@@ -1,6 +1,5 @@
 use tucant_yew::{login_response, App, AppProps, CurrentSession};
 use wasm_bindgen::prelude::wasm_bindgen;
-use yew::props;
 
 #[wasm_bindgen(main)]
 async fn main() {

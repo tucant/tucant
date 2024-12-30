@@ -1,6 +1,4 @@
-use axum_core::response::{IntoResponse, Response};
 use key_value_database::Database;
-use reqwest::StatusCode;
 use tucant_types::TucanError;
 
 pub mod common;

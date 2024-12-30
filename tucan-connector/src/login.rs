@@ -1,9 +1,7 @@
 use regex::Regex;
 use reqwest::header::HeaderValue;
 use scraper::Html;
-use serde::{Deserialize, Serialize};
 use tucant_types::{LoginRequest, LoginResponse};
-use utoipa::ToSchema;
 
 use crate::{MyClient, TucanError};
 

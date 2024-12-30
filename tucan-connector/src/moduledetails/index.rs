@@ -1,5 +1,4 @@
 use scraper::{ElementRef, Html};
-use serde::{Deserialize, Serialize};
 use tucant_types::{
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     LoginResponse,
