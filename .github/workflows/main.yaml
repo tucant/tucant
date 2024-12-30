@@ -19,6 +19,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # TODO also convert to nix
   check-fmt:
     runs-on: ubuntu-24.04
     steps:
@@ -88,7 +89,6 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        path: tucant-extension
         pattern: tucant-extension-*
-    - run: ls -la tucant-extension*
+    - run: ls -la -R .
     - run: diff tucant-extension-1/tucant-extension.zip tucant-extension-2/tucant-extension.zip
