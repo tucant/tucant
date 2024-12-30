@@ -5,7 +5,7 @@ members = [
     "html-extractor",
     "key-value-database",
     "tucant-yew",
-    "tucant-tauri",
+    #"tucant-tauri",
     "tucant-api",
     "tucant-types",
 ]
