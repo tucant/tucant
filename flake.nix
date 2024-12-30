@@ -25,6 +25,7 @@
         inherit (pkgs) lib;
 
         rustToolchainFor = p: p.rust-bin.stable.latest.default.override {
+          extensions = [ "rust-src" ];
           # Set the build targets supported by the toolchain,
           # wasm32-unknown-unknown is required for trunk.
           targets = [ "wasm32-unknown-unknown" ];
