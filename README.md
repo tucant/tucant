@@ -47,6 +47,7 @@ podman build --output . .
 cp tucant-extension.zip ~/Downloads/tucant-extension-1.zip
 podman build --output . .
 
+# TODO nix build for chrome?
 
 nix build .#extension
 

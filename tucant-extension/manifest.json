@@ -1,8 +1,9 @@
 {
     "manifest_version": 3,
     "name": "TUCaN't",
-    "version": "0.5.1",
+    "version": "0.8.0",
     "description": "Quality of life improvements for TUCaN",
+    "update_url": "https://tucant.github.io/tucant/updates.xml",
     "declarative_net_request": {
         "rule_resources": [
             {
@@ -36,7 +37,8 @@
     ],
     "browser_specific_settings": {
         "gecko": {
-            "id": "tucant@selfmade4u.de"
+            "id": "tucant@selfmade4u.de",
+            "update_url": "https://tucant.github.io/tucant/updates.json"
         }
     },
     "icons": {

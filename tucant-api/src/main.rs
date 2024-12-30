@@ -41,7 +41,7 @@ impl Modify for SecurityAddon {
             components.add_security_scheme(
                 "api_key",
                 SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("api_key"))),
-            )
+            );
         }
     }
 }
