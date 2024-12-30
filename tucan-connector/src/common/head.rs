@@ -231,6 +231,11 @@ pub fn vv_something<'a>(
                     _t
                 </a>
             </li>
+            <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
+                <a class=_linkclass href=_url>
+                    _t
+                </a>
+            </li>
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href={&format!(
                     "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
