@@ -43,7 +43,7 @@ jobs:
         CHROMIUM_EXTENSION_SIGNING_KEY: ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }}
       run: |
         echo $CHROMIUM_EXTENSION_SIGNING_KEY | base64 --decode > cert.pem
-    - run: chromium --pack-extension=result/ --pack-extension-key=cert.pem
+    - run: chromium --no-sandbox --pack-extension=result/ --pack-extension-key=cert.pem
     - run: mv result.crx tucant-extension-${{ steps.version.outputs.VERSION }}.crx
     - uses: actions/upload-artifact@v4
       with:
