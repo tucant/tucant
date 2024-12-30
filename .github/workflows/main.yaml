@@ -71,7 +71,7 @@ jobs:
     - uses: actions/checkout@v4
     - run: |
         DIRECTORY=$(mktemp -d)
-        zip -r * $DIRECTORY/tucant-extension-source.zip
+        zip -r $DIRECTORY/tucant-extension-source.zip *
         mv $DIRECTORY/tucant-extension-source.zip tucant-extension-source.zip
     - uses: actions/attest-build-provenance@v1
       with:
