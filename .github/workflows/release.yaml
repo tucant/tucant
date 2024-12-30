@@ -47,7 +47,7 @@ jobs:
     - run: mv result.crx tucant-extension-${{ steps.version.outputs.VERSION }}.crx
     - uses: actions/upload-artifact@v4
       with:
-        name: tucant-extension-${{ steps.version.outputs.VERSION }}
+        name: tucant-extension-${{ steps.version.outputs.VERSION }}-crx
         path: tucant-extension-${{ steps.version.outputs.VERSION }}.crx
     - run: cp -r result/. result-chmod/
     - run: chmod -R ug+rw result-chmod/
@@ -60,7 +60,7 @@ jobs:
     - run: cp web-ext-artifacts/tucant-${{ steps.version.outputs.VERSION }}.xpi tucant-extension-${{ steps.version.outputs.VERSION }}.xpi
     - uses: actions/upload-artifact@v4
       with:
-        name: tucant-extension-${{ steps.version.outputs.VERSION }}
+        name: tucant-extension-${{ steps.version.outputs.VERSION }}-xpi
         path: tucant-extension-${{ steps.version.outputs.VERSION }}.xpi
     - run: |
         mkdir pages
