@@ -20,7 +20,7 @@ env:
 
 jobs:
   check-fmt:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: swatinem/rust-cache@v2
       with:
@@ -32,7 +32,7 @@ jobs:
     - run: cargo +nightly-2024-09-10 fmt --check
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - uses: nixbuild/nix-quick-install-action@v27
     - name: Restore and cache Nix store
@@ -65,6 +65,7 @@ jobs:
         path: tucant-extension.zip
 
   reproducibility:
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         attempt: [1, 2]
@@ -82,6 +83,7 @@ jobs:
         path: tucant-extension.zip
 
   reproducibility-check:
+    runs-on: ubuntu-24.04
     needs: [reproducibility]
     steps:
     - uses: actions/download-artifact@v4
