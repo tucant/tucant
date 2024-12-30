@@ -231,15 +231,10 @@ pub fn vv_something<'a>(
                     _t
                 </a>
             </li>
-            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
-                <a class=_linkclass href=_url>
-                    _t
-                </a>
-            </li>
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href={&format!(
                     "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                     ARGUMENTS=-N{id:015},-N000464,-Avvarchivstart%2Ehtml"
+                     ARGUMENTS=-N{id:015},-N000463,-Avvarchivstart%2Ehtml"
                 )}>
                     "Archiv"
                 </a>
@@ -708,7 +703,7 @@ pub fn logged_out_head<'a>(
                         <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>_
                         <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
                         <input name="clino" type="hidden" value="000000000000001"></input>_
-                        <input name="menuno" type="hidden" value="000344"></input>_
+                        <input name="menuno" type="hidden" value="000311"></input>_
                         <input name="menu_type" type="hidden" value="classic"></input>_
                         <input name="browser" type="hidden" value=""></input>_
                         <input name="platform" type="hidden" value=""></input>_
@@ -732,6 +727,8 @@ pub fn logged_out_head<'a>(
                 <div id="pageContentTop" class="pageElementTop">_
                 </div>_
                 <div id="contentSpacer_IE" class="pageElementTop">
+        <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
+        <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     }
     html_handler
 }
