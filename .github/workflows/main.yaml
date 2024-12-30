@@ -64,6 +64,22 @@ jobs:
       with:
         name: tucant-extension
         path: tucant-extension.zip
+  
+  source-code:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        DIRECTORY=$(mktemp -d)
+        zip -r * $DIRECTORY/tucant-extension-source.zip
+        mv $DIRECTORY/tucant-extension-source.zip tucant-extension-source.zip
+    - uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: tucant-extension-source.zip
+    - uses: actions/upload-artifact@v4
+      with:
+        name: tucant-extension-source
+        path: tucant-extension-source.zip
 
   reproducibility:
     runs-on: ubuntu-24.04
