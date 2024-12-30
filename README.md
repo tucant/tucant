@@ -11,34 +11,16 @@ The Campus-Management System of TU Darmstadt called TUCaN lacks quality and usab
 * The URL contains your session ID. Therefore sharing URLs with others does not work. The extension automatically changes the session ID in the url to your session ID so sharing URLs works for users of the extension.
 * An experimental mobile first design can be activated.
 
+### Installation
+
+Go to https://tucant.github.io/tucant/ and follow the instructions.
+
 ### Building extension
 
 ```bash
 podman build --output . .
 ```
 This will produce a tucant-extension.zip in the current working directory.
-
-### Installation
-
-#### Firefox on Android
-
-1. Open Firefox
-2. Download the .xpi file for Firefox from https://tucant.github.io/tucant/
-2. Go to Settings
-3. Scroll all the way down and click on About Firefox
-3. press the logo five times, it should say that the debug menu got activated
-4. go back
-5. Click on Install extension from file and select the downloaded .xpi file
-
-#### Firefox (Desktop)
-
-Go to https://tucant.github.io/tucant/ and download the file for Firefox.
-
-#### Chromium
-
-1. Go to https://tucant.github.io/tucant/ and download the file for Chromium.
-2. In the Chromium Menu, go to Extensions -> Manage Extensions
-3. Drag and drop the downloaded file into this area
 
 ### Packaging
 
