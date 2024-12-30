@@ -54,8 +54,7 @@
     "action": {
         "default_icon": {
             "128": "icon.png"
-        },
-        "default_popup": "popup.html"
+        }
     },
     "options_ui": {
         "page": "options.html",
