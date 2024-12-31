@@ -345,6 +345,9 @@ pub async fn moduledetails(
     } else {
         html_handler
     };
+    // either Leistungen or Leistungskombination
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N390004723934573
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N389455489906019
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
