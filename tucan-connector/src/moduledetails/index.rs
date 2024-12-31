@@ -458,8 +458,26 @@ pub async fn moduledetails(
                             <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_
                         </div>_
                         <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
-                        <div class="contentlayoutright" id="contentlayoutright">_
-                        </div>_
+                        <div class="contentlayoutright" id="contentlayoutright">
+    };
+    let html_handler = if html_handler.peek().is_some() {
+        html_extractor::html! {
+                               <table class="tb_contentright">
+                                    <caption>"Modulverantwortliche"</caption>
+
+                                    <tbody>
+                                        <tr class="tbdata">
+                                            <td style="text-align:center;">name</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+        }
+        html_handler
+    } else {
+        html_handler
+    };
+    html_extractor::html! {
+                        </div>
                         <!--"SzJAJfnnubn5SpplE3qoUsG2QoqW6EEMiB36flFP3BQ"-->_
                         <br style="clear:both;"></br>_
                     </form>_

@@ -25,7 +25,6 @@ pub async fn anmeldung_cached(
         return Ok(anmeldung_response);
     }
 
-    let key = request.arguments.clone();
     let anmeldung_response = anmeldung(tucan, login_response, request).await?;
 
     tucan.database.put(&key, &anmeldung_response).await;
