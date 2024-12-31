@@ -1,6 +1,6 @@
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use tucan_connector::moduledetails::index::moduledetails;
+use tucan_connector::moduledetails::index::{moduledetails, moduledetails_cached};
 use tucan_connector::registration::index::anmeldung_cached;
 use tucan_connector::Tucan;
 use tucant_types::registration::AnmeldungRequest;
@@ -89,7 +89,7 @@ impl Fetcher {
                     self.module_file.write_all(b"\n").await?;
 
                     let module_details =
-                        moduledetails(&tucan, &login_response, module.url.clone()).await?;
+                        moduledetails_cached(&tucan, &login_response, module.url.clone()).await?;
                 }
             }
 

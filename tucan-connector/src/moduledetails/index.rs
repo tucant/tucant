@@ -367,6 +367,19 @@ pub async fn moduledetails(
                         "Kurs/Modulabschlussleistungen"
                     </th>_
                     <th scope="col">
+    };
+    let html_handler =
+        if (**html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination") {
+            html_extractor::html! {
+                    "Bestehenspflicht"
+                </th>_
+                <th scope="col">
+            }
+            html_handler
+        } else {
+            html_handler
+        };
+    html_extractor::html! {
                         "Leistungen"
                     </th>_
                     <th scope="col">
