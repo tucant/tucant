@@ -479,14 +479,6 @@ pub async fn anmeldung(
                                 r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$",
                             )
                             .unwrap();
-                            if (html_handler.peek().is_some()) {
-                                let st: &str =
-                                    html_handler.peek().unwrap().value().as_text().unwrap();
-                                let test = re.is_match(st);
-                                if !test {
-                                    println!("test {} {}", st, test)
-                                }
-                            }
                             let (mut html_handler, lecturers) = if html_handler.peek().is_some()
                                 && !re.is_match(
                                     html_handler.peek().unwrap().value().as_text().unwrap(),
