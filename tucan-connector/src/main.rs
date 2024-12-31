@@ -16,31 +16,38 @@ fn main() -> Result<(), TucanError> {
 async fn async_main() -> Result<(), TucanError> {
     let tucan = Tucan::new().await?;
 
-    let result = LoginResponse {
+    let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
         cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
     };
 
-    let mut progress = 1;
+    recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::new()).await?;
 
-    let anmeldung_response = anmeldung_cached(&tucan, &result, AnmeldungRequest::new()).await?;
+    Ok(())
+}
+
+async fn recursive_anmeldung(
+    tucan: &Tucan,
+    login_response: &LoginResponse,
+    anmeldung_request: AnmeldungRequest,
+) -> Result<(), TucanError> {
+    let anmeldung_response = anmeldung_cached(&tucan, &login_response, anmeldung_request).await?;
 
     for entry in &anmeldung_response.submenus {
-        let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.clone()).await?;
-        progress += 1;
-
-        for entry in anmeldung_response.submenus {
-            let anmeldung_response = anmeldung_cached(&tucan, &result, entry.1.clone()).await?;
-            progress += 1;
-
-            for entry in anmeldung_response.entries {
-                if let Some(module) = entry.module {
-                    println!("fetching");
-                    let module_details = moduledetails(&tucan, &result, module.url).await?;
-                }
+        for entry in &anmeldung_response.entries {
+            if let Some(module) = &entry.module {
+                println!("fetching");
+                let module_details =
+                    moduledetails(&tucan, &login_response, module.url.clone()).await?;
             }
         }
-    }
 
+        let anmeldung_response = Box::pin(recursive_anmeldung(
+            &tucan,
+            &login_response,
+            entry.1.clone(),
+        ))
+        .await?;
+    }
     Ok(())
 }
