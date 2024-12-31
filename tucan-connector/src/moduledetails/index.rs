@@ -438,7 +438,7 @@ pub async fn moduledetails(
                     <b>exam_type</b>_
                             </td>_
                     <td colspan="2" class="level03_color alignRight"><b>"Summe"</b></td>_
-                    <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>" 100% "</b></td>_
+                    <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>weight</b></td>_
                     </tr>_
                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     <tr class="tbdata">_
@@ -455,7 +455,7 @@ pub async fn moduledetails(
                             "\tJa"
                         </td>_
                         <td class="rw rw-detail-weight alignRight">
-                            " 100% \n\t\t\t\t\t"
+                           weight
                         </td>_
                     </tr>_
         };
@@ -504,6 +504,9 @@ pub async fn moduledetails(
         <tbody>_
     };
     while html_handler.peek().is_some() {
+        if (leistungskombination) {
+        } else {
+        }
         html_handler = {
             html_extractor::html! {
                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
