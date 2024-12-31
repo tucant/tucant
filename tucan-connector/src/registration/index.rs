@@ -1,3 +1,4 @@
+use regex::Regex;
 use scraper::{ElementRef, Html};
 use tucant_types::{
     moduledetails::ModuleDetailsRequest,
@@ -463,7 +464,24 @@ pub async fn anmeldung(
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>);
-                            let (mut html_handler, lecturers) = if html_handler.peek().is_some() {
+                            // TODO FIXME sometimes the lecturer is not shown e.g. at
+                            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N244336302896459,-N000311,-N391343674191079,-N0,-N384253407729586,-N346654580556776
+                            // Detecting this seems impossible from the value of lecturer but we could check whether it matches a date.
+                            let re = Regex::new(
+                                r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$",
+                            )
+                            .unwrap();
+                            if (html_handler.peek().is_some()) {
+                                let st: &str =
+                                    html_handler.peek().unwrap().value().as_text().unwrap();
+                                let test = re.is_match(st);
+                                println!("test {} {}", st, test)
+                            }
+                            let (mut html_handler, lecturers) = if html_handler.peek().is_some()
+                                && !re.is_match(
+                                    html_handler.peek().unwrap().value().as_text().unwrap(),
+                                ) {
+                                println!("this can still match");
                                 html_extractor::html!(lecturers</p>_<p>);
                                 (html_handler, Some(lecturers))
                             } else {

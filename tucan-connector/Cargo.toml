@@ -21,7 +21,7 @@ sha3 = "0.10"
 data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
 dotenvy = "0.15"
-regex = { version = "1", default-features = false, features = ["std"] }
+regex = { version = "1" }
 itertools = "0.13"
 serde = { version = "1", features = ["derive"] }
 getrandom = { version = "0.2", features = ["js"] }
