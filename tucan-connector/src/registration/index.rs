@@ -18,15 +18,15 @@ use crate::{
 pub async fn anmeldung_cached(
     tucan: &Tucan,
     login_response: &LoginResponse,
-    anmeldung_request: AnmeldungRequest,
+    request: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {
-    let key = anmeldung_request.arguments.clone();
+    let key = format!("registration.{}", request.arguments.clone());
     if let Some(anmeldung_response) = tucan.database.get(&key).await {
         return Ok(anmeldung_response);
     }
 
-    let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(tucan, login_response, anmeldung_request).await?;
+    let key = request.arguments.clone();
+    let anmeldung_response = anmeldung(tucan, login_response, request).await?;
 
     tucan.database.put(&key, &anmeldung_response).await;
 

@@ -11,6 +11,23 @@ use crate::{
     Tucan, TucanError,
 };
 
+pub async fn moduledetails_cached(
+    tucan: &Tucan,
+    login_response: &LoginResponse,
+    request: ModuleDetailsRequest,
+) -> Result<ModuleDetailsResponse, TucanError> {
+    let key = format!("moduledetails.{}", request.arguments.clone());
+    if let Some(response) = tucan.database.get(&key).await {
+        return Ok(response);
+    }
+
+    let response = moduledetails(tucan, login_response, request).await?;
+
+    tucan.database.put(&key, &response).await;
+
+    Ok(response)
+}
+
 pub async fn moduledetails(
     tucan: &Tucan,
     login_response: &LoginResponse,

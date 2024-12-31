@@ -88,8 +88,8 @@ impl Fetcher {
                         .await?;
                     self.module_file.write_all(b"\n").await?;
 
-                    //let module_details =
-                    //    moduledetails(&tucan, &login_response, module.url.clone()).await?;
+                    let module_details =
+                        moduledetails(&tucan, &login_response, module.url.clone()).await?;
                 }
             }
 
