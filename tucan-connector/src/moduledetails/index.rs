@@ -368,16 +368,16 @@ pub async fn moduledetails(
                     </th>_
                     <th scope="col">
     };
-    let html_handler =
+    let (html_handler, leistungskombination) =
         if (**html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination") {
             html_extractor::html! {
-                    "Bestehenspflicht"
+                    "Leistungskombination"
                 </th>_
                 <th scope="col">
             }
-            html_handler
+            (html_handler, true)
         } else {
-            html_handler
+            (html_handler, false)
         };
     html_extractor::html! {
                         "Leistungen"
@@ -393,10 +393,29 @@ pub async fn moduledetails(
             <tbody>_
                 <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
                 <tr>_
-                    <td rowspan="0001" class="tbsubhead level02_color ">
-                        module_name
+    };
+    html_extractor::html! {
+                    <td rowspan={ if leistungskombination { "0004" } else {"0001"} } class="tbsubhead level02_color ">
+                        "\n\t\t\tModulabschlussleistungen\n\t\t\t                        \t\t"
                     </td>_
-                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+    }
+    let html_handler = if (leistungskombination) {
+        html_extractor::html! {
+                <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                <td rowspan="0002" class="level03_color tbborderleft">_
+                <b>exam_type</b>_
+                        </td>_
+                <td colspan="2" class="level03_color alignRight"><b>"Summe"</b></td>_
+                <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>" 100% "</b></td>_
+                </tr>_
+                <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                <tr class="tbdata">_
+        }
+        html_handler
+    } else {
+        html_handler
+    };
+    html_extractor::html! {
                     <td class="tbborderleft rw rw-detail-reqachieve">
                         examination_type
                     </td>_
@@ -407,6 +426,9 @@ pub async fn moduledetails(
                         " 100% \n\t\t\t\t\t"
                     </td>_
                 </tr>_
+    };
+    // TODO loop here
+    html_extractor::html! {
             </tbody>_
         </table>_
         <!--"2ZbUIAyW1jo5-WUMeTNt-IKv23wZ26ul3DgqOFYk-Cs"-->_
