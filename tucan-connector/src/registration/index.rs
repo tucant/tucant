@@ -475,13 +475,14 @@ pub async fn anmeldung(
                                 let st: &str =
                                     html_handler.peek().unwrap().value().as_text().unwrap();
                                 let test = re.is_match(st);
-                                println!("test {} {}", st, test)
+                                if !test {
+                                    println!("test {} {}", st, test)
+                                }
                             }
                             let (mut html_handler, lecturers) = if html_handler.peek().is_some()
                                 && !re.is_match(
                                     html_handler.peek().unwrap().value().as_text().unwrap(),
                                 ) {
-                                println!("this can still match");
                                 html_extractor::html!(lecturers</p>_<p>);
                                 (html_handler, Some(lecturers))
                             } else {
