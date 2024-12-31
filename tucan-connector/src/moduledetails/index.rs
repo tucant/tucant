@@ -391,49 +391,78 @@ pub async fn moduledetails(
                 </tr>_
             </thead>_
             <tbody>_
+            <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
+                 <tr>_
+                    <td rowspan={ if leistungskombination { "0004" } else {"0001"} } class="tbsubhead level02_color ">
+                        "\n\t\t\tModulabschlussleistungen\n\t\t\t                        \t\t"
+                    </td>_
+    }
+
+    // this part is almost repeated but not exactly
+    let html_handler = if (leistungskombination) {
+        html_extractor::html! {
+                <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                <td rowspan="0002" class="level03_color tbborderleft">_
+                <b>exam_type</b>_
+                        </td>_
+                <td colspan="2" class="level03_color alignRight"><b>"Summe"</b></td>_
+                <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>" 100% "</b></td>_
+                </tr>_
+                <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                <tr class="tbdata">_
+        }
+        html_handler
+    } else {
+        html_handler
     };
-    while (html_handler.peek().is_some()) {
-        html_handler = {
+    html_extractor::html! {
+                    <td class="tbborderleft rw rw-detail-reqachieve">
+                        examination_type
+                    </td>_
+                    <td class="rw rw-detail-compulsory">
+                        "\tJa"
+                    </td>_
+                    <td class="rw rw-detail-weight alignRight">
+                        " 100% \n\t\t\t\t\t"
+                    </td>_
+                </tr>_
+    };
+    let html_handler = if (html_handler.peek().is_some()) {
+        html_extractor::html! {
+            <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+            <tr>_
+        };
+        let html_handler = if (leistungskombination) {
             html_extractor::html! {
-                        <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
-                        <tr>_
-            };
-            html_extractor::html! {
-                            <td rowspan={ if leistungskombination { "0004" } else {"0001"} } class="tbsubhead level02_color ">
-                                "\n\t\t\tModulabschlussleistungen\n\t\t\t                        \t\t"
+                    <td rowspan="0002" class="level03_color tbborderleft">_
+                    <b>exam_type</b>_
                             </td>_
+                    <td colspan="2" class="level03_color alignRight"><b>"Summe"</b></td>_
+                    <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>" 100% "</b></td>_
+                    </tr>_
+                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    <tr class="tbdata">_
             }
-            let html_handler = if (leistungskombination) {
-                html_extractor::html! {
-                        <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
-                        <td rowspan="0002" class="level03_color tbborderleft">_
-                        <b>exam_type</b>_
-                                </td>_
-                        <td colspan="2" class="level03_color alignRight"><b>"Summe"</b></td>_
-                        <td colspan="1" class="level03_color alignRight rw-detail-weight"><b>" 100% "</b></td>_
-                        </tr>_
-                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                        <tr class="tbdata">_
-                }
-                html_handler
-            } else {
-                html_handler
-            };
-            html_extractor::html! {
-                            <td class="tbborderleft rw rw-detail-reqachieve">
-                                examination_type
-                            </td>_
-                            <td class="rw rw-detail-compulsory">
-                                "\tJa"
-                            </td>_
-                            <td class="rw rw-detail-weight alignRight">
-                                " 100% \n\t\t\t\t\t"
-                            </td>_
-                        </tr>_
-            };
+            html_handler
+        } else {
             html_handler
         };
-    }
+        html_extractor::html! {
+                        <td class="tbborderleft rw rw-detail-reqachieve">
+                            examination_type
+                        </td>_
+                        <td class="rw rw-detail-compulsory">
+                            "\tJa"
+                        </td>_
+                        <td class="rw rw-detail-weight alignRight">
+                            " 100% \n\t\t\t\t\t"
+                        </td>_
+                    </tr>_
+        };
+        html_handler
+    } else {
+        html_handler
+    };
     html_extractor::html! {
             </tbody>_
         </table>_
