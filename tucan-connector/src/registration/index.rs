@@ -451,15 +451,23 @@ pub async fn anmeldung(
                             };
 
                             html_extractor::html!(
-                        // course
-                        <tr>_
-                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                            <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                            <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                            <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
-                            <td class="tbdata">_
+                            // course
+                            <tr>_
+                                <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                                <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                                <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                                <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
+                                <td class="tbdata">_
+                                );
+                            let mut html_handler = if html_handler.peek().is_some() {
+                                html_extractor::html!(<img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html_extractor::html!(
                             </td>_
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
