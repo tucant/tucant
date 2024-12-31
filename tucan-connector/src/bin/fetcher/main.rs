@@ -36,6 +36,7 @@ async fn async_main() -> Result<(), TucanError> {
 }
 
 struct Fetcher {
+    anmeldung_counter: u64,
     anmeldung_file: File,
     module_file: File,
 }
@@ -43,6 +44,7 @@ struct Fetcher {
 impl Fetcher {
     pub async fn new() -> Result<Self, TucanError> {
         Ok(Self {
+            anmeldung_counter: 0,
             anmeldung_file: File::options()
                 .append(true)
                 .create(true)
@@ -74,6 +76,8 @@ impl Fetcher {
         println!("anmeldung {}", anmeldung_request.arguments);
         let anmeldung_response =
             anmeldung_cached(&tucan, &login_response, anmeldung_request).await?;
+        println!("counter: {}", self.anmeldung_counter);
+        self.anmeldung_counter += 1;
 
         for entry in &anmeldung_response.submenus {
             for entry in &anmeldung_response.entries {
