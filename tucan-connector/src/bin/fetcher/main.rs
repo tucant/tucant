@@ -39,6 +39,7 @@ struct Fetcher {
     anmeldung_counter: u64,
     anmeldung_file: File,
     module_file: File,
+    module_counter: u64,
 }
 
 impl Fetcher {
@@ -55,6 +56,7 @@ impl Fetcher {
                 .create(true)
                 .open("module.log")
                 .await?,
+            module_counter: 0,
         })
     }
 
@@ -76,7 +78,7 @@ impl Fetcher {
         println!("anmeldung {}", anmeldung_request.arguments);
         let anmeldung_response =
             anmeldung_cached(&tucan, &login_response, anmeldung_request).await?;
-        println!("counter: {}", self.anmeldung_counter);
+        println!("anmeldung counter: {}", self.anmeldung_counter);
         self.anmeldung_counter += 1;
 
         for entry in &anmeldung_response.submenus {
@@ -90,6 +92,8 @@ impl Fetcher {
 
                     let module_details =
                         moduledetails_cached(&tucan, &login_response, module.url.clone()).await?;
+                    println!("module counter: {}", self.module_counter);
+                    self.module_counter += 1;
                 }
             }
 
