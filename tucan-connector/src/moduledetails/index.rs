@@ -221,18 +221,40 @@ pub async fn moduledetails(
                 </tr>_
                 <tr class="tbdata">_
                     <td class="rw rw-detail-phase">
-                        " Direkte Zulassung "
-                    </td>_
-                    <td class="rw rw-detail-block">
-                        " Vorlesungszeit "
-                    </td>_
-                    <td class="rw rw-detail-regstart">
-                        registration_range
-                    </td>_
-                    <td class="rw rw-detail-unreg">
-                        unregistration
-                    </td>_
-                </tr>_
+    }
+    let html_handler = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {
+        html_extractor::html! {
+                    _<!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->
+                </td>_
+                <td class="rw rw-detail-block">
+                    <!--""-->
+                </td>_
+                <td class="rw rw-detail-regstart">
+                    <!--""-->
+                </td>_
+                <td class="rw rw-detail-unreg">
+                    <!--""-->
+        }
+        html_handler
+    } else {
+        html_extractor::html! {
+                    " Direkte Zulassung "
+                </td>_
+                <td class="rw rw-detail-block">
+                    " Vorlesungszeit "
+                </td>_
+                <td class="rw rw-detail-regstart">
+                    registration_range
+                </td>_
+                <td class="rw rw-detail-unreg">
+                    unregistration
+
+        }
+        html_handler
+    };
+    html_extractor::html! {
+        </td>_
+        </tr>_
             </tbody>
         </table>_
         <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8"-->_
@@ -370,6 +392,7 @@ pub async fn moduledetails(
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390293258177073
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N389304870207425
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390274491911206
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390836907216477
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
