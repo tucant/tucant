@@ -355,6 +355,7 @@ pub async fn moduledetails(
     // either Leistungen or Leistungskombination
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N390004723934573
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N389455489906019
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N391325656494429
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
@@ -451,59 +452,62 @@ pub async fn moduledetails(
                     </td>_
                 </tr>_
             };
-            html_handler
-        }
-    }
-    // TODO in the loop check for two types?
-    /*
-            let html_handler = if (html_handler.peek().is_some()) {
-                html_extractor::html! {
-                    <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
-                    <tr>_
-                };
-                let html_handler = if (leistungskombination) {
+            if (leistungskombination) {
+                let html_handler = if (html_handler.peek().is_some()) {
                     html_extractor::html! {
-                            <td rowspan="0002" class="level03_color tbborderleft">_
-                                <b>
-                                    exam_type
-                                </b>_
+                        <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                        <tr>_
+                    };
+                    let html_handler = if (leistungskombination) {
+                        html_extractor::html! {
+                                <td rowspan="0002" class="level03_color tbborderleft">_
+                                    <b>
+                                        exam_type
+                                    </b>_
+                                </td>_
+                                <td colspan="2" class="level03_color alignRight">
+                                    <b>
+                                        "Summe"
+                                    </b>
+                                </td>_
+                                <td colspan="1" class="level03_color alignRight rw-detail-weight">
+                                    <b>
+                                        weight
+                                    </b>
+                                </td>_
+                            </tr>_
+                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                            <tr class="tbdata">_
+                        }
+                        html_handler
+                    } else {
+                        html_handler
+                    };
+                    html_extractor::html! {
+                            <td class="tbborderleft rw rw-detail-reqachieve">
+                                examination_type
                             </td>_
-                            <td colspan="2" class="level03_color alignRight">
-                                <b>
-                                    "Summe"
-                                </b>
+                            <td class="rw rw-detail-compulsory">
+                                "\tJa"
                             </td>_
-                            <td colspan="1" class="level03_color alignRight rw-detail-weight">
-                                <b>
-                                    weight
-                                </b>
+                            <td class="rw rw-detail-weight alignRight">
+                                weight
                             </td>_
                         </tr>_
-                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                        <tr class="tbdata">_
-                    }
+                    };
                     html_handler
                 } else {
                     html_handler
                 };
-                html_extractor::html! {
-                        <td class="tbborderleft rw rw-detail-reqachieve">
-                            examination_type
-                        </td>_
-                        <td class="rw rw-detail-compulsory">
-                            "\tJa"
-                        </td>_
-                        <td class="rw rw-detail-weight alignRight">
-                            weight
-                        </td>_
-                    </tr>_
-                };
                 html_handler
             } else {
                 html_handler
-            };
-            html_handler
+            }
         }
+    }
+    // TODO in the loop check for two types?
+    /*
+
     }*/
     html_extractor::html! {
             </tbody>_
