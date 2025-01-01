@@ -544,14 +544,14 @@ pub async fn moduledetails(
                         html_handler
                     };
                     html_extractor::html! {
-                            <td class="tbborderleft rw rw-detail-reqachieve">
-                                examination_type
-                            </td>_
-                            <td class="rw rw-detail-compulsory">
-                                "\tJa"
-                            </td>_
-                            <td class="rw rw-detail-weight alignRight">
-                                weight
+                        <td class="tbborderleft rw rw-detail-reqachieve">
+                            examination_type
+                        </td>_
+                        <td class="rw rw-detail-compulsory">
+                            "\tJa"
+                        </td>_
+                        <td class="rw rw-detail-weight alignRight">
+                            weight
                     }
                     let html_handler = if html_handler.peek().is_some() {
                         html_extractor::html! {
