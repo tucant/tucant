@@ -60,8 +60,9 @@ impl<'a> Root<'a> {
 
 // TODO outer state here could be hardcoded to Root
 impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
+    #[track_caller]
     pub fn doctype(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
-        let child_node = self.children.next().unwrap();
+        let child_node = self.children.next().expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -77,7 +78,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
 impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
-        let child_node = self.children.next().unwrap();
+        let child_node = self.children.next().expect("expected child but none left");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -91,7 +92,7 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
     }
 
     pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
-        let child_node = self.children.next().unwrap();
+        let child_node = self.children.next().expect("expected child but one left");
         let Some(child_element) = child_node.value().as_element() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -121,20 +122,27 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
-        assert_eq!(self.attrs.next().unwrap(), (name, value));
+        assert_eq!(
+            self.attrs.next().expect("expected attribute but none left"),
+            (name, value)
+        );
         self
     }
 
     #[track_caller]
     pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
-        let (name, value) = self.attrs.next().unwrap();
+        let (name, value) = self.attrs.next().expect("expected attribute but none left");
         assert_eq!(name, expected_name);
         (self, value.to_owned())
     }
 
     #[track_caller]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
-        let _element = self.element.value().as_element().unwrap();
+        let _element = self
+            .element
+            .value()
+            .as_element()
+            .expect("expected element but not an element");
         assert_eq!(self.attrs.next(), None, "unexpected attribute");
         InElement {
             element: self.element,
@@ -150,7 +158,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     }
 
     pub fn next_any_child(mut self) -> (Self, NodeRef<'a, Node>) {
-        let next_child = self.children.next().unwrap();
+        let next_child = self.children.next().expect("expected child but none left");
         (self, next_child)
     }
 
@@ -208,7 +216,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     pub fn skip_comment(mut self, expected_hash: &str) -> Self {
-        let child_node = self.children.next().unwrap();
+        let child_node = self.children.next().expect("expected child but none left");
         let Some(child_element) = child_node.value().as_comment() else {
             panic!("unexpected element {:?}", child_node.value())
         };
