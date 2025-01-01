@@ -358,6 +358,7 @@ pub async fn moduledetails(
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N391325656494429
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390344407743131
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390293258177073
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N389304870207425
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
@@ -527,10 +528,6 @@ pub async fn moduledetails(
             html_handler
         }
     }
-    // TODO in the loop check for two types?
-    /*
-
-    }*/
     html_extractor::html! {
             </tbody>_
         </table>_
@@ -544,16 +541,17 @@ pub async fn moduledetails(
                 <tr class="tbsubhead rw-hide">_
                     <th scope="col">
     };
-    let html_handler =
+
+    let (html_handler, leistungskombination) =
         if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
             html_extractor::html! {
                     "Leistungskombination"
                 </th>_
                 <th scope="col">
-            }; // oh no this is not always in the table
-            html_handler
+            };
+            (html_handler, true)
         } else {
-            html_handler
+            (html_handler, false)
         };
     html_extractor::html! {
                     "Prüfung"
