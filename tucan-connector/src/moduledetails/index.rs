@@ -227,13 +227,13 @@ pub async fn moduledetails(
                     _<!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
                 </td>_
                 <td class="rw rw-detail-block">
-                    <!--""-->
+                    _<!--"uV4w2sL7zvCR7idL5yosP3b9yaa4VOMWjVn7OckmSXA"-->_
                 </td>_
                 <td class="rw rw-detail-regstart">
-                    <!--""-->
+                    _<!--"tHYPRHTO0NAcg1WsKTurAev3L2lUda8MaTE3b2IrBDo"-->_
                 </td>_
                 <td class="rw rw-detail-unreg">
-                    <!--""-->
+                    _<!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
         }
         html_handler
     } else {
