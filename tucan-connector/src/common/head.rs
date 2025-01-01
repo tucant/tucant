@@ -235,21 +235,21 @@ pub fn vv_something<'a>(
     let html_handler = if id != 1 {
         html_extractor::html! {
             <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
-            <a class=_linkclass href=_url>
-                _t
-            </a>
-        </li>
+                <a class=_linkclass href=_url>
+                    _t
+                </a>
+            </li>
         }
         html_handler
     } else {
         html_handler
     };
     html_extractor::html! {
-            <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-                <a class=_linkclass href=_url>
-                    "Archiv"
-                </a>
-                <ul class="nav depth_3 linkItemContainer">
+        <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
+            <a class=_linkclass href=_url>
+                "Archiv"
+            </a>
+            <ul class="nav depth_3 linkItemContainer">
     };
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
@@ -738,8 +738,8 @@ pub fn logged_out_head<'a>(
                 <div id="pageContentTop" class="pageElementTop">_
                 </div>_
                 <div id="contentSpacer_IE" class="pageElementTop">
-        <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
-        <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
+                    <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
+                    <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     }
     html_handler
 }
