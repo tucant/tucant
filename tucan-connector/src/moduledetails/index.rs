@@ -504,26 +504,49 @@ pub async fn moduledetails(
         <tbody>_
     };
     while html_handler.peek().is_some() {
-        if (leistungskombination) {
-        } else {
-        }
         html_handler = {
-            html_extractor::html! {
-                <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                <tr class="tbdata">_
-                    <td class="tbborderleft rw rw-detail-exam">
-                        exam_type
-                    </td>_
-                    <td class="rw rw-detail-date">
-                        exam_date
-                    </td>_
-                    <td class="rw rw-detail-instructors">
-                        instructor
-                    </td>_
-                    <td class="rw rw-detail-compulsory">
-                        compulsory
-                    </td>_
-                </tr>_
+            let html_handler = if (leistungskombination) {
+                html_extractor::html! {
+                    <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                    <tr class="tbdata">_
+                    <td rowspan="0001" class="level03_color rw rw-detail-combination ">_
+                        <b>	Fachprüfung </b>_
+                        </td>_
+                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                        <td class="tbborderleft rw rw-detail-exam">
+                            exam_type
+                        </td>_
+                        <td class="rw rw-detail-date">
+                            exam_date
+                        </td>_
+                        <td class="rw rw-detail-instructors">
+                            instructor
+                        </td>_
+                        <td class="rw rw-detail-compulsory">
+                            compulsory
+                        </td>_
+                    </tr>_
+                };
+                html_handler
+            } else {
+                html_extractor::html! {
+                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    <tr class="tbdata">_
+                        <td class="tbborderleft rw rw-detail-exam">
+                            exam_type
+                        </td>_
+                        <td class="rw rw-detail-date">
+                            exam_date
+                        </td>_
+                        <td class="rw rw-detail-instructors">
+                            instructor
+                        </td>_
+                        <td class="rw rw-detail-compulsory">
+                            compulsory
+                        </td>_
+                    </tr>_
+                };
+                html_handler
             };
             html_handler
         }
