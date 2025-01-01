@@ -85,25 +85,26 @@ impl Fetcher {
         self.anmeldung_counter += 1;
 
         for entry in &anmeldung_response.submenus {
-            for entry in &anmeldung_response.entries {
-                if let Some(module) = &entry.module {
-                    println!("module {}", module.url.arguments.clone());
-                    self.module_file
-                        .write_all(module.url.arguments.as_bytes())
-                        .await?;
-                    self.module_file.write_all(b"\n").await?;
-
-                    let module_details =
-                        moduledetails(&tucan, &login_response, module.url.clone()).await?;
-                    println!("module counter: {}", self.module_counter);
-                    self.module_counter += 1;
-                }
-            }
-
             let anmeldung_response =
                 Box::pin(self.recursive_anmeldung(&tucan, &login_response, entry.1.clone()))
                     .await?;
         }
+
+        for entry in &anmeldung_response.entries {
+            if let Some(module) = &entry.module {
+                println!("module {}", module.url.arguments.clone());
+                self.module_file
+                    .write_all(module.url.arguments.as_bytes())
+                    .await?;
+                self.module_file.write_all(b"\n").await?;
+
+                let module_details =
+                    moduledetails(&tucan, &login_response, module.url.clone()).await?;
+                println!("module counter: {}", self.module_counter);
+                self.module_counter += 1;
+            }
+        }
+
         Ok(())
     }
 }
