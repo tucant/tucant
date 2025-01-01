@@ -282,7 +282,7 @@ pub async fn moduledetails(
                             name
                         </td>_
                         <td class="rw rw-detail-mandatory">
-                            " Ja "
+                            mandatory
                         </td>_
                         <td class="rw rw-detail-semester">
                 };
