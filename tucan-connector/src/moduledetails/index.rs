@@ -446,7 +446,7 @@ pub async fn moduledetails(
                         examination_type
                     </td>_
                     <td class="rw rw-detail-compulsory">
-                        "\tJa"
+                        compulsory
                     </td>_
                     <td class="rw rw-detail-weight alignRight">
                         weight
@@ -552,7 +552,7 @@ pub async fn moduledetails(
                 html_extractor::html! {
                     <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                     <tr class="tbdata">_
-                        <td rowspan="0001" class="level03_color rw rw-detail-combination ">_
+                        <td rowspan=rowspan class="level03_color rw rw-detail-combination ">_
                             <b>
                                 Fachprüfung
                             </b>_
@@ -572,6 +572,32 @@ pub async fn moduledetails(
                         </td>_
                     </tr>_
                 };
+                let mut rowspan: u64 = rowspan.parse().unwrap();
+                rowspan -= 1;
+                while (rowspan > 0) {
+                    html_handler = {
+                        html_extractor::html! {
+                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                            <tr class="tbdata">_
+                                <td class="tbborderleft rw rw-detail-exam">
+                                    exam_type
+                                </td>_
+                                <td class="rw rw-detail-date">
+                                    exam_date
+                                </td>_
+                                <td class="rw rw-detail-instructors">
+                                    instructor
+                                </td>_
+                                <td class="rw rw-detail-compulsory">
+                                    compulsory
+                                </td>_
+                            </tr>_
+                        };
+                        html_handler
+                    };
+                    rowspan -= 1;
+                }
+
                 html_handler
             } else {
                 html_extractor::html! {
