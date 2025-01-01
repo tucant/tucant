@@ -1,3 +1,4 @@
+use regex::Regex;
 use scraper::{ElementRef, Html};
 use tucant_types::{
     moduledetails::ModuleDetailsRequest,
@@ -17,15 +18,14 @@ use crate::{
 pub async fn anmeldung_cached(
     tucan: &Tucan,
     login_response: &LoginResponse,
-    anmeldung_request: AnmeldungRequest,
+    request: AnmeldungRequest,
 ) -> Result<AnmeldungResponse, TucanError> {
-    let key = anmeldung_request.arguments.clone();
+    let key = format!("registration.{}", request.arguments.clone());
     if let Some(anmeldung_response) = tucan.database.get(&key).await {
         return Ok(anmeldung_response);
     }
 
-    let key = anmeldung_request.arguments.clone();
-    let anmeldung_response = anmeldung(tucan, login_response, anmeldung_request).await?;
+    let anmeldung_response = anmeldung(tucan, login_response, request).await?;
 
     tucan.database.put(&key, &anmeldung_response).await;
 
@@ -39,14 +39,22 @@ pub async fn anmeldung(
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
-    let response = tucan
-        .client
-        .get(url)
-        .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-        .send()
-        .await?
-        .error_for_status()?;
-    let content = response.text().await?;
+    // TODO FIXME generalize
+    let key = format!("url.{}", url);
+    let content = if let Some(content) = tucan.database.get(&key).await {
+        content
+    } else {
+        let response = tucan
+            .client
+            .get(url)
+            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
+            .send()
+            .await?
+            .error_for_status()?;
+        let content = response.text().await?;
+        tucan.database.put(&key, &content).await;
+        content
+    };
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
@@ -450,20 +458,38 @@ pub async fn anmeldung(
                             };
 
                             html_extractor::html!(
-                        // course
-                        <tr>_
-                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                            <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                            <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                            <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
-                            <td class="tbdata">_
+                            // course
+                            <tr>_
+                                <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
+                                <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
+                                <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                                <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
+                                <td class="tbdata">_
+                                );
+                            let mut html_handler = if html_handler.peek().is_some() {
+                                html_extractor::html!(<img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_);
+                                html_handler
+                            } else {
+                                html_handler
+                            };
+                            html_extractor::html!(
                             </td>_
                             <td class="tbdata dl-inner">_
                                 <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
                                 <p>);
-                            let (mut html_handler, lecturers) = if html_handler.peek().is_some() {
+                            // TODO FIXME sometimes the lecturer is not shown e.g. at
+                            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N244336302896459,-N000311,-N391343674191079,-N0,-N384253407729586,-N346654580556776
+                            // Detecting this seems impossible from the value of lecturer but we could check whether it matches a date.
+                            let re = Regex::new(
+                                r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$",
+                            )
+                            .unwrap();
+                            let (mut html_handler, lecturers) = if html_handler.peek().is_some()
+                                && !re.is_match(
+                                    html_handler.peek().unwrap().value().as_text().unwrap(),
+                                ) {
                                 html_extractor::html!(lecturers</p>_<p>);
                                 (html_handler, Some(lecturers))
                             } else {

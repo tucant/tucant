@@ -1,4 +1,4 @@
-use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
+use crate::html_handler::{self, AfterDoctype, InElement, InRoot, Root};
 
 #[must_use]
 pub fn html_head_2<'a>(
@@ -231,19 +231,25 @@ pub fn vv_something<'a>(
                     _t
                 </a>
             </li>
-            <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
+    };
+    let html_handler = if id != 1 {
+        html_extractor::html! {
+            <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                 <a class=_linkclass href=_url>
                     _t
                 </a>
             </li>
-            <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-                <a class=_linkclass href={&format!(
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                     ARGUMENTS=-N{id:015},-N000464,-Avvarchivstart%2Ehtml"
-                )}>
-                    "Archiv"
-                </a>
-                <ul class="nav depth_3 linkItemContainer">
+        }
+        html_handler
+    } else {
+        html_handler
+    };
+    html_extractor::html! {
+        <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
+            <a class=_linkclass href=_url>
+                "Archiv"
+            </a>
+            <ul class="nav depth_3 linkItemContainer">
     };
     let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
@@ -280,6 +286,7 @@ pub fn logged_in_head<'a>(
         >,
     >,
 > {
+    assert_ne!(id, 1);
     let html_handler = page_start(html_handler);
     html_extractor::html! {
         <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
@@ -620,6 +627,120 @@ pub fn logged_in_head<'a>(
                     <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     };
+    html_handler
+}
+
+pub fn logged_out_head<'a>(
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
+) -> InElement<
+    'a,
+    InElement<
+        'a,
+        InElement<
+            'a,
+            InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+        >,
+    >,
+> {
+    let html_handler = page_start(html_handler);
+    html_extractor::html! {
+        <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
+            <a class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
+                "Startseite"
+            </a>
+        </li>
+        <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
+            <a class="depth_1 link000334 navLink branchLink " href=_url>
+                "Vorlesungsverzeichnis (VV)"
+            </a>
+    };
+    let html_handler = vv_something(html_handler, 1);
+    html_extractor::html! {
+                    </li>
+                    <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
+                        <a class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">
+                            "TUCaN-Account"
+                        </a>
+                        <ul class="nav depth_2 linkItemContainer">
+                            <li class="intern depth_2 linkItem " title="Account anlegen" id="link000425">
+                                <a class="depth_2 link000425 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEACCOUNT&ARGUMENTS=-N000000000000001,-N000425,">
+                                    "Account anlegen"
+                                </a>
+                            </li>
+                            <li class="intern depth_2 linkItem " title="Passwort vergessen (nur für Bewerber/innen!)" id="link000426">
+                                <a class="depth_2 link000426 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOSTPASS&ARGUMENTS=-N000000000000001,-N000426,-A">
+                                    "Passwort vergessen (nur für Bewerber/innen!)"
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="intern depth_1 linkItem " title="Hilfe" id="link000340">
+                        <a class="depth_1 link000340 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000340,-Ahilfe%2Ehtml">
+                            "Hilfe"
+                        </a>
+                    </li>
+                </ul>_
+            </div>_
+            <div id="pageHeadBottom_3" class="pageElementTop">_
+                <div id="pageHeadSwitchLang" class="pageElementRight">_
+                    <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000002,-N002" class="img img_LangEnglish pageElementLeft" title="English">
+                        "English"
+                    </a>_
+                </div>_
+                <form name="cn_loginForm" id="cn_loginForm" action="/scripts/mgrqispi.dll" method="post" class="pageElementRight">_
+                    <div>_
+                        <fieldset id="fieldSet_login">_
+                            <legend>
+                                "Anmeldung"
+                            </legend>_
+                            <div class="formRow nb">_
+                                <div class="inputFieldLabel">_
+                                    <label for="field_user">
+                                        "TU-ID:"
+                                    </label>_
+                                    <input type="text" id="field_user" name="usrname" size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>_
+                                </div>_
+                                <div class="inputFieldLabel">_
+                                    <label for="field_pass">
+                                        "Passwort:"
+                                    </label>_
+                                    <input type="password" id="field_pass" name="pass" value="" size="15" class="login" maxlength="255" accesskey="p"></input>_
+                                </div>_
+                            </div>_
+                        </fieldset>_
+                        <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" value="Anmelden" onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>_
+                        <!--"416mrhkWvn83zXJacA3wOy6ZHvHNbAfVlkkb_PMmkEg"-->_
+                        <input name="APPNAME" type="hidden" value="CampusNet"></input>_
+                        <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>_
+                        <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
+                        <input name="clino" type="hidden" value="000000000000001"></input>_
+                        <input name="menuno" type="hidden" value="000311"></input>_
+                        <input name="menu_type" type="hidden" value="classic"></input>_
+                        <input name="browser" type="hidden" value=""></input>_
+                        <input name="platform" type="hidden" value=""></input>_
+                    </div>_
+                </form>_
+            </div>_
+        </div>_
+        <div id="pageContentContainer" class="pageElementTop">_
+            <!--"kZd6CmmgS-q3ZJsbi_QXJmy4uIhbl0Pt05ddWHx3vcs"-->_
+            <div id="pageLeft" class="pageElementLeft">_
+                <!--"bhHbWVACRyHBE-MoOAfeLy6SUZbsJmGyCbT94cYBHHI"-->_
+                <div id="pageLeftTop">
+                </div>_
+            </div>_
+            <div id="pageContent" class="pageElementLeft">_
+                <div id="featureBanner">
+                </div>_
+                <a name="mainContent" class="hidden">_
+                </a>_
+                <!--"up1YWWVw7bFlV69jn_wheiJ5MLDQ9_KdGWCUZ5gGeuw"-->_
+                <div id="pageContentTop" class="pageElementTop">_
+                </div>_
+                <div id="contentSpacer_IE" class="pageElementTop">
+                    <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
+                    <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
+    }
     html_handler
 }
 
