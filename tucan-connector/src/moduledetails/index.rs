@@ -369,6 +369,7 @@ pub async fn moduledetails(
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390344407743131
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390293258177073
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N389304870207425
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390274491911206
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
@@ -543,121 +544,133 @@ pub async fn moduledetails(
         </table>_
         <!--"2ZbUIAyW1jo5-WUMeTNt-IKv23wZ26ul3DgqOFYk-Cs"-->_
         <!--"yzI2g2lOkYEZ9daP_HPMEVsNji03iv9OjslJBotOfZ0"-->_
-        <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
-            <caption>
-                "Modulabschlussprüfungen"
-            </caption>_
-            <thead>_
-                <tr class="tbsubhead rw-hide">_
-                    <th scope="col">
-    };
-
-    let (html_handler, leistungskombination) =
-        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
-            html_extractor::html! {
-                    "Leistungskombination"
-                </th>_
-                <th scope="col">
-            };
-            (html_handler, true)
-        } else {
-            (html_handler, false)
-        };
-    html_extractor::html! {
-                    "Prüfung"
-                </th>_
-                <th scope="col">
-                    "Datum"
-                </th>_
-                <th scope="col">
-                    "Lehrende"
-                </th>_
-                <th scope="col">
-                    "Bestehenspflicht"
-                </th>_
-            </tr>_
-        </thead>_
-        <tbody>_
-    };
-    while html_handler.peek().is_some() {
-        html_handler = {
-            let html_handler = if (leistungskombination) {
-                html_extractor::html! {
-                    <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
-                    <tr class="tbdata">_
-                        <td rowspan=rowspan class="level03_color rw rw-detail-combination ">_
-                            <b>
-                                Fachprüfung
-                            </b>_
-                        </td>_
-                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                        <td class="tbborderleft rw rw-detail-exam">
-                            exam_type
-                        </td>_
-                        <td class="rw rw-detail-date">
-                            exam_date
-                        </td>_
-                        <td class="rw rw-detail-instructors">
-                            instructor
-                        </td>_
-                        <td class="rw rw-detail-compulsory">
-                            compulsory
-                        </td>_
-                    </tr>_
-                };
-                let mut rowspan: u64 = rowspan.parse().unwrap();
-                rowspan -= 1;
-                while (rowspan > 0) {
-                    html_handler = {
-                        html_extractor::html! {
-                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                            <tr class="tbdata">_
-                                <td class="tbborderleft rw rw-detail-exam">
-                                    exam_type
-                                </td>_
-                                <td class="rw rw-detail-date">
-                                    exam_date
-                                </td>_
-                                <td class="rw rw-detail-instructors">
-                                    instructor
-                                </td>_
-                                <td class="rw rw-detail-compulsory">
-                                    compulsory
-                                </td>_
-                            </tr>_
-                        };
-                        html_handler
-                    };
-                    rowspan -= 1;
-                }
-
-                html_handler
-            } else {
-                html_extractor::html! {
-                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                    <tr class="tbdata">_
-                        <td class="tbborderleft rw rw-detail-exam">
-                            exam_type
-                        </td>_
-                        <td class="rw rw-detail-date">
-                            exam_date
-                        </td>_
-                        <td class="rw rw-detail-instructors">
-                            instructor
-                        </td>_
-                        <td class="rw rw-detail-compulsory">
-                            compulsory
-                        </td>_
-                    </tr>_
-                };
-                html_handler
-            };
-            html_handler
-        }
     }
+    // here
+    let html_handler = if !html_handler.peek().unwrap().value().is_comment() {
+        html_extractor::html! {
+            <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
+                <caption>
+                    "Modulabschlussprüfungen"
+                </caption>_
+                <thead>_
+                    <tr class="tbsubhead rw-hide">_
+                        <th scope="col">
+        };
+
+        let (html_handler, leistungskombination) =
+            if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination"
+            {
+                html_extractor::html! {
+                        "Leistungskombination"
+                    </th>_
+                    <th scope="col">
+                };
+                (html_handler, true)
+            } else {
+                (html_handler, false)
+            };
+        html_extractor::html! {
+                        "Prüfung"
+                    </th>_
+                    <th scope="col">
+                        "Datum"
+                    </th>_
+                    <th scope="col">
+                        "Lehrende"
+                    </th>_
+                    <th scope="col">
+                        "Bestehenspflicht"
+                    </th>_
+                </tr>_
+            </thead>_
+            <tbody>_
+        };
+        while html_handler.peek().is_some() {
+            html_handler = {
+                let html_handler = if (leistungskombination) {
+                    html_extractor::html! {
+                        <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                        <tr class="tbdata">_
+                            <td rowspan=rowspan class="level03_color rw rw-detail-combination ">_
+                                <b>
+                                    Fachprüfung
+                                </b>_
+                            </td>_
+                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                            <td class="tbborderleft rw rw-detail-exam">
+                                exam_type
+                            </td>_
+                            <td class="rw rw-detail-date">
+                                exam_date
+                            </td>_
+                            <td class="rw rw-detail-instructors">
+                                instructor
+                            </td>_
+                            <td class="rw rw-detail-compulsory">
+                                compulsory
+                            </td>_
+                        </tr>_
+                    };
+                    let mut rowspan: u64 = rowspan.parse().unwrap();
+                    rowspan -= 1;
+                    while (rowspan > 0) {
+                        html_handler = {
+                            html_extractor::html! {
+                                <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                                <tr class="tbdata">_
+                                    <td class="tbborderleft rw rw-detail-exam">
+                                        exam_type
+                                    </td>_
+                                    <td class="rw rw-detail-date">
+                                        exam_date
+                                    </td>_
+                                    <td class="rw rw-detail-instructors">
+                                        instructor
+                                    </td>_
+                                    <td class="rw rw-detail-compulsory">
+                                        compulsory
+                                    </td>_
+                                </tr>_
+                            };
+                            html_handler
+                        };
+                        rowspan -= 1;
+                    }
+
+                    html_handler
+                } else {
+                    html_extractor::html! {
+                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                        <tr class="tbdata">_
+                            <td class="tbborderleft rw rw-detail-exam">
+                                exam_type
+                            </td>_
+                            <td class="rw rw-detail-date">
+                                exam_date
+                            </td>_
+                            <td class="rw rw-detail-instructors">
+                                instructor
+                            </td>_
+                            <td class="rw rw-detail-compulsory">
+                                compulsory
+                            </td>_
+                        </tr>_
+                    };
+                    html_handler
+                };
+                html_handler
+            }
+        }
+        html_extractor::html! {
+                    </tbody>_
+                </table>_
+        };
+        html_handler
+    } else {
+        html_handler
+    };
+    // until here
     html_extractor::html! {
-                </tbody>_
-            </table>_
             <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_
         </div>_
         <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_

@@ -1,3 +1,4 @@
+*.db-journal
 *.log
 result*
 *.db
