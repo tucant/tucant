@@ -36,14 +36,22 @@ pub async fn moduledetails(
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
     println!("{url}");
-    let response = tucan
-        .client
-        .get(url)
-        .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-        .send()
-        .await?
-        .error_for_status()?;
-    let content = response.text().await?;
+    // TODO FIXME generalize
+    let key = format!("url.{}", url);
+    let content = if let Some(content) = tucan.database.get(&key).await {
+        content
+    } else {
+        let response = tucan
+            .client
+            .get(url)
+            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
+            .send()
+            .await?
+            .error_for_status()?;
+        let content = response.text().await?;
+        tucan.database.put(&key, &content).await;
+        content
+    };
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
@@ -393,7 +401,7 @@ pub async fn moduledetails(
             <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
             <tr>_
                 <td rowspan={if leistungskombination { "0004" } else { "0001" }} class="tbsubhead level02_color ">
-                    "\n\t\t\tModulabschlussleistungen\n\t\t\t                        \t\t"
+                    modulabschlussleistungen_or_module_name
                 </td>_
     }
 
@@ -422,6 +430,9 @@ pub async fn moduledetails(
         }
         html_handler
     } else {
+        html_extractor::html! {
+            <!-- "wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo" -->_
+        }
         html_handler
     };
     html_extractor::html! {

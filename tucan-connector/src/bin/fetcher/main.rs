@@ -94,7 +94,7 @@ impl Fetcher {
                     self.module_file.write_all(b"\n").await?;
 
                     let module_details =
-                        moduledetails_cached(&tucan, &login_response, module.url.clone()).await?;
+                        moduledetails(&tucan, &login_response, module.url.clone()).await?;
                     println!("module counter: {}", self.module_counter);
                     self.module_counter += 1;
                 }
