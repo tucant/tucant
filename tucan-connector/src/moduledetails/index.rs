@@ -453,8 +453,8 @@ pub async fn moduledetails(
                     </td>_
                 </tr>_
             };
-            if (leistungskombination) {
-                let html_handler = if (html_handler.peek().is_some()) {
+            while (leistungskombination && html_handler.peek().is_some()) {
+                html_handler = {
                     html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <tr>_
@@ -497,13 +497,9 @@ pub async fn moduledetails(
                         </tr>_
                     };
                     html_handler
-                } else {
-                    html_handler
                 };
-                html_handler
-            } else {
-                html_handler
             }
+            html_handler
         }
     }
     // TODO in the loop check for two types?
