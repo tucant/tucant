@@ -223,38 +223,37 @@ pub async fn moduledetails(
                     <td class="rw rw-detail-phase">
     }
     let html_handler = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {
-        html_extractor::html! {
-                    _<!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
-                </td>_
-                <td class="rw rw-detail-block">
-                    _<!--"uV4w2sL7zvCR7idL5yosP3b9yaa4VOMWjVn7OckmSXA"-->_
-                </td>_
-                <td class="rw rw-detail-regstart">
-                    _<!--"tHYPRHTO0NAcg1WsKTurAev3L2lUda8MaTE3b2IrBDo"-->_
-                </td>_
-                <td class="rw rw-detail-unreg">
-                    _<!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
+        html_extractor::html! {_
+                <!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
+            </td>_
+            <td class="rw rw-detail-block">_
+                <!--"uV4w2sL7zvCR7idL5yosP3b9yaa4VOMWjVn7OckmSXA"-->_
+            </td>_
+            <td class="rw rw-detail-regstart">_
+                <!--"tHYPRHTO0NAcg1WsKTurAev3L2lUda8MaTE3b2IrBDo"-->_
+            </td>_
+            <td class="rw rw-detail-unreg">_
+                <!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
         }
         html_handler
     } else {
         html_extractor::html! {
-                    " Direkte Zulassung "
-                </td>_
-                <td class="rw rw-detail-block">
-                    " Vorlesungszeit "
-                </td>_
-                <td class="rw rw-detail-regstart">
-                    registration_range
-                </td>_
-                <td class="rw rw-detail-unreg">
-                    unregistration
-
+                " Direkte Zulassung "
+            </td>_
+            <td class="rw rw-detail-block">
+                " Vorlesungszeit "
+            </td>_
+            <td class="rw rw-detail-regstart">
+                registration_range
+            </td>_
+            <td class="rw rw-detail-unreg">
+                unregistration
         }
         html_handler
     };
     html_extractor::html! {
-        </td>_
-        </tr>_
+                    </td>_
+                </tr>_
             </tbody>
         </table>_
         <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8"-->_
@@ -440,11 +439,11 @@ pub async fn moduledetails(
     while html_handler.peek().is_some() {
         html_handler = {
             html_extractor::html! {
-                    <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
-                    <tr>_
-                        <td rowspan=rowspan class="tbsubhead level02_color ">
-                            modulabschlussleistungen_or_module_name
-                        </td>_
+                <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
+                <tr>_
+                    <td rowspan=rowspan class="tbsubhead level02_color ">
+                        modulabschlussleistungen_or_module_name
+                    </td>_
             }
 
             // this part is almost repeated but not exactly
@@ -685,8 +684,8 @@ pub async fn moduledetails(
             }
         }
         html_extractor::html! {
-                    </tbody>_
-                </table>_
+                </tbody>_
+            </table>_
         };
         html_handler
     } else {
@@ -730,11 +729,11 @@ pub async fn moduledetails(
                     html_handler
                 };
                 html_extractor::html! {
-                            <tr class="tbdata">_
-                                <td style="text-align:center;">
-                                    name
-                                </td>_
-                            </tr>_
+                    <tr class="tbdata">_
+                        <td style="text-align:center;">
+                            name
+                        </td>_
+                    </tr>_
                 };
                 html_handler
             };
