@@ -431,7 +431,7 @@ pub async fn moduledetails(
         html_handler
     } else {
         html_extractor::html! {
-            <!-- "wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo" -->_
+            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
         }
         html_handler
     };

@@ -39,14 +39,22 @@ pub async fn anmeldung(
 ) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
-    let response = tucan
-        .client
-        .get(url)
-        .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-        .send()
-        .await?
-        .error_for_status()?;
-    let content = response.text().await?;
+    // TODO FIXME generalize
+    let key = format!("url.{}", url);
+    let content = if let Some(content) = tucan.database.get(&key).await {
+        content
+    } else {
+        let response = tucan
+            .client
+            .get(url)
+            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
+            .send()
+            .await?
+            .error_for_status()?;
+        let content = response.text().await?;
+        tucan.database.put(&key, &content).await;
+        content
+    };
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
