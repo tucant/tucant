@@ -356,6 +356,7 @@ pub async fn moduledetails(
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N390004723934573
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N389455489906019
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N391325656494429
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390344407743131
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
@@ -405,7 +406,7 @@ pub async fn moduledetails(
             html_extractor::html! {
                     <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
                     <tr>_
-                        <td rowspan={if leistungskombination { "0004" } else { "0001" }} class="tbsubhead level02_color ">
+                        <td rowspan=_some_value class="tbsubhead level02_color ">
                             modulabschlussleistungen_or_module_name
                         </td>_
             }
@@ -426,7 +427,7 @@ pub async fn moduledetails(
                         </td>_
                         <td colspan="1" class="level03_color alignRight rw-detail-weight">
                             <b>
-                                " 100% "
+                                weight
                             </b>
                         </td>_
                     </tr>_
@@ -448,7 +449,7 @@ pub async fn moduledetails(
                         "\tJa"
                     </td>_
                     <td class="rw rw-detail-weight alignRight">
-                        " 100% \n\t\t\t\t\t"
+                        weight
                     </td>_
                 </tr>_
             };
