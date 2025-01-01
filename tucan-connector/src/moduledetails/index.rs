@@ -357,6 +357,7 @@ pub async fn moduledetails(
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N389455489906019
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N391325656494429
     // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390344407743131
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390293258177073
     html_extractor::html! {
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
@@ -406,7 +407,7 @@ pub async fn moduledetails(
             html_extractor::html! {
                     <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
                     <tr>_
-                        <td rowspan=_some_value class="tbsubhead level02_color ">
+                        <td rowspan=rowspan class="tbsubhead level02_color ">
                             modulabschlussleistungen_or_module_name
                         </td>_
             }
@@ -453,6 +454,30 @@ pub async fn moduledetails(
                     </td>_
                 </tr>_
             };
+            let mut rowspan: u64 = rowspan.parse().unwrap();
+            rowspan -= 1;
+            // TODO FIXME count using rowspan here
+            while (!leistungskombination && rowspan > 0) {
+                html_handler = {
+                    html_extractor::html! {
+                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                        <tr class="tbdata">_
+                            <td class="tbborderleft rw rw-detail-reqachieve">
+                                examination_type
+                            </td>_
+                            <td class="rw rw-detail-compulsory">
+                                compulsory
+                            </td>_
+                            <td class="rw rw-detail-weight alignRight">
+                                weight
+                            </td>_
+                        </tr>_
+                    }
+                    html_handler
+                };
+                rowspan -= 1;
+            }
+
             while (leistungskombination && html_handler.peek().is_some()) {
                 html_handler = {
                     html_extractor::html! {
