@@ -552,6 +552,17 @@ pub async fn moduledetails(
                             </td>_
                             <td class="rw rw-detail-weight alignRight">
                                 weight
+                    }
+                    let html_handler = if html_handler.peek().is_some() {
+                        html_extractor::html! {
+                            <br></br>
+                            weight_more
+                        }
+                        html_handler
+                    } else {
+                        html_handler
+                    };
+                    html_extractor::html! {
                             </td>_
                         </tr>_
                     };
