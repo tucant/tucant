@@ -314,6 +314,16 @@ pub async fn moduledetails(
                             <tr class="tbdata">_
                                 <td class="tbdata">
                                     <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                        };
+                        let html_handler = if html_handler.peek().is_some() {
+                            html_extractor::html! {
+                                <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
+                            }
+                            html_handler
+                        } else {
+                            html_handler
+                        };
+                        html_extractor::html! {
                                 </td>_
                                 <td>
                                     <a name="eventLink" class="link" href=course_url_1>
