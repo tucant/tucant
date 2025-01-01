@@ -224,7 +224,7 @@ pub async fn moduledetails(
     }
     let html_handler = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {
         html_extractor::html! {
-                    _<!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->
+                    _<!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
                 </td>_
                 <td class="rw rw-detail-block">
                     <!--""-->
