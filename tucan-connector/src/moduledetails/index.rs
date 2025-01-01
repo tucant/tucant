@@ -614,6 +614,28 @@ pub async fn moduledetails(
                     "Modulverantwortliche"
                 </caption>_
                 <tbody>
+        };
+        let html_handler = if html_handler
+            .peek()
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attrs
+            .is_empty()
+        {
+            html_extractor::html! {
+                <tr>_
+                    <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">_
+                        <img src=_src width="120" height="160" border="0" alt=_alt></img>_
+                    </td>_
+                </tr>_
+            }
+            html_handler
+        } else {
+            html_handler
+        };
+        html_extractor::html! {
                     <tr class="tbdata">_
                         <td style="text-align:center;">
                             name
