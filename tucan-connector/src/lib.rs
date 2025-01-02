@@ -79,7 +79,16 @@ impl Tucan {
     }
 }
 
+#[cfg(test)]
 mod tests {
+    use tucant_types::{
+        moduledetails::ModuleDetailsRequest, LoginRequest, LoginResponse, TucanError,
+    };
+
+    use crate::{
+        externalpages::welcome::welcome, login::login, moduledetails::index::moduledetails,
+        root::root, startpage_dispatch::one::startpage_dispatch_1, Tucan,
+    };
 
     #[tokio::test]
     pub async fn login_incorrect() {
