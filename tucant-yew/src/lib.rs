@@ -376,6 +376,27 @@ fn login() -> HtmlResult {
     })
 }
 
+#[function_component(LogoutComponent)]
+fn logout() -> HtmlResult {
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+
+    let on_submit = {
+        let current_session = current_session.clone();
+
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            current_session.set(None);
+        })
+    };
+
+    Ok(html! {
+        <form onsubmit={on_submit} class="d-flex" role="search">
+            <button class="btn btn-outline-success" type="submit">{ "Logout" }</button>
+        </form>
+    })
+}
+
 #[derive(Debug, Clone, PartialEq, Routable)]
 enum Route {
     #[at("/")]

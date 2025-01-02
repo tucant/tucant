@@ -1,7 +1,7 @@
 use tucant_types::LoginResponse;
 use yew::{function_component, html, use_context, Html, UseStateHandle};
 
-use crate::LoginComponent;
+use crate::{LoginComponent, LogoutComponent};
 
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
@@ -645,6 +645,8 @@ pub fn navbar() -> Html {
                     </ul>
                     if !current_session.is_some() {
                         <LoginComponent />
+                    } else {
+                        <LogoutComponent />
                     }
                 </div>
             </div>
