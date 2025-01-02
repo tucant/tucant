@@ -82,7 +82,7 @@ pub async fn moduledetails(
     let html_handler = if login_response.id != 1 {
         logged_in_head(html_handler, login_response.id)
     } else {
-        logged_out_head(html_handler)
+        logged_out_head(html_handler, 311)
     };
     html_extractor::html! {
         <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
@@ -328,7 +328,8 @@ pub async fn moduledetails(
                 while html_handler
                     .peek()
                     .and_then(|e| e.value().as_element())
-                    .map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true)
+                    .map(|e| e.has_class("tbdata", CaseSensitive))
+                    == Some(true)
                 {
                     html_handler = {
                         html_extractor::html! {

@@ -28,7 +28,7 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
         </head>_
         <body class="external_pages">_
     };
-    let html_handler = logged_out_head(html_handler);
+    let html_handler = logged_out_head(html_handler, 344);
     html_extractor::html! {
                     <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
@@ -191,6 +191,7 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
             </div>_
         </div>_
     };
-    let _html_handler = footer(html_handler, 1, 19);
+    let html_handler = footer(html_handler, 1, 19);
+    html_handler.end_document();
     Ok(())
 }
