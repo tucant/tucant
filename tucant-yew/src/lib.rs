@@ -406,7 +406,7 @@ fn logout() -> HtmlResult {
     };
 
     Ok(html! {
-        <form onsubmit={on_submit} class="d-flex" role="search">
+        <form onsubmit={on_submit} class="d-flex">
             <button class="btn btn-outline-success" type="submit">{ "Logout" }</button>
         </form>
     })
@@ -516,12 +516,12 @@ pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
     Ok(html! {
         <>
             <style>{ include_str!("./bootstrap.min.css") }</style>
-            <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
                 <HashRouter>
-                    <Navbar />
-                    <Switch<Route> render={switch} />
+                    <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
+                        <Navbar />
+                        <Switch<Route> render={switch} />
+                    </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
                 </HashRouter>
-            </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
         </>
     })
 }
