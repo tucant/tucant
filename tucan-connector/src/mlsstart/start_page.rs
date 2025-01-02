@@ -54,10 +54,7 @@ pub async fn after_login(
                 "Heutige Veranstaltungen:"
             </div>_
             <div class="tbcontrol">_
-                <a href=_ class="img" name="schedulerLink"> /* {&format!(
-                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:\
-                     015},-N000019,-A02.01.2025,-A,-N1" // TODO FIXME use date
-                )} */
+                <a href=_ class="img" name="schedulerLink">
                     "Stundenplan"
                 </a>_
             </div>_
