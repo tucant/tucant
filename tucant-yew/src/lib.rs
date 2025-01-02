@@ -438,7 +438,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
     html! {
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <nav class="navbar navbar-expand-xl bg-body-tertiary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">{ "TUCaN't" }</a>
                 <button
@@ -453,7 +453,7 @@ pub fn navbar() -> Html {
                     <span class="navbar-toggler-icon" />
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav me-auto mb-2 mb-xl-0">
                         <li class="nav-item dropdown">
                             <a
                                 class="nav-link dropdown-toggle"
@@ -677,11 +677,17 @@ pub fn navbar() -> Html {
                     <form class="d-flex" role="search">
                         <input
                             class="form-control me-2"
-                            type="search"
-                            placeholder="Search"
-                            aria-label="Search"
+                            type="current-username"
+                            placeholder="Username"
+                            aria-label="Username"
                         />
-                        <button class="btn btn-outline-success" type="submit">{ "Search" }</button>
+                        <input
+                            class="form-control me-2"
+                            type="password"
+                            placeholder="Password"
+                            aria-label="Password"
+                        />
+                        <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
                     </form>
                 </div>
             </div>
