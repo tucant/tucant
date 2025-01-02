@@ -1108,7 +1108,9 @@ pub fn navbar() -> Html {
                             </li>
                         }
                     </ul>
-                    <LoginComponent />
+                    if !current_session.is_some() {
+                        <LoginComponent />
+                    }
                 </div>
             </div>
         </nav>
