@@ -167,3 +167,15 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
         chrome.storage.local.remove("sessionId")
     }
 }, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);
+
+chrome.contextMenus.create({
+    id: "open-in-tucan",
+    title: "Open in TUCaN",
+    targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+})
+
+chrome.contextMenus.create({
+    id: "open-in-tucant",
+    title: "Open in TUCaN't",
+    targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+})
