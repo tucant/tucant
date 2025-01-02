@@ -32,6 +32,7 @@ jobs:
     - run: cargo +nightly-2024-09-10 install --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly --force
     - run: cargo +nightly-2024-09-10 fmt --check
     - run: cargo install --git https://github.com/mohe2015/yew-fmt --branch patch-1
+    - run: RUSTFMT=~/.cargo/bin/yew-fmt cargo fmt --check
 
   build:
     runs-on: ubuntu-24.04
