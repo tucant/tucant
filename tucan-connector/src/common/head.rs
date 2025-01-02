@@ -251,7 +251,6 @@ pub fn vv_something<'a>(
             </a>
             <ul class="nav depth_3 linkItemContainer">
     };
-    let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
             html_extractor::html! {
@@ -630,7 +629,8 @@ pub fn logged_in_head<'a>(
     html_handler
 }
 
-#[must_use] pub fn logged_out_head<'a>(
+#[must_use]
+pub fn logged_out_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<
     'a,

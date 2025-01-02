@@ -9,7 +9,7 @@ pub async fn test_1() {
         &tucan,
         &LoginResponse {
             id: 1,
-            cookie_cnsc: "".to_owned(),
+            cookie_cnsc: String::new(),
         },
         ModuleDetailsRequest {
             arguments: ",-N000311,-N389455489906019".to_owned(),

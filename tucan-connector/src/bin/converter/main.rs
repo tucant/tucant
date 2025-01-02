@@ -9,7 +9,7 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
     match node.value() {
         Node::Document => node.children().map(|child| to_string(child, 0)).join(""),
         Node::Fragment => todo!(),
-        Node::Doctype(doctype) => "<!doctype html>".to_owned(),
+        Node::Doctype(_doctype) => "<!doctype html>".to_owned(),
         Node::Comment(comment) => {
             "\n".to_owned() + &" ".repeat(depth) + "<!--\"" + comment + "\"-->"
         }

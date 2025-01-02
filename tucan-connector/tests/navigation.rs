@@ -1,5 +1,4 @@
-use tucan_connector::{moduledetails::index::moduledetails, root::root, Tucan};
-use tucant_types::{moduledetails::ModuleDetailsRequest, LoginResponse};
+use tucan_connector::{root::root, Tucan};
 
 #[tokio::test]
 pub async fn root_page() {

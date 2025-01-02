@@ -7,6 +7,8 @@ use scraper::node::Attrs;
 use scraper::Node;
 use sha3::{Digest, Sha3_256};
 
+// TODO FIXME according to clippy this uses lots of stack space
+
 pub struct Root<'a> {
     node: NodeRef<'a, Node>,
 }
@@ -60,7 +62,8 @@ impl<'a> Root<'a> {
 
 impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
     #[track_caller]
-    #[must_use] pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
+    #[must_use]
+    pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
         let child_node = self.children.next().expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
