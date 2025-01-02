@@ -147,4 +147,32 @@ mod tests {
         let tucan = Tucan::new().await.unwrap();
         welcome(&tucan.client).await.unwrap();
     }
+
+    #[tokio::test]
+    pub async fn test_module() {
+        let tucan = Tucan::new().await.unwrap();
+    }
+}
+
+mod authenticated_tests {
+    use tucant_types::{LoginRequest, TucanError};
+
+    use crate::{login::login, Tucan};
+
+    #[tokio::test]
+    pub async fn test_login() {
+        dotenvy::dotenv().unwrap();
+        let tucan = Tucan::new().await.unwrap();
+        assert!(matches!(
+            login(
+                &tucan.client,
+                &LoginRequest {
+                    username: std::env::var("USERNAME").unwrap().parse().unwrap(),
+                    password: std::env::var("PASSWORD").unwrap().parse().unwrap(),
+                },
+            )
+            .await,
+            Err(TucanError::InvalidCredentials)
+        ));
+    }
 }
