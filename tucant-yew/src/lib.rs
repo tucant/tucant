@@ -300,15 +300,15 @@ fn login() -> HtmlResult {
     };
 
     let on_submit = {
-        let username = (*username_value_handle).clone();
-        let password = (*password_value_handle).clone();
+        let username_value_handle = username_value_handle.clone();
+        let password_value_handle = password_value_handle.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
-            // TODO submit
-            info!("logging in {}", username);
-            let username = username.clone();
-            let password = password.clone();
+            let username = (*username_value_handle).clone();
+            let password = (*password_value_handle).clone();
+            password_value_handle.set("".to_owned());
+
             let navigator = navigator.clone();
 
             spawn_local(async move {
