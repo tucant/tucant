@@ -4,6 +4,7 @@ target = "./index.html"
 [serve]
 port = 1420
 open = false
+no_autoreload = true # DO NOT CHANGE. This creates buggy navigation on Firefox
 
 [[proxy]]
 backend = "http://localhost:3000/api"
