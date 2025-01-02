@@ -54,10 +54,10 @@ pub async fn after_login(
                 "Heutige Veranstaltungen:"
             </div>_
             <div class="tbcontrol">_
-                <a href={&format!(
+                <a href=_ class="img" name="schedulerLink"> /* {&format!(
                     "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:\
-                     015},-N000019,-A09.10.2024,-A,-N1"
-                )} class="img" name="schedulerLink">
+                     015},-N000019,-A02.01.2025,-A,-N1" // TODO FIXME use date
+                )} */
                     "Stundenplan"
                 </a>_
             </div>_
@@ -140,6 +140,7 @@ pub async fn after_login(
             </div>_
         </div>_
     };
-    let _html_handler = footer(html_handler, id, 311);
+    let html_handler = footer(html_handler, id, 19);
+    html_handler.end_document();
     Ok(())
 }

@@ -166,7 +166,10 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, TucanError};
 
-    use crate::{login::login, startpage_dispatch::after_login::redirect_after_login, Tucan};
+    use crate::{
+        login::login, mlsstart::start_page::after_login,
+        startpage_dispatch::after_login::redirect_after_login, Tucan,
+    };
 
     #[tokio::test]
     pub async fn test_login() {
@@ -201,5 +204,21 @@ mod authenticated_tests {
         redirect_after_login(&tucan.client, login_response)
             .await
             .unwrap()
+    }
+
+    #[tokio::test]
+    pub async fn test_mlsstart() {
+        dotenvy::dotenv().unwrap();
+        let tucan = Tucan::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
+                password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        after_login(&tucan.client, login_response).await.unwrap()
     }
 }
