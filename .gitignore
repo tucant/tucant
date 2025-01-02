@@ -1,3 +1,5 @@
+*.profraw
+*.profdata
 *.db-journal
 *.log
 result*
