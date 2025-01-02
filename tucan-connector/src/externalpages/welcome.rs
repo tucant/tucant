@@ -108,12 +108,12 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                         <!--"8BGIyQ2B-rACsM51dW_-fXQOxEtSSMQKmvACrZeN8RM"-->_
                         <!--"kxxdx9oC13X6nNfsroMEL83B9YcEzTaGRyJ7fJawlxs"-->_
                         <!--"W2wZ2lO1RgblnmkfAkpqqZROzL9YntinBONQb0VR21U"-->_
-                        <div style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;">
-                            <p style="line-height: 140%;">
+                        <div style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;">_
+                            <p style="line-height: 140%;">_
                                 <strong>
-                                    "Aktuelles: Fristen zur Prüfungsanmeldung in TUCaN für das Wintersemester 2024/2025"
-                                </strong>
-                            </p>
+                                    "Aktuelles: Fristen zur Prüfungsanmeldung in TUCaN für das Wintersemester 2024/2025\n\n"
+                                </strong>_
+                            </p>_
                             <p style="line-height: 140%;">
                                 "Die Anmeldezeit zu Prüfungen im WiSe 2024/2025 hat in der Regel am 15. November 2024 begonnen."
                                 <br></br>
@@ -126,7 +126,7 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                                     "Meine Prüfungen / Anmeldung zu Prüfungen"
                                 </i>
                                 " vor."
-                            </p>
+                            </p>_
                             <p style="line-height: 140%;">
                                 "Fachbereiche können darüber hinaus individuelle Fristen festlegen. Die An- und Abmeldefristen entnehmen Sie bitte den "
                                 <a href="http://www.tu-darmstadt.de/tucan-pruefungsdetails" target="_blank">
@@ -134,18 +134,16 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                                 </a>
                                 " in TUCaN."
                             </p>
-                            "→"
+                            "\n\n\n\n\n→ "
                             <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp" target="_blank">
-                                "Hilfe &amp; FAQ zur Prüfungsanmeldung"
+                                "Hilfe & FAQ zur Prüfungsanmeldung"
                             </a>
-                            <br></br>
+                            <br></br>_
                             <p>
-                            </p>
-                            <br></br>
-                        </div>
-                        <!--"BXzL23o8zv_UsgZKGj3HBD_UH7DC2AqQtnCWdvcspHA"-->_
-                        <!--"kxxdx9oC13X6nNfsroMEL83B9YcEzTaGRyJ7fJawlxs"-->_
-                        <!--"0ggjGWdS9Efor0TAZW47IDLOzuE8oVxnUw6tFSZe_Is"-->_
+                            </p>_
+                            <br></br>_
+                        </div>_
+                        <!--"jGv5521IKCGoJrYXj5NxPjxZEq5zcNxnkwtMxKZLIX0"-->_
                         <p>_
                         </p>
                         "\n→ "
@@ -169,7 +167,11 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
             </div>_
         </div>_
     };
-    let html_handler = footer(html_handler, 1, 19);
+    let html_handler = footer(html_handler, 1, 344);
+    html_extractor::html! {
+        <!--"kPihWIZIb5OjP2_N9Uh_xbuyYvDKOGNxX5S2d7yQjKY"-->
+        <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->
+    }
     html_handler.end_document();
     Ok(())
 }

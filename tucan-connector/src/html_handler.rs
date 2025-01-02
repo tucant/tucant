@@ -78,8 +78,9 @@ impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
 }
 
 impl<'a> InRoot<'a, Root<'a>, AfterDoctype> {
+    #[track_caller]
     pub fn end_document(mut self) {
-        assert_eq!(self.children.next(), None);
+        assert_eq!(self.children.next().map(|v| v.value()), None);
     }
 }
 
@@ -110,6 +111,17 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
             attrs: child_element.attrs(),
             outer_state: self,
         }
+    }
+
+    #[track_caller]
+    pub fn skip_comment(mut self, expected_hash: &str) -> Self {
+        let child_node = self.children.next().expect("expected child but none left");
+        let Some(child_element) = child_node.value().as_comment() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
+        let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
+        assert_eq!(actual_hash, expected_hash);
+        self
     }
 }
 
