@@ -191,7 +191,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
     Ok(html! {
         <div class="container">
             <h2 class="text-center">{ "Registration" }</h2>
-            <nav aria-label="breadcrumb">
+            <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
                             html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
