@@ -275,7 +275,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
     })
 }
 
-#[function_component(LoginPage)]
+#[function_component(LoginComponent)]
 fn login() -> HtmlResult {
     let navigator = use_navigator().unwrap();
 
@@ -334,36 +334,27 @@ fn login() -> HtmlResult {
     };
 
     Ok(html! {
-        <div class="container">
-            <form onsubmit={on_submit}>
-                <h1 class="h3 mb-3 fw-normal">{ "Please sign in" }</h1>
-                <div class="form-floating">
-                    <input
-                        required=true
-                        onchange={on_username_change}
-                        value={(*username_value_handle).clone()}
-                        type="username"
-                        class="form-control"
-                        id="floatingInput"
-                        placeholder="TU-ID"
-                    />
-                    <label for="floatingInput">{ "TU-ID" }</label>
-                </div>
-                <div class="form-floating">
-                    <input
-                        required=true
-                        onchange={on_password_change}
-                        value={(*password_value_handle).clone()}
-                        type="password"
-                        class="form-control"
-                        id="floatingPassword"
-                        placeholder="Password"
-                    />
-                    <label for="floatingPassword">{ "Password" }</label>
-                </div>
-                <button class="btn btn-primary w-100 py-2" type="submit">{ "Sign in" }</button>
-            </form>
-        </div>
+    <form onsubmit={on_submit} class="d-flex" role="search">
+        <input
+            onchange={on_username_change}
+            value={(*username_value_handle).clone()}
+            required=true
+            class="form-control me-2"
+            type="username"
+            placeholder="TU-ID"
+            aria-label="TU-ID"
+        />
+        <input
+            onchange={on_password_change}
+            value={(*password_value_handle).clone()}
+            required=true
+            class="form-control me-2"
+            type="password"
+            placeholder="Password"
+            aria-label="Password"
+        />
+        <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
+    </form>
     })
 }
 
@@ -386,7 +377,7 @@ fn switch(routes: Route) -> Html {
             html! { <Registration registration={AnmeldungRequest {arguments: registration}} /> }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
-        Route::Root => html! { <LoginPage /> },
+        Route::Root => html! { <div>{"TODO"}</div> },
         Route::ModuleDetails { module } => {
             html! {
                 <ModuleDetails
@@ -699,21 +690,7 @@ pub fn navbar() -> Html {
                             <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Hilfe" }</a>
                         </li>
                     </ul>
-                    <form class="d-flex" role="search">
-                        <input
-                            class="form-control me-2"
-                            type="current-username"
-                            placeholder="Username"
-                            aria-label="Username"
-                        />
-                        <input
-                            class="form-control me-2"
-                            type="password"
-                            placeholder="Password"
-                            aria-label="Password"
-                        />
-                        <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
-                    </form>
+                    <LoginComponent />
                 </div>
             </div>
         </nav>
