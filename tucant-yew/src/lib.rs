@@ -454,11 +454,24 @@ pub fn navbar() -> Html {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">{ "Home" }</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">{ "Link" }</a>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Aktuelles" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Aktuelles" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Nachrichten" }</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="nav-item dropdown">
                             <a
@@ -468,25 +481,190 @@ pub fn navbar() -> Html {
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false"
                             >
-                                { "Dropdown" }
+                                { "VV" }
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Action" }</a>
+                                    <a class="dropdown-item" href="#">
+                                        { "Vorlesungsverzeichnis" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Another action" }</a>
+                                    <a class="dropdown-item" href="#">
+                                        { "Lehrveranstaltungssuche" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <hr class="dropdown-divider" />
+                                    <a class="dropdown-item" href="#">{ "Raumsuche" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Something else here" }</a>
+                                    <a class="dropdown-item" href="#">
+                                        { "Aktuell - Wintersemester 2024/25" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        { "Vorlesungsverzeichnis Gasthörer_innen WiSe 2024/25" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        { "Vorlesungsverzeichnis des SoSe 2024" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        { "Vorlesungsverzeichnis des WiSe 2023/24" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Archiv" }</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Stundenplan" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Stundenplan" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Tagesansicht" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Wochenansicht" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Monatsansicht" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Export" }</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Veranstaltungen" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Veranstaltungen" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Module" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        { "Meine Veranstaltungen" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Wahlbereiche" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Anmeldung" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        { "Mein aktueller Anmeldestatus" }
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Prüfungen" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Prüfungen" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Prüfungen" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Mein Prüfungsplan" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Semesterergebnisse" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Leistungsspiegel" }</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Service" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Service" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Persönliche Daten" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Dokumente" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Anträge" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Sperren" }</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a
+                                class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
+                                { "Bewerbung" }
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Bewerbung" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Bewerbung" }</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">{ "Meine Dokumente" }</a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link disabled" aria-disabled="true">{ "Disabled" }</a>
+                            <a class="nav-link" href="#">{ "Hilfe" }</a>
                         </li>
                     </ul>
                     <form class="d-flex" role="search">
