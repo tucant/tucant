@@ -80,8 +80,6 @@ impl Tucan {
 }
 
 mod tests {
-    
-    
 
     #[tokio::test]
     pub async fn login_incorrect() {
@@ -98,9 +96,6 @@ mod tests {
             Err(TucanError::InvalidCredentials)
         ));
     }
-
-    
-    
 
     #[tokio::test]
     pub async fn test_1() {
@@ -119,8 +114,6 @@ mod tests {
         .await
         .unwrap();
     }
-
-    
 
     #[tokio::test]
     pub async fn test_root_page() {
