@@ -58,10 +58,9 @@ impl<'a> Root<'a> {
     }
 }
 
-// TODO outer state here could be hardcoded to Root
-impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
+impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
     #[track_caller]
-    pub fn doctype(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
+    pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
         let child_node = self.children.next().expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
@@ -72,6 +71,12 @@ impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
             sub_state: AfterDoctype,
             outer_state: self.outer_state,
         }
+    }
+}
+
+impl<'a> InRoot<'a, Root<'a>, AfterDoctype> {
+    pub fn end_document(mut self) {
+        assert_eq!(self.children.next(), None);
     }
 }
 
