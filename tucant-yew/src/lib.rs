@@ -466,11 +466,11 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Aktuelles" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Aktuelles" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Nachrichten" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Nachrichten" }</a>
                                 </li>
                             </ul>
                         </li>
@@ -486,41 +486,41 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Vorlesungsverzeichnis" }
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Lehrveranstaltungssuche" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Raumsuche" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Raumsuche" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Aktuell - Wintersemester 2024/25" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Vorlesungsverzeichnis Gasthörer_innen WiSe 2024/25" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Vorlesungsverzeichnis des SoSe 2024" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Vorlesungsverzeichnis des WiSe 2023/24" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Archiv" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Archiv" }</a>
                                 </li>
                             </ul>
                         </li>
@@ -536,20 +536,20 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Stundenplan" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Stundenplan" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Tagesansicht" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Tagesansicht" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Wochenansicht" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Wochenansicht" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Monatsansicht" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Monatsansicht" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Export" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Export" }</a>
                                 </li>
                             </ul>
                         </li>
@@ -565,25 +565,25 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Veranstaltungen" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Veranstaltungen" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Module" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Module" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Meine Veranstaltungen" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Wahlbereiche" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Wahlbereiche" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#/registration/,-N000311,-A">{ "Anmeldung" }</a>
+                                    <a class="dropdown-item" href="#/registration/,-N000311,-A" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Anmeldung" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
                                         { "Mein aktueller Anmeldestatus" }
                                     </a>
                                 </li>
@@ -601,20 +601,20 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Prüfungen" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Prüfungen" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Prüfungen" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Prüfungen" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Mein Prüfungsplan" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Mein Prüfungsplan" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Semesterergebnisse" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Semesterergebnisse" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Leistungsspiegel" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Leistungsspiegel" }</a>
                                 </li>
                             </ul>
                         </li>
@@ -630,20 +630,20 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Service" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Service" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Persönliche Daten" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Persönliche Daten" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Dokumente" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Dokumente" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Anträge" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Anträge" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Sperren" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Sperren" }</a>
                                 </li>
                             </ul>
                         </li>
@@ -659,19 +659,19 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Bewerbung" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Bewerbung" }</a>
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Bewerbung" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Bewerbung" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Meine Dokumente" }</a>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Dokumente" }</a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">{ "Hilfe" }</a>
+                            <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Hilfe" }</a>
                         </li>
                     </ul>
                     <form class="d-flex" role="search">
