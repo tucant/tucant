@@ -47,6 +47,5 @@ pub async fn redirect_after_login(
                 _script_contents
             </script>
     };
-    let _html_handler = html_handler;
     Ok(())
 }

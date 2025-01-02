@@ -46,6 +46,5 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
             </body>
         </html>
     };
-    let _html_handler = html_handler;
     Ok(())
 }

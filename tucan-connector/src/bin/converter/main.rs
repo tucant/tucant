@@ -39,7 +39,7 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
                 + element.name()
                 + ">"
         }
-        Node::ProcessingInstruction(processing_instruction) => todo!(),
+        Node::ProcessingInstruction(_processing_instruction) => todo!(),
     }
 }
 

@@ -3,7 +3,7 @@ use tucant_types::{moduledetails::ModuleDetailsRequest, LoginResponse};
 
 #[tokio::test]
 pub async fn test_1() {
-    let url = "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N000000000000001,-N000311,-N389455489906019";
+    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N000000000000001,-N000311,-N389455489906019
     let tucan = Tucan::new().await.unwrap();
     let result = moduledetails(
         &tucan,

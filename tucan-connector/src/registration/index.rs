@@ -69,7 +69,6 @@ pub async fn anmeldung(
             </head>_
             <body class="timeout">
         };
-        let _html_handler = html_handler;
         return Err(TucanError::Timeout);
     }
     html_extractor::html! {
@@ -144,7 +143,6 @@ pub async fn anmeldung(
             arguments: ",-N000311,-N391343674191079,-N0,-N0,-N0".to_owned(),
         },
     ));
-    let mut html_handler = html_handler;
     while !html_handler
         .peek()
         .unwrap()
@@ -191,7 +189,6 @@ pub async fn anmeldung(
             html_extractor::html! {
                 <ul>_
             };
-            let mut html_handler = html_handler;
             while html_handler.peek().is_some() {
                 html_handler = {
                     html_extractor::html! {
