@@ -78,3 +78,73 @@ impl Tucan {
         // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N145497569815170,-N000311,-N391343674191079,-N0,-N383963762024372,-N346654580556776
     }
 }
+
+mod tests {
+    use crate::{login::login, Tucan};
+    use tucant_types::{LoginRequest, TucanError};
+
+    #[tokio::test]
+    pub async fn login_incorrect() {
+        let tucan = Tucan::new().await.unwrap();
+        assert!(matches!(
+            login(
+                &tucan.client,
+                &LoginRequest {
+                    username: "not_found".to_owned(),
+                    password: "not_correct".to_owned(),
+                },
+            )
+            .await,
+            Err(TucanError::InvalidCredentials)
+        ))
+    }
+
+    use crate::moduledetails::index::moduledetails;
+    use tucant_types::{moduledetails::ModuleDetailsRequest, LoginResponse};
+
+    #[tokio::test]
+    pub async fn test_1() {
+        // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N000000000000001,-N000311,-N389455489906019
+        let tucan = Tucan::new().await.unwrap();
+        let result = moduledetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            ModuleDetailsRequest {
+                arguments: ",-N000311,-N389455489906019".to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    use crate::{
+        externalpages::welcome::welcome, root::root, startpage_dispatch::one::startpage_dispatch_1,
+    };
+
+    #[tokio::test]
+    pub async fn test_root_page() {
+        let tucan = Tucan::new().await.unwrap();
+        root(&tucan.client).await.unwrap();
+    }
+
+    /// /
+    /// redirects to
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
+    #[tokio::test]
+    pub async fn test_startpage_dispatch_1() {
+        let tucan = Tucan::new().await.unwrap();
+        startpage_dispatch_1(&tucan.client).await.unwrap();
+    }
+
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
+    /// redirects to
+    /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome
+    #[tokio::test]
+    pub async fn test_welcome() {
+        let tucan = Tucan::new().await.unwrap();
+        welcome(&tucan.client).await.unwrap();
+    }
+}
