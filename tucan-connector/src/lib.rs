@@ -80,8 +80,8 @@ impl Tucan {
 }
 
 mod tests {
-    use crate::{login::login, Tucan};
-    use tucant_types::{LoginRequest, TucanError};
+    
+    
 
     #[tokio::test]
     pub async fn login_incorrect() {
@@ -96,11 +96,11 @@ mod tests {
             )
             .await,
             Err(TucanError::InvalidCredentials)
-        ))
+        ));
     }
 
-    use crate::moduledetails::index::moduledetails;
-    use tucant_types::{moduledetails::ModuleDetailsRequest, LoginResponse};
+    
+    
 
     #[tokio::test]
     pub async fn test_1() {
@@ -120,9 +120,7 @@ mod tests {
         .unwrap();
     }
 
-    use crate::{
-        externalpages::welcome::welcome, root::root, startpage_dispatch::one::startpage_dispatch_1,
-    };
+    
 
     #[tokio::test]
     pub async fn test_root_page() {

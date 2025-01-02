@@ -1,4 +1,4 @@
-use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
+use crate::html_handler::{InElement, InRoot, Root};
 
 #[must_use]
 pub fn html_head_2<'a>(
@@ -691,7 +691,7 @@ pub fn logged_out_head<'a>(
                         <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>_
                         <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
                         <input name="clino" type="hidden" value="000000000000001"></input>_
-                        <input name="menuno" type="hidden" value={&format!("{:0>6}", menuno)}></input>_
+                        <input name="menuno" type="hidden" value={&format!("{menuno:0>6}")}></input>_
                         <input name="menu_type" type="hidden" value="classic"></input>_
                         <input name="browser" type="hidden" value=""></input>_
                         <input name="platform" type="hidden" value=""></input>_
