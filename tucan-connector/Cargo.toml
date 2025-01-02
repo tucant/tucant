@@ -33,3 +33,6 @@ tucant-types = { path = "../tucant-types" }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest-middleware = "0.4"
 reqwest-retry = "0.7"
+
+[features]
+authenticated_tests = []

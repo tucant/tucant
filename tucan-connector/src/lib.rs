@@ -154,6 +154,15 @@ mod tests {
     }
 }
 
+#[cfg(all(test, not(feature = "authenticated_tests")))]
+mod authenticated_tests {
+
+    #[test]
+    #[ignore = "feature authenticated_tests disabled"]
+    pub fn authenticated_tests() {}
+}
+
+#[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
     use tucant_types::{LoginRequest, TucanError};
 
