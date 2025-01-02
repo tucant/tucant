@@ -79,14 +79,12 @@ impl Fetcher {
         self.anmeldung_file.write_all(b"\n").await?;
 
         println!("anmeldung {}", anmeldung_request.arguments);
-        let anmeldung_response =
-            anmeldung_cached(tucan, login_response, anmeldung_request).await?;
+        let anmeldung_response = anmeldung_cached(tucan, login_response, anmeldung_request).await?;
         println!("anmeldung counter: {}", self.anmeldung_counter);
         self.anmeldung_counter += 1;
 
         for entry in &anmeldung_response.submenus {
-            Box::pin(self.recursive_anmeldung(tucan, login_response, entry.1.clone()))
-                    .await?;
+            Box::pin(self.recursive_anmeldung(tucan, login_response, entry.1.clone())).await?;
         }
 
         for entry in &anmeldung_response.entries {
