@@ -440,7 +440,7 @@ pub fn navbar() -> Html {
     html! {
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">{ "Navbar" }</a>
+                <a class="navbar-brand" href="#">{ "TUCaN't" }</a>
                 <button
                     class="navbar-toggler"
                     type="button"
@@ -468,6 +468,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Aktuelles" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Nachrichten" }</a>
                                 </li>
@@ -489,6 +490,7 @@ pub fn navbar() -> Html {
                                         { "Vorlesungsverzeichnis" }
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">
                                         { "Lehrveranstaltungssuche" }
@@ -536,6 +538,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Stundenplan" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Tagesansicht" }</a>
                                 </li>
@@ -564,6 +567,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Veranstaltungen" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Meine Module" }</a>
                                 </li>
@@ -599,6 +603,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Prüfungen" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Meine Prüfungen" }</a>
                                 </li>
@@ -627,6 +632,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Service" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Persönliche Daten" }</a>
                                 </li>
@@ -655,6 +661,7 @@ pub fn navbar() -> Html {
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Bewerbung" }</a>
                                 </li>
+                                <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <a class="dropdown-item" href="#">{ "Meine Bewerbung" }</a>
                                 </li>
