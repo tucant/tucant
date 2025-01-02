@@ -1,5 +1,5 @@
 use scraper::CaseSensitivity::CaseSensitive;
-use scraper::{html, ElementRef, Html};
+use scraper::{ElementRef, Html};
 use tucant_types::{
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     LoginResponse,
@@ -37,7 +37,7 @@ pub async fn moduledetails(
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
     println!("{url}");
     // TODO FIXME generalize
-    let key = format!("url.{}", url);
+    let key = format!("url.{url}");
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -82,7 +82,7 @@ pub async fn moduledetails(
     let html_handler = if login_response.id != 1 {
         logged_in_head(html_handler, login_response.id)
     } else {
-        logged_out_head(html_handler)
+        logged_out_head(html_handler, 311)
     };
     html_extractor::html! {
         <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
@@ -325,10 +325,11 @@ pub async fn moduledetails(
                         </td>_
                     </tr>_
                 };
-                while let Some(true) = html_handler
+                while html_handler
                     .peek()
                     .and_then(|e| e.value().as_element())
                     .map(|e| e.has_class("tbdata", CaseSensitive))
+                    == Some(true)
                 {
                     html_handler = {
                         html_extractor::html! {
@@ -413,7 +414,7 @@ pub async fn moduledetails(
                     <th scope="col">
     };
     let (html_handler, leistungskombination) =
-        if (**html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination") {
+        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
             html_extractor::html! {
                     "Leistungskombination"
                 </th>_
@@ -447,7 +448,7 @@ pub async fn moduledetails(
             }
 
             // this part is almost repeated but not exactly
-            let html_handler = if (leistungskombination) {
+            let html_handler = if leistungskombination {
                 html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <td rowspan="0002" class="level03_color tbborderleft">_
@@ -491,7 +492,7 @@ pub async fn moduledetails(
             let mut rowspan: u64 = rowspan.parse().unwrap();
             rowspan -= 1;
             // TODO FIXME count using rowspan here
-            while (!leistungskombination && rowspan > 0) {
+            while !leistungskombination && rowspan > 0 {
                 html_handler = {
                     html_extractor::html! {
                         <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
@@ -512,13 +513,13 @@ pub async fn moduledetails(
                 rowspan -= 1;
             }
 
-            while (leistungskombination && html_handler.peek().is_some()) {
+            while leistungskombination && html_handler.peek().is_some() {
                 html_handler = {
                     html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <tr>_
                     };
-                    let html_handler = if (leistungskombination) {
+                    let html_handler = if leistungskombination {
                         html_extractor::html! {
                                 <td rowspan="0002" class="level03_color tbborderleft">_
                                     <b>
@@ -620,7 +621,7 @@ pub async fn moduledetails(
         };
         while html_handler.peek().is_some() {
             html_handler = {
-                let html_handler = if (leistungskombination) {
+                let html_handler = if leistungskombination {
                     html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <tr class="tbdata">_
@@ -646,7 +647,7 @@ pub async fn moduledetails(
                     };
                     let mut rowspan: u64 = rowspan.parse().unwrap();
                     rowspan -= 1;
-                    while (rowspan > 0) {
+                    while rowspan > 0 {
                         html_handler = {
                             html_extractor::html! {
                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_

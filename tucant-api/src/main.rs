@@ -10,7 +10,7 @@ use tucant_types::{
 };
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-    Modify, OpenApi, ToSchema,
+    Modify, OpenApi,
 };
 use utoipa_axum::{router::OpenApiRouter, routes};
 use utoipa_swagger_ui::SwaggerUi;

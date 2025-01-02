@@ -1,11 +1,14 @@
-use std::iter::Peekable;
+use std::marker::PhantomData;
 
 use data_encoding::BASE64URL_NOPAD;
-use ego_tree::iter::Children;
 use ego_tree::NodeRef;
 use scraper::node::Attrs;
 use scraper::Node;
 use sha3::{Digest, Sha3_256};
+
+// TODO FIXME according to clippy this uses lots of stack space
+
+// the idea would be to only store the current node and then have a zst of the state we're in
 
 pub struct Root<'a> {
     node: NodeRef<'a, Node>,
@@ -15,29 +18,28 @@ pub struct BeforeDoctype;
 
 pub struct AfterDoctype;
 
-pub struct InRoot<'a, OuterState, RootSubState> {
+// TODO FIXME maybe merge with InElement
+pub struct InRoot<'a, OuterState> {
     node: NodeRef<'a, Node>,
-    children: Children<'a, Node>,
-    #[allow(unused)]
-    sub_state: RootSubState,
-    outer_state: OuterState,
+    current_child: Option<NodeRef<'a, Node>>,
+    outer_state: PhantomData<OuterState>,
 }
 
 pub struct BeforeNode<'a, OuterState> {
     node: NodeRef<'a, Node>,
-    outer_state: OuterState,
+    outer_state: PhantomData<OuterState>,
 }
 
 pub struct Open<'a, OuterState> {
     element: NodeRef<'a, Node>,
     attrs: Attrs<'a>,
-    outer_state: OuterState,
+    outer_state: PhantomData<OuterState>,
 }
 
 pub struct InElement<'a, OuterState> {
     element: NodeRef<'a, Node>,
-    children: Peekable<Children<'a, Node>>,
-    outer_state: OuterState,
+    current_child: Option<NodeRef<'a, Node>>,
+    outer_state: PhantomData<OuterState>,
 }
 
 impl<'a> Root<'a> {
@@ -48,51 +50,57 @@ impl<'a> Root<'a> {
     }
 
     #[must_use]
-    pub fn document_start(self) -> InRoot<'a, Self, BeforeDoctype> {
+    pub fn document_start(self) -> InRoot<'a, Self> {
         InRoot {
             node: self.node,
-            children: self.node.children(),
-            sub_state: BeforeDoctype,
-            outer_state: self,
+            current_child: self.node.children().next(),
+            outer_state: PhantomData,
         }
     }
 }
 
-// TODO outer state here could be hardcoded to Root
-impl<'a, OuterState> InRoot<'a, OuterState, BeforeDoctype> {
+impl<'a> InRoot<'a, Root<'a>> {
     #[track_caller]
-    pub fn doctype(mut self) -> InRoot<'a, OuterState, AfterDoctype> {
-        let child_node = self.children.next().expect("expected child but none left");
+    #[must_use]
+    pub fn doctype(self) -> Self {
+        let child_node = self.current_child.expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
         };
         InRoot {
             node: self.node,
-            children: self.children,
-            sub_state: AfterDoctype,
+            current_child: child_node.next_sibling(),
             outer_state: self.outer_state,
         }
     }
 }
 
-impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
+impl<'a> InRoot<'a, Root<'a>> {
     #[track_caller]
-    pub fn skip_whitespace(mut self) -> Self {
-        let child_node = self.children.next().expect("expected child but none left");
+    pub fn end_document(self) {
+        assert_eq!(self.current_child.map(|v| v.value()), None);
+    }
+}
+
+impl<'a, OuterState> InRoot<'a, OuterState> {
+    #[track_caller]
+    #[must_use]
+    pub fn skip_whitespace(self) -> Self {
+        let child_node = self.current_child.expect("expected child but none left");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
         assert!(child_element.trim().is_empty(), "{child_element:?}");
         InRoot {
             node: self.node,
-            children: self.children,
-            sub_state: AfterDoctype,
+            current_child: child_node.next_sibling(),
             outer_state: self.outer_state,
         }
     }
 
-    pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
-        let child_node = self.children.next().expect("expected child but one left");
+    #[must_use]
+    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
+        let child_node = self.current_child.expect("expected child but one left");
         let Some(child_element) = child_node.value().as_element() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -100,12 +108,26 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         Open {
             element: child_node,
             attrs: child_element.attrs(),
-            outer_state: self,
+            outer_state: PhantomData,
         }
+    }
+
+    #[track_caller]
+    #[must_use]
+    pub fn skip_comment(mut self, expected_hash: &str) -> Self {
+        let child_node = self.current_child.expect("expected child but none left");
+        let Some(child_element) = child_node.value().as_comment() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
+        let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
+        assert_eq!(actual_hash, expected_hash);
+        self.current_child = child_node.next_sibling();
+        self
     }
 }
 
 impl<'a, OuterState> BeforeNode<'a, OuterState> {
+    #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, OuterState> {
         let Some(element) = self.node.value().as_element() else {
             panic!("unexpected element {:?}", self.node.value())
@@ -121,6 +143,7 @@ impl<'a, OuterState> BeforeNode<'a, OuterState> {
 
 impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
+    #[must_use]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         assert_eq!(
             self.attrs.next().expect("expected attribute but none left"),
@@ -130,6 +153,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     }
 
     #[track_caller]
+    #[must_use]
     pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
         let (name, value) = self.attrs.next().expect("expected attribute but none left");
         assert_eq!(name, expected_name);
@@ -137,6 +161,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     }
 
     #[track_caller]
+    #[must_use]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
         let _element = self
             .element
@@ -146,7 +171,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
         assert_eq!(self.attrs.next(), None, "unexpected attribute");
         InElement {
             element: self.element,
-            children: self.element.children().peekable(),
+            current_child: self.element.children().next(),
             outer_state: self.outer_state,
         }
     }
@@ -154,44 +179,48 @@ impl<'a, OuterState> Open<'a, OuterState> {
 
 impl<'a, OuterState> InElement<'a, OuterState> {
     pub fn peek(&mut self) -> Option<&NodeRef<'a, Node>> {
-        self.children.peek()
+        self.current_child.as_ref()
     }
 
+    #[must_use]
     pub fn next_any_child(mut self) -> (Self, NodeRef<'a, Node>) {
-        let next_child = self.children.next().expect("expected child but none left");
-        (self, next_child)
+        let current_child = self.current_child.expect("expected child but none left");
+        self.current_child = current_child.next_sibling();
+        (self, current_child)
     }
 
     #[track_caller]
+    #[must_use]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self
-            .children
-            .next()
+            .current_child
             .expect("expected child with text but got no children. maybe there is a closing tag?");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
         assert!(child_element.trim().is_empty(), "{child_element:?}");
+        self.current_child = child_node.next_sibling();
         self
     }
 
     #[track_caller]
+    #[must_use]
     pub fn text(mut self) -> (Self, String) {
         let child_node = self
-            .children
-            .next()
+            .current_child
             .expect("expected child with text but got no children. maybe there is a closing tag?");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
         };
+        self.current_child = child_node.next_sibling();
         (self, child_element.to_string())
     }
 
     #[track_caller]
+    #[must_use]
     pub fn skip_text(mut self, text: &str) -> Self {
         let child_node = self
-            .children
-            .next()
+            .current_child
             .expect("expected child with text but got no children. maybe there is a closing tag?");
         let Some(child_element) = child_node.value().as_text() else {
             panic!("unexpected element {:?}", child_node.value())
@@ -210,25 +239,28 @@ impl<'a, OuterState> InElement<'a, OuterState> {
                 );
             }
         }
-
+        self.current_child = child_node.next_sibling();
         self
     }
 
     #[track_caller]
+    #[must_use]
     pub fn skip_comment(mut self, expected_hash: &str) -> Self {
-        let child_node = self.children.next().expect("expected child but none left");
+        let child_node = self.current_child.expect("expected child but none left");
         let Some(child_element) = child_node.value().as_comment() else {
             panic!("unexpected element {:?}", child_node.value())
         };
         let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
         assert_eq!(actual_hash, expected_hash);
+        self.current_child = child_node.next_sibling();
         self
     }
 
     #[track_caller]
-    pub fn next_child_tag_open_start(mut self, name: &str) -> Open<'a, Self> {
+    #[must_use]
+    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
         let _element = self.element.value().as_element().expect("expected element");
-        let child_node = self.children.next().expect("expected one more child");
+        let child_node = self.current_child.expect("expected one more child");
         let Some(child_element) = child_node.value().as_element() else {
             panic!("unexpected element {:?}", child_node.value())
         };
@@ -240,14 +272,17 @@ impl<'a, OuterState> InElement<'a, OuterState> {
                 .as_element()
                 .expect("expected child to be element")
                 .attrs(),
-            outer_state: self,
+            outer_state: PhantomData,
         }
     }
+}
 
+impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     #[track_caller]
-    pub fn close_element(mut self, name: &str) -> OuterState {
+    #[must_use]
+    pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
         assert_eq!(
-            self.children.next().map(|child| child.value()),
+            self.current_child.map(|child| child.value()),
             None,
             "expected there to be no more children"
         );
@@ -259,6 +294,35 @@ impl<'a, OuterState> InElement<'a, OuterState> {
                 .name(),
             name
         );
-        self.outer_state
+        InElement {
+            element: self.element.parent().unwrap(),
+            current_child: self.element.next_sibling(),
+            outer_state: PhantomData,
+        }
+    }
+}
+
+impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
+    #[track_caller]
+    #[must_use]
+    pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
+        assert_eq!(
+            self.current_child.map(|child| child.value()),
+            None,
+            "expected there to be no more children"
+        );
+        assert_eq!(
+            self.element
+                .value()
+                .as_element()
+                .expect("expected element")
+                .name(),
+            name
+        );
+        InRoot {
+            node: self.element.parent().unwrap(),
+            current_child: self.element.next_sibling(),
+            outer_state: PhantomData,
+        }
     }
 }

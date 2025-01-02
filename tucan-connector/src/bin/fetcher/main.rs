@@ -1,6 +1,6 @@
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use tucan_connector::moduledetails::index::{moduledetails, moduledetails_cached};
+use tucan_connector::moduledetails::index::moduledetails;
 use tucan_connector::registration::index::anmeldung_cached;
 use tucan_connector::Tucan;
 use tucant_types::registration::AnmeldungRequest;
@@ -79,15 +79,12 @@ impl Fetcher {
         self.anmeldung_file.write_all(b"\n").await?;
 
         println!("anmeldung {}", anmeldung_request.arguments);
-        let anmeldung_response =
-            anmeldung_cached(&tucan, &login_response, anmeldung_request).await?;
+        let anmeldung_response = anmeldung_cached(tucan, login_response, anmeldung_request).await?;
         println!("anmeldung counter: {}", self.anmeldung_counter);
         self.anmeldung_counter += 1;
 
         for entry in &anmeldung_response.submenus {
-            let anmeldung_response =
-                Box::pin(self.recursive_anmeldung(&tucan, &login_response, entry.1.clone()))
-                    .await?;
+            Box::pin(self.recursive_anmeldung(tucan, login_response, entry.1.clone())).await?;
         }
 
         for entry in &anmeldung_response.entries {
@@ -99,7 +96,7 @@ impl Fetcher {
                 self.module_file.write_all(b"\n").await?;
 
                 let module_details =
-                    moduledetails(&tucan, &login_response, module.url.clone()).await?;
+                    moduledetails(tucan, login_response, module.url.clone()).await?;
                 println!("module counter: {}", self.module_counter);
                 self.module_counter += 1;
             }

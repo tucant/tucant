@@ -17,6 +17,7 @@ impl Tucan for ApiServerTucan {
             .send()
             .await
             .unwrap()
+            .error_for_status()?
             .json()
             .await
             .unwrap();
@@ -30,8 +31,15 @@ impl Tucan for ApiServerTucan {
         let client = reqwest::Client::new();
         let mut url = Url::parse("http://localhost:1420/api/v1/registration").unwrap();
         url.path_segments_mut().unwrap().push(&request.arguments);
-        let response: AnmeldungResponse =
-            client.get(url).send().await.unwrap().json().await.unwrap();
+        let response: AnmeldungResponse = client
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()?
+            .json()
+            .await
+            .unwrap();
         Ok(response)
     }
 
@@ -42,8 +50,15 @@ impl Tucan for ApiServerTucan {
         let client = reqwest::Client::new();
         let mut url = Url::parse("http://localhost:1420/api/v1/module-details").unwrap();
         url.path_segments_mut().unwrap().push(&request.arguments);
-        let response: ModuleDetailsResponse =
-            client.get(url).send().await.unwrap().json().await.unwrap();
+        let response: ModuleDetailsResponse = client
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()?
+            .json()
+            .await
+            .unwrap();
         Ok(response)
     }
 }

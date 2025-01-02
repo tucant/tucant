@@ -1,7 +1,7 @@
 use scraper::Html;
 
 use crate::{
-    common::head::{footer, html_head, logged_out_head, page_start, vv_something},
+    common::head::{footer, html_head, logged_out_head},
     html_handler::Root,
     MyClient, TucanError,
 };
@@ -28,10 +28,8 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
         </head>_
         <body class="external_pages">_
     };
-    let html_handler = logged_out_head(html_handler);
+    let html_handler = logged_out_head(html_handler, 344);
     html_extractor::html! {
-                    <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
-                    <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
                     <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
                     <script type="text/javascript">
                     </script>_
@@ -107,67 +105,45 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                         <p style="line-height: 40%;">_
                         </p>_
                         <!--"DdY7X0SUBoVh1HeLdKUt8ZGyIAO6W4ecYeXtgEC_uu8"-->_
-                        <!--"MwqVejdKVpytAu5wfbJoIpGUOEeu3mBFVtYsoeJVZck"-->_
+                        <!--"8BGIyQ2B-rACsM51dW_-fXQOxEtSSMQKmvACrZeN8RM"-->_
+                        <!--"kxxdx9oC13X6nNfsroMEL83B9YcEzTaGRyJ7fJawlxs"-->_
+                        <!--"W2wZ2lO1RgblnmkfAkpqqZROzL9YntinBONQb0VR21U"-->_
                         <div style="padding:10px; width:650px; border:thin solid grey; margin:0px; background-color:#f8f9ed;">_
                             <p style="line-height: 140%;">_
                                 <strong>
-                                    "Aktuelles: Vorlesungsverzeichnis Wintersemester 2024/25"
+                                    "Aktuelles: Fristen zur Prüfungsanmeldung in TUCaN für das Wintersemester 2024/2025\n\n"
                                 </strong>_
-                                <br></br>
-                                "\n\n\nDas Vorlesungsverzeichnis für das Wintersemester 2024/25 ist jetzt in TUCaN verfügbar. Auch die \nAnmeldung zu Modulen und Lehrveranstaltungen ist freigeschaltet. "
                             </p>_
                             <p style="line-height: 140%;">
-                                <strong>
-                                    "Hinweis für Erstsemester"
-                                </strong>
+                                "Die Anmeldezeit zu Prüfungen im WiSe 2024/2025 hat in der Regel am 15. November 2024 begonnen."
                                 <br></br>
-                                "\n  In der Regel sollte unmittelbar nach \nIhrer Aktivierung der TU-ID auch Ihr Zugang zu TUCaN freigeschaltet \nsein. Sollte es ausnahmsweise zu Verzögerungen kommen, bitten wir Sie um\n etwas Geduld. Spätestens nach zwei Arbeitstagen können Sie sich in \nTUCaN einloggen. "
-                                <br></br>
-                                "→ "
-                                <a href="https://www.tu-darmstadt.de/einfachstudieren" target="_blank">
-                                    "Alle wichtigen Infos für Erstsemester"
-                                </a>
+                                " In vielen Studiengängen endet die Anmeldefrist am 15. Dezember 2024 - bitte informieren Sie sich rechtzeitig! Ihre Anmeldung nehmen Sie im TUCaN-Webportal im Bereich "
+                                <i>
+                                    "Prüfungen"
+                                </i>
+                                " unter "
+                                <i>
+                                    "Meine Prüfungen / Anmeldung zu Prüfungen"
+                                </i>
+                                " vor."
                             </p>_
                             <p style="line-height: 140%;">
-                                <strong>
-                                    "Weiterleitung von Nachrichten"
-                                </strong>_
-                                <br></br>
-                                "\nDa wir sehr wichtige aktuelle Semesterinformationen  über TUCaN versenden, empfehlen wir Studierenden und Lehrenden dringend die Einrichtung der Weiterleitung der TUCaN-Nachrichten an Ihre E-Mail-Adresse - so bleiben Sie immer auf dem Laufenden!"
-                                <br></br>
-                                "\n→ Zur Anleitung "
-                                <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_17153.de.jsp" target="_blank">
-                                    "für Studierende"
+                                "Fachbereiche können darüber hinaus individuelle Fristen festlegen. Die An- und Abmeldefristen entnehmen Sie bitte den "
+                                <a href="http://www.tu-darmstadt.de/tucan-pruefungsdetails" target="_blank">
+                                    "Prüfungsdetails"
                                 </a>
-                                " / "
-                                <a href="https://www.intern.tu-darmstadt.de/dez_ii/campusmanagement/cm_tucan/infos_fuer_lehrende/faq_lehrende/details_18368.de.jsp" target="_blank">
-                                    "für Lehrende"
-                                </a>
+                                " in TUCaN."
+                            </p>
+                            "\n\n\n\n\n→ "
+                            <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/index.de.jsp" target="_blank">
+                                "Hilfe & FAQ zur Prüfungsanmeldung"
+                            </a>
+                            <br></br>_
+                            <p>
                             </p>_
-                            <p style="line-height: 140%;">
-                                <strong>
-                                    "Studienbescheinigung"
-                                </strong>
-                                <br></br>
-                                "\n  Studierende können ihre Studienbescheinigung  selbst im TUCaN Webportal herunterladen. Die Bescheinigungen finden Sie nach dem Login unter "
-                                <em>
-                                    "Service"
-                                </em>
-                                " / "
-                                <em>
-                                    "Meine Dokumente"
-                                </em>
-                                ".\n  "
-                                <br></br>
-                                "→ "
-                                <a href="https://www.tu-darmstadt.de/studieren/studierende_tu/studienorganisation_und_tucan/hilfe_und_faq/artikel_details_de_en_55040.de.jsp" target="_blank">
-                                    "Weitere Informationen"
-                                </a>
-                            </p>_
+                            <br></br>_
                         </div>_
-                        <!--"BXzL23o8zv_UsgZKGj3HBD_UH7DC2AqQtnCWdvcspHA"-->_
-                        <!--"kxxdx9oC13X6nNfsroMEL83B9YcEzTaGRyJ7fJawlxs"-->_
-                        <!--"0ggjGWdS9Efor0TAZW47IDLOzuE8oVxnUw6tFSZe_Is"-->_
+                        <!--"jGv5521IKCGoJrYXj5NxPjxZEq5zcNxnkwtMxKZLIX0"-->_
                         <p>_
                         </p>
                         "\n→ "
@@ -191,6 +167,11 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
             </div>_
         </div>_
     };
-    let _html_handler = footer(html_handler, 1, 19);
+    let html_handler = footer(html_handler, 1, 344);
+    html_extractor::html! {
+        <!--"kPihWIZIb5OjP2_N9Uh_xbuyYvDKOGNxX5S2d7yQjKY"-->
+        <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->
+    }
+    html_handler.end_document();
     Ok(())
 }

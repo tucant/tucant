@@ -18,7 +18,6 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
     };
     let html_handler = html_head_2(html_handler);
 
-    // TODO FIXME duplication, just grep some strings
     html_extractor::html! {
             </head>_
             <body class="redirect">_
@@ -46,6 +45,6 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
             </body>
         </html>
     };
-    let _html_handler = html_handler;
+    html_handler.end_document();
     Ok(())
 }

@@ -95,7 +95,6 @@ pub async fn after_login(
                         </th>_
                     </tr>_
     };
-    let mut html_handler = html_handler;
     while html_handler.peek().is_some() {
         html_handler = {
             html_extractor::html! {
