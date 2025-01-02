@@ -160,39 +160,28 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
         navigator.replace(&Route::Registration {
             registration: format!("{}", data.submenus[0].1.arguments.clone()),
         });
-        return Ok(html! {
-            <></>
-        });
+        return Ok(html! { <></> });
     }
 
     Ok(html! {
         <div class="container">
-        <h2 class="text-center">{"Registration"}</h2>
+            <h2 class="text-center">{ "Registration" }</h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    {
-                        data.path.iter().map(|entry| {
+                    { data.path.iter().map(|entry| {
                             html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
-                        }).collect::<Html>()
-                    }
+                        }).collect::<Html>() }
                 </ol>
             </nav>
-
-            <h2 class="text-center">{"Submenus"}</h2>
-
+            <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
-                {
-                    data.submenus.iter().map(|entry| {
+                { data.submenus.iter().map(|entry| {
                         html!{<Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
-                    }).collect::<Html>()
-                }
+                    }).collect::<Html>() }
             </ul>
-
-            <h2 class="text-center">{"Modules and courses"}</h2>
-
+            <h2 class="text-center">{ "Modules and courses" }</h2>
             <ul class="list-group">
-                {
-                    for data.entries.iter().map(|entry| {
+                { for data.entries.iter().map(|entry| {
                         let module = entry.module.as_ref();
                         html!{
                             <li class="list-group-item">
@@ -245,14 +234,15 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                 </ul>
                             </li>
                         }
-                    })
-                }
+                    }) }
             </ul>
-
             if *loading {
-                <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
+                <div
+                    style="z-index: 10000"
+                    class="position-fixed top-50 start-50 translate-middle"
+                >
                     <div class="spinner-grow" role="status">
-                        <span class="visually-hidden">{"Loading..."}</span>
+                        <span class="visually-hidden">{ "Loading..." }</span>
                     </div>
                 </div>
             }
@@ -320,23 +310,36 @@ fn login() -> HtmlResult {
 
     Ok(html! {
         <div class="container">
-
-    <form onsubmit={on_submit}>
-        <h1 class="h3 mb-3 fw-normal">{"Please sign in"}</h1>
-
-        <div class="form-floating">
-            <input required=true onchange={on_username_change} value={(*username_value_handle).clone()} type="username" class="form-control" id="floatingInput" placeholder="TU-ID" />
-            <label for="floatingInput">{"TU-ID"}</label>
+            <form onsubmit={on_submit}>
+                <h1 class="h3 mb-3 fw-normal">{ "Please sign in" }</h1>
+                <div class="form-floating">
+                    <input
+                        required=true
+                        onchange={on_username_change}
+                        value={(*username_value_handle).clone()}
+                        type="username"
+                        class="form-control"
+                        id="floatingInput"
+                        placeholder="TU-ID"
+                    />
+                    <label for="floatingInput">{ "TU-ID" }</label>
+                </div>
+                <div class="form-floating">
+                    <input
+                        required=true
+                        onchange={on_password_change}
+                        value={(*password_value_handle).clone()}
+                        type="password"
+                        class="form-control"
+                        id="floatingPassword"
+                        placeholder="Password"
+                    />
+                    <label for="floatingPassword">{ "Password" }</label>
+                </div>
+                <button class="btn btn-primary w-100 py-2" type="submit">{ "Sign in" }</button>
+            </form>
         </div>
-        <div class="form-floating">
-            <input required=true onchange={on_password_change} value={ (*password_value_handle).clone()} type="password" class="form-control" id="floatingPassword" placeholder="Password" />
-            <label for="floatingPassword">{"Password"}</label>
-        </div>
-
-        <button class="btn btn-primary w-100 py-2" type="submit">{"Sign in"}</button>
-        </form>
-        </div>
-      })
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Routable)]
@@ -357,12 +360,16 @@ fn switch(routes: Route) -> Html {
         Route::Registration { registration } => {
             html! { <Registration registration={AnmeldungRequest {arguments: registration}} /> }
         }
-        Route::NotFound => html! { <div>{"404"}</div> },
+        Route::NotFound => html! { <div>{ "404" }</div> },
         Route::Root => html! { <LoginPage /> },
         Route::ModuleDetails { module } => {
-            html! { <ModuleDetails module_details={ModuleDetailsRequest {
+            html! {
+                <ModuleDetails
+                    module_details={ModuleDetailsRequest {
                 arguments: module
-            }} /> }
+            }}
+                />
+            }
         }
     }
 }
@@ -395,8 +402,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
 
     Ok(html! {
         <div class="container">
-        {
-            data.as_ref().map(|module| {
+            { data.as_ref().map(|module| {
                 html!{
                     <div>
                         <h1>{ &module.module_id }</h1>
@@ -424,8 +430,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
                         <span class="visually-hidden">{"Loading..."}</span>
                     </div>
                 </div>
-            } })
-        }
+            } }) }
         </div>
     })
 }
@@ -437,70 +442,108 @@ pub fn app(initial_session: &Option<CurrentSession>) -> HtmlResult {
 
     Ok(html! {
         <>
-        <style>
-            {include_str!("./bootstrap.min.css")}
-        </style>
-
-        <ContextProvider<Option<CurrentSession>> context={(*ctx).clone()}>
-            <HashRouter>
-
-
-            <nav class="navbar navbar-expand-lg bg-body-tertiary">
-            <div class="container-fluid">
-              <a class="navbar-brand" href="#">{"Navbar"}</a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                  <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">{"Home"}</a>
-                  </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {"Aktuelles"}
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">{"Aktuelles"}</a></li>
-                        <li><a class="dropdown-item" href="#">{"Nachrichten"}</a></li>
-                    </ul>
-                </li>
-
-                  <li class="nav-item">
-                    <a class="nav-link" href="#">{"Link"}</a>
-                  </li>
-                  <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      {"Dropdown"}
-                    </a>
-                    <ul class="dropdown-menu">
-                      <li><a class="dropdown-item" href="#">{"Action"}</a></li>
-                      <li><a class="dropdown-item" href="#">{"Another action"}</a></li>
-                      <li><hr class="dropdown-divider" /></li>
-                      <li><a class="dropdown-item" href="#">{"Something else here"}</a></li>
-                    </ul>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link disabled" aria-disabled="true">{"Disabled"}</a>
-                  </li>
-                </ul>
-                <form class="d-flex" role="search">
-                  <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-                  <button class="btn btn-outline-success" type="submit">{"Search"}</button>
-                </form>
-              </div>
-            </div>
-          </nav>
-
-
-                <Switch<Route> render={switch} />
-
-
-
-
-
-            </HashRouter>
-        </ContextProvider<Option<CurrentSession>>>
+            <style>{ include_str!("./bootstrap.min.css") }</style>
+            <ContextProvider<Option<CurrentSession>> context={(*ctx).clone()}>
+                <HashRouter>
+                    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                        <div class="container-fluid">
+                            <a class="navbar-brand" href="#">{ "Navbar" }</a>
+                            <button
+                                class="navbar-toggler"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#navbarSupportedContent"
+                                aria-controls="navbarSupportedContent"
+                                aria-expanded="false"
+                                aria-label="Toggle navigation"
+                            >
+                                <span class="navbar-toggler-icon" />
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" aria-current="page" href="#">
+                                            { "Home" }
+                                        </a>
+                                    </li>
+                                    <li class="nav-item dropdown">
+                                        <a
+                                            class="nav-link dropdown-toggle"
+                                            href="#"
+                                            role="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
+                                            { "Aktuelles" }
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    { "Aktuelles" }
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    { "Nachrichten" }
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#">{ "Link" }</a>
+                                    </li>
+                                    <li class="nav-item dropdown">
+                                        <a
+                                            class="nav-link dropdown-toggle"
+                                            href="#"
+                                            role="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        >
+                                            { "Dropdown" }
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#">{ "Action" }</a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    { "Another action" }
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider" />
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#">
+                                                    { "Something else here" }
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" aria-disabled="true">
+                                            { "Disabled" }
+                                        </a>
+                                    </li>
+                                </ul>
+                                <form class="d-flex" role="search">
+                                    <input
+                                        class="form-control me-2"
+                                        type="search"
+                                        placeholder="Search"
+                                        aria-label="Search"
+                                    />
+                                    <button class="btn btn-outline-success" type="submit">
+                                        { "Search" }
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </nav>
+                    <Switch<Route> render={switch} />
+                </HashRouter>
+            </ContextProvider<Option<CurrentSession>>>
         </>
     })
 }
