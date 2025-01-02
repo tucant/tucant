@@ -245,7 +245,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}",  current_session.as_ref().map(|s| s.id.to_string()).unwrap_or("1".to_owned()), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", current_session.as_ref().map(|s| s.id.to_string()).unwrap_or("1".to_owned()), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
@@ -386,6 +386,21 @@ fn logout() -> HtmlResult {
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
+
+            let window = web_sys::window().unwrap();
+            let document = window.document().unwrap();
+            let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+            html_document
+                .set_cookie(&format!(
+                    "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
+                ))
+                .unwrap();
+            html_document
+                .set_cookie(&format!(
+                    "cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
+                ))
+                .unwrap();
+
             current_session.set(None);
         })
     };

@@ -492,9 +492,7 @@ pub fn navbar() -> Html {
                             <li class="nav-item">
                                 <a
                                     class="nav-link"
-                                    href="#"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target=".navbar-collapse.show"
+                                    href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome"
                                 >
                                     { "Startseite" }
                                 </a>
