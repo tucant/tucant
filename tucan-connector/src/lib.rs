@@ -176,12 +176,12 @@ mod authenticated_tests {
             login(
                 &tucan.client,
                 &LoginRequest {
-                    username: std::env::var("USERNAME").unwrap().parse().unwrap(),
-                    password: std::env::var("PASSWORD").unwrap().parse().unwrap(),
+                    username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
+                    password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
                 },
             )
             .await,
-            Err(TucanError::InvalidCredentials)
+            Ok(_)
         ));
     }
 }
