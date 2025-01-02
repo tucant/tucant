@@ -1,4 +1,4 @@
-use crate::html_handler::{self, AfterDoctype, InElement, InRoot, Root};
+use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
 
 #[must_use]
 pub fn html_head_2<'a>(
@@ -630,7 +630,7 @@ pub fn logged_in_head<'a>(
     html_handler
 }
 
-pub fn logged_out_head<'a>(
+#[must_use] pub fn logged_out_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
 ) -> InElement<
     'a,

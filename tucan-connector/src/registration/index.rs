@@ -40,7 +40,7 @@ pub async fn anmeldung(
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
     // TODO FIXME generalize
-    let key = format!("url.{}", url);
+    let key = format!("url.{url}");
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -468,7 +468,7 @@ pub async fn anmeldung(
                                 <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
                                 <td class="tbdata">_
                                 );
-                            let mut html_handler = if html_handler.peek().is_some() {
+                            let html_handler = if html_handler.peek().is_some() {
                                 html_extractor::html!(<img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_);
                                 html_handler
                             } else {

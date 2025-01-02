@@ -60,7 +60,7 @@ impl<'a> Root<'a> {
 
 impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
     #[track_caller]
-    pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
+    #[must_use] pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
         let child_node = self.children.next().expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())

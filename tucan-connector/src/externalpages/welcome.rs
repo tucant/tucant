@@ -1,7 +1,7 @@
 use scraper::Html;
 
 use crate::{
-    common::head::{footer, html_head, logged_out_head, page_start, vv_something},
+    common::head::{footer, html_head, logged_out_head},
     html_handler::Root,
     MyClient, TucanError,
 };
