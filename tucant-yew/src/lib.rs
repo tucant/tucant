@@ -42,7 +42,7 @@ mod tauri;
 type TucanType = TauriTucan;
 #[cfg(feature = "direct")]
 type TucanType = direct::DirectTucan;
-#[cfg(not(any(feature = "tauri", feature = "direct")))]
+#[cfg(feature = "api")]
 type TucanType = ApiServerTucan;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -51,37 +51,49 @@ pub struct CurrentSession {
     pub cnsc: String,
 }
 
+#[cfg(feature = "direct")]
+pub async fn login_response() -> LoginResponse {
+    {
+        let session_id = web_extensions_sys::chrome()
+            .storage()
+            .local()
+            .get(&JsValue::from_str("sessionId"))
+            .await
+            .unwrap();
+
+        info!("session_id: {:?}", session_id);
+        let session_id =
+            js_sys::Reflect::get(&session_id, &JsValue::from_str("sessionId")).unwrap();
+        info!("session_id: {:?}", session_id);
+        let session_id = session_id.as_string().unwrap();
+        info!("session_id: {:?}", session_id);
+
+        let cnsc = web_extensions_sys::chrome()
+            .cookies()
+            .get(CookieDetails {
+                name: "cnsc".to_owned(),
+                url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
+                partition_key: None,
+                store_id: None,
+            })
+            .await
+            .unwrap();
+
+        LoginResponse {
+            id: session_id.parse().unwrap(),
+            cookie_cnsc: cnsc.value,
+        }
+    }
+}
+
+#[cfg(feature = "api")]
 pub async fn login_response() -> LoginResponse {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    let session_id = web_extensions_sys::chrome()
-        .storage()
-        .local()
-        .get(&JsValue::from_str("sessionId"))
-        .await
-        .unwrap();
-
-    info!("session_id: {:?}", session_id);
-    let session_id = js_sys::Reflect::get(&session_id, &JsValue::from_str("sessionId")).unwrap();
-    info!("session_id: {:?}", session_id);
-    let session_id = session_id.as_string().unwrap();
-    info!("session_id: {:?}", session_id);
-
-    let cnsc = web_extensions_sys::chrome()
-        .cookies()
-        .get(CookieDetails {
-            name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
-            partition_key: None,
-            store_id: None,
-        })
-        .await
-        .unwrap();
-
-    /*LoginResponse {
+    LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
@@ -104,10 +116,6 @@ pub async fn login_response() -> LoginResponse {
                 }
             })
             .unwrap(),
-    }*/
-    LoginResponse {
-        id: session_id.parse().unwrap(),
-        cookie_cnsc: cnsc.value,
     }
 }
 
