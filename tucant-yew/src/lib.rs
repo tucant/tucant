@@ -165,12 +165,20 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             return Ok(html! {
                 <div class="container">
                     <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="Error:">
-                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            role="img"
+                            aria-label="Error:"
+                        >
+                            <path
+                                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+                            />
                         </svg>
-                        <div>
-                            {error}
-                        </div>
+                        <div>{ error }</div>
                     </div>
                 </div>
             })
@@ -334,27 +342,27 @@ fn login() -> HtmlResult {
     };
 
     Ok(html! {
-    <form onsubmit={on_submit} class="d-flex" role="search">
-        <input
-            onchange={on_username_change}
-            value={(*username_value_handle).clone()}
-            required=true
-            class="form-control me-2"
-            type="username"
-            placeholder="TU-ID"
-            aria-label="TU-ID"
-        />
-        <input
-            onchange={on_password_change}
-            value={(*password_value_handle).clone()}
-            required=true
-            class="form-control me-2"
-            type="password"
-            placeholder="Password"
-            aria-label="Password"
-        />
-        <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
-    </form>
+        <form onsubmit={on_submit} class="d-flex" role="search">
+            <input
+                onchange={on_username_change}
+                value={(*username_value_handle).clone()}
+                required=true
+                class="form-control me-2"
+                type="username"
+                placeholder="TU-ID"
+                aria-label="TU-ID"
+            />
+            <input
+                onchange={on_password_change}
+                value={(*password_value_handle).clone()}
+                required=true
+                class="form-control me-2"
+                type="password"
+                placeholder="Password"
+                aria-label="Password"
+            />
+            <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
+        </form>
     })
 }
 
@@ -377,7 +385,7 @@ fn switch(routes: Route) -> Html {
             html! { <Registration registration={AnmeldungRequest {arguments: registration}} /> }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
-        Route::Root => html! { <div>{"TODO"}</div> },
+        Route::Root => html! { <div>{ "TODO" }</div> },
         Route::ModuleDetails { module } => {
             html! {
                 <ModuleDetails
@@ -482,11 +490,27 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Aktuelles" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Aktuelles" }
+                                    </a>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Nachrichten" }</a>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Nachrichten" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -502,41 +526,87 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Vorlesungsverzeichnis" }
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Lehrveranstaltungssuche" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Raumsuche" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Raumsuche" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Aktuell - Wintersemester 2024/25" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Vorlesungsverzeichnis Gasthörer_innen WiSe 2024/25" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Vorlesungsverzeichnis des SoSe 2024" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Vorlesungsverzeichnis des WiSe 2023/24" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Archiv" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Archiv" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -552,20 +622,57 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Stundenplan" }</a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Tagesansicht" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Wochenansicht" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Monatsansicht" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Stundenplan" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Export" }</a>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Tagesansicht" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Wochenansicht" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Monatsansicht" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Export" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -581,25 +688,65 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Veranstaltungen" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Veranstaltungen" }
+                                    </a>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Module" }</a>
+                                    <hr class="dropdown-divider" />
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Module" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Meine Veranstaltungen" }
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Wahlbereiche" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Wahlbereiche" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#/registration/,-N000311,-A" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Anmeldung" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#/registration/,-N000311,-A"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Anmeldung" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
                                         { "Mein aktueller Anmeldestatus" }
                                     </a>
                                 </li>
@@ -617,20 +764,57 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Prüfungen" }</a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Prüfungen" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Mein Prüfungsplan" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Semesterergebnisse" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Prüfungen" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Leistungsspiegel" }</a>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Prüfungen" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Mein Prüfungsplan" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Semesterergebnisse" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Leistungsspiegel" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -646,20 +830,57 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Service" }</a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Persönliche Daten" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Dokumente" }</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Anträge" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Service" }
+                                    </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Sperren" }</a>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Persönliche Daten" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Dokumente" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Anträge" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Sperren" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
@@ -675,19 +896,49 @@ pub fn navbar() -> Html {
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Bewerbung" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Bewerbung" }
+                                    </a>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Bewerbung" }</a>
+                                    <hr class="dropdown-divider" />
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Meine Dokumente" }</a>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Bewerbung" }
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        class="dropdown-item"
+                                        href="#"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target=".navbar-collapse.show"
+                                    >
+                                        { "Meine Dokumente" }
+                                    </a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target=".navbar-collapse.show">{ "Hilfe" }</a>
+                            <a
+                                class="nav-link"
+                                href="#"
+                                data-bs-toggle="collapse"
+                                data-bs-target=".navbar-collapse.show"
+                            >
+                                { "Hilfe" }
+                            </a>
                         </li>
                     </ul>
                     <LoginComponent />
