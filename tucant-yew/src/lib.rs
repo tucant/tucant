@@ -1,6 +1,6 @@
 use api_server::ApiServerTucan;
 use key_value_database::Database;
-use std::rc::Rc;
+use std::{ops::Deref, rc::Rc};
 use tauri::TauriTucan;
 use tucant_types::{
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -126,11 +126,13 @@ pub struct AnmeldungRequestProps {
 
 #[function_component(Registration)]
 fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
-    let data = use_state(|| AnmeldungResponse {
-        path: vec![],
-        submenus: vec![],
-        entries: vec![],
-        additional_information: vec![],
+    let data = use_state(|| {
+        Ok(AnmeldungResponse {
+            path: vec![],
+            submenus: vec![],
+            entries: vec![],
+            additional_information: vec![],
+        })
     });
     let loading = use_state(|| false);
     {
@@ -141,16 +143,39 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::anmeldung(login_response().await, anmeldung_request)
-                    .await
-                    .unwrap();
-                data.set(response);
-                loading.set(false);
+                match TucanType::anmeldung(login_response().await, anmeldung_request).await {
+                    Ok(response) => {
+                        data.set(Ok(response));
+                        loading.set(false);
+                    }
+                    Err(error) => {
+                        data.set(Err(error.to_string()));
+                        loading.set(false);
+                    }
+                }
             })
         });
     }
     let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
     let navigator = use_navigator().unwrap();
+
+    let data = match data.deref() {
+        Ok(data) => data,
+        Err(error) => {
+            return Ok(html! {
+                <div class="container">
+                    <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="Error:">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                        </svg>
+                        <div>
+                            {error}
+                        </div>
+                    </div>
+                </div>
+            })
+        }
+    };
 
     if (data.submenus.len() == 1
         && data.additional_information.is_empty()
