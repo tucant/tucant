@@ -45,14 +45,8 @@ type TucanType = direct::DirectTucan;
 #[cfg(feature = "api")]
 type TucanType = ApiServerTucan;
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct CurrentSession {
-    pub id: String,
-    pub cnsc: String,
-}
-
 #[cfg(feature = "direct")]
-pub async fn login_response() -> LoginResponse {
+pub async fn login_response() -> Option<LoginResponse> {
     {
         let session_id = web_extensions_sys::chrome()
             .storage()
@@ -79,21 +73,21 @@ pub async fn login_response() -> LoginResponse {
             .await
             .unwrap();
 
-        LoginResponse {
+        Some(LoginResponse {
             id: session_id.parse().unwrap(),
             cookie_cnsc: cnsc.value,
-        }
+        })
     }
 }
 
 #[cfg(feature = "api")]
-pub async fn login_response() -> LoginResponse {
+pub async fn login_response() -> Option<LoginResponse> {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    LoginResponse {
+    Some(LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
@@ -102,21 +96,18 @@ pub async fn login_response() -> LoginResponse {
                 } else {
                     None
                 }
-            })
-            .unwrap()
+            })?
             .parse()
             .unwrap(),
-        cookie_cnsc: cookie::Cookie::split_parse(&cookie)
-            .find_map(|cookie| {
-                let cookie = cookie.unwrap();
-                if cookie.name() == "cnsc" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
-            })
-            .unwrap(),
-    }
+        cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
+            let cookie = cookie.unwrap();
+            if cookie.name() == "cnsc" {
+                Some(cookie.value().to_string())
+            } else {
+                None
+            }
+        })?,
+    })
 }
 
 #[derive(Properties, PartialEq)]
@@ -135,6 +126,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
         })
     });
     let loading = use_state(|| false);
+    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -143,7 +135,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                match TucanType::anmeldung(login_response().await, anmeldung_request).await {
+                match TucanType::anmeldung(current_session.unwrap(), anmeldung_request).await {
                     Ok(response) => {
                         data.set(Ok(response));
                         loading.set(false);
@@ -156,7 +148,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             })
         });
     }
-    let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
+    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
     let navigator = use_navigator().unwrap();
 
     let data = match data.deref() {
@@ -242,7 +234,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}",  current_session.as_ref().map(|s| s.id.as_str()).unwrap_or("1"), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}",  current_session.as_ref().map(|s| s.id.to_string()).unwrap_or("1".to_owned()), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
@@ -407,6 +399,7 @@ pub struct ModuleDetailsProps {
 fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
     let data = use_state(|| None);
     let loading = use_state(|| false);
+    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -415,7 +408,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
             let request = request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::module_details(&login_response().await, request)
+                let response = TucanType::module_details(&current_session.unwrap(), request)
                     .await
                     .unwrap();
                 data.set(Some(response));
@@ -461,7 +454,7 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
 
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
-    let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
+    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
 
     html! {
         <nav class="navbar navbar-expand-xl bg-body-tertiary">
@@ -1107,18 +1100,18 @@ pub fn navbar() -> Html {
 
 #[autoprops]
 #[function_component(App)]
-pub fn app(initial_session: &Option<CurrentSession>) -> HtmlResult {
+pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {
         <>
             <style>{ include_str!("./bootstrap.min.css") }</style>
-            <ContextProvider<Option<CurrentSession>> context={(*ctx).clone()}>
+            <ContextProvider<Option<LoginResponse>> context={(*ctx).clone()}>
                 <HashRouter>
                     <Navbar />
                     <Switch<Route> render={switch} />
                 </HashRouter>
-            </ContextProvider<Option<CurrentSession>>>
+            </ContextProvider<Option<LoginResponse>>>
         </>
     })
 }

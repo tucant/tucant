@@ -1,5 +1,5 @@
 use log::info;
-use tucant_yew::{login_response, App, AppProps, CurrentSession};
+use tucant_yew::{login_response, App, AppProps};
 use wasm_bindgen::prelude::wasm_bindgen;
 use yew::set_custom_panic_hook;
 
@@ -40,10 +40,7 @@ async fn main() {
     let login_response = login_response().await;
 
     yew::Renderer::<App>::with_props(AppProps {
-        initial_session: Some(CurrentSession {
-            id: login_response.id.to_string(),
-            cnsc: login_response.cookie_cnsc,
-        }),
+        initial_session: login_response,
     })
     .render();
 }
