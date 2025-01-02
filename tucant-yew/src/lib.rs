@@ -126,7 +126,8 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
         })
     });
     let loading = use_state(|| false);
-    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -135,7 +136,12 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                match TucanType::anmeldung(current_session.unwrap(), anmeldung_request).await {
+                match TucanType::anmeldung(
+                    current_session.deref().clone().unwrap(),
+                    anmeldung_request,
+                )
+                .await
+                {
                     Ok(response) => {
                         data.set(Ok(response));
                         loading.set(false);
@@ -148,7 +154,8 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             })
         });
     }
-    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     let navigator = use_navigator().unwrap();
 
     let data = match data.deref() {
@@ -299,14 +306,19 @@ fn login() -> HtmlResult {
         })
     };
 
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+
     let on_submit = {
         let username_value_handle = username_value_handle.clone();
         let password_value_handle = password_value_handle.clone();
+        let current_session = current_session.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             let username = (*username_value_handle).clone();
             let password = (*password_value_handle).clone();
+            let current_session = current_session.clone();
             password_value_handle.set("".to_owned());
 
             let navigator = navigator.clone();
@@ -325,6 +337,8 @@ fn login() -> HtmlResult {
                 html_document
                     .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
                     .unwrap();
+
+                current_session.set(Some(response.clone()));
 
                 navigator.push(&Route::Registration {
                     registration: format!("-N{:015},-N000311,-A", response.id),
@@ -399,7 +413,8 @@ pub struct ModuleDetailsProps {
 fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
     let data = use_state(|| None);
     let loading = use_state(|| false);
-    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -408,9 +423,10 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
             let request = request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::module_details(&current_session.unwrap(), request)
-                    .await
-                    .unwrap();
+                let response =
+                    TucanType::module_details(&current_session.deref().clone().unwrap(), request)
+                        .await
+                        .unwrap();
                 data.set(Some(response));
                 loading.set(false);
             })
@@ -454,7 +470,8 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
 
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
-    let current_session = use_context::<Option<LoginResponse>>().expect("no ctx found");
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     html! {
         <nav class="navbar navbar-expand-xl bg-body-tertiary">
@@ -1106,12 +1123,12 @@ pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
     Ok(html! {
         <>
             <style>{ include_str!("./bootstrap.min.css") }</style>
-            <ContextProvider<Option<LoginResponse>> context={(*ctx).clone()}>
+            <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
                 <HashRouter>
                     <Navbar />
                     <Switch<Route> render={switch} />
                 </HashRouter>
-            </ContextProvider<Option<LoginResponse>>>
+            </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
         </>
     })
 }
