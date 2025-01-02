@@ -5,9 +5,8 @@ use crate::{LoginComponent, LogoutComponent};
 
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
-    //let current_session =
-    //     use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    let current_session = None::<()>;
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     html! {
         <nav class="navbar navbar-expand-xl bg-body-tertiary">
@@ -642,11 +641,7 @@ pub fn navbar() -> Html {
                             </li>
                         }
                     </ul>
-                    if !current_session.is_some() {
-                        <LoginComponent />
-                    } else {
-                        <LogoutComponent />
-                    }
+
                 </div>
             </div>
         </nav>
