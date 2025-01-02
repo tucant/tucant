@@ -580,7 +580,7 @@ pub fn navbar() -> Html {
                                     <a class="dropdown-item" href="#">{ "Meine Wahlbereiche" }</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="#">{ "Anmeldung" }</a>
+                                    <a class="dropdown-item" href="#/registration/,-N000311,-A">{ "Anmeldung" }</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="#">
