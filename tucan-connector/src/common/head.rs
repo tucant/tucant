@@ -2,8 +2,8 @@ use crate::html_handler::{AfterDoctype, InElement, InRoot, Root};
 
 #[must_use]
 pub fn html_head_2<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
-) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
+) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
         <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
         <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
@@ -28,8 +28,8 @@ pub fn html_head_2<'a>(
 
 #[must_use]
 pub fn html_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
-) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>> {
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
+) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
         <title>
             "Technische Universität Darmstadt"
@@ -77,16 +77,10 @@ pub fn html_head<'a>(
 
 #[must_use]
 pub fn page_start<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
 ) -> InElement<
     'a,
-    InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
-        >,
-    >,
+    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
 > {
     html_extractor::html! {
         <div id="Cn-system-desc">_
@@ -182,10 +176,7 @@ pub fn vv_something<'a>(
             'a,
             InElement<
                 'a,
-                InElement<
-                    'a,
-                    InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
-                >,
+                InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
             >,
         >,
     >,
@@ -196,10 +187,7 @@ pub fn vv_something<'a>(
         'a,
         InElement<
             'a,
-            InElement<
-                'a,
-                InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
-            >,
+            InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
         >,
     >,
 > {
@@ -273,17 +261,11 @@ pub fn vv_something<'a>(
 
 #[must_use]
 pub fn logged_in_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     id: u64,
 ) -> InElement<
     'a,
-    InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
-        >,
-    >,
+    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
 > {
     assert_ne!(id, 1);
     let html_handler = page_start(html_handler);
@@ -631,17 +613,11 @@ pub fn logged_in_head<'a>(
 
 #[must_use]
 pub fn logged_out_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>,
+    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     menuno: u64,
 ) -> InElement<
     'a,
-    InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
-        >,
-    >,
+    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
 > {
     let html_handler = page_start(html_handler);
     html_extractor::html! {
@@ -747,10 +723,10 @@ pub fn logged_out_head<'a>(
 
 #[must_use]
 pub fn footer<'a>(
-    html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>, AfterDoctype>>>>,
+    html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
     id: u64,
     subid: u64,
-) -> InRoot<'a, Root<'a>, AfterDoctype> {
+) -> InRoot<'a, Root<'a>> {
     html_extractor::html! {
                     <div id="pageFoot" class="pageElementTop">_
                         <div id="pageFootControls" class="pageElementTop">_

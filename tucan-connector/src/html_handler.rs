@@ -9,6 +9,8 @@ use sha3::{Digest, Sha3_256};
 
 // TODO FIXME according to clippy this uses lots of stack space
 
+// the idea would be to only store the current node and then have a zst of the state we're in
+
 pub struct Root<'a> {
     node: NodeRef<'a, Node>,
 }
@@ -17,11 +19,9 @@ pub struct BeforeDoctype;
 
 pub struct AfterDoctype;
 
-pub struct InRoot<'a, OuterState, RootSubState> {
+pub struct InRoot<'a, OuterState> {
     node: NodeRef<'a, Node>,
     children: Children<'a, Node>,
-    #[allow(unused)]
-    sub_state: RootSubState,
     outer_state: OuterState,
 }
 
@@ -50,20 +50,19 @@ impl<'a> Root<'a> {
     }
 
     #[must_use]
-    pub fn document_start(self) -> InRoot<'a, Self, BeforeDoctype> {
+    pub fn document_start(self) -> InRoot<'a, Self> {
         InRoot {
             node: self.node,
             children: self.node.children(),
-            sub_state: BeforeDoctype,
             outer_state: self,
         }
     }
 }
 
-impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
+impl<'a> InRoot<'a, Root<'a>> {
     #[track_caller]
     #[must_use]
-    pub fn doctype(mut self) -> InRoot<'a, Root<'a>, AfterDoctype> {
+    pub fn doctype(mut self) -> InRoot<'a, Root<'a>> {
         let child_node = self.children.next().expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
             panic!("unexpected element {:?}", child_node.value())
@@ -71,20 +70,19 @@ impl<'a> InRoot<'a, Root<'a>, BeforeDoctype> {
         InRoot {
             node: self.node,
             children: self.children,
-            sub_state: AfterDoctype,
             outer_state: self.outer_state,
         }
     }
 }
 
-impl<'a> InRoot<'a, Root<'a>, AfterDoctype> {
+impl<'a> InRoot<'a, Root<'a>> {
     #[track_caller]
     pub fn end_document(mut self) {
         assert_eq!(self.children.next().map(|v| v.value()), None);
     }
 }
 
-impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
+impl<'a, OuterState> InRoot<'a, OuterState> {
     #[track_caller]
     pub fn skip_whitespace(mut self) -> Self {
         let child_node = self.children.next().expect("expected child but none left");
@@ -95,7 +93,6 @@ impl<'a, OuterState> InRoot<'a, OuterState, AfterDoctype> {
         InRoot {
             node: self.node,
             children: self.children,
-            sub_state: AfterDoctype,
             outer_state: self.outer_state,
         }
     }
