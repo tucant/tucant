@@ -588,41 +588,62 @@ pub async fn coursedetails(
                 </div>_
                 <ul class="courseList">_
     }
-    while html_handler.peek().is_some() {
-        for i in 0..5 {
-            if html_handler
-                .peek()
-                .unwrap()
-                .value()
-                .as_element()
-                .unwrap()
-                .attr("class")
-                .unwrap()
-                == "courseListCell numout"
-            {
-                html_handler = {
-                    html_extractor::html! {
-                        <li class="courseListCell numout" title=title>
-                            number
-                        </li>_
-                    }
-                    if i == 4 {
-                        html_handler = {
-                            html_extractor::html! {
-                                <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
-                            }
-                            html_handler
+    if **html_handler
+        .peek()
+        .unwrap()
+        .children()
+        .next()
+        .unwrap()
+        .value()
+        .as_text()
+        .unwrap()
+        == *"Es liegen keine Termine vor."
+    {
+        html_handler = {
+            html_extractor::html! {
+                <li class="courseListCell noLink">
+                    "Es liegen keine Termine vor."
+                </li>_
+            }
+            html_handler
+        }
+    } else {
+        while html_handler.peek().is_some() {
+            for i in 0..5 {
+                if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_element()
+                    .unwrap()
+                    .attr("class")
+                    .unwrap()
+                    == "courseListCell numout"
+                {
+                    html_handler = {
+                        html_extractor::html! {
+                            <li class="courseListCell numout" title=title>
+                                number
+                            </li>_
                         }
+                        if i == 4 {
+                            html_handler = {
+                                html_extractor::html! {
+                                    <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
+                                }
+                                html_handler
+                            }
+                        }
+                        html_handler
                     }
-                    html_handler
-                }
-            } else {
-                html_handler = {
-                    html_extractor::html! {
-                        <li class="courseListCell noLink">_
-                        </li>_
+                } else {
+                    html_handler = {
+                        html_extractor::html! {
+                            <li class="courseListCell noLink">_
+                            </li>_
+                        }
+                        html_handler
                     }
-                    html_handler
                 }
             }
         }
