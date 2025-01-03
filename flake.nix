@@ -32,6 +32,7 @@
 
         rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".minimal.override {
           extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
+          targets = [ "wasm32-unknown-unknown" ];
         };
         craneNightlyLib = (crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor;
 
