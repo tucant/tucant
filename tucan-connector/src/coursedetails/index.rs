@@ -272,7 +272,16 @@ pub async fn coursedetails(
                                     uebungsleiter
                                 </p>_
                                 <p>
-                                    date_range
+                    }
+                    if html_handler.peek().is_some() {
+                        html_handler = {
+                            html_extractor::html! {
+                                date_range
+                            }
+                            html_handler
+                        }
+                    };
+                    html_extractor::html! {
                                 </p>_
                             </div>_
                             <div class="dl-link">_
@@ -425,12 +434,9 @@ pub async fn coursedetails(
                     <td class="tbdata rw rw-course-to" name="appointmentDateTo">
                         time_end
                     </td>_
-                    <td class="tbdata rw rw-course-room">_
-                        <a name="appointmentRooms" href=room_url>
-                            room
-                        </a>
+                    <td class="tbdata rw rw-course-room">
             }
-            while !html_handler
+            if html_handler
                 .peek()
                 .unwrap()
                 .value()
@@ -440,16 +446,46 @@ pub async fn coursedetails(
                 .is_empty()
             {
                 html_handler = {
-                    html_extractor::html! {
-                        "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                    html_extractor::html! {_
                         <a name="appointmentRooms" href=room_url>
                             room
                         </a>
                     }
                     html_handler
+                };
+                while !html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_text()
+                    .unwrap()
+                    .trim()
+                    .is_empty()
+                {
+                    html_handler = {
+                        html_extractor::html! {
+                            "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                            <a name="appointmentRooms" href=room_url>
+                                room
+                            </a>
+                        }
+                        html_handler
+                    }
+                }
+                html_handler = {
+                    html_extractor::html! {_
+                    }
+                    html_handler
+                }
+            } else {
+                html_handler = {
+                    html_extractor::html! {
+                        room_text
+                    }
+                    html_handler
                 }
             }
-            html_extractor::html! {_
+            html_extractor::html! {
                     </td>_
                     <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
                         instructors
