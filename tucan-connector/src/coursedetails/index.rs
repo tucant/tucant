@@ -418,88 +418,112 @@ pub async fn coursedetails(
                     </td>_
                 </tr>_
     };
-    while html_handler.peek().is_some() {
+    if html_handler
+        .peek()
+        .unwrap()
+        .children()
+        .nth(1)
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .attr("colspan")
+        .is_some()
+    {
         html_handler = {
             html_extractor::html! {
                 <tr>_
-                    <td class="tbdata rw">
-                        id
+                    <td class="tbdata" colspan="6">
+                        "Es liegen keine Termine vor."
                     </td>_
-                    <td class="tbdata rw rw-course-date" name="appointmentDate">
-                        date
-                    </td>_
-                    <td class="tbdata rw rw-course-from" name="appointmentTimeFrom">
-                        time_start
-                    </td>_
-                    <td class="tbdata rw rw-course-to" name="appointmentDateTo">
-                        time_end
-                    </td>_
-                    <td class="tbdata rw rw-course-room">
+                </tr>_
             }
-            if html_handler
-                .peek()
-                .unwrap()
-                .value()
-                .as_text()
-                .unwrap()
-                .trim()
-                .is_empty()
-            {
-                html_handler = {
-                    html_extractor::html! {_
-                    }
-                    html_handler
-                };
-                if html_handler.peek().is_some() {
-                    html_handler = {
-                        html_extractor::html! {
-                            <a name="appointmentRooms" href=room_url>
-                                room
-                            </a>
-                        }
-                        html_handler
-                    };
-                    while !html_handler
-                        .peek()
-                        .unwrap()
-                        .value()
-                        .as_text()
-                        .unwrap()
-                        .trim()
-                        .is_empty()
-                    {
-                        html_handler = {
-                            html_extractor::html! {
-                                "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
-                                <a name="appointmentRooms" href=room_url>
-                                    room
-                                </a>
-                            }
-                            html_handler
-                        }
-                    }
+            html_handler
+        }
+    } else {
+        while html_handler.peek().is_some() {
+            html_handler = {
+                html_extractor::html! {
+                    <tr>_
+                        <td class="tbdata rw">
+                            id
+                        </td>_
+                        <td class="tbdata rw rw-course-date" name="appointmentDate">
+                            date
+                        </td>_
+                        <td class="tbdata rw rw-course-from" name="appointmentTimeFrom">
+                            time_start
+                        </td>_
+                        <td class="tbdata rw rw-course-to" name="appointmentDateTo">
+                            time_end
+                        </td>_
+                        <td class="tbdata rw rw-course-room">
+                }
+                if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_text()
+                    .unwrap()
+                    .trim()
+                    .is_empty()
+                {
                     html_handler = {
                         html_extractor::html! {_
                         }
                         html_handler
                     };
-                }
-            } else {
-                html_handler = {
-                    html_extractor::html! {
-                        room_text
+                    if html_handler.peek().is_some() {
+                        html_handler = {
+                            html_extractor::html! {
+                                <a name="appointmentRooms" href=room_url>
+                                    room
+                                </a>
+                            }
+                            html_handler
+                        };
+                        while !html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_text()
+                            .unwrap()
+                            .trim()
+                            .is_empty()
+                        {
+                            html_handler = {
+                                html_extractor::html! {
+                                    "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                                    <a name="appointmentRooms" href=room_url>
+                                        room
+                                    </a>
+                                }
+                                html_handler
+                            }
+                        }
+                        html_handler = {
+                            html_extractor::html! {_
+                            }
+                            html_handler
+                        };
                     }
-                    html_handler
+                } else {
+                    html_handler = {
+                        html_extractor::html! {
+                            room_text
+                        }
+                        html_handler
+                    }
                 }
+                html_extractor::html! {
+                        </td>_
+                        <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
+                            instructors
+                        </td>_
+                    </tr>_
+                }
+                html_handler
             }
-            html_extractor::html! {
-                    </td>_
-                    <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
-                        instructors
-                    </td>_
-                </tr>_
-            }
-            html_handler
         }
     }
     html_extractor::html! {
