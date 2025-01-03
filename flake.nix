@@ -14,7 +14,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
+  outputs = inputs@{ self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -24,7 +24,8 @@
 
         inherit (pkgs) lib;
 
-        rustToolchainFor = p: p.rust-bin.stable.latest.default.override {
+        rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
+          extensions = [ "rust-docs" "clippy" "rustfmt" ];
           targets = [ "wasm32-unknown-unknown" ];
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
@@ -220,6 +221,16 @@
             hash = "sha256-WECfuQ3mBzoRu8uzhf0v1mjT7N+iU+APWDj/u3H0FPU=";
           };
         };
+
+        craneYewFmtLib = (inputs.crane.mkLib pkgs).overrideScope (final: prev: {
+          # We override the behavior of `mkCargoDerivation` by adding a wrapper which
+          # will set a default value of `CARGO_PROFILE` when not set by the caller.
+          # This change will automatically be propagated to any other functions built
+          # on top of it (like `buildPackage`, `cargoBuild`, etc.)
+          mkCargoDerivation = args: prev.mkCargoDerivation ({
+            RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # E.g. always build in benchmark mode unless overridden
+          } // args);
+        });
       in
       {
         checks = {
@@ -241,7 +252,7 @@
 
           my-app-fmt = (craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; }) commonArgs;
 
-          my-app-yew-fmt = (craneLib.cargoFmt.override { rustfmt = yew-fmt; }) commonArgs;
+          my-app-yew-fmt = (craneYewFmtLib.cargoFmt commonArgs);
         };
 
         packages.default = myClient;
