@@ -10,6 +10,23 @@ use crate::{
     Tucan,
 };
 
+pub async fn coursedetails_cached(
+    tucan: &Tucan,
+    login_response: &LoginResponse,
+    request: CourseDetailsRequest,
+) -> Result<CourseDetailsResponse, TucanError> {
+    let key = format!("coursedetails.{}", request.arguments.clone());
+    if let Some(response) = tucan.database.get(&key).await {
+        return Ok(response);
+    }
+
+    let response = coursedetails(tucan, login_response, request).await?;
+
+    tucan.database.put(&key, &response).await;
+
+    Ok(response)
+}
+
 pub async fn coursedetails(
     tucan: &Tucan,
     login_response: &LoginResponse,
