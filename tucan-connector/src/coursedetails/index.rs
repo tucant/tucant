@@ -257,6 +257,10 @@ pub async fn coursedetails(
                         </div>_
                     </div>_
                     <ul class="dl-ul-listview">_
+            }
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html_extractor::html! {
                         <li class="tbdata listelement">_
                             <div class="dl-inner">_
                                 <p class="dl-ul-li-headline">
@@ -277,6 +281,11 @@ pub async fn coursedetails(
                                 </a>_
                             </div>_
                         </li>_
+                    }
+                    html_handler
+                }
+            }
+            html_extractor::html! {
                     </ul>_
                 </div>_
                 <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
