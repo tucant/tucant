@@ -102,8 +102,8 @@ pub async fn coursedetails(
                                     <b>
                                         "Veranstaltungsart:"
                                     </b>
-                                    "\n\t\t\t\t\t\t\t\t                                        Integrierte Veranstaltung\n                                        "
-                                    <input type="hidden" name="coursetyp" value="000000000000009"></input>_
+                                    course_type
+                                    <input type="hidden" name="coursetyp" value=course_type_number></input>_
                                 </p>_
                                 <p>
                                     <b>
@@ -137,8 +137,8 @@ pub async fn coursedetails(
                                     <b>
                                         "Semesterwochenstunden: "
                                     </b>
-                                    "\n                                                                        4\n                                                "
-                                    <input type="hidden" name="sws" value="4"></input>_
+                                    sws
+                                    <input type="hidden" name="sws" value=sws></input>_
                                 </p>_
                                 <input type="hidden" name="credits" value="  0,0"></input>_
                                 <input type="hidden" name="location" value="327576461398991"></input>_
@@ -155,9 +155,9 @@ pub async fn coursedetails(
                                     <b>
                                         "Min. | Max. Teilnehmerzahl:"
                                     </b>
-                                    "\n\n                              - | -\n                "
+                                    teilnehmer_range
                                     <input type="hidden" name="min_participantsno" value="-"></input>_
-                                    <input type="hidden" name="max_participantsno" value="-"></input>_
+                                    <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
                                 </p>_
                                 <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
     }
@@ -179,40 +179,67 @@ pub async fn coursedetails(
                 </tr>_
             </tbody>
         </table>_
-        <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
-        <div class="tb">_
-            <div>_
-                <div class="tbhead">
-                    "Kleingruppe(n)"
-                </div>_
-                <div class="tbdata">
-                    "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
-                </div>_
-            </div>_
-            <ul class="dl-ul-listview">_
-                <li class="tbdata listelement">_
-                    <div class="dl-inner">_
-                        <p class="dl-ul-li-headline">
-                            <strong>
-                                uebung_name
-                            </strong>
-                        </p>_
-                        <p>
-                            uebungsleiter
-                        </p>_
-                        <p>
-                            date_range
-                        </p>_
+    }
+    println!(
+        "{:?}",
+        html_handler
+            .peek()
+            .unwrap()
+            .value()
+            .as_comment()
+            .unwrap()
+            .comment
+    );
+    if html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_comment()
+        .unwrap()
+        .comment
+        == " KG START ".into()
+    {
+        html_handler = {
+            html_extractor::html! {
+                    <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
+                    <div class="tb">_
+                        <div>_
+                            <div class="tbhead">
+                                "Kleingruppe(n)"
+                            </div>_
+                            <div class="tbdata">
+                                "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
+                            </div>_
+                        </div>_
+                        <ul class="dl-ul-listview">_
+                            <li class="tbdata listelement">_
+                                <div class="dl-inner">_
+                                    <p class="dl-ul-li-headline">
+                                        <strong>
+                                            uebung_name
+                                        </strong>
+                                    </p>_
+                                    <p>
+                                        uebungsleiter
+                                    </p>_
+                                    <p>
+                                        date_range
+                                    </p>_
+                                </div>_
+                                <div class="dl-link">_
+                                    <a href=_url class="img img_arrowLeft pageElementRight">
+                                        "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
+                                    </a>_
+                                </div>_
+                            </li>_
+                        </ul>_
                     </div>_
-                    <div class="dl-link">_
-                        <a href=_url class="img img_arrowLeft pageElementRight">
-                            "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
-                        </a>_
-                    </div>_
-                </li>_
-            </ul>_
-        </div>_
-        <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
+                    <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
         <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
         <table class="tb rw-table">_
             <caption>

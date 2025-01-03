@@ -185,6 +185,24 @@ mod tests {
         .await
         .unwrap();
     }
+
+    #[tokio::test]
+    pub async fn course_3() {
+        let tucan = Tucan::new().await.unwrap();
+        let result = coursedetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            CourseDetailsRequest {
+                arguments: ",-N000311,-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3"
+                    .to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+    }
 }
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]
