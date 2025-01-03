@@ -2,6 +2,7 @@ use key_value_database::Database;
 use tucant_types::TucanError;
 
 pub mod common;
+pub mod coursedetails;
 pub mod externalpages;
 pub mod html_handler;
 pub mod login;
@@ -82,12 +83,14 @@ impl Tucan {
 #[cfg(test)]
 mod tests {
     use tucant_types::{
-        moduledetails::ModuleDetailsRequest, LoginRequest, LoginResponse, TucanError,
+        coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, LoginRequest,
+        LoginResponse, TucanError,
     };
 
     use crate::{
-        externalpages::welcome::welcome, login::login, moduledetails::index::moduledetails,
-        root::root, startpage_dispatch::one::startpage_dispatch_1, Tucan,
+        coursedetails::index::coursedetails, externalpages::welcome::welcome, login::login,
+        moduledetails::index::moduledetails, root::root,
+        startpage_dispatch::one::startpage_dispatch_1, Tucan,
     };
 
     #[tokio::test]
@@ -104,24 +107,6 @@ mod tests {
             .await,
             Err(TucanError::InvalidCredentials)
         ));
-    }
-
-    #[tokio::test]
-    pub async fn test_1() {
-        // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N000000000000001,-N000311,-N389455489906019
-        let tucan = Tucan::new().await.unwrap();
-        let result = moduledetails(
-            &tucan,
-            &LoginResponse {
-                id: 1,
-                cookie_cnsc: String::new(),
-            },
-            ModuleDetailsRequest {
-                arguments: ",-N000311,-N389455489906019".to_owned(),
-            },
-        )
-        .await
-        .unwrap();
     }
 
     #[tokio::test]
@@ -149,8 +134,74 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn test_module() {
+    pub async fn module_1() {
         let tucan = Tucan::new().await.unwrap();
+        let result = moduledetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            ModuleDetailsRequest {
+                arguments: ",-N000311,-N389455489906019".to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn course_1() {
+        let tucan = Tucan::new().await.unwrap();
+        let result = coursedetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            CourseDetailsRequest {
+                arguments: ",-N000311,-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3"
+                    .to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn course_2() {
+        let tucan = Tucan::new().await.unwrap();
+        let result = coursedetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            CourseDetailsRequest {
+                arguments: ",-N000311,-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3"
+                    .to_owned(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn course_3() {
+        let tucan = Tucan::new().await.unwrap();
+        let result = coursedetails(
+            &tucan,
+            &LoginResponse {
+                id: 1,
+                cookie_cnsc: String::new(),
+            },
+            CourseDetailsRequest {
+                arguments: ",-N000311,-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3"
+                    .to_owned(),
+            },
+        )
+        .await
+        .unwrap();
     }
 }
 

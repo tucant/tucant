@@ -258,6 +258,17 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     #[must_use]
+    pub fn skip_any_comment(mut self) -> Self {
+        let child_node = self.current_child.expect("expected child but none left");
+        let Some(child_element) = child_node.value().as_comment() else {
+            panic!("unexpected element {:?}", child_node.value())
+        };
+        self.current_child = child_node.next_sibling();
+        self
+    }
+
+    #[track_caller]
+    #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
         let _element = self.element.value().as_element().expect("expected element");
         let child_node = self.current_child.expect("expected one more child");

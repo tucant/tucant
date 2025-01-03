@@ -1,10 +1,13 @@
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use tucan_connector::moduledetails::index::moduledetails;
+use tucan_connector::coursedetails::index::coursedetails;
+use tucan_connector::login::login;
+use tucan_connector::moduledetails::index::{moduledetails, moduledetails_cached};
 use tucan_connector::registration::index::anmeldung_cached;
 use tucan_connector::Tucan;
+use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::AnmeldungRequest;
-use tucant_types::{LoginResponse, TucanError};
+use tucant_types::{LoginRequest, LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
@@ -23,6 +26,16 @@ async fn async_main() -> Result<(), TucanError> {
         cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
     };
 
+    /*let login_response = login(
+        &tucan.client,
+        &LoginRequest {
+            username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
+            password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+        },
+    )
+    .await
+    .unwrap();*/
+
     let mut fetcher = Fetcher::new().await?;
 
     fetcher
@@ -40,6 +53,8 @@ struct Fetcher {
     anmeldung_file: File,
     module_file: File,
     module_counter: u64,
+    course_file: File,
+    course_counter: u64,
 }
 
 // N675523572713350
@@ -60,6 +75,12 @@ impl Fetcher {
                 .open("module.log")
                 .await?,
             module_counter: 0,
+            course_file: File::options()
+                .append(true)
+                .create(true)
+                .open("course.log")
+                .await?,
+            course_counter: 0,
         })
     }
 
@@ -96,9 +117,26 @@ impl Fetcher {
                 self.module_file.write_all(b"\n").await?;
 
                 let module_details =
-                    moduledetails(tucan, login_response, module.url.clone()).await?;
+                    moduledetails_cached(tucan, login_response, module.url.clone()).await?;
                 println!("module counter: {}", self.module_counter);
                 self.module_counter += 1;
+            }
+
+            for course in &entry.courses {
+                println!("course {}", course.1.url.clone());
+                self.course_file.write_all(course.1.url.as_bytes()).await?;
+                self.course_file.write_all(b"\n").await?;
+
+                let course_details = coursedetails(
+                    tucan,
+                    login_response,
+                    CourseDetailsRequest {
+                        arguments: course.1.url.clone(),
+                    },
+                )
+                .await?;
+                println!("course counter: {}", self.course_counter);
+                self.course_counter += 1;
             }
         }
 
