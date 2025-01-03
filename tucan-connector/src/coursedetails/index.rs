@@ -85,61 +85,78 @@ pub async fn coursedetails(
                     <tbody>
                         <tr>_
                             <td class="tbcontrol" colspan="3">_
-                            </td>_
-                        </tr>_
-                        <tr>_
-                            <td class="tbdata" colspan="3">_
-                                <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
-                                <p>_
-                                    <b>
-                                        "Lehrende: "
-                                    </b>
-                                    <span id="dozenten">
-                                        dozent
-                                    </span>_
-                                </p>_
-                                <p>
-                                    <b>
-                                        "Veranstaltungsart:"
-                                    </b>
-                                    course_type
-                                    <input type="hidden" name="coursetyp" value=course_type_number></input>_
-                                </p>_
-                                <p>
-                                    <b>
-                                        "Orga-Einheit:"
-                                    </b>_
-                                    <span name="courseOrgUnit">
-                                        "FB20 Informatik"
-                                    </span>
-                                </p>_
-                                <p>_
-                                    <b>
-                                        "Anzeige im Stundenplan: "
-                                    </b>
-                                    anzeige_im_stundenplan
-                                    <input type="hidden" name="shortdescription" value=shortname></input>_
-                                </p>_
-                                <input type="hidden" name="courselevel" value="000000000000000"></input>_
-                                <p>
-                                    <b>
-                                        "Fach:"
-                                    </b>_
-                                    <input type="hidden" name="coursearea" value=""></input>_
-                                </p>_
-                                <p>
-                                    <b>
-                                        "Anrechenbar für:"
-                                    </b>_
-                                    <input type="hidden" name="creditingfor" value=""></input>_
-                                </p>_
-                                <p>
-                                    <b>
-                                        "Semesterwochenstunden: "
-                                    </b>
-                                    sws
-                                    <input type="hidden" name="sws" value=sws></input>_
-                                </p>_
+    }
+    if html_handler.peek().is_some() {
+        // if you are registered for the course
+        html_handler = {
+            html_extractor::html! {
+                <a href=url class="arrow">
+                    "Material"
+                </a>_
+                <!--"jYCN4Jtn7SZ5GOsHWIKQNgyly48iLydPsTKqT-TR1Go"-->_
+                <a href=url class="arrow">
+                    "Nachrichten"
+                </a>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
+            </td>_
+        </tr>_
+        <tr>_
+            <td class="tbdata" colspan="3">_
+                <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
+                <p>_
+                    <b>
+                        "Lehrende: "
+                    </b>
+                    <span id="dozenten">
+                        dozent
+                    </span>_
+                </p>_
+                <p>
+                    <b>
+                        "Veranstaltungsart:"
+                    </b>
+                    course_type
+                    <input type="hidden" name="coursetyp" value=course_type_number></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Orga-Einheit:"
+                    </b>_
+                    <span name="courseOrgUnit">
+                        "FB20 Informatik"
+                    </span>
+                </p>_
+                <p>_
+                    <b>
+                        "Anzeige im Stundenplan: "
+                    </b>
+                    anzeige_im_stundenplan
+                    <input type="hidden" name="shortdescription" value=shortname></input>_
+                </p>_
+                <input type="hidden" name="courselevel" value="000000000000000"></input>_
+                <p>
+                    <b>
+                        "Fach:"
+                    </b>_
+                    <input type="hidden" name="coursearea" value=""></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Anrechenbar für:"
+                    </b>_
+                    <input type="hidden" name="creditingfor" value=""></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Semesterwochenstunden: "
+                    </b>
+                    sws
+                    <input type="hidden" name="sws" value=sws></input>_
+                </p>_
     }
     html_handler = if html_handler
         .peek()
