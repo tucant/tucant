@@ -99,9 +99,24 @@
           doCheck = false;
         });
 
+        trunk = pkgs.trunk.overrideAttrs (oldAttrs: rec {
+          version = "0.21.6";
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "trunk";
+            rev = "fix-critical-navigation-bug-in-firefox-with-version-bump";
+            hash = "sha256-HW0eoIQG7Ida4+/JY5goLpQI7750zAfg17kV/RJ3UJA=";
+          };
+          cargoDeps = oldAttrs.cargoDeps.overrideAttrs (pkgs.lib.const {
+            name = "${oldAttrs.pname}-vendor.tar.gz";
+            inherit src;
+            outputHash = "sha256-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=";
+          });
+        });
+
         # Build the frontend of the application.
         # This derivation is a directory you can put on a webserver.
-        myClient = craneLib.buildTrunkPackage (wasmArgs // {
+        myClient = craneLib.buildTrunkPackage.override { trunk = trunk; } (wasmArgs // {
           trunkExtraBuildArgs = "--features direct --public-url /dist";
           pname = "trunk-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
@@ -240,7 +255,7 @@
 
           # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = [
-            pkgs.trunk
+            trunk
             pkgs.bashInteractive
             pkgs.diffoscope
           ];
