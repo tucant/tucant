@@ -140,26 +140,52 @@ pub async fn coursedetails(
                                     sws
                                     <input type="hidden" name="sws" value=sws></input>_
                                 </p>_
-                                <input type="hidden" name="credits" value="  0,0"></input>_
-                                <input type="hidden" name="location" value="327576461398991"></input>_
-                                <p>
-                                    <b>
-                                        "Unterrichtssprache: "
-                                    </b>_
-                                    <span name="courseLanguageOfInstruction">
-                                        "Deutsch"
-                                    </span>_
-                                    <input type="hidden" name="language" value="001"></input>_
-                                </p>_
-                                <p>
-                                    <b>
-                                        "Min. | Max. Teilnehmerzahl:"
-                                    </b>
-                                    teilnehmer_range
-                                    <input type="hidden" name="min_participantsno" value="-"></input>_
-                                    <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
-                                </p>_
-                                <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
+    }
+    html_handler = if html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .name()
+        == "input"
+    {
+        html_extractor::html! {
+            <input type="hidden" name="credits" value="  0,0"></input>_
+        }
+        html_handler
+    } else {
+        html_extractor::html! {
+            <p>
+                <b>
+                    "Credits: "
+                </b>
+                credits
+                <input type="hidden" name="credits" value=credits></input>_
+            </p>_
+        }
+        html_handler
+    };
+    html_extractor::html! {
+        <input type="hidden" name="location" value="327576461398991"></input>_
+        <p>
+            <b>
+                "Unterrichtssprache: "
+            </b>_
+            <span name="courseLanguageOfInstruction">
+                course_language
+            </span>_
+            <input type="hidden" name="language" value=language_id></input>_
+        </p>_
+        <p>
+            <b>
+                "Min. | Max. Teilnehmerzahl:"
+            </b>
+            teilnehmer_range
+            <input type="hidden" name="min_participantsno" value="-"></input>_
+            <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
+        </p>_
+        <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
     }
     let mut description = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
@@ -385,26 +411,20 @@ pub async fn coursedetails(
                                 "Modul"
                             </td>_
                         </tr>_
+            }
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html_extractor::html! {
                         <tr>_
                             <td class="tbdata">
                                 module_name
                             </td>_
                         </tr>_
-                        <tr>_
-                            <td class="tbdata">
-                                module_name
-                            </td>_
-                        </tr>_
-                        <tr>_
-                            <td class="tbdata">
-                                module_name
-                            </td>_
-                        </tr>_
-                        <tr>_
-                            <td class="tbdata">
-                                module_name
-                            </td>_
-                        </tr>_
+                    }
+                    html_handler
+                }
+            }
+            html_extractor::html! {
                     </tbody>
                 </table>_
             }

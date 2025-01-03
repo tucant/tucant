@@ -21,12 +21,12 @@ fn main() -> Result<(), TucanError> {
 async fn async_main() -> Result<(), TucanError> {
     let tucan = Tucan::new().await?;
 
-    /*let login_response = LoginResponse {
+    let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
         cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
-    };*/
+    };
 
-    let login_response = login(
+    /*let login_response = login(
         &tucan.client,
         &LoginRequest {
             username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
@@ -34,7 +34,7 @@ async fn async_main() -> Result<(), TucanError> {
         },
     )
     .await
-    .unwrap();
+    .unwrap();*/
 
     let mut fetcher = Fetcher::new().await?;
 
