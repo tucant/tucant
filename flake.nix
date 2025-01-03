@@ -25,12 +25,14 @@
         inherit (pkgs) lib;
 
         rustToolchainFor = p: p.rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" ];
-          # Set the build targets supported by the toolchain,
-          # wasm32-unknown-unknown is required for trunk.
           targets = [ "wasm32-unknown-unknown" ];
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".default.override {
+          extensions = [ "rust-src" "rustc-dev" "llvm-tools-preview" ];
+        };
+        craneNightlyLib = (crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor;
 
         # When filtering sources, we want to allow assets other than .rs files
         unfilteredRoot = ./.; # The original, unfiltered source
@@ -184,6 +186,15 @@
         source-unpacked = pkgs.runCommand "tucant-extension-source.zip" {} ''
           cp -r ${source-with-build-instructions} $out
         '';
+
+        rustfmt = craneNightlyLib.buildPackage {
+          src = pkgs.fetchFromGitHub {
+            owner = "tucant";
+            repo = "rustfmt";
+            rev = "html-extractor-formatting";
+            hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
+          };
+        };
       in
       {
         checks = {
@@ -212,7 +223,7 @@
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
-        packages.rustfmt = pkgs.rustfmt;
+        packages.rustfmt = rustfmt;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
