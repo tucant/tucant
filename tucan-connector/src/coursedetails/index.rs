@@ -1,4 +1,4 @@
-use scraper::{ElementRef, Html};
+use scraper::{html, ElementRef, Html};
 use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     LoginResponse, TucanError,
@@ -201,40 +201,40 @@ pub async fn coursedetails(
     {
         html_handler = {
             html_extractor::html! {
-                    <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
-                    <div class="tb">_
-                        <div>_
-                            <div class="tbhead">
-                                "Kleingruppe(n)"
-                            </div>_
-                            <div class="tbdata">
-                                "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
-                            </div>_
+                <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
+                <div class="tb">_
+                    <div>_
+                        <div class="tbhead">
+                            "Kleingruppe(n)"
                         </div>_
-                        <ul class="dl-ul-listview">_
-                            <li class="tbdata listelement">_
-                                <div class="dl-inner">_
-                                    <p class="dl-ul-li-headline">
-                                        <strong>
-                                            uebung_name
-                                        </strong>
-                                    </p>_
-                                    <p>
-                                        uebungsleiter
-                                    </p>_
-                                    <p>
-                                        date_range
-                                    </p>_
-                                </div>_
-                                <div class="dl-link">_
-                                    <a href=_url class="img img_arrowLeft pageElementRight">
-                                        "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
-                                    </a>_
-                                </div>_
-                            </li>_
-                        </ul>_
+                        <div class="tbdata">
+                            "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
+                        </div>_
                     </div>_
-                    <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
+                    <ul class="dl-ul-listview">_
+                        <li class="tbdata listelement">_
+                            <div class="dl-inner">_
+                                <p class="dl-ul-li-headline">
+                                    <strong>
+                                        uebung_name
+                                    </strong>
+                                </p>_
+                                <p>
+                                    uebungsleiter
+                                </p>_
+                                <p>
+                                    date_range
+                                </p>_
+                            </div>_
+                            <div class="dl-link">_
+                                <a href=_url class="img img_arrowLeft pageElementRight">
+                                    "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
+                                </a>_
+                            </div>_
+                        </li>_
+                    </ul>_
+                </div>_
+                <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
             }
             html_handler
         }
@@ -387,22 +387,22 @@ pub async fn coursedetails(
                         </tr>_
                         <tr>_
                             <td class="tbdata">
-                                "20-00-0040 Graphische Datenverarbeitung I (WiSe 2021/22) "
+                                module_name
                             </td>_
                         </tr>_
                         <tr>_
                             <td class="tbdata">
-                                "20-00-0040 Graphische Datenverarbeitung I (WiSe 2022/23) "
+                                module_name
                             </td>_
                         </tr>_
                         <tr>_
                             <td class="tbdata">
-                                "20-00-0040 Graphische Datenverarbeitung I (WiSe 2023/24) "
+                                module_name
                             </td>_
                         </tr>_
                         <tr>_
                             <td class="tbdata">
-                                "20-00-0040 Graphische Datenverarbeitung I (WiSe 2024/25) "
+                                module_name
                             </td>_
                         </tr>_
                     </tbody>
@@ -453,20 +453,29 @@ pub async fn coursedetails(
         }
     }
     html_extractor::html! {
-                                </ul>_
-                            </div>_
-                            <table class="tb rw-table">_
-                                <tbody>
-                                    <tr class="rw-all">_
-                                        <td class="tbhead">
-                                            "Lehrende"
-                                        </td>_
-                                    </tr>_
-                                    <tr>_
-                                        <td class="tbdata" name="instructorTitle">
-                                            instructors
-                                        </td>_
-                                    </tr>_
+            </ul>_
+        </div>_
+        <table class="tb rw-table">_
+            <tbody>
+                <tr class="rw-all">_
+                    <td class="tbhead">
+                        "Lehrende"
+                    </td>_
+                </tr>_
+    }
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html_extractor::html! {
+                <tr>_
+                    <td class="tbdata" name="instructorTitle">
+                        instructors
+                    </td>_
+                </tr>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
                                 </tbody>
                             </table>_
                             <!--"f3Dd2OExxbOC6O6K52a9HWTpBxipUfPXKU7YBJsuGck"-->_
