@@ -222,13 +222,13 @@
           };
         };
 
-        craneYewFmtLib = (inputs.crane.mkLib pkgs).overrideScope (final: prev: {
+        craneYewFmtLib = ((crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor).overrideScope (final: prev: {
           # We override the behavior of `mkCargoDerivation` by adding a wrapper which
           # will set a default value of `CARGO_PROFILE` when not set by the caller.
           # This change will automatically be propagated to any other functions built
           # on top of it (like `buildPackage`, `cargoBuild`, etc.)
           mkCargoDerivation = args: prev.mkCargoDerivation ({
-            RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # E.g. always build in benchmark mode unless overridden
+            RUSTFMT = "${yew-fmt}/bin/yew-fmt";
           } // args);
         });
       in
@@ -250,9 +250,10 @@
             CLIENT_DIST = "";
           });
 
-          my-app-fmt = (craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; }) commonArgs;
+          #my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } commonArgs;
 
-          my-app-yew-fmt = (craneYewFmtLib.cargoFmt commonArgs);
+          # uses both formatters
+          my-app-fmt = craneYewFmtLib.cargoFmt.override { rustfmt = rustfmt; } commonArgs;
         };
 
         packages.default = myClient;
@@ -271,6 +272,8 @@
         devShells.default = craneNightlyLib.devShell {
           # Inherit inputs from checks.
           checks = self.checks.${system};
+
+          RUSTFMT = "${yew-fmt}/bin/yew-fmt";
 
           shellHook = ''
             export CLIENT_DIST=$PWD/tucant-yew/dist;

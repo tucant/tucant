@@ -19,7 +19,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # TODO also convert to nix
   check-fmt:
     runs-on: ubuntu-24.04
     steps:
@@ -44,7 +43,6 @@ jobs:
         purge-primary-key: never
     - uses: actions/checkout@v4
     - run: nix build -L .#checks.x86_64-linux.my-app-fmt
-    - run: nix build -L .#checks.x86_64-linux.my-app-yew-fmt
 
   build:
     runs-on: ubuntu-24.04
