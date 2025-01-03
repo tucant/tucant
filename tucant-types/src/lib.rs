@@ -1,3 +1,4 @@
+pub mod coursedetails;
 pub mod moduledetails;
 pub mod registration;
 
