@@ -1,5 +1,6 @@
 use api_server::ApiServerTucan;
 use key_value_database::Database;
+use navbar::Navbar;
 use std::{ops::Deref, rc::Rc};
 use tauri::TauriTucan;
 use tucant_types::{
@@ -32,6 +33,9 @@ use yew_router::{
     prelude::{Link, Redirect},
     BrowserRouter, HashRouter, Routable, Switch,
 };
+
+mod navbar;
+
 mod api_server;
 #[cfg(feature = "direct")]
 mod direct;
@@ -45,14 +49,8 @@ type TucanType = direct::DirectTucan;
 #[cfg(feature = "api")]
 type TucanType = ApiServerTucan;
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct CurrentSession {
-    pub id: String,
-    pub cnsc: String,
-}
-
 #[cfg(feature = "direct")]
-pub async fn login_response() -> LoginResponse {
+pub async fn login_response() -> Option<LoginResponse> {
     {
         let session_id = web_extensions_sys::chrome()
             .storage()
@@ -79,21 +77,21 @@ pub async fn login_response() -> LoginResponse {
             .await
             .unwrap();
 
-        LoginResponse {
+        Some(LoginResponse {
             id: session_id.parse().unwrap(),
             cookie_cnsc: cnsc.value,
-        }
+        })
     }
 }
 
 #[cfg(feature = "api")]
-pub async fn login_response() -> LoginResponse {
+pub async fn login_response() -> Option<LoginResponse> {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    LoginResponse {
+    Some(LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
@@ -102,21 +100,18 @@ pub async fn login_response() -> LoginResponse {
                 } else {
                     None
                 }
-            })
-            .unwrap()
+            })?
             .parse()
             .unwrap(),
-        cookie_cnsc: cookie::Cookie::split_parse(&cookie)
-            .find_map(|cookie| {
-                let cookie = cookie.unwrap();
-                if cookie.name() == "cnsc" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
-            })
-            .unwrap(),
-    }
+        cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
+            let cookie = cookie.unwrap();
+            if cookie.name() == "cnsc" {
+                Some(cookie.value().to_string())
+            } else {
+                None
+            }
+        })?,
+    })
 }
 
 #[derive(Properties, PartialEq)]
@@ -135,6 +130,8 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
         })
     });
     let loading = use_state(|| false);
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -143,7 +140,12 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             let anmeldung_request = anmeldung_request.clone();
             let data = data.clone();
             spawn_local(async move {
-                match TucanType::anmeldung(login_response().await, anmeldung_request).await {
+                match TucanType::anmeldung(
+                    current_session.deref().clone().unwrap(),
+                    anmeldung_request,
+                )
+                .await
+                {
                     Ok(response) => {
                         data.set(Ok(response));
                         loading.set(false);
@@ -156,7 +158,8 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
             })
         });
     }
-    let current_session = use_context::<Option<CurrentSession>>().expect("no ctx found");
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     let navigator = use_navigator().unwrap();
 
     let data = match data.deref() {
@@ -242,7 +245,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}",  current_session.as_ref().map(|s| s.id.as_str()).unwrap_or("1"), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
+                                                    <h5 class="mb-1"><a href={ format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", current_session.as_ref().map(|s| s.id.to_string()).unwrap_or("1".to_owned()), course.1.url.clone()) }>{ format!("Kurs {} {}", course.1.id, course.1.name) }</a></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 
@@ -307,14 +310,19 @@ fn login() -> HtmlResult {
         })
     };
 
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+
     let on_submit = {
         let username_value_handle = username_value_handle.clone();
         let password_value_handle = password_value_handle.clone();
+        let current_session = current_session.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             let username = (*username_value_handle).clone();
             let password = (*password_value_handle).clone();
+            let current_session = current_session.clone();
             password_value_handle.set("".to_owned());
 
             let navigator = navigator.clone();
@@ -333,6 +341,8 @@ fn login() -> HtmlResult {
                 html_document
                     .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
                     .unwrap();
+
+                current_session.set(Some(response.clone()));
 
                 navigator.push(&Route::Registration {
                     registration: format!("-N{:015},-N000311,-A", response.id),
@@ -362,6 +372,42 @@ fn login() -> HtmlResult {
                 aria-label="Password"
             />
             <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
+        </form>
+    })
+}
+
+#[function_component(LogoutComponent)]
+fn logout() -> HtmlResult {
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+
+    let on_submit = {
+        let current_session = current_session.clone();
+
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+
+            let window = web_sys::window().unwrap();
+            let document = window.document().unwrap();
+            let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
+            html_document
+                .set_cookie(&format!(
+                    "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
+                ))
+                .unwrap();
+            html_document
+                .set_cookie(&format!(
+                    "cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
+                ))
+                .unwrap();
+
+            current_session.set(None);
+        })
+    };
+
+    Ok(html! {
+        <form onsubmit={on_submit} class="d-flex">
+            <button class="btn btn-outline-success" type="submit">{ "Logout" }</button>
         </form>
     })
 }
@@ -407,6 +453,8 @@ pub struct ModuleDetailsProps {
 fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
     let data = use_state(|| None);
     let loading = use_state(|| false);
+    let current_session =
+        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -415,9 +463,10 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
             let request = request.clone();
             let data = data.clone();
             spawn_local(async move {
-                let response = TucanType::module_details(&login_response().await, request)
-                    .await
-                    .unwrap();
+                let response =
+                    TucanType::module_details(&current_session.deref().clone().unwrap(), request)
+                        .await
+                        .unwrap();
                 data.set(Some(response));
                 loading.set(false);
             })
@@ -459,509 +508,20 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
     })
 }
 
-#[function_component(Navbar)]
-pub fn navbar() -> Html {
-    html! {
-        <nav class="navbar navbar-expand-xl bg-body-tertiary">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">{ "TUCaN't" }</a>
-                <button
-                    class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-                >
-                    <span class="navbar-toggler-icon" />
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-xl-0">
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Aktuelles" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Aktuelles" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Nachrichten" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "VV" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Vorlesungsverzeichnis" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Lehrveranstaltungssuche" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Raumsuche" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Aktuell - Wintersemester 2024/25" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Vorlesungsverzeichnis Gasthörer_innen WiSe 2024/25" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Vorlesungsverzeichnis des SoSe 2024" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Vorlesungsverzeichnis des WiSe 2023/24" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Archiv" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Stundenplan" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Stundenplan" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Tagesansicht" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Wochenansicht" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Monatsansicht" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Export" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Veranstaltungen" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Veranstaltungen" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Module" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Veranstaltungen" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Wahlbereiche" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#/registration/,-N000311,-A"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Anmeldung" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Mein aktueller Anmeldestatus" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Prüfungen" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Prüfungen" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Prüfungen" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Mein Prüfungsplan" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Semesterergebnisse" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Leistungsspiegel" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Service" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Service" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Persönliche Daten" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Dokumente" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Anträge" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Sperren" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                { "Bewerbung" }
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Bewerbung" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider" />
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Bewerbung" }
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="#"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target=".navbar-collapse.show"
-                                    >
-                                        { "Meine Dokumente" }
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a
-                                class="nav-link"
-                                href="#"
-                                data-bs-toggle="collapse"
-                                data-bs-target=".navbar-collapse.show"
-                            >
-                                { "Hilfe" }
-                            </a>
-                        </li>
-                    </ul>
-                    <LoginComponent />
-                </div>
-            </div>
-        </nav>
-    }
-}
-
 #[autoprops]
 #[function_component(App)]
-pub fn app(initial_session: &Option<CurrentSession>) -> HtmlResult {
+pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {
         <>
             <style>{ include_str!("./bootstrap.min.css") }</style>
-            <ContextProvider<Option<CurrentSession>> context={(*ctx).clone()}>
+            <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
                 <HashRouter>
                     <Navbar />
                     <Switch<Route> render={switch} />
                 </HashRouter>
-            </ContextProvider<Option<CurrentSession>>>
+            </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
         </>
     })
 }

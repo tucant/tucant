@@ -25,12 +25,14 @@
         inherit (pkgs) lib;
 
         rustToolchainFor = p: p.rust-bin.stable.latest.default.override {
-          extensions = [ "rust-src" ];
-          # Set the build targets supported by the toolchain,
-          # wasm32-unknown-unknown is required for trunk.
           targets = [ "wasm32-unknown-unknown" ];
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".default.override {
+          extensions = [ "rust-src" "rustc-dev" "llvm-tools-preview" ];
+        };
+        craneNightlyLib = (crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor;
 
         # When filtering sources, we want to allow assets other than .rs files
         unfilteredRoot = ./.; # The original, unfiltered source
@@ -97,9 +99,24 @@
           doCheck = false;
         });
 
+        trunk = pkgs.trunk.overrideAttrs (oldAttrs: rec {
+          version = "0.21.6";
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "trunk";
+            rev = "fix-critical-navigation-bug-in-firefox-with-version-bump";
+            hash = "sha256-HW0eoIQG7Ida4+/JY5goLpQI7750zAfg17kV/RJ3UJA=";
+          };
+          cargoDeps = oldAttrs.cargoDeps.overrideAttrs (pkgs.lib.const {
+            name = "${oldAttrs.pname}-vendor.tar.gz";
+            inherit src;
+            outputHash = "sha256-DDP3/DJaZmckcgb9qtmH0FVviITBpB8WwmlVAkvepsY=";
+          });
+        });
+
         # Build the frontend of the application.
         # This derivation is a directory you can put on a webserver.
-        myClient = craneLib.buildTrunkPackage (wasmArgs // {
+        myClient = craneLib.buildTrunkPackage.override { trunk = trunk; } (wasmArgs // {
           trunkExtraBuildArgs = "--features direct --public-url /dist";
           pname = "trunk-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
@@ -184,6 +201,25 @@
         source-unpacked = pkgs.runCommand "tucant-extension-source.zip" {} ''
           cp -r ${source-with-build-instructions} $out
         '';
+
+        rustfmt = craneNightlyLib.buildPackage {
+          src = pkgs.fetchFromGitHub {
+            owner = "tucant";
+            repo = "rustfmt";
+            rev = "html-extractor-formatting";
+            hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
+          };
+          doCheck = false;
+        };
+
+        yew-fmt = craneLib.buildPackage {
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "yew-fmt";
+            rev = "patch-1";
+            hash = "sha256-WECfuQ3mBzoRu8uzhf0v1mjT7N+iU+APWDj/u3H0FPU=";
+          };
+        };
       in
       {
         checks = {
@@ -212,6 +248,8 @@
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
+        packages.rustfmt = rustfmt;
+        pkgs.yew-fmt = yew-fmt;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
@@ -228,7 +266,9 @@
 
           # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = [
-            pkgs.trunk
+            trunk
+            rustfmt
+            yew-fmt
             pkgs.bashInteractive
             pkgs.diffoscope
           ];

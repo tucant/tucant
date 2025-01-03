@@ -51,8 +51,18 @@ This software consists of the tucan-connector component that extracts informatio
 ### Coverage
 
 ```
+# https://doc.rust-lang.org/rustc/instrument-coverage.html#test-coverage
 cd tucan-connector
 RUSTFLAGS="-C instrument-coverage" cargo test
+nix shell nixpkgs#llvmPackages_19.bintools-unwrapped
+llvm-profdata merge *.profraw -o default.profdata
 
+llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Documents/tucant/target/debug/deps/tucan_connector-90eac6df256ec2c3 \
+    -format=html \
+    -output-dir=target/coverage \
+    -instr-profile=default.profdata \
+    -show-line-counts-or-regions \
+    -show-instantiations
 
+xdg-open target/coverage/index.html 
 ```
