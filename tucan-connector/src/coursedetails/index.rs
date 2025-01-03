@@ -451,24 +451,41 @@ pub async fn coursedetails(
                 <ul class="courseList">_
     }
     while html_handler.peek().is_some() {
-        let mut i = 0;
-        while i < 5 && html_handler.peek().is_some() {
-            html_handler = {
-                html_extractor::html! {
-                    <li class="courseListCell numout" title=title>
-                        number
-                    </li>_
-                }
-                if i == 4 {
-                    html_handler = {
-                        html_extractor::html! {
-                            <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
-                        }
-                        html_handler
+        for i in 0..5 {
+            if html_handler
+                .peek()
+                .unwrap()
+                .value()
+                .as_element()
+                .unwrap()
+                .attr("class")
+                .unwrap()
+                == "courseListCell numout"
+            {
+                html_handler = {
+                    html_extractor::html! {
+                        <li class="courseListCell numout" title=title>
+                            number
+                        </li>_
                     }
+                    if i == 4 {
+                        html_handler = {
+                            html_extractor::html! {
+                                <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
+                            }
+                            html_handler
+                        }
+                    }
+                    html_handler
                 }
-                i += 1;
-                html_handler
+            } else {
+                html_handler = {
+                    html_extractor::html! {
+                        <li class="courseListCell noLink">_
+                        </li>_
+                    }
+                    html_handler
+                }
             }
         }
     }
