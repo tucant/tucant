@@ -208,75 +208,81 @@ pub async fn coursedetails(
     }
     html_extractor::html! {
                       </tbody></table>_
-                <!--" Termine END "-->_
-                <!--" PreCoRequisites Start"-->_
-                <!--" PreCoRequisites End"-->_
-                <!--" Cluster START "-->_
-                <!--" Cluster END "-->_
-                <!--" Contained in modules START "-->_
-                <table class="tb rw-table rw-all">_
-                  <caption>"Enthalten in Modulen"</caption>_
-                  <tbody>
-                    <tr>_
-                      <td class="tbsubhead">"Modul"</td>_</tr>_
-                    <tr>_
-                      <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2021/22) "</td>_</tr>_
-                    <tr>_
-                      <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2022/23) "</td>_</tr>_
-                    <tr>_
-                      <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2023/24) "</td>_</tr>_
-                    <tr>_
-                      <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2024/25) "</td>_</tr>_</tbody></table>_
-                <!--" Contained in modules END "-->_
-                <!--" exams within modules START"-->_
-                <!--" Exams within Modules END"-->_
-                <!--" Exams Start "-->_
-                <!--" Exams End "-->_
-                <!--" Show course catalogues "-->_
-                <!--" End New Part "-->_
-                <!--" End of Main Content "-->_</div>_
-              <!--" Side Content "-->_
-              <!--" Navigator start "-->_
+                <!--"FWVkdRmmQuTMcELIsP6K4V7eWsWq-329gXr8xe8lNtA"-->_
+                <!--"Fi8w2ZKNHGT6_59uLcZc14yUPGASGOgkhbLwk5XwAqs"-->_
+                <!--"AE7T_bGb3mAQes9i_TGusWvs3SWorP2rUYbWMxtz360"-->_
+                <!--"gHS9yEb7gEJDeScOtAZVCap074mrvjNhbKo847wghz0"-->_
+                <!--"mbPNYaxxs1wcICUrnywS30UgNmaCxMVGn19JDG2Cdcc"-->_
+                <!--"Jr35iwnqHKCxqhgkYtMNg-l-g8g9FFUlmpPW5CyF_3A"-->_
+    }
+    if login_response.id != 1 {
+        html_handler = {
+            html_extractor::html! {
+              <table class="tb rw-table rw-all">_
+                        <caption>"Enthalten in Modulen"</caption>_
+                        <tbody>
+                          <tr>_
+                            <td class="tbsubhead">"Modul"</td>_</tr>_
+                          <tr>_
+                            <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2021/22) "</td>_</tr>_
+                          <tr>_
+                            <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2022/23) "</td>_</tr>_
+                          <tr>_
+                            <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2023/24) "</td>_</tr>_
+                          <tr>_
+                            <td class="tbdata">"20-00-0040 Graphische Datenverarbeitung I (WiSe 2024/25) "</td>_</tr>_</tbody></table>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
+                <!--"ugaD_Kkb-bp5Gg7mdtxXDcj0jeHrTsW_v8Nh9DQBdB0"-->_
+                <!--"1ip8eDvrLDhgIPqPeWuUMJdlOaat0QKUTPyfIPoyqBE"-->_
+                <!--"9BaxcLXoDbvFC8da2E3MHfCwukHBrtNa5jNlA1FIvws"-->_
+                <!--"XyuICPyAWz8IJtSwZZnvBlOVbQJZ2CMAdzVEI3Fg_C4"-->_
+                <!--"hq703PrdSGo-1uz3Zu6cI0gGslVvsGwN9EMyJBruQbs"-->_
+                <!--"c5-23WihsxAzZQoCFufa3hZA3LPopllavGhaAWJBjrM"-->_
+                <!--"LYa-bgADgcQv5a0fIqWl_5bD1B-QfSDS5-Ln5JEn-eQ"-->_
+                <!--"zrkedIcKXMmMCMIEbPrxYDCb5ol3FSPWl9OQkbYA-5w"-->_</div>_
+              <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
+              <!--"rIAsNF0w6-x9uu_FjLOGU1keplSp1eCKVPofF6SN-s0"-->_
               <div class="contentlayoutright" id="contentlayoutright">_
                 <div class="tb courseList">_
                   <div class="tbhead">"Übersicht der Kurstermine"</div>_
                   <ul class="courseList">_
-                    <li class="courseListCell numout" title="Mo, 14. Okt. 2024 / 09:50:00 - 11:30:00 / S103/123">"1"</li>_
-                    <li class="courseListCell numout" title="Mo, 21. Okt. 2024 / 09:50:00 - 11:30:00 / S103/123">"2"</li>_
-                    <li class="courseListCell numout" title="Mo, 28. Okt. 2024 / 09:50:00 - 11:30:00 / S103/123">"3"</li>_
-                    <li class="courseListCell numout" title="Mo, 4. Nov. 2024 / 09:50:00 - 11:30:00 / S103/123">"4"</li>_
-                    <li class="courseListCell numout" title="Mo, 11. Nov. 2024 / 09:50:00 - 11:30:00 / S103/123">"5"</li>_
-                    <!--" </tr></tr> NEW TABLEROW NOT NEEDED IN LIST"-->_
-                    <li class="courseListCell numout" title="Mo, 18. Nov. 2024 / 09:50:00 - 11:30:00 / S103/123">"6"</li>_
-                    <li class="courseListCell numout" title="Mo, 25. Nov. 2024 / 09:50:00 - 11:30:00 / S103/123">"7"</li>_
-                    <li class="courseListCell numout" title="Mo, 2. Dez. 2024 / 09:50:00 - 11:30:00 / S103/123">"8"</li>_
-                    <li class="courseListCell numout" title="Mo, 9. Dez. 2024 / 09:50:00 - 11:30:00 / S103/123">"9"</li>_
-                    <li class="courseListCell numout" title="Mo, 16. Dez. 2024 / 09:50:00 - 11:30:00 / S103/123">"10"</li>_
-                    <!--" </tr></tr> NEW TABLEROW NOT NEEDED IN LIST"-->_
-                    <li class="courseListCell numout" title="Mo, 13. Jan. 2025 / 09:50:00 - 11:30:00 / S103/123">"11"</li>_
-                    <li class="courseListCell numout" title="Mo, 20. Jan. 2025 / 09:50:00 - 11:30:00 / S103/123">"12"</li>_
-                    <li class="courseListCell numout" title="Mo, 27. Jan. 2025 / 09:50:00 - 11:30:00 / S103/123">"13"</li>_
-                    <li class="courseListCell numout" title="Mo, 3. Feb. 2025 / 09:50:00 - 11:30:00 / S103/123">"14"</li>_
-                    <li class="courseListCell numout" title="Mo, 10. Feb. 2025 / 09:50:00 - 11:30:00 / S103/123">"15"</li>_
-                    <!--" </tr></tr> NEW TABLEROW NOT NEEDED IN LIST"-->_</ul>_</div>_
+    }
+    while html_handler.peek().is_some() {
+        let mut i = 0;
+        while i < 5 && html_handler.peek().is_some() {
+            html_handler = {
+                html_extractor::html! {
+                      <li class="courseListCell numout" title=title>number</li>_
+                }
+                if i == 4 {
+                    html_handler = {
+                        html_extractor::html! {
+                          <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
+                        }
+                        html_handler
+                    }
+                }
+                i += 1;
+                html_handler
+            }
+        }
+    }
+    html_extractor::html! {
+                </ul>_</div>_
                 <table class="tb rw-table">_
                   <tbody>
                     <tr class="rw-all">_
                       <td class="tbhead">"Lehrende"</td>_</tr>_
                     <tr>_
                       <td class="tbdata" name="instructorTitle">"\n                                                Prof. Dr. techn. Wolf Dietrich Fellner\n                                        "</td>_</tr>_</tbody></table>_
-                <!--" Navigator end "-->_</div>_</form>_
-            <script type="text/javascript">"\n<!--\nvar Cal=document.getElementById(\"calendar\");\nif(Cal){\n        Cal.style.display=\"inline\";\n}\n\n//-->\n"</script>_
+                <!--"f3Dd2OExxbOC6O6K52a9HWTpBxipUfPXKU7YBJsuGck"-->_</div>_</form>_
+            <script type="text/javascript">_trash</script>_
             <noscript></noscript>_
-            <!--"
-                        © DATENLOTSEN INFORMATIONSSYSTEME GMBH
-                        e-mail:                 info@datenlotsen.de
-                        web:                    http://www.datenlotsen.de
-
-                        customer:               tuda
-                        version:                13.00.016
-                        filename:               foot.htm
-                //"-->_</div>_</div>_</div>_
+            <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_</div>_</div>_</div>_
       <div id="pageFoot" class="pageElementTop">_
         <div id="pageFootControls" class="pageElementTop">_
           <div id="pageFootControlsLeft">_
