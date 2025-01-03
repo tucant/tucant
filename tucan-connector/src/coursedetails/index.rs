@@ -152,14 +152,32 @@ pub async fn coursedetails(
                     </b>_
                     <input type="hidden" name="creditingfor" value=""></input>_
                 </p>_
-                <p>
-                    <b>
-                        "Semesterwochenstunden: "
-                    </b>
-                    sws
-                    <input type="hidden" name="sws" value=sws></input>_
-                </p>_
     }
+    html_handler = if html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .name()
+        == "input"
+    {
+        html_extractor::html! {
+            <input type="hidden" name="sws" value="0"></input>_
+        }
+        html_handler
+    } else {
+        html_extractor::html! {
+            <p>
+                <b>
+                    "Semesterwochenstunden: "
+                </b>
+                sws
+                <input type="hidden" name="sws" value=sws></input>_
+            </p>_
+        }
+        html_handler
+    };
     html_handler = if html_handler
         .peek()
         .unwrap()
