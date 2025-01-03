@@ -516,12 +516,12 @@ pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
     Ok(html! {
         <>
             <style>{ include_str!("./bootstrap.min.css") }</style>
-                    <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
-                    <HashRouter>
+            <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
+                <HashRouter>
                     <Navbar />
                     <Switch<Route> render={switch} />
                 </HashRouter>
-                    </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
+            </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
         </>
     })
 }
