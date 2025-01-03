@@ -5,7 +5,7 @@ use tucant_types::{
 };
 
 use crate::{
-    common::head::{html_head, logged_in_head, logged_out_head},
+    common::head::{footer, html_head, logged_in_head, logged_out_head},
     html_handler::Root,
     Tucan,
 };
@@ -283,20 +283,8 @@ pub async fn coursedetails(
             <script type="text/javascript">_trash</script>_
             <noscript></noscript>_
             <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_</div>_</div>_</div>_
-      <div id="pageFoot" class="pageElementTop">_
-        <div id="pageFootControls" class="pageElementTop">_
-          <div id="pageFootControlsLeft">_
-            <a href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N952337203336396,-N000311,-Aimprint" class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">"Impressum"</a>_
-            <a href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N952337203336396,-N000311,-Acontact" class="img img_arrowContact pageElementLeft" id="pageFootControl_con">"Kontakt"</a>_
-            <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">"Drucken"</a>_</div>_
-          <div id="pageFootControlsRight">_
-            <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_</a>_</div>_</div>_</div>_</div>_
-    <div id="IEdiv">_</div>
-    <!--" purpose of this is to avoid a pretty strange bug in IE's "-->_
-    <!--" in case the schedule exceeds the given width in lower IE's"-->_
-    <!--""-->_
-    <div class="invAnchor">_
-      <a name="bottom" class="invAnchor">_</a>_</div>_</body></html>
     }
+    let html_handler = footer(html_handler, login_response.id, 311);
+    html_handler.end_document();
     Ok(CourseDetailsResponse {})
 }
