@@ -11,13 +11,22 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
         Node::Fragment => todo!(),
         Node::Doctype(_doctype) => "<!doctype html>".to_owned(),
         Node::Comment(comment) => {
-            "\n".to_owned() + &" ".repeat(depth) + "<!--\"" + comment + "\"-->"
+            "\n".to_owned()
+                + &" ".repeat(depth)
+                + "<!--\""
+                + &comment.replace("\"", "\\\"")
+                + "\"-->"
         }
         Node::Text(text) => {
             if text.trim().is_empty() {
                 "_".to_owned()
             } else {
-                "\"".to_owned() + &text.replace('\n', "\\n").replace('\t', "\\t") + "\""
+                "\"".to_owned()
+                    + &text
+                        .replace('\n', "\\n")
+                        .replace('\t', "\\t")
+                        .replace("\"", "\\\"")
+                    + "\""
             }
         }
         Node::Element(element) => {
