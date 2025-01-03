@@ -75,7 +75,7 @@ pub async fn coursedetails(
         </script>_
         <form name="courseform" action="/scripts/mgrqispi.dll" method="post">_
             <h1>
-                "\n20-00-0040-iv\nGraphische Datenverarbeitung I\n"
+                course_name
             </h1>_
             <div class="contentlayoutleft" id="contentlayoutleft">_
                 <table class="tb rw-table rw-all">_
@@ -95,7 +95,7 @@ pub async fn coursedetails(
                                         "Lehrende: "
                                     </b>
                                     <span id="dozenten">
-                                        "Prof. Dr. techn. Wolf Dietrich Fellner"
+                                        dozent
                                     </span>_
                                 </p>_
                                 <p>
@@ -117,8 +117,8 @@ pub async fn coursedetails(
                                     <b>
                                         "Anzeige im Stundenplan: "
                                     </b>
-                                    "\n                                                                        GDV I\n                                        "
-                                    <input type="hidden" name="shortdescription" value="GDV I"></input>_
+                                    anzeige_im_stundenplan
+                                    <input type="hidden" name="shortdescription" value=shortname></input>_
                                 </p>_
                                 <input type="hidden" name="courselevel" value="000000000000000"></input>_
                                 <p>
@@ -194,14 +194,14 @@ pub async fn coursedetails(
                     <div class="dl-inner">_
                         <p class="dl-ul-li-headline">
                             <strong>
-                                "Graphische Datenverarbeitung I Übung"
+                                uebung_name
                             </strong>
                         </p>_
                         <p>
-                            "Prof. Dr. techn. Wolf Dietrich Fellner"
+                            uebungsleiter
                         </p>_
                         <p>
-                            "Di, 15. Okt. 2024 [09:50]-Di, 11. Feb. 2025 [11:30]"
+                            date_range
                         </p>_
                     </div>_
                     <div class="dl-link">_
@@ -437,7 +437,7 @@ pub async fn coursedetails(
                                     </tr>_
                                     <tr>_
                                         <td class="tbdata" name="instructorTitle">
-                                            "\n                                                Prof. Dr. techn. Wolf Dietrich Fellner\n                                        "
+                                            instructors
                                         </td>_
                                     </tr>_
                                 </tbody>
