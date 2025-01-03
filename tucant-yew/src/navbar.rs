@@ -641,7 +641,11 @@ pub fn navbar() -> Html {
                             </li>
                         }
                     </ul>
-
+                    if !current_session.is_some() {
+                        <LoginComponent />
+                    } else {
+                        <LogoutComponent />
+                    }
                 </div>
             </div>
         </nav>
