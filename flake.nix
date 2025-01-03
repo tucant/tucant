@@ -239,8 +239,9 @@
             CLIENT_DIST = "";
           });
 
-          # Check formatting
-          my-app-fmt = craneLib.cargoFmt commonArgs;
+          my-app-fmt = (craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; }) commonArgs;
+
+          my-app-yew-fmt = (craneLib.cargoFmt.override { rustfmt = yew-fmt; }) commonArgs;
         };
 
         packages.default = myClient;

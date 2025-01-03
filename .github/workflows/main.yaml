@@ -43,8 +43,8 @@ jobs:
         # except the version with the `primary-key`, if it exists
         purge-primary-key: never
     - uses: actions/checkout@v4
-    - run: cargo +nightly-2024-09-10 fmt --check
-    - run: RUSTFMT=~/.cargo/bin/yew-fmt cargo +nightly-2024-09-10 fmt --check
+    - run: nix build -L .#checks.x86_64-linux.my-app-fmt
+    - run: nix build -L .#checks.x86_64-linux.my-app-yew-fmt
 
   build:
     runs-on: ubuntu-24.04
