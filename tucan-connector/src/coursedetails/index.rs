@@ -428,7 +428,28 @@ pub async fn coursedetails(
                     <td class="tbdata rw rw-course-room">_
                         <a name="appointmentRooms" href=room_url>
                             room
-                        </a>_
+                        </a>
+            }
+            while !html_handler
+                .peek()
+                .unwrap()
+                .value()
+                .as_text()
+                .unwrap()
+                .trim()
+                .is_empty()
+            {
+                html_handler = {
+                    html_extractor::html! {
+                        "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                        <a name="appointmentRooms" href=room_url>
+                            room
+                        </a>
+                    }
+                    html_handler
+                }
+            }
+            html_extractor::html! {_
                     </td>_
                     <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
                         instructors
