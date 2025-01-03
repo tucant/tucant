@@ -369,6 +369,10 @@ pub async fn coursedetails(
                         " Ende Hörer "
                     </td>_
                 </tr>_
+    }
+    while html_handler.peek().is_some() {
+        html_handler = {
+            html_extractor::html! {
                 <tr>_
                     <td class="tbdata">
                         zulassungstyp
@@ -389,6 +393,11 @@ pub async fn coursedetails(
                         ende_hoerer
                     </td>_
                 </tr>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
             </tbody>
         </table>_
         <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
