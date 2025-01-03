@@ -139,7 +139,7 @@ pub async fn coursedetails(
                     anzeige_im_stundenplan
                     <input type="hidden" name="shortdescription" value=shortname></input>_
                 </p>_
-                <input type="hidden" name="courselevel" value="000000000000000"></input>_
+                <input type="hidden" name="courselevel" value=courselevel></input>_
                 <p>
                     <b>
                         "Fach:"
@@ -371,22 +371,22 @@ pub async fn coursedetails(
                 </tr>_
                 <tr>_
                     <td class="tbdata">
-                        " Direkte Zulassung "
+                        zulassungstyp
                     </td>_
                     <td class="tbdata">
                         " Vorlesungszeit "
                     </td>_
                     <td class="tbdata">
-                        " 01.09.2024 00:00 "
+                        start
                     </td>_
                     <td class="tbdata">
-                        " 28.02.2025 23:59 "
+                        ende_anmeldung
                     </td>_
                     <td class="tbdata">
-                        " 28.02.2025 23:59 "
+                        ende_abmeldung
                     </td>_
                     <td class="tbdata">
-                        " 28.02.2025 23:59 "
+                        ende_hoerer
                     </td>_
                 </tr>_
             </tbody>
