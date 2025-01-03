@@ -300,6 +300,28 @@ pub async fn coursedetails(
         </table>_
         <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
         <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
+    }
+    if html_handler.peek().unwrap().value().is_element() {
+        // if in course
+        html_handler = {
+            html_extractor::html! {
+                <table class="tb rw-table">_
+                    <caption>
+                        "Material zur gesamten Veranstaltung"
+                    </caption>_
+                    <tbody>
+                        <tr>
+                            <td class="tbdata" colspan="3">
+                                "Es liegt kein Material vor."
+                            </td>
+                        </tr>_
+                    </tbody>
+                </table>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
         <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
         <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
         <table class="tb list rw-table">_
