@@ -110,7 +110,7 @@
           cargoDeps = oldAttrs.cargoDeps.overrideAttrs (pkgs.lib.const {
             name = "${oldAttrs.pname}-vendor.tar.gz";
             inherit src;
-            outputHash = "sha256-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=";
+            outputHash = "sha256-DDP3/DJaZmckcgb9qtmH0FVviITBpB8WwmlVAkvepsY=";
           });
         });
 
@@ -210,6 +210,15 @@
             hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
           };
         };
+
+        yew-fmt = craneLib.buildPackage {
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "yew-fmt";
+            rev = "patch-1";
+            hash = "";
+          };
+        };
       in
       {
         checks = {
@@ -239,6 +248,7 @@
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
         packages.rustfmt = rustfmt;
+        pkgs.yew-fmt = yew-fmt;
 
         apps.default = flake-utils.lib.mkApp {
           name = "server";
@@ -256,6 +266,8 @@
           # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = [
             trunk
+            rustfmt
+            yew-fmt
             pkgs.bashInteractive
             pkgs.diffoscope
           ];
