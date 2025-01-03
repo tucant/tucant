@@ -93,7 +93,9 @@ pub async fn coursedetails(
                 <a href=url class="arrow">
                     "Material"
                 </a>_
-                <!--"jYCN4Jtn7SZ5GOsHWIKQNgyly48iLydPsTKqT-TR1Go"-->_
+            }
+            html_handler = html_handler.skip_any_comment();
+            html_extractor::html! {_
                 <a href=url class="arrow">
                     "Nachrichten"
                 </a>_
@@ -540,6 +542,31 @@ pub async fn coursedetails(
                 </tr>_
     }
     while html_handler.peek().is_some() {
+        if html_handler
+            .peek()
+            .unwrap()
+            .children()
+            .nth(1)
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .attr("name")
+            .is_none()
+        {
+            html_handler = {
+                html_extractor::html! {
+                    <tr>_
+                        <td class="tbdata_nob h_center">_
+                            <a href=href>_
+                                <img src=imgsrc width="120" height="160" border="0" alt=alt></img>
+                            </a>_
+                        </td>_
+                    </tr>_
+                }
+                html_handler
+            }
+        }
         html_handler = {
             html_extractor::html! {
                 <tr>_
