@@ -126,6 +126,17 @@ pub async fn coursedetails(
         <tr>_
             <td class="tbdata" colspan="3">_
                 <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
+    }
+    if html_handler
+        .peek()
+        .unwrap()
+        .first_child()
+        .unwrap()
+        .value()
+        .is_text()
+    {
+        html_handler = {
+            html_extractor::html! {
                 <p>_
                     <b>
                         "Lehrende: "
@@ -134,41 +145,46 @@ pub async fn coursedetails(
                         dozent
                     </span>_
                 </p>_
-                <p>
-                    <b>
-                        "Veranstaltungsart:"
-                    </b>
-                    course_type
-                    <input type="hidden" name="coursetyp" value=course_type_number></input>_
-                </p>_
-                <p>
-                    <b>
-                        "Orga-Einheit:"
-                    </b>_
-                    <span name="courseOrgUnit">
-                        fachbereich
-                    </span>
-                </p>_
-                <p>_
-                    <b>
-                        "Anzeige im Stundenplan: "
-                    </b>
-                    anzeige_im_stundenplan
-                    <input type="hidden" name="shortdescription" value=shortname></input>_
-                </p>_
-                <input type="hidden" name="courselevel" value=courselevel></input>_
-                <p>
-                    <b>
-                        "Fach:"
-                    </b>_
-                    <input type="hidden" name="coursearea" value=""></input>_
-                </p>_
-                <p>
-                    <b>
-                        "Anrechenbar für:"
-                    </b>_
-                    <input type="hidden" name="creditingfor" value=""></input>_
-                </p>_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
+        <p>
+            <b>
+                "Veranstaltungsart:"
+            </b>
+            course_type
+            <input type="hidden" name="coursetyp" value=course_type_number></input>_
+        </p>_
+        <p>
+            <b>
+                "Orga-Einheit:"
+            </b>_
+            <span name="courseOrgUnit">
+                fachbereich
+            </span>
+        </p>_
+        <p>_
+            <b>
+                "Anzeige im Stundenplan: "
+            </b>
+            anzeige_im_stundenplan
+            <input type="hidden" name="shortdescription" value=shortname></input>_
+        </p>_
+        <input type="hidden" name="courselevel" value=courselevel></input>_
+        <p>
+            <b>
+                "Fach:"
+            </b>_
+            <input type="hidden" name="coursearea" value=""></input>_
+        </p>_
+        <p>
+            <b>
+                "Anrechenbar für:"
+            </b>_
+            <input type="hidden" name="creditingfor" value=""></input>_
+        </p>_
     }
     html_handler = if html_handler
         .peek()
@@ -458,9 +474,18 @@ pub async fn coursedetails(
                         "Raum"
                     </td>_
                     <td class="tbsubhead">
-                        "Lehrende"
-                    </td>_
-                </tr>_
+    }
+    if html_handler.peek().is_some() {
+        html_handler = {
+            html_extractor::html! {
+                "Lehrende"
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
+            </td>_
+        </tr>_
     };
     if html_handler
         .peek()
