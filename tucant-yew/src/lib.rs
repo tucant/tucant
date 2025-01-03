@@ -368,7 +368,7 @@ fn login() -> HtmlResult {
                 required=true
                 class="form-control me-2"
                 type="password"
-                  placeholder="Password"
+                placeholder="Password"
                 aria-label="Password"
             />
             <button class="btn btn-outline-success" type="submit">{ "Login" }</button>

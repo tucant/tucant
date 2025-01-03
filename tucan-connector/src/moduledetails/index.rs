@@ -62,7 +62,7 @@ pub async fn moduledetails(
     };
     let mut html_handler = html_head(html_handler);
     if html_handler.peek().is_none() {
-         html_extractor::html! {
+        html_extractor::html! {
             </head>_
             <body class="timeout">
         };
