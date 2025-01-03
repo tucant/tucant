@@ -1,10 +1,14 @@
+trunk-version = "^0.21.6"
+
 [build]
 target = "./index.html"
 
 [serve]
 port = 1420
 open = false
-no_autoreload = true # DO NOT CHANGE. This creates buggy navigation on Firefox
+
+# ENABLE THIS AND DISABLE THE VERSION CHECK ABOVE IF YOU USE AN UNPATCHED Trunk
+# no_autoreload = true
 
 [[proxy]]
 backend = "http://localhost:3000/api"
