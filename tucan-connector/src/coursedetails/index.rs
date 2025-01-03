@@ -276,16 +276,6 @@ pub async fn coursedetails(
             </tbody>
         </table>_
     }
-    println!(
-        "{:?}",
-        html_handler
-            .peek()
-            .unwrap()
-            .value()
-            .as_comment()
-            .unwrap()
-            .comment
-    );
     if html_handler
         .peek()
         .unwrap()
