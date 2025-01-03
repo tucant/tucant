@@ -209,6 +209,7 @@
             rev = "html-extractor-formatting";
             hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
           };
+          doCheck = false;
         };
 
         yew-fmt = craneLib.buildPackage {
@@ -216,7 +217,7 @@
             owner = "mohe2015";
             repo = "yew-fmt";
             rev = "patch-1";
-            hash = "";
+            hash = "sha256-WECfuQ3mBzoRu8uzhf0v1mjT7N+iU+APWDj/u3H0FPU=";
           };
         };
       in
