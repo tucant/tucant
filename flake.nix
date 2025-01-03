@@ -19,28 +19,7 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ (import rust-overlay) 
-(final: prev:
-{
-  rustfmt = prev.rustfmt.override (old: {
-    rustPlatform = old.rustPlatform // {
-      buildRustPackage = args: old.rustPlatform.buildRustPackage (args // {
-        src = pkgs.fetchFromGitHub {
-          owner = "tucant";
-          repo = "rustfmt";
-          rev = "html-extractor-formatting";
-          hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
-        };
-        buildAndTestSubdir = ".";
-        cargoVendorDir = null;
-        cargoHash = "";
-      });
-    };
-  });
-})
-          
-          
-          ];
+          overlays = [ (import rust-overlay) ];
         };
 
         inherit (pkgs) lib;
