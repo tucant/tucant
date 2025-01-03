@@ -129,7 +129,7 @@ pub async fn coursedetails(
                         "Orga-Einheit:"
                     </b>_
                     <span name="courseOrgUnit">
-                        "FB20 Informatik"
+                        fachbereich
                     </span>
                 </p>_
                 <p>_
@@ -447,35 +447,42 @@ pub async fn coursedetails(
             {
                 html_handler = {
                     html_extractor::html! {_
-                        <a name="appointmentRooms" href=room_url>
-                            room
-                        </a>
                     }
                     html_handler
                 };
-                while !html_handler
-                    .peek()
-                    .unwrap()
-                    .value()
-                    .as_text()
-                    .unwrap()
-                    .trim()
-                    .is_empty()
-                {
+                if html_handler.peek().is_some() {
                     html_handler = {
                         html_extractor::html! {
-                            "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
                             <a name="appointmentRooms" href=room_url>
                                 room
                             </a>
                         }
                         html_handler
+                    };
+                    while !html_handler
+                        .peek()
+                        .unwrap()
+                        .value()
+                        .as_text()
+                        .unwrap()
+                        .trim()
+                        .is_empty()
+                    {
+                        html_handler = {
+                            html_extractor::html! {
+                                "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                                <a name="appointmentRooms" href=room_url>
+                                    room
+                                </a>
+                            }
+                            html_handler
+                        }
                     }
-                }
-                html_handler = {
-                    html_extractor::html! {_
-                    }
-                    html_handler
+                    html_handler = {
+                        html_extractor::html! {_
+                        }
+                        html_handler
+                    };
                 }
             } else {
                 html_handler = {
