@@ -256,7 +256,7 @@
           drv = myServer;
         };
 
-        devShells.default = craneLib.devShell {
+        devShells.default = craneNightlyLib.devShell {
           # Inherit inputs from checks.
           checks = self.checks.${system};
 
