@@ -29,8 +29,8 @@
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".default.override {
-          extensions = [ "rust-src" "rustc-dev" "llvm-tools-preview" ];
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".minimal.override {
+          extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
         };
         craneNightlyLib = (crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor;
 
