@@ -42,14 +42,14 @@ async fn main() {
 
     if 1 == 1 {
         let login_response = direct_login_response().await;
-        yew::Renderer::<App<DirectTucan>>::with_props(AppProps::<DirectTucan> {
+        yew::Renderer::<App<DirectTucan>>::with_props(AppProps {
             initial_session: login_response,
         })
         .render();
     }
     if 1 == 1 {
         let login_response = api_login_response().await;
-        yew::Renderer::<App<ApiServerTucan>>::with_props(AppProps::<ApiServerTucan> {
+        yew::Renderer::<App<ApiServerTucan>>::with_props(AppProps {
             initial_session: login_response,
         })
         .render();

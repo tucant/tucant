@@ -506,9 +506,13 @@ fn module_details<TucanType: Tucan>(
     })
 }
 
-#[autoprops]
+#[derive(Properties, PartialEq)]
+pub struct AppProps {
+    pub initial_session: Option<LoginResponse>,
+}
+
 #[function_component(App)]
-pub fn app<TucanType: Tucan + 'static>(initial_session: &Option<LoginResponse>) -> HtmlResult {
+pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session }: &AppProps) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {
