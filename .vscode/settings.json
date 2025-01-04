@@ -7,6 +7,7 @@
     //"rust-analyzer.cargo.target": "wasm32-unknown-unknown"
     "rust-analyzer.cargo.features": [
         "api",
-        "authenticated_tests"
+        "authenticated_tests",
+        "direct"
     ]
 }

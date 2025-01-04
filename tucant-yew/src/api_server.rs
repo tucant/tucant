@@ -1,4 +1,5 @@
 use tucant_types::{
+    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
     LoginRequest, LoginResponse, Tucan, TucanError,
@@ -51,6 +52,25 @@ impl Tucan for ApiServerTucan {
         let mut url = Url::parse("http://localhost:1420/api/v1/module-details").unwrap();
         url.path_segments_mut().unwrap().push(&request.arguments);
         let response: ModuleDetailsResponse = client
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()?
+            .json()
+            .await
+            .unwrap();
+        Ok(response)
+    }
+
+    async fn course_details(
+        login_response: &LoginResponse,
+        request: CourseDetailsRequest,
+    ) -> Result<CourseDetailsResponse, TucanError> {
+        let client = reqwest::Client::new();
+        let mut url = Url::parse("http://localhost:1420/api/v1/course-details").unwrap();
+        url.path_segments_mut().unwrap().push(&request.arguments);
+        let response: CourseDetailsResponse = client
             .get(url)
             .send()
             .await

@@ -1,8 +1,10 @@
 use serde_json::json;
 use tucan_connector::{
-    login::login, moduledetails::index::moduledetails, registration::index::anmeldung_cached,
+    coursedetails::index::coursedetails, login::login, moduledetails::index::moduledetails,
+    registration::index::anmeldung_cached,
 };
 use tucant_types::{
+    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
     LoginRequest, LoginResponse, Tucan, TucanError,
@@ -30,5 +32,13 @@ impl Tucan for DirectTucan {
     ) -> Result<ModuleDetailsResponse, TucanError> {
         let tucan = tucan_connector::Tucan::new().await?;
         moduledetails(&tucan, &login_response, request).await
+    }
+
+    async fn course_details(
+        login_response: &LoginResponse,
+        request: CourseDetailsRequest,
+    ) -> Result<CourseDetailsResponse, TucanError> {
+        let tucan = tucan_connector::Tucan::new().await?;
+        coursedetails(&tucan, &login_response, request).await
     }
 }
