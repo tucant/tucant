@@ -34,12 +34,12 @@ use yew_router::{
     BrowserRouter, HashRouter, Routable, Switch,
 };
 
-mod navbar;
+pub mod navbar;
 
-mod api_server;
+pub mod api_server;
 #[cfg(feature = "direct")]
-mod direct;
-mod tauri;
+pub mod direct;
+pub mod tauri;
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {

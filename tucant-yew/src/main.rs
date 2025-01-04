@@ -1,5 +1,8 @@
 use log::info;
-use tucant_yew::{login_response, App, AppProps};
+use tucant_yew::{
+    api_login_response, api_server::ApiServerTucan, direct::DirectTucan, direct_login_response,
+    App, AppProps,
+};
 use wasm_bindgen::prelude::wasm_bindgen;
 use yew::set_custom_panic_hook;
 
@@ -37,10 +40,18 @@ async fn main() {
 
     info!("ewfwfwfefwf");
 
-    let login_response = login_response().await;
-
-    yew::Renderer::<App>::with_props(AppProps {
-        initial_session: login_response,
-    })
-    .render();
+    if 1 == 1 {
+        let login_response = direct_login_response().await;
+        yew::Renderer::<App<DirectTucan>>::with_props(AppProps::<DirectTucan> {
+            initial_session: login_response,
+        })
+        .render();
+    }
+    if 1 == 1 {
+        let login_response = api_login_response().await;
+        yew::Renderer::<App<ApiServerTucan>>::with_props(AppProps::<ApiServerTucan> {
+            initial_session: login_response,
+        })
+        .render();
+    }
 }
