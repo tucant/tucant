@@ -1,5 +1,6 @@
 use regex::Regex;
 use scraper::{ElementRef, Html};
+use serde::de::value;
 use tucant_types::{
     moduledetails::ModuleDetailsRequest,
     registration::{
@@ -89,58 +90,88 @@ pub async fn anmeldung(
         <h1>
             "Anmeldung zu Modulen und Veranstaltungen"
         </h1>_
-        <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
-        <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
-            <table class="tbcoursestatus rw-table rw-all">_
-                <tbody>
-                    <tr>_
-                        <td class="tbhead" colspan="100%">
-                            "Weitere Studien"
-                        </td>_
-                    </tr>_
-                    <tr>_
-                        <td class="tbcontrol" colspan="100%">_
-                            <div class="inputFieldLabel">_
-                                <label for="study">
-                                    "Studium:"
-                                </label>_
-                                <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
-                                    <option value="376333755785484">
-                                        "B.Sc. Informatik (2015)"
-                                    </option>_
-                                    <option value="391343674191079" selected="selected">
-                                        "M.Sc. Informatik (2023)"
-                                    </option>_
-                                </select>_
-                                <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
-                            </div>_
-                            <input name="APPNAME" type="hidden" value="CampusNet"></input>_
-                            <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
-                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                            <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
-                            <input name="menuno" type="hidden" value="000311"></input>_
-                            <input name="pa rent1" type="hidden" value="000000000000000"></input>_
-                            <input name="parent2" type="hidden" value="000000000000000"></input>_
-                            <input name="changestudy" type="hidden" value="1"></input>_
-                        </td>_
-                    </tr>_
-                </tbody>
-            </table>_
-        </form>_
-        <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
+    }
+    if html_handler.peek().unwrap().value().is_comment() {
+        html_handler = {
+            html_extractor::html! {
+                <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
+                <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
+                    <table class="tbcoursestatus rw-table rw-all">_
+                        <tbody>
+                            <tr>_
+                                <td class="tbhead" colspan="100%">
+                                    "Weitere Studien"
+                                </td>_
+                            </tr>_
+                            <tr>_
+                                <td class="tbcontrol" colspan="100%">_
+                                    <div class="inputFieldLabel">_
+                                        <label for="study">
+                                            "Studium:"
+                                        </label>_
+                                        <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
+            }
+            while html_handler.peek().is_some() {
+                html_handler = if html_handler
+                    .peek()
+                    .unwrap()
+                    .value()
+                    .as_element()
+                    .unwrap()
+                    .attr("selected")
+                    .is_some()
+                {
+                    html_extractor::html! {
+                        <option value=value selected="selected">
+                            study
+                        </option>_
+                    }
+                    html_handler
+                } else {
+                    html_extractor::html! {
+                        <option value=value>
+                            study
+                        </option>_
+                    }
+                    html_handler
+                }
+            }
+            html_extractor::html! {
+                                        </select>_
+                                        <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
+                                    </div>_
+                                    <input name="APPNAME" type="hidden" value="CampusNet"></input>_
+                                    <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
+                                    <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
+                                    <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
+                                    <input name="menuno" type="hidden" value="000311"></input>_
+                                    <input name="pa rent1" type="hidden" value="000000000000000"></input>_
+                                    <input name="parent2" type="hidden" value="000000000000000"></input>_
+                                    <input name="changestudy" type="hidden" value="1"></input>_
+                                </td>_
+                            </tr>_
+                        </tbody>
+                    </table>_
+                </form>_
+                <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
+            }
+            html_handler
+        }
+    }
+    html_extractor::html! {
         <h2>_
-            <a href={&format!(
-                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:\
-                 015},-N000311,-N391343674191079,-N0,-N0,-N0"
-            )}>
-                "M.Sc. Informatik (2023)"
+            <a href=registration_url>
+                study
             </a>
     };
     let mut path: Vec<(String, AnmeldungRequest)> = Vec::new();
+    let registration_url = registration_url.trim_start_matches(&format!(
+        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
+    ));
     path.push((
-        "M.Sc. Informatik (2023)".to_owned(),
+        study,
         AnmeldungRequest {
-            arguments: ",-N000311,-N391343674191079,-N0,-N0,-N0".to_owned(),
+            arguments: registration_url.to_owned(),
         },
     ));
     while !html_handler

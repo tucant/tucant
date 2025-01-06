@@ -2889,6 +2889,7 @@ dependencies = [
  "html-extractor",
  "itertools",
  "key-value-database",
+ "log",
  "regex",
  "reqwest",
  "reqwest-middleware",

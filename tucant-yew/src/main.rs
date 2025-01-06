@@ -1,6 +1,8 @@
+use js_sys::{global, Reflect};
 use log::info;
-use tucant_yew::{login_response, App, AppProps};
-use wasm_bindgen::prelude::wasm_bindgen;
+use tucant_yew::{api_server::ApiServerTucan, direct::DirectTucan, App, AppProps};
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+use web_sys::window;
 use yew::set_custom_panic_hook;
 
 #[wasm_bindgen]
@@ -37,10 +39,20 @@ async fn main() {
 
     info!("ewfwfwfefwf");
 
-    let login_response = login_response().await;
-
-    yew::Renderer::<App>::with_props(AppProps {
-        initial_session: login_response,
-    })
-    .render();
+    #[cfg(feature = "direct")]
+    if Reflect::get(&global(), &JsValue::from_str("chrome")).is_ok() {
+        let login_response = tucant_yew::direct_login_response().await;
+        yew::Renderer::<App<DirectTucan>>::with_props(AppProps {
+            initial_session: login_response,
+        })
+        .render();
+    }
+    #[cfg(feature = "api")]
+    {
+        let login_response = tucant_yew::api_login_response().await;
+        yew::Renderer::<App<ApiServerTucan>>::with_props(AppProps {
+            initial_session: login_response,
+        })
+        .render();
+    }
 }

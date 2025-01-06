@@ -89,7 +89,7 @@ mod tests {
 
     use crate::{
         coursedetails::index::coursedetails, externalpages::welcome::welcome, login::login,
-        moduledetails::index::moduledetails, root::root,
+        moduledetails::index::moduledetails, registration::index::anmeldung, root::root,
         startpage_dispatch::one::startpage_dispatch_1, Tucan,
     };
 
@@ -215,10 +215,10 @@ mod authenticated_tests {
 
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
-    use tucant_types::{LoginRequest, TucanError};
+    use tucant_types::{registration::AnmeldungRequest, LoginRequest, TucanError};
 
     use crate::{
-        login::login, mlsstart::start_page::after_login,
+        login::login, mlsstart::start_page::after_login, registration::index::anmeldung,
         startpage_dispatch::after_login::redirect_after_login, Tucan,
     };
 
@@ -271,5 +271,29 @@ mod authenticated_tests {
         .await
         .unwrap();
         after_login(&tucan.client, login_response).await.unwrap()
+    }
+
+    #[tokio::test]
+    pub async fn test_registration() {
+        dotenvy::dotenv().unwrap();
+        let tucan = Tucan::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
+                password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let response = anmeldung(
+            &tucan,
+            &login_response,
+            AnmeldungRequest {
+                arguments: ",-N000311,-A".to_owned(),
+            },
+        )
+        .await
+        .unwrap();
     }
 }

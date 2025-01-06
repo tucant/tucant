@@ -3,6 +3,7 @@ pub mod moduledetails;
 pub mod registration;
 
 use axum_core::response::{IntoResponse, Response};
+use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
@@ -57,4 +58,9 @@ pub trait Tucan {
         login_response: &LoginResponse,
         request: ModuleDetailsRequest,
     ) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
+
+    fn course_details(
+        login_response: &LoginResponse,
+        request: CourseDetailsRequest,
+    ) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
 }

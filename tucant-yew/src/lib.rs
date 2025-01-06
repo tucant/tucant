@@ -34,23 +34,15 @@ use yew_router::{
     BrowserRouter, HashRouter, Routable, Switch,
 };
 
-mod navbar;
+pub mod navbar;
 
-mod api_server;
+pub mod api_server;
 #[cfg(feature = "direct")]
-mod direct;
-mod tauri;
-
-// TODO FIXME don't do it this way because of feature unification
-#[cfg(feature = "tauri")]
-type TucanType = TauriTucan;
-#[cfg(feature = "direct")]
-type TucanType = direct::DirectTucan;
-#[cfg(feature = "api")]
-type TucanType = ApiServerTucan;
+pub mod direct;
+pub mod tauri;
 
 #[cfg(feature = "direct")]
-pub async fn login_response() -> Option<LoginResponse> {
+pub async fn direct_login_response() -> Option<LoginResponse> {
     {
         let session_id = web_extensions_sys::chrome()
             .storage()
@@ -85,7 +77,7 @@ pub async fn login_response() -> Option<LoginResponse> {
 }
 
 #[cfg(feature = "api")]
-pub async fn login_response() -> Option<LoginResponse> {
+pub async fn api_login_response() -> Option<LoginResponse> {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
@@ -120,7 +112,9 @@ pub struct AnmeldungRequestProps {
 }
 
 #[function_component(Registration)]
-fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
+fn registration<TucanType: Tucan + 'static>(
+    AnmeldungRequestProps { registration }: &AnmeldungRequestProps,
+) -> HtmlResult {
     let data = use_state(|| {
         Ok(AnmeldungResponse {
             path: vec![],
@@ -287,7 +281,7 @@ fn registration(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) 
 }
 
 #[function_component(LoginComponent)]
-fn login() -> HtmlResult {
+fn login<TucanType: Tucan>() -> HtmlResult {
     let navigator = use_navigator().unwrap();
 
     let username_value_handle = use_state(String::default);
@@ -425,16 +419,18 @@ enum Route {
     Registration { registration: String },
 }
 
-fn switch(routes: Route) -> Html {
+fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {
-            html! { <Registration registration={AnmeldungRequest {arguments: registration}} /> }
+            html! {
+                <Registration<TucanType> registration={AnmeldungRequest {arguments: registration}} />
+            }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
         Route::Root => html! { <div>{ "TODO" }</div> },
         Route::ModuleDetails { module } => {
             html! {
-                <ModuleDetails
+                <ModuleDetails<TucanType>
                     module_details={ModuleDetailsRequest {
                 arguments: module
             }}
@@ -450,7 +446,9 @@ pub struct ModuleDetailsProps {
 }
 
 #[function_component(ModuleDetails)]
-fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
+fn module_details<TucanType: Tucan>(
+    ModuleDetailsProps { module_details }: &ModuleDetailsProps,
+) -> HtmlResult {
     let data = use_state(|| None);
     let loading = use_state(|| false);
     let current_session =
@@ -508,9 +506,13 @@ fn module_details(ModuleDetailsProps { module_details }: &ModuleDetailsProps) ->
     })
 }
 
-#[autoprops]
+#[derive(Properties, PartialEq)]
+pub struct AppProps {
+    pub initial_session: Option<LoginResponse>,
+}
+
 #[function_component(App)]
-pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
+pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session }: &AppProps) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {
@@ -518,8 +520,8 @@ pub fn app(initial_session: &Option<LoginResponse>) -> HtmlResult {
             <style>{ include_str!("./bootstrap.min.css") }</style>
             <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
                 <HashRouter>
-                    <Navbar />
-                    <Switch<Route> render={switch} />
+                    <Navbar<TucanType> />
+                    <Switch<Route> render={switch::<TucanType>} />
                 </HashRouter>
             </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
         </>
