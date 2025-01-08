@@ -334,9 +334,33 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N598063848135531,-N000391,-Astudplan%2Ehtml"
+                                        >
+                                            { "Mein Prüfungsplan - Wichtige Hinweise" }
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            class="dropdown-item"
                                             href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N598063848135531,-N000323,-Astudergebnis%2Ehtml"
                                         >
                                             { "Semesterergebnisse" }
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            class="dropdown-item"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N598063848135531,-N000324,"
+                                        >
+                                            { "Modulergebnisse" }
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a
+                                            class="dropdown-item"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N598063848135531,-N000325,"
+                                        >
+                                            { "Prüfungsergebnisse" }
                                         </a>
                                     </li>
                                     <li>
