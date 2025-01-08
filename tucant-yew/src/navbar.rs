@@ -25,7 +25,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-xl-0">
-                        if current_session.is_some() {
+                        if let Some(current_session) = &*current_session {
                             <li class="nav-item dropdown">
                                 <a
                                     class="nav-link dropdown-toggle"
@@ -40,9 +40,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{:015},-N000019,", current_session.id)}
                                         >
                                             { "Aktuelles" }
                                         </a>
