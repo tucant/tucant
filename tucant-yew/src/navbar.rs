@@ -307,7 +307,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000280,-Astudpruefungen%2Ehtml"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000280,-Astudpruefungen%2Ehtml", current_session.id)}
                                         >
                                             { "Prüfungen" }
                                         </a>
@@ -318,7 +318,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,", current_session.id)}
                                         >
                                             { "Meine Prüfungen" }
                                         </a>
@@ -326,7 +326,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,", current_session.id)}
                                         >
                                             { "Mein Prüfungsplan" }
                                         </a>
@@ -334,7 +334,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000391,-Astudplan%2Ehtml"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000391,-Astudplan%2Ehtml", current_session.id)}
                                         >
                                             { "Mein Prüfungsplan - Wichtige Hinweise" }
                                         </a>
@@ -342,7 +342,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml", current_session.id)}
                                         >
                                             { "Semesterergebnisse" }
                                         </a>
@@ -350,7 +350,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,", current_session.id)}
                                         >
                                             { "Modulergebnisse" }
                                         </a>
@@ -358,7 +358,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,", current_session.id)}
                                         >
                                             { "Prüfungsergebnisse" }
                                         </a>
@@ -366,7 +366,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000", current_session.id)}
                                         >
                                             { "Leistungsspiegel" }
                                         </a>
