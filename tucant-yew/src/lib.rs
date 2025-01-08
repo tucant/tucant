@@ -351,6 +351,8 @@ fn login<TucanType: Tucan>() -> HtmlResult {
 
 #[function_component(LogoutComponent)]
 fn logout() -> HtmlResult {
+    // TODO FIXME send actual logout request to ensure session is invalidated on server side
+
     let current_session =
         use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
