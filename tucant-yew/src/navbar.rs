@@ -243,9 +243,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N598063848135531,-N000273,-Astudveranst%2Ehtml"
                                         >
                                             { "Veranstaltungen" }
                                         </a>
@@ -256,9 +254,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N598063848135531,-N000275,"
                                         >
                                             { "Meine Module" }
                                         </a>
@@ -266,9 +262,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N598063848135531,-N000274,"
                                         >
                                             { "Meine Veranstaltungen" }
                                         </a>
@@ -276,9 +270,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N598063848135531,-N000307,"
                                         >
                                             { "Meine Wahlbereiche" }
                                         </a>
@@ -286,9 +278,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#/registration/,-N000311,-A"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N598063848135531,-N000311,-A"
                                         >
                                             { "Anmeldung" }
                                         </a>
@@ -296,9 +286,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N598063848135531,-N000308,-N000000000000000"
                                         >
                                             { "Mein aktueller Anmeldestatus" }
                                         </a>
