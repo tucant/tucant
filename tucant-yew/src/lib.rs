@@ -193,6 +193,7 @@ fn registration<TucanType: Tucan + 'static>(
         return Ok(html! { <></> });
     }
 
+    #[expect(unused_parens)]
     Ok(html! {
         <div class="container">
             <h2 class="text-center">{ "Registration" }</h2>
@@ -235,7 +236,8 @@ fn registration<TucanType: Tucan + 'static>(
                                 }
                                 <ul class="list-group">
                                 {
-                                    for entry.courses.iter().map(|course| {
+                                    for entry.courses.iter().map(|course|
+                                     {
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">

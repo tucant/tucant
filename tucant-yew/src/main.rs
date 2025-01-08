@@ -37,7 +37,12 @@ async fn main() {
     info!("ewfwfwfefwf");
 
     #[cfg(feature = "direct")]
-    if js_sys::Reflect::get(&js_sys::global(), &JsValue::from_str("chrome")).is_ok() {
+    if js_sys::Reflect::get(
+        &js_sys::global(),
+        &wasm_bindgen::JsValue::from_str("chrome"),
+    )
+    .is_ok()
+    {
         let login_response = tucant_yew::direct_login_response().await;
         yew::Renderer::<App<tucant_yew::direct::DirectTucan>>::with_props(AppProps {
             initial_session: login_response,
