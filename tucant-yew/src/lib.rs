@@ -1,37 +1,19 @@
-use api_server::ApiServerTucan;
-use key_value_database::Database;
 use navbar::Navbar;
-use std::{ops::Deref, rc::Rc};
-use tauri::TauriTucan;
+use std::ops::Deref;
 use tucant_types::{
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
+    moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse, Tucan,
 };
-use url::Url;
-use web_extensions_sys::CookieDetails;
-use yew_autoprops::autoprops;
 
-use log::info;
-use serde::{Deserialize, Serialize};
 
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsCast as _, JsValue,
-};
+use wasm_bindgen::JsCast as _;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{
-    js_sys::{Function, JsString, Reflect},
-    HtmlInputElement, Node,
-};
-use yew::{
-    prelude::*,
-    suspense::{self, SuspensionResult},
-};
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
 use yew_router::{
-    hooks::{use_location, use_navigator, use_route},
-    prelude::{Link, Redirect},
-    BrowserRouter, HashRouter, Routable, Switch,
+    hooks::use_navigator,
+    prelude::Link, HashRouter, Routable, Switch,
 };
 
 pub mod navbar;
@@ -182,13 +164,13 @@ fn registration<TucanType: Tucan + 'static>(
         }
     };
 
-    if (data.submenus.len() == 1
+    if data.submenus.len() == 1
         && data.additional_information.is_empty()
         && data.entries.is_empty()
-        && !*loading)
+        && !*loading
     {
         navigator.replace(&Route::Registration {
-            registration: format!("{}", data.submenus[0].1.arguments.clone()),
+            registration: data.submenus[0].1.arguments.clone().to_string(),
         });
         return Ok(html! { <></> });
     }
@@ -200,14 +182,14 @@ fn registration<TucanType: Tucan + 'static>(
             <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>() }
                 </ol>
             </nav>
             <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
                 { data.submenus.iter().map(|entry| {
-                        html!{<Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                        html!{<Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>() }
             </ul>
             <h2 class="text-center">{ "Modules and courses" }</h2>
@@ -388,14 +370,10 @@ fn logout() -> HtmlResult {
             let document = window.document().unwrap();
             let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
             html_document
-                .set_cookie(&format!(
-                    "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
-                ))
+                .set_cookie("id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
                 .unwrap();
             html_document
-                .set_cookie(&format!(
-                    "cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
-                ))
+                .set_cookie("cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
                 .unwrap();
 
             current_session.set(None);
