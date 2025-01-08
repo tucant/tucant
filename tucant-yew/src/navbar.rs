@@ -49,13 +49,15 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                         <hr class="dropdown-divider" />
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
-                                            { "Nachrichten" }
+                                        <a class="dropdown-item disabled">
+                                            { "Nachrichten " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                 </ul>
