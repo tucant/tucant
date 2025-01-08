@@ -50,7 +50,8 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     </li>
                                     <li>
                                         <a class="dropdown-item disabled">
-                                            { "Nachrichten " }
+                                            { "Nachrichten" }
+                                            { " " }
                                             <span
                                                 class="spinner-grow spinner-grow-sm"
                                                 aria-hidden="true"
@@ -74,84 +75,98 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Vorlesungsverzeichnis" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
                                         <hr class="dropdown-divider" />
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Lehrveranstaltungssuche" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N588840428781170,-N000387,"
                                         >
                                             { "Raumsuche" }
                                         </a>
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Aktuell - Wintersemester 2024/25" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Vorlesungsverzeichnis Gasthörer_innen WiSe 2024/25" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Vorlesungsverzeichnis des SoSe 2024" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
-                                        >
+                                        <a class="dropdown-item disabled">
                                             { "Vorlesungsverzeichnis des WiSe 2023/24" }
+                                            { " " }
+                                            <span
+                                                class="spinner-grow spinner-grow-sm"
+                                                aria-hidden="true"
+                                            />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
                                         </a>
                                     </li>
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml"
                                         >
                                             { "Archiv" }
                                         </a>
