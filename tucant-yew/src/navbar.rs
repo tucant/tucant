@@ -187,9 +187,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000268,-A,-A,-N1", current_session.id)}
                                         >
                                             { "Stundenplan" }
                                         </a>
@@ -200,9 +198,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000269,-A,-A,-N0", current_session.id)}
                                         >
                                             { "Tagesansicht" }
                                         </a>
@@ -210,9 +206,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000270,-A,-A,-N1", current_session.id)}
                                         >
                                             { "Wochenansicht" }
                                         </a>
@@ -220,9 +214,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A", current_session.id)}
                                         >
                                             { "Monatsansicht" }
                                         </a>
@@ -230,9 +222,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{:015},-N000272,", current_session.id)}
                                         >
                                             { "Export" }
                                         </a>
