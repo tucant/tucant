@@ -307,9 +307,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N598063848135531,-N000280,-Astudpruefungen%2Ehtml"
                                         >
                                             { "Prüfungen" }
                                         </a>
@@ -320,9 +318,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N598063848135531,-N000318,"
                                         >
                                             { "Meine Prüfungen" }
                                         </a>
@@ -330,9 +326,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N598063848135531,-N000389,"
                                         >
                                             { "Mein Prüfungsplan" }
                                         </a>
@@ -340,9 +334,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N598063848135531,-N000323,-Astudergebnis%2Ehtml"
                                         >
                                             { "Semesterergebnisse" }
                                         </a>
@@ -350,9 +342,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N598063848135531,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000"
                                         >
                                             { "Leistungsspiegel" }
                                         </a>
