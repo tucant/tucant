@@ -1,6 +1,5 @@
 use regex::Regex;
 use scraper::{ElementRef, Html};
-use serde::de::value;
 use tucant_types::{
     moduledetails::ModuleDetailsRequest,
     registration::{

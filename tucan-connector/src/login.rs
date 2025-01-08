@@ -92,7 +92,7 @@ pub async fn login(
     let next_url = next_url.to_str().unwrap();
     let id = &next_url_regex.captures(next_url).unwrap()["id"];
     let cookie_cnsc = if cfg!(target_arch = "wasm32") {
-        "".to_owned()
+        String::new()
     } else {
         let cookie_cnsc = response.headers_mut().remove("set-cookie").unwrap();
         cookie_cnsc
@@ -108,6 +108,6 @@ pub async fn login(
     let _document = Html::parse_document(&content);
     Ok(LoginResponse {
         id: id.parse().unwrap(),
-        cookie_cnsc: cookie_cnsc,
+        cookie_cnsc,
     })
 }

@@ -1,4 +1,4 @@
-use scraper::{html, ElementRef, Html};
+use scraper::{ElementRef, Html};
 use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     LoginResponse, TucanError,

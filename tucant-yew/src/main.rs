@@ -1,8 +1,5 @@
-use js_sys::{global, Reflect};
 use log::info;
-use tucant_yew::{App, AppProps};
-use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
-use web_sys::window;
+use wasm_bindgen::prelude::wasm_bindgen;
 use yew::set_custom_panic_hook;
 
 #[wasm_bindgen]

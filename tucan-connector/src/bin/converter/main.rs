@@ -14,7 +14,7 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
             "\n".to_owned()
                 + &" ".repeat(depth)
                 + "<!--\""
-                + &comment.replace("\"", "\\\"")
+                + &comment.replace('"', "\\\"")
                 + "\"-->"
         }
         Node::Text(text) => {
@@ -25,7 +25,7 @@ pub fn to_string(node: NodeRef<Node>, depth: usize) -> String {
                     + &text
                         .replace('\n', "\\n")
                         .replace('\t', "\\t")
-                        .replace("\"", "\\\"")
+                        .replace('"', "\\\"")
                     + "\""
             }
         }
