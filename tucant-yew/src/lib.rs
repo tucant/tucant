@@ -245,6 +245,7 @@ fn registration<TucanType: Tucan + 'static>(
 
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
+                                                    // needing the parentheses is a yew bug
                                                     <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
                                                 </div>
 
