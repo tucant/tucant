@@ -6,15 +6,11 @@ use tucant_types::{
     LoginRequest, LoginResponse, Tucan,
 };
 
-
 use wasm_bindgen::JsCast as _;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{
-    hooks::use_navigator,
-    prelude::Link, HashRouter, Routable, Switch,
-};
+use yew_router::{hooks::use_navigator, prelude::Link, HashRouter, Routable, Switch};
 
 pub mod navbar;
 
@@ -29,20 +25,18 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
         let session_id = web_extensions_sys::chrome()
             .storage()
             .local()
-            .get(&JsValue::from_str("sessionId"))
+            .get(&wasm_bindgen::JsValue::from_str("sessionId"))
             .await
             .unwrap();
 
-        info!("session_id: {:?}", session_id);
         let session_id =
-            js_sys::Reflect::get(&session_id, &JsValue::from_str("sessionId")).unwrap();
-        info!("session_id: {:?}", session_id);
+            js_sys::Reflect::get(&session_id, &wasm_bindgen::JsValue::from_str("sessionId"))
+                .unwrap();
         let session_id = session_id.as_string().unwrap();
-        info!("session_id: {:?}", session_id);
 
         let cnsc = web_extensions_sys::chrome()
             .cookies()
-            .get(CookieDetails {
+            .get(web_extensions_sys::CookieDetails {
                 name: "cnsc".to_owned(),
                 url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
                 partition_key: None,

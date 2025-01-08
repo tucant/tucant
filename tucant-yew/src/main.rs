@@ -44,17 +44,21 @@ async fn main() {
     .is_ok()
     {
         let login_response = tucant_yew::direct_login_response().await;
-        yew::Renderer::<App<tucant_yew::direct::DirectTucan>>::with_props(AppProps {
-            initial_session: login_response,
-        })
+        yew::Renderer::<tucant_yew::App<tucant_yew::direct::DirectTucan>>::with_props(
+            tucant_yew::AppProps {
+                initial_session: login_response,
+            },
+        )
         .render();
     }
     #[cfg(feature = "api")]
     {
         let login_response = tucant_yew::api_login_response().await;
-        yew::Renderer::<App<tucant_yew::api_server::ApiServerTucan>>::with_props(AppProps {
-            initial_session: login_response,
-        })
+        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(
+            tucant_yew::AppProps {
+                initial_session: login_response,
+            },
+        )
         .render();
     }
 }

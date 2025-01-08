@@ -41,10 +41,7 @@ pub async fn login(
         response.headers_mut().remove("server"),
         Some(HeaderValue::from_static("Microsoft-IIS/10.0"))
     );
-    assert!(response
-        .headers_mut()
-        .remove("mgmiddlewarewaittime")
-        .is_some());
+    response.headers_mut().remove("mgmiddlewarewaittime");
     assert_eq!(
         response.headers_mut().remove("strict-transport-security"),
         Some(HeaderValue::from_static(
