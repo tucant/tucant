@@ -1,4 +1,5 @@
 use course_details::CourseDetails;
+use js_sys::Object;
 use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
@@ -10,7 +11,7 @@ use tucant_types::{
     LoginRequest, LoginResponse, Tucan,
 };
 
-use wasm_bindgen::JsCast as _;
+use wasm_bindgen::{JsCast as _, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -135,14 +136,18 @@ fn login<TucanType: Tucan>() -> HtmlResult {
                     .await
                     .unwrap();
 
-                let window = web_sys::window().unwrap();
-                let document = window.document().unwrap();
-                let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
-                html_document
-                    .set_cookie(&format!("id={}; SameSite=Strict", response.id))
-                    .unwrap();
-                html_document
-                    .set_cookie(&format!("cnsc={}; SameSite=Strict", response.cookie_cnsc))
+                let object = Object::new();
+                js_sys::Reflect::set(
+                    &object,
+                    &wasm_bindgen::JsValue::from_str("sessionId"),
+                    &wasm_bindgen::JsValue::from_str(&response.id.to_string()),
+                )
+                .unwrap();
+                web_extensions_sys::chrome()
+                    .storage()
+                    .local()
+                    .set(&object)
+                    .await
                     .unwrap();
 
                 current_session.set(Some(response.clone()));
@@ -195,9 +200,6 @@ fn logout() -> HtmlResult {
             let window = web_sys::window().unwrap();
             let document = window.document().unwrap();
             let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
-            html_document
-                .set_cookie("id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
-                .unwrap();
             html_document
                 .set_cookie("cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
                 .unwrap();

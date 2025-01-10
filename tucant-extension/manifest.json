@@ -21,6 +21,9 @@
         "cookies",
         "contextMenus"
     ],
+    "omnibox": {
+        "keyword": "tucan"
+    },
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*"
     ],
