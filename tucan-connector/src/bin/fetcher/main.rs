@@ -1,13 +1,12 @@
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tucan_connector::coursedetails::index::coursedetails;
-use tucan_connector::login::login;
-use tucan_connector::moduledetails::index::{moduledetails, moduledetails_cached};
+use tucan_connector::moduledetails::index::moduledetails_cached;
 use tucan_connector::registration::index::anmeldung_cached;
 use tucan_connector::Tucan;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::AnmeldungRequest;
-use tucant_types::{LoginRequest, LoginResponse, TucanError};
+use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();

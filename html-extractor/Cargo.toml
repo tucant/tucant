@@ -8,10 +8,10 @@ version.workspace = true
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full"] }
+syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
-itertools = "0.13"
+itertools = "0.14"
 
 [lints]
 workspace = true

@@ -22,50 +22,16 @@ jobs:
   check-fmt:
     runs-on: ubuntu-24.04
     steps:
-    - uses: nixbuild/nix-quick-install-action@v27
-    - name: Restore and cache Nix store
-      uses: nix-community/cache-nix-action@v5
-      with:
-        # restore and save a cache using this key
-        primary-key: nix-${{ runner.os }}
-        # if there's no cache hit, restore a cache by this prefix
-        restore-prefixes-first-match: nix-${{ runner.os }}-
-        # collect garbage until Nix store size (in bytes) is at most this number
-        # before trying to save a new cache
-        gc-max-store-size-linux: 1073741824
-        # do purge caches
-        purge: true
-        # purge all versions of the cache
-        purge-prefixes: cache-${{ runner.os }}-
-        # created more than this number of seconds ago relative to the start of the `Post Restore` phase
-        purge-created: 0
-        # except the version with the `primary-key`, if it exists
-        purge-primary-key: never
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - uses: actions/checkout@v4
     - run: nix build -L .#checks.x86_64-linux.my-app-fmt
 
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: nixbuild/nix-quick-install-action@v27
-    - name: Restore and cache Nix store
-      uses: nix-community/cache-nix-action@v5
-      with:
-        # restore and save a cache using this key
-        primary-key: nix-${{ runner.os }}
-        # if there's no cache hit, restore a cache by this prefix
-        restore-prefixes-first-match: nix-${{ runner.os }}-
-        # collect garbage until Nix store size (in bytes) is at most this number
-        # before trying to save a new cache
-        gc-max-store-size-linux: 1073741824
-        # do purge caches
-        purge: true
-        # purge all versions of the cache
-        purge-prefixes: cache-${{ runner.os }}-
-        # created more than this number of seconds ago relative to the start of the `Post Restore` phase
-        purge-created: 0
-        # except the version with the `primary-key`, if it exists
-        purge-primary-key: never
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - uses: actions/checkout@v4
     - run: nix --extra-experimental-features nix-command --extra-experimental-features flakes build .#extension
     - run: cp result tucant-extension.zip
@@ -115,25 +81,8 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [reproducibility]
     steps:
-    - uses: nixbuild/nix-quick-install-action@v27
-    - name: Restore and cache Nix store
-      uses: nix-community/cache-nix-action@v5
-      with:
-        # restore and save a cache using this key
-        primary-key: nix-${{ runner.os }}
-        # if there's no cache hit, restore a cache by this prefix
-        restore-prefixes-first-match: nix-${{ runner.os }}-
-        # collect garbage until Nix store size (in bytes) is at most this number
-        # before trying to save a new cache
-        gc-max-store-size-linux: 1073741824
-        # do purge caches
-        purge: true
-        # purge all versions of the cache
-        purge-prefixes: cache-${{ runner.os }}-
-        # created more than this number of seconds ago relative to the start of the `Post Restore` phase
-        purge-created: 0
-        # except the version with the `primary-key`, if it exists
-        purge-primary-key: never
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v4
       with:

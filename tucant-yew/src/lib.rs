@@ -1,38 +1,16 @@
-use api_server::ApiServerTucan;
-use key_value_database::Database;
 use navbar::Navbar;
-use std::{ops::Deref, rc::Rc};
-use tauri::TauriTucan;
+use std::ops::Deref;
 use tucant_types::{
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
+    moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse, Tucan,
 };
-use url::Url;
-use web_extensions_sys::CookieDetails;
-use yew_autoprops::autoprops;
 
-use log::info;
-use serde::{Deserialize, Serialize};
-
-use wasm_bindgen::{
-    prelude::{wasm_bindgen, Closure},
-    JsCast as _, JsValue,
-};
+use wasm_bindgen::JsCast as _;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{
-    js_sys::{Function, JsString, Reflect},
-    HtmlInputElement, Node,
-};
-use yew::{
-    prelude::*,
-    suspense::{self, SuspensionResult},
-};
-use yew_router::{
-    hooks::{use_location, use_navigator, use_route},
-    prelude::{Link, Redirect},
-    BrowserRouter, HashRouter, Routable, Switch,
-};
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+use yew_router::{hooks::use_navigator, prelude::Link, HashRouter, Routable, Switch};
 
 pub mod navbar;
 
@@ -47,20 +25,18 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
         let session_id = web_extensions_sys::chrome()
             .storage()
             .local()
-            .get(&JsValue::from_str("sessionId"))
+            .get(&wasm_bindgen::JsValue::from_str("sessionId"))
             .await
             .unwrap();
 
-        info!("session_id: {:?}", session_id);
         let session_id =
-            js_sys::Reflect::get(&session_id, &JsValue::from_str("sessionId")).unwrap();
-        info!("session_id: {:?}", session_id);
+            js_sys::Reflect::get(&session_id, &wasm_bindgen::JsValue::from_str("sessionId"))
+                .unwrap();
         let session_id = session_id.as_string().unwrap();
-        info!("session_id: {:?}", session_id);
 
         let cnsc = web_extensions_sys::chrome()
             .cookies()
-            .get(CookieDetails {
+            .get(web_extensions_sys::CookieDetails {
                 name: "cnsc".to_owned(),
                 url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
                 partition_key: None,
@@ -182,31 +158,32 @@ fn registration<TucanType: Tucan + 'static>(
         }
     };
 
-    if (data.submenus.len() == 1
+    if data.submenus.len() == 1
         && data.additional_information.is_empty()
         && data.entries.is_empty()
-        && !*loading)
+        && !*loading
     {
         navigator.replace(&Route::Registration {
-            registration: format!("{}", data.submenus[0].1.arguments.clone()),
+            registration: data.submenus[0].1.arguments.clone().to_string(),
         });
         return Ok(html! { <></> });
     }
 
+    #[expect(unused_parens)]
     Ok(html! {
         <div class="container">
             <h2 class="text-center">{ "Registration" }</h2>
             <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>() }
                 </ol>
             </nav>
             <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
                 { data.submenus.iter().map(|entry| {
-                        html!{<Link<Route> to={Route::Registration { registration: format!("{}", entry.1.arguments.clone())}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                        html!{<Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>() }
             </ul>
             <h2 class="text-center">{ "Modules and courses" }</h2>
@@ -235,7 +212,8 @@ fn registration<TucanType: Tucan + 'static>(
                                 }
                                 <ul class="list-group">
                                 {
-                                    for entry.courses.iter().map(|course| {
+                                    for entry.courses.iter().map(|course|
+                                     {
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
@@ -245,6 +223,7 @@ fn registration<TucanType: Tucan + 'static>(
 
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
+                                                    // needing the parentheses is a yew bug
                                                     <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
                                                 </div>
 
@@ -372,6 +351,8 @@ fn login<TucanType: Tucan>() -> HtmlResult {
 
 #[function_component(LogoutComponent)]
 fn logout() -> HtmlResult {
+    // TODO FIXME send actual logout request to ensure session is invalidated on server side
+
     let current_session =
         use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
@@ -385,14 +366,10 @@ fn logout() -> HtmlResult {
             let document = window.document().unwrap();
             let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
             html_document
-                .set_cookie(&format!(
-                    "id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
-                ))
+                .set_cookie("id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
                 .unwrap();
             html_document
-                .set_cookie(&format!(
-                    "cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;",
-                ))
+                .set_cookie("cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
                 .unwrap();
 
             current_session.set(None);

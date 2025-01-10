@@ -22,12 +22,12 @@ data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
 dotenvy = "0.15"
 regex = { version = "1" }
-itertools = "0.13"
+itertools = "0.14"
 serde = { version = "1", features = ["derive"] }
 getrandom = { version = "0.2", features = ["js"] }
 key-value-database = { path = "../key-value-database" }
-utoipa = "5.3.0"
-axum-core = "0.4.5"
+utoipa = { git = "https://github.com/juhaku/utoipa.git" }
+axum-core = "0.5.0"
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 

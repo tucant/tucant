@@ -89,7 +89,7 @@ mod tests {
 
     use crate::{
         coursedetails::index::coursedetails, externalpages::welcome::welcome, login::login,
-        moduledetails::index::moduledetails, registration::index::anmeldung, root::root,
+        moduledetails::index::moduledetails, root::root,
         startpage_dispatch::one::startpage_dispatch_1, Tucan,
     };
 
@@ -210,7 +210,7 @@ mod authenticated_tests {
 
     #[test]
     #[ignore = "feature authenticated_tests disabled"]
-    pub fn authenticated_tests() {}
+    pub const fn authenticated_tests() {}
 }
 
 #[cfg(all(test, feature = "authenticated_tests"))]
