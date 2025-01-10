@@ -34,7 +34,6 @@ pub async fn coursedetails(
 ) -> Result<CourseDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
-    println!("{url}");
     // TODO FIXME generalize
     let key = format!("url.{url}");
     let content = if let Some(content) = tucan.database.get(&key).await {
@@ -92,7 +91,7 @@ pub async fn coursedetails(
         </script>_
         <form name="courseform" action="/scripts/mgrqispi.dll" method="post">_
             <h1>
-                course_name
+                name
             </h1>_
             <div class="contentlayoutleft" id="contentlayoutleft">_
                 <table class="tb rw-table rw-all">_
@@ -103,23 +102,28 @@ pub async fn coursedetails(
                         <tr>_
                             <td class="tbcontrol" colspan="3">_
     }
-    if html_handler.peek().is_some() {
+    let material_and_messages_url = if html_handler.peek().is_some() {
         // if you are registered for the course
-        html_handler = {
+        let material_url;
+        let messages_url;
+        (html_handler, material_url, messages_url) = {
             html_extractor::html! {
-                <a href=url class="arrow">
+                <a href=material_url class="arrow">
                     "Material"
                 </a>_
             }
             html_handler = html_handler.skip_any_comment();
             html_extractor::html! {_
-                <a href=url class="arrow">
+                <a href=messages_url class="arrow">
                     "Nachrichten"
                 </a>_
             }
-            html_handler
-        }
-    }
+            (html_handler, material_url, messages_url)
+        };
+        Some((material_url, messages_url))
+    } else {
+        None
+    };
     html_extractor::html! {
             </td>_
         </tr>_
@@ -127,7 +131,7 @@ pub async fn coursedetails(
             <td class="tbdata" colspan="3">_
                 <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
     }
-    if html_handler
+    let dozent = if html_handler
         .peek()
         .unwrap()
         .first_child()
@@ -135,7 +139,8 @@ pub async fn coursedetails(
         .value()
         .is_text()
     {
-        html_handler = {
+        let dozent;
+        (html_handler, dozent) = {
             html_extractor::html! {
                 <p>_
                     <b>
@@ -146,9 +151,12 @@ pub async fn coursedetails(
                     </span>_
                 </p>_
             }
-            html_handler
-        }
-    }
+            (html_handler, dozent)
+        };
+        Some(dozent)
+    } else {
+        None
+    };
     html_extractor::html! {
         <p>
             <b>
@@ -186,7 +194,8 @@ pub async fn coursedetails(
             <input type="hidden" name="creditingfor" value=""></input>_
         </p>_
     }
-    html_handler = if html_handler
+    let sws;
+    (html_handler, sws) = if html_handler
         .peek()
         .unwrap()
         .value()
@@ -198,7 +207,7 @@ pub async fn coursedetails(
         html_extractor::html! {
             <input type="hidden" name="sws" value="0"></input>_
         }
-        html_handler
+        (html_handler, None)
     } else {
         html_extractor::html! {
             <p>
@@ -209,9 +218,10 @@ pub async fn coursedetails(
                 <input type="hidden" name="sws" value=sws></input>_
             </p>_
         }
-        html_handler
+        (html_handler, Some(sws))
     };
-    html_handler = if html_handler
+    let credits;
+    (html_handler, credits) = if html_handler
         .peek()
         .unwrap()
         .value()
@@ -223,7 +233,7 @@ pub async fn coursedetails(
         html_extractor::html! {
             <input type="hidden" name="credits" value="  0,0"></input>_
         }
-        html_handler
+        (html_handler, None)
     } else {
         html_extractor::html! {
             <p>
@@ -234,7 +244,7 @@ pub async fn coursedetails(
                 <input type="hidden" name="credits" value=credits></input>_
             </p>_
         }
-        html_handler
+        (html_handler, Some(credits))
     };
     html_extractor::html! {
         <input type="hidden" name="location" value="327576461398991"></input>_
@@ -243,7 +253,7 @@ pub async fn coursedetails(
                 "Unterrichtssprache: "
             </b>_
             <span name="courseLanguageOfInstruction">
-                course_language
+                language
             </span>_
             <input type="hidden" name="language" value=language_id></input>_
         </p>_
@@ -782,5 +792,22 @@ pub async fn coursedetails(
     }
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
-    Ok(CourseDetailsResponse {})
+    Ok(CourseDetailsResponse {
+        name,
+        material_and_messages_url,
+        dozent,
+        r#type: course_type,
+        type_number: course_type_number.parse().unwrap(),
+        fachbereich,
+        anzeige_im_stundenplan,
+        shortname,
+        courselevel: courselevel.parse().unwrap(),
+        sws: sws.map(|sws| sws.parse().unwrap()),
+        credits: credits.map(|credits| credits.parse().unwrap()),
+        language,
+        language_id: language_id.parse().unwrap(),
+        teilnehmer_range,
+        teilnehmer_max,
+        description,
+    })
 }
