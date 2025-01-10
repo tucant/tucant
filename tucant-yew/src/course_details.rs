@@ -46,6 +46,14 @@ pub fn course_details<TucanType: Tucan>(
                 html!{
                     <div>
 
+                    <h1>{ &course.name }</h1>
+
+                    <div>{ format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default()) }</div>
+
+                    <div>{ format!("Credits: {}", course.credits.map(|v| v.to_string()).unwrap_or_default()) }</div>
+
+                    // TODO FIXME this is dangerous
+                    { Html::from_html_unchecked(course.description.join("\n").into()) }
 
                     </div>
                 }
