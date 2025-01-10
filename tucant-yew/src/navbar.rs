@@ -411,14 +411,17 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                             { "Meine Dokumente" }
                                         </a>
                                     </li>
-                                    <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-ARe5ZYGKoK9tv3Ea3B-jW0s~oxkK0gJ3o5Hidk4~1YFHrs50ZsIGeXyDr0wxQEuIj0q1756sSy2dhscMYXELrMFdAaf-QFXJbIvUfqyZ5YuCcVi0MTHMH~Z1xH0Qyuk4w-FpvBQiVvGuCS0mkup1JCJOwWdRTfGetRA__"
-                                        >
-                                            { "Anträge" }
-                                        </a>
-                                    </li>
+                                    <a class="dropdown-item disabled">
+                                        { "Anträge" }
+                                        { " " }
+                                        <span
+                                            class="spinner-grow spinner-grow-sm"
+                                            aria-hidden="true"
+                                        />
+                                        <span class="visually-hidden" role="status">
+                                            { "Loading..." }
+                                        </span>
+                                    </a>
                                     <li>
                                         <a
                                             class="dropdown-item"
@@ -451,14 +454,17 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <hr class="dropdown-divider" />
                                     </li>
-                                    <li>
-                                        <a
-                                            class="dropdown-item"
-                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AllekYL~qR-tzIifD6JaublCcC5iza2-381ucoZ3gj48PmCsUbUJek2GO-a5VVrUWK5YNMo8JyXb~KI-Tr~~rnXuNxAkSZzk0tn7jAtjnrw8C~wUnygbxCoK1g~I~JpjqV3i3PajksM4jHhMISYYi2tukpXNL~NthFEiTKGM_"
-                                        >
-                                            { "Meine Bewerbung" }
-                                        </a>
-                                    </li>
+                                    <a class="dropdown-item disabled">
+                                        { "Meine Bewerbung" }
+                                        { " " }
+                                        <span
+                                            class="spinner-grow spinner-grow-sm"
+                                            aria-hidden="true"
+                                        />
+                                        <span class="visually-hidden" role="status">
+                                            { "Loading..." }
+                                        </span>
+                                    </a>
                                     <li>
                                         <a
                                             class="dropdown-item"
