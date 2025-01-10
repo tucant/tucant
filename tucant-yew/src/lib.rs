@@ -1,8 +1,10 @@
+use course_details::CourseDetails;
 use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
 use std::ops::Deref;
 use tucant_types::{
+    coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
     LoginRequest, LoginResponse, Tucan,
@@ -17,6 +19,7 @@ use yew_router::{hooks::use_navigator, prelude::Link, HashRouter, Routable, Swit
 pub mod navbar;
 
 pub mod api_server;
+pub mod course_details;
 #[cfg(feature = "direct")]
 pub mod direct;
 pub mod module_details;
@@ -219,6 +222,8 @@ enum Route {
     NotFound,
     #[at("/module-details/:module")]
     ModuleDetails { module: String },
+    #[at("/course-details/:course")]
+    CourseDetails { course: String },
     #[at("/registration/:registration")]
     Registration { registration: String },
 }
@@ -237,6 +242,15 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
                 <ModuleDetails<TucanType>
                     module_details={ModuleDetailsRequest {
                 arguments: module
+            }}
+                />
+            }
+        }
+        Route::CourseDetails { course } => {
+            html! {
+                <CourseDetails<TucanType>
+                    course_details={CourseDetailsRequest {
+                arguments: course
             }}
                 />
             }
