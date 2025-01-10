@@ -61,4 +61,6 @@ async fn main() {
         )
         .render();
     }
+    #[cfg(not(any(feature = "direct", feature = "api")))]
+    compile_error!("must activate at least feature `direct` or `api`");
 }
