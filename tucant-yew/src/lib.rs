@@ -105,6 +105,7 @@ fn registration<TucanType: Tucan + 'static>(
     {
         let data = data.clone();
         let loading = loading.clone();
+        let current_session = current_session.clone();
         use_effect_with(registration.clone(), move |anmeldung_request| {
             loading.set(true);
             let anmeldung_request = anmeldung_request.clone();
@@ -128,8 +129,6 @@ fn registration<TucanType: Tucan + 'static>(
             })
         });
     }
-    let current_session =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     let navigator = use_navigator().unwrap();
 
     let data = match data.deref() {

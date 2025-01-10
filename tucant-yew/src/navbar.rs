@@ -11,7 +11,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
     html! {
         <nav class="navbar navbar-expand-xl bg-body-tertiary">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">{ "TUCaN't" }</a>
+                <a class="navbar-brand" href="#/">{ "TUCaN't" }</a>
                 <button
                     class="navbar-toggler"
                     type="button"
@@ -387,9 +387,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000337,-Aservice%2Ehtml", current_session.id)}
                                         >
                                             { "Service" }
                                         </a>
@@ -400,9 +398,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{:015},-N000339,-A", current_session.id)}
                                         >
                                             { "Persönliche Daten" }
                                         </a>
@@ -410,9 +406,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,", current_session.id)}
                                         >
                                             { "Meine Dokumente" }
                                         </a>
@@ -420,9 +414,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-ARe5ZYGKoK9tv3Ea3B-jW0s~oxkK0gJ3o5Hidk4~1YFHrs50ZsIGeXyDr0wxQEuIj0q1756sSy2dhscMYXELrMFdAaf-QFXJbIvUfqyZ5YuCcVi0MTHMH~Z1xH0Qyuk4w-FpvBQiVvGuCS0mkup1JCJOwWdRTfGetRA__"
                                         >
                                             { "Anträge" }
                                         </a>
@@ -430,9 +422,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}
                                         >
                                             { "Sperren" }
                                         </a>
@@ -453,9 +443,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000441,-Abewerbung", current_session.id)}
                                         >
                                             { "Bewerbung" }
                                         </a>
@@ -466,9 +454,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AllekYL~qR-tzIifD6JaublCcC5iza2-381ucoZ3gj48PmCsUbUJek2GO-a5VVrUWK5YNMo8JyXb~KI-Tr~~rnXuNxAkSZzk0tn7jAtjnrw8C~wUnygbxCoK1g~I~JpjqV3i3PajksM4jHhMISYYi2tukpXNL~NthFEiTKGM_"
                                         >
                                             { "Meine Bewerbung" }
                                         </a>
@@ -476,9 +462,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <li>
                                         <a
                                             class="dropdown-item"
-                                            href="#"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target=".navbar-collapse.show"
+                                            href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000444,", current_session.id)}
                                         >
                                             { "Meine Dokumente" }
                                         </a>
@@ -488,9 +472,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                             <li class="nav-item">
                                 <a
                                     class="nav-link"
-                                    href="#"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target=".navbar-collapse.show"
+                                    href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session.id)}
                                 >
                                     { "Hilfe" }
                                 </a>
