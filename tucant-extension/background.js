@@ -1,8 +1,10 @@
 console.log("background script")
 
-// maybe don't extract the cookie using the cookie api at all but instead use a content script to extract the info from the tucan page. then the id and cookie can't get out of sync.
+// maybe don't extract the cookie using the cookie api at all but instead use a content script to extract the info from the tucan page (don't do this as then after the login request the tucan page needs to be loaded. currently we can skip this?). then the id and cookie can't get out of sync.
 // and we can get the current value just with a reload of a tucan page and not a new login.
 // but also won't get auto-deleted. though we could store a hash of the cookie or so to compare if its still up to date
+
+// logging out could be detected by listening for the form submit
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log("on installed")
