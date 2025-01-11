@@ -176,7 +176,7 @@
           '';
         };
 
-        extension = pkgs.runCommand "ucant-extension.zip" {} ''
+        extension = pkgs.runCommand "tucant-extension.zip" {} ''
           cd ${extension-unpacked}
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
