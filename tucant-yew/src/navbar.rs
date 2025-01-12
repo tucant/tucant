@@ -617,7 +617,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                     if !current_session.is_some() {
                         <LoginComponent<TucanType> />
                     } else {
-                        <LogoutComponent />
+                        <LogoutComponent<TucanType> />
                     }
                 </div>
             </div>

@@ -81,4 +81,8 @@ impl Tucan for ApiServerTucan {
             .unwrap();
         Ok(response)
     }
+
+    async fn logout(request: &LoginResponse) -> Result<(), TucanError> {
+        todo!()
+    }
 }

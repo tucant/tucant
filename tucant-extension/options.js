@@ -1,8 +1,7 @@
-/** @type {HTMLInputElement} */
-const mobileDesignCheckbox = document.getElementById('mobile-design')
+const mobileDesignCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('mobile-design'))
 mobileDesignCheckbox.addEventListener("change", event => {
     chrome.storage.sync.set(
-        { mobileDesign: event.target.checked },
+        { mobileDesign: mobileDesignCheckbox.checked },
     );
 })
 
@@ -10,3 +9,5 @@ const settings = await chrome.storage.sync.get(
     { mobileDesign: false },
 );
 mobileDesignCheckbox.checked = settings.mobileDesign;
+
+export { }

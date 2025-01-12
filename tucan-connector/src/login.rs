@@ -6,6 +6,16 @@ use tucant_types::{LoginRequest, LoginResponse};
 
 use crate::{MyClient, TucanError};
 
+pub async fn logout(client: &MyClient, login_response: &LoginResponse) -> Result<(), TucanError> {
+    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id))
+    .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
+    .send()
+    .await?
+    .error_for_status()?;
+    let _content = response.text().await?;
+    Ok(())
+}
+
 pub async fn login(
     client: &MyClient,
     login_request: &LoginRequest,

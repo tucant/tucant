@@ -31,22 +31,22 @@ pub mod tauri;
 pub async fn direct_login_response() -> Option<LoginResponse> {
     {
         let session_id = web_extensions_sys::chrome()
-            .storage()
-            .local()
-            .get(&wasm_bindgen::JsValue::from_str("sessionId"))
+            .cookies()
+            .get(web_extensions_sys::CookieDetails {
+                name: "id".to_owned(),
+                partition_key: None,
+                store_id: None,
+                url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            })
             .await
-            .unwrap();
-
-        let session_id =
-            js_sys::Reflect::get(&session_id, &wasm_bindgen::JsValue::from_str("sessionId"))
-                .unwrap();
-        let session_id = session_id.as_string().unwrap();
+            .unwrap()
+            .value;
 
         let cnsc = web_extensions_sys::chrome()
             .cookies()
             .get(web_extensions_sys::CookieDetails {
                 name: "cnsc".to_owned(),
-                url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
+                url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
                 partition_key: None,
                 store_id: None,
             })
@@ -136,19 +136,22 @@ fn login<TucanType: Tucan>() -> HtmlResult {
                     .await
                     .unwrap();
 
-                let object = Object::new();
-                js_sys::Reflect::set(
-                    &object,
-                    &wasm_bindgen::JsValue::from_str("sessionId"),
-                    &wasm_bindgen::JsValue::from_str(&response.id.to_string()),
-                )
-                .unwrap();
                 web_extensions_sys::chrome()
-                    .storage()
-                    .local()
-                    .set(&object)
-                    .await
-                    .unwrap();
+                    .cookies()
+                    .set(web_extensions_sys::SetCookieDetails {
+                        name: Some("id".to_owned()),
+                        partition_key: None,
+                        store_id: None,
+                        url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+                        domain: None,
+                        path: None,
+                        value: Some(response.id.to_string()),
+                        expiration_date: None,
+                        http_only: None,
+                        secure: Some(true),
+                        same_site: None,
+                    })
+                    .await;
 
                 current_session.set(Some(response.clone()));
 
@@ -185,26 +188,25 @@ fn login<TucanType: Tucan>() -> HtmlResult {
 }
 
 #[function_component(LogoutComponent)]
-fn logout() -> HtmlResult {
-    // TODO FIXME send actual logout request to ensure session is invalidated on server side
-
-    let current_session =
+fn logout<TucanType: Tucan>() -> HtmlResult {
+    let current_session_handle =
         use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let on_submit = {
-        let current_session = current_session.clone();
+        let current_session_handle = current_session_handle.clone();
 
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
 
-            let window = web_sys::window().unwrap();
-            let document = window.document().unwrap();
-            let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
-            html_document
-                .set_cookie("cnsc=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;")
-                .unwrap();
+            let current_session_handle = current_session_handle.clone();
 
-            current_session.set(None);
+            if let Some(current_session) = (&*current_session_handle).to_owned() {
+                spawn_local(async move {
+                    TucanType::logout(&current_session).await.unwrap();
+
+                    current_session_handle.set(None);
+                });
+            }
         })
     };
 

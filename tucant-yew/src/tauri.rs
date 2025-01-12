@@ -88,4 +88,8 @@ impl Tucan for TauriTucan {
         )
         .unwrap())
     }
+
+    async fn logout(request: &LoginResponse) -> Result<(), TucanError> {
+        todo!()
+    }
 }
