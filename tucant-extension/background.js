@@ -29,7 +29,7 @@ chrome.cookies.onChanged.addListener((changeInfo) => {
 
 const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
     // redirect any session id to the currently valid session id
-    id: 1338,
+    id: 100,
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
         redirect: {
@@ -45,7 +45,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
     }
 }, {
     // but don't create an infinite loop
-    id: 1339,
+    id: 101,
     priority: 2,
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
@@ -59,7 +59,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
     }
 }, {
     // and don't redirect explicitly unauthenticated urls
-    id: 1340,
+    id: 102,
     priority: 2,
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
@@ -114,7 +114,7 @@ chrome.runtime.onInstalled.addListener(() => {
     const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
     /** @type {chrome.declarativeNetRequest.Rule[]} */
     const RULES = [{
-        id: 1337,
+        id: 200,
         priority: 3,
         action: {
             type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
@@ -126,6 +126,20 @@ chrome.runtime.onInstalled.addListener(() => {
                 /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
             ],
             "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
+        }
+    }, {
+        id: 201,
+        priority: 3,
+        action: {
+            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+            redirect: { regexSubstitution: EXT_PAGE + '#/' },
+        },
+        "condition": {
+            "isUrlFilterCaseSensitive": true,
+            "resourceTypes": [
+                /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+            ],
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/$"
         }
     }];
     chrome.declarativeNetRequest.updateDynamicRules({
