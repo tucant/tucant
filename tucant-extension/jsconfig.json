@@ -9,10 +9,7 @@
     "strict": true, /* Enable all strict type-checking options. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "files": [
-    "background.js",
-    "content-script-redirect.js",
-    "content-script.js",
-    "options.js"
+  "include": [
+    "*.js",
   ]
 }

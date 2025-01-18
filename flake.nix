@@ -30,7 +30,7 @@
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2024-09-10".minimal.override {
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-01-02".minimal.override {
           extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
           targets = [ "wasm32-unknown-unknown" ];
         };
@@ -147,7 +147,11 @@
 
         fileset-extension = lib.fileset.unions [
           ./tucant-extension/background.js
+          ./tucant-extension/fix-session-id-in-url.js
           ./tucant-extension/content-script.js
+          ./tucant-extension/content-script-redirect.js
+          ./tucant-extension/bootstrap.bundle.min.js
+          ./tucant-extension/bootstrap.min.css
           ./tucant-extension/icon.png
           ./tucant-extension/manifest.json
           ./tucant-extension/mobile.css
@@ -162,7 +166,7 @@
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucant-extension.zip";
-          version = "0.5.0";
+          version = (lib.importJSON ./tucant-extension/manifest.json).version;
 
           src = lib.fileset.toSource {
               root = ./tucant-extension;
@@ -209,7 +213,7 @@
             owner = "tucant";
             repo = "rustfmt";
             rev = "html-extractor-formatting";
-            hash = "sha256-ArfB666u/FPjXpEABhZ6tyeYwpdyGeTt0id4Ix1e1QI=";
+            hash = "sha256-gj1Ac4TW1X4mj+AIqMB6X+WguNoJvgpgQXE62gQjRcM=";
           };
           doCheck = false;
         };
@@ -269,6 +273,30 @@
           name = "server";
           drv = myServer;
         };
+
+        packages.publish = let
+        version = (lib.importJSON ./tucant-extension/manifest.json).version;
+        in pkgs.writeShellScript "publish"
+        ''
+          set -ex
+          mkdir -p out
+          cd out
+          # seems like chromium writes into the parent folder of the pack-extension argument
+          chmod -R ug+rw tucant-extension-${version}
+          rm -Rf tucant-extension-${version}
+          cp -r ${extension-unpacked} tucant-extension-${version}
+          ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+          chmod 644 tucant-extension-${version}.crx
+
+          chmod -R ug+rw tucant-extension-${version}
+          rm -Rf tucant-extension-${version}
+          cp -r ${extension-unpacked} tucant-extension-${version}
+          chmod -R ug+rw tucant-extension-${version}
+
+          ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
+          chmod 644 web-ext-artifacts/tucant-${version}.xpi
+          cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
+        '';
 
         devShells.default = craneNightlyLib.devShell {
           # Inherit inputs from checks.
