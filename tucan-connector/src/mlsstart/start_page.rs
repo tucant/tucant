@@ -1,5 +1,5 @@
 use scraper::Html;
-use tucant_types::LoginResponse;
+use tucant_types::{LoggedInHead, LoginResponse};
 
 use crate::{
     common::head::{footer, html_head, logged_in_head},
@@ -9,8 +9,8 @@ use crate::{
 
 pub async fn after_login(
     client: &MyClient,
-    login_response: LoginResponse,
-) -> Result<(), TucanError> {
+    login_response: &LoginResponse,
+) -> Result<LoggedInHead, TucanError> {
     let id = login_response.id;
     let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id))
                 .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
@@ -36,7 +36,7 @@ pub async fn after_login(
         </head>_
         <body class="currentevents">_
     };
-    let html_handler = logged_in_head(html_handler, login_response.id);
+    let (html_handler, head) = logged_in_head(html_handler, login_response.id);
     html_extractor::html! {
         <!--"EkIRwtbzV1S0qAPx6If3Ye8Ey0JkAZsONsPW8C2Tf3Y"-->_
         <script type="text/javascript">
@@ -58,9 +58,75 @@ pub async fn after_login(
                     "Stundenplan"
                 </a>_
             </div>_
+    }
+    let html_handler = if html_handler
+        .peek()
+        .unwrap()
+        .value()
+        .as_element()
+        .unwrap()
+        .name()
+        == "table"
+    {
+        html_extractor::html! {
+            <table class="nb rw-table" summary="Studium Generale">_
+                <tbody>
+                    <tr class="tbsubhead">_
+                        <th id="Veranstaltung">
+                            "Veranstaltung"
+                        </th>_
+                        <th id="Name">
+                            "Name"
+                        </th>_
+                        <th id="von">
+                            "von"
+                        </th>_
+                        <th id="bis">
+                            "bis"
+                        </th>_
+                    </tr>_
+        }
+        while html_handler.peek().is_some() {
+            html_handler = {
+                html_extractor::html! {
+                    <tr class="tbdata">_
+                        <td headers="Veranstaltung">
+                            "Kurse"
+                        </td>_
+                        <td headers="Name">_
+                            <a class="link" href=coursedetails_url name="eventLink">
+                                course_name
+                            </a>_
+                        </td>_
+                        <td headers="von">
+                            <a class="link" href=courseprep_url>
+                                from
+                            </a>
+                        </td>_
+                        <td headers="bis">
+                            <a class="link" href=courseprep_url>
+                                to
+                            </a>
+                        </td>_
+                    </tr>_
+                }
+                html_handler
+            }
+        }
+        html_extractor::html! {
+                </tbody>
+            </table>_
+        }
+        html_handler
+    } else {
+        html_extractor::html! {
             <div class="tbsubhead">
                 "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
             </div>_
+        }
+        html_handler
+    };
+    html_extractor::html! {
         </div>_
         <!--"jcECXQ7Iovu3-f4IpT-2ykwKMYpSGOecnocvEf5bo3A"-->_
         <div class="tb rw-table">_
@@ -139,5 +205,5 @@ pub async fn after_login(
     };
     let html_handler = footer(html_handler, id, 19);
     html_handler.end_document();
-    Ok(())
+    Ok(head)
 }

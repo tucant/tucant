@@ -22,6 +22,21 @@ pub struct LoginResponse {
     pub cookie_cnsc: String,
 }
 
+#[derive(PartialEq, Clone)]
+pub struct LoggedInHead {
+    pub messages_url: String,
+    pub vorlesungsverzeichnis_url: String,
+    pub vv: VorlesungsverzeichnisUrls,
+    pub antraege_url: String,
+    pub meine_bewerbung_url: String,
+}
+
+#[derive(PartialEq, Clone)]
+pub struct VorlesungsverzeichnisUrls {
+    pub lehrveranstaltungssuche_url: String,
+    pub vvs: Vec<(String, String)>,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum TucanError {
     #[error("HTTP error {0:?}")]
@@ -48,6 +63,10 @@ pub trait Tucan {
     fn login(
         request: LoginRequest,
     ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
+
+    fn after_login(
+        request: &LoginResponse,
+    ) -> impl std::future::Future<Output = Result<LoggedInHead, TucanError>>;
 
     fn logout(request: &LoginResponse)
         -> impl std::future::Future<Output = Result<(), TucanError>>;

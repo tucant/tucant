@@ -2,6 +2,7 @@ use serde_json::json;
 use tucan_connector::{
     coursedetails::index::coursedetails,
     login::{login, logout},
+    mlsstart::start_page::after_login,
     moduledetails::index::moduledetails,
     registration::index::anmeldung_cached,
 };
@@ -47,5 +48,12 @@ impl Tucan for DirectTucan {
     async fn logout(request: &LoginResponse) -> Result<(), TucanError> {
         let tucan = tucan_connector::Tucan::new().await?;
         logout(&tucan.client, request).await
+    }
+
+    async fn after_login(
+        request: &LoginResponse,
+    ) -> Result<tucant_types::LoggedInHead, TucanError> {
+        let tucan = tucan_connector::Tucan::new().await?;
+        after_login(&tucan.client, request).await
     }
 }

@@ -85,4 +85,10 @@ impl Tucan for ApiServerTucan {
     async fn logout(request: &LoginResponse) -> Result<(), TucanError> {
         todo!()
     }
+
+    async fn after_login(
+        request: &LoginResponse,
+    ) -> Result<tucant_types::LoggedInHead, TucanError> {
+        todo!()
+    }
 }

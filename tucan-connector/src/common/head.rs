@@ -1,3 +1,5 @@
+use tucant_types::{LoggedInHead, VorlesungsverzeichnisUrls};
+
 use crate::html_handler::{InElement, InRoot, Root};
 
 #[must_use]
@@ -181,21 +183,25 @@ pub fn vv_something<'a>(
         >,
     >,
     id: u64,
-) -> InElement<
-    'a,
+) -> (
     InElement<
         'a,
         InElement<
             'a,
-            InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
+            InElement<
+                'a,
+                InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
+            >,
         >,
     >,
-> {
+    VorlesungsverzeichnisUrls,
+) {
+    let mut vvs = Vec::new();
     // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
     html_extractor::html! {
         <ul class="nav depth_2 linkItemContainer">
             <li class="intern depth_2 linkItem " title="Lehrveranstaltungssuche" id=_id>
-                <a class=_class href=_lehrveranstaltungssuche_url>
+                <a class=_class href=lehrveranstaltungssuche_url>
                     "Lehrveranstaltungssuche"
                 </a>
             </li>
@@ -205,29 +211,33 @@ pub fn vv_something<'a>(
                 </a>
             </li>
             <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id>
-                <a class=_class href=_aktuell_url>
-                    "Aktuell - Wintersemester 2024/25"
+                <a class=_class href=aktuell_url>
+                    aktuell_title
                 </a>
             </li>
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
-                <a class=_linkclass href=_url>
-                    _t
+                <a class=_linkclass href=vv_1_url>
+                    vv_1_title
                 </a>
             </li>
             <li class="intern depth_2 linkItem " title=_title_wise202425 id=_linkclass>
-                <a class=_linkclass href=_url>
-                    _t
+                <a class=_linkclass href=vv_2_url>
+                    vv_2_title
                 </a>
             </li>
     };
+    vvs.push((aktuell_title, aktuell_url));
+    vvs.push((vv_1_title, vv_1_url));
+    vvs.push((vv_2_title, vv_2_url));
     let html_handler = if id != 1 {
         html_extractor::html! {
             <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
-                <a class=_linkclass href=_url>
-                    _t
+                <a class=_linkclass href=vv_3_url>
+                    vv_3_title
                 </a>
             </li>
         }
+        vvs.push((vv_3_title, vv_3_url));
         html_handler
     } else {
         html_handler
@@ -256,17 +266,29 @@ pub fn vv_something<'a>(
             </li>
         </ul>
     };
-    html_handler
+    (
+        html_handler,
+        VorlesungsverzeichnisUrls {
+            lehrveranstaltungssuche_url,
+            vvs,
+        },
+    )
 }
 
 #[must_use]
 pub fn logged_in_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     id: u64,
-) -> InElement<
-    'a,
-    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
-> {
+) -> (
+    InElement<
+        'a,
+        InElement<
+            'a,
+            InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
+        >,
+    >,
+    LoggedInHead,
+) {
     assert_ne!(id, 1);
     let html_handler = page_start(html_handler);
     html_extractor::html! {
@@ -276,18 +298,18 @@ pub fn logged_in_head<'a>(
             </a>
             <ul class="nav depth_2 linkItemContainer">
                 <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299">
-                    <a class="depth_2 link000299 navLink " href=_messages_url>
+                    <a class="depth_2 link000299 navLink " href=messages_url>
                         "Nachrichten"
                     </a>
                 </li>
             </ul>
         </li>
         <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
-            <a class="depth_1 link000326 navLink branchLink " href=_vv_url>
+            <a class="depth_1 link000326 navLink branchLink " href=vorlesungsverzeichnis_url>
                 "VV"
             </a>
     };
-    let html_handler = vv_something(html_handler, id);
+    let (html_handler, vv) = vv_something(html_handler, id);
     html_extractor::html! {
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
@@ -482,7 +504,7 @@ pub fn logged_in_head<'a>(
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Anträge" id="link000600">
-                                <a class="depth_2 link000600 navLink " href=_url>
+                                <a class="depth_2 link000600 navLink " href=antraege_url>
                                     "Anträge"
                                 </a>
                             </li>
@@ -514,7 +536,7 @@ pub fn logged_in_head<'a>(
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Meine Bewerbung" id="link000443">
-                                <a class="depth_2 link000443 navLink " href=_url>
+                                <a class="depth_2 link000443 navLink " href=meine_bewerbung_url>
                                     "Meine Bewerbung"
                                 </a>
                             </li>
@@ -608,7 +630,16 @@ pub fn logged_in_head<'a>(
                     <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     };
-    html_handler
+    (
+        html_handler,
+        LoggedInHead {
+            messages_url,
+            vorlesungsverzeichnis_url,
+            vv,
+            antraege_url,
+            meine_bewerbung_url,
+        },
+    )
 }
 
 #[must_use]
@@ -631,7 +662,7 @@ pub fn logged_out_head<'a>(
                 "Vorlesungsverzeichnis (VV)"
             </a>
     };
-    let html_handler = vv_something(html_handler, 1);
+    let (html_handler, _) = vv_something(html_handler, 1);
     html_extractor::html! {
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">

@@ -270,7 +270,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        after_login(&tucan.client, login_response).await.unwrap()
+        after_login(&tucan.client, &login_response).await.unwrap();
     }
 
     #[tokio::test]

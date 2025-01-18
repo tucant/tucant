@@ -38,26 +38,25 @@ pub fn registration<TucanType: Tucan + 'static>(
         let loading = loading.clone();
         let current_session = current_session.clone();
         use_effect_with(registration.clone(), move |anmeldung_request| {
-            loading.set(true);
-            let anmeldung_request = anmeldung_request.clone();
-            let data = data.clone();
-            spawn_local(async move {
-                match TucanType::anmeldung(
-                    current_session.deref().clone().unwrap(),
-                    anmeldung_request,
-                )
-                .await
-                {
-                    Ok(response) => {
-                        data.set(Ok(response));
-                        loading.set(false);
+            if let Some(current_session) = (&*current_session).to_owned() {
+                loading.set(true);
+                let anmeldung_request = anmeldung_request.clone();
+                let data = data.clone();
+                spawn_local(async move {
+                    match TucanType::anmeldung(current_session, anmeldung_request).await {
+                        Ok(response) => {
+                            data.set(Ok(response));
+                            loading.set(false);
+                        }
+                        Err(error) => {
+                            data.set(Err(error.to_string()));
+                            loading.set(false);
+                        }
                     }
-                    Err(error) => {
-                        data.set(Err(error.to_string()));
-                        loading.set(false);
-                    }
-                }
-            })
+                })
+            } else {
+                data.set(Err("Not logged in".to_owned()));
+            }
         });
     }
     let navigator = use_navigator().unwrap();

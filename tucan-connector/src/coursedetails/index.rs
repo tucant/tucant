@@ -78,7 +78,7 @@ pub async fn coursedetails(
         <body class="coursedetails">_
     };
     let html_handler = if login_response.id != 1 {
-        logged_in_head(html_handler, login_response.id)
+        logged_in_head(html_handler, login_response.id).0
     } else {
         logged_out_head(html_handler, 311)
     };

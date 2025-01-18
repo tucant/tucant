@@ -81,7 +81,7 @@ pub async fn anmeldung(
         </head>_
         <body class="registration">_
     };
-    let html_handler = logged_in_head(html_handler, login_response.id);
+    let html_handler = logged_in_head(html_handler, login_response.id).0;
     html_extractor::html! {
         <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
         <script type="text/javascript">

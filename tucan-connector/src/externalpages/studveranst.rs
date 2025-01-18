@@ -33,7 +33,7 @@ pub async fn veranstaltungen(
         </head>_
         <body class="external_pages">_
     };
-    let html_handler = logged_in_head(html_handler, login_response.id);
+    let html_handler = logged_in_head(html_handler, login_response.id).0;
     html_extractor::html! {
         <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
         <script type="text/javascript">

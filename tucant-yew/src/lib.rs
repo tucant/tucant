@@ -18,6 +18,8 @@ use yew::prelude::*;
 use yew_router::{hooks::use_navigator, prelude::Link, HashRouter, Routable, Switch};
 
 pub mod navbar;
+pub mod navbar_logged_in;
+pub mod navbar_logged_out;
 
 pub mod api_server;
 pub mod course_details;
