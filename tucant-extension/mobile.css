@@ -1,13 +1,13 @@
 #pageContainer {
-    min-width: auto;
+    min-width: auto !important;
 }
 
 #pageHeadCenter {
-    min-width: auto;
+    min-width: auto !important;
 }
 
 #pageTopNavi {
-    width: auto;
+    width: auto !important;
 }
 
 #inhalt {
@@ -18,123 +18,189 @@
     width: auto !important;
 }
 
+#inhalt>div[style="padding:10px; width:650px; border:thin solid #f8f9ed; margin:0px; background-color:#f8f9ed;"] {
+    width: auto !important;
+}
+
+#inhalt>div[style="padding:0px; width:650px; margin:0px; background-color:#ffffff;"] {
+    width: auto !important;
+}
+
+#inhalt>div[style="width:650px; margin:0px"] {
+    width: auto !important;
+}
+
+#inhalt div[style="padding:10px; width:650px; border:thin solid grey; margin:0px"] {
+    width: auto !important;
+}
+
+#inhalt>div {
+    width: auto !important;
+}
+
 #pageHeadCenter {
-    display: none;
+    display: none !important;
 }
 
 .pageElementLeft {
-    float: none;
+    float: none !important;
 }
 
 #pageLeft {
-    min-height: auto;
+    min-height: auto !important;
 }
 
 #pageContent {
-    padding-top: 0;
+    padding-top: 0 !important;
+    width: auto !important;
 }
 
 #pageTopNavi {
-    background-image: none;
+    background-image: none !important;
 }
 
 #pageContentTop {
-    height: auto;
+    height: auto !important;
 }
 
 #pageContainer {
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 0;
-    margin-right: 0;
-    border-left: initial;
-    border-right: initial;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-left: initial !important;
+    border-right: initial !important;
 }
 
 #pageFoot {
-    padding: 0;
-    left: 0;
+    padding: 0 !important;
+    left: 0 !important;
 }
 
 #pageFootControlsRight {
-    display: none;
+    display: none !important;
 }
 
 #pageLeft {
-    float: none;
+    float: none !important;
 }
 
 #pageContent {
-    float: none;
+    float: none !important;
 }
 
 #pageTopNavi {
-    position: inherit;
-    height: auto;
+    position: inherit !important;
+    height: auto !important;
 }
 
 #pageHeadCenter {
-    position: inherit;
+    position: inherit !important;
 }
 
 #pageTopNavi ul.nav li.tree ul.nav {
-    position: inherit;
+    position: inherit !important;
 
 }
 
 #pageTopNavi ul.nav.depth_2 {
-    position: inherit;
-    top: 0;
+    border-bottom: none !important;
 }
 
 #pageTopNavi ul.nav li.depth_1 {
-    display: block;
+    display: block !important;
 }
 
 #pageTopNavi ul.nav li.depth_1 ul.nav.depth_2 {
-    width: auto;
-}
-
-#pageTopNavi ul.nav.depth_2 {
-    height: auto;
+    width: auto !important;
 }
 
 #pageTopNavi ul.nav li a.depth_1 {
-    float: inherit;
+    float: inherit !important;
+    display: block !important;
+    border: none !important;
+    padding: 5px !important;
+}
+
+.pageElementRight {
+    float: none !important;
+}
+
+#fieldSet_login {
+    float: none !important;
 }
 
 #loginData {
-    position: inherit;
+    position: inherit !important;
 }
 
 #pageTopNavi ul.nav.depth_1.linkItemContainer {
-    padding-left: 0;
+    padding-left: 0 !important;
 }
 
 #pageTopNavi ul.nav.depth_1 {
-    padding-left: 0;
+    padding-left: 0 !important;
 }
 
 #pageContainer {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
 }
 
 #IEdiv {
-    display: none;
+    display: none !important;
 }
 
 .invAnchor {
-    display: none;
+    display: none !important;
 }
 
 #pageFoot {
-    height: auto;
+    height: auto !important;
 }
 
 #pageFootControls {
-    height: auto;
+    height: auto !important;
 }
 
 #pageFootControlsLeft {
-    float: inherit;
+    float: inherit !important;
+}
+
+#pageHeadBottom_3 {
+    border: none !important;
+    height: auto !important;
+}
+
+#logIn_btn {
+    float: none !important;
+}
+
+#contentlayoutleft {
+    width: auto !important;
+}
+
+#contentlayoutright {
+    width: auto !important;
+    float: none !important;
+}
+
+
+#tbmonthContainer {
+    width: auto !important;
+}
+
+.tbMonthDay {
+    width: auto !important;
+}
+
+div.tb.tbMonthContainer {
+    width: auto !important;
+}
+
+th.nb.KW_month {
+    width: auto !important;
+}
+
+.tbMonthDay {
+    width: auto !important;
 }

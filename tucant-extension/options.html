@@ -1,20 +1,39 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TUCaN't options</title>
+    <link href="/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="container">
     <h1>TUCaN't options</h1>
 
-    <label>
-        <input type="checkbox" id="mobile-design" />
-        Enable experimental mobile design.
+    <label class="form-check-label">
+        <input type="checkbox" class="form-check-input" id="fix-session-id-in-url" checked />
+        Automatically fix session id in URL. This means you can paste URLs from others and it will just work™.
+        Recommended to keep enabled.
+    </label>
+
+    <br />
+
+    <label class="form-check-label">
+        <input type="checkbox" class="form-check-input" id="custom-ui" checked />
+        Enable custom UI. This means the home page and other supported URLs will automatically open in the custom UI.
+    </label>
+
+    <br />
+
+    <label class="form-check-label">
+        <input type="checkbox" class="form-check-input" id="mobile-design" />
+        Enable experimental mobile design. Feel free to improve this design by creating a merge
+        request.
     </label>
 
     <script defer src="options.js" type="module"></script>
+    <script src="/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

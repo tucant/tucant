@@ -5,9 +5,27 @@ mobileDesignCheckbox.addEventListener("change", event => {
     );
 })
 
+const customUICheckbox = /** @type {HTMLInputElement} */ (document.getElementById('custom-ui'))
+customUICheckbox.addEventListener("change", event => {
+    chrome.storage.sync.set(
+        { customUi: customUICheckbox.checked },
+    );
+})
+
+
+const fixSessionIdInUrlCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('fix-session-id-in-url'))
+fixSessionIdInUrlCheckbox.addEventListener("change", event => {
+    chrome.storage.sync.set(
+        { fixSessionIdInUrl: fixSessionIdInUrlCheckbox.checked },
+    );
+})
+
+
 const settings = await chrome.storage.sync.get(
-    { mobileDesign: false },
+    { mobileDesign: false, customUi: true, fixSessionIdInUrl: true },
 );
 mobileDesignCheckbox.checked = settings.mobileDesign;
+customUICheckbox.checked = settings.customUi;
+fixSessionIdInUrlCheckbox.checked = settings.fixSessionIdInUrl;
 
 export { }

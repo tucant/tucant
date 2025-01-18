@@ -1,22 +1,25 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TUCaN't popup</title>
+    <link href="/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="container">
     <h1>TUCaN't</h1>
 
-    <button id="go-to-options">Go to options</button>
+    <button type="button" class="btn btn-primary mb-2" id="go-to-options">Go to options</button>
 
-    <div id="grant-permission-area" style="display: none;">
+    <div class="mb-2" id="grant-permission-area" style="display: none;">
         The extension does not have permission to access the TUCaN page which is needed for all functionality.
-        <button id="grant-permission">Grant access</button>
+        <button type="button" class="btn btn-primary" id="grant-permission">Grant access</button>
     </div>
 
     <script type="module" src="popup.js"></script>
+    <script src="/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

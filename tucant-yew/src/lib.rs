@@ -272,7 +272,6 @@ pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session }: &AppProps) 
 
     Ok(html! {
         <>
-            <style>{ include_str!("./bootstrap.min.css") }</style>
             <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
                 <HashRouter>
                     <Navbar<TucanType> />

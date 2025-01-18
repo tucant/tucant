@@ -45,8 +45,8 @@
               (file: lib.any file.hasExt [ "html" "scss" ])
               unfilteredRoot
             )
-            ./tucant-yew/src/bootstrap.bundle.min.js
-            ./tucant-yew/src/bootstrap.min.css
+            ./tucant-extension/bootstrap.bundle.min.js
+            ./tucant-extension/bootstrap.min.css
             ./tucant-yew/fixup.sh
         ];
         src = lib.fileset.toSource {
