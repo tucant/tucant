@@ -25,7 +25,7 @@
         inherit (pkgs) lib;
 
         rustToolchainFor = p: p.rust-bin.stable.latest.minimal.override {
-          extensions = [ "rust-docs" "clippy" "rustfmt" ];
+          extensions = [ "rust-docs" "clippy" ];
           targets = [ "wasm32-unknown-unknown" ];
         };
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
@@ -209,29 +209,27 @@
         '';
 
         rustfmt = craneNightlyLib.buildPackage {
+          doNotRemoveReferencesToRustToolchain = true;
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "html-extractor-formatting";
-            hash = "sha256-gj1Ac4TW1X4mj+AIqMB6X+WguNoJvgpgQXE62gQjRcM=";
+            rev = "2ec233d98ff06cad69c4daf2a841b27654895842";
+            hash = "sha256-/9kBIqR6GlsDJB3llU3ZisWEL0IS1apTGY2SsxI/DmA=";
           };
           doCheck = false;
         };
 
-        yew-fmt = craneLib.buildPackage {
+        yew-fmt = craneNightlyLib.buildPackage {
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "yew-fmt";
             rev = "patch-1";
             hash = "sha256-WECfuQ3mBzoRu8uzhf0v1mjT7N+iU+APWDj/u3H0FPU=";
           };
+          doCheck = false;
         };
 
-        craneYewFmtLib = ((crane.mkLib pkgs).overrideToolchain rustNightlyToolchainFor).overrideScope (final: prev: {
-          # We override the behavior of `mkCargoDerivation` by adding a wrapper which
-          # will set a default value of `CARGO_PROFILE` when not set by the caller.
-          # This change will automatically be propagated to any other functions built
-          # on top of it (like `buildPackage`, `cargoBuild`, etc.)
+        craneYewFmtLib = craneNightlyLib.overrideScope (final: prev: {
           mkCargoDerivation = args: prev.mkCargoDerivation ({
             RUSTFMT = "${yew-fmt}/bin/yew-fmt";
           } // args);
@@ -282,7 +280,7 @@
           mkdir -p out
           cd out
           # seems like chromium writes into the parent folder of the pack-extension argument
-          chmod -R ug+rw tucant-extension-${version}
+          chmod -R ug+rw tucant-extension-${version} || true
           rm -Rf tucant-extension-${version}
           cp -r ${extension-unpacked} tucant-extension-${version}
           ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
