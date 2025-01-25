@@ -1,0 +1,14 @@
+[package]
+name = "tucant-tests"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+thirtyfour = "0.35.0"
+tokio = { features = ["full"], version = "1.43.0" }
+
+
+[lints]
+workspace = true

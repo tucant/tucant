@@ -1,14 +1,7 @@
 [workspace]
 resolver = "2"
-members = [
-    "tucan-connector",
-    "html-extractor",
-    "key-value-database",
-    "tucant-yew",
-    #"tucant-tauri",
-    "tucant-api",
-    "tucant-types",
-]
+members = ["crates/*"]
+exclude = ["crates/tucant-tauri"]
 
 [workspace.package]
 license = "AGPL-3.0-or-later"

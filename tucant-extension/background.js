@@ -106,13 +106,22 @@ function disableMobileDesign() {
     })
 }
 
+// ensure its on when still loading the settings
+enableCustomUi()
+enableMobileDesign()
+
 chrome.storage.sync.get(
-    { mobileDesign: false },
-).then(({ mobileDesign }) => {
+    { mobileDesign: false, customUi: true },
+).then(({ mobileDesign, customUi }) => {
     if (mobileDesign) {
         enableMobileDesign()
     } else {
         disableMobileDesign()
+    }
+    if (customUi) {
+        enableCustomUi()
+    } else {
+        disableCustomUi()
     }
 });
 
