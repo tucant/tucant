@@ -1,8 +1,4 @@
-use std::{ops::Deref as _, rc::Rc};
-
-use tucant_types::{
-    coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, LoginResponse, Tucan,
-};
+use tucant_types::{coursedetails::CourseDetailsRequest, LoginResponse, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{
     function_component, html, use_context, use_effect_with, use_state, Html, HtmlResult,
@@ -30,7 +26,7 @@ pub fn course_details<TucanType: Tucan + 'static>(
         let data = data.clone();
         let loading = loading.clone();
         use_effect_with(course_details.to_owned(), move |request| {
-            if let Some(current_session) = (&*current_session_handle).to_owned() {
+            if let Some(current_session) = (*current_session_handle).to_owned() {
                 loading.set(true);
                 let request = request.clone();
                 let data = data.clone();

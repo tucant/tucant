@@ -261,7 +261,9 @@ pub fn vv_something<'a>(
     vvs.push((aktuell_title, aktuell_url));
     vvs.push((vv_1_title, vv_1_url));
     vvs.push((vv_2_title, vv_2_url));
-    let html_handler = if id != 1 {
+    let html_handler = if id == 1 {
+        html_handler
+    } else {
         html_extractor::html! {
             <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                 <a class=_linkclass href=vv_3_url>
@@ -270,8 +272,6 @@ pub fn vv_something<'a>(
             </li>
         }
         vvs.push((vv_3_title, vv_3_url));
-        html_handler
-    } else {
         html_handler
     };
     html_extractor::html! {

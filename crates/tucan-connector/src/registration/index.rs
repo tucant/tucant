@@ -12,7 +12,7 @@ use tucant_types::{
 use crate::{
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
-    Tucan, TucanConnector, TucanError,
+    TucanConnector, TucanError,
 };
 
 pub async fn anmeldung_cached(
@@ -63,7 +63,7 @@ pub async fn anmeldung(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
     };
-    let mut html_handler = html_head(html_handler)?;
+    let html_handler = html_head(html_handler)?;
     html_extractor::html! {
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
@@ -434,48 +434,47 @@ pub async fn anmeldung(
                             != "logo column"
                     {
                         html_handler = {
-                            let (html_handler, exam) = if !html_handler
-                                .peek()
-                                .unwrap()
-                                .children()
-                                .nth(5)
-                                .unwrap()
-                                .value()
-                                .is_comment()
-                            {
-                                html_extractor::html!(
-                                    // exam
-                                    <tr>_
-                                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                        <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                                        </td>_
-                                        <td class="tbdata">
-                                        exam_name
-                                );
-                                let (html_handler, exam_type) = if html_handler.peek().is_some() {
-                                    html_extractor::html!(<br></br>exam_type);
-                                    (html_handler, Some(exam_type.trim().to_owned()))
-                                } else {
+                            let (html_handler, exam) = if html_handler
+                                    .peek()
+                                    .unwrap()
+                                    .children()
+                                    .nth(5)
+                                    .unwrap()
+                                    .value()
+                                    .is_comment() {
                                     (html_handler, None)
+                                } else {
+                                    html_extractor::html!(
+                                        // exam
+                                        <tr>_
+                                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                                            </td>_
+                                            <td class="tbdata">
+                                            exam_name
+                                    );
+                                    let (html_handler, exam_type) = if html_handler.peek().is_some() {
+                                        html_extractor::html!(<br></br>exam_type);
+                                        (html_handler, Some(exam_type.trim().to_owned()))
+                                    } else {
+                                        (html_handler, None)
+                                    };
+                                    html_extractor::html!(
+                                </td>_
+                                <td class="tbdata">_</td>_
+                                <td class="tbdata">_</td>_
+                                <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                                <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                                <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                            </tr>_);
+                                    let exam = AnmeldungExam {
+                                        name: exam_name.trim().to_owned(),
+                                        typ: exam_type,
+                                    };
+                                    (html_handler, Some(exam))
                                 };
-                                html_extractor::html!(
-                            </td>_
-                            <td class="tbdata">_</td>_
-                            <td class="tbdata">_</td>_
-                            <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                            <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                            <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                        </tr>_);
-                                let exam = AnmeldungExam {
-                                    name: exam_name.trim().to_owned(),
-                                    typ: exam_type,
-                                };
-                                (html_handler, Some(exam))
-                            } else {
-                                (html_handler, None)
-                            };
 
                             html_extractor::html!(
                             // course

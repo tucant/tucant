@@ -8,3 +8,4 @@ result*
 *.db
 target
 tucant-tauri/gen
+.env

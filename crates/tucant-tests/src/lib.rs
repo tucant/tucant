@@ -1,6 +1,7 @@
-use std::error::Error;
+use std::{error::Error, time::Duration};
 
 use thirtyfour::prelude::*;
+use tokio::time::sleep;
 
 pub enum Browser {
     Firefox,
@@ -17,6 +18,8 @@ pub async fn test(
     mode: Mode,
     driver: WebDriver,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
+    dotenvy::dotenv().unwrap();
+
     driver
         .goto(match mode {
             Mode::Extension => "https://www.tucan.tu-darmstadt.de",
@@ -28,11 +31,29 @@ pub async fn test(
 
     assert_eq!(
         driver.current_url().await.unwrap().scheme(),
-        match browser {
-            Browser::Firefox => "moz-extension",
-            Browser::Chromium => "chrome-extension",
+        match mode {
+            Mode::Extension => match browser {
+                Browser::Firefox => "moz-extension",
+                Browser::Chromium => "chrome-extension",
+            },
+            Mode::Api => "http",
         }
     );
+
+    let username_input = driver.query(By::Css("#login-username")).first().await?;
+    let password_input = driver.find(By::Css("#login-password")).await?;
+    let login_button = driver.find(By::Css("#login-button")).await?;
+
+    let username = std::env::var("USERNAME").expect("env variable USERNAME missing");
+    let password = std::env::var("PASSWORD").expect("env variable PASSWORD missing");
+
+    username_input.send_keys(username).await?;
+    password_input.send_keys(password).await?;
+    // probably https://yew.rs/docs/concepts/html/events#event-delegation
+    //username_input.focus().await?;
+    login_button.click().await?;
+
+    sleep(Duration::from_secs(10)).await;
 
     driver.quit().await?;
 

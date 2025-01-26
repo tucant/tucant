@@ -1,21 +1,17 @@
 use course_details::CourseDetails;
-use js_sys::Object;
 use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
-use std::{ops::Deref, rc::Rc};
+use std::rc::Rc;
 use tucant_types::{
-    coursedetails::CourseDetailsRequest,
-    moduledetails::ModuleDetailsRequest,
-    registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
-    LoginRequest, LoginResponse, Tucan,
+    coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
+    registration::AnmeldungRequest, LoginRequest, LoginResponse, Tucan,
 };
 
-use wasm_bindgen::{JsCast as _, JsValue};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{hooks::use_navigator, prelude::Link, HashRouter, Routable, Switch};
+use yew_router::{hooks::use_navigator, HashRouter, Routable, Switch};
 
 pub mod navbar;
 pub mod navbar_logged_in;
@@ -166,8 +162,9 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
     };
 
     Ok(html! {
-        <form onsubmit={on_submit} class="d-flex" role="search">
+        <form onsubmit={on_submit} class="d-flex">
             <input
+                id="login-username"
                 onchange={on_username_change}
                 value={(*username_value_handle).clone()}
                 required=true
@@ -177,6 +174,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
                 aria-label="TU-ID"
             />
             <input
+                id="login-password"
                 onchange={on_password_change}
                 value={(*password_value_handle).clone()}
                 required=true
@@ -185,7 +183,9 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
                 placeholder="Password"
                 aria-label="Password"
             />
-            <button class="btn btn-outline-success" type="submit">{ "Login" }</button>
+            <button class="btn btn-outline-success" type="submit" id="login-button">
+                { "Login" }
+            </button>
         </form>
     })
 }
@@ -204,7 +204,7 @@ fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
             let current_session_handle = current_session_handle.clone();
             let tucan = tucan.clone();
 
-            if let Some(current_session) = (&*current_session_handle).to_owned() {
+            if let Some(current_session) = (*current_session_handle).to_owned() {
                 spawn_local(async move {
                     tucan.0.logout(&current_session).await.unwrap();
 

@@ -1,4 +1,4 @@
-use std::{ops::Deref as _, rc::Rc};
+use std::ops::Deref as _;
 
 use tucant_types::{
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
@@ -40,7 +40,7 @@ pub fn registration<TucanType: Tucan + 'static>(
         let loading = loading.clone();
         let current_session = current_session.clone();
         use_effect_with(registration.clone(), move |anmeldung_request| {
-            if let Some(current_session) = (&*current_session).to_owned() {
+            if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
                 let anmeldung_request = anmeldung_request.clone();
                 let data = data.clone();

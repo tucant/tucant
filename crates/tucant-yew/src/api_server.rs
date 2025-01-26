@@ -1,4 +1,4 @@
-use reqwest::{header, Client};
+use reqwest::Client;
 use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -9,6 +9,12 @@ use url::Url;
 
 pub struct ApiServerTucan {
     client: Client,
+}
+
+impl Default for ApiServerTucan {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ApiServerTucan {

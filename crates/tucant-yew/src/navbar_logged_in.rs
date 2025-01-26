@@ -1,5 +1,5 @@
 use tucant_types::{LoggedInHead, LoginResponse};
-use yew::{classes, function_component, html, Html, Properties, UseStateHandle};
+use yew::{classes, function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisseProps {
@@ -15,7 +15,7 @@ pub fn vorlesungsverzeichnisse(
             html!{
                 <li>
                 <a
-                    class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                    class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                     href={ format!("https://www.tucan.tu-darmstadt.de{}", url)}
                 >
                     { name }
@@ -71,7 +71,7 @@ pub fn navbar_logged_in(
                     </li>
                     <li>
                         <a
-                            class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                            class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                             href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.messages_url))}
                         >
                             { "Nachrichten" }
@@ -97,7 +97,7 @@ pub fn navbar_logged_in(
                 <ul class="dropdown-menu">
                     <li>
                         <a
-                            class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                            class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                             href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.vorlesungsverzeichnis_url))}
                         >
                             { "Vorlesungsverzeichnis" }
@@ -113,7 +113,7 @@ pub fn navbar_logged_in(
                     </li>
                     <li>
                         <a
-                            class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                            class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                             href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.vv.lehrveranstaltungssuche_url))}
                         >
                             { "Lehrveranstaltungssuche" }
@@ -382,7 +382,7 @@ pub fn navbar_logged_in(
                         </a>
                     </li>
                     <a
-                        class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                        class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                         href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.antraege_url))}
                     >
                         { "Anträge" }
@@ -425,7 +425,7 @@ pub fn navbar_logged_in(
                         <hr class="dropdown-divider" />
                     </li>
                     <a
-                        class={classes!("dropdown-item", Some(data.is_none().then(|| "disabled")))}
+                        class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
                         href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.meine_bewerbung_url))}
                     >
                         { "Meine Bewerbung" }

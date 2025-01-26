@@ -56,10 +56,44 @@
 
         cargoArtifacts = craneNightlyLib.buildDepsOnly nativeArgs;
 
-        myServer = craneNightlyLib.buildPackage (nativeArgs // {
+        tests = craneNightlyLib.buildPackage (commonArgs // {
+          pname = "tucant-workspace-native-tests";
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              ./Cargo.toml
+              ./Cargo.lock
+              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-tests)
+            ];
+          };
           cargoTestExtraArgs = "--no-run";
+          cargoExtraArgs = "--package=tucant-tests";
           inherit cargoArtifacts;
         });
+
+        api = craneNightlyLib.buildPackage (commonArgs // {
+          pname = "tucant-workspace-native-api";
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              ./Cargo.toml
+              ./Cargo.lock
+              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-types)
+              (craneNightlyLib.fileset.commonCargoSources ./crates/key-value-database)
+              (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
+              (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
+              (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-api)
+            ];
+          };
+          cargoTestExtraArgs = "--no-run";
+          cargoExtraArgs = "--package=tucant-api";
+          inherit cargoArtifacts;
+        });
+
+        schema = pkgs.runCommandNoCC "schema.json" {
+          } ''
+            ${api}/bin/schema > $out
+          '';
 
         fileset-wasm = lib.fileset.unions [
           ./Cargo.toml
@@ -89,7 +123,7 @@
           doCheck = false;
         });
 
-        myClient = craneNightlyLib.buildTrunkPackage (wasmArgs // {
+        client = craneNightlyLib.buildTrunkPackage (wasmArgs // {
           trunkExtraBuildArgs = "--features direct --public-url /dist";
           pname = "tucant-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
@@ -101,9 +135,9 @@
             cd ..
           '';
           wasm-bindgen-cli = pkgs.wasm-bindgen-cli.override {
-            version = "0.2.99";
-            hash = "sha256-1AN2E9t/lZhbXdVznhTcniy+7ZzlaEp/gwLEAucs6EA=";
-            cargoHash = "sha256-DbwAh8RJtW38LJp+J9Ht8fAROK9OabaJ85D9C/Vkve4=";
+            version = "0.2.100";
+            hash = "sha256-3RJzK7mkYFrs7C/WkhW9Rr4LdP5ofb2FdYGz1P7Uxog=";
+            cargoHash = "sha256-tD0OY2PounRqsRiFh8Js5nyknQ809ZcHMvCOLrvYHRE=";
           };
         });
 
@@ -131,18 +165,18 @@
           version = (lib.importJSON ./tucant-extension/manifest.json).version;
 
           src = lib.fileset.toSource {
-              root = ./tucant-extension;
-              fileset = fileset-extension;
+            root = ./tucant-extension;
+            fileset = fileset-extension;
           };
 
           installPhase = ''
             mkdir $out
             cp -r $src/. $out/
-            cp -r ${myClient}/. $out/dist/
+            cp -r ${client}/. $out/dist/
           '';
         };
 
-        extension = pkgs.runCommand "tucant-extension.zip" {} ''
+        extension = pkgs.runCommand "tucant-extension.zip" { } ''
           cd ${extension-unpacked}
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
@@ -156,17 +190,17 @@
             ./flake.nix
             ./flake.lock
             ./Dockerfile
-            ./README.md 
+            ./README.md
           ];
         };
 
-        source = pkgs.runCommand "tucant-extension-source.zip" {} ''
+        source = pkgs.runCommand "tucant-extension-source.zip" { } ''
           cd ${source-with-build-instructions}
           ${pkgs.zip}/bin/zip -r $out *
           ${pkgs.strip-nondeterminism}/bin/strip-nondeterminism --type zip $out
         '';
 
-        source-unpacked = pkgs.runCommand "tucant-extension-source.zip" {} ''
+        source-unpacked = pkgs.runCommand "tucant-extension-source.zip" { } ''
           cp -r ${source-with-build-instructions} $out
         '';
 
@@ -201,7 +235,7 @@
       in
       {
         checks = {
-          inherit myServer myClient;
+          inherit api schema client;
 
           # todo also clippy the frontend
           my-app-clippy = craneNightlyLib.cargoClippy (nativeArgs // {
@@ -212,8 +246,10 @@
           my-app-fmt = craneYewFmtLib.cargoFmt.override { rustfmt = rustfmt; } nativeArgs;
         };
 
-        packages.client = myClient;
-        packages.server = myServer;
+        packages.schema = schema;
+        packages.client = client;
+        packages.server = api;
+        packages.tests = tests;
         packages.extension = extension;
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
@@ -223,32 +259,34 @@
 
         apps.server = flake-utils.lib.mkApp {
           name = "server";
-          drv = myServer;
+          drv = api;
         };
 
-        packages.publish = let
-        version = (lib.importJSON ./tucant-extension/manifest.json).version;
-        in pkgs.writeShellScriptBin "publish"
-        ''
-          set -ex
-          mkdir -p out
-          cd out
-          # seems like chromium writes into the parent folder of the pack-extension argument
-          chmod -R ug+rw tucant-extension-${version} || true
-          rm -Rf tucant-extension-${version}
-          cp -r ${extension-unpacked} tucant-extension-${version}
-          ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
-          chmod 644 tucant-extension-${version}.crx
+        packages.publish =
+          let
+            version = (lib.importJSON ./tucant-extension/manifest.json).version;
+          in
+          pkgs.writeShellScriptBin "publish"
+            ''
+              set -ex
+              mkdir -p out
+              cd out
+              # seems like chromium writes into the parent folder of the pack-extension argument
+              chmod -R ug+rw tucant-extension-${version} || true
+              rm -Rf tucant-extension-${version}
+              cp -r ${extension-unpacked} tucant-extension-${version}
+              ${pkgs.chromium}/bin/chromium --no-sandbox --pack-extension=tucant-extension-${version} --pack-extension-key=$CHROMIUM_EXTENSION_SIGNING_KEY
+              chmod 644 tucant-extension-${version}.crx
 
-          chmod -R ug+rw tucant-extension-${version}
-          rm -Rf tucant-extension-${version}
-          cp -r ${extension-unpacked} tucant-extension-${version}
-          chmod -R ug+rw tucant-extension-${version}
+              chmod -R ug+rw tucant-extension-${version}
+              rm -Rf tucant-extension-${version}
+              cp -r ${extension-unpacked} tucant-extension-${version}
+              chmod -R ug+rw tucant-extension-${version}
 
-          ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
-          chmod 644 web-ext-artifacts/tucant-${version}.xpi
-          cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
-        '';
+              ${pkgs.web-ext}/bin/web-ext sign --channel unlisted --source-dir tucant-extension-${version} --upload-source-code ${source}
+              chmod 644 web-ext-artifacts/tucant-${version}.xpi
+              cp web-ext-artifacts/tucant-${version}.xpi tucant-extension-${version}.xpi
+            '';
 
         packages.test = pkgs.writeShellApplication {
           name = "test";
@@ -266,8 +304,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            ${myServer}/bin/chromium-extension
-            ${myServer}/bin/firefox-extension
+            ${tests}/bin/chromium-extension
           '';
         };
 
@@ -289,9 +326,9 @@
             chmod -R ug+rw "$EXTENSION_DIR"
             cargo run --bin firefox-extension
             cargo run --bin chromium-extension
-            cargo run --bin tucant-api &
-            (cd tucant-yew && trunk serve --features api) &
-            sleep 1
+            #cargo run --bin tucant-api &
+            #(cd tucant-yew && trunk serve --features api) &
+            #sleep 1
             cargo run --bin chromium-api
           '';
         };

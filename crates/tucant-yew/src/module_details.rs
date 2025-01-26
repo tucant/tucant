@@ -1,5 +1,3 @@
-use std::{ops::Deref as _, rc::Rc};
-
 use tucant_types::{moduledetails::ModuleDetailsRequest, LoginResponse, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{
@@ -28,7 +26,7 @@ pub fn module_details<TucanType: Tucan + 'static>(
         let data = data.clone();
         let loading = loading.clone();
         use_effect_with(module_details.to_owned(), move |request| {
-            if let Some(current_session) = (&*current_session_handle).to_owned() {
+            if let Some(current_session) = (*current_session_handle).to_owned() {
                 loading.set(true);
                 let request = request.clone();
                 let data = data.clone();

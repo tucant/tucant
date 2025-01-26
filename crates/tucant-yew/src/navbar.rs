@@ -1,10 +1,7 @@
-use std::rc::Rc;
-
-use tucant_types::{LoggedInHead, LoginResponse, Tucan};
+use tucant_types::{LoginResponse, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{
-    classes, function_component, html, use_context, use_effect_with, use_state, Html,
-    UseStateHandle,
+    function_component, html, use_context, use_effect_with, use_state, Html, UseStateHandle,
 };
 
 use crate::{
@@ -23,7 +20,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
 
     {
         let data = data.clone();
-        use_effect_with((&*current_session).clone(), move |current_session| {
+        use_effect_with((*current_session).clone(), move |current_session| {
             if let Some(current_session) = current_session.to_owned() {
                 spawn_local(async move {
                     match tucan.0.after_login(&current_session).await {
@@ -59,7 +56,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                         if let Some(current_session) = &*current_session {
                             <NavbarLoggedIn
                                 current_session={current_session.clone()}
-                                data={(&*data).clone()}
+                                data={(*data).clone()}
                             />
                         } else {
                             <NavbarLoggedOut />

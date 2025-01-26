@@ -1,7 +1,4 @@
-use std::rc::Rc;
-
 use log::info;
-use tucant_yew::{api_server::ApiServerTucan, RcTucanType};
 use wasm_bindgen::prelude::wasm_bindgen;
 use yew::set_custom_panic_hook;
 
@@ -50,7 +47,7 @@ async fn main() {
         yew::Renderer::<tucant_yew::App<tucan_connector::TucanConnector>>::with_props(
             tucant_yew::AppProps {
                 initial_session: login_response,
-                tucan: RcTucanType(Rc::new(
+                tucan: tucant_yew::RcTucanType(std::rc::Rc::new(
                     tucan_connector::TucanConnector::new().await.unwrap(),
                 )),
             },

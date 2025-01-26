@@ -7,7 +7,7 @@ use tucant_types::{
 use crate::{
     common::head::{footer, html_head, logged_in_head, logged_out_head},
     html_handler::Root,
-    Tucan, TucanConnector,
+    TucanConnector,
 };
 
 pub async fn course_details_cached(
@@ -58,7 +58,7 @@ pub(crate) async fn course_details(
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
     };
-    let mut html_handler = html_head(html_handler)?;
+    let html_handler = html_head(html_handler)?;
     html_extractor::html! {
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
@@ -69,10 +69,10 @@ pub(crate) async fn course_details(
         </head>_
         <body class="coursedetails">_
     };
-    let html_handler = if login_response.id != 1 {
-        logged_in_head(html_handler, login_response.id).0
-    } else {
+    let html_handler = if login_response.id == 1 {
         logged_out_head(html_handler, 311)
+    } else {
+        logged_in_head(html_handler, login_response.id).0
     };
     html_extractor::html! {
         <!--"dqf58hG7HHGpXGyye2_RfFRU9OdHxiBSQr2SeCdraDU"-->_
