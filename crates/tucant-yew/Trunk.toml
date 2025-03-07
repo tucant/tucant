@@ -10,9 +10,6 @@ watch = ["../tucant-yew", "../tucan-connector", "../tucant-types", "../tucant-ap
 port = 1420
 open = false
 
-# ENABLE THIS AND DISABLE THE VERSION CHECK ABOVE IF YOU USE AN UNPATCHED Trunk
-# no_autoreload = true
-
 [[proxy]]
 backend = "http://localhost:3000/api"
 

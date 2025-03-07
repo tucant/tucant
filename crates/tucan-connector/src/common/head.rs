@@ -242,7 +242,7 @@ pub fn vv_something<'a>(
                     "Raumsuche"
                 </a>
             </li>
-            <li class="intern depth_2 linkItem " title="Aktuell - Wintersemester 2024/25" id=_id>
+            <li class="intern depth_2 linkItem " title=_aktuell_title id=_id>
                 <a class=_class href=aktuell_url>
                     aktuell_title
                 </a>

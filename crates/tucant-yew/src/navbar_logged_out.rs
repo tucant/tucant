@@ -53,25 +53,25 @@ pub fn navbar_logged_out() -> Html {
                     <li>
                         <a
                             class="dropdown-item"
-                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-A1UOJsw28R2k1y54teJLFI0AmVf~SynJG0lPJT4hWx3Pd2pgi2uLxxMBsS2cjb~FIP7H1vkneIgJXzeLZHmQnsV2wfuTkuB4oW5p-MMXJPojkAa33-gGvV1gbDS6A1OPsznmo~6xd~GSRxk3YFVK7crzHm1Yf8HKyXwC78ZIxnS-9~tB4L3Ul6uEkJQ__"
+                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AEv3p-ixRiFiH8xo86RrKK9uf72StPaSd2hoHwg~OCNTRSPUhnJzdfm2ekgyicwVEYv0sluY-Xc02k-Ok9YzmHJMN~8ZC5XqBZRJWAgaUOXj0O99z7w1fzIT-9l2n08Ivm2cZlRYRW-OLNzyzfekzeBlJcHKHIyvLHyZM1Gw7U0RN428Qtt79KAuiKQ__"
                         >
-                            { "Aktuell - Wintersemester 2024/25" }
+                            { "Aktuell - Sommersemester 2025" }
                         </a>
                     </li>
                     <li>
                         <a
                             class="dropdown-item"
-                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-Avg592S~LGYOfjtSndrtNxlVR2J9kIS7xmljoREqXTgcF6XcTMM0rTR5IBrCNWEp5sJpEsOljcv8c5N2aCILh9N6kOUfFFfGbQ~qQEtepIFPZO98~n7G8X0qpH2kWNuRmVW~qMPTY-HcdOhKUVDhM1X4owra8caR3S7MnROHEOzLqdWa5Zm2awq3Qag__"
+                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AV49BnEx08lkzBuUkpL1OiPOiy3h-IQL20ziRJFpOsEY2DC1~UykqG1eQ8bvz68jeZWo2btN4wItUnwQLaiKvRjVeU-HLKg-t83hCL4AmQ3H2Cn-as8NQ7ITOtoJXIQoEFvGuq6fgf7itKqWJGnHUuKsH5k3PgoK~dcpAqk7jG2vRTR7jTf6iDg8GoQ__"
+                        >
+                            { "Vorlesungsverzeichnis des WiSe 2024/25" }
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            class="dropdown-item"
+                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-Avn07o4KNB3FseLBaQAymKF-c26tMa37alo49WaWmPNAs6c~eB~9eUKwhY254n8VlPObojuspLhwsEVitzdGci5tybqHGcovSsTvIbYZMNs1-6N8WKN6ieWGsv4ScDLXw~hThHy7imvWnzEqAY-6kee5lmdm8GhDxStGxy5AwNpGJW73ftfmIvUZlgQ__"
                         >
                             { "Vorlesungsverzeichnis des SoSe2024" }
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            class="dropdown-item"
-                            href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=-AzMwKIbEl8fKxOyceOeUbGpsq~PU6GV3dKdLTh7n2lINJBcr7xxS4gwjhqFXEyi0GARw-A1oAVkgvWBa7dbFXV18fXBZ9oj3cco18MY5ZKrU7wq7~6IDot4aIipfyrvFSvGOTXmx3Me~ft-AjiQIqbQBGUtsEdzIeC64v3j3UqYqCSV2wj1JtwsguBw__"
-                        >
-                            { "Vorlesungsverzeichnis des WiSe 2023/24" }
                         </a>
                     </li>
                     <li>

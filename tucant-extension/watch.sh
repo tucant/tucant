@@ -1,7 +1,7 @@
 #!/bin/sh
 
-cd ../tucant-yew
-trunk watch --features direct --dist ../tucant-extension/dist --public-url /dist
+cd ../crates/tucant-yew
+trunk watch --features direct --dist ../../tucant-extension/dist --public-url /dist
 
 #ls -lh pkg/tucant_extension_bg.wasm
 
