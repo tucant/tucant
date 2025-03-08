@@ -387,62 +387,71 @@ pub(crate) async fn course_details(
     html_extractor::html! {
         <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
         <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
-        <table class="tb list rw-table">_
-            <caption>
-                "Anmeldefristen"
-            </caption>_
-            <tbody>
-                <tr>_
-                    <td class="tbsubhead">
-                        " Phase "
-                    </td>_
-                    <td class="tbsubhead">
-                        " Block "
-                    </td>_
-                    <td class="tbsubhead">
-                        " Start "
-                    </td>_
-                    <td class="tbsubhead">
-                        " Ende Anmeldung "
-                    </td>_
-                    <td class="tbsubhead">
-                        " Ende Abmeldung"
-                    </td>_
-                    <td class="tbsubhead">
-                        " Ende Hörer "
-                    </td>_
-                </tr>_
     }
-    while html_handler.peek().is_some() {
+    if html_handler.peek().unwrap().value().is_element() {
         html_handler = {
             html_extractor::html! {
-                <tr>_
-                    <td class="tbdata">
-                        zulassungstyp
-                    </td>_
-                    <td class="tbdata">
-                        " Vorlesungszeit "
-                    </td>_
-                    <td class="tbdata">
-                        start
-                    </td>_
-                    <td class="tbdata">
-                        ende_anmeldung
-                    </td>_
-                    <td class="tbdata">
-                        ende_abmeldung
-                    </td>_
-                    <td class="tbdata">
-                        ende_hoerer
-                    </td>_
-                </tr>_
+                <table class="tb list rw-table">_
+                    <caption>
+                        "Anmeldefristen"
+                    </caption>_
+                    <tbody>
+                        <tr>_
+                            <td class="tbsubhead">
+                                " Phase "
+                            </td>_
+                            <td class="tbsubhead">
+                                " Block "
+                            </td>_
+                            <td class="tbsubhead">
+                                " Start "
+                            </td>_
+                            <td class="tbsubhead">
+                                " Ende Anmeldung "
+                            </td>_
+                            <td class="tbsubhead">
+                                " Ende Abmeldung"
+                            </td>_
+                            <td class="tbsubhead">
+                                " Ende Hörer "
+                            </td>_
+                        </tr>_
+            }
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html_extractor::html! {
+                        <tr>_
+                            <td class="tbdata">
+                                zulassungstyp
+                            </td>_
+                            <td class="tbdata">
+                                " Vorlesungszeit "
+                            </td>_
+                            <td class="tbdata">
+                                start
+                            </td>_
+                            <td class="tbdata">
+                                ende_anmeldung
+                            </td>_
+                            <td class="tbdata">
+                                ende_abmeldung
+                            </td>_
+                            <td class="tbdata">
+                                ende_hoerer
+                            </td>_
+                        </tr>_
+                    }
+                    html_handler
+                }
+            }
+            html_extractor::html! {
+                    </tbody>
+                </table>_
             }
             html_handler
         }
     }
     html_extractor::html! {
-            </tbody>
-        </table>_
         <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
         <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
         <table class="tb list rw-table rw-all">_

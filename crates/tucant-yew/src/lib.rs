@@ -172,6 +172,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
                 type="username"
                 placeholder="TU-ID"
                 aria-label="TU-ID"
+                autocomplete="current-username"
             />
             <input
                 id="login-password"
@@ -182,6 +183,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
                 type="password"
                 placeholder="Password"
                 aria-label="Password"
+                autocomplete="current-password"
             />
             <button class="btn btn-outline-success" type="submit" id="login-button">
                 { "Login" }

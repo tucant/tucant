@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:mohe2015/nixpkgs/update-trunk";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
 
     crane.url = "github:ipetkov/crane";
 
@@ -12,12 +12,9 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    firefox.url = "github:nix-community/flake-firefox-nightly";
-    firefox.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@{ self, nixpkgs, crane, flake-utils, rust-overlay, firefox, ... }:
+  outputs = inputs@{ self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -134,11 +131,7 @@
             mv ./dist ..
             cd ..
           '';
-          wasm-bindgen-cli = pkgs.wasm-bindgen-cli.override {
-            version = "0.2.100";
-            hash = "sha256-3RJzK7mkYFrs7C/WkhW9Rr4LdP5ofb2FdYGz1P7Uxog=";
-            cargoHash = "sha256-tD0OY2PounRqsRiFh8Js5nyknQ809ZcHMvCOLrvYHRE=";
-          };
+          wasm-bindgen-cli = pkgs.wasm-bindgen-cli_0_2_100;
         });
 
         fileset-extension = lib.fileset.unions [
@@ -295,7 +288,7 @@
             pkgs.chromedriver
             pkgs.geckodriver
             pkgs.chromium
-            firefox.packages."x86_64-linux".firefox-nightly-bin
+            pkgs.firefox
           ];
 
           text = ''
@@ -315,7 +308,7 @@
             pkgs.chromedriver
             pkgs.geckodriver
             pkgs.chromium
-            firefox.packages."x86_64-linux".firefox-nightly-bin
+            pkgs.firefox
           ];
 
           text = ''
@@ -354,7 +347,7 @@
             pkgs.geckodriver
             pkgs.chromedriver
             pkgs.chromium
-            firefox.packages."x86_64-linux".firefox-nightly-bin
+            pkgs.firefox
             pkgs.nodejs_latest
           ];
         };
