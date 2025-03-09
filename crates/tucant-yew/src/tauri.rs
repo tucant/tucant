@@ -3,7 +3,7 @@ use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
-    LoginRequest, LoginResponse, Tucan, TucanError,
+    LoginRequest, LoginResponse, Tucan, TucanError, Vorlesungsverzeichnis,
 };
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -100,6 +100,14 @@ impl Tucan for TauriTucan {
         &self,
         request: &LoginResponse,
     ) -> Result<tucant_types::LoggedInHead, TucanError> {
+        todo!()
+    }
+
+    async fn vv(
+        &self,
+        login_response: &LoginResponse,
+        action: String,
+    ) -> Result<Vorlesungsverzeichnis, TucanError> {
         todo!()
     }
 }

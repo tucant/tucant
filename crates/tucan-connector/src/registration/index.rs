@@ -10,6 +10,7 @@ use tucant_types::{
 };
 
 use crate::{
+    authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     TucanConnector, TucanError,
@@ -44,14 +45,8 @@ pub async fn anmeldung(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let response = tucan
-            .client
-            .get(url)
-            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-            .send()
-            .await?
-            .error_for_status()?;
-        let content = response.text().await?;
+        let content =
+            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };
@@ -435,32 +430,33 @@ pub async fn anmeldung(
                     {
                         html_handler = {
                             let (html_handler, exam) = if html_handler
-                                    .peek()
-                                    .unwrap()
-                                    .children()
-                                    .nth(5)
-                                    .unwrap()
-                                    .value()
-                                    .is_comment() {
-                                    (html_handler, None)
+                                .peek()
+                                .unwrap()
+                                .children()
+                                .nth(5)
+                                .unwrap()
+                                .value()
+                                .is_comment()
+                            {
+                                (html_handler, None)
+                            } else {
+                                html_extractor::html!(
+                                    // exam
+                                    <tr>_
+                                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                        <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                                        </td>_
+                                        <td class="tbdata">
+                                        exam_name
+                                );
+                                let (html_handler, exam_type) = if html_handler.peek().is_some() {
+                                    html_extractor::html!(<br></br>exam_type);
+                                    (html_handler, Some(exam_type.trim().to_owned()))
                                 } else {
-                                    html_extractor::html!(
-                                        // exam
-                                        <tr>_
-                                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                                            </td>_
-                                            <td class="tbdata">
-                                            exam_name
-                                    );
-                                    let (html_handler, exam_type) = if html_handler.peek().is_some() {
-                                        html_extractor::html!(<br></br>exam_type);
-                                        (html_handler, Some(exam_type.trim().to_owned()))
-                                    } else {
-                                        (html_handler, None)
-                                    };
-                                    html_extractor::html!(
+                                    (html_handler, None)
+                                };
+                                html_extractor::html!(
                                 </td>_
                                 <td class="tbdata">_</td>_
                                 <td class="tbdata">_</td>_
@@ -469,12 +465,12 @@ pub async fn anmeldung(
                                 <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
                                 <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                             </tr>_);
-                                    let exam = AnmeldungExam {
-                                        name: exam_name.trim().to_owned(),
-                                        typ: exam_type,
-                                    };
-                                    (html_handler, Some(exam))
+                                let exam = AnmeldungExam {
+                                    name: exam_name.trim().to_owned(),
+                                    typ: exam_type,
                                 };
+                                (html_handler, Some(exam))
+                            };
 
                             html_extractor::html!(
                             // course

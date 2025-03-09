@@ -3,7 +3,7 @@ use tokio::io::AsyncWriteExt;
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::AnmeldungRequest;
-use tucant_types::Tucan;
+use tucant_types::{LoginRequest, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
@@ -18,20 +18,18 @@ fn main() -> Result<(), TucanError> {
 async fn async_main() -> Result<(), TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response = LoginResponse {
+    /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
         cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
-    };
+    };*/
 
-    /*let login_response = login(
-        &tucan.client,
-        &LoginRequest {
-            username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
-            password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
-        },
-    )
-    .await
-    .unwrap();*/
+    let login_response = tucan
+        .login(LoginRequest {
+            username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+            password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+        })
+        .await
+        .unwrap();
 
     let mut fetcher = Fetcher::new().await?;
 

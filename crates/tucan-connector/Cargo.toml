@@ -9,7 +9,7 @@ workspace = true
 
 [dependencies]
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "charset", "stream"] }
-tokio = { version = "1", features = ["rt", "macros"] }
+tokio = { version = "1", features = ["rt", "macros", "time"] }
 thiserror = "2"
 futures-core = "0.3"
 bytes = "1"
@@ -29,10 +29,6 @@ utoipa = { git = "https://github.com/juhaku/utoipa.git" }
 axum-core = "0.5.0"
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest-middleware = "0.4"
-reqwest-retry = "0.7"
 
 [features]
 authenticated_tests = []

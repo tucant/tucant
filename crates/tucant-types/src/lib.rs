@@ -10,7 +10,7 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String,
@@ -37,13 +37,15 @@ pub struct VorlesungsverzeichnisUrls {
     pub vvs: Vec<(String, String)>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
+pub struct Vorlesungsverzeichnis {
+    pub entries: Vec<String>,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum TucanError {
     #[error("HTTP error {0:?}")]
     Http(#[from] reqwest::Error),
-    #[cfg(not(target_arch = "wasm32"))]
-    #[error("HTTP middleware error {0:?}")]
-    HttpMiddleware(#[from] reqwest_middleware::Error),
     #[error("IO error {0:?}")]
     Io(#[from] std::io::Error),
     #[error("Tucan session timeout")]
@@ -94,4 +96,10 @@ pub trait Tucan {
         login_response: &LoginResponse,
         request: CourseDetailsRequest,
     ) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
+
+    fn vv(
+        &self,
+        login_response: &LoginResponse,
+        action: String,
+    ) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 }

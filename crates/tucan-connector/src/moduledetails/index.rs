@@ -5,7 +5,7 @@ use tucant_types::{
     LoginResponse,
 };
 
-use crate::TucanConnector;
+use crate::{authenticated_retryable_get, TucanConnector};
 use crate::{
     common::head::{footer, html_head, logged_in_head, logged_out_head},
     html_handler::Root,
@@ -42,14 +42,8 @@ pub async fn module_details(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let response = tucan
-            .client
-            .get(url)
-            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-            .send()
-            .await?
-            .error_for_status()?;
-        let content = response.text().await?;
+        let content =
+            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };

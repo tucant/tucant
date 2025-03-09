@@ -5,6 +5,7 @@ use tucant_types::{
 };
 
 use crate::{
+    authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
     html_handler::Root,
     TucanConnector,
@@ -39,14 +40,8 @@ pub(crate) async fn course_details(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let response = tucan
-            .client
-            .get(url)
-            .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-            .send()
-            .await?
-            .error_for_status()?;
-        let content = response.text().await?;
+        let content =
+            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };
@@ -232,7 +227,7 @@ pub(crate) async fn course_details(
                 <b>
                     "Credits: "
                 </b>
-                credits
+                credits_text
                 <input type="hidden" name="credits" value=credits></input>_
             </p>_
         }
@@ -425,7 +420,7 @@ pub(crate) async fn course_details(
                                 zulassungstyp
                             </td>_
                             <td class="tbdata">
-                                " Vorlesungszeit "
+                                block_type
                             </td>_
                             <td class="tbdata">
                                 start
@@ -804,7 +799,13 @@ pub(crate) async fn course_details(
         shortname,
         courselevel: courselevel.parse().unwrap(),
         sws: sws.map(|sws| sws.parse().unwrap()),
-        credits: credits.map(|credits| credits.parse().unwrap()),
+        credits: credits.map(|credits| {
+            credits
+                .trim()
+                .trim_end_matches(",0")
+                .parse()
+                .expect(&credits)
+        }),
         language,
         language_id: language_id.parse().unwrap(),
         teilnehmer_range,

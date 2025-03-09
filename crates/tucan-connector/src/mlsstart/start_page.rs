@@ -2,6 +2,7 @@ use scraper::Html;
 use tucant_types::{LoggedInHead, LoginResponse};
 
 use crate::{
+    authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
     html_handler::Root,
     MyClient, TucanError,
@@ -12,12 +13,9 @@ pub async fn after_login(
     login_response: &LoginResponse,
 ) -> Result<LoggedInHead, TucanError> {
     let id = login_response.id;
-    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id))
-                .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-                .send()
-                .await?
-                .error_for_status()?;
-    let content = response.text().await?;
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id),
+               & login_response.cookie_cnsc)
+                .await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
     let document = Html::parse_document(&content);
     //tokio::fs::write("input.html", document.html()).await;

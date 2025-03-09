@@ -44,8 +44,8 @@ pub async fn test(
     let password_input = driver.find(By::Css("#login-password")).await?;
     let login_button = driver.find(By::Css("#login-button")).await?;
 
-    let username = std::env::var("USERNAME").expect("env variable USERNAME missing");
-    let password = std::env::var("PASSWORD").expect("env variable PASSWORD missing");
+    let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
+    let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 
     username_input.send_keys(username).await?;
     password_input.send_keys(password).await?;

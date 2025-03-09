@@ -4,15 +4,12 @@ use reqwest::header::HeaderValue;
 use scraper::Html;
 use tucant_types::{LoginRequest, LoginResponse};
 
-use crate::{MyClient, TucanError};
+use crate::{authenticated_retryable_get, MyClient, TucanError};
 
 pub async fn logout(client: &MyClient, login_response: &LoginResponse) -> Result<(), TucanError> {
-    let response = client.get(format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id))
-    .header("Cookie", format!("cnsc={}", login_response.cookie_cnsc))
-    .send()
-    .await?
-    .error_for_status()?;
-    let _content = response.text().await?;
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id)
+    , &login_response.cookie_cnsc)
+    .await?;
     Ok(())
 }
 
@@ -97,7 +94,9 @@ pub async fn login(
 ).unwrap();
     let next_url = next_url.unwrap();
     let next_url = next_url.to_str().unwrap();
-    let id = &next_url_regex.captures(next_url).unwrap()["id"];
+    let id = &next_url_regex
+        .captures(next_url)
+        .expect("english is not supported")["id"];
     let cookie_cnsc = if cfg!(target_arch = "wasm32") {
         String::new()
     } else {

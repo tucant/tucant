@@ -3,7 +3,7 @@ use tucant_types::{
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
-    LoggedInHead, LoginRequest, LoginResponse, Tucan, TucanError,
+    LoggedInHead, LoginRequest, LoginResponse, Tucan, TucanError, Vorlesungsverzeichnis,
 };
 use url::Url;
 
@@ -119,6 +119,26 @@ impl Tucan for ApiServerTucan {
     async fn after_login(&self, request: &LoginResponse) -> Result<LoggedInHead, TucanError> {
         let url = Url::parse("http://localhost:1420/api/v1/after-login").unwrap();
         let response: LoggedInHead = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .unwrap()
+            .error_for_status()?
+            .json()
+            .await
+            .unwrap();
+        Ok(response)
+    }
+
+    async fn vv(
+        &self,
+        login_response: &LoginResponse,
+        action: String,
+    ) -> Result<Vorlesungsverzeichnis, TucanError> {
+        let mut url = Url::parse("http://localhost:1420/api/v1/vv").unwrap();
+        url.path_segments_mut().unwrap().push(&action);
+        let response: Vorlesungsverzeichnis = self
             .client
             .get(url)
             .send()

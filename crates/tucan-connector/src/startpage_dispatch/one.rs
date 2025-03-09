@@ -1,13 +1,9 @@
 use scraper::Html;
 
-use crate::{common::head::html_head_2, html_handler::Root, MyClient, TucanError};
+use crate::{common::head::html_head_2, html_handler::Root, retryable_get, MyClient, TucanError};
 
 pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
-    let response = client.get("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001")
-                    .send()
-                    .await?
-                    .error_for_status()?;
-    let content = response.text().await?;
+    let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001").await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();

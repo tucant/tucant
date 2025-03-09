@@ -1,11 +1,15 @@
-use coursedetails::index::course_details;
+use std::time::Duration;
+
+use coursedetails::index::{course_details, course_details_cached};
 use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::start_page::after_login;
-use moduledetails::index::module_details;
-use registration::index::anmeldung;
+use moduledetails::index::{module_details, module_details_cached};
+use registration::index::{anmeldung, anmeldung_cached};
 use reqwest::header;
-use tucant_types::{Tucan, TucanError};
+use tokio::time::sleep;
+use tucant_types::{Tucan, TucanError, Vorlesungsverzeichnis};
+use vv::vv;
 
 pub mod common;
 pub mod coursedetails;
@@ -17,15 +21,69 @@ pub mod moduledetails;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
+pub mod vv;
 
-#[cfg(not(target_arch = "wasm32"))]
-type MyClient = reqwest_middleware::ClientWithMiddleware;
-#[cfg(target_arch = "wasm32")]
 type MyClient = reqwest::Client;
 
 pub struct TucanConnector {
     pub client: MyClient,
     pub database: Database,
+}
+
+/// TUCaN being unreliable is a feature
+pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String, TucanError> {
+    let mut i = 0;
+    loop {
+        let result = (async || {
+            client
+                .get(url)
+                .send()
+                .await?
+                .error_for_status()?
+                .text()
+                .await
+        })()
+        .await;
+        if i == 4 {
+            return Ok(result?);
+        }
+        match result {
+            Ok(value) => return Ok(value),
+            Err(err) => println!("ignoring error {err}"),
+        }
+        sleep(Duration::from_secs(2u64.pow(i))).await;
+        i += 1;
+    }
+}
+
+pub async fn authenticated_retryable_get(
+    client: &reqwest::Client,
+    url: &str,
+    cookie_cnsc: &str,
+) -> Result<String, TucanError> {
+    let mut i = 0;
+    loop {
+        let result = (async || {
+            client
+                .get(url)
+                .header("Cookie", format!("cnsc={}", cookie_cnsc))
+                .send()
+                .await?
+                .error_for_status()?
+                .text()
+                .await
+        })()
+        .await;
+        if i == 4 {
+            return Ok(result?);
+        }
+        match result {
+            Ok(value) => return Ok(value),
+            Err(err) => println!("ignoring error {err}"),
+        }
+        sleep(Duration::from_secs(2u64.pow(i))).await;
+        i += 1;
+    }
 }
 
 impl TucanConnector {
@@ -35,42 +93,15 @@ impl TucanConnector {
             "Accept-Language",
             header::HeaderValue::from_static("de-DE,de;q=0.5"),
         );
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let retry_policy = reqwest_retry::policies::ExponentialBackoff::builder()
-                .build_with_total_retry_duration_and_max_retries(std::time::Duration::from_secs(
-                    90,
-                ));
-            let client = reqwest_middleware::ClientBuilder::new(
-                reqwest::Client::builder()
-                    .default_headers(headers)
-                    .user_agent(
-                        "https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de",
-                    )
-                    .build()
-                    .unwrap(),
-            )
-            .with(reqwest_retry::RetryTransientMiddleware::new_with_policy(
-                retry_policy,
-            ))
-            .build();
-            Ok(Self {
-                client,
-                database: Database::new().await,
-            })
-        }
-        #[cfg(target_arch = "wasm32")]
-        {
-            let client = reqwest::Client::builder()
-                .default_headers(headers)
-                .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
-                .build()
-                .unwrap();
-            Ok(Self {
-                client,
-                database: Database::new().await,
-            })
-        }
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de")
+            .build()
+            .unwrap();
+        Ok(Self {
+            client,
+            database: Database::new().await,
+        })
     }
 }
 
@@ -98,7 +129,7 @@ impl Tucan for TucanConnector {
         login_response: tucant_types::LoginResponse,
         request: tucant_types::registration::AnmeldungRequest,
     ) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
-        anmeldung(self, &login_response, request).await
+        anmeldung_cached(self, &login_response, request).await
     }
 
     async fn module_details(
@@ -106,7 +137,7 @@ impl Tucan for TucanConnector {
         login_response: &tucant_types::LoginResponse,
         request: tucant_types::moduledetails::ModuleDetailsRequest,
     ) -> Result<tucant_types::moduledetails::ModuleDetailsResponse, TucanError> {
-        module_details(self, login_response, request).await
+        module_details_cached(self, login_response, request).await
     }
 
     async fn course_details(
@@ -114,7 +145,15 @@ impl Tucan for TucanConnector {
         login_response: &tucant_types::LoginResponse,
         request: tucant_types::coursedetails::CourseDetailsRequest,
     ) -> Result<tucant_types::coursedetails::CourseDetailsResponse, TucanError> {
-        course_details(self, login_response, request).await
+        course_details_cached(self, login_response, request).await
+    }
+
+    async fn vv(
+        &self,
+        login_response: &tucant_types::LoginResponse,
+        action: String,
+    ) -> Result<Vorlesungsverzeichnis, TucanError> {
+        vv(&self.client, login_response.clone(), action).await
     }
 }
 
@@ -240,6 +279,24 @@ mod tests {
             .await
             .unwrap();
     }
+
+    #[tokio::test]
+    pub async fn course_4() {
+        let tucan = TucanConnector::new().await.unwrap();
+        let result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                CourseDetailsRequest {
+                    arguments: ",-N000311,-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3"
+                        .to_owned(),
+                },
+            )
+            .await
+            .unwrap();
+    }
 }
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]
@@ -256,19 +313,21 @@ mod authenticated_tests {
 
     use crate::{
         login::login, mlsstart::start_page::after_login, registration::index::anmeldung,
-        startpage_dispatch::after_login::redirect_after_login, Tucan,
+        startpage_dispatch::after_login::redirect_after_login, Tucan, TucanConnector,
     };
 
     #[tokio::test]
     pub async fn test_login() {
         dotenvy::dotenv().unwrap();
-        let tucan = Tucan::new().await.unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
         assert!(matches!(
             login(
                 &tucan.client,
                 &LoginRequest {
-                    username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
-                    password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+                    username: std::env::var("TUCAN_USERNAME")
+                        .expect("env variable TUCAN_USERNAME missing"),
+                    password: std::env::var("TUCAN_PASSWORD")
+                        .expect("env variable TUCAN_PASSWORD missing"),
                 },
             )
             .await,
@@ -279,12 +338,14 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_redirect_after_login() {
         dotenvy::dotenv().unwrap();
-        let tucan = Tucan::new().await.unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
-                username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
-                password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
             },
         )
         .await
@@ -297,12 +358,14 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_mlsstart() {
         dotenvy::dotenv().unwrap();
-        let tucan = Tucan::new().await.unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
-                username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
-                password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
             },
         )
         .await
@@ -313,12 +376,14 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_registration() {
         dotenvy::dotenv().unwrap();
-        let tucan = Tucan::new().await.unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
-                username: std::env::var("USERNAME").expect("env variable USERNAME missing"),
-                password: std::env::var("PASSWORD").expect("env variable PASSWORD missing"),
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
             },
         )
         .await
@@ -332,5 +397,101 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn vv_top_level() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let action = tucan
+            .after_login(&login_response)
+            .await
+            .unwrap()
+            .vorlesungsverzeichnis_url;
+        let result = tucan.vv(&login_response, action).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn vv_first_level() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let action = tucan
+            .after_login(&login_response)
+            .await
+            .unwrap()
+            .vorlesungsverzeichnis_url;
+        let result = tucan.vv(&login_response, action).await.unwrap().entries[0].clone();
+        let result = tucan.vv(&login_response, result).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn vv_first_level_4_courses() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let action = tucan
+            .after_login(&login_response)
+            .await
+            .unwrap()
+            .vorlesungsverzeichnis_url;
+        let result = tucan.vv(&login_response, action).await.unwrap().entries[4].clone();
+        let result = tucan.vv(&login_response, result).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn vv_first_level_all() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME")
+                    .expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD")
+                    .expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let action = tucan
+            .after_login(&login_response)
+            .await
+            .unwrap()
+            .vorlesungsverzeichnis_url;
+        for action in tucan.vv(&login_response, action).await.unwrap().entries {
+            let result = tucan.vv(&login_response, action).await.unwrap();
+        }
     }
 }
