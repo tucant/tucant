@@ -24,4 +24,12 @@ pub struct CourseDetailsResponse {
     pub teilnehmer_range: String,
     pub teilnehmer_max: String,
     pub description: Vec<String>,
+    pub uebungsgruppen: Vec<CourseUebungsGruppe>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseUebungsGruppe {
+    pub name: String,
+    pub uebungsleiter: String,
+    pub date_range: Option<String>,
 }

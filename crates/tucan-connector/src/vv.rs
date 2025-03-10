@@ -76,14 +76,15 @@ pub async fn vv(
         </h2>_
         <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
     }
-    if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .name()
-        == "div"
+    if html_handler.peek().unwrap().value().is_element()
+        && html_handler
+            .peek()
+            .unwrap()
+            .value()
+            .as_element()
+            .unwrap()
+            .name()
+            == "div"
     {
         html_handler = {
             html_extractor::html! {
@@ -99,25 +100,30 @@ pub async fn vv(
             html_handler
         }
     }
-    html_extractor::html! {
-        <ul class="auditRegistrationList" id="auditRegistration_list">_
-    }
     let mut entries = Vec::new();
-    while html_handler.peek().is_some() {
+    if html_handler.peek().unwrap().value().is_element() {
         html_handler = {
             html_extractor::html! {
-                <li title=_title>
-                    <a class="auditRegNodeLink" href=reg_href>
-                        _title
-                    </a>
-                </li>_
+                <ul class="auditRegistrationList" id="auditRegistration_list">_
             }
-            entries.push(reg_href);
+            while html_handler.peek().is_some() {
+                html_handler = {
+                    html_extractor::html! {
+                        <li title=_title>
+                            <a class="auditRegNodeLink" href=reg_href>
+                                _title
+                            </a>
+                        </li>_
+                    }
+                    entries.push(reg_href);
+                    html_handler
+                };
+            }
+            html_extractor::html! {
+                </ul>_
+            }
             html_handler
-        };
-    }
-    html_extractor::html! {
-        </ul>_
+        }
     }
     if html_handler
         .peek()
@@ -136,6 +142,17 @@ pub async fn vv(
                     </div>_
                     <!--"tY3gu8Sk4aG_lsXAU_2a_w0_Efi8P3WOIpWjl2FxXDw"-->_
                     <!--"bZr1IgdrSm713Ht01158Vkl5zMzSBwIDp2ufIuDtU-g"-->_
+            }
+            html_handler = if html_handler
+                .peek()
+                .unwrap()
+                .value()
+                .as_element()
+                .unwrap()
+                .name()
+                == "table"
+            {
+                html_extractor::html! {
                     <table class="nb eventTable">_
                         <tbody>
                             <tr class="tbsubhead">_
@@ -157,45 +174,56 @@ pub async fn vv(
                                     "\n\t\t \t\t  \t\tRaum\n\t\t \t\t  \t\t\t \t\t"
                                 </th>_
                             </tr>_
-            }
-            while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                        <tr class="tbdata">_
-                            <td>
-                                <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
-                            </td>_
-                            <td>_
-                                <a name="eventLink" href=coursedetails_url class="eventTitle">
-                                    title_url
-                                </a>
-                                <br></br>
-                                name
-                    }
-                    if html_handler.peek().is_some() {
-                        html_handler = {
-                            html_extractor::html! {
-                                <br></br>
-                                date_range
-                            }
-                            html_handler
-                        }
-                    }
-                    html_extractor::html! {
-                            </td>_
-                            <td>_
-                            </td>_
-                            <td colspan="2">
-                                course_type
-                            </td>_
-                        </tr>_
-                    }
-                    html_handler
                 }
-            }
-            html_extractor::html! {
+                while html_handler.peek().is_some() {
+                    html_handler = {
+                        html_extractor::html! {
+                            <tr class="tbdata">_
+                                <td>
+                                    <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
+                                </td>_
+                                <td>_
+                                    <a name="eventLink" href=coursedetails_url class="eventTitle">
+                                        title_url
+                                    </a>
+                                    <br></br>
+                                    name
+                        }
+                        if html_handler.peek().is_some() {
+                            html_handler = {
+                                html_extractor::html! {
+                                    <br></br>
+                                    date_range
+                                }
+                                html_handler
+                            }
+                        }
+                        html_extractor::html! {
+                                </td>_
+                                <td>_
+                                </td>_
+                                <td colspan="2">
+                                    course_type
+                                </td>_
+                            </tr>_
+                        }
+                        html_handler
+                    }
+                }
+                html_extractor::html! {
                         </tbody>
                     </table>_
+                }
+                html_handler
+            } else {
+                html_extractor::html! {
+                    <div class="tbdata" colspan="3">
+                        "\n\t\t\t\tEs wurden keine Veranstaltungen gefunden.\n\t\t\t"
+                    </div>_
+                }
+                html_handler
+            };
+            html_extractor::html! {
                 </div>_
             }
             html_handler

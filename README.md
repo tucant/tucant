@@ -55,6 +55,14 @@ https://editor-next.swagger.io/
 
 ## tucan-connector
 
+.env
+```
+TUCAN_USERNAME=
+TUCAN_PASSWORD=
+SESSION_ID=
+SESSION_KEY=
+```
+
 ### Coverage
 
 ```

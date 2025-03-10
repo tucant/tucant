@@ -309,7 +309,7 @@ mod authenticated_tests {
 
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
-    use tucant_types::{registration::AnmeldungRequest, LoginRequest, TucanError};
+    use tucant_types::{registration::AnmeldungRequest, LoginRequest, LoginResponse, TucanError};
 
     use crate::{
         login::login, mlsstart::start_page::after_login, registration::index::anmeldung,
@@ -485,12 +485,17 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
+        let login_response = LoginResponse {
+            id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
+            cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
+        };
         let action = tucan
             .after_login(&login_response)
             .await
             .unwrap()
             .vorlesungsverzeichnis_url;
         for action in tucan.vv(&login_response, action).await.unwrap().entries {
+            println!("{}", action);
             let result = tucan.vv(&login_response, action).await.unwrap();
         }
     }

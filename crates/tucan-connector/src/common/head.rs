@@ -89,6 +89,7 @@ pub fn html_head<'a>(
             html_extractor::html! {
                 <body class="timeout">
             };
+            let _html_handler = html_handler;
             return Err(TucanError::Timeout);
         } else if html_handler
             .peek()
@@ -101,6 +102,7 @@ pub fn html_head<'a>(
             html_extractor::html! {
                 <body class="access_denied">
             };
+            let _html_handler = html_handler;
             return Err(TucanError::AccessDenied);
         } else {
             panic!();

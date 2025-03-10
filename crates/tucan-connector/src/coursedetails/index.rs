@@ -1,6 +1,6 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    coursedetails::{CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe},
     LoginResponse, TucanError,
 };
 
@@ -201,10 +201,11 @@ pub(crate) async fn course_details(
                 <b>
                     "Semesterwochenstunden: "
                 </b>
-                sws
+                sws_text
                 <input type="hidden" name="sws" value=sws></input>_
             </p>_
         }
+        assert_eq!(sws_text.trim(), sws);
         (html_handler, Some(sws))
     };
     let credits;
@@ -231,6 +232,7 @@ pub(crate) async fn course_details(
                 <input type="hidden" name="credits" value=credits></input>_
             </p>_
         }
+        assert_eq!(credits_text, credits);
         (html_handler, Some(credits))
     };
     html_extractor::html! {
@@ -273,6 +275,7 @@ pub(crate) async fn course_details(
             </tbody>
         </table>_
     }
+    let mut uebungsgruppen = Vec::new();
     if html_handler
         .peek()
         .unwrap()
@@ -311,13 +314,14 @@ pub(crate) async fn course_details(
                                 </p>_
                                 <p>
                     }
-                    if html_handler.peek().is_some() {
-                        html_handler = {
-                            html_extractor::html! {
-                                date_range
-                            }
-                            html_handler
+                    let date_range;
+                    (html_handler, date_range) = if html_handler.peek().is_some() {
+                        html_extractor::html! {
+                            date_range
                         }
+                        (html_handler, Some(date_range))
+                    } else {
+                        (html_handler, None)
                     };
                     html_extractor::html! {
                                 </p>_
@@ -329,8 +333,13 @@ pub(crate) async fn course_details(
                             </div>_
                         </li>_
                     }
+                    uebungsgruppen.push(CourseUebungsGruppe {
+                        date_range,
+                        name: uebung_name,
+                        uebungsleiter,
+                    });
                     html_handler
-                }
+                };
             }
             html_extractor::html! {
                     </ul>_
@@ -811,5 +820,6 @@ pub(crate) async fn course_details(
         teilnehmer_range,
         teilnehmer_max,
         description,
+        uebungsgruppen,
     })
 }
