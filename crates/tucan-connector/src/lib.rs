@@ -14,7 +14,6 @@ use vv::vv;
 pub mod common;
 pub mod coursedetails;
 pub mod externalpages;
-pub mod html_handler;
 pub mod login;
 pub mod mlsstart;
 pub mod moduledetails;
@@ -49,7 +48,7 @@ pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String
         }
         match result {
             Ok(value) => return Ok(value),
-            Err(err) => println!("ignoring error {err}"),
+            Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -79,7 +78,7 @@ pub async fn authenticated_retryable_get(
         }
         match result {
             Ok(value) => return Ok(value),
-            Err(err) => println!("ignoring error {err}"),
+            Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;

@@ -20,6 +20,7 @@ ego-tree = "0.10"
 sha3 = "0.10"
 data-encoding = "2"
 html-extractor = { path = "../html-extractor" }
+html-handler = { path = "../html-handler" }
 dotenvy = "0.15"
 regex = { version = "1" }
 itertools = "0.14"

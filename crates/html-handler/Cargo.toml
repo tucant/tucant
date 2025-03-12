@@ -1,0 +1,16 @@
+[package]
+name = "html-handler"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+html-extractor = { path = "../html-extractor" }
+scraper = { version = "0.23", features = ["deterministic"] }
+data-encoding = "2"
+sha3 = "0.10"
+ego-tree = "0.10"
+
+[lints]
+workspace = true

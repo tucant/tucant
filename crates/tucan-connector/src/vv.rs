@@ -4,10 +4,10 @@ use tucant_types::{LoginResponse, TucanError, Vorlesungsverzeichnis};
 use crate::{
     authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    html_handler::Root,
     mlsstart::start_page::after_login,
     MyClient,
 };
+use html_handler::Root;
 
 pub async fn vv(
     client: &MyClient,
@@ -52,27 +52,13 @@ pub async fn vv(
         <!--"kVJ9mNrY2XJb35ukyO3hMoLc_9dEHSgzMALBDLwWpHM"-->_
         <!--"Z6v-LbjcnKpltlabF99VIGyltOdElMLHxTYIzpsZgUU"-->_
         <h2>_
-    }
-    while html_handler.peek().is_some() {
-        html_handler = {
-            html_extractor::html! {
-                <a href=_url>
-            };
+        while html_handler.peek().is_some() {
+            <a href=url>
             if html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                        _title
-                    }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
-                </a>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+                title
+            } => title = title;
+            </a>_
+        } => vorlesungsverzeichnisse = (url, title);
         </h2>_
         <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
     }
@@ -100,30 +86,18 @@ pub async fn vv(
             html_handler
         }
     }
-    let mut entries = Vec::new();
-    if html_handler.peek().unwrap().value().is_element() {
-        html_handler = {
-            html_extractor::html! {
-                <ul class="auditRegistrationList" id="auditRegistration_list">_
-            }
+    html_extractor::html! {
+        if html_handler.peek().unwrap().value().is_element() {
+            <ul class="auditRegistrationList" id="auditRegistration_list">_
             while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
                         <li title=_title>
                             <a class="auditRegNodeLink" href=reg_href>
                                 _title
                             </a>
                         </li>_
-                    }
-                    entries.push(reg_href);
-                    html_handler
-                };
-            }
-            html_extractor::html! {
-                </ul>_
-            }
-            html_handler
-        }
+            } => entries = reg_href;
+            </ul>_
+        } => entries = entries;
     }
     if html_handler
         .peek()
@@ -174,43 +148,29 @@ pub async fn vv(
                                     "\n\t\t \t\t  \t\tRaum\n\t\t \t\t  \t\t\t \t\t"
                                 </th>_
                             </tr>_
-                }
-                while html_handler.peek().is_some() {
-                    html_handler = {
-                        html_extractor::html! {
-                            <tr class="tbdata">_
-                                <td>
-                                    <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
-                                </td>_
-                                <td>_
-                                    <a name="eventLink" href=coursedetails_url class="eventTitle">
-                                        title_url
-                                    </a>
-                                    <br></br>
-                                    name
-                        }
-                        if html_handler.peek().is_some() {
-                            html_handler = {
-                                html_extractor::html! {
-                                    <br></br>
-                                    date_range
-                                }
-                                html_handler
-                            }
-                        }
-                        html_extractor::html! {
-                                </td>_
-                                <td>_
-                                </td>_
-                                <td colspan="2">
-                                    course_type
-                                </td>_
-                            </tr>_
-                        }
-                        html_handler
-                    }
-                }
-                html_extractor::html! {
+                        while html_handler.peek().is_some() {
+                                    <tr class="tbdata">_
+                                        <td>
+                                            <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
+                                        </td>_
+                                        <td>_
+                                            <a name="eventLink" href=coursedetails_url class="eventTitle">
+                                                title_url
+                                            </a>
+                                            <br></br>
+                                            name
+                                            if html_handler.peek().is_some() {
+                                                <br></br>
+                                                date_range
+                                            } => date_range = date_range;
+                                        </td>_
+                                        <td>_
+                                        </td>_
+                                        <td colspan="2">
+                                            course_type
+                                        </td>_
+                                    </tr>_
+                            } => ent = ();
                         </tbody>
                     </table>_
                 }
@@ -237,5 +197,7 @@ pub async fn vv(
     }
     let html_handler = footer(html_handler, login_response.id, 326);
     html_handler.end_document();
-    Ok(Vorlesungsverzeichnis { entries })
+    Ok(Vorlesungsverzeichnis {
+        entries: entries.unwrap_or_default(),
+    })
 }

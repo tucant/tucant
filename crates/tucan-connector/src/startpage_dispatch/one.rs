@@ -1,6 +1,7 @@
 use scraper::Html;
 
-use crate::{common::head::html_head_2, html_handler::Root, retryable_get, MyClient, TucanError};
+use crate::{common::head::html_head_2, retryable_get, MyClient, TucanError};
+use html_handler::Root;
 
 pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
     let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001").await?;

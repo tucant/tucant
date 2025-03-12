@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use data_encoding::BASE64URL_NOPAD;
 use ego_tree::NodeRef;
-use scraper::node::Attrs;
 use scraper::Node;
+use scraper::{node::Attrs, Html};
 use sha3::{Digest, Sha3_256};
 
 // TODO FIXME according to clippy this uses lots of stack space
@@ -60,6 +60,10 @@ impl<'a> Root<'a> {
 }
 
 impl<'a> InRoot<'a, Root<'a>> {
+    pub fn peek(&self) -> Option<&NodeRef<'a, Node>> {
+        self.current_child.as_ref()
+    }
+
     #[track_caller]
     #[must_use]
     pub fn doctype(self) -> Self {
@@ -73,9 +77,7 @@ impl<'a> InRoot<'a, Root<'a>> {
             outer_state: self.outer_state,
         }
     }
-}
 
-impl<'a> InRoot<'a, Root<'a>> {
     #[track_caller]
     pub fn end_document(self) {
         assert_eq!(self.current_child.map(|v| v.value()), None);
@@ -178,7 +180,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
-    pub fn peek(&mut self) -> Option<&NodeRef<'a, Node>> {
+    pub fn peek(&self) -> Option<&NodeRef<'a, Node>> {
         self.current_child.as_ref()
     }
 

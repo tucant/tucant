@@ -1,10 +1,8 @@
 use scraper::Html;
 use tucant_types::LoginResponse;
 
-use crate::{
-    authenticated_retryable_get, common::head::html_head_2, html_handler::Root, MyClient,
-    TucanError,
-};
+use crate::{authenticated_retryable_get, common::head::html_head_2, MyClient, TucanError};
+use html_handler::Root;
 
 pub async fn redirect_after_login(
     client: &MyClient,

@@ -1,15 +1,17 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    coursedetails::{CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe},
+    coursedetails::{
+        CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
+    },
     LoginResponse, TucanError,
 };
 
 use crate::{
     authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
-    html_handler::Root,
     TucanConnector,
 };
+use html_handler::Root;
 
 pub async fn course_details_cached(
     tucan: &TucanConnector,
@@ -117,34 +119,23 @@ pub(crate) async fn course_details(
         <tr>_
             <td class="tbdata" colspan="3">_
                 <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
-    }
-    let dozent = if html_handler
-        .peek()
-        .unwrap()
-        .first_child()
-        .unwrap()
-        .value()
-        .is_text()
-    {
-        let dozent;
-        (html_handler, dozent) = {
-            html_extractor::html! {
-                <p>_
-                    <b>
-                        "Lehrende: "
-                    </b>
-                    <span id="dozenten">
-                        dozent
-                    </span>_
-                </p>_
-            }
-            (html_handler, dozent)
-        };
-        Some(dozent)
-    } else {
-        None
-    };
-    html_extractor::html! {
+       if html_handler
+           .peek()
+           .unwrap()
+           .first_child()
+           .unwrap()
+           .value()
+           .is_text()
+       {
+                   <p>_
+                       <b>
+                           "Lehrende: "
+                       </b>
+                       <span id="dozenten">
+                           dozent
+                       </span>_
+                   </p>_
+       } => dozent = dozent;
         <p>
             <b>
                 "Veranstaltungsart:"
@@ -274,8 +265,6 @@ pub(crate) async fn course_details(
                 </tr>_
             </tbody>
         </table>_
-    }
-    let mut uebungsgruppen = Vec::new();
     if html_handler
         .peek()
         .unwrap()
@@ -285,8 +274,6 @@ pub(crate) async fn course_details(
         .comment
         == " KG START ".into()
     {
-        html_handler = {
-            html_extractor::html! {
                 <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
                 <div class="tb">_
                     <div>_
@@ -298,10 +285,7 @@ pub(crate) async fn course_details(
                         </div>_
                     </div>_
                     <ul class="dl-ul-listview">_
-            }
             while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
                         <li class="tbdata listelement">_
                             <div class="dl-inner">_
                                 <p class="dl-ul-li-headline">
@@ -313,17 +297,9 @@ pub(crate) async fn course_details(
                                     uebungsleiter
                                 </p>_
                                 <p>
-                    }
-                    let date_range;
-                    (html_handler, date_range) = if html_handler.peek().is_some() {
-                        html_extractor::html! {
-                            date_range
-                        }
-                        (html_handler, Some(date_range))
-                    } else {
-                        (html_handler, None)
-                    };
-                    html_extractor::html! {
+                                if html_handler.peek().is_some() {
+                                    date_range
+                                } => date_range = date_range;
                                 </p>_
                             </div>_
                             <div class="dl-link">_
@@ -332,24 +308,15 @@ pub(crate) async fn course_details(
                                 </a>_
                             </div>_
                         </li>_
-                    }
-                    uebungsgruppen.push(CourseUebungsGruppe {
-                        date_range,
-                        name: uebung_name,
-                        uebungsleiter,
-                    });
-                    html_handler
-                };
-            }
-            html_extractor::html! {
+            } => uebungsgruppen = CourseUebungsGruppe {
+                date_range,
+                name: uebung_name,
+                uebungsleiter,
+            };
                     </ul>_
                 </div>_
                 <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+        } => uebungsgruppen = uebungsgruppen;
         <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
         <table class="tb rw-table">_
             <caption>
@@ -367,11 +334,8 @@ pub(crate) async fn course_details(
         </table>_
         <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
         <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
-    }
     if html_handler.peek().unwrap().value().is_element() {
         // if in course
-        html_handler = {
-            html_extractor::html! {
                 <table class="tb rw-table">_
                     <caption>
                         "Material zur gesamten Veranstaltung"
@@ -384,46 +348,36 @@ pub(crate) async fn course_details(
                         </tr>_
                     </tbody>
                 </table>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+        } => unused = ();
         <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
         <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
-    }
-    if html_handler.peek().unwrap().value().is_element() {
-        html_handler = {
-            html_extractor::html! {
-                <table class="tb list rw-table">_
-                    <caption>
-                        "Anmeldefristen"
-                    </caption>_
-                    <tbody>
-                        <tr>_
-                            <td class="tbsubhead">
-                                " Phase "
-                            </td>_
-                            <td class="tbsubhead">
-                                " Block "
-                            </td>_
-                            <td class="tbsubhead">
-                                " Start "
-                            </td>_
-                            <td class="tbsubhead">
-                                " Ende Anmeldung "
-                            </td>_
-                            <td class="tbsubhead">
-                                " Ende Abmeldung"
-                            </td>_
-                            <td class="tbsubhead">
-                                " Ende Hörer "
-                            </td>_
-                        </tr>_
-            }
-            while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
+        if html_handler.peek().unwrap().value().is_element() {
+            <table class="tb list rw-table">_
+                <caption>
+                    "Anmeldefristen"
+                </caption>_
+                <tbody>
+                    <tr>_
+                        <td class="tbsubhead">
+                            " Phase "
+                        </td>_
+                        <td class="tbsubhead">
+                            " Block "
+                        </td>_
+                        <td class="tbsubhead">
+                            " Start "
+                        </td>_
+                        <td class="tbsubhead">
+                            " Ende Anmeldung "
+                        </td>_
+                        <td class="tbsubhead">
+                            " Ende Abmeldung"
+                        </td>_
+                        <td class="tbsubhead">
+                            " Ende Hörer "
+                        </td>_
+                    </tr>_
+                    while html_handler.peek().is_some() {
                         <tr>_
                             <td class="tbdata">
                                 zulassungstyp
@@ -444,18 +398,17 @@ pub(crate) async fn course_details(
                                 ende_hoerer
                             </td>_
                         </tr>_
-                    }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
-                    </tbody>
-                </table>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+                    } => course_anmeldefristen = CourseAnmeldefrist {
+                        zulassungstyp,
+                        block_type,
+                        start,
+                        ende_anmeldung,
+                        ende_abmeldung,
+                        ende_hoerer
+                    };
+                </tbody>
+            </table>_
+        } => course_anmeldefristen = course_anmeldefristen;
         <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
         <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
         <table class="tb list rw-table rw-all">_
@@ -479,19 +432,13 @@ pub(crate) async fn course_details(
                         "Raum"
                     </td>_
                     <td class="tbsubhead">
-    }
     if html_handler.peek().is_some() {
-        html_handler = {
-            html_extractor::html! {
                 "Lehrende"
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+    } => lehrende = ();
             </td>_
         </tr>_
     };
+    // TODO start from here
     if html_handler
         .peek()
         .unwrap()
@@ -820,6 +767,7 @@ pub(crate) async fn course_details(
         teilnehmer_range,
         teilnehmer_max,
         description,
-        uebungsgruppen,
+        uebungsgruppen: uebungsgruppen.unwrap_or_default(),
+        course_anmeldefristen: course_anmeldefristen.unwrap_or_default(),
     })
 }

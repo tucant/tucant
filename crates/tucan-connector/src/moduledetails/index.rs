@@ -8,9 +8,9 @@ use tucant_types::{
 use crate::{authenticated_retryable_get, TucanConnector};
 use crate::{
     common::head::{footer, html_head, logged_in_head, logged_out_head},
-    html_handler::Root,
     TucanError,
 };
+use html_handler::Root;
 
 pub async fn module_details_cached(
     tucan: &TucanConnector,

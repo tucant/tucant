@@ -4,9 +4,9 @@ use tucant_types::{LoggedInHead, LoginResponse};
 use crate::{
     authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    html_handler::Root,
     MyClient, TucanError,
 };
+use html_handler::Root;
 
 pub async fn after_login(
     client: &MyClient,

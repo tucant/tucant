@@ -12,9 +12,9 @@ use tucant_types::{
 use crate::{
     authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    html_handler::Root,
     TucanConnector, TucanError,
 };
+use html_handler::Root;
 
 pub async fn anmeldung_cached(
     tucan: &TucanConnector,

@@ -25,6 +25,7 @@ pub struct CourseDetailsResponse {
     pub teilnehmer_max: String,
     pub description: Vec<String>,
     pub uebungsgruppen: Vec<CourseUebungsGruppe>,
+    pub course_anmeldefristen: Vec<CourseAnmeldefrist>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,4 +33,14 @@ pub struct CourseUebungsGruppe {
     pub name: String,
     pub uebungsleiter: String,
     pub date_range: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseAnmeldefrist {
+    pub zulassungstyp: String,
+    pub block_type: String,
+    pub start: String,
+    pub ende_anmeldung: String,
+    pub ende_abmeldung: String,
+    pub ende_hoerer: String,
 }

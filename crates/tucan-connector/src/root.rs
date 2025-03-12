@@ -1,6 +1,7 @@
 use scraper::Html;
 
-use crate::{html_handler::Root, retryable_get, MyClient, TucanError};
+use crate::{retryable_get, MyClient, TucanError};
+use html_handler::Root;
 
 pub async fn root(client: &MyClient) -> Result<(), TucanError> {
     let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/").await?;

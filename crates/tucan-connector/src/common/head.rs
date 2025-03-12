@@ -1,6 +1,6 @@
 use tucant_types::{LoggedInHead, TucanError, VorlesungsverzeichnisUrls};
 
-use crate::html_handler::{InElement, InRoot, Root};
+use html_handler::{InElement, InRoot, Root};
 
 #[must_use]
 pub fn html_head_2<'a>(
@@ -259,47 +259,32 @@ pub fn vv_something<'a>(
                     vv_2_title
                 </a>
             </li>
-    };
-    vvs.push((aktuell_title, aktuell_url));
-    vvs.push((vv_1_title, vv_1_url));
-    vvs.push((vv_2_title, vv_2_url));
-    let html_handler = if id == 1 {
-        html_handler
-    } else {
-        html_extractor::html! {
-            <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
-                <a class=_linkclass href=vv_3_url>
-                    vv_3_title
-                </a>
-            </li>
-        }
-        vvs.push((vv_3_title, vv_3_url));
-        html_handler
-    };
-    html_extractor::html! {
+        if id != 1 {
+                <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
+                    <a class=_linkclass href=vv_3_url>
+                        vv_3_title
+                    </a>
+                </li>
+        } => a = vvs.push((vv_3_title, vv_3_url));
         <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
             <a class=_linkclass href=_url>
                 "Archiv"
             </a>
             <ul class="nav depth_3 linkItemContainer">
-    };
-    while html_handler.peek().is_some() {
-        html_handler = {
-            html_extractor::html! {
-                <li class="intern depth_3 linkItem " title=_title id=_linkclass>
-                    <a class=_linkclass href=_url>
-                        _text
-                    </a>
-                </li>
-            };
-            html_handler
-        };
-    }
-    html_extractor::html! {
+            while html_handler.peek().is_some() {
+                        <li class="intern depth_3 linkItem " title=_title id=_linkclass>
+                            <a class=_linkclass href=_url>
+                                _text
+                            </a>
+                        </li>
+            } => temp_vec = ();
                 </ul>
             </li>
         </ul>
     };
+    vvs.insert(0, (aktuell_title, aktuell_url));
+    vvs.insert(1, (vv_1_title, vv_1_url));
+    vvs.insert(2, (vv_2_title, vv_2_url));
     (
         html_handler,
         VorlesungsverzeichnisUrls {

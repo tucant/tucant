@@ -80,6 +80,7 @@
               (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
               (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
               (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-api)
+              (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
             ];
           };
           cargoTestExtraArgs = "--no-run";
@@ -100,6 +101,7 @@
           (craneNightlyLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneNightlyLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneNightlyLib.fileset.commonCargoSources ./crates/tucant-yew)
+          (craneNightlyLib.fileset.commonCargoSources ./crates/html-handler)
           ./crates/tucant-yew/index.html
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css

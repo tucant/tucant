@@ -2,9 +2,9 @@ use scraper::Html;
 
 use crate::{
     common::head::{footer, html_head, logged_out_head},
-    html_handler::Root,
     retryable_get, MyClient, TucanError,
 };
+use html_handler::Root;
 
 pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")
