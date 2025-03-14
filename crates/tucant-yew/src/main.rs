@@ -37,33 +37,14 @@ async fn main() {
     info!("main");
 
     #[cfg(feature = "direct")]
-    if js_sys::Reflect::get(
-        &js_sys::global(),
-        &wasm_bindgen::JsValue::from_str("chrome"),
-    )
-    .is_ok()
-    {
+    if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
         let login_response = tucant_yew::direct_login_response().await;
-        yew::Renderer::<tucant_yew::App<tucan_connector::TucanConnector>>::with_props(
-            tucant_yew::AppProps {
-                initial_session: login_response,
-                tucan: tucant_yew::RcTucanType(std::rc::Rc::new(
-                    tucan_connector::TucanConnector::new().await.unwrap(),
-                )),
-            },
-        )
-        .render();
+        yew::Renderer::<tucant_yew::App<tucan_connector::TucanConnector>>::with_props(tucant_yew::AppProps { initial_session: login_response, tucan: tucant_yew::RcTucanType(std::rc::Rc::new(tucan_connector::TucanConnector::new().await.unwrap())) }).render();
     }
     #[cfg(feature = "api")]
     {
         let login_response = tucant_yew::api_login_response().await;
-        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(
-            tucant_yew::AppProps {
-                initial_session: login_response,
-                tucan: RcTucanType(Rc::new(ApiServerTucan::new())),
-            },
-        )
-        .render();
+        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(tucant_yew::AppProps { initial_session: login_response, tucan: RcTucanType(Rc::new(ApiServerTucan::new())) }).render();
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");

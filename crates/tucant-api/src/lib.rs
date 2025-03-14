@@ -1,20 +1,20 @@
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
-use axum_extra::extract::{cookie::Cookie, CookieJar};
+use axum::{Json, extract::Path, http::StatusCode, response::IntoResponse};
+use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tucan_connector::{
+    TucanConnector,
     login::{login, logout},
     registration::index::anmeldung_cached,
-    TucanConnector,
 };
+use tucant_types::{LoggedInHead, Tucan};
 use tucant_types::{
+    LoginRequest, LoginResponse, TucanError,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
-    LoginRequest, LoginResponse, TucanError,
 };
-use tucant_types::{LoggedInHead, Tucan};
 use utoipa::{
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
     Modify, OpenApi,
+    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 };
 use utoipa_axum::{router::OpenApiRouter, routes};
 
@@ -41,10 +41,7 @@ struct SecurityAddon;
 impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         if let Some(components) = openapi.components.as_mut() {
-            components.add_security_scheme(
-                "cnsc",
-                SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("cnsc"))),
-            );
+            components.add_security_scheme("cnsc", SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("cnsc"))));
         }
     }
 }
@@ -59,17 +56,12 @@ impl Modify for SecurityAddon {
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn login_endpoint(
-    jar: CookieJar,
-    Json(login_request): Json<LoginRequest>,
-) -> Result<impl IntoResponse, TucanError> {
+pub async fn login_endpoint(jar: CookieJar, Json(login_request): Json<LoginRequest>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let response = login(&tucan.client, &login_request).await?;
 
-    let jar = jar
-        .add(Cookie::build(("id", response.id.to_string())).path("/"))
-        .add(Cookie::build(("cnsc", response.cookie_cnsc.to_string())).path("/"));
+    let jar = jar.add(Cookie::build(("id", response.id.to_string())).path("/")).add(Cookie::build(("cnsc", response.cookie_cnsc.to_string())).path("/"));
 
     Ok((StatusCode::OK, jar, Json(response)).into_response())
 }
@@ -86,10 +78,7 @@ pub async fn login_endpoint(
 pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
-    };
+    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
 
     logout(&tucan.client, &login_response).await.unwrap();
 
@@ -108,25 +97,12 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn registration_endpoint(
-    jar: CookieJar,
-    Path(registration): Path<String>,
-) -> Result<impl IntoResponse, TucanError> {
+pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
-    };
+    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
 
-    let response = anmeldung_cached(
-        &tucan,
-        &login_response,
-        AnmeldungRequest {
-            arguments: registration,
-        },
-    )
-    .await?;
+    let response = anmeldung_cached(&tucan, &login_response, AnmeldungRequest { arguments: registration }).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -141,20 +117,12 @@ pub async fn registration_endpoint(
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn module_details_endpoint(
-    jar: CookieJar,
-    Path(module): Path<String>,
-) -> Result<impl IntoResponse, TucanError> {
+pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
-    };
+    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
 
-    let response = tucan
-        .module_details(&login_response, ModuleDetailsRequest { arguments: module })
-        .await?;
+    let response = tucan.module_details(&login_response, ModuleDetailsRequest { arguments: module }).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -169,20 +137,12 @@ pub async fn module_details_endpoint(
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn course_details_endpoint(
-    jar: CookieJar,
-    Path(module): Path<String>,
-) -> Result<impl IntoResponse, TucanError> {
+pub async fn course_details_endpoint(jar: CookieJar, Path(module): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
-    };
+    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
 
-    let response = tucan
-        .course_details(&login_response, CourseDetailsRequest { arguments: module })
-        .await?;
+    let response = tucan.course_details(&login_response, CourseDetailsRequest { arguments: module }).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -199,10 +159,7 @@ pub async fn course_details_endpoint(
 pub async fn after_login_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
-    };
+    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
 
     let response = tucan.after_login(&login_response).await?;
 
@@ -210,11 +167,5 @@ pub async fn after_login_endpoint(jar: CookieJar) -> Result<impl IntoResponse, T
 }
 
 pub fn router() -> OpenApiRouter {
-    OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .routes(routes!(login_endpoint))
-        .routes(routes!(logout_endpoint))
-        .routes(routes!(registration_endpoint))
-        .routes(routes!(module_details_endpoint))
-        .routes(routes!(course_details_endpoint))
-        .routes(routes!(after_login_endpoint))
+    OpenApiRouter::with_openapi(ApiDoc::openapi()).routes(routes!(login_endpoint)).routes(routes!(logout_endpoint)).routes(routes!(registration_endpoint)).routes(routes!(module_details_endpoint)).routes(routes!(course_details_endpoint)).routes(routes!(after_login_endpoint))
 }

@@ -17,9 +17,7 @@ impl Default for AnmeldungRequest {
 impl AnmeldungRequest {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            arguments: ",-N000311,-A".to_owned(),
-        }
+        Self { arguments: ",-N000311,-A".to_owned() }
     }
 }
 

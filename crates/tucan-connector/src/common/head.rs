@@ -3,9 +3,7 @@ use tucant_types::{LoggedInHead, TucanError, VorlesungsverzeichnisUrls};
 use html_handler::{InElement, InRoot, Root};
 
 #[must_use]
-pub fn html_head_2<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
+pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
         <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
         <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
@@ -29,9 +27,7 @@ pub fn html_head_2<'a>(
 }
 
 #[must_use]
-pub fn html_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError> {
+pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError> {
     html_extractor::html! {
         <title>
             "Technische Universität Darmstadt"
@@ -78,27 +74,13 @@ pub fn html_head<'a>(
         html_extractor::html! {
             </head>_
         }
-        if html_handler
-            .peek()
-            .unwrap()
-            .value()
-            .as_element()
-            .unwrap()
-            .has_class("timeout", scraper::CaseSensitivity::CaseSensitive)
-        {
+        if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
             html_extractor::html! {
                 <body class="timeout">
             };
             let _html_handler = html_handler;
             return Err(TucanError::Timeout);
-        } else if html_handler
-            .peek()
-            .unwrap()
-            .value()
-            .as_element()
-            .unwrap()
-            .has_class("access_denied", scraper::CaseSensitivity::CaseSensitive)
-        {
+        } else if html_handler.peek().unwrap().value().as_element().unwrap().has_class("access_denied", scraper::CaseSensitivity::CaseSensitive) {
             html_extractor::html! {
                 <body class="access_denied">
             };
@@ -112,12 +94,7 @@ pub fn html_head<'a>(
 }
 
 #[must_use]
-pub fn page_start<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> InElement<
-    'a,
-    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
-> {
+pub fn page_start<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>> {
     html_extractor::html! {
         <div id="Cn-system-desc">_
         </div>_
@@ -205,31 +182,7 @@ pub fn page_start<'a>(
 }
 
 #[must_use]
-pub fn vv_something<'a>(
-    html_handler: InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<
-                'a,
-                InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
-            >,
-        >,
-    >,
-    id: u64,
-) -> (
-    InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<
-                'a,
-                InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
-            >,
-        >,
-    >,
-    VorlesungsverzeichnisUrls,
-) {
+pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>>, id: u64) -> (InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>>, VorlesungsverzeichnisUrls) {
     let mut vvs = Vec::new();
     // these link ids are incrementing so they are different if used from different contexts. could in theory be calculated based on some starting number
     html_extractor::html! {
@@ -259,25 +212,25 @@ pub fn vv_something<'a>(
                     vv_2_title
                 </a>
             </li>
-        if id != 1 {
+            if id != 1 {
                 <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                     <a class=_linkclass href=vv_3_url>
                         vv_3_title
                     </a>
                 </li>
-        } => a = vvs.push((vv_3_title, vv_3_url));
-        <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
-            <a class=_linkclass href=_url>
-                "Archiv"
-            </a>
-            <ul class="nav depth_3 linkItemContainer">
-            while html_handler.peek().is_some() {
+            } => a = vvs.push((vv_3_title, vv_3_url));
+            <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
+                <a class=_linkclass href=_url>
+                    "Archiv"
+                </a>
+                <ul class="nav depth_3 linkItemContainer">
+                    while html_handler.peek().is_some() {
                         <li class="intern depth_3 linkItem " title=_title id=_linkclass>
                             <a class=_linkclass href=_url>
                                 _text
                             </a>
                         </li>
-            } => temp_vec = ();
+                    } => temp_vec = ();
                 </ul>
             </li>
         </ul>
@@ -285,29 +238,11 @@ pub fn vv_something<'a>(
     vvs.insert(0, (aktuell_title, aktuell_url));
     vvs.insert(1, (vv_1_title, vv_1_url));
     vvs.insert(2, (vv_2_title, vv_2_url));
-    (
-        html_handler,
-        VorlesungsverzeichnisUrls {
-            lehrveranstaltungssuche_url,
-            vvs,
-        },
-    )
+    (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs })
 }
 
 #[must_use]
-pub fn logged_in_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-    id: u64,
-) -> (
-    InElement<
-        'a,
-        InElement<
-            'a,
-            InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>,
-        >,
-    >,
-    LoggedInHead,
-) {
+pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>, LoggedInHead) {
     assert_ne!(id, 1);
     let html_handler = page_start(html_handler);
     html_extractor::html! {
@@ -332,193 +267,122 @@ pub fn logged_in_head<'a>(
     html_extractor::html! {
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
-                        <a class="depth_1 link000268 navLink branchLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&\
-                             ARGUMENTS=-N{id:015},-N000268,-A,-A,-N1"
-                        )}>
+                        <a class="depth_1 link000268 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000268,-A,-A,-N1")}>
                             "Stundenplan"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Tagesansicht" id="link000269">
-                                <a class="depth_2 link000269 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&\
-                                     ARGUMENTS=-N{id:015},-N000269,-A,-A,-N0"
-                                )}>
+                                <a class="depth_2 link000269 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000269,-A,-A,-N0")}>
                                     "Tagesansicht"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Wochenansicht" id="link000270">
-                                <a class="depth_2 link000270 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&\
-                                     ARGUMENTS=-N{id:015},-N000270,-A,-A,-N1"
-                                )}>
+                                <a class="depth_2 link000270 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000270,-A,-A,-N1")}>
                                     "Wochenansicht"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Monatsansicht" id="link000271">
-                                <a class="depth_2 link000271 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&\
-                                     ARGUMENTS=-N{id:015},-N000271,-A"
-                                )}>
+                                <a class="depth_2 link000271 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{id:015},-N000271,-A")}>
                                     "Monatsansicht"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Export" id="link000272">
-                                <a class="depth_2 link000272 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{id:015},-N000272,"
-                                )}>
+                                <a class="depth_2 link000272 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{id:015},-N000272,")}>
                                     "Export"
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Veranstaltungen" id="link000273">
-                        <a class="depth_1 link000273 navLink branchLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                             ARGUMENTS=-N{id:015},-N000273,-Astudveranst%2Ehtml"
-                        )}>
+                        <a class="depth_1 link000273 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000273,-Astudveranst%2Ehtml")}>
                             "Veranstaltungen"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Meine Module" id="link000275">
-                                <a class="depth_2 link000275 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&\
-                                     ARGUMENTS=-N{id:015},-N000275,"
-                                )}>
+                                <a class="depth_2 link000275 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{id:015},-N000275,")}>
                                     "Meine Module"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Meine Veranstaltungen" id="link000274">
-                                <a class="depth_2 link000274 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&\
-                                     ARGUMENTS=-N{id:015},-N000274,"
-                                )}>
+                                <a class="depth_2 link000274 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{id:015},-N000274,")}>
                                     "Meine Veranstaltungen"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Meine Wahlbereiche" id="link000307">
-                                <a class="depth_2 link000307 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{id:015},-N000307,"
-                                )}>
+                                <a class="depth_2 link000307 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{id:015},-N000307,")}>
                                     "Meine Wahlbereiche"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Anmeldung" id="link000311">
-                                <a class="depth_2 link000311 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
-                                     ARGUMENTS=-N{id:015},-N000311,-A"
-                                )}>
+                                <a class="depth_2 link000311 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,-A")}>
                                     "Anmeldung"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Mein aktueller Anmeldestatus" id="link000308">
-                                <a class="depth_2 link000308 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{id:015},-N000308,\
-                                     -N000000000000000"
-                                )}>
+                                <a class="depth_2 link000308 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{id:015},-N000308,-N000000000000000")}>
                                     "Mein aktueller Anmeldestatus"
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Prüfungen" id="link000280">
-                        <a class="depth_1 link000280 navLink branchLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                             ARGUMENTS=-N{id:015},-N000280,-Astudpruefungen%2Ehtml"
-                        )}>
+                        <a class="depth_1 link000280 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000280,-Astudpruefungen%2Ehtml")}>
                             "Prüfungen"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Meine Prüfungen" id="link000318">
-                                <a class="depth_2 link000318 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&\
-                                     ARGUMENTS=-N{id:015},-N000318,"
-                                )}>
+                                <a class="depth_2 link000318 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{id:015},-N000318,")}>
                                     "Meine Prüfungen"
                                 </a>
                             </li>
                             <li class="tree depth_2 linkItem branchLinkItem " title="Mein Prüfungsplan" id="link000389">
-                                <a class="depth_2 link000389 navLink branchLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&\
-                                     ARGUMENTS=-N{id:015},-N000389,"
-                                )}>
+                                <a class="depth_2 link000389 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{id:015},-N000389,")}>
                                     "Mein Prüfungsplan"
                                 </a>
                                 <ul class="nav depth_3 linkItemContainer">
                                     <li class="intern depth_3 linkItem " title="Wichtige Hinweise" id="link000391">
-                                        <a class="depth_3 link000391 navLink " href={&format!(
-                                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                             PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000391,\
-                                             -Astudplan%2Ehtml"
-                                        )}>
+                                        <a class="depth_3 link000391 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000391,-Astudplan%2Ehtml")}>
                                             "Wichtige Hinweise"
                                         </a>
                                     </li>
                                 </ul>
                             </li>
                             <li class="tree depth_2 linkItem branchLinkItem " title="Semesterergebnisse" id="link000323">
-                                <a class="depth_2 link000323 navLink branchLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000323,\
-                                     -Astudergebnis%2Ehtml"
-                                )}>
+                                <a class="depth_2 link000323 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000323,-Astudergebnis%2Ehtml")}>
                                     "Semesterergebnisse"
                                 </a>
                                 <ul class="nav depth_3 linkItemContainer">
                                     <li class="intern depth_3 linkItem " title="Modulergebnisse" id="link000324">
-                                        <a class="depth_3 link000324 navLink " href={&format!(
-                                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                             PRGNAME=COURSERESULTS&ARGUMENTS=-N{id:015},-N000324,"
-                                        )}>
+                                        <a class="depth_3 link000324 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{id:015},-N000324,")}>
                                             "Modulergebnisse"
                                         </a>
                                     </li>
                                     <li class="intern depth_3 linkItem " title="Prüfungsergebnisse" id="link000325">
-                                        <a class="depth_3 link000325 navLink " href={&format!(
-                                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                             PRGNAME=EXAMRESULTS&ARGUMENTS=-N{id:015},-N000325,"
-                                        )}>
+                                        <a class="depth_3 link000325 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{id:015},-N000325,")}>
                                             "Prüfungsergebnisse"
                                         </a>
                                     </li>
                                 </ul>
                             </li>
                             <li class="intern depth_2 linkItem " title="Leistungsspiegel" id="link000316">
-                                <a class="depth_2 link000316 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{id:015},-N000316,-N0,\
-                                     -N000000000000000,-N000000000000000,-N000000000000000,-N0,\
-                                     -N000000000000000"
-                                )}>
+                                <a class="depth_2 link000316 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{id:015},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000")}>
                                     "Leistungsspiegel"
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Service" id="link000337">
-                        <a class="depth_1 link000337 navLink branchLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                             ARGUMENTS=-N{id:015},-N000337,-Aservice%2Ehtml"
-                        )}>
+                        <a class="depth_1 link000337 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000337,-Aservice%2Ehtml")}>
                             "Service"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Persönliche Daten" id="link000339">
-                                <a class="depth_2 link000339 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&\
-                                     ARGUMENTS=-N{id:015},-N000339,-A"
-                                )}>
+                                <a class="depth_2 link000339 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{id:015},-N000339,-A")}>
                                     "Persönliche Daten"
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Meine Dokumente" id="link000557">
-                                <a class="depth_2 link000557 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{id:015},-N000557,"
-                                )}>
+                                <a class="depth_2 link000557 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{id:015},-N000557,")}>
                                     "Meine Dokumente"
                                 </a>
                             </li>
@@ -528,29 +392,19 @@ pub fn logged_in_head<'a>(
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Sperren" id="link000652">
-                                <a class="depth_2 link000652 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&\
-                                     ARGUMENTS=-N{id:015},-N000652,"
-                                )}>
+                                <a class="depth_2 link000652 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{id:015},-N000652,")}>
                                     "Sperren"
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Bewerbung" id="link000441">
-                        <a class="depth_1 link000441 navLink branchLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                             ARGUMENTS=-N{id:015},-N000441,-Abewerbung"
-                        )}>
+                        <a class="depth_1 link000441 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000441,-Abewerbung")}>
                             "Bewerbung"
                         </a>
                         <ul class="nav depth_2 linkItemContainer">
                             <li class="intern depth_2 linkItem " title="Herzlich Willkommen" id="link000442">
-                                <a class="depth_2 link000442 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000442,\
-                                     -Abewerbung"
-                                )}>
+                                <a class="depth_2 link000442 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000442,-Abewerbung")}>
                                     "Herzlich Willkommen"
                                 </a>
                             </li>
@@ -560,20 +414,14 @@ pub fn logged_in_head<'a>(
                                 </a>
                             </li>
                             <li class="intern depth_2 linkItem " title="Meine Dokumente" id="link000444">
-                                <a class="depth_2 link000444 navLink " href={&format!(
-                                    "/scripts/mgrqispi.dll?APPNAME=CampusNet&\
-                                     PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{id:015},-N000444,"
-                                )}>
+                                <a class="depth_2 link000444 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{id:015},-N000444,")}>
                                     "Meine Dokumente"
                                 </a>
                             </li>
                         </ul>
                     </li>
                     <li class="intern depth_1 linkItem " title="Hilfe" id="link000340">
-                        <a class="depth_1 link000340 navLink " href={&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&\
-                             ARGUMENTS=-N{id:015},-N000340,-Ahilfe%2Ehtml"
-                        )}>
+                        <a class="depth_1 link000340 navLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N000340,-Ahilfe%2Ehtml")}>
                             "Hilfe"
                         </a>
                     </li>
@@ -584,10 +432,7 @@ pub fn logged_in_head<'a>(
                     <a href=_wef class="img img_LangEnglish pageElementLeft" title="English">
                         "English"
                     </a>_
-                    <a href={&format!(
-                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{id:\
-                         015},-N001"
-                    )} id="logoutButton" class="img img_arrowLogout logout" title="Abmelden">
+                    <a href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{id:015},-N001")} id="logoutButton" class="img img_arrowLogout logout" title="Abmelden">
                         "Abmelden"
                     </a>_
                 </div>_
@@ -649,26 +494,11 @@ pub fn logged_in_head<'a>(
                     <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
                     <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     };
-    (
-        html_handler,
-        LoggedInHead {
-            messages_url,
-            vorlesungsverzeichnis_url,
-            vv,
-            antraege_url,
-            meine_bewerbung_url,
-        },
-    )
+    (html_handler, LoggedInHead { messages_url, vorlesungsverzeichnis_url, vv, antraege_url, meine_bewerbung_url })
 }
 
 #[must_use]
-pub fn logged_out_head<'a>(
-    html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-    menuno: u64,
-) -> InElement<
-    'a,
-    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>,
-> {
+pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>> {
     let html_handler = page_start(html_handler);
     html_extractor::html! {
         <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
@@ -772,25 +602,15 @@ pub fn logged_out_head<'a>(
 }
 
 #[must_use]
-pub fn footer<'a>(
-    html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
-    id: u64,
-    subid: u64,
-) -> InRoot<'a, Root<'a>> {
+pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>, id: u64, subid: u64) -> InRoot<'a, Root<'a>> {
     html_extractor::html! {
                     <div id="pageFoot" class="pageElementTop">_
                         <div id="pageFootControls" class="pageElementTop">_
                             <div id="pageFootControlsLeft">_
-                                <a href={&format!(
-                                    "?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:\
-                                     015},-N{subid:06},-Aimprint"
-                                )} class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">
+                                <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N{subid:06},-Aimprint")} class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">
                                     "Impressum"
                                 </a>_
-                                <a href={&format!(
-                                    "?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:\
-                                     015},-N{subid:06},-Acontact"
-                                )} class="img img_arrowContact pageElementLeft" id="pageFootControl_con">
+                                <a href={&format!("?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{id:015},-N{subid:06},-Acontact")} class="img img_arrowContact pageElementLeft" id="pageFootControl_con">
                                     "Kontakt"
                                 </a>_
                                 <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">

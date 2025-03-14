@@ -81,3 +81,41 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
 
 xdg-open target/coverage/index.html 
 ```
+
+### Formatter
+
+```
+# check the version of nightly needed for rustfmt in rust-toolchain and use the following to find out git commit
+rustup install nightly-2025-01-02
+git clone git@github.com:rust-lang/rust.git
+cd rust
+git checkout 45d11e51b
+./x setup dist
+./x dist
+
+(cd cargo-nightly-x86_64-unknown-linux-gnu/ && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd clippy-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd llvm-bitcode-linker-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd llvm-tools-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd miri-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rls-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-analysis-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-analyzer-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rustc-dev-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rustc-nightly-src && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rustc-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-dev-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-docs-json-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-docs-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rustfmt-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-src-nightly && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+(cd rust-std-nightly-x86_64-unknown-linux-gnu && ./install.sh --prefix=/home/moritz/Documents/custom-toolchain)
+
+https://users.rust-lang.org/t/rustup-add-component-for-custom-toolchain/81846/4
+https://stackoverflow.com/a/78939154
+
+rustup toolchain link custom-toolchain ~/Documents/custom-toolchain
+
+cargo +custom-toolchain build
+```

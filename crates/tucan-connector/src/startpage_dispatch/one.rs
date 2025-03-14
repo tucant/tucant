@@ -1,6 +1,6 @@
 use scraper::Html;
 
-use crate::{common::head::html_head_2, retryable_get, MyClient, TucanError};
+use crate::{MyClient, TucanError, common::head::html_head_2, retryable_get};
 use html_handler::Root;
 
 pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
@@ -14,7 +14,6 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
             <head>_
     };
     let html_handler = html_head_2(html_handler);
-
     html_extractor::html! {
             </head>_
             <body class="redirect">_

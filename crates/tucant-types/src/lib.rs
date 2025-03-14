@@ -64,42 +64,17 @@ impl IntoResponse for TucanError {
 }
 
 pub trait Tucan {
-    fn login(
-        &self,
-        request: LoginRequest,
-    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
+    fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
-    fn after_login(
-        &self,
-        request: &LoginResponse,
-    ) -> impl std::future::Future<Output = Result<LoggedInHead, TucanError>>;
+    fn after_login(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<LoggedInHead, TucanError>>;
 
-    fn logout(
-        &self,
-        request: &LoginResponse,
-    ) -> impl std::future::Future<Output = Result<(), TucanError>>;
+    fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 
-    fn anmeldung(
-        &self,
-        login_response: LoginResponse,
-        request: AnmeldungRequest,
-    ) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
+    fn anmeldung(&self, login_response: LoginResponse, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
-    fn module_details(
-        &self,
-        login_response: &LoginResponse,
-        request: ModuleDetailsRequest,
-    ) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
+    fn module_details(&self, login_response: &LoginResponse, request: ModuleDetailsRequest) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
 
-    fn course_details(
-        &self,
-        login_response: &LoginResponse,
-        request: CourseDetailsRequest,
-    ) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
+    fn course_details(&self, login_response: &LoginResponse, request: CourseDetailsRequest) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
 
-    fn vv(
-        &self,
-        login_response: &LoginResponse,
-        action: String,
-    ) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
+    fn vv(&self, login_response: &LoginResponse, action: String) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 }

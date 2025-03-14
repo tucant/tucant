@@ -46,6 +46,7 @@
               ./tucant-extension/bootstrap.bundle.min.js
               ./tucant-extension/bootstrap.min.css
               ./crates/tucant-yew/fixup.sh
+              ./rustfmt.toml
             ];
           };
           pname = "tucant-workspace-native";

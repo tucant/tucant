@@ -1,6 +1,6 @@
 use scraper::Html;
 
-use crate::{retryable_get, MyClient, TucanError};
+use crate::{MyClient, TucanError, retryable_get};
 use html_handler::Root;
 
 pub async fn root(client: &MyClient) -> Result<(), TucanError> {

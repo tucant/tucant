@@ -2,14 +2,13 @@ use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    braced,
+    Expr, ExprStruct, Ident, LitStr, Token, braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
     spanned::Spanned,
     token::Brace,
-    Expr, ExprStruct, Ident, LitStr, Token,
 };
 
 #[derive(Debug)]
@@ -74,9 +73,7 @@ struct HtmlWhitespace {
 
 impl Parse for HtmlWhitespace {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            underscore: input.parse()?,
-        })
+        Ok(Self { underscore: input.parse()? })
     }
 }
 
@@ -160,11 +157,7 @@ impl Parse for HtmlElement {
             attributes.push(input.parse()?);
         }
         let open_end = input.parse()?;
-        Ok(Self {
-            element,
-            attributes,
-            open_end,
-        })
+        Ok(Self { element, attributes, open_end })
     }
 }
 
@@ -205,7 +198,6 @@ impl Parse for HtmlComment {
 // TODO FIXME reformatting with new syntax
 // TODO FIXME implement arbitrary children matcher
 // TODO FIXME allow calling subtemplates inside of a html_extractor?
-// TODO FIXME impleemnt else if or look at html_head function
 // TODO FIXME implement else
 // TODO FIXME  => a = statement_evaluating_to_unit
 // html_handler = html_handler.skip_any_comment(); probably a special case. maybe allow <!-- variable -->
@@ -228,14 +220,9 @@ impl Parse for HtmlIf {
         input.parse::<Token![>]>()?;
         let variable = input.parse()?;
         input.parse::<Token![=]>()?;
-        let result_expr = Expr::parse_with_earlier_boundary_rule(input)?;
+        let result_expr = input.parse()?;
         input.parse::<Token![;]>()?;
-        Ok(Self {
-            conditional,
-            body,
-            variable,
-            result_expr,
-        })
+        Ok(Self { conditional, body, variable, result_expr })
     }
 }
 
@@ -260,116 +247,113 @@ impl Parse for HtmlWhile {
         input.parse::<Token![=]>()?;
         let result_expr = Expr::parse_with_earlier_boundary_rule(input)?;
         input.parse::<Token![;]>()?;
-        Ok(Self {
-            conditional,
-            body,
-            variable,
-            result_expr,
-        })
+        Ok(Self { conditional, body, variable, result_expr })
     }
 }
 
 fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
-    commands.commands.iter().map(|command| {
-        match command {
+    commands
+        .commands
+        .iter()
+        .map(|command| match command {
             HtmlCommand::ElementOpen(input) => {
-                        let tag = input.element.to_string();
+                let tag = input.element.to_string();
 
-                        let attributes = input.attributes.iter().map(|iter| {
-                            let name = iter
-                                .ident
-                                .pairs()
-                                .map(|p| {
-                                    p.value().to_string()
-                                        + match p.punct() {
-                                            Some(DashOrColon::Colon) => ":",
-                                            Some(DashOrColon::Dash) => "-",
-                                            None => "",
-                                        }
-                                })
-                                .join("");
-                            let value = &iter.value;
-                            match value {
-                                StringLiteralOrVariable::Literal(lit_str) => {
-                                    quote_spanned! {lit_str.span()=>
-                                        #[allow(unused_mut)]
-                                        let mut html_handler = html_handler.attribute(#name, #lit_str);
-                                    }
+                let attributes = input.attributes.iter().map(|iter| {
+                    let name = iter
+                        .ident
+                        .pairs()
+                        .map(|p| {
+                            p.value().to_string()
+                                + match p.punct() {
+                                    Some(DashOrColon::Colon) => ":",
+                                    Some(DashOrColon::Dash) => "-",
+                                    None => "",
                                 }
-                                StringLiteralOrVariable::Expression(expr) => {
-                                    quote_spanned! {expr.span()=>
-                                        let tmp_internal_html_extractor_proc_macro: &str = #expr;
-                                        #[allow(unused_mut)]
-                                        let mut html_handler = html_handler.attribute(#name, tmp_internal_html_extractor_proc_macro);
-                                    }
-                                }
-                                StringLiteralOrVariable::Variable(ident) => {
-                                    quote_spanned! {ident.span()=>
-                                        #[allow(unused_mut)]
-                                        let (mut html_handler, #ident) = html_handler.attribute_value(#name);
-                                    }
-                                }
-                            }
-                        });
-
-                        let open = quote_spanned! {input.element.span()=>
-                            #[allow(unused_mut)]
-                            let mut html_handler = html_handler.next_child_tag_open_start(#tag);
-                        };
-
-                        let close = quote_spanned! {input.open_end.span()=>
-                            #[allow(unused_mut)]
-                            let mut html_handler = html_handler.tag_open_end();
-                        };
-
-                        quote! {
-                            #open
-                            #(
-                                #attributes
-                            )*
-                            #close
-                        }
-                    }
-            HtmlCommand::Whitespace(html_whitespace) => {
-                        quote_spanned! {html_whitespace.underscore.span()=>
-                            #[allow(unused_mut)]
-                            let mut html_handler = html_handler.skip_whitespace();
-                        }
-                    }
-            HtmlCommand::ElementClose(html_element_close) => {
-                        let name = html_element_close.element.to_string();
-                        quote_spanned! {html_element_close.element.span()=>
-                            #[allow(unused_mut)]
-                            let mut html_handler = html_handler.close_element(#name);
-                        }
-                    }
-            HtmlCommand::Comment(html_comment) => {
-                        let comment = &html_comment.comment;
-                        quote_spanned! {html_comment.comment.span()=>
-                            #[allow(unused_mut)]
-                            let mut html_handler = html_handler.skip_comment(#comment);
-                        }
-                    }
-            HtmlCommand::Text(html_text) => match html_text {
+                        })
+                        .join("");
+                    let value = &iter.value;
+                    match value {
                         StringLiteralOrVariable::Literal(lit_str) => {
                             quote_spanned! {lit_str.span()=>
                                 #[allow(unused_mut)]
-                                let mut html_handler = html_handler.skip_text(#lit_str);
+                                let mut html_handler = html_handler.attribute(#name, #lit_str);
                             }
                         }
                         StringLiteralOrVariable::Expression(expr) => {
                             quote_spanned! {expr.span()=>
+                                let tmp_internal_html_extractor_proc_macro: &str = #expr;
                                 #[allow(unused_mut)]
-                                let mut html_handler = html_handler.skip_text(#expr);
+                                let mut html_handler = html_handler.attribute(#name, tmp_internal_html_extractor_proc_macro);
                             }
                         }
                         StringLiteralOrVariable::Variable(ident) => {
                             quote_spanned! {ident.span()=>
                                 #[allow(unused_mut)]
-                                let (mut html_handler, #ident) = html_handler.text();
+                                let (mut html_handler, #ident) = html_handler.attribute_value(#name);
                             }
                         }
-                    },
+                    }
+                });
+
+                let open = quote_spanned! {input.element.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.next_child_tag_open_start(#tag);
+                };
+
+                let close = quote_spanned! {input.open_end.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.tag_open_end();
+                };
+
+                quote! {
+                    #open
+                    #(
+                        #attributes
+                    )*
+                    #close
+                }
+            }
+            HtmlCommand::Whitespace(html_whitespace) => {
+                quote_spanned! {html_whitespace.underscore.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.skip_whitespace();
+                }
+            }
+            HtmlCommand::ElementClose(html_element_close) => {
+                let name = html_element_close.element.to_string();
+                quote_spanned! {html_element_close.element.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.close_element(#name);
+                }
+            }
+            HtmlCommand::Comment(html_comment) => {
+                let comment = &html_comment.comment;
+                quote_spanned! {html_comment.comment.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = html_handler.skip_comment(#comment);
+                }
+            }
+            HtmlCommand::Text(html_text) => match html_text {
+                StringLiteralOrVariable::Literal(lit_str) => {
+                    quote_spanned! {lit_str.span()=>
+                        #[allow(unused_mut)]
+                        let mut html_handler = html_handler.skip_text(#lit_str);
+                    }
+                }
+                StringLiteralOrVariable::Expression(expr) => {
+                    quote_spanned! {expr.span()=>
+                        #[allow(unused_mut)]
+                        let mut html_handler = html_handler.skip_text(#expr);
+                    }
+                }
+                StringLiteralOrVariable::Variable(ident) => {
+                    quote_spanned! {ident.span()=>
+                        #[allow(unused_mut)]
+                        let (mut html_handler, #ident) = html_handler.text();
+                    }
+                }
+            },
             HtmlCommand::If(html_if) => {
                 let conditional = &html_if.conditional;
                 let body = convert_commands(&html_if.body);
@@ -386,7 +370,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     };
                     let #variable = #temp_var;
                 }
-            },
+            }
             HtmlCommand::While(html_while) => {
                 let conditional = &html_while.conditional;
                 let body = convert_commands(&html_while.body);
@@ -408,9 +392,9 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     }
                     let mut #variable = #temp_vec;
                 }
-            },
-        }
-    }).collect()
+            }
+        })
+        .collect()
 }
 
 #[proc_macro]

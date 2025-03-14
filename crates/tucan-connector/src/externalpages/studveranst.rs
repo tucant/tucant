@@ -2,19 +2,13 @@ use scraper::Html;
 use tucant_types::LoginResponse;
 
 use crate::{
-    authenticated_retryable_get,
+    MyClient, TucanError, authenticated_retryable_get,
     common::head::{html_head, logged_in_head},
-    MyClient, TucanError,
 };
 use html_handler::Root;
 
-pub async fn veranstaltungen(
-    client: &MyClient,
-    login_response: LoginResponse,
-) -> Result<(), TucanError> {
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", login_response.id),
-                &login_response.cookie_cnsc)
-                .await?;
+pub async fn veranstaltungen(client: &MyClient, login_response: LoginResponse) -> Result<(), TucanError> {
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", login_response.id), &login_response.cookie_cnsc).await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();

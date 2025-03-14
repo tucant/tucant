@@ -79,7 +79,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
-        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N\\d+,(.+)$`
+        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N\\d+,(.+)$`
     }
 }, {
     // but don't create an infinite loop
@@ -93,7 +93,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
-        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N${sessionId},(.+)$`
+        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N${sessionId},(.+)$`
     }
 }, {
     // and don't redirect explicitly unauthenticated urls
@@ -107,7 +107,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
-        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z]+)&ARGUMENTS=-N000000000000001,(.+)$`
+        regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N000000000000001,(.+)$`
     }
 }];
 

@@ -2,20 +2,14 @@ use scraper::Html;
 use tucant_types::{LoggedInHead, LoginResponse};
 
 use crate::{
-    authenticated_retryable_get,
+    MyClient, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    MyClient, TucanError,
 };
 use html_handler::Root;
 
-pub async fn after_login(
-    client: &MyClient,
-    login_response: &LoginResponse,
-) -> Result<LoggedInHead, TucanError> {
+pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> Result<LoggedInHead, TucanError> {
     let id = login_response.id;
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id),
-               & login_response.cookie_cnsc)
-                .await?;
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
     let document = Html::parse_document(&content);
     //tokio::fs::write("input.html", document.html()).await;
@@ -57,15 +51,7 @@ pub async fn after_login(
                 </a>_
             </div>_
     }
-    let html_handler = if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .name()
-        == "table"
-    {
+    let html_handler = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
         html_extractor::html! {
             <table class="nb rw-table" summary="Studium Generale">_
                 <tbody>

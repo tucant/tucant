@@ -1,22 +1,18 @@
 use scraper::CaseSensitivity::CaseSensitive;
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     LoginResponse,
+    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
 };
 
-use crate::{authenticated_retryable_get, TucanConnector};
+use crate::{TucanConnector, authenticated_retryable_get};
 use crate::{
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
     TucanError,
+    common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use html_handler::Root;
 
-pub async fn module_details_cached(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    request: ModuleDetailsRequest,
-) -> Result<ModuleDetailsResponse, TucanError> {
+pub async fn module_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let key = format!("moduledetails.{}", request.arguments.clone());
     if let Some(response) = tucan.database.get(&key).await {
         return Ok(response);
@@ -29,11 +25,7 @@ pub async fn module_details_cached(
     Ok(response)
 }
 
-pub async fn module_details(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    args: ModuleDetailsRequest,
-) -> Result<ModuleDetailsResponse, TucanError> {
+pub async fn module_details(tucan: &TucanConnector, login_response: &LoginResponse, args: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
     println!("{url}");
@@ -42,8 +34,7 @@ pub async fn module_details(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let content =
-            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
+        let content = authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };
@@ -66,11 +57,7 @@ pub async fn module_details(
         </head>_
         <body class="moduledetails">_
     };
-    let html_handler = if login_response.id == 1 {
-        logged_out_head(html_handler, 311)
-    } else {
-        logged_in_head(html_handler, login_response.id).0
-    };
+    let html_handler = if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
     html_extractor::html! {
         <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
         <script type="text/javascript">
@@ -85,88 +72,64 @@ pub async fn module_details(
                         "Moduldetails"
                     </caption>_
                     <tbody>
-    };
-
-    let (html_handler, registered) = if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .attr("class")
-        .unwrap()
-        == "tbsubhead"
-    {
-        html_extractor::html! {
-            <tr class="tbsubhead">_
-                <td colspan="3">
-                    "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
-                </td>_
-            </tr>_
-        };
-        (html_handler, true)
-    } else {
-        (html_handler, false)
-    };
-    html_extractor::html! {
-        <tr class="tbcontrol">_
-            <td>_
-            </td>_
-        </tr>_
-        <tr class="tbdata">_
-            <td colspan="3">_
-                <b>
-                    "Modulverantwortliche: "
-                </b>_
-                <span id="dozenten">
-                    dozenten
-                </span>_
-                <br></br>
-                <br></br>_
-                <b>
-                    "Anzeige im Stundenplan: "
-                </b>
-                display_in_timetable
-                <br></br>
-                <br></br>_
-                <b>
-                    "Dauer: "
-                </b>
-                length
-                <br></br>
-                <br></br>_
-                <b>
-                    "Anzahl Wahlkurse: "
-                </b>
-                count_elective_courses
-                <br></br>
-                <br></br>_
-                <b>
-                    "Credits: "
-                </b>
-                credits
-                <br></br>
-    };
-    let html_handler = if html_handler.peek().unwrap().value().is_text() {
-        html_extractor::html! {
-            "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
-            <br></br>
-        };
-        html_handler
-    } else {
-        html_handler
-    };
-    html_extractor::html! {
-        <br></br>_
-        <b>
-            "Startsemester: "
-        </b>
-        start_semester
-        <br></br>
-        <br></br>_
-        <!--"ht3ZhEBbY24m_TsTzk888qBQdrwgMawUHy-7WLRZ64E"-->_
-        <!--"dTJeqGsAPhiwl6lY8BwASSkwEUwc22jswDtjP8U2nwk"-->_
-        <!--"FAZCaZTDbb4OpO3ZiNhfY9eB8iBPTRyUJmS1mRrUbG4"-->_
+                        if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbsubhead" {
+                            <tr class="tbsubhead">_
+                                <td colspan="3">
+                                    "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
+                                </td>_
+                            </tr>_
+                        } => registered = ();
+                        <tr class="tbcontrol">_
+                            <td>_
+                            </td>_
+                        </tr>_
+                        <tr class="tbdata">_
+                            <td colspan="3">_
+                                <b>
+                                    "Modulverantwortliche: "
+                                </b>_
+                                <span id="dozenten">
+                                    dozenten
+                                </span>_
+                                <br></br>
+                                <br></br>_
+                                <b>
+                                    "Anzeige im Stundenplan: "
+                                </b>
+                                display_in_timetable
+                                <br></br>
+                                <br></br>_
+                                <b>
+                                    "Dauer: "
+                                </b>
+                                length
+                                <br></br>
+                                <br></br>_
+                                <b>
+                                    "Anzahl Wahlkurse: "
+                                </b>
+                                count_elective_courses
+                                <br></br>
+                                <br></br>_
+                                <b>
+                                    "Credits: "
+                                </b>
+                                credits
+                                <br></br>
+                                if html_handler.peek().unwrap().value().is_text() {
+                                    "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
+                                    <br></br>
+                                } => few = ();
+                                <br></br>_
+                                <b>
+                                    "Startsemester: "
+                                </b>
+                                start_semester
+                                <br></br>
+                                <br></br>_
+                                <!--"ht3ZhEBbY24m_TsTzk888qBQdrwgMawUHy-7WLRZ64E"-->_
+                                <!--"dTJeqGsAPhiwl6lY8BwASSkwEUwc22jswDtjP8U2nwk"-->_
+                                <!--"FAZCaZTDbb4OpO3ZiNhfY9eB8iBPTRyUJmS1mRrUbG4"-->_
     };
     let mut description = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
@@ -275,64 +238,38 @@ pub async fn module_details(
                         <td>_
                         </td>_
                     </tr>_
-        };
-        while html_handler.peek().is_some() {
-            html_handler = {
-                html_extractor::html! {
-                    <tr class="tbsubhead">_
-                        <td class="rw rw-detail-logo">
-                            <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
-                        </td>_
-                        <td class="rw rw-detail-courseno">
-                            course_no
-                        </td>_
-                        <td class="rw rw-detail-name">
-                            name
-                        </td>_
-                        <td class="rw rw-detail-mandatory">
-                            mandatory
-                        </td>_
-                        <td class="rw rw-detail-semester">
-                };
-                let html_handler = if html_handler.peek().is_some() {
-                    html_extractor::html! {
-                        semester
-                    };
-                    html_handler
-                } else {
-                    html_handler
-                };
-
-                html_extractor::html! {
-                        </td>_
-                        <td class="rw rw-detail-credits">
-                            _credits
-                        </td>_
-                        <td>_
-                        </td>_
-                    </tr>_
-                };
-                while html_handler
-                    .peek()
-                    .and_then(|e| e.value().as_element())
-                    .map(|e| e.has_class("tbdata", CaseSensitive))
-                    == Some(true)
-                {
-                    html_handler = {
-                        html_extractor::html! {
+                    while html_handler.peek().is_some() {
+                        <tr class="tbsubhead">_
+                            <td class="rw rw-detail-logo">
+                                <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
+                            </td>_
+                            <td class="rw rw-detail-courseno">
+                                course_no
+                            </td>_
+                            <td class="rw rw-detail-name">
+                                name
+                            </td>_
+                            <td class="rw rw-detail-mandatory">
+                                mandatory
+                            </td>_
+                            <td class="rw rw-detail-semester">
+                                if html_handler.peek().is_some() {
+                                    semester
+                                } => semester = semester;
+                            </td>_
+                            <td class="rw rw-detail-credits">
+                                _credits
+                            </td>_
+                            <td>_
+                            </td>_
+                        </tr>_
+                        while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
                             <tr class="tbdata">_
                                 <td class="tbdata">
                                     <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                        };
-                        let html_handler = if html_handler.peek().is_some() {
-                            html_extractor::html! {
-                                <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
-                            }
-                            html_handler
-                        } else {
-                            html_handler
-                        };
-                        html_extractor::html! {
+                                    if html_handler.peek().is_some() {
+                                        <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
+                                    } => schwangere = ();
                                 </td>_
                                 <td>
                                     <a name="eventLink" class="link" href=course_url_1>
@@ -356,14 +293,8 @@ pub async fn module_details(
                                 <td>_
                                 </td>_
                             </tr>_
-                        };
-                        html_handler
-                    }
-                }
-                html_handler
-            }
-        }
-        html_extractor::html! {
+                        } => test = ();
+                    } => fwe = ();
                 </tbody>
             </table>_
         };
@@ -399,30 +330,22 @@ pub async fn module_details(
                         "Kurs/Modulabschlussleistungen"
                     </th>_
                     <th scope="col">
-    };
-    let (html_handler, leistungskombination) =
-        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
-            html_extractor::html! {
-                    "Leistungskombination"
-                </th>_
-                <th scope="col">
-            }
-            (html_handler, true)
-        } else {
-            (html_handler, false)
-        };
-    html_extractor::html! {
-                    "Leistungen"
-                </th>_
-                <th scope="col">
-                    "Bestehenspflicht"
-                </th>_
-                <th scope="col">
-                    "Gewichtung"
-                </th>_
-            </tr>_
-        </thead>_
-        <tbody>_
+                        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                            "Leistungskombination"
+                        </th>_
+                        <th scope="col">
+                        } => leistungskombination = ();
+                        "Leistungen"
+                    </th>_
+                    <th scope="col">
+                        "Bestehenspflicht"
+                    </th>_
+                    <th scope="col">
+                        "Gewichtung"
+                    </th>_
+                </tr>_
+            </thead>_
+            <tbody>_
     }
     while html_handler.peek().is_some() {
         html_handler = {
@@ -435,7 +358,7 @@ pub async fn module_details(
             }
 
             // this part is almost repeated but not exactly
-            let html_handler = if leistungskombination {
+            let html_handler = if leistungskombination.is_some() {
                 html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <td rowspan="0002" class="level03_color tbborderleft">_
@@ -464,6 +387,8 @@ pub async fn module_details(
                 }
                 html_handler
             };
+            let mut rowspan: u64 = rowspan.parse().unwrap();
+            rowspan -= 1;
             html_extractor::html! {
                     <td class="tbborderleft rw rw-detail-reqachieve">
                         examination_type
@@ -475,63 +400,45 @@ pub async fn module_details(
                         weight
                     </td>_
                 </tr>_
-            };
-            let mut rowspan: u64 = rowspan.parse().unwrap();
-            rowspan -= 1;
-            // TODO FIXME count using rowspan here
-            while !leistungskombination && rowspan > 0 {
-                html_handler = {
-                    html_extractor::html! {
-                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                        <tr class="tbdata">_
-                            <td class="tbborderleft rw rw-detail-reqachieve">
-                                examination_type
+                while leistungskombination.is_none() && rowspan > 0 {
+                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    <tr class="tbdata">_
+                        <td class="tbborderleft rw rw-detail-reqachieve">
+                            examination_type
+                        </td>_
+                        <td class="rw rw-detail-compulsory">
+                            compulsory
+                        </td>_
+                        <td class="rw rw-detail-weight alignRight">
+                            weight
+                        </td>_
+                    </tr>_
+                } => efw = {
+                    rowspan -= 1;
+                };
+                while leistungskombination.is_none() && html_handler.peek().is_some() {
+                    <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                    <tr>_
+                        if leistungskombination.is_none() {
+                            <td rowspan="0002" class="level03_color tbborderleft">_
+                                <b>
+                                    exam_type
+                                </b>_
                             </td>_
-                            <td class="rw rw-detail-compulsory">
-                                compulsory
+                            <td colspan="2" class="level03_color alignRight">
+                                <b>
+                                    "Summe"
+                                </b>
                             </td>_
-                            <td class="rw rw-detail-weight alignRight">
-                                weight
+                            <td colspan="1" class="level03_color alignRight rw-detail-weight">
+                                <b>
+                                    weight
+                                </b>
                             </td>_
                         </tr>_
-                    }
-                    html_handler
-                };
-                rowspan -= 1;
-            }
-
-            while leistungskombination && html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                        <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
-                        <tr>_
-                    };
-                    let html_handler = if leistungskombination {
-                        html_extractor::html! {
-                                <td rowspan="0002" class="level03_color tbborderleft">_
-                                    <b>
-                                        exam_type
-                                    </b>_
-                                </td>_
-                                <td colspan="2" class="level03_color alignRight">
-                                    <b>
-                                        "Summe"
-                                    </b>
-                                </td>_
-                                <td colspan="1" class="level03_color alignRight rw-detail-weight">
-                                    <b>
-                                        weight
-                                    </b>
-                                </td>_
-                            </tr>_
-                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                            <tr class="tbdata">_
-                        }
-                        html_handler
-                    } else {
-                        html_handler
-                    };
-                    html_extractor::html! {
+                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                        <tr class="tbdata">_
+                        } => test = ();
                         <td class="tbborderleft rw rw-detail-reqachieve">
                             examination_type
                         </td>_
@@ -540,25 +447,16 @@ pub async fn module_details(
                         </td>_
                         <td class="rw rw-detail-weight alignRight">
                             weight
-                    }
-                    let html_handler = if html_handler.peek().is_some() {
-                        html_extractor::html! {
-                            <br></br>
-                            weight_more
-                        }
-                        html_handler
-                    } else {
-                        html_handler
-                    };
-                    html_extractor::html! {
-                            </td>_
-                        </tr>_
-                    };
-                    html_handler
-                };
+                            if html_handler.peek().is_some() {
+                                <br></br>
+                                weight_more
+                            } => weight_more = weight_more;
+                        </td>_
+                    </tr>_
+                } => fwe = ();
             }
             html_handler
-        }
+        };
     }
     html_extractor::html! {
             </tbody>_
@@ -578,43 +476,34 @@ pub async fn module_details(
                 <thead>_
                     <tr class="tbsubhead rw-hide">_
                         <th scope="col">
-        };
-
-        let (html_handler, leistungskombination) =
-            if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination"
-            {
-                html_extractor::html! {
-                        "Leistungskombination"
-                    </th>_
-                    <th scope="col">
-                };
-                (html_handler, true)
-            } else {
-                (html_handler, false)
-            };
-        html_extractor::html! {
-                        "Prüfung"
-                    </th>_
-                    <th scope="col">
-                        "Datum"
-                    </th>_
-                    <th scope="col">
-                        "Lehrende"
-                    </th>_
-                    <th scope="col">
-                        "Bestehenspflicht"
-                    </th>_
-                </tr>_
-            </thead>_
-            <tbody>_
+                            if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                                "Leistungskombination"
+                            </th>_
+                            <th scope="col">
+                            } => leistungskombination = ();
+                            "Prüfung"
+                        </th>_
+                        <th scope="col">
+                            "Datum"
+                        </th>_
+                        <th scope="col">
+                            "Lehrende"
+                        </th>_
+                        <th scope="col">
+                            "Bestehenspflicht"
+                        </th>_
+                    </tr>_
+                </thead>_
+                <tbody>_
         };
         while html_handler.peek().is_some() {
             html_handler = {
-                let html_handler = if leistungskombination {
+                let html_handler = if leistungskombination.is_some() {
+                    let mut rowspan: u64 = 0;
                     html_extractor::html! {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <tr class="tbdata">_
-                            <td rowspan=rowspan class="level03_color rw rw-detail-combination ">_
+                            <td rowspan=rowspan_str class="level03_color rw rw-detail-combination ">_
                                 <b>
                                     Fachprüfung
                                 </b>_
@@ -634,7 +523,7 @@ pub async fn module_details(
                             </td>_
                         </tr>_
                     };
-                    let mut rowspan: u64 = rowspan.parse().unwrap();
+                    rowspan = rowspan_str.parse().unwrap();
                     rowspan -= 1;
                     while rowspan > 0 {
                         html_handler = {
@@ -692,60 +581,33 @@ pub async fn module_details(
     };
     // until here
     html_extractor::html! {
-            <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_
-        </div>_
-        <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
-        <div class="contentlayoutright" id="contentlayoutright">_
-    };
-    let html_handler = if html_handler.peek().is_some() {
-        html_extractor::html! {
-            <table class="tb_contentright">_
-                <caption>
-                    "Modulverantwortliche"
-                </caption>_
-                <tbody>
-        };
-        while html_handler.peek().is_some() {
-            html_handler = {
-                let html_handler = if html_handler
-                    .peek()
-                    .unwrap()
-                    .value()
-                    .as_element()
-                    .unwrap()
-                    .attrs
-                    .is_empty()
-                {
-                    html_extractor::html! {
-                        <tr>_
-                            <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">_
-                                <img src=_src width="120" height="160" border="0" alt=_alt></img>_
-                            </td>_
-                        </tr>_
-                    }
-                    html_handler
-                } else {
-                    html_handler
-                };
-                html_extractor::html! {
-                    <tr class="tbdata">_
-                        <td style="text-align:center;">
-                            name
-                        </td>_
-                    </tr>_
-                };
-                html_handler
-            };
-        }
-        html_extractor::html! {
-                </tbody>
-            </table>_
-        }
-        html_handler
-    } else {
-        html_handler
-    };
-    html_extractor::html! {
+                            <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_
+                        </div>_
+                        <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
+                        <div class="contentlayoutright" id="contentlayoutright">_
+                            if html_handler.peek().is_some() {
+                                <table class="tb_contentright">_
+                                    <caption>
+                                        "Modulverantwortliche"
+                                    </caption>_
+                                    <tbody>
+                                        while html_handler.peek().is_some() {
+                                            if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
+                                                <tr>_
+                                                    <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">_
+                                                        <img src=_src width="120" height="160" border="0" alt=_alt></img>_
+                                                    </td>_
+                                                </tr>_
+                                            } => a = ();
+                                            <tr class="tbdata">_
+                                                <td style="text-align:center;">
+                                                    name
+                                                </td>_
+                                            </tr>_
+                                        } => dfwf = ();
+                                    </tbody>
+                                </table>_
+                            } => wedqw = ();
                         </div>_
                         <!--"SzJAJfnnubn5SpplE3qoUsG2QoqW6EEMiB36flFP3BQ"-->_
                         <br style="clear:both;"></br>_
@@ -757,14 +619,5 @@ pub async fn module_details(
     };
     let html_handler = footer(html_handler, id, 311);
 
-    Ok(ModuleDetailsResponse {
-        module_id,
-        registered,
-        count_elective_courses,
-        credits,
-        description,
-        display_in_timetable,
-        dozenten,
-        duration: length,
-    })
+    Ok(ModuleDetailsResponse { module_id, registered: registered.is_some(), count_elective_courses, credits, description, display_in_timetable, dozenten, duration: length })
 }

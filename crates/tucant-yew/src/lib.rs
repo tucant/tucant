@@ -3,15 +3,12 @@ use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{
-    coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
-    registration::AnmeldungRequest, LoginRequest, LoginResponse, Tucan,
-};
+use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest};
 
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{hooks::use_navigator, HashRouter, Routable, Switch};
+use yew_router::{HashRouter, Routable, Switch, hooks::use_navigator};
 
 pub mod navbar;
 pub mod navbar_logged_in;
@@ -25,32 +22,11 @@ pub mod tauri;
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {
-    let session_id = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
-            name: "id".to_owned(),
-            partition_key: None,
-            store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-        })
-        .await?
-        .value;
+    let session_id = web_extensions_sys::chrome().cookies().get(web_extensions_sys::CookieDetails { name: "id".to_owned(), partition_key: None, store_id: None, url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned() }).await?.value;
 
-    let cnsc = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
-            name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-            partition_key: None,
-            store_id: None,
-        })
-        .await?
-        .value;
+    let cnsc = web_extensions_sys::chrome().cookies().get(web_extensions_sys::CookieDetails { name: "cnsc".to_owned(), url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(), partition_key: None, store_id: None }).await?.value;
 
-    Some(LoginResponse {
-        id: session_id.parse().unwrap(),
-        cookie_cnsc: cnsc,
-    })
+    Some(LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
 }
 
 #[cfg(feature = "api")]
@@ -64,21 +40,13 @@ pub async fn api_login_response() -> Option<LoginResponse> {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
-                if cookie.name() == "id" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
+                if cookie.name() == "id" { Some(cookie.value().to_string()) } else { None }
             })?
             .parse()
             .unwrap(),
         cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
             let cookie = cookie.unwrap();
-            if cookie.name() == "cnsc" {
-                Some(cookie.value().to_string())
-            } else {
-                None
-            }
+            if cookie.name() == "cnsc" { Some(cookie.value().to_string()) } else { None }
         })?,
     })
 }
@@ -109,8 +77,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
         })
     };
 
-    let current_session =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let on_submit = {
         let username_value_handle = username_value_handle.clone();
@@ -128,11 +95,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
             let tucan = tucan.clone();
 
             spawn_local(async move {
-                let response = tucan
-                    .0
-                    .login(LoginRequest { username, password })
-                    .await
-                    .unwrap();
+                let response = tucan.0.login(LoginRequest { username, password }).await.unwrap();
 
                 #[cfg(feature = "direct")]
                 web_extensions_sys::chrome()
@@ -154,40 +117,16 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
 
                 current_session.set(Some(response.clone()));
 
-                navigator.push(&Route::Registration {
-                    registration: format!("-N{:015},-N000311,-A", response.id),
-                });
+                navigator.push(&Route::Registration { registration: format!("-N{:015},-N000311,-A", response.id) });
             })
         })
     };
 
     Ok(html! {
         <form onsubmit={on_submit} class="d-flex">
-            <input
-                id="login-username"
-                onchange={on_username_change}
-                value={(*username_value_handle).clone()}
-                required=true
-                class="form-control me-2"
-                type="username"
-                placeholder="TU-ID"
-                aria-label="TU-ID"
-                autocomplete="current-username"
-            />
-            <input
-                id="login-password"
-                onchange={on_password_change}
-                value={(*password_value_handle).clone()}
-                required=true
-                class="form-control me-2"
-                type="password"
-                placeholder="Password"
-                aria-label="Password"
-                autocomplete="current-password"
-            />
-            <button class="btn btn-outline-success" type="submit" id="login-button">
-                { "Login" }
-            </button>
+            <input id="login-username" onchange={on_username_change} value={(*username_value_handle).clone()} required=true class="form-control me-2" type="username" placeholder="TU-ID" aria-label="TU-ID" autocomplete="current-username" />
+            <input id="login-password" onchange={on_password_change} value={(*password_value_handle).clone()} required=true class="form-control me-2" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" />
+            <button class="btn btn-outline-success" type="submit" id="login-button">{ "Login" }</button>
         </form>
     })
 }
@@ -196,8 +135,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
 fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    let current_session_handle =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let on_submit = {
         Callback::from(move |e: SubmitEvent| {
@@ -241,9 +179,7 @@ enum Route {
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {
-            html! {
-                <Registration<TucanType> registration={AnmeldungRequest {arguments: registration}} />
-            }
+            html! { <Registration<TucanType> registration={AnmeldungRequest {arguments: registration}} /> }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
         Route::Root => html! { <div>{ "TODO" }</div> },
@@ -281,12 +217,7 @@ impl<TucanType: Tucan + 'static> PartialEq for AppProps<TucanType> {
 }
 
 #[function_component(App)]
-pub fn app<TucanType: Tucan + 'static>(
-    AppProps {
-        initial_session,
-        tucan,
-    }: &AppProps<TucanType>,
-) -> HtmlResult {
+pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session, tucan }: &AppProps<TucanType>) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {

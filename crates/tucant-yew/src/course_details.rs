@@ -1,9 +1,6 @@
-use tucant_types::{coursedetails::CourseDetailsRequest, LoginResponse, Tucan};
+use tucant_types::{LoginResponse, Tucan, coursedetails::CourseDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
-use yew::{
-    function_component, html, use_context, use_effect_with, use_state, Html, HtmlResult,
-    Properties, UseStateHandle,
-};
+use yew::{Html, HtmlResult, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
 use crate::RcTucanType;
 
@@ -13,15 +10,12 @@ pub struct CourseDetailsProps {
 }
 
 #[function_component(CourseDetails)]
-pub fn course_details<TucanType: Tucan + 'static>(
-    CourseDetailsProps { course_details }: &CourseDetailsProps,
-) -> HtmlResult {
+pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| None);
     let loading = use_state(|| false);
-    let current_session_handle =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -31,11 +25,7 @@ pub fn course_details<TucanType: Tucan + 'static>(
                 let request = request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    let response = tucan
-                        .0
-                        .course_details(&current_session, request)
-                        .await
-                        .unwrap();
+                    let response = tucan.0.course_details(&current_session, request).await.unwrap();
                     data.set(Some(response));
                     loading.set(false);
                 })

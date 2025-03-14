@@ -1,16 +1,11 @@
 use scraper::Html;
 use tucant_types::LoginResponse;
 
-use crate::{authenticated_retryable_get, common::head::html_head_2, MyClient, TucanError};
+use crate::{MyClient, TucanError, authenticated_retryable_get, common::head::html_head_2};
 use html_handler::Root;
 
-pub async fn redirect_after_login(
-    client: &MyClient,
-    login_response: LoginResponse,
-) -> Result<(), TucanError> {
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", login_response.id),
-                &login_response.cookie_cnsc)
-                .await?;
+pub async fn redirect_after_login(client: &MyClient, login_response: LoginResponse) -> Result<(), TucanError> {
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", login_response.id), &login_response.cookie_cnsc).await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();

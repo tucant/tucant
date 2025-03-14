@@ -1,14 +1,14 @@
 use scraper::Html;
 
 use crate::{
+    MyClient, TucanError,
     common::head::{footer, html_head, logged_out_head},
-    retryable_get, MyClient, TucanError,
+    retryable_get,
 };
 use html_handler::Root;
 
 pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
-    let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome")
-    .await?;
+    let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();

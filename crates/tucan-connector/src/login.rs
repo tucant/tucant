@@ -4,80 +4,27 @@ use reqwest::header::HeaderValue;
 use scraper::Html;
 use tucant_types::{LoginRequest, LoginResponse};
 
-use crate::{authenticated_retryable_get, MyClient, TucanError};
+use crate::{MyClient, TucanError, authenticated_retryable_get};
 
 pub async fn logout(client: &MyClient, login_response: &LoginResponse) -> Result<(), TucanError> {
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id)
-    , &login_response.cookie_cnsc)
-    .await?;
+    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id), &login_response.cookie_cnsc).await?;
     Ok(())
 }
 
-pub async fn login(
-    client: &MyClient,
-    login_request: &LoginRequest,
-) -> Result<LoginResponse, TucanError> {
+pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<LoginResponse, TucanError> {
     assert_ne!(login_request.username, "");
     assert_ne!(login_request.password, "");
-    let mut response = client
-        .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
-        .form(&[
-            ("usrname", login_request.username.as_str()),
-            ("pass", login_request.password.as_str()),
-            ("APPNAME", "CampusNet"),
-            ("PRGNAME", "LOGINCHECK"),
-            (
-                "ARGUMENTS",
-                "clino,usrname,pass,menuno,menu_type,browser,platform",
-            ),
-            ("clino", "000000000000001"),
-            ("menuno", "000344"),
-            ("menu_type", "classic"),
-            ("browser", ""),
-            ("platform", ""),
-        ])
-        .send()
-        .await?
-        .error_for_status()?;
+    let mut response = client.post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll").form(&[("usrname", login_request.username.as_str()), ("pass", login_request.password.as_str()), ("APPNAME", "CampusNet"), ("PRGNAME", "LOGINCHECK"), ("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform"), ("clino", "000000000000001"), ("menuno", "000344"), ("menu_type", "classic"), ("browser", ""), ("platform", "")]).send().await?.error_for_status()?;
     info!("{response:?}");
-    assert_eq!(
-        response.headers_mut().remove("content-type"),
-        Some(HeaderValue::from_static("text/html"))
-    );
-    assert_eq!(
-        response.headers_mut().remove("server"),
-        Some(HeaderValue::from_static("Microsoft-IIS/10.0"))
-    );
+    assert_eq!(response.headers_mut().remove("content-type"), Some(HeaderValue::from_static("text/html")));
+    assert_eq!(response.headers_mut().remove("server"), Some(HeaderValue::from_static("Microsoft-IIS/10.0")));
     response.headers_mut().remove("mgmiddlewarewaittime");
-    assert_eq!(
-        response.headers_mut().remove("strict-transport-security"),
-        Some(HeaderValue::from_static(
-            "max-age=31536000; includeSubDomains"
-        ))
-    );
-    assert_eq!(
-        response.headers_mut().remove("x-xss-protection"),
-        Some(HeaderValue::from_static("1; mode=block"))
-    );
-    assert_eq!(
-        response.headers_mut().remove("x-frame-options"),
-        Some(HeaderValue::from_static("SAMEORIGIN"))
-    );
-    assert_eq!(
-        response.headers_mut().remove("referrer-policy"),
-        Some(HeaderValue::from_static("strict-origin"))
-    );
-    assert_eq!(
-        response.headers_mut().remove("x-content-type-options"),
-        Some(HeaderValue::from_static("nosniff"))
-    );
-    assert_eq!(
-        response.headers_mut().remove("content-security-policy"),
-        Some(HeaderValue::from_static(
-            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' \
-             'unsafe-inline' 'unsafe-eval';"
-        ))
-    );
+    assert_eq!(response.headers_mut().remove("strict-transport-security"), Some(HeaderValue::from_static("max-age=31536000; includeSubDomains")));
+    assert_eq!(response.headers_mut().remove("x-xss-protection"), Some(HeaderValue::from_static("1; mode=block")));
+    assert_eq!(response.headers_mut().remove("x-frame-options"), Some(HeaderValue::from_static("SAMEORIGIN")));
+    assert_eq!(response.headers_mut().remove("referrer-policy"), Some(HeaderValue::from_static("strict-origin")));
+    assert_eq!(response.headers_mut().remove("x-content-type-options"), Some(HeaderValue::from_static("nosniff")));
+    assert_eq!(response.headers_mut().remove("content-security-policy"), Some(HeaderValue::from_static("default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval';")));
     response.headers_mut().remove("x-powered-by"); // this header randomly appears and disappears. DO NOT ASK
     assert!(response.headers_mut().remove("date").is_some(),);
     response.headers_mut().remove("content-length");
@@ -85,35 +32,23 @@ pub async fn login(
     if next_url.is_none() {
         // login failed
         let content = response.text().await?;
-        assert!(content
-            .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."));
+        assert!(content.contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."));
         return Err(TucanError::InvalidCredentials);
     }
-    let next_url_regex = Regex::new(
-    r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000",
-).unwrap();
+    let next_url_regex = Regex::new(r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000").unwrap();
     let next_url = next_url.unwrap();
     let next_url = next_url.to_str().unwrap();
-    let id = &next_url_regex
-        .captures(next_url)
-        .expect("english is not supported")["id"];
+    let id = &next_url_regex.captures(next_url).expect("english is not supported")["id"];
     let cookie_cnsc = if cfg!(target_arch = "wasm32") {
         String::new()
     } else {
         let cookie_cnsc = response.headers_mut().remove("set-cookie").unwrap();
-        cookie_cnsc
-            .to_str()
-            .unwrap()
-            .trim_start_matches("cnsc =")
-            .to_owned()
+        cookie_cnsc.to_str().unwrap().trim_start_matches("cnsc =").to_owned()
     };
     response.headers_mut().remove("content-encoding");
     response.headers_mut().remove("vary");
     assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
     let content = response.text().await?;
     let _document = Html::parse_document(&content);
-    Ok(LoginResponse {
-        id: id.parse().unwrap(),
-        cookie_cnsc,
-    })
+    Ok(LoginResponse { id: id.parse().unwrap(), cookie_cnsc })
 }

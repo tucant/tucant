@@ -1,26 +1,18 @@
 use regex::Regex;
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    moduledetails::ModuleDetailsRequest,
-    registration::{
-        AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest,
-        AnmeldungResponse, RegistrationState,
-    },
     LoginResponse,
+    moduledetails::ModuleDetailsRequest,
+    registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState},
 };
 
 use crate::{
-    authenticated_retryable_get,
+    TucanConnector, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    TucanConnector, TucanError,
 };
 use html_handler::Root;
 
-pub async fn anmeldung_cached(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    request: AnmeldungRequest,
-) -> Result<AnmeldungResponse, TucanError> {
+pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("registration.{}", request.arguments.clone());
     if let Some(anmeldung_response) = tucan.database.get(&key).await {
         return Ok(anmeldung_response);
@@ -33,11 +25,7 @@ pub async fn anmeldung_cached(
     Ok(anmeldung_response)
 }
 
-pub async fn anmeldung(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    args: AnmeldungRequest,
-) -> Result<AnmeldungResponse, TucanError> {
+pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, args: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
     // TODO FIXME generalize
@@ -45,8 +33,7 @@ pub async fn anmeldung(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let content =
-            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
+        let content = authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };
@@ -99,15 +86,7 @@ pub async fn anmeldung(
                                         <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
             }
             while html_handler.peek().is_some() {
-                html_handler = if html_handler
-                    .peek()
-                    .unwrap()
-                    .value()
-                    .as_element()
-                    .unwrap()
-                    .attr("selected")
-                    .is_some()
-                {
+                html_handler = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                     html_extractor::html! {
                         <option value=value selected="selected">
                             study
@@ -152,24 +131,9 @@ pub async fn anmeldung(
             </a>
     };
     let mut path: Vec<(String, AnmeldungRequest)> = Vec::new();
-    let registration_url = registration_url.trim_start_matches(&format!(
-        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"
-    ));
-    path.push((
-        study,
-        AnmeldungRequest {
-            arguments: registration_url.to_owned(),
-        },
-    ));
-    while !html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_text()
-        .unwrap()
-        .trim()
-        .is_empty()
-    {
+    let registration_url = registration_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"));
+    path.push((study, AnmeldungRequest { arguments: registration_url.to_owned() }));
+    while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
         html_handler = {
             html_extractor::html! {
                 "\n        \u{a0}>\u{a0}\n                "
@@ -179,16 +143,8 @@ pub async fn anmeldung(
             match any_child.value() {
                 scraper::Node::Comment(_comment) => {}
                 scraper::Node::Text(text) => {
-                    let url = url.trim_start_matches(&format!(
-                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
-                         ARGUMENTS=-N{id:015}"
-                    ));
-                    path.push((
-                        text.to_string(),
-                        AnmeldungRequest {
-                            arguments: url.to_owned(),
-                        },
-                    ));
+                    let url = url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"));
+                    path.push((text.to_string(), AnmeldungRequest { arguments: url.to_owned() }));
                 }
                 _ => panic!(),
             }
@@ -200,46 +156,23 @@ pub async fn anmeldung(
     }
     html_extractor::html! {_
         </h2>_
-    };
-    let mut submenus: Vec<(String, AnmeldungRequest)> = Vec::new();
-    let html_handler = match html_handler.peek() {
-        Some(elem) if elem.value().is_element() => {
-            html_extractor::html! {
-                <ul>_
-            };
-            while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                        <li>_
-                            <a href=url>
-                                item
-                            </a>_
-                        </li>_
-                    };
-                    let url = url.trim_start_matches(&format!(
-                        "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&\
-                         ARGUMENTS=-N{id:015}"
-                    ));
-                    submenus.push((
-                        item.trim().to_owned(),
-                        AnmeldungRequest {
-                            arguments: url.to_owned(),
-                        },
-                    ));
-                    html_handler
-                };
-            }
-
-            html_extractor::html! {
-                </ul>_
-            };
-            html_handler
-        }
-        _ => html_handler,
-    };
-    html_extractor::html! {
+        if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
+            <ul>_
+                while html_handler.peek().is_some() {
+                    <li>_
+                        <a href=url>
+                            item
+                        </a>_
+                    </li>_
+                } => submenus = (item.trim().to_owned(), AnmeldungRequest {
+                    arguments: url
+                        .trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"))
+                        .to_owned(),
+                },);
+            </ul>_
+        } => submenus = submenus;
         <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
-    };
+    }
     let mut additional_information = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
         let child;
@@ -269,16 +202,7 @@ pub async fn anmeldung(
                     </tr>_
                     <tr>_
         };
-        let html_handler = if html_handler
-            .peek()
-            .unwrap()
-            .value()
-            .as_element()
-            .unwrap()
-            .attr("class")
-            .unwrap()
-            == "tbdata"
-        {
+        let html_handler = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
             html_extractor::html! {
                             <td class="tbdata" colspan="4">
                                 "Keine Module oder Veranstaltungen zur Anmeldung gefunden"
@@ -316,95 +240,73 @@ pub async fn anmeldung(
 
             while html_handler.peek().is_some() {
                 html_handler = {
-                    let (mut html_handler, module) = if html_handler.peek().is_some()
-                        && html_handler
-                            .peek()
-                            .unwrap()
-                            .children()
-                            .nth(1)
-                            .unwrap()
-                            .value()
-                            .as_comment()
-                            .unwrap()
-                            .to_string()
-                            == "logo column"
-                    {
-                        html_extractor::html!(
-                            // module
+                    let (mut html_handler, module) = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() == "logo column" {
+                        html_extractor::html! {
                             <tr>_
                                 <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                                <td class="tbsubhead">_<!-- "5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0" -->_
+                                <td class="tbsubhead">_
+                                    <!--"5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0"-->_
                                 </td>_
-                                <!-- "Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU" -->_
-                                <td class="tbsubhead dl-inner" >_
-                                    <p><strong><a href=module_url>module_id<span class="eventTitle">module_name</span></a></strong></p>_
-                                    <p>lecturer</p>_
+                                <!--"Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU"-->_
+                                <td class="tbsubhead dl-inner">_
+                                    <p>
+                                        <strong>
+                                            <a href=module_url>
+                                                module_id
+                                                <span class="eventTitle">
+                                                    module_name
+                                                </span>
+                                            </a>
+                                        </strong>
+                                    </p>_
+                                    <p>
+                                        lecturer
+                                    </p>_
                                 </td>_
                                 <td class="tbsubhead">
-                                    date<br></br>limit_and_size
+                                    date
+                                    <br></br>
+                                    limit_and_size
                                 </td>_
                                 <td class="tbsubhead rw-qbf">_
+                        };
 
-                        );
-
-                        let (html_handler, registration_button_link) = if html_handler
-                            .peek()
-                            .is_some()
-                        {
-                            if html_handler
-                                .peek()
-                                .unwrap()
-                                .value()
-                                .as_element()
-                                .unwrap()
-                                .attr("class")
-                                .unwrap()
-                                == "img noFloat register"
-                            {
-                                html_extractor::html!(<a href=registration_button_link class="img noFloat register">"Anmelden"</a>_);
-                                (
-                                    html_handler,
-                                    RegistrationState::NotRegistered {
-                                        register_link: registration_button_link,
-                                    },
-                                )
+                        let (html_handler, registration_button_link) = if html_handler.peek().is_some() {
+                            if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
+                                html_extractor::html! {
+                                    <a href=registration_button_link class="img noFloat register">
+                                        "Anmelden"
+                                    </a>_
+                                };
+                                (html_handler, RegistrationState::NotRegistered { register_link: registration_button_link })
                             } else {
-                                html_extractor::html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">"Abmelden"</a>_);
-                                (
-                                    html_handler,
-                                    RegistrationState::Registered {
-                                        unregister_link: registration_button_link,
-                                    },
-                                )
+                                html_extractor::html! {
+                                    <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
+                                        "Abmelden"
+                                    </a>_
+                                };
+                                (html_handler, RegistrationState::Registered { unregister_link: registration_button_link })
                             }
                         } else {
                             (html_handler, RegistrationState::Unknown)
                         };
-                        html_extractor::html!(
-                            </td>_
-                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                            <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                            <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                            <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                            <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                        </tr>_);
-                        let module_url = module_url.trim_start_matches(&format!(
-                            "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&\
-                             ARGUMENTS=-N{id:015}"
-                        ));
+                        html_extractor::html! {
+                                </td>_
+                                <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
+                                <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                                <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
+                                <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
+                                <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
+                            </tr>_
+                        };
+                        let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"));
                         let module_url = module_url.split_once(",-A").unwrap().0;
                         let module = AnmeldungModule {
-                            url: ModuleDetailsRequest {
-                                arguments: module_url.to_owned(),
-                            },
+                            url: ModuleDetailsRequest { arguments: module_url.to_owned() },
                             id: module_id.trim().to_owned(),
                             name: module_name,
-                            lecturer: if lecturer == "N.N." {
-                                None
-                            } else {
-                                Some(lecturer)
-                            },
+                            lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
                             date: date.trim().to_owned(),
                             limit_and_size: limit_and_size.trim().to_owned(),
                             registration_button_link,
@@ -415,181 +317,157 @@ pub async fn anmeldung(
                     };
 
                     let mut courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)> = Vec::new();
-                    while html_handler.peek().is_some()
-                        && html_handler
-                            .peek()
-                            .unwrap()
-                            .children()
-                            .nth(1)
-                            .unwrap()
-                            .value()
-                            .as_comment()
-                            .unwrap()
-                            .to_string()
-                            != "logo column"
-                    {
+                    while html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() != "logo column" {
                         html_handler = {
-                            let (html_handler, exam) = if html_handler
-                                .peek()
-                                .unwrap()
-                                .children()
-                                .nth(5)
-                                .unwrap()
-                                .value()
-                                .is_comment()
-                            {
-                                (html_handler, None)
-                            } else {
-                                html_extractor::html!(
-                                    // exam
-                                    <tr>_
-                                        <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                        <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                        <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                                        </td>_
-                                        <td class="tbdata">
-                                        exam_name
-                                );
-                                let (html_handler, exam_type) = if html_handler.peek().is_some() {
-                                    html_extractor::html!(<br></br>exam_type);
-                                    (html_handler, Some(exam_type.trim().to_owned()))
-                                } else {
-                                    (html_handler, None)
-                                };
-                                html_extractor::html!(
-                                </td>_
-                                <td class="tbdata">_</td>_
-                                <td class="tbdata">_</td>_
-                                <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                                <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                                <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                            </tr>_);
-                                let exam = AnmeldungExam {
+                            html_extractor::html! {
+                                 if !html_handler
+                                    .peek()
+                                    .unwrap()
+                                    .children()
+                                    .nth(5)
+                                    .unwrap()
+                                    .value()
+                                    .is_comment()
+                                {
+                                        <tr>_
+                                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
+                                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
+                                            </td>_
+                                            <td class="tbdata">
+                                            exam_name
+                                    if html_handler.peek().is_some() {
+                                        <br></br>exam_type
+                                    } => exam_type = exam_type;
+                                    </td>_
+                                    <td class="tbdata">_</td>_
+                                    <td class="tbdata">_</td>_
+                                    <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                                    <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
+                                    <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
+                                    <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                                </tr>_
+
+                                } => exam = AnmeldungExam {
                                     name: exam_name.trim().to_owned(),
                                     typ: exam_type,
                                 };
-                                (html_handler, Some(exam))
-                            };
+                            }
 
-                            html_extractor::html!(
-                            // course
-                            <tr>_
-                                <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI" -->_
-                                <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                <!-- "EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc" -->_
-                                <!-- "I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                                <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                                <!-- "cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4" -->_
-                                <td class="tbdata">_
-                                );
+                            html_extractor::html! {
+                                <tr>_
+                                    <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                    <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
+                                    <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                                    <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
+                                    <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
+                                    <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
+                                    <td class="tbdata">_
+                            };
                             let html_handler = if html_handler.peek().is_some() {
-                                html_extractor::html!(<img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_);
+                                html_extractor::html! {
+                                    <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
+                                };
                                 html_handler
                             } else {
                                 html_handler
                             };
-                            html_extractor::html!(
-                            </td>_
-                            <td class="tbdata dl-inner">_
-                                <p><strong><a href=course_url name="eventLink">course_id<span class="eventTitle">course_name</span></a></strong></p>_
-                                <p>);
+                            html_extractor::html! {
+                                </td>_
+                                <td class="tbdata dl-inner">_
+                                    <p>
+                                        <strong>
+                                            <a href=course_url name="eventLink">
+                                                course_id
+                                                <span class="eventTitle">
+                                                    course_name
+                                                </span>
+                                            </a>
+                                        </strong>
+                                    </p>_
+                                    <p>
+                            };
                             // TODO FIXME sometimes the lecturer is not shown e.g. at
                             // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N244336302896459,-N000311,-N391343674191079,-N0,-N384253407729586,-N346654580556776
                             // Detecting this seems impossible from the value of lecturer but we could check whether it matches a date.
-                            let re = Regex::new(
-                                r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$",
-                            )
-                            .unwrap();
-                            let (mut html_handler, lecturers) = if html_handler.peek().is_some()
-                                && !re.is_match(
-                                    html_handler.peek().unwrap().value().as_text().unwrap(),
-                                ) {
-                                html_extractor::html!(lecturers</p>_<p>);
+                            let re = Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap();
+                            let (mut html_handler, lecturers) = if html_handler.peek().is_some() && !re.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
+                                html_extractor::html! {
+                                        lecturers
+                                    </p>_
+                                    <p>
+                                };
                                 (html_handler, Some(lecturers))
                             } else {
                                 (html_handler, None)
                             };
-                            let (mut html_handler, begin_and_end) = if html_handler.peek().is_some()
-                            {
-                                html_extractor::html!(begin_and_end</p>_<p>);
+                            let (mut html_handler, begin_and_end) = if html_handler.peek().is_some() {
+                                html_extractor::html! {
+                                        begin_and_end
+                                    </p>_
+                                    <p>
+                                };
                                 (html_handler, Some(begin_and_end))
                             } else {
                                 (html_handler, None)
                             };
-                            let (mut html_handler, location_or_additional_info) =
-                                if html_handler.peek().is_some() {
-                                    let (html_handler, location_or_additional_info) =
-                                        html_handler.next_any_child();
-                                    html_extractor::html!(</p>_);
-                                    (html_handler, Some(location_or_additional_info))
-                                } else {
-                                    html_extractor::html!(</p>_);
-                                    (html_handler, None)
+                            let (mut html_handler, location_or_additional_info) = if html_handler.peek().is_some() {
+                                let (html_handler, location_or_additional_info) = html_handler.next_any_child();
+                                html_extractor::html! {
+                                    </p>_
                                 };
+                                (html_handler, Some(location_or_additional_info))
+                            } else {
+                                html_extractor::html! {
+                                    </p>_
+                                };
+                                (html_handler, None)
+                            };
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
                             let (html_handler, location) = if html_handler.peek().is_some() {
-                                html_extractor::html!(<p>);
-                                let (html_handler, location) = if html_handler.peek().is_some() {
-                                    html_extractor::html!(location);
-                                    (html_handler, Some(location))
-                                } else {
-                                    (html_handler, None)
-                                };
-                                html_extractor::html!(</p>_);
+                                html_extractor::html!(<p>
+                                    if html_handler.peek().is_some() {
+                                    location
+                                    } => location = location;
+                                </p>_);
                                 (html_handler, location)
                             } else {
                                 (html_handler, None)
                             };
-                            html_extractor::html!(
-                                    </td>_
-                                        <td class="tbdata">
-                                        registration_until<br></br>limit_and_size
-                                        </td>_
-                                    <td class="tbdata rw-qbf">_
-                            );
-                            let (html_handler, registration_button_link) = if html_handler
-                                .peek()
-                                .is_some()
-                            {
-                                if html_handler
-                                    .peek()
-                                    .unwrap()
-                                    .value()
-                                    .as_element()
-                                    .unwrap()
-                                    .attr("class")
-                                    .unwrap()
-                                    == "img noFLoat register"
-                                {
-                                    html_extractor::html!(<a href=registration_button_link class="img noFLoat register">"Anmelden"</a>_);
-                                    (
-                                        html_handler,
-                                        RegistrationState::NotRegistered {
-                                            register_link: registration_button_link,
-                                        },
-                                    )
+                            html_extractor::html! {
+                                </td>_
+                                <td class="tbdata">
+                                    registration_until
+                                    <br></br>
+                                    limit_and_size
+                                </td>_
+                                <td class="tbdata rw-qbf">_
+                            };
+                            let (html_handler, registration_button_link) = if html_handler.peek().is_some() {
+                                if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
+                                    html_extractor::html! {
+                                        <a href=registration_button_link class="img noFLoat register">
+                                            "Anmelden"
+                                        </a>_
+                                    };
+                                    (html_handler, RegistrationState::NotRegistered { register_link: registration_button_link })
                                 } else {
-                                    html_extractor::html!(<a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">" Abmelden"</a>_);
-                                    (
-                                        html_handler,
-                                        RegistrationState::Registered {
-                                            unregister_link: registration_button_link,
-                                        },
-                                    )
+                                    html_extractor::html! {
+                                        <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
+                                            " Abmelden"
+                                        </a>_
+                                    };
+                                    (html_handler, RegistrationState::Registered { unregister_link: registration_button_link })
                                 }
                             } else {
                                 (html_handler, RegistrationState::Unknown)
                             };
-                            html_extractor::html!(
+                            html_extractor::html! {
                                     </td>_
-                                    <!-- "ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
+                                    <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                 </tr>_
-                            );
-                            let course_url = course_url.trim_start_matches(&format!(
-                                "/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&\
-                                 ARGUMENTS=-N{id:015}"
-                            ));
+                            };
+                            let course_url = course_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015}"));
                             let course_url = course_url.split_once(",-A").unwrap().0;
                             let course = AnmeldungCourse {
                                 url: course_url.to_owned(),
@@ -628,10 +506,5 @@ pub async fn anmeldung(
         </div>_
     };
     let _html_handler = footer(html_handler, id, 311);
-    Ok(AnmeldungResponse {
-        path,
-        submenus,
-        entries,
-        additional_information,
-    })
+    Ok(AnmeldungResponse { path, submenus: submenus.unwrap_or_default(), entries, additional_information })
 }

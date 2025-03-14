@@ -1,23 +1,16 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    coursedetails::{
-        CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
-    },
     LoginResponse, TucanError,
+    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe},
 };
 
 use crate::{
-    authenticated_retryable_get,
+    TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
-    TucanConnector,
 };
 use html_handler::Root;
 
-pub async fn course_details_cached(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    request: CourseDetailsRequest,
-) -> Result<CourseDetailsResponse, TucanError> {
+pub async fn course_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("coursedetails.{}", request.arguments.clone());
     if let Some(response) = tucan.database.get(&key).await {
         return Ok(response);
@@ -30,11 +23,7 @@ pub async fn course_details_cached(
     Ok(response)
 }
 
-pub(crate) async fn course_details(
-    tucan: &TucanConnector,
-    login_response: &LoginResponse,
-    args: CourseDetailsRequest,
-) -> Result<CourseDetailsResponse, TucanError> {
+pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &LoginResponse, args: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
     // TODO FIXME generalize
@@ -42,8 +31,7 @@ pub(crate) async fn course_details(
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let content =
-            authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
+        let content = authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };
@@ -66,11 +54,7 @@ pub(crate) async fn course_details(
         </head>_
         <body class="coursedetails">_
     };
-    let html_handler = if login_response.id == 1 {
-        logged_out_head(html_handler, 311)
-    } else {
-        logged_in_head(html_handler, login_response.id).0
-    };
+    let html_handler = if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
     html_extractor::html! {
         <!--"dqf58hG7HHGpXGyye2_RfFRU9OdHxiBSQr2SeCdraDU"-->_
         <script type="text/javascript">
@@ -119,69 +103,54 @@ pub(crate) async fn course_details(
         <tr>_
             <td class="tbdata" colspan="3">_
                 <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
-       if html_handler
-           .peek()
-           .unwrap()
-           .first_child()
-           .unwrap()
-           .value()
-           .is_text()
-       {
-                   <p>_
-                       <b>
-                           "Lehrende: "
-                       </b>
-                       <span id="dozenten">
-                           dozent
-                       </span>_
-                   </p>_
-       } => dozent = dozent;
-        <p>
-            <b>
-                "Veranstaltungsart:"
-            </b>
-            course_type
-            <input type="hidden" name="coursetyp" value=course_type_number></input>_
-        </p>_
-        <p>
-            <b>
-                "Orga-Einheit:"
-            </b>_
-            <span name="courseOrgUnit">
-                fachbereich
-            </span>
-        </p>_
-        <p>_
-            <b>
-                "Anzeige im Stundenplan: "
-            </b>
-            anzeige_im_stundenplan
-            <input type="hidden" name="shortdescription" value=shortname></input>_
-        </p>_
-        <input type="hidden" name="courselevel" value=courselevel></input>_
-        <p>
-            <b>
-                "Fach:"
-            </b>_
-            <input type="hidden" name="coursearea" value=""></input>_
-        </p>_
-        <p>
-            <b>
-                "Anrechenbar für:"
-            </b>_
-            <input type="hidden" name="creditingfor" value=""></input>_
-        </p>_
+                if html_handler.peek().unwrap().first_child().unwrap().value().is_text() {
+                    <p>_
+                        <b>
+                            "Lehrende: "
+                        </b>
+                        <span id="dozenten">
+                            dozent
+                        </span>_
+                    </p>_
+                } => dozent = dozent;
+                <p>
+                    <b>
+                        "Veranstaltungsart:"
+                    </b>
+                    course_type
+                    <input type="hidden" name="coursetyp" value=course_type_number></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Orga-Einheit:"
+                    </b>_
+                    <span name="courseOrgUnit">
+                        fachbereich
+                    </span>
+                </p>_
+                <p>_
+                    <b>
+                        "Anzeige im Stundenplan: "
+                    </b>
+                    anzeige_im_stundenplan
+                    <input type="hidden" name="shortdescription" value=shortname></input>_
+                </p>_
+                <input type="hidden" name="courselevel" value=courselevel></input>_
+                <p>
+                    <b>
+                        "Fach:"
+                    </b>_
+                    <input type="hidden" name="coursearea" value=""></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Anrechenbar für:"
+                    </b>_
+                    <input type="hidden" name="creditingfor" value=""></input>_
+                </p>_
     }
     let sws;
-    (html_handler, sws) = if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .name()
-        == "input"
-    {
+    (html_handler, sws) = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
         html_extractor::html! {
             <input type="hidden" name="sws" value="0"></input>_
         }
@@ -200,15 +169,7 @@ pub(crate) async fn course_details(
         (html_handler, Some(sws))
     };
     let credits;
-    (html_handler, credits) = if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .name()
-        == "input"
-    {
+    (html_handler, credits) = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
         html_extractor::html! {
             <input type="hidden" name="credits" value="  0,0"></input>_
         }
@@ -265,27 +226,19 @@ pub(crate) async fn course_details(
                 </tr>_
             </tbody>
         </table>_
-    if html_handler
-        .peek()
-        .unwrap()
-        .value()
-        .as_comment()
-        .unwrap()
-        .comment
-        == " KG START ".into()
-    {
-                <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
-                <div class="tb">_
-                    <div>_
-                        <div class="tbhead">
-                            "Kleingruppe(n)"
-                        </div>_
-                        <div class="tbdata">
-                            "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
-                        </div>_
+        if html_handler.peek().unwrap().value().as_comment().unwrap().comment == " KG START ".into() {
+            <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
+            <div class="tb">_
+                <div>_
+                    <div class="tbhead">
+                        "Kleingruppe(n)"
                     </div>_
-                    <ul class="dl-ul-listview">_
-            while html_handler.peek().is_some() {
+                    <div class="tbdata">
+                        "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
+                    </div>_
+                </div>_
+                <ul class="dl-ul-listview">_
+                    while html_handler.peek().is_some() {
                         <li class="tbdata listelement">_
                             <div class="dl-inner">_
                                 <p class="dl-ul-li-headline">
@@ -297,9 +250,9 @@ pub(crate) async fn course_details(
                                     uebungsleiter
                                 </p>_
                                 <p>
-                                if html_handler.peek().is_some() {
-                                    date_range
-                                } => date_range = date_range;
+                                    if html_handler.peek().is_some() {
+                                        date_range
+                                    } => date_range = date_range;
                                 </p>_
                             </div>_
                             <div class="dl-link">_
@@ -308,14 +261,14 @@ pub(crate) async fn course_details(
                                 </a>_
                             </div>_
                         </li>_
-            } => uebungsgruppen = CourseUebungsGruppe {
-                date_range,
-                name: uebung_name,
-                uebungsleiter,
-            };
-                    </ul>_
-                </div>_
-                <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
+                    } => uebungsgruppen = CourseUebungsGruppe {
+                        date_range,
+                        name: uebung_name,
+                        uebungsleiter,
+                    };
+                </ul>_
+            </div>_
+            <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
         } => uebungsgruppen = uebungsgruppen;
         <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
         <table class="tb rw-table">_
@@ -334,20 +287,19 @@ pub(crate) async fn course_details(
         </table>_
         <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
         <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
-    if html_handler.peek().unwrap().value().is_element() {
-        // if in course
-                <table class="tb rw-table">_
-                    <caption>
-                        "Material zur gesamten Veranstaltung"
-                    </caption>_
-                    <tbody>
-                        <tr>
-                            <td class="tbdata" colspan="3">
-                                "Es liegt kein Material vor."
-                            </td>
-                        </tr>_
-                    </tbody>
-                </table>_
+        if html_handler.peek().unwrap().value().is_element() {
+            <table class="tb rw-table">_
+                <caption>
+                    "Material zur gesamten Veranstaltung"
+                </caption>_
+                <tbody>
+                    <tr>
+                        <td class="tbdata" colspan="3">
+                            "Es liegt kein Material vor."
+                        </td>
+                    </tr>_
+                </tbody>
+            </table>_
         } => unused = ();
         <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
         <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
@@ -432,25 +384,13 @@ pub(crate) async fn course_details(
                         "Raum"
                     </td>_
                     <td class="tbsubhead">
-    if html_handler.peek().is_some() {
-                "Lehrende"
-    } => lehrende = ();
-            </td>_
-        </tr>_
+                        if html_handler.peek().is_some() {
+                            "Lehrende"
+                        } => lehrende = ();
+                    </td>_
+                </tr>_
     };
-    // TODO start from here
-    if html_handler
-        .peek()
-        .unwrap()
-        .children()
-        .nth(1)
-        .unwrap()
-        .value()
-        .as_element()
-        .unwrap()
-        .attr("colspan")
-        .is_some()
-    {
+    if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("colspan").is_some() {
         html_handler = {
             html_extractor::html! {
                 <tr>_
@@ -480,53 +420,22 @@ pub(crate) async fn course_details(
                         </td>_
                         <td class="tbdata rw rw-course-room">
                 }
-                if html_handler
-                    .peek()
-                    .unwrap()
-                    .value()
-                    .as_text()
-                    .unwrap()
-                    .trim()
-                    .is_empty()
-                {
+                if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
                     html_handler = {
                         html_extractor::html! {_
-                        }
-                        html_handler
-                    };
-                    if html_handler.peek().is_some() {
-                        html_handler = {
-                            html_extractor::html! {
+                            if html_handler.peek().is_some() {
                                 <a name="appointmentRooms" href=room_url>
                                     room
                                 </a>
-                            }
-                            html_handler
-                        };
-                        while !html_handler
-                            .peek()
-                            .unwrap()
-                            .value()
-                            .as_text()
-                            .unwrap()
-                            .trim()
-                            .is_empty()
-                        {
-                            html_handler = {
-                                html_extractor::html! {
+                                while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
                                     "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
                                     <a name="appointmentRooms" href=room_url>
                                         room
                                     </a>
-                                }
-                                html_handler
-                            }
+                                } => teewfwest = ();
+                            } => test = ();
                         }
-                        html_handler = {
-                            html_extractor::html! {_
-                            }
-                            html_handler
-                        };
+                        html_handler
                     }
                 } else {
                     html_handler = {
@@ -548,18 +457,15 @@ pub(crate) async fn course_details(
         }
     }
     html_extractor::html! {
-            </tbody>
-        </table>_
-        <!--"FWVkdRmmQuTMcELIsP6K4V7eWsWq-329gXr8xe8lNtA"-->_
-        <!--"Fi8w2ZKNHGT6_59uLcZc14yUPGASGOgkhbLwk5XwAqs"-->_
-        <!--"AE7T_bGb3mAQes9i_TGusWvs3SWorP2rUYbWMxtz360"-->_
-        <!--"gHS9yEb7gEJDeScOtAZVCap074mrvjNhbKo847wghz0"-->_
-        <!--"mbPNYaxxs1wcICUrnywS30UgNmaCxMVGn19JDG2Cdcc"-->_
-        <!--"Jr35iwnqHKCxqhgkYtMNg-l-g8g9FFUlmpPW5CyF_3A"-->_
-    }
-    if login_response.id != 1 {
-        html_handler = {
-            html_extractor::html! {
+                </tbody>
+            </table>_
+            <!--"FWVkdRmmQuTMcELIsP6K4V7eWsWq-329gXr8xe8lNtA"-->_
+            <!--"Fi8w2ZKNHGT6_59uLcZc14yUPGASGOgkhbLwk5XwAqs"-->_
+            <!--"AE7T_bGb3mAQes9i_TGusWvs3SWorP2rUYbWMxtz360"-->_
+            <!--"gHS9yEb7gEJDeScOtAZVCap074mrvjNhbKo847wghz0"-->_
+            <!--"mbPNYaxxs1wcICUrnywS30UgNmaCxMVGn19JDG2Cdcc"-->_
+            <!--"Jr35iwnqHKCxqhgkYtMNg-l-g8g9FFUlmpPW5CyF_3A"-->_
+            if login_response.id != 1 {
                 <table class="tb rw-table rw-all">_
                     <caption>
                         "Enthalten in Modulen"
@@ -570,27 +476,16 @@ pub(crate) async fn course_details(
                                 "Modul"
                             </td>_
                         </tr>_
-            }
-            while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                        <tr>_
-                            <td class="tbdata">
-                                module_name
-                            </td>_
-                        </tr>_
-                    }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
+                        while html_handler.peek().is_some() {
+                            <tr>_
+                                <td class="tbdata">
+                                    module_name
+                                </td>_
+                            </tr>_
+                        } => dew = ();
                     </tbody>
                 </table>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+            } => agwef = ();
             <!--"ugaD_Kkb-bp5Gg7mdtxXDcj0jeHrTsW_v8Nh9DQBdB0"-->_
             <!--"1ip8eDvrLDhgIPqPeWuUMJdlOaat0QKUTPyfIPoyqBE"-->_
             <!--"9BaxcLXoDbvFC8da2E3MHfCwukHBrtNa5jNlA1FIvws"-->_
@@ -609,17 +504,7 @@ pub(crate) async fn course_details(
                 </div>_
                 <ul class="courseList">_
     }
-    if **html_handler
-        .peek()
-        .unwrap()
-        .children()
-        .next()
-        .unwrap()
-        .value()
-        .as_text()
-        .unwrap()
-        == *"Es liegen keine Termine vor."
-    {
+    if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap() == *"Es liegen keine Termine vor." {
         html_handler = {
             html_extractor::html! {
                 <li class="courseListCell noLink">
@@ -631,29 +516,15 @@ pub(crate) async fn course_details(
     } else {
         while html_handler.peek().is_some() {
             for i in 0..5 {
-                if html_handler
-                    .peek()
-                    .unwrap()
-                    .value()
-                    .as_element()
-                    .unwrap()
-                    .attr("class")
-                    .unwrap()
-                    == "courseListCell numout"
-                {
+                if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
                     html_handler = {
                         html_extractor::html! {
                             <li class="courseListCell numout" title=title>
                                 number
                             </li>_
-                        }
-                        if i == 4 {
-                            html_handler = {
-                                html_extractor::html! {
-                                    <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
-                                }
-                                html_handler
-                            }
+                            if i == 4 {
+                                <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
+                            } => wefewfwfef = ();
                         }
                         html_handler
                     }
@@ -670,65 +541,35 @@ pub(crate) async fn course_details(
         }
     }
     html_extractor::html! {
-            </ul>_
-        </div>_
-    }
-    if html_handler.peek().unwrap().value().is_element() {
-        html_handler = {
-            html_extractor::html! {
-                <table class="tb rw-table">_
-                    <tbody>
-                        <tr class="rw-all">_
-                            <td class="tbhead">
-                                "Lehrende"
-                            </td>_
-                        </tr>_
-            }
-            while html_handler.peek().is_some() {
-                if html_handler
-                    .peek()
-                    .unwrap()
-                    .children()
-                    .nth(1)
-                    .unwrap()
-                    .value()
-                    .as_element()
-                    .unwrap()
-                    .attr("name")
-                    .is_none()
-                {
-                    html_handler = {
-                        html_extractor::html! {
-                            <tr>_
-                                <td class="tbdata_nob h_center">_
-                                    <a href=href>_
-                                        <img src=imgsrc width="120" height="160" border="0" alt=alt></img>
-                                    </a>_
-                                </td>_
-                            </tr>_
-                        }
-                        html_handler
-                    }
-                }
-                html_handler = {
-                    html_extractor::html! {
-                        <tr>_
-                            <td class="tbdata" name="instructorTitle">
-                                instructors
-                            </td>_
-                        </tr>_
-                    }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
-                    </tbody>
-                </table>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+                                </ul>_
+                            </div>_
+                            if html_handler.peek().unwrap().value().is_element() {
+                                <table class="tb rw-table">_
+                                    <tbody>
+                                        <tr class="rw-all">_
+                                            <td class="tbhead">
+                                                "Lehrende"
+                                            </td>_
+                                        </tr>_
+                                        while html_handler.peek().is_some() {
+                                            if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("name").is_none() {
+                                                <tr>_
+                                                    <td class="tbdata_nob h_center">_
+                                                        <a href=href>_
+                                                            <img src=imgsrc width="120" height="160" border="0" alt=alt></img>
+                                                        </a>_
+                                                    </td>_
+                                                </tr>_
+                                            } => few = ();
+                                            <tr>_
+                                                <td class="tbdata" name="instructorTitle">
+                                                    instructors
+                                                </td>_
+                                            </tr>_
+                                        } => efw = ();
+                                    </tbody>
+                                </table>_
+                            } => ewf = ();
                             <!--"f3Dd2OExxbOC6O6K52a9HWTpBxipUfPXKU7YBJsuGck"-->_
                         </div>_
                     </form>_
@@ -755,13 +596,7 @@ pub(crate) async fn course_details(
         shortname,
         courselevel: courselevel.parse().unwrap(),
         sws: sws.map(|sws| sws.parse().unwrap()),
-        credits: credits.map(|credits| {
-            credits
-                .trim()
-                .trim_end_matches(",0")
-                .parse()
-                .expect(&credits)
-        }),
+        credits: credits.map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
         language,
         language_id: language_id.parse().unwrap(),
         teilnehmer_range,

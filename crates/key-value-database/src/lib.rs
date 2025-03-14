@@ -25,26 +25,12 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let database = if cfg!(target_os = "android") {
-                tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucant/files")
-                    .await
-                    .unwrap();
-                sqlx::SqlitePool::connect(
-                    "sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc",
-                )
-                .await
-                .unwrap()
+                tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucant/files").await.unwrap();
+                sqlx::SqlitePool::connect("sqlite:///data/data/de.selfmade4u.tucant/files/data.db?mode=rwc").await.unwrap()
             } else {
-                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc")
-                    .await
-                    .unwrap()
+                sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
             };
-            sqlx::query(
-                "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT \
-                 NULL)",
-            )
-            .execute(&database)
-            .await
-            .unwrap();
+            sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
             Self { database }
         }
     }
@@ -73,11 +59,7 @@ impl Database {
                 value: String,
             }
 
-            let result = sqlx::query_as::<_, Value>("SELECT value FROM store WHERE key = ?")
-                .bind(key)
-                .fetch_optional(&self.database)
-                .await
-                .unwrap();
+            let result = sqlx::query_as::<_, Value>("SELECT value FROM store WHERE key = ?").bind(key).fetch_optional(&self.database).await.unwrap();
             result.map(|result| serde_json::from_str(&result.value).unwrap())
         }
     }
@@ -100,15 +82,7 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query(
-                "INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET \
-                 value = ?2 WHERE key = ?1",
-            )
-            .bind(key)
-            .bind(serde_json::to_string(value).unwrap())
-            .execute(&self.database)
-            .await
-            .unwrap();
+            sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1").bind(key).bind(serde_json::to_string(value).unwrap()).execute(&self.database).await.unwrap();
         }
     }
 }
