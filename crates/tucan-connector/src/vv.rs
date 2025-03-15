@@ -42,13 +42,13 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
         <!--"kVJ9mNrY2XJb35ukyO3hMoLc_9dEHSgzMALBDLwWpHM"-->_
         <!--"Z6v-LbjcnKpltlabF99VIGyltOdElMLHxTYIzpsZgUU"-->_
         <h2>_
-            while html_handler.peek().is_some() {
+            let vorlesungsverzeichnisse = while html_handler.peek().is_some() {
                 <a href=url>
-                    if html_handler.peek().is_some() {
+                    let title = if html_handler.peek().is_some() {
                         title
-                    } => title = title;
+                    } => title;
                 </a>_
-            } => vorlesungsverzeichnisse = (url, title);
+            } => (url, title);
         </h2>_
         <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
     }
@@ -68,17 +68,17 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
         }
     }
     html_extractor::html! {
-        if html_handler.peek().unwrap().value().is_element() {
+        let entries = if html_handler.peek().unwrap().value().is_element() {
             <ul class="auditRegistrationList" id="auditRegistration_list">_
-                while html_handler.peek().is_some() {
+                let entries = while html_handler.peek().is_some() {
                     <li title=_title>
                         <a class="auditRegNodeLink" href=reg_href>
                             _title
                         </a>
                     </li>_
-                } => entries = reg_href;
+                } => reg_href;
             </ul>_
-        } => entries = entries;
+        } => entries;
     }
     if html_handler.peek().unwrap().value().as_comment().unwrap().contains("CourseCatalogue") {
         html_handler = {
@@ -114,7 +114,7 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
                                     "\n\t\t \t\t  \t\tRaum\n\t\t \t\t  \t\t\t \t\t"
                                 </th>_
                             </tr>_
-                            while html_handler.peek().is_some() {
+                            let ent = while html_handler.peek().is_some() {
                                 <tr class="tbdata">_
                                     <td>
                                         <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
@@ -125,10 +125,10 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
                                         </a>
                                         <br></br>
                                         name
-                                        if html_handler.peek().is_some() {
+                                        let date_range = if html_handler.peek().is_some() {
                                             <br></br>
                                             date_range
-                                        } => date_range = date_range;
+                                        } => date_range;
                                     </td>_
                                     <td>_
                                     </td>_
@@ -136,7 +136,7 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
                                         course_type
                                     </td>_
                                 </tr>_
-                            } => ent = ();
+                            } => ();
                         </tbody>
                     </table>_
                 }

@@ -40,10 +40,15 @@ enum HtmlCommand {
 impl Parse for HtmlCommand {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
-        if lookahead.peek(Token![if]) {
-            input.parse().map(Self::If)
-        } else if lookahead.peek(Token![while]) {
-            input.parse().map(Self::While)
+        if lookahead.peek(Token![let]) {
+            input.parse::<Token![let]>()?;
+            if input.peek3(Token![if]) {
+                input.parse().map(Self::If)
+            } else if input.peek3(Token![while]) {
+                input.parse().map(Self::While)
+            } else {
+                Err(input.error("expected if or while at index 3"))?
+            }
         } else if lookahead.peek(Brace) {
             input.parse().map(Self::Text)
         } else if lookahead.peek(LitStr) {
@@ -211,6 +216,8 @@ struct HtmlIf {
 
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let variable = input.parse()?;
+        input.parse::<Token![=]>()?;
         input.parse::<Token![if]>()?;
         let conditional = input.parse()?;
         let body_parse_buffer;
@@ -218,8 +225,6 @@ impl Parse for HtmlIf {
         let body = body_parse_buffer.parse()?;
         input.parse::<Token![=]>()?;
         input.parse::<Token![>]>()?;
-        let variable = input.parse()?;
-        input.parse::<Token![=]>()?;
         let result_expr = input.parse()?;
         input.parse::<Token![;]>()?;
         Ok(Self { conditional, body, variable, result_expr })
@@ -236,6 +241,8 @@ struct HtmlWhile {
 
 impl Parse for HtmlWhile {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let variable = input.parse()?;
+        input.parse::<Token![=]>()?;
         input.parse::<Token![while]>()?;
         let conditional = input.parse()?;
         let body_parse_buffer;
@@ -243,9 +250,7 @@ impl Parse for HtmlWhile {
         let body = body_parse_buffer.parse()?;
         input.parse::<Token![=]>()?;
         input.parse::<Token![>]>()?;
-        let variable = input.parse()?;
-        input.parse::<Token![=]>()?;
-        let result_expr = Expr::parse_with_earlier_boundary_rule(input)?;
+        let result_expr = input.parse()?;
         input.parse::<Token![;]>()?;
         Ok(Self { conditional, body, variable, result_expr })
     }

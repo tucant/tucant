@@ -103,7 +103,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         <tr>_
             <td class="tbdata" colspan="3">_
                 <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
-                if html_handler.peek().unwrap().first_child().unwrap().value().is_text() {
+                let dozent = if html_handler.peek().unwrap().first_child().unwrap().value().is_text() {
                     <p>_
                         <b>
                             "Lehrende: "
@@ -112,7 +112,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             dozent
                         </span>_
                     </p>_
-                } => dozent = dozent;
+                } => dozent;
                 <p>
                     <b>
                         "Veranstaltungsart:"
@@ -226,7 +226,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                 </tr>_
             </tbody>
         </table>_
-        if html_handler.peek().unwrap().value().as_comment().unwrap().comment == " KG START ".into() {
+        let uebungsgruppen = if html_handler.peek().unwrap().value().as_comment().unwrap().comment == " KG START ".into() {
             <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
             <div class="tb">_
                 <div>_
@@ -238,7 +238,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                     </div>_
                 </div>_
                 <ul class="dl-ul-listview">_
-                    while html_handler.peek().is_some() {
+                    let uebungsgruppen = while html_handler.peek().is_some() {
                         <li class="tbdata listelement">_
                             <div class="dl-inner">_
                                 <p class="dl-ul-li-headline">
@@ -250,9 +250,9 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                     uebungsleiter
                                 </p>_
                                 <p>
-                                    if html_handler.peek().is_some() {
+                                    let date_range = if html_handler.peek().is_some() {
                                         date_range
-                                    } => date_range = date_range;
+                                    } => date_range;
                                 </p>_
                             </div>_
                             <div class="dl-link">_
@@ -261,7 +261,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                 </a>_
                             </div>_
                         </li>_
-                    } => uebungsgruppen = CourseUebungsGruppe {
+                    } => CourseUebungsGruppe {
                         date_range,
                         name: uebung_name,
                         uebungsleiter,
@@ -269,7 +269,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                 </ul>_
             </div>_
             <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
-        } => uebungsgruppen = uebungsgruppen;
+        } => uebungsgruppen;
         <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
         <table class="tb rw-table">_
             <caption>
@@ -287,7 +287,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         </table>_
         <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
         <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
-        if html_handler.peek().unwrap().value().is_element() {
+        let unused = if html_handler.peek().unwrap().value().is_element() {
             <table class="tb rw-table">_
                 <caption>
                     "Material zur gesamten Veranstaltung"
@@ -300,10 +300,10 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                     </tr>_
                 </tbody>
             </table>_
-        } => unused = ();
+        } => ();
         <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
         <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
-        if html_handler.peek().unwrap().value().is_element() {
+        let course_anmeldefristen = if html_handler.peek().unwrap().value().is_element() {
             <table class="tb list rw-table">_
                 <caption>
                     "Anmeldefristen"
@@ -329,7 +329,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             " Ende Hörer "
                         </td>_
                     </tr>_
-                    while html_handler.peek().is_some() {
+                    let course_anmeldefristen = while html_handler.peek().is_some() {
                         <tr>_
                             <td class="tbdata">
                                 zulassungstyp
@@ -350,7 +350,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                 ende_hoerer
                             </td>_
                         </tr>_
-                    } => course_anmeldefristen = CourseAnmeldefrist {
+                    } => CourseAnmeldefrist {
                         zulassungstyp,
                         block_type,
                         start,
@@ -360,7 +360,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                     };
                 </tbody>
             </table>_
-        } => course_anmeldefristen = course_anmeldefristen;
+        } => course_anmeldefristen;
         <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
         <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
         <table class="tb list rw-table rw-all">_
@@ -384,9 +384,9 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                         "Raum"
                     </td>_
                     <td class="tbsubhead">
-                        if html_handler.peek().is_some() {
+                        let lehrende = if html_handler.peek().is_some() {
                             "Lehrende"
-                        } => lehrende = ();
+                        } => ();
                     </td>_
                 </tr>_
     };
@@ -423,17 +423,17 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                 if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
                     html_handler = {
                         html_extractor::html! {_
-                            if html_handler.peek().is_some() {
+                            let test = if html_handler.peek().is_some() {
                                 <a name="appointmentRooms" href=room_url>
                                     room
                                 </a>
-                                while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
+                                let teewfwest = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
                                     "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
                                     <a name="appointmentRooms" href=room_url>
                                         room
                                     </a>
-                                } => teewfwest = ();
-                            } => test = ();
+                                } => ();
+                            } => ();
                         }
                         html_handler
                     }
@@ -465,7 +465,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
             <!--"gHS9yEb7gEJDeScOtAZVCap074mrvjNhbKo847wghz0"-->_
             <!--"mbPNYaxxs1wcICUrnywS30UgNmaCxMVGn19JDG2Cdcc"-->_
             <!--"Jr35iwnqHKCxqhgkYtMNg-l-g8g9FFUlmpPW5CyF_3A"-->_
-            if login_response.id != 1 {
+            let agwef = if login_response.id != 1 {
                 <table class="tb rw-table rw-all">_
                     <caption>
                         "Enthalten in Modulen"
@@ -476,16 +476,16 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                 "Modul"
                             </td>_
                         </tr>_
-                        while html_handler.peek().is_some() {
+                        let dew = while html_handler.peek().is_some() {
                             <tr>_
                                 <td class="tbdata">
                                     module_name
                                 </td>_
                             </tr>_
-                        } => dew = ();
+                        } => ();
                     </tbody>
                 </table>_
-            } => agwef = ();
+            } => ();
             <!--"ugaD_Kkb-bp5Gg7mdtxXDcj0jeHrTsW_v8Nh9DQBdB0"-->_
             <!--"1ip8eDvrLDhgIPqPeWuUMJdlOaat0QKUTPyfIPoyqBE"-->_
             <!--"9BaxcLXoDbvFC8da2E3MHfCwukHBrtNa5jNlA1FIvws"-->_
@@ -522,9 +522,9 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             <li class="courseListCell numout" title=title>
                                 number
                             </li>_
-                            if i == 4 {
+                            let wefewfwfef = if i == 4 {
                                 <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
-                            } => wefewfwfef = ();
+                            } => ();
                         }
                         html_handler
                     }
@@ -543,7 +543,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     html_extractor::html! {
                                 </ul>_
                             </div>_
-                            if html_handler.peek().unwrap().value().is_element() {
+                            let ewf = if html_handler.peek().unwrap().value().is_element() {
                                 <table class="tb rw-table">_
                                     <tbody>
                                         <tr class="rw-all">_
@@ -551,8 +551,8 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 "Lehrende"
                                             </td>_
                                         </tr>_
-                                        while html_handler.peek().is_some() {
-                                            if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("name").is_none() {
+                                        let efw = while html_handler.peek().is_some() {
+                                            let few = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("name").is_none() {
                                                 <tr>_
                                                     <td class="tbdata_nob h_center">_
                                                         <a href=href>_
@@ -560,16 +560,16 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                         </a>_
                                                     </td>_
                                                 </tr>_
-                                            } => few = ();
+                                            } => ();
                                             <tr>_
                                                 <td class="tbdata" name="instructorTitle">
                                                     instructors
                                                 </td>_
                                             </tr>_
-                                        } => efw = ();
+                                        } => ();
                                     </tbody>
                                 </table>_
-                            } => ewf = ();
+                            } => ();
                             <!--"f3Dd2OExxbOC6O6K52a9HWTpBxipUfPXKU7YBJsuGck"-->_
                         </div>_
                     </form>_

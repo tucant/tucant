@@ -156,21 +156,21 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
     }
     html_extractor::html! {_
         </h2>_
-        if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
+        let submenus = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
             <ul>_
-                while html_handler.peek().is_some() {
+                let submenus = while html_handler.peek().is_some() {
                     <li>_
                         <a href=url>
                             item
                         </a>_
                     </li>_
-                } => submenus = (item.trim().to_owned(), AnmeldungRequest {
+                } => (item.trim().to_owned(), AnmeldungRequest {
                     arguments: url
                         .trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"))
                         .to_owned(),
                 },);
             </ul>_
-        } => submenus = submenus;
+        } => submenus;
         <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
     }
     let mut additional_information = Vec::new();
@@ -320,7 +320,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                     while html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() != "logo column" {
                         html_handler = {
                             html_extractor::html! {
-                                 if !html_handler
+                                let exam = if !html_handler
                                     .peek()
                                     .unwrap()
                                     .children()
@@ -336,9 +336,9 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                             </td>_
                                             <td class="tbdata">
                                             exam_name
-                                    if html_handler.peek().is_some() {
+                                    let exam_type = if html_handler.peek().is_some() {
                                         <br></br>exam_type
-                                    } => exam_type = exam_type;
+                                    } => exam_type;
                                     </td>_
                                     <td class="tbdata">_</td>_
                                     <td class="tbdata">_</td>_
@@ -348,7 +348,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                     <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
                                 </tr>_
 
-                                } => exam = AnmeldungExam {
+                                } => AnmeldungExam {
                                     name: exam_name.trim().to_owned(),
                                     typ: exam_type,
                                 };
@@ -426,9 +426,9 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
                             let (html_handler, location) = if html_handler.peek().is_some() {
                                 html_extractor::html!(<p>
-                                    if html_handler.peek().is_some() {
+                                    let location = if html_handler.peek().is_some() {
                                     location
-                                    } => location = location;
+                                    } => location;
                                 </p>_);
                                 (html_handler, location)
                             } else {

@@ -212,25 +212,25 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
                     vv_2_title
                 </a>
             </li>
-            if id != 1 {
+            let a = if id != 1 {
                 <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                     <a class=_linkclass href=vv_3_url>
                         vv_3_title
                     </a>
                 </li>
-            } => a = vvs.push((vv_3_title, vv_3_url));
+            } => vvs.push((vv_3_title, vv_3_url));
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href=_url>
                     "Archiv"
                 </a>
                 <ul class="nav depth_3 linkItemContainer">
-                    while html_handler.peek().is_some() {
+                    let temp_vec = while html_handler.peek().is_some() {
                         <li class="intern depth_3 linkItem " title=_title id=_linkclass>
                             <a class=_linkclass href=_url>
                                 _text
                             </a>
                         </li>
-                    } => temp_vec = ();
+                    } => ();
                 </ul>
             </li>
         </ul>

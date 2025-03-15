@@ -72,13 +72,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         "Moduldetails"
                     </caption>_
                     <tbody>
-                        if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbsubhead" {
+                        let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbsubhead" {
                             <tr class="tbsubhead">_
                                 <td colspan="3">
                                     "\n\t\t\t\t\tSie sind angemeldet!\n\t\t\t\t"
                                 </td>_
                             </tr>_
-                        } => registered = ();
+                        } => ();
                         <tr class="tbcontrol">_
                             <td>_
                             </td>_
@@ -116,10 +116,10 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                 </b>
                                 credits
                                 <br></br>
-                                if html_handler.peek().unwrap().value().is_text() {
+                                let few = if html_handler.peek().unwrap().value().is_text() {
                                     "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
                                     <br></br>
-                                } => few = ();
+                                } => ();
                                 <br></br>_
                                 <b>
                                     "Startsemester: "
@@ -238,7 +238,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         <td>_
                         </td>_
                     </tr>_
-                    while html_handler.peek().is_some() {
+                    let fwe = while html_handler.peek().is_some() {
                         <tr class="tbsubhead">_
                             <td class="rw rw-detail-logo">
                                 <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
@@ -253,9 +253,9 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                 mandatory
                             </td>_
                             <td class="rw rw-detail-semester">
-                                if html_handler.peek().is_some() {
+                                let semester = if html_handler.peek().is_some() {
                                     semester
-                                } => semester = semester;
+                                } => semester;
                             </td>_
                             <td class="rw rw-detail-credits">
                                 _credits
@@ -263,13 +263,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                             <td>_
                             </td>_
                         </tr>_
-                        while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
+                        let test = while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
                             <tr class="tbdata">_
                                 <td class="tbdata">
                                     <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                                    if html_handler.peek().is_some() {
+                                    let schwangere = if html_handler.peek().is_some() {
                                         <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
-                                    } => schwangere = ();
+                                    } => ();
                                 </td>_
                                 <td>
                                     <a name="eventLink" class="link" href=course_url_1>
@@ -293,8 +293,8 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                 <td>_
                                 </td>_
                             </tr>_
-                        } => test = ();
-                    } => fwe = ();
+                        } => ();
+                    } => ();
                 </tbody>
             </table>_
         };
@@ -330,11 +330,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         "Kurs/Modulabschlussleistungen"
                     </th>_
                     <th scope="col">
-                        if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                        let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
                             "Leistungskombination"
-                        </th>_
-                        <th scope="col">
-                        } => leistungskombination = ();
+                            </th>_
+                            <th scope="col">
+                        } => ();
                         "Leistungen"
                     </th>_
                     <th scope="col">
@@ -400,7 +400,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         weight
                     </td>_
                 </tr>_
-                while leistungskombination.is_none() && rowspan > 0 {
+                let efw = while leistungskombination.is_none() && rowspan > 0 {
                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     <tr class="tbdata">_
                         <td class="tbborderleft rw rw-detail-reqachieve">
@@ -413,13 +413,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                             weight
                         </td>_
                     </tr>_
-                } => efw = {
+                } => {
                     rowspan -= 1;
                 };
-                while leistungskombination.is_none() && html_handler.peek().is_some() {
+                let fwe = while leistungskombination.is_none() && html_handler.peek().is_some() {
                     <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                     <tr>_
-                        if leistungskombination.is_none() {
+                        let test = if leistungskombination.is_none() {
                             <td rowspan="0002" class="level03_color tbborderleft">_
                                 <b>
                                     exam_type
@@ -438,7 +438,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         </tr>_
                         <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                         <tr class="tbdata">_
-                        } => test = ();
+                        } => ();
                         <td class="tbborderleft rw rw-detail-reqachieve">
                             examination_type
                         </td>_
@@ -447,13 +447,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         </td>_
                         <td class="rw rw-detail-weight alignRight">
                             weight
-                            if html_handler.peek().is_some() {
+                            let weight_more = if html_handler.peek().is_some() {
                                 <br></br>
                                 weight_more
-                            } => weight_more = weight_more;
+                            } => weight_more;
                         </td>_
                     </tr>_
-                } => fwe = ();
+                } => ();
             }
             html_handler
         };
@@ -476,11 +476,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                 <thead>_
                     <tr class="tbsubhead rw-hide">_
                         <th scope="col">
-                            if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
+                            let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
                                 "Leistungskombination"
                             </th>_
                             <th scope="col">
-                            } => leistungskombination = ();
+                            } => ();
                             "Prüfung"
                         </th>_
                         <th scope="col">
@@ -505,7 +505,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         <tr class="tbdata">_
                             <td rowspan=rowspan_str class="level03_color rw rw-detail-combination ">_
                                 <b>
-                                    Fachprüfung
+                                    "Fachprüfung"
                                 </b>_
                             </td>_
                             <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
@@ -585,29 +585,29 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                         </div>_
                         <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
                         <div class="contentlayoutright" id="contentlayoutright">_
-                            if html_handler.peek().is_some() {
+                            let wedqw = if html_handler.peek().is_some() {
                                 <table class="tb_contentright">_
                                     <caption>
                                         "Modulverantwortliche"
                                     </caption>_
                                     <tbody>
-                                        while html_handler.peek().is_some() {
-                                            if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
+                                        let dfwf = while html_handler.peek().is_some() {
+                                            let a = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
                                                 <tr>_
                                                     <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">_
                                                         <img src=_src width="120" height="160" border="0" alt=_alt></img>_
                                                     </td>_
                                                 </tr>_
-                                            } => a = ();
+                                            } =>();
                                             <tr class="tbdata">_
                                                 <td style="text-align:center;">
                                                     name
                                                 </td>_
                                             </tr>_
-                                        } => dfwf = ();
+                                        } => ();
                                     </tbody>
                                 </table>_
-                            } => wedqw = ();
+                            } => ();
                         </div>_
                         <!--"SzJAJfnnubn5SpplE3qoUsG2QoqW6EEMiB36flFP3BQ"-->_
                         <br style="clear:both;"></br>_
