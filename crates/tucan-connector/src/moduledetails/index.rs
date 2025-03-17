@@ -171,46 +171,36 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                 </tr>_
                 <tr class="tbdata">_
                     <td class="rw rw-detail-phase">
-    }
-    let html_handler = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {
-        html_extractor::html! {_
-                <!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
-            </td>_
-            <td class="rw rw-detail-block">_
-                <!--"uV4w2sL7zvCR7idL5yosP3b9yaa4VOMWjVn7OckmSXA"-->_
-            </td>_
-            <td class="rw rw-detail-regstart">_
-                <!--"tHYPRHTO0NAcg1WsKTurAev3L2lUda8MaTE3b2IrBDo"-->_
-            </td>_
-            <td class="rw rw-detail-unreg">_
-                <!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
-        }
-        html_handler
-    } else {
-        html_extractor::html! {
-                " Direkte Zulassung "
-            </td>_
-            <td class="rw rw-detail-block">
-                " Vorlesungszeit "
-            </td>_
-            <td class="rw rw-detail-regstart">
-                registration_range
-            </td>_
-            <td class="rw rw-detail-unreg">
-                unregistration
-        }
-        html_handler
-    };
-    html_extractor::html! {
+                        let wefwefwf = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {_
+                            <!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
+                        </td>_
+                        <td class="rw rw-detail-block">_
+                            <!--"uV4w2sL7zvCR7idL5yosP3b9yaa4VOMWjVn7OckmSXA"-->_
+                        </td>_
+                        <td class="rw rw-detail-regstart">_
+                            <!--"tHYPRHTO0NAcg1WsKTurAev3L2lUda8MaTE3b2IrBDo"-->_
+                        </td>_
+                        <td class="rw rw-detail-unreg">_
+                            <!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
+                        } => (); else {
+                            " Direkte Zulassung "
+                        </td>_
+                        <td class="rw rw-detail-block">
+                            " Vorlesungszeit "
+                        </td>_
+                        <td class="rw rw-detail-regstart">
+                            registration_range
+                        </td>_
+                        <td class="rw rw-detail-unreg">
+                            unregistration
+                        } => ();
                     </td>_
                 </tr>_
             </tbody>
         </table>_
         <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8"-->_
         <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
-    };
-    let html_handler = if html_handler.peek().unwrap().value().is_element() {
-        html_extractor::html! {
+        let efw = if html_handler.peek().unwrap().value().is_element() {
             <table class="tb rw-table rw-all">_
                 <caption>
                     "Kurse"
@@ -297,21 +287,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     } => ();
                 </tbody>
             </table>_
-        };
-        html_handler
-    } else {
-        html_handler
-    };
-    // either Leistungen or Leistungskombination
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N390004723934573
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N675523572713350,-N000311,-N389455489906019
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N391325656494429
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390344407743131
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390293258177073
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N389304870207425
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390274491911206
-    // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N383725573139210,-N000311,-N390836907216477
-    html_extractor::html! {
+        } => ();
         <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
         <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
         <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -332,8 +308,8 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     <th scope="col">
                         let leistungskombination = if **html_handler.peek().unwrap().value().as_text().unwrap() == *"Leistungskombination" {
                             "Leistungskombination"
-                            </th>_
-                            <th scope="col">
+                        </th>_
+                        <th scope="col">
                         } => ();
                         "Leistungen"
                     </th>_
@@ -355,11 +331,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     <td rowspan=rowspan class="tbsubhead level02_color ">
                         modulabschlussleistungen_or_module_name
                     </td>_
-            }
-
-            // this part is almost repeated but not exactly
-            let html_handler = if leistungskombination.is_some() {
-                html_extractor::html! {
+                    let fwe = if leistungskombination.is_some() {
                         <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                         <td rowspan="0002" class="level03_color tbborderleft">_
                             <b>
@@ -379,14 +351,10 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     </tr>_
                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     <tr class="tbdata">_
-                }
-                html_handler
-            } else {
-                html_extractor::html! {
-                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                }
-                html_handler
-            };
+                    } => (); else {
+                        <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                    } => ();
+            }
             let mut rowspan: u64 = rowspan.parse().unwrap();
             rowspan -= 1;
             html_extractor::html! {
@@ -598,7 +566,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                         <img src=_src width="120" height="160" border="0" alt=_alt></img>_
                                                     </td>_
                                                 </tr>_
-                                            } =>();
+                                            } => ();
                                             <tr class="tbdata">_
                                                 <td style="text-align:center;">
                                                     name

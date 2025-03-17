@@ -50,67 +50,52 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                     "Stundenplan"
                 </a>_
             </div>_
-    }
-    let html_handler = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
-        html_extractor::html! {
-            <table class="nb rw-table" summary="Studium Generale">_
-                <tbody>
-                    <tr class="tbsubhead">_
-                        <th id="Veranstaltung">
-                            "Veranstaltung"
-                        </th>_
-                        <th id="Name">
-                            "Name"
-                        </th>_
-                        <th id="von">
-                            "von"
-                        </th>_
-                        <th id="bis">
-                            "bis"
-                        </th>_
-                    </tr>_
-        }
-        while html_handler.peek().is_some() {
-            html_handler = {
-                html_extractor::html! {
-                    <tr class="tbdata">_
-                        <td headers="Veranstaltung">
-                            "Kurse"
-                        </td>_
-                        <td headers="Name">_
-                            <a class="link" href=coursedetails_url name="eventLink">
-                                course_name
-                            </a>_
-                        </td>_
-                        <td headers="von">
-                            <a class="link" href=courseprep_url>
-                                from
-                            </a>
-                        </td>_
-                        <td headers="bis">
-                            <a class="link" href=courseprep_url>
-                                to
-                            </a>
-                        </td>_
-                    </tr>_
-                }
-                html_handler
-            }
-        }
-        html_extractor::html! {
-                </tbody>
-            </table>_
-        }
-        html_handler
-    } else {
-        html_extractor::html! {
-            <div class="tbsubhead">
-                "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
-            </div>_
-        }
-        html_handler
-    };
-    html_extractor::html! {
+            let wef = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                <table class="nb rw-table" summary="Studium Generale">_
+                    <tbody>
+                        <tr class="tbsubhead">_
+                            <th id="Veranstaltung">
+                                "Veranstaltung"
+                            </th>_
+                            <th id="Name">
+                                "Name"
+                            </th>_
+                            <th id="von">
+                                "von"
+                            </th>_
+                            <th id="bis">
+                                "bis"
+                            </th>_
+                        </tr>_
+                        let efw = while html_handler.peek().is_some() {
+                            <tr class="tbdata">_
+                                <td headers="Veranstaltung">
+                                    "Kurse"
+                                </td>_
+                                <td headers="Name">_
+                                    <a class="link" href=coursedetails_url name="eventLink">
+                                        course_name
+                                    </a>_
+                                </td>_
+                                <td headers="von">
+                                    <a class="link" href=courseprep_url>
+                                        from
+                                    </a>
+                                </td>_
+                                <td headers="bis">
+                                    <a class="link" href=courseprep_url>
+                                        to
+                                    </a>
+                                </td>_
+                            </tr>_
+                        } => ();
+                    </tbody>
+                </table>_
+            } => (); else {
+                <div class="tbsubhead">
+                    "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
+                </div>_
+            } => ();
         </div>_
         <!--"jcECXQ7Iovu3-f4IpT-2ykwKMYpSGOecnocvEf5bo3A"-->_
         <div class="tb rw-table">_

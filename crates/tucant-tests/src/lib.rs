@@ -25,13 +25,16 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
 
     assert_eq!(driver.title().await?, "TUCaN't");
 
-    assert_eq!(driver.current_url().await.unwrap().scheme(), match mode {
-        Mode::Extension => match browser {
-            Browser::Firefox => "moz-extension",
-            Browser::Chromium => "chrome-extension",
-        },
-        Mode::Api => "http",
-    });
+    assert_eq!(
+        driver.current_url().await.unwrap().scheme(),
+        match mode {
+            Mode::Extension => match browser {
+                Browser::Firefox => "moz-extension",
+                Browser::Chromium => "chrome-extension",
+            },
+            Mode::Api => "http",
+        }
+    );
 
     let username_input = driver.query(By::Css("#login-username")).first().await?;
     let password_input = driver.find(By::Css("#login-password")).await?;

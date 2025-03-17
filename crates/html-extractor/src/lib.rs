@@ -200,7 +200,6 @@ impl Parse for HtmlComment {
     }
 }
 
-// TODO FIXME reformatting with new syntax
 // TODO FIXME implement arbitrary children matcher
 // TODO FIXME allow calling subtemplates inside of a html_extractor?
 // TODO FIXME implement else
@@ -212,6 +211,7 @@ struct HtmlIf {
     body: HtmlCommands,
     variable: Ident,
     result_expr: Expr,
+    else_: Option<(HtmlCommands, Expr)>,
 }
 
 impl Parse for HtmlIf {
@@ -227,7 +227,20 @@ impl Parse for HtmlIf {
         input.parse::<Token![>]>()?;
         let result_expr = input.parse()?;
         input.parse::<Token![;]>()?;
-        Ok(Self { conditional, body, variable, result_expr })
+        let else_ = if input.peek(Token![else]) {
+            input.parse::<Token![else]>()?;
+            let body_parse_buffer;
+            let _brace_token = braced!(body_parse_buffer in input);
+            let body = body_parse_buffer.parse()?;
+            input.parse::<Token![=]>()?;
+            input.parse::<Token![>]>()?;
+            let result_expr = input.parse()?;
+            input.parse::<Token![;]>()?;
+            Some((body, result_expr))
+        } else {
+            None
+        };
+        Ok(Self { conditional, body, variable, result_expr, else_ })
     }
 }
 
@@ -365,15 +378,31 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                 let variable = &html_if.variable;
                 let result_expr = &html_if.result_expr;
                 let temp_var = Ident::new("temp_var", Span::mixed_site());
-                quote! {
-                    let #temp_var;
-                    (html_handler, #temp_var) = if (#conditional) {
-                        #(#body)*
-                        (html_handler, Some(#result_expr))
-                    } else {
-                        (html_handler, None)
-                    };
-                    let #variable = #temp_var;
+                if let Some(else_) = &html_if.else_ {
+                    let else_body = convert_commands(&else_.0);
+                    let else_result_expr = &else_.1;
+                    quote! {
+                        let #temp_var;
+                        (html_handler, #temp_var) = if (#conditional) {
+                            #(#body)*
+                            (html_handler, ::itertools::Either::Left(#result_expr))
+                        } else {
+                            #(#else_body)*
+                            (html_handler, ::itertools::Either::Right(#else_result_expr))
+                        };
+                        let #variable = #temp_var;
+                    }
+                } else {
+                    quote! {
+                        let #temp_var;
+                        (html_handler, #temp_var) = if (#conditional) {
+                            #(#body)*
+                            (html_handler, Some(#result_expr))
+                        } else {
+                            (html_handler, None)
+                        };
+                        let #variable = #temp_var;
+                    }
                 }
             }
             HtmlCommand::While(html_while) => {

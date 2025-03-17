@@ -148,65 +148,53 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                     </b>_
                     <input type="hidden" name="creditingfor" value=""></input>_
                 </p>_
-    }
-    let sws;
-    (html_handler, sws) = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
-        html_extractor::html! {
-            <input type="hidden" name="sws" value="0"></input>_
-        }
-        (html_handler, None)
-    } else {
-        html_extractor::html! {
-            <p>
-                <b>
-                    "Semesterwochenstunden: "
-                </b>
-                sws_text
-                <input type="hidden" name="sws" value=sws></input>_
-            </p>_
-        }
-        assert_eq!(sws_text.trim(), sws);
-        (html_handler, Some(sws))
-    };
-    let credits;
-    (html_handler, credits) = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
-        html_extractor::html! {
-            <input type="hidden" name="credits" value="  0,0"></input>_
-        }
-        (html_handler, None)
-    } else {
-        html_extractor::html! {
-            <p>
-                <b>
-                    "Credits: "
-                </b>
-                credits_text
-                <input type="hidden" name="credits" value=credits></input>_
-            </p>_
-        }
-        assert_eq!(credits_text, credits);
-        (html_handler, Some(credits))
-    };
-    html_extractor::html! {
-        <input type="hidden" name="location" value="327576461398991"></input>_
-        <p>
-            <b>
-                "Unterrichtssprache: "
-            </b>_
-            <span name="courseLanguageOfInstruction">
-                language
-            </span>_
-            <input type="hidden" name="language" value=language_id></input>_
-        </p>_
-        <p>
-            <b>
-                "Min. | Max. Teilnehmerzahl:"
-            </b>
-            teilnehmer_range
-            <input type="hidden" name="min_participantsno" value="-"></input>_
-            <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
-        </p>_
-        <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
+                let sws = if html_handler.peek().unwrap().value().as_element().unwrap().name() != "input" {
+                    <p>
+                        <b>
+                            "Semesterwochenstunden: "
+                        </b>
+                        sws_text
+                        <input type="hidden" name="sws" value=sws></input>_
+                    </p>_
+                } => {
+                    assert_eq!(sws_text.trim(), sws);
+                    sws
+                }; else {
+                    <input type="hidden" name="sws" value="0"></input>_
+                } => ();
+                let credits = if html_handler.peek().unwrap().value().as_element().unwrap().name() != "input" {
+                    <p>
+                        <b>
+                            "Credits: "
+                        </b>
+                        credits_text
+                        <input type="hidden" name="credits" value=credits></input>_
+                    </p>_
+                } => {
+                    assert_eq!(credits_text, credits);
+                    credits
+                }; else {
+                    <input type="hidden" name="credits" value="  0,0"></input>_
+                } => ();
+                <input type="hidden" name="location" value="327576461398991"></input>_
+                <p>
+                    <b>
+                        "Unterrichtssprache: "
+                    </b>_
+                    <span name="courseLanguageOfInstruction">
+                        language
+                    </span>_
+                    <input type="hidden" name="language" value=language_id></input>_
+                </p>_
+                <p>
+                    <b>
+                        "Min. | Max. Teilnehmerzahl:"
+                    </b>
+                    teilnehmer_range
+                    <input type="hidden" name="min_participantsno" value="-"></input>_
+                    <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
+                </p>_
+                <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
     }
     let mut description = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
@@ -221,242 +209,207 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         }
     }
     html_extractor::html! {
-                        <!--"xdnrtl8EoTjGxC3Tn8ZgU7vEsjh7SULK5uyEXMTrPYw"-->_
-                    </td>_
-                </tr>_
-            </tbody>
-        </table>_
-        let uebungsgruppen = if html_handler.peek().unwrap().value().as_comment().unwrap().comment == " KG START ".into() {
-            <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
-            <div class="tb">_
-                <div>_
-                    <div class="tbhead">
-                        "Kleingruppe(n)"
+                            <!--"xdnrtl8EoTjGxC3Tn8ZgU7vEsjh7SULK5uyEXMTrPYw"-->_
+                        </td>_
+                    </tr>_
+                </tbody>
+            </table>_
+            let uebungsgruppen = if html_handler.peek().unwrap().value().as_comment().unwrap().comment == " KG START ".into() {
+                <!--"BJVxG97RSYn0rh25cerEgm9r0KvMqIm48tBzBZmL9fA"-->_
+                <div class="tb">_
+                    <div>_
+                        <div class="tbhead">
+                            "Kleingruppe(n)"
+                        </div>_
+                        <div class="tbdata">
+                            "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
+                        </div>_
                     </div>_
-                    <div class="tbdata">
-                        "\n\t\t\t\tDie Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:\n\t\t\t\t\t\t\t"
-                    </div>_
+                    <ul class="dl-ul-listview">_
+                        let uebungsgruppen = while html_handler.peek().is_some() {
+                            <li class="tbdata listelement">_
+                                <div class="dl-inner">_
+                                    <p class="dl-ul-li-headline">
+                                        <strong>
+                                            uebung_name
+                                        </strong>
+                                    </p>_
+                                    <p>
+                                        uebungsleiter
+                                    </p>_
+                                    <p>
+                                        let date_range = if html_handler.peek().is_some() {
+                                            date_range
+                                        } => date_range;
+                                    </p>_
+                                </div>_
+                                <div class="dl-link">_
+                                    <a href=_url class="img img_arrowLeft pageElementRight">
+                                        "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
+                                    </a>_
+                                </div>_
+                            </li>_
+                        } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                    </ul>_
                 </div>_
-                <ul class="dl-ul-listview">_
-                    let uebungsgruppen = while html_handler.peek().is_some() {
-                        <li class="tbdata listelement">_
-                            <div class="dl-inner">_
-                                <p class="dl-ul-li-headline">
-                                    <strong>
-                                        uebung_name
-                                    </strong>
-                                </p>_
-                                <p>
-                                    uebungsleiter
-                                </p>_
-                                <p>
-                                    let date_range = if html_handler.peek().is_some() {
-                                        date_range
-                                    } => date_range;
-                                </p>_
-                            </div>_
-                            <div class="dl-link">_
-                                <a href=_url class="img img_arrowLeft pageElementRight">
-                                    "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
-                                </a>_
-                            </div>_
-                        </li>_
-                    } => CourseUebungsGruppe {
-                        date_range,
-                        name: uebung_name,
-                        uebungsleiter,
-                    };
-                </ul>_
-            </div>_
-            <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
-        } => uebungsgruppen;
-        <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
-        <table class="tb rw-table">_
-            <caption>
-                "\n                        Literatur\n                                        "
-            </caption>_
-            <tbody>
-                <tr>_
-                    <td class="tbsubhead">_
-                        <span name="literatureCategory">
-                            <!--"EdGg5F530M2nVMCHhp1bEr4g_yMTeijq2NDDbwiJXzI"-->
-                        </span>_
-                    </td>_
-                </tr>_
-            </tbody>
-        </table>_
-        <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
-        <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
-        let unused = if html_handler.peek().unwrap().value().is_element() {
+                <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
+            } => uebungsgruppen;
+            <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
             <table class="tb rw-table">_
                 <caption>
-                    "Material zur gesamten Veranstaltung"
-                </caption>_
-                <tbody>
-                    <tr>
-                        <td class="tbdata" colspan="3">
-                            "Es liegt kein Material vor."
-                        </td>
-                    </tr>_
-                </tbody>
-            </table>_
-        } => ();
-        <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
-        <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
-        let course_anmeldefristen = if html_handler.peek().unwrap().value().is_element() {
-            <table class="tb list rw-table">_
-                <caption>
-                    "Anmeldefristen"
+                    "\n                        Literatur\n                                        "
                 </caption>_
                 <tbody>
                     <tr>_
-                        <td class="tbsubhead">
-                            " Phase "
-                        </td>_
-                        <td class="tbsubhead">
-                            " Block "
-                        </td>_
-                        <td class="tbsubhead">
-                            " Start "
-                        </td>_
-                        <td class="tbsubhead">
-                            " Ende Anmeldung "
-                        </td>_
-                        <td class="tbsubhead">
-                            " Ende Abmeldung"
-                        </td>_
-                        <td class="tbsubhead">
-                            " Ende Hörer "
+                        <td class="tbsubhead">_
+                            <span name="literatureCategory">
+                                <!--"EdGg5F530M2nVMCHhp1bEr4g_yMTeijq2NDDbwiJXzI"-->
+                            </span>_
                         </td>_
                     </tr>_
-                    let course_anmeldefristen = while html_handler.peek().is_some() {
+                </tbody>
+            </table>_
+            <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
+            <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
+            let unused = if html_handler.peek().unwrap().value().is_element() {
+                <table class="tb rw-table">_
+                    <caption>
+                        "Material zur gesamten Veranstaltung"
+                    </caption>_
+                    <tbody>
+                        <tr>
+                            <td class="tbdata" colspan="3">
+                                "Es liegt kein Material vor."
+                            </td>
+                        </tr>_
+                    </tbody>
+                </table>_
+            } => ();
+            <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
+            <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
+            let course_anmeldefristen = if html_handler.peek().unwrap().value().is_element() {
+                <table class="tb list rw-table">_
+                    <caption>
+                        "Anmeldefristen"
+                    </caption>_
+                    <tbody>
                         <tr>_
-                            <td class="tbdata">
-                                zulassungstyp
+                            <td class="tbsubhead">
+                                " Phase "
                             </td>_
-                            <td class="tbdata">
-                                block_type
+                            <td class="tbsubhead">
+                                " Block "
                             </td>_
-                            <td class="tbdata">
-                                start
+                            <td class="tbsubhead">
+                                " Start "
                             </td>_
-                            <td class="tbdata">
-                                ende_anmeldung
+                            <td class="tbsubhead">
+                                " Ende Anmeldung "
                             </td>_
-                            <td class="tbdata">
-                                ende_abmeldung
+                            <td class="tbsubhead">
+                                " Ende Abmeldung"
                             </td>_
-                            <td class="tbdata">
-                                ende_hoerer
+                            <td class="tbsubhead">
+                                " Ende Hörer "
                             </td>_
                         </tr>_
-                    } => CourseAnmeldefrist {
-                        zulassungstyp,
-                        block_type,
-                        start,
-                        ende_anmeldung,
-                        ende_abmeldung,
-                        ende_hoerer
-                    };
-                </tbody>
-            </table>_
-        } => course_anmeldefristen;
-        <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
-        <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
-        <table class="tb list rw-table rw-all">_
-            <caption>
-                "Termine"
-            </caption>_
-            <tbody>
-                <tr class="rw-hide">_
-                    <td class="tbsubhead">
-                    </td>_
-                    <td class="tbsubhead" style="width:120px;">
-                        "Datum"
-                    </td>_
-                    <td class="tbsubhead">
-                        "Von"
-                    </td>_
-                    <td class="tbsubhead">
-                        "Bis"
-                    </td>_
-                    <td class="tbsubhead">
-                        "Raum"
-                    </td>_
-                    <td class="tbsubhead">
-                        let lehrende = if html_handler.peek().is_some() {
-                            "Lehrende"
-                        } => ();
-                    </td>_
-                </tr>_
-    };
-    if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("colspan").is_some() {
-        html_handler = {
-            html_extractor::html! {
-                <tr>_
-                    <td class="tbdata" colspan="6">
-                        "Es liegen keine Termine vor."
-                    </td>_
-                </tr>_
-            }
-            html_handler
-        }
-    } else {
-        while html_handler.peek().is_some() {
-            html_handler = {
-                html_extractor::html! {
-                    <tr>_
-                        <td class="tbdata rw">
-                            id
+                        let course_anmeldefristen = while html_handler.peek().is_some() {
+                            <tr>_
+                                <td class="tbdata">
+                                    zulassungstyp
+                                </td>_
+                                <td class="tbdata">
+                                    block_type
+                                </td>_
+                                <td class="tbdata">
+                                    start
+                                </td>_
+                                <td class="tbdata">
+                                    ende_anmeldung
+                                </td>_
+                                <td class="tbdata">
+                                    ende_abmeldung
+                                </td>_
+                                <td class="tbdata">
+                                    ende_hoerer
+                                </td>_
+                            </tr>_
+                        } => CourseAnmeldefrist { zulassungstyp, block_type, start, ende_anmeldung, ende_abmeldung, ende_hoerer };
+                    </tbody>
+                </table>_
+            } => course_anmeldefristen;
+            <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
+            <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
+            <table class="tb list rw-table rw-all">_
+                <caption>
+                    "Termine"
+                </caption>_
+                <tbody>
+                    <tr class="rw-hide">_
+                        <td class="tbsubhead">
                         </td>_
-                        <td class="tbdata rw rw-course-date" name="appointmentDate">
-                            date
+                        <td class="tbsubhead" style="width:120px;">
+                            "Datum"
                         </td>_
-                        <td class="tbdata rw rw-course-from" name="appointmentTimeFrom">
-                            time_start
+                        <td class="tbsubhead">
+                            "Von"
                         </td>_
-                        <td class="tbdata rw rw-course-to" name="appointmentDateTo">
-                            time_end
+                        <td class="tbsubhead">
+                            "Bis"
                         </td>_
-                        <td class="tbdata rw rw-course-room">
-                }
-                if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                    html_handler = {
-                        html_extractor::html! {_
-                            let test = if html_handler.peek().is_some() {
-                                <a name="appointmentRooms" href=room_url>
-                                    room
-                                </a>
-                                let teewfwest = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                                    "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
-                                    <a name="appointmentRooms" href=room_url>
-                                        room
-                                    </a>
-                                } => ();
+                        <td class="tbsubhead">
+                            "Raum"
+                        </td>_
+                        <td class="tbsubhead">
+                            let lehrende = if html_handler.peek().is_some() {
+                                "Lehrende"
                             } => ();
-                        }
-                        html_handler
-                    }
-                } else {
-                    html_handler = {
-                        html_extractor::html! {
-                            room_text
-                        }
-                        html_handler
-                    }
-                }
-                html_extractor::html! {
-                        </td>_
-                        <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
-                            instructors
                         </td>_
                     </tr>_
-                }
-                html_handler
-            }
-        }
-    }
-    html_extractor::html! {
+                    let wfwef = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("colspan").is_some() {
+                        <tr>_
+                            <td class="tbdata" colspan="6">
+                                "Es liegen keine Termine vor."
+                            </td>_
+                        </tr>_
+                    } => (); else {
+                        let wfwe = while html_handler.peek().is_some() {
+                            <tr>_
+                                <td class="tbdata rw">
+                                    id
+                                </td>_
+                                <td class="tbdata rw rw-course-date" name="appointmentDate">
+                                    date
+                                </td>_
+                                <td class="tbdata rw rw-course-from" name="appointmentTimeFrom">
+                                    time_start
+                                </td>_
+                                <td class="tbdata rw rw-course-to" name="appointmentDateTo">
+                                    time_end
+                                </td>_
+                                <td class="tbdata rw rw-course-room">
+                                    let few = if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
+                                        let test = if html_handler.peek().is_some() {
+                                            <a name="appointmentRooms" href=room_url>
+                                                room
+                                            </a>
+                                            let teewfwest = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
+                                                "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                                                <a name="appointmentRooms" href=room_url>
+                                                    room
+                                                </a>
+                                            } => ();
+                                        } => ();
+                                    } => (); else {
+                                        room_text
+                                    } => ();
+                                </td>_
+                                <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
+                                    instructors
+                                </td>_
+                            </tr>_
+                        } => ();
+                    } => ();
                 </tbody>
             </table>_
             <!--"FWVkdRmmQuTMcELIsP6K4V7eWsWq-329gXr8xe8lNtA"-->_
@@ -516,26 +469,18 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     } else {
         while html_handler.peek().is_some() {
             for i in 0..5 {
-                if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
-                    html_handler = {
-                        html_extractor::html! {
-                            <li class="courseListCell numout" title=title>
-                                number
-                            </li>_
-                            let wefewfwfef = if i == 4 {
-                                <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
-                            } => ();
-                        }
-                        html_handler
-                    }
-                } else {
-                    html_handler = {
-                        html_extractor::html! {
-                            <li class="courseListCell noLink">_
-                            </li>_
-                        }
-                        html_handler
-                    }
+                html_extractor::html! {
+                    let few = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
+                        <li class="courseListCell numout" title=title>
+                            number
+                        </li>_
+                        let wefewfwfef = if i == 4 {
+                            <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
+                        } => ();
+                    } => (); else {
+                        <li class="courseListCell noLink">_
+                        </li>_
+                    } => ();
                 }
             }
         }
@@ -595,8 +540,8 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         anzeige_im_stundenplan,
         shortname,
         courselevel: courselevel.parse().unwrap(),
-        sws: sws.map(|sws| sws.parse().unwrap()),
-        credits: credits.map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
+        sws: sws.left().map(|sws| sws.parse().unwrap()),
+        credits: credits.left().map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
         language,
         language_id: language_id.parse().unwrap(),
         teilnehmer_range,

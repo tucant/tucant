@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     crane.url = "github:ipetkov/crane";
 
@@ -24,7 +24,7 @@
 
         inherit (pkgs) lib;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-01-02".minimal.override {
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-03-16".minimal.override {
           extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
           targets = [ "wasm32-unknown-unknown" ];
         };
@@ -206,8 +206,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "2ec233d98ff06cad69c4daf2a841b27654895842";
-            hash = "sha256-/9kBIqR6GlsDJB3llU3ZisWEL0IS1apTGY2SsxI/DmA=";
+            rev = "ea51cbdd833fda6ea0f8572c074f7649e7f92d8b";
+            hash = "sha256-NW/BoI24K4dldujuI0j6vB+4miuouXcgLjb93WordVs=";
           };
           doCheck = false;
         };

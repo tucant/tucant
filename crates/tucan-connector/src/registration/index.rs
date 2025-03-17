@@ -64,67 +64,52 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
         <h1>
             "Anmeldung zu Modulen und Veranstaltungen"
         </h1>_
-    }
-    if html_handler.peek().unwrap().value().is_comment() {
-        html_handler = {
-            html_extractor::html! {
-                <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
-                <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
-                    <table class="tbcoursestatus rw-table rw-all">_
-                        <tbody>
-                            <tr>_
-                                <td class="tbhead" colspan="100%">
-                                    "Weitere Studien"
-                                </td>_
-                            </tr>_
-                            <tr>_
-                                <td class="tbcontrol" colspan="100%">_
-                                    <div class="inputFieldLabel">_
-                                        <label for="study">
-                                            "Studium:"
-                                        </label>_
-                                        <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
-            }
-            while html_handler.peek().is_some() {
-                html_handler = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
-                    html_extractor::html! {
-                        <option value=value selected="selected">
-                            study
-                        </option>_
-                    }
-                    html_handler
-                } else {
-                    html_extractor::html! {
-                        <option value=value>
-                            study
-                        </option>_
-                    }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
-                                        </select>_
-                                        <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
-                                    </div>_
-                                    <input name="APPNAME" type="hidden" value="CampusNet"></input>_
-                                    <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
-                                    <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                                    <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
-                                    <input name="menuno" type="hidden" value="000311"></input>_
-                                    <input name="pa rent1" type="hidden" value="000000000000000"></input>_
-                                    <input name="parent2" type="hidden" value="000000000000000"></input>_
-                                    <input name="changestudy" type="hidden" value="1"></input>_
-                                </td>_
-                            </tr>_
-                        </tbody>
-                    </table>_
-                </form>_
-                <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+        let ewf = if html_handler.peek().unwrap().value().is_comment() {
+            <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
+            <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
+                <table class="tbcoursestatus rw-table rw-all">_
+                    <tbody>
+                        <tr>_
+                            <td class="tbhead" colspan="100%">
+                                "Weitere Studien"
+                            </td>_
+                        </tr>_
+                        <tr>_
+                            <td class="tbcontrol" colspan="100%">_
+                                <div class="inputFieldLabel">_
+                                    <label for="study">
+                                        "Studium:"
+                                    </label>_
+                                    <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
+                                        let wfeew = while html_handler.peek().is_some() {
+                                            let fwee = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                <option value=value selected="selected">
+                                                    study
+                                                </option>_
+                                            } => (); else {
+                                                <option value=value>
+                                                    study
+                                                </option>_
+                                            } => ();
+                                        } => ();
+                                    </select>_
+                                    <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
+                                </div>_
+                                <input name="APPNAME" type="hidden" value="CampusNet"></input>_
+                                <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
+                                <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
+                                <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
+                                <input name="menuno" type="hidden" value="000311"></input>_
+                                <input name="pa rent1" type="hidden" value="000000000000000"></input>_
+                                <input name="parent2" type="hidden" value="000000000000000"></input>_
+                                <input name="changestudy" type="hidden" value="1"></input>_
+                            </td>_
+                        </tr>_
+                    </tbody>
+                </table>_
+            </form>_
+            <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
+        } => ();
         <h2>_
             <a href=registration_url>
                 study
@@ -164,11 +149,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             item
                         </a>_
                     </li>_
-                } => (item.trim().to_owned(), AnmeldungRequest {
-                    arguments: url
-                        .trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"))
-                        .to_owned(),
-                },);
+                } => (item.trim().to_owned(), AnmeldungRequest { arguments: url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}")).to_owned() },);
             </ul>_
         } => submenus;
         <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
@@ -269,28 +250,18 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                     limit_and_size
                                 </td>_
                                 <td class="tbsubhead rw-qbf">_
-                        };
-
-                        let (html_handler, registration_button_link) = if html_handler.peek().is_some() {
-                            if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
-                                html_extractor::html! {
-                                    <a href=registration_button_link class="img noFloat register">
-                                        "Anmelden"
-                                    </a>_
-                                };
-                                (html_handler, RegistrationState::NotRegistered { register_link: registration_button_link })
-                            } else {
-                                html_extractor::html! {
-                                    <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
-                                        "Abmelden"
-                                    </a>_
-                                };
-                                (html_handler, RegistrationState::Registered { unregister_link: registration_button_link })
-                            }
-                        } else {
-                            (html_handler, RegistrationState::Unknown)
-                        };
-                        html_extractor::html! {
+                                    let registration_button_link = if html_handler.peek().is_some() {
+                                        let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
+                                            <a href=registration_button_link class="img noFloat register">
+                                                "Anmelden"
+                                            </a>_
+                                        } => RegistrationState::NotRegistered { register_link: registration_button_link }; else {
+                                            <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
+                                                "Abmelden"
+                                            </a>_
+                                        } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                    } => registered.either_into::<RegistrationState>(); else {
+                                    } => RegistrationState::Unknown;
                                 </td>_
                                 <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
                                 <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
@@ -309,7 +280,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
                             date: date.trim().to_owned(),
                             limit_and_size: limit_and_size.trim().to_owned(),
-                            registration_button_link,
+                            registration_button_link: registration_button_link.either_into(),
                         };
                         (html_handler, Some(module))
                     } else {
@@ -320,38 +291,30 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                     while html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() != "logo column" {
                         html_handler = {
                             html_extractor::html! {
-                                let exam = if !html_handler
-                                    .peek()
-                                    .unwrap()
-                                    .children()
-                                    .nth(5)
-                                    .unwrap()
-                                    .value()
-                                    .is_comment()
-                                {
-                                        <tr>_
-                                            <!-- "o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                            <!-- "-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E" -->_
-                                            <td class="tbdata">_<!-- "r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8" -->_
-                                            </td>_
-                                            <td class="tbdata">
+                                let exam = if !html_handler.peek().unwrap().children().nth(5).unwrap().value().is_comment() {
+                                    <tr>_
+                                        <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
+                                        <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
+                                        <td class="tbdata">_
+                                            <!--"r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8"-->_
+                                        </td>_
+                                        <td class="tbdata">
                                             exam_name
-                                    let exam_type = if html_handler.peek().is_some() {
-                                        <br></br>exam_type
-                                    } => exam_type;
-                                    </td>_
-                                    <td class="tbdata">_</td>_
-                                    <td class="tbdata">_</td>_
-                                    <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                                    <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY" -->_
-                                    <!-- "1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8" -->_
-                                    <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728" -->_
-                                </tr>_
-
-                                } => AnmeldungExam {
-                                    name: exam_name.trim().to_owned(),
-                                    typ: exam_type,
-                                };
+                                            let exam_type = if html_handler.peek().is_some() {
+                                                <br></br>
+                                                exam_type
+                                            } => exam_type;
+                                        </td>_
+                                        <td class="tbdata">_
+                                        </td>_
+                                        <td class="tbdata">_
+                                        </td>_
+                                        <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
+                                        <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
+                                        <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
+                                        <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
+                                    </tr>_
+                                } => AnmeldungExam { name: exam_name.trim().to_owned(), typ: exam_type };
                             }
 
                             html_extractor::html! {
@@ -425,11 +388,13 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             };
                             // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
                             let (html_handler, location) = if html_handler.peek().is_some() {
-                                html_extractor::html!(<p>
-                                    let location = if html_handler.peek().is_some() {
-                                    location
-                                    } => location;
-                                </p>_);
+                                html_extractor::html! {
+                                    <p>
+                                        let location = if html_handler.peek().is_some() {
+                                            location
+                                        } => location;
+                                    </p>_
+                                };
                                 (html_handler, location)
                             } else {
                                 (html_handler, None)
