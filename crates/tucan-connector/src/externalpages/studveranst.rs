@@ -16,17 +16,13 @@ pub async fn veranstaltungen(client: &MyClient, login_response: LoginResponse) -
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
             </style>_
         </head>_
         <body class="external_pages">_
-    };
-    let html_handler = logged_in_head(html_handler, login_response.id).0;
-    html_extractor::html! {
+        use logged_in_head(html_handler, login_response.id).0;
         <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
         <script type="text/javascript">
         </script>_

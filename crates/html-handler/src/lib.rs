@@ -214,7 +214,11 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let child_node = self.current_child.expect("expected one more child");
         let Some(child_element) = child_node.value().as_element() else { panic!("unexpected element {:?}", child_node.value()) };
         assert_eq!(child_element.name(), name);
-        Open { element: child_node, attrs: child_node.value().as_element().expect("expected child to be element").attrs(), outer_state: PhantomData }
+        Open {
+            element: child_node,
+            attrs: child_node.value().as_element().expect("expected child to be element").attrs(),
+            outer_state: PhantomData,
+        }
     }
 }
 
@@ -224,7 +228,11 @@ impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
         assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
         assert_eq!(self.element.value().as_element().expect("expected element").name(), name);
-        InElement { element: self.element.parent().unwrap(), current_child: self.element.next_sibling(), outer_state: PhantomData }
+        InElement {
+            element: self.element.parent().unwrap(),
+            current_child: self.element.next_sibling(),
+            outer_state: PhantomData,
+        }
     }
 }
 

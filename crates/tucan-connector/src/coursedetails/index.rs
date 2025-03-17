@@ -42,9 +42,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
             </style>_
@@ -53,9 +51,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
             </style>_
         </head>_
         <body class="coursedetails">_
-    };
-    let html_handler = if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
-    html_extractor::html! {
+        use if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
         <!--"dqf58hG7HHGpXGyye2_RfFRU9OdHxiBSQr2SeCdraDU"-->_
         <script type="text/javascript">
         </script>_
@@ -84,9 +80,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                 <a href=material_url class="arrow">
                     "Material"
                 </a>_
-            }
-            html_handler = html_handler.skip_any_comment();
-            html_extractor::html! {_
+                use html_handler.skip_any_comment();
                 <a href=messages_url class="arrow">
                     "Nachrichten"
                 </a>_
@@ -198,14 +192,18 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     }
     let mut description = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
-        let child;
-        (html_handler, child) = html_handler.next_any_child();
-        match child.value() {
-            scraper::Node::Text(text) => description.push(text.trim().to_owned()),
-            scraper::Node::Element(_element) => {
-                description.push(ElementRef::wrap(child).unwrap().html());
+        html_handler = {
+            html_extractor::html! {
+            let child = html_handler.next_any_child();
+        }
+            match child.value() {
+                scraper::Node::Text(text) => description.push(text.trim().to_owned()),
+                scraper::Node::Element(_element) => {
+                    description.push(ElementRef::wrap(child).unwrap().html());
+                }
+                _ => panic!(),
             }
-            _ => panic!(),
+            html_handler
         }
     }
     html_extractor::html! {

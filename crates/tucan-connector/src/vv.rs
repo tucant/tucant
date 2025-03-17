@@ -22,17 +22,13 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "jEU_iZdc3G7CJJrJKJjZNWhmTKwpIEJrFoclfvaBhFQ"
             </style>_
         </head>_
         <body class="registration_auditor">_
-    };
-    let html_handler = logged_in_head(html_handler, login_response.id).0;
-    html_extractor::html! {
+        use logged_in_head(html_handler, login_response.id).0;
         <!--"mAgJrK5QnezV6UMxREqfEJS8I4jUgb9auCtX-UqjbRI"-->_
         <script type="text/javascript">
         </script>_
@@ -58,8 +54,12 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
                 <div class="tb nb">
             }
             while html_handler.peek().is_some() {
-                let any_child;
-                (html_handler, any_child) = html_handler.next_any_child();
+                html_handler = {
+                    html_extractor::html! {
+                    let any_child = html_handler.next_any_child();
+                }
+                    html_handler
+                }
             }
             html_extractor::html! {
                 </div>_

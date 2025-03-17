@@ -16,17 +16,13 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "oiK6m4ZNKQoGD_x_6V3-YFNSsLMUaXrX5lQwN4Q88fc"
             </style>_
         </head>_
         <body class="external_pages">_
-    };
-    let html_handler = logged_out_head(html_handler, 344);
-    html_extractor::html! {
+        use logged_out_head(html_handler, 344);
                     <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
                     <script type="text/javascript">
                     </script>_
@@ -163,9 +159,7 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
                 </div>_
             </div>_
         </div>_
-    };
-    let html_handler = footer(html_handler, 1, 344);
-    html_extractor::html! {
+        use footer(html_handler, 1, 344);
         <!--"kPihWIZIb5OjP2_N9Uh_xbuyYvDKOGNxX5S2d7yQjKY"-->
         <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->
     }

@@ -45,9 +45,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
             </style>_
@@ -56,9 +54,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
             </style>_
         </head>_
         <body class="moduledetails">_
-    };
-    let html_handler = if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
-    html_extractor::html! {
+        use if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
         <!--"-h_LWY1o6IWQvq6DnWxWgp2Zp06F4JZitgy9Jh20j3s"-->_
         <script type="text/javascript">
         </script>_
@@ -133,14 +129,18 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     };
     let mut description = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
-        let child;
-        (html_handler, child) = html_handler.next_any_child();
-        match child.value() {
-            scraper::Node::Text(text) => description.push(text.trim().to_owned()),
-            scraper::Node::Element(_element) => {
-                description.push(ElementRef::wrap(child).unwrap().html());
+        html_handler = {
+            html_extractor::html! {
+            let child = html_handler.next_any_child();
+        }
+            match child.value() {
+                scraper::Node::Text(text) => description.push(text.trim().to_owned()),
+                scraper::Node::Element(_element) => {
+                    description.push(ElementRef::wrap(child).unwrap().html());
+                }
+                _ => panic!(),
             }
-            _ => panic!(),
+            html_handler
         }
     }
     html_extractor::html! {
@@ -354,10 +354,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     } => (); else {
                         <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                     } => ();
-            }
-            let mut rowspan: u64 = rowspan.parse().unwrap();
-            rowspan -= 1;
-            html_extractor::html! {
+                    extern {
+                        // TODO we need to remove the block around here
+                        let mut rowspan: u64 = rowspan.parse().unwrap();
+                        rowspan -= 1;
+                    };
                     <td class="tbborderleft rw rw-detail-reqachieve">
                         examination_type
                     </td>_
@@ -490,9 +491,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                 compulsory
                             </td>_
                         </tr>_
-                    };
-                    rowspan = rowspan_str.parse().unwrap();
-                    rowspan -= 1;
+                        extern {
+                            rowspan = rowspan_str.parse().unwrap();
+                            rowspan -= 1;
+                        };
+                    }
                     while rowspan > 0 {
                         html_handler = {
                             html_extractor::html! {
@@ -587,5 +590,14 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     };
     let html_handler = footer(html_handler, id, 311);
 
-    Ok(ModuleDetailsResponse { module_id, registered: registered.is_some(), count_elective_courses, credits, description, display_in_timetable, dozenten, duration: length })
+    Ok(ModuleDetailsResponse {
+        module_id,
+        registered: registered.is_some(),
+        count_elective_courses,
+        credits,
+        description,
+        display_in_timetable,
+        dozenten,
+        duration: length,
+    })
 }

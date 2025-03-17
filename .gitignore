@@ -1,3 +1,4 @@
+rustc-ice-*.txt
 out
 _metadata
 *.profraw

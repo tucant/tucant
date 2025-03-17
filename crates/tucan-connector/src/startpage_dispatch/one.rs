@@ -12,9 +12,7 @@ pub async fn startpage_dispatch_1(client: &MyClient) -> Result<(), TucanError> {
     html_extractor::html! {
         <html>
             <head>_
-    };
-    let html_handler = html_head_2(html_handler);
-    html_extractor::html! {
+            use html_head_2(html_handler);
             </head>_
             <body class="redirect">_
                 <div id="wrapper">_

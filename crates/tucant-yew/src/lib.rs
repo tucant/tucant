@@ -22,9 +22,27 @@ pub mod tauri;
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {
-    let session_id = web_extensions_sys::chrome().cookies().get(web_extensions_sys::CookieDetails { name: "id".to_owned(), partition_key: None, store_id: None, url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned() }).await?.value;
+    let session_id = web_extensions_sys::chrome()
+        .cookies()
+        .get(web_extensions_sys::CookieDetails {
+            name: "id".to_owned(),
+            partition_key: None,
+            store_id: None,
+            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+        })
+        .await?
+        .value;
 
-    let cnsc = web_extensions_sys::chrome().cookies().get(web_extensions_sys::CookieDetails { name: "cnsc".to_owned(), url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(), partition_key: None, store_id: None }).await?.value;
+    let cnsc = web_extensions_sys::chrome()
+        .cookies()
+        .get(web_extensions_sys::CookieDetails {
+            name: "cnsc".to_owned(),
+            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
+            partition_key: None,
+            store_id: None,
+        })
+        .await?
+        .value;
 
     Some(LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
 }

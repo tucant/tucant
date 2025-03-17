@@ -19,7 +19,9 @@ impl Default for ApiServerTucan {
 
 impl ApiServerTucan {
     pub fn new() -> Self {
-        Self { client: reqwest::ClientBuilder::new().user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap() }
+        Self {
+            client: reqwest::ClientBuilder::new().user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap(),
+        }
     }
 }
 

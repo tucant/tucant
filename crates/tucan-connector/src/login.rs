@@ -14,7 +14,12 @@ pub async fn logout(client: &MyClient, login_response: &LoginResponse) -> Result
 pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<LoginResponse, TucanError> {
     assert_ne!(login_request.username, "");
     assert_ne!(login_request.password, "");
-    let mut response = client.post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll").form(&[("usrname", login_request.username.as_str()), ("pass", login_request.password.as_str()), ("APPNAME", "CampusNet"), ("PRGNAME", "LOGINCHECK"), ("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform"), ("clino", "000000000000001"), ("menuno", "000344"), ("menu_type", "classic"), ("browser", ""), ("platform", "")]).send().await?.error_for_status()?;
+    let mut response = client
+        .post("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll")
+        .form(&[("usrname", login_request.username.as_str()), ("pass", login_request.password.as_str()), ("APPNAME", "CampusNet"), ("PRGNAME", "LOGINCHECK"), ("ARGUMENTS", "clino,usrname,pass,menuno,menu_type,browser,platform"), ("clino", "000000000000001"), ("menuno", "000344"), ("menu_type", "classic"), ("browser", ""), ("platform", "")])
+        .send()
+        .await?
+        .error_for_status()?;
     info!("{response:?}");
     assert_eq!(response.headers_mut().remove("content-type"), Some(HeaderValue::from_static("text/html")));
     assert_eq!(response.headers_mut().remove("server"), Some(HeaderValue::from_static("Microsoft-IIS/10.0")));

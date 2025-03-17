@@ -19,17 +19,13 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "XN0jaYaHLeXpiJk0Z7v_FOEBkC5jmdtJaIxqyRqEMj4"
             </style>_
         </head>_
         <body class="currentevents">_
-    };
-    let (html_handler, head) = logged_in_head(html_handler, login_response.id);
-    html_extractor::html! {
+        let head = logged_in_head(html_handler, login_response.id);
         <!--"EkIRwtbzV1S0qAPx6If3Ye8Ey0JkAZsONsPW8C2Tf3Y"-->_
         <script type="text/javascript">
         </script>_
@@ -148,9 +144,7 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                     </td>_
                     <td headers="Betreff" class="rw rw-mailsubject">
                         <a class="link" href=_url>
-            };
-            let (html_handler, any_child) = html_handler.next_any_child();
-            html_extractor::html! {
+                        let any_child = html_handler.next_any_child();
                         </a>
                     </td>_
                     <td headers="Aktion" class="rw rw-maildel">

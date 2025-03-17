@@ -2,7 +2,7 @@ use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    Expr, ExprStruct, Ident, LitStr, Token, braced,
+    Block, Expr, ExprStruct, Ident, LitStr, Stmt, Token, braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
     parse_macro_input,
@@ -35,6 +35,9 @@ enum HtmlCommand {
     Text(StringLiteralOrVariable),
     If(HtmlIf),
     While(HtmlWhile),
+    Use(Expr),
+    Extern(Block),
+    Let(HtmlLet),
 }
 
 impl Parse for HtmlCommand {
@@ -47,8 +50,18 @@ impl Parse for HtmlCommand {
             } else if input.peek3(Token![while]) {
                 input.parse().map(Self::While)
             } else {
-                Err(input.error("expected if or while at index 3"))?
+                input.parse().map(Self::Let)
             }
+        } else if lookahead.peek(Token![use]) {
+            input.parse::<Token![use]>()?;
+            let res = input.parse().map(Self::Use)?;
+            input.parse::<Token![;]>()?;
+            Ok(res)
+        } else if lookahead.peek(Token![extern]) {
+            input.parse::<Token![extern]>()?;
+            let res = input.parse().map(Self::Extern)?;
+            input.parse::<Token![;]>()?;
+            Ok(res)
         } else if lookahead.peek(Brace) {
             input.parse().map(Self::Text)
         } else if lookahead.peek(LitStr) {
@@ -68,6 +81,22 @@ impl Parse for HtmlCommand {
         } else {
             Err(lookahead.error())
         }
+    }
+}
+
+#[derive(Debug)]
+struct HtmlLet {
+    variable: Ident,
+    expr: Expr,
+}
+
+impl Parse for HtmlLet {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let variable = input.parse()?;
+        input.parse::<Token![=]>()?;
+        let expr = input.parse()?;
+        input.parse::<Token![;]>()?;
+        Ok(Self { variable, expr })
     }
 }
 
@@ -425,6 +454,25 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                         };
                     }
                     let mut #variable = #temp_vec;
+                }
+            }
+            HtmlCommand::Use(use_expr) => {
+                quote_spanned! {use_expr.span()=>
+                    #[allow(unused_mut)]
+                    let mut html_handler = #use_expr;
+                }
+            }
+            HtmlCommand::Extern(extern_body) => {
+                let body = &extern_body.stmts;
+                quote_spanned! {extern_body.span()=>
+                    #(#body)*
+                }
+            }
+            HtmlCommand::Let(html_let) => {
+                let variable = &html_let.variable;
+                let expr = &html_let.expr;
+                quote! {
+                    let (html_handler, #variable) = #expr;
                 }
             }
         })

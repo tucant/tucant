@@ -44,9 +44,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>_
-    };
-    let html_handler = html_head(html_handler)?;
-    html_extractor::html! {
+            use html_head(html_handler)?;
             <style type="text/css">
                 "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
             </style>_
@@ -55,9 +53,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
             </style>_
         </head>_
         <body class="registration">_
-    };
-    let html_handler = logged_in_head(html_handler, login_response.id).0;
-    html_extractor::html! {
+        use logged_in_head(html_handler, login_response.id).0;
         <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
         <script type="text/javascript">
         </script>_
@@ -123,8 +119,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
             html_extractor::html! {
                 "\n        \u{a0}>\u{a0}\n                "
                 <a href=url>
+                let any_child = html_handler.next_any_child();
             };
-            let (html_handler, any_child) = html_handler.next_any_child();
             match any_child.value() {
                 scraper::Node::Comment(_comment) => {}
                 scraper::Node::Text(text) => {
@@ -149,21 +145,30 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             item
                         </a>_
                     </li>_
-                } => (item.trim().to_owned(), AnmeldungRequest { arguments: url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}")).to_owned() },);
+                } => (
+                    item.trim().to_owned(),
+                    AnmeldungRequest {
+                        arguments: url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}")).to_owned()
+                    },
+                );
             </ul>_
         } => submenus;
         <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
     }
     let mut additional_information = Vec::new();
     while !html_handler.peek().unwrap().value().is_comment() {
-        let child;
-        (html_handler, child) = html_handler.next_any_child();
-        match child.value() {
-            scraper::Node::Text(text) => assert!(text.trim().is_empty()),
-            scraper::Node::Element(_element) => {
-                additional_information.push(ElementRef::wrap(child).unwrap().html());
+        html_handler = {
+            html_extractor::html! {
+            let child = html_handler.next_any_child();
+        }
+            match child.value() {
+                scraper::Node::Text(text) => assert!(text.trim().is_empty()),
+                scraper::Node::Element(_element) => {
+                    additional_information.push(ElementRef::wrap(child).unwrap().html());
+                }
+                _ => panic!(),
             }
-            _ => panic!(),
+            html_handler
         }
     }
     html_extractor::html! {
@@ -221,8 +226,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
 
             while html_handler.peek().is_some() {
                 html_handler = {
-                    let (mut html_handler, module) = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() == "logo column" {
-                        html_extractor::html! {
+                    html_extractor::html! {
+                        let module = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() == "logo column" {
                             <tr>_
                                 <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
                                 <td class="tbsubhead">_
@@ -270,26 +275,26 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                 <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
                                 <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                             </tr>_
+                        } => {
+                            let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"));
+                            let module_url = module_url.split_once(",-A").unwrap().0;
+                            let module = AnmeldungModule {
+                                url: ModuleDetailsRequest { arguments: module_url.to_owned() },
+                                id: module_id.trim().to_owned(),
+                                name: module_name,
+                                lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
+                                date: date.trim().to_owned(),
+                                limit_and_size: limit_and_size.trim().to_owned(),
+                                registration_button_link: registration_button_link.either_into(),
+                            };
+                            module
                         };
-                        let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"));
-                        let module_url = module_url.split_once(",-A").unwrap().0;
-                        let module = AnmeldungModule {
-                            url: ModuleDetailsRequest { arguments: module_url.to_owned() },
-                            id: module_id.trim().to_owned(),
-                            name: module_name,
-                            lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
-                            date: date.trim().to_owned(),
-                            limit_and_size: limit_and_size.trim().to_owned(),
-                            registration_button_link: registration_button_link.either_into(),
-                        };
-                        (html_handler, Some(module))
-                    } else {
-                        (html_handler, None)
-                    };
+                    }
 
                     let mut courses: Vec<(Option<AnmeldungExam>, AnmeldungCourse)> = Vec::new();
                     while html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() != "logo column" {
                         html_handler = {
+                            let re = Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap();
                             html_extractor::html! {
                                 let exam = if !html_handler.peek().unwrap().children().nth(5).unwrap().value().is_comment() {
                                     <tr>_
@@ -315,9 +320,6 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                         <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                     </tr>_
                                 } => AnmeldungExam { name: exam_name.trim().to_owned(), typ: exam_type };
-                            }
-
-                            html_extractor::html! {
                                 <tr>_
                                     <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
                                     <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
@@ -326,57 +328,36 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                     <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
                                     <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
                                     <td class="tbdata">_
-                            };
-                            let html_handler = if html_handler.peek().is_some() {
-                                html_extractor::html! {
-                                    <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
-                                };
-                                html_handler
-                            } else {
-                                html_handler
-                            };
-                            html_extractor::html! {
-                                </td>_
-                                <td class="tbdata dl-inner">_
-                                    <p>
-                                        <strong>
-                                            <a href=course_url name="eventLink">
-                                                course_id
-                                                <span class="eventTitle">
-                                                    course_name
-                                                </span>
-                                            </a>
-                                        </strong>
-                                    </p>_
-                                    <p>
-                            };
-                            // TODO FIXME sometimes the lecturer is not shown e.g. at
-                            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N244336302896459,-N000311,-N391343674191079,-N0,-N384253407729586,-N346654580556776
-                            // Detecting this seems impossible from the value of lecturer but we could check whether it matches a date.
-                            let re = Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap();
-                            let (mut html_handler, lecturers) = if html_handler.peek().is_some() && !re.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
-                                html_extractor::html! {
-                                        lecturers
-                                    </p>_
-                                    <p>
-                                };
-                                (html_handler, Some(lecturers))
-                            } else {
-                                (html_handler, None)
-                            };
-                            let (mut html_handler, begin_and_end) = if html_handler.peek().is_some() {
-                                html_extractor::html! {
-                                        begin_and_end
-                                    </p>_
-                                    <p>
-                                };
-                                (html_handler, Some(begin_and_end))
-                            } else {
-                                (html_handler, None)
+                                        let gefaehrung_schwangere = if html_handler.peek().is_some() {
+                                            <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
+                                        } => ();
+                                    </td>_
+                                    <td class="tbdata dl-inner">_
+                                        <p>
+                                            <strong>
+                                                <a href=course_url name="eventLink">
+                                                    course_id
+                                                    <span class="eventTitle">
+                                                        course_name
+                                                    </span>
+                                                </a>
+                                            </strong>
+                                        </p>_
+                                        <p>
+                                            let lecturers = if html_handler.peek().is_some() && !re.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
+                                                lecturers
+                                            </p>_
+                                            <p>
+                                            } => lecturers;
+                                            let begin_and_end = if html_handler.peek().is_some() {
+                                                begin_and_end
+                                            </p>_
+                                            <p>
+                                            } => begin_and_end;
                             };
                             let (mut html_handler, location_or_additional_info) = if html_handler.peek().is_some() {
-                                let (html_handler, location_or_additional_info) = html_handler.next_any_child();
                                 html_extractor::html! {
+                                    let location_or_additional_info = html_handler.next_any_child();
                                     </p>_
                                 };
                                 (html_handler, Some(location_or_additional_info))
@@ -386,48 +367,33 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                 };
                                 (html_handler, None)
                             };
-                            // TODO FIXME at the end there is either an empty p tag or a p tag with the location. before that at least the lecturer is written. optionally the date can follow and optionally arbitrary p content can follow.
-                            let (html_handler, location) = if html_handler.peek().is_some() {
-                                html_extractor::html! {
-                                    <p>
+                            html_extractor::html! {
                                         let location = if html_handler.peek().is_some() {
-                                            location
+                                            <p>
+                                                let location = if html_handler.peek().is_some() {
+                                                    location
+                                                } => location;
+                                            </p>_
                                         } => location;
-                                    </p>_
-                                };
-                                (html_handler, location)
-                            } else {
-                                (html_handler, None)
-                            };
-                            html_extractor::html! {
-                                </td>_
-                                <td class="tbdata">
-                                    registration_until
-                                    <br></br>
-                                    limit_and_size
-                                </td>_
-                                <td class="tbdata rw-qbf">_
-                            };
-                            let (html_handler, registration_button_link) = if html_handler.peek().is_some() {
-                                if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
-                                    html_extractor::html! {
-                                        <a href=registration_button_link class="img noFLoat register">
-                                            "Anmelden"
-                                        </a>_
-                                    };
-                                    (html_handler, RegistrationState::NotRegistered { register_link: registration_button_link })
-                                } else {
-                                    html_extractor::html! {
-                                        <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
-                                            " Abmelden"
-                                        </a>_
-                                    };
-                                    (html_handler, RegistrationState::Registered { unregister_link: registration_button_link })
-                                }
-                            } else {
-                                (html_handler, RegistrationState::Unknown)
-                            };
-                            html_extractor::html! {
+                                    </td>_
+                                    <td class="tbdata">
+                                        registration_until
+                                        <br></br>
+                                        limit_and_size
+                                    </td>_
+                                    <td class="tbdata rw-qbf">_
+                                        let registration_button_link = if html_handler.peek().is_some() {
+                                            let registration_button_link = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
+                                                <a href=registration_button_link class="img noFLoat register">
+                                                    "Anmelden"
+                                                </a>_
+                                            } => RegistrationState::NotRegistered { register_link: registration_button_link }; else {
+                                                <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
+                                                    " Abmelden"
+                                                </a>_
+                                            } => RegistrationState::Registered { unregister_link: registration_button_link };
+                                        } => registration_button_link.either_into::<RegistrationState>(); else {
+                                        } => RegistrationState::Unknown;
                                     </td>_
                                     <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                 </tr>_
@@ -442,7 +408,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                 begin_and_end,
                                 registration_until: registration_until.trim().to_owned(),
                                 limit_and_size: limit_and_size.trim().to_owned(),
-                                registration_button_link,
+                                registration_button_link: registration_button_link.either_into(),
                             };
                             courses.push((exam, course));
                             html_handler

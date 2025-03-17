@@ -186,14 +186,32 @@ mod authenticated_tests {
     pub async fn test_login() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        assert!(matches!(login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") },).await, Ok(_)));
+        assert!(matches!(
+            login(
+                &tucan.client,
+                &LoginRequest {
+                    username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                    password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing")
+                },
+            )
+            .await,
+            Ok(_)
+        ));
     }
 
     #[tokio::test]
     pub async fn test_redirect_after_login() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         redirect_after_login(&tucan.client, login_response).await.unwrap()
     }
 
@@ -201,7 +219,15 @@ mod authenticated_tests {
     pub async fn test_mlsstart() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         after_login(&tucan.client, &login_response).await.unwrap();
     }
 
@@ -209,7 +235,15 @@ mod authenticated_tests {
     pub async fn test_registration() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         let response = anmeldung(&tucan, &login_response, AnmeldungRequest { arguments: ",-N000311,-A".to_owned() }).await.unwrap();
     }
 
@@ -217,7 +251,15 @@ mod authenticated_tests {
     pub async fn vv_top_level() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap();
     }
@@ -226,7 +268,15 @@ mod authenticated_tests {
     pub async fn vv_first_level() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap().entries[0].clone();
         let result = tucan.vv(&login_response, result).await.unwrap();
@@ -236,7 +286,15 @@ mod authenticated_tests {
     pub async fn vv_first_level_4_courses() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap().entries[4].clone();
         let result = tucan.vv(&login_response, result).await.unwrap();
@@ -246,8 +304,19 @@ mod authenticated_tests {
     pub async fn vv_first_level_all() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new().await.unwrap();
-        let login_response = login(&tucan.client, &LoginRequest { username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"), password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing") }).await.unwrap();
-        let login_response = LoginResponse { id: std::env::var("SESSION_ID").unwrap().parse().unwrap(), cookie_cnsc: std::env::var("SESSION_KEY").unwrap() };
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        let login_response = LoginResponse {
+            id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
+            cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
+        };
         let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
         for action in tucan.vv(&login_response, action).await.unwrap().entries {
             println!("{}", action);

@@ -78,7 +78,10 @@ pub async fn login_endpoint(jar: CookieJar, Json(login_request): Json<LoginReque
 pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
 
     logout(&tucan.client, &login_response).await.unwrap();
 
@@ -100,7 +103,10 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
 pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
 
     let response = anmeldung_cached(&tucan, &login_response, AnmeldungRequest { arguments: registration }).await?;
 
@@ -120,7 +126,10 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
 pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
 
     let response = tucan.module_details(&login_response, ModuleDetailsRequest { arguments: module }).await?;
 
@@ -140,7 +149,10 @@ pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>)
 pub async fn course_details_endpoint(jar: CookieJar, Path(module): Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
 
     let response = tucan.course_details(&login_response, CourseDetailsRequest { arguments: module }).await?;
 
@@ -159,7 +171,10 @@ pub async fn course_details_endpoint(jar: CookieJar, Path(module): Path<String>)
 pub async fn after_login_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse { id: jar.get("id").unwrap().value().parse().unwrap(), cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned() };
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
 
     let response = tucan.after_login(&login_response).await?;
 

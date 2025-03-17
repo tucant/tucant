@@ -244,8 +244,8 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
 #[must_use]
 pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>, LoggedInHead) {
     assert_ne!(id, 1);
-    let html_handler = page_start(html_handler);
     html_extractor::html! {
+        use page_start(html_handler);
         <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
             <a class="depth_1 link000019 navLink branchLink " href=_aktuelles_url>
                 "Aktuelles"
@@ -262,9 +262,7 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
             <a class="depth_1 link000326 navLink branchLink " href=vorlesungsverzeichnis_url>
                 "VV"
             </a>
-    };
-    let (html_handler, vv) = vv_something(html_handler, id);
-    html_extractor::html! {
+            let vv = vv_something(html_handler, id);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
                         <a class="depth_1 link000268 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000268,-A,-A,-N1")}>
@@ -499,8 +497,8 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
 
 #[must_use]
 pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>> {
-    let html_handler = page_start(html_handler);
     html_extractor::html! {
+        use page_start(html_handler);
         <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
             <a class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
                 "Startseite"
@@ -510,9 +508,7 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
             <a class="depth_1 link000334 navLink branchLink " href=_url>
                 "Vorlesungsverzeichnis (VV)"
             </a>
-    };
-    let (html_handler, _) = vv_something(html_handler, 1);
-    html_extractor::html! {
+            let _unused = vv_something(html_handler, 1);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
                         <a class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">
