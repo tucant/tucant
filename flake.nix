@@ -206,8 +206,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "f936d127";
-            hash = "sha256-uQuyRaBWJUdiLKl9fO+S9o+Szwup8IR85xzlMg196co=";
+            rev = "50376aa2";
+            hash = "sha256-QkGijMZ+YoP8GImcOXWx2OD5xOIbY739K8o9Q5jLnns=";
           };
           doCheck = false;
         };

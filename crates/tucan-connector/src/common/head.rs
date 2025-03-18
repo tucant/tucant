@@ -69,26 +69,31 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
         <!--"fD1xdYETGI2QrMhnwhN-3obm-UIuRhNpzKv2Qbz53Ac"-->_
         <!--"NIHfntnP_QYxOqBt0vrT3UIfpe7DzzHCCiQbHrVLrXE"-->_
         <!--"x2WUiOGjWA_UDiUqZA9skrh_uNAWGlcC-R__ip9vYyg"-->_
-    }
-    if html_handler.peek().is_none() {
-        html_extractor::html! {
+        let wef = if html_handler.peek().is_none() {
             </head>_
-        }
-        if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
-            html_extractor::html! {
+            let adv = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
                 <body class="timeout">
-            };
-            let _html_handler = html_handler;
-            return Err(TucanError::Timeout);
-        } else if html_handler.peek().unwrap().value().as_element().unwrap().has_class("access_denied", scraper::CaseSensitivity::CaseSensitive) {
-            html_extractor::html! {
-                <body class="access_denied">
-            };
-            let _html_handler = html_handler;
-            return Err(TucanError::AccessDenied);
-        } else {
-            panic!();
-        }
+                    extern {
+                        let _html_handler = html_handler;
+                        return Err(TucanError::Timeout);
+                    }
+                </body>
+            } => (); else {
+                let afwe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("access_denied", scraper::CaseSensitivity::CaseSensitive) {
+                    <body class="access_denied">
+                        extern {
+                            let _html_handler = html_handler;
+                            return Err(TucanError::AccessDenied);
+                        }
+                    </body>
+                } => (); else {
+                    extern {
+                        panic!();
+                    }
+                } => ();
+            } => ();
+            <head>
+        } => ();
     }
     Ok(html_handler)
 }
@@ -245,24 +250,24 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
 pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>, LoggedInHead) {
     assert_ne!(id, 1);
     html_extractor::html! {
-        use page_start(html_handler);
-        <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
-            <a class="depth_1 link000019 navLink branchLink " href=_aktuelles_url>
-                "Aktuelles"
-            </a>
-            <ul class="nav depth_2 linkItemContainer">
-                <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299">
-                    <a class="depth_2 link000299 navLink " href=messages_url>
-                        "Nachrichten"
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
-            <a class="depth_1 link000326 navLink branchLink " href=vorlesungsverzeichnis_url>
-                "VV"
-            </a>
-            let vv = vv_something(html_handler, id);
+                    use page_start(html_handler);
+                    <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
+                        <a class="depth_1 link000019 navLink branchLink " href=_aktuelles_url>
+                            "Aktuelles"
+                        </a>
+                        <ul class="nav depth_2 linkItemContainer">
+                            <li class="intern depth_2 linkItem " title="Nachrichten" id="link000299">
+                                <a class="depth_2 link000299 navLink " href=messages_url>
+                                    "Nachrichten"
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="tree depth_1 linkItem branchLinkItem " title="VV" id="link000326">
+                        <a class="depth_1 link000326 navLink branchLink " href=vorlesungsverzeichnis_url>
+                            "VV"
+                        </a>
+                        let vv = vv_something(html_handler, id);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Stundenplan" id="link000268">
                         <a class="depth_1 link000268 navLink branchLink " href={&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{id:015},-N000268,-A,-A,-N1")}>
@@ -498,17 +503,17 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
 #[must_use]
 pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>> {
     html_extractor::html! {
-        use page_start(html_handler);
-        <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
-            <a class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
-                "Startseite"
-            </a>
-        </li>
-        <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
-            <a class="depth_1 link000334 navLink branchLink " href=_url>
-                "Vorlesungsverzeichnis (VV)"
-            </a>
-            let _unused = vv_something(html_handler, 1);
+                    use page_start(html_handler);
+                    <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
+                        <a class="depth_1 link000344 navLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
+                            "Startseite"
+                        </a>
+                    </li>
+                    <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
+                        <a class="depth_1 link000334 navLink branchLink " href=_url>
+                            "Vorlesungsverzeichnis (VV)"
+                        </a>
+                        let _unused = vv_something(html_handler, 1);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
                         <a class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">

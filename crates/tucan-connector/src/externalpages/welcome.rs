@@ -14,15 +14,15 @@ pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
     html_extractor::html! {
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">
-            <head>_
-            use html_head(html_handler)?;
-            <style type="text/css">
-                "oiK6m4ZNKQoGD_x_6V3-YFNSsLMUaXrX5lQwN4Q88fc"
-            </style>_
-        </head>_
-        <body class="external_pages">_
-        use logged_out_head(html_handler, 344);
+            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:mso="urn:schemas-microsoft-com:office:office">
+                <head>_
+                    use html_head(html_handler)?;
+                    <style type="text/css">
+                        "oiK6m4ZNKQoGD_x_6V3-YFNSsLMUaXrX5lQwN4Q88fc"
+                    </style>_
+                </head>_
+                <body class="external_pages">_
+                    use logged_out_head(html_handler, 344);
                     <!--"Ur30ahmaXh5XzV5xIHsTj20h-0qX1_GS1SR0QttvqB0"-->_
                     <script type="text/javascript">
                     </script>_

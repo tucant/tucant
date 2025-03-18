@@ -20,54 +20,40 @@ pub async fn vv(client: &MyClient, mut login_response: LoginResponse, action: St
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
     html_extractor::html! {
-        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-            <head>_
-            use html_head(html_handler)?;
-            <style type="text/css">
-                "jEU_iZdc3G7CJJrJKJjZNWhmTKwpIEJrFoclfvaBhFQ"
-            </style>_
-        </head>_
-        <body class="registration_auditor">_
-        use logged_in_head(html_handler, login_response.id).0;
-        <!--"mAgJrK5QnezV6UMxREqfEJS8I4jUgb9auCtX-UqjbRI"-->_
-        <script type="text/javascript">
-        </script>_
-        <h1>
-            "Vorlesungsverzeichnis"
-        </h1>_
-        <!--"kVJ9mNrY2XJb35ukyO3hMoLc_9dEHSgzMALBDLwWpHM"-->_
-        <!--"Z6v-LbjcnKpltlabF99VIGyltOdElMLHxTYIzpsZgUU"-->_
-        <h2>_
-            let vorlesungsverzeichnisse = while html_handler.peek().is_some() {
-                <a href=url>
-                    let title = if html_handler.peek().is_some() {
-                        title
-                    } => title;
-                </a>_
-            } => (url, title);
-        </h2>_
-        <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
-    }
-    if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
-        html_handler = {
-            html_extractor::html! {
-                <div class="tb nb">
-            }
-            while html_handler.peek().is_some() {
-                html_handler = {
-                    html_extractor::html! {
-                    let any_child = html_handler.next_any_child();
-                }
-                    html_handler
-                }
-            }
-            html_extractor::html! {
-                </div>_
-            }
-            html_handler
-        }
-    }
-    html_extractor::html! {
+            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+                <head>_
+                    use html_head(html_handler)?;
+                    <style type="text/css">
+                        "jEU_iZdc3G7CJJrJKJjZNWhmTKwpIEJrFoclfvaBhFQ"
+                    </style>_
+                </head>_
+                <body class="registration_auditor">_
+                    use logged_in_head(html_handler, login_response.id).0;
+                    <!--"mAgJrK5QnezV6UMxREqfEJS8I4jUgb9auCtX-UqjbRI"-->_
+                    <script type="text/javascript">
+                    </script>_
+                    <h1>
+                        "Vorlesungsverzeichnis"
+                    </h1>_
+                    <!--"kVJ9mNrY2XJb35ukyO3hMoLc_9dEHSgzMALBDLwWpHM"-->_
+                    <!--"Z6v-LbjcnKpltlabF99VIGyltOdElMLHxTYIzpsZgUU"-->_
+                    <h2>_
+                        let vorlesungsverzeichnisse = while html_handler.peek().is_some() {
+                            <a href=url>
+                                let title = if html_handler.peek().is_some() {
+                                    title
+                                } => title;
+                            </a>_
+                        } => (url, title);
+                    </h2>_
+                    <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
+                    let children = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
+                        <div class="tb nb">
+                            let children = while html_handler.peek().is_some() {
+                                let any_child = html_handler.next_any_child();
+                            } => any_child;
+                        </div>_
+                    } => children;
                     let entries = if html_handler.peek().unwrap().value().is_element() {
                         <ul class="auditRegistrationList" id="auditRegistration_list">_
                             let entries = while html_handler.peek().is_some() {
