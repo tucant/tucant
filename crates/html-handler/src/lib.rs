@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use data_encoding::BASE64URL_NOPAD;
 use ego_tree::NodeRef;
 use scraper::Node;
-use scraper::{Html, node::Attrs};
+use scraper::node::Attrs;
 use sha3::{Digest, Sha3_256};
 
 // TODO FIXME according to clippy this uses lots of stack space
@@ -56,7 +56,8 @@ impl<'a> Root<'a> {
 }
 
 impl<'a> InRoot<'a, Root<'a>> {
-    pub fn peek(&self) -> Option<&NodeRef<'a, Node>> {
+    #[must_use]
+    pub const fn peek(&self) -> Option<&NodeRef<'a, Node>> {
         self.current_child.as_ref()
     }
 
@@ -139,7 +140,8 @@ impl<'a, OuterState> Open<'a, OuterState> {
 }
 
 impl<'a, OuterState> InElement<'a, OuterState> {
-    pub fn peek(&self) -> Option<&NodeRef<'a, Node>> {
+    #[must_use]
+    pub const fn peek(&self) -> Option<&NodeRef<'a, Node>> {
         self.current_child.as_ref()
     }
 
@@ -202,7 +204,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[must_use]
     pub fn skip_any_comment(mut self) -> Self {
         let child_node = self.current_child.expect("expected child but none left");
-        let Some(child_element) = child_node.value().as_comment() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(_child_element) = child_node.value().as_comment() else { panic!("unexpected element {:?}", child_node.value()) };
         self.current_child = child_node.next_sibling();
         self
     }

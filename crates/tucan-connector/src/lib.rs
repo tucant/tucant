@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use coursedetails::index::{course_details, course_details_cached};
+use coursedetails::index::course_details_cached;
 use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::start_page::after_login;
-use moduledetails::index::{module_details, module_details_cached};
-use registration::index::{anmeldung, anmeldung_cached};
+use moduledetails::index::module_details_cached;
+use registration::index::anmeldung_cached;
 use reqwest::header;
 use tokio::time::sleep;
 use tucant_types::{Tucan, TucanError, Vorlesungsverzeichnis};
@@ -29,11 +29,11 @@ pub struct TucanConnector {
     pub database: Database,
 }
 
-/// TUCaN being unreliable is a feature
+/// `TUCaN` being unreliable is a feature
 pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String, TucanError> {
     let mut i = 0;
     loop {
-        let result = (async || client.get(url).send().await?.error_for_status()?.text().await)().await;
+        let result = async { client.get(url).send().await?.error_for_status()?.text().await }.await;
         if i == 4 {
             return Ok(result?);
         }
@@ -49,7 +49,7 @@ pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String
 pub async fn authenticated_retryable_get(client: &reqwest::Client, url: &str, cookie_cnsc: &str) -> Result<String, TucanError> {
     let mut i = 0;
     loop {
-        let result = (async || client.get(url).header("Cookie", format!("cnsc={}", cookie_cnsc)).send().await?.error_for_status()?.text().await)().await;
+        let result = async { client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?.text().await }.await;
         if i == 4 {
             return Ok(result?);
         }

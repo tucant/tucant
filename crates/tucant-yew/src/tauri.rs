@@ -80,15 +80,15 @@ impl Tucan for TauriTucan {
         .unwrap())
     }
 
-    async fn logout(&self, request: &LoginResponse) -> Result<(), TucanError> {
+    async fn logout(&self, _request: &LoginResponse) -> Result<(), TucanError> {
         todo!()
     }
 
-    async fn after_login(&self, request: &LoginResponse) -> Result<tucant_types::LoggedInHead, TucanError> {
+    async fn after_login(&self, _request: &LoginResponse) -> Result<tucant_types::LoggedInHead, TucanError> {
         todo!()
     }
 
-    async fn vv(&self, login_response: &LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
+    async fn vv(&self, _login_response: &LoginResponse, _action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
         todo!()
     }
 }

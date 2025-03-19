@@ -2,7 +2,7 @@ use itertools::Itertools;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{
-    Block, Expr, ExprStruct, Ident, LitStr, Stmt, Token, braced,
+    Block, Expr, Ident, LitStr, Token, braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
     parse_macro_input,
@@ -17,8 +17,8 @@ struct HtmlCommands {
 }
 
 impl HtmlCommands {
-    fn span(&self) -> Span {
-        self.commands.iter().map(|command| command.span()).reduce(|a, b| a.join(b).unwrap_or(a)).unwrap_or(Span::call_site())
+    fn span(&self) -> Option<Span> {
+        self.commands.iter().map(HtmlCommand::span).reduce(|a, b| a.join(b).unwrap_or(a))
     }
 }
 
@@ -39,22 +39,22 @@ enum HtmlCommand {
     ElementClose(HtmlElementClose),
     Comment(HtmlComment),
     Text(StringLiteralOrVariable),
-    Use(Expr),
-    Extern(Block),
-    Let(HtmlLet),
+    Use(HtmlUse),
+    Extern(HtmlExtern),
+    Let(Box<HtmlLet>),
 }
 
 impl HtmlCommand {
     pub fn span(&self) -> Span {
         match self {
-            HtmlCommand::ElementOpen(html_element) => html_element.span(),
-            HtmlCommand::Whitespace(html_whitespace) => html_whitespace.span(),
-            HtmlCommand::ElementClose(html_element_close) => html_element_close.span(),
-            HtmlCommand::Comment(html_comment) => html_comment.span(),
-            HtmlCommand::Text(string_literal_or_variable) => string_literal_or_variable.span(),
-            HtmlCommand::Use(expr) => expr.span(),
-            HtmlCommand::Extern(block) => block.span(),
-            HtmlCommand::Let(html_let) => html_let.span(),
+            Self::ElementOpen(html_element) => html_element.span(),
+            Self::Whitespace(html_whitespace) => html_whitespace.span(),
+            Self::ElementClose(html_element_close) => html_element_close.span(),
+            Self::Comment(html_comment) => html_comment.span(),
+            Self::Text(string_literal_or_variable) => string_literal_or_variable.span(),
+            Self::Use(expr) => expr.span(),
+            Self::Extern(block) => block.span(),
+            Self::Let(html_let) => html_let.span(),
         }
     }
 }
@@ -65,17 +65,10 @@ impl Parse for HtmlCommand {
         if lookahead.peek(Token![let]) {
             input.parse().map(Self::Let)
         } else if lookahead.peek(Token![use]) {
-            input.parse::<Token![use]>()?;
-            let res = input.parse().map(Self::Use)?;
-            input.parse::<Token![;]>()?;
-            Ok(res)
+            input.parse().map(Self::Use)
         } else if lookahead.peek(Token![extern]) {
-            input.parse::<Token![extern]>()?;
-            let res = input.parse().map(Self::Extern)?;
-            Ok(res)
-        } else if lookahead.peek(Brace) {
-            input.parse().map(Self::Text)
-        } else if lookahead.peek(LitStr) {
+            input.parse().map(Self::Extern)
+        } else if lookahead.peek(Brace) || lookahead.peek(LitStr) {
             input.parse().map(Self::Text)
         } else if lookahead.peek(Token![_]) {
             input.parse().map(Self::Whitespace)
@@ -96,6 +89,48 @@ impl Parse for HtmlCommand {
 }
 
 #[derive(Debug)]
+struct HtmlExtern {
+    extern_: Token![extern],
+    block: Block,
+}
+
+impl HtmlExtern {
+    pub fn span(&self) -> Span {
+        self.extern_.span().join(self.block.span()).unwrap_or_else(|| self.extern_.span())
+    }
+}
+
+impl Parse for HtmlExtern {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let extern_ = input.parse::<Token![extern]>()?;
+        let block = input.parse()?;
+        Ok(Self { extern_, block })
+    }
+}
+
+#[derive(Debug)]
+struct HtmlUse {
+    use_: Token![use],
+    expr: Expr,
+    semi: Token![;],
+}
+
+impl HtmlUse {
+    pub fn span(&self) -> Span {
+        self.use_.span().join(self.expr.span()).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.use_.span())
+    }
+}
+
+impl Parse for HtmlUse {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let use_ = input.parse::<Token![use]>()?;
+        let expr = input.parse()?;
+        let semi = input.parse::<Token![;]>()?;
+        Ok(Self { use_, expr, semi })
+    }
+}
+
+#[derive(Debug)]
 struct HtmlLet {
     let_: Token![let],
     variable: Ident,
@@ -106,7 +141,7 @@ struct HtmlLet {
 
 impl HtmlLet {
     pub fn span(&self) -> Span {
-        self.let_.span()
+        self.let_.span().join(self.variable.span()).and_then(|v| v.join(self.eq.span())).and_then(|v| v.join(self.inner.span())).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.let_.span())
     }
 }
 
@@ -131,9 +166,9 @@ enum HtmlLetInner {
 impl HtmlLetInner {
     pub fn span(&self) -> Span {
         match self {
-            HtmlLetInner::Expr(expr) => expr.span(),
-            HtmlLetInner::If(html_if) => html_if.span(),
-            HtmlLetInner::While(html_while) => html_while.span(),
+            Self::Expr(expr) => expr.span(),
+            Self::If(html_if) => html_if.span(),
+            Self::While(html_while) => html_while.span(),
         }
     }
 }
@@ -190,15 +225,15 @@ impl Parse for DashOrColon {
 enum StringLiteralOrVariable {
     Literal(LitStr),
     Variable(Ident),
-    Expression(Expr),
+    Expression(Brace, Expr),
 }
 
 impl StringLiteralOrVariable {
     pub fn span(&self) -> Span {
         match self {
-            StringLiteralOrVariable::Literal(lit_str) => lit_str.span(),
-            StringLiteralOrVariable::Variable(ident) => ident.span(),
-            StringLiteralOrVariable::Expression(expr) => expr.span(),
+            Self::Literal(lit_str) => lit_str.span(),
+            Self::Variable(ident) => ident.span(),
+            Self::Expression(brace, _expr) => brace.span.join(),
         }
     }
 }
@@ -208,9 +243,8 @@ impl Parse for StringLiteralOrVariable {
         let lookahead = input.lookahead1();
         if lookahead.peek(Brace) {
             let content;
-            let _brace_token = braced!(content in input);
-
-            content.parse().map(Self::Expression)
+            let brace_token = braced!(content in input);
+            content.parse().map(|b| Self::Expression(brace_token, b))
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Literal)
         } else if lookahead.peek(Ident::peek_any) {
@@ -224,7 +258,15 @@ impl Parse for StringLiteralOrVariable {
 #[derive(Debug)]
 struct HtmlAttribute {
     ident: Punctuated<Ident, DashOrColon>,
+    eq: Token![=],
     value: StringLiteralOrVariable,
+}
+
+impl HtmlAttribute {
+    fn span(&self) -> Span {
+        let span = self.ident.iter().map(proc_macro2::Ident::span).reduce(|a, b| a.join(b).unwrap_or(a)).unwrap();
+        span.join(self.eq.span()).and_then(|a| a.join(self.value.span())).unwrap_or(span)
+    }
 }
 
 impl Parse for HtmlAttribute {
@@ -235,14 +277,15 @@ impl Parse for HtmlAttribute {
             ident.push_punct(input.parse()?);
             ident.push_value(input.parse()?);
         }
-        input.parse::<Token![=]>()?;
+        let eq = input.parse::<Token![=]>()?;
         let value = input.parse()?;
-        Ok(Self { ident, value })
+        Ok(Self { ident, eq, value })
     }
 }
 
 #[derive(Debug)]
 struct HtmlElement {
+    open_start: Token![<],
     element: Ident,
     attributes: Vec<HtmlAttribute>,
     open_end: Token![>],
@@ -250,142 +293,174 @@ struct HtmlElement {
 
 impl HtmlElement {
     pub fn span(&self) -> Span {
-        self.element.span()
+        let attrspan = self.attributes.iter().map(HtmlAttribute::span).reduce(|a, b| a.join(b).unwrap_or(a));
+        self.open_start.span().join(self.element.span()).map(|s| attrspan.and_then(|attrspan| s.join(attrspan)).unwrap_or(s)).and_then(|s| s.join(self.open_end.span())).unwrap_or_else(|| self.open_start.span())
     }
 }
 
 impl Parse for HtmlElement {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse::<Token![<]>()?;
+        let open_start = input.parse::<Token![<]>()?;
         let element = input.call(Ident::parse_any)?;
         let mut attributes = Vec::new();
         while !input.peek(Token!(>)) {
             attributes.push(input.parse()?);
         }
         let open_end = input.parse()?;
-        Ok(Self { element, attributes, open_end })
+        Ok(Self { open_start, element, attributes, open_end })
     }
 }
 
 #[derive(Debug)]
 struct HtmlElementClose {
+    close_start: Token![<],
+    close_slash: Token![/],
     element: Ident,
+    close_end: Token![>],
 }
 
 impl HtmlElementClose {
     pub fn span(&self) -> Span {
-        self.element.span()
+        self.close_start.span().join(self.close_slash.span()).and_then(|s| s.join(self.element.span())).and_then(|s| s.join(self.close_end.span())).unwrap_or_else(|| self.close_start.span())
     }
 }
 
 impl Parse for HtmlElementClose {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse::<Token![<]>()?;
-        input.parse::<Token![/]>()?;
+        let close_start = input.parse::<Token![<]>()?;
+        let close_slash = input.parse::<Token![/]>()?;
         let element = input.call(Ident::parse_any)?;
-        input.parse::<Token![>]>()?;
-        Ok(Self { element })
+        let close_end = input.parse::<Token![>]>()?;
+        Ok(Self { close_start, close_slash, element, close_end })
     }
 }
 
 #[derive(Debug)]
 struct HtmlComment {
+    token1: Token![<],
+    token2: Token![!],
+    token3: Token![-],
+    token4: Token![-],
     comment: LitStr,
+    token5: Token![-],
+    token6: Token![-],
+    token7: Token![>],
 }
 
 impl HtmlComment {
     pub fn span(&self) -> Span {
-        self.comment.span()
+        [self.token1.span(), self.token2.span(), self.token3.span(), self.token4.span(), self.comment.span(), self.token5.span(), self.token6.span(), self.token7.span()].into_iter().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
 impl Parse for HtmlComment {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse::<Token![<]>()?;
-        input.parse::<Token![!]>()?;
-        input.parse::<Token![-]>()?;
-        input.parse::<Token![-]>()?;
+        let token1 = input.parse::<Token![<]>()?;
+        let token2 = input.parse::<Token![!]>()?;
+        let token3 = input.parse::<Token![-]>()?;
+        let token4 = input.parse::<Token![-]>()?;
         let comment: LitStr = input.parse()?;
-        input.parse::<Token![-]>()?;
-        input.parse::<Token![-]>()?;
-        input.parse::<Token![>]>()?;
-        Ok(Self { comment })
+        let token5 = input.parse::<Token![-]>()?;
+        let token6 = input.parse::<Token![-]>()?;
+        let token7 = input.parse::<Token![>]>()?;
+        Ok(Self { token1, token2, token3, token4, comment, token5, token6, token7 })
     }
 }
 
-// TODO FIXME implement arbitrary children matcher
-// TODO FIXME allow calling subtemplates inside of a html_extractor?
-// TODO FIXME implement else
 // TODO FIXME  => a = statement_evaluating_to_unit
 // html_handler = html_handler.skip_any_comment(); probably a special case. maybe allow <!-- variable -->
 #[derive(Debug)]
 struct HtmlIf {
+    if_: Token![if],
     conditional: Expr,
+    brace_token: Brace,
     body: HtmlCommands,
+    eq: Token![=],
+    gt: Token![>],
     result_expr: Expr,
-    else_: Option<(HtmlCommands, Expr)>,
+    else_: Option<HtmlElse>,
+}
+
+#[derive(Debug)]
+struct HtmlElse {
+    else_: Token![else],
+    brace_token: Brace,
+    body: HtmlCommands,
+    eq: Token![=],
+    gt: Token![>],
+    result_expr: Expr,
+}
+
+impl HtmlElse {
+    pub fn span(&self) -> Span {
+        [Some(self.else_.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span())].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
+    }
 }
 
 impl HtmlIf {
     pub fn span(&self) -> Span {
-        self.conditional.span()
+        [Some(self.if_.span()), Some(self.conditional.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span()), self.else_.as_ref().map(HtmlElse::span)].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse::<Token![if]>()?;
+        let if_ = input.parse::<Token![if]>()?;
         let conditional = input.parse()?;
         let body_parse_buffer;
-        let _brace_token = braced!(body_parse_buffer in input);
+        let brace_token = braced!(body_parse_buffer in input);
         let body = body_parse_buffer.parse()?;
-        input.parse::<Token![=]>()?;
-        input.parse::<Token![>]>()?;
+        let eq = input.parse::<Token![=]>()?;
+        let gt = input.parse::<Token![>]>()?;
         let result_expr = input.parse()?;
-        let else_ = if input.peek2(Token![else]) {
-            input.parse::<Token![;]>()?;
-            input.parse::<Token![else]>()?;
+        let else_ = if input.peek(Token![else]) {
+            let else_ = input.parse::<Token![else]>()?;
             let body_parse_buffer;
-            let _brace_token = braced!(body_parse_buffer in input);
+            let brace_token = braced!(body_parse_buffer in input);
             let body = body_parse_buffer.parse()?;
-            input.parse::<Token![=]>()?;
-            input.parse::<Token![>]>()?;
+            let eq = input.parse::<Token![=]>()?;
+            let gt = input.parse::<Token![>]>()?;
             let result_expr = input.parse()?;
-            Some((body, result_expr))
+            Some(HtmlElse { else_, brace_token, body, eq, gt, result_expr })
         } else {
             None
         };
-        Ok(Self { conditional, body, result_expr, else_ })
+        Ok(Self { if_, conditional, brace_token, body, eq, gt, result_expr, else_ })
     }
 }
 
 #[derive(Debug)]
 struct HtmlWhile {
+    while_: Token![while],
     conditional: Expr,
+    brace_token: Brace,
     body: HtmlCommands,
+    eq: Token![=],
+    gt: Token![>],
     result_expr: Expr,
 }
 
 impl HtmlWhile {
     pub fn span(&self) -> Span {
-        self.conditional.span()
+        [Some(self.while_.span()), Some(self.conditional.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span())].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
 impl Parse for HtmlWhile {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        input.parse::<Token![while]>()?;
+        let while_ = input.parse::<Token![while]>()?;
         let conditional = input.parse()?;
         let body_parse_buffer;
-        let _brace_token = braced!(body_parse_buffer in input);
+        let brace_token = braced!(body_parse_buffer in input);
         let body = body_parse_buffer.parse()?;
-        input.parse::<Token![=]>()?;
-        input.parse::<Token![>]>()?;
+        let eq = input.parse::<Token![=]>()?;
+        let gt = input.parse::<Token![>]>()?;
         let result_expr = input.parse()?;
-        Ok(Self { conditional, body, result_expr })
+        Ok(Self { while_, conditional, brace_token, body, eq, gt, result_expr })
     }
 }
 
+#[expect(clippy::too_many_lines)]
 fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
     commands
         .commands
@@ -415,7 +490,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                                 let mut html_handler = html_handler.attribute(#name, #lit_str);
                             }
                         }
-                        StringLiteralOrVariable::Expression(expr) => {
+                        StringLiteralOrVariable::Expression(_brace, expr) => {
                             quote_spanned! {expr.span()=>
                                 let tmp_internal_html_extractor_proc_macro: &str = #expr;
                                 #[allow(unused_mut)]
@@ -476,7 +551,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                         let mut html_handler = html_handler.skip_text(#lit_str);
                     }
                 }
-                StringLiteralOrVariable::Expression(expr) => {
+                StringLiteralOrVariable::Expression(_brace, expr) => {
                     quote_spanned! {expr.span()=>
                         #[allow(unused_mut)]
                         let mut html_handler = html_handler.skip_text(#expr);
@@ -489,15 +564,15 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     }
                 }
             },
-            HtmlCommand::Use(use_expr) => {
-                quote_spanned! {use_expr.span()=>
+            HtmlCommand::Use(HtmlUse { use_: _, expr, semi }) => {
+                quote_spanned! {expr.span()=>
                     #[allow(unused_mut)]
-                    let mut html_handler = #use_expr;
+                    let mut html_handler = #expr #semi
                 }
             }
-            HtmlCommand::Extern(extern_body) => {
-                let body = &extern_body.stmts;
-                quote_spanned! {extern_body.span()=>
+            HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
+                let body = &block.stmts;
+                quote_spanned! {block.span()=>
                     #(#body)*
                 }
             }
@@ -509,45 +584,66 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                             let (html_handler, #variable) = #expr;
                         }
                     }
-                    HtmlLetInner::If(html_if) => {
-                        let conditional = &html_if.conditional;
-                        let body = convert_commands(&html_if.body);
-                        let result_expr = &html_if.result_expr;
+                    HtmlLetInner::If(HtmlIf { if_, conditional, brace_token, body, eq, gt, result_expr, else_ }) => {
+                        let body_stmts = convert_commands(body);
                         let temp_var = Ident::new("temp_var", Span::mixed_site());
-                        if let Some(else_) = &html_if.else_ {
-                            let else_body = convert_commands(&else_.0);
-                            let else_result_expr = &else_.1;
-                            quote_spanned! {else_.0.span()=>
-                                let (mut html_handler, #temp_var) = if #conditional {
-                                    #(#body)*
-                                    (html_handler, ::itertools::Either::Left(#result_expr))
-                                } else {
-                                    #(#else_body)*
-                                    (html_handler, ::itertools::Either::Right(#else_result_expr))
+                        else_.as_ref().map_or_else(
+                            || {
+                                quote_spanned! {body.span().unwrap_or_else(|| brace_token.span.span())=>
+                                    let #temp_var;
+                                    #[allow(clippy::if_not_else)]
+                                    {
+                                        (html_handler, #temp_var) = if #conditional {
+                                            #(#body_stmts)*
+                                            (html_handler, Some(#result_expr))
+                                        } else {
+                                            (html_handler, None)
+                                        };
+                                    }
+                                    let #variable = #temp_var;
+                                }
+                            },
+                            |HtmlElse {
+                                 else_,
+                                 brace_token: else_brace_token,
+                                 body: else_body,
+                                 eq: else_eq,
+                                 gt: else_gt,
+                                 result_expr: else_result_expr,
+                             }| {
+                                let else_body_stmts = convert_commands(else_body);
+                                let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap()=>
+                                    {
+                                        #(#body_stmts)*
+                                        (html_handler, ::itertools::Either::Left(#result_expr))
+                                    }
                                 };
-                                let #variable = #temp_var;
-                            }
-                        } else {
-                            quote_spanned! {html_if.body.span()=>
-                                let #temp_var;
-                                (html_handler, #temp_var) = if #conditional {
-                                    #(#body)*
-                                    (html_handler, Some(#result_expr))
-                                } else {
-                                    (html_handler, None)
+                                let else_inner = quote_spanned! {else_brace_token.span.span().join(else_result_expr.span()).unwrap()=>
+                                    {
+                                        #(#else_body_stmts)*
+                                        (html_handler, ::itertools::Either::Right(#else_result_expr))
+                                    }
                                 };
-                                let #variable = #temp_var;
-                            }
-                        }
+                                quote! {
+                                    #[allow(unused_mut)]
+                                    let (mut html_handler, #temp_var) = #if_ #conditional
+                                        #if_inner
+                                    #else_
+                                        #else_inner
+                                    ;
+                                    let #variable = #temp_var;
+                                }
+                            },
+                        )
                     }
                     HtmlLetInner::While(html_while) => {
                         let conditional = &html_while.conditional;
                         let body = convert_commands(&html_while.body);
                         let result_expr = &html_while.result_expr;
                         let temp_vec = Ident::new("temp_vec", Span::mixed_site());
-                        quote_spanned! {html_while.body.span()=>
+                        quote_spanned! {html_while.body.span().unwrap_or_else(|| html_while.brace_token.span.span())=>
                             let mut #temp_vec = Vec::new();
-                            while (#conditional) {
+                            while #conditional {
                                 html_handler = {
                                     let (html_handler, tmp) = {
                                         #(#body)*
@@ -558,6 +654,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                                     html_handler
                                 };
                             }
+                            #[allow(unused_mut)]
                             let mut #variable = #temp_vec;
                         }
                     }

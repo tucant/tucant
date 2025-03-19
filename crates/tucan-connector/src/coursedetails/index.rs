@@ -23,6 +23,7 @@ pub async fn course_details_cached(tucan: &TucanConnector, login_response: &Logi
     Ok(response)
 }
 
+#[allow(clippy::too_many_lines)]
 pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &LoginResponse, args: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
@@ -129,7 +130,9 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 </b>_
                                                 <input type="hidden" name="creditingfor" value=""></input>_
                                             </p>_
-                                            let sws = if html_handler.peek().unwrap().value().as_element().unwrap().name() != "input" {
+                                            let sws = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                                <input type="hidden" name="sws" value="0"></input>_
+                                            } => () else {
                                                 <p>
                                                     <b>
                                                         "Semesterwochenstunden: "
@@ -140,10 +143,10 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                             } => {
                                                 assert_eq!(sws_text.trim(), sws);
                                                 sws
-                                            }; else {
-                                                <input type="hidden" name="sws" value="0"></input>_
-                                            } => ();
-                                            let credits = if html_handler.peek().unwrap().value().as_element().unwrap().name() != "input" {
+                                            };
+                                            let credits = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                                <input type="hidden" name="credits" value="  0,0"></input>_
+                                            } => () else {
                                                 <p>
                                                     <b>
                                                         "Credits: "
@@ -154,9 +157,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                             } => {
                                                 assert_eq!(credits_text, credits);
                                                 credits
-                                            }; else {
-                                                <input type="hidden" name="credits" value="  0,0"></input>_
-                                            } => ();
+                                            };
                                             <input type="hidden" name="location" value="327576461398991"></input>_
                                             <p>
                                                 <b>
@@ -346,7 +347,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 "Es liegen keine Termine vor."
                                             </td>_
                                         </tr>_
-                                    } => (); else {
+                                    } => () else {
                                         let wfwe = while html_handler.peek().is_some() {
                                             <tr>_
                                                 <td class="tbdata rw">
@@ -374,7 +375,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                                 </a>
                                                             } => ();
                                                         } => ();
-                                                    } => (); else {
+                                                    } => () else {
                                                         room_text
                                                     } => ();
                                                 </td>_
@@ -434,7 +435,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
                                         </li>_
-                                    } => (); else {
+                                    } => () else {
                                         let efw = while html_handler.peek().is_some() {
                                             extern {
                                                 let mut i = 0;
@@ -447,7 +448,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                     let wefewfwfef = if i == 4 {
                                                         <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
                                                     } => ();
-                                                } => (); else {
+                                                } => () else {
                                                     <li class="courseListCell noLink">_
                                                     </li>_
                                                 } => ();
@@ -511,8 +512,8 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         anzeige_im_stundenplan,
         shortname,
         courselevel: courselevel.parse().unwrap(),
-        sws: sws.left().map(|sws| sws.parse().unwrap()),
-        credits: credits.left().map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
+        sws: sws.right().map(|sws| sws.parse().unwrap()),
+        credits: credits.right().map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
         language,
         language_id: language_id.parse().unwrap(),
         teilnehmer_range,

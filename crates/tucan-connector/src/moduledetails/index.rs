@@ -25,6 +25,7 @@ pub async fn module_details_cached(tucan: &TucanConnector, login_response: &Logi
     Ok(response)
 }
 
+#[expect(clippy::too_many_lines)]
 pub async fn module_details(tucan: &TucanConnector, login_response: &LoginResponse, args: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
@@ -171,7 +172,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 </td>_
                                                 <td class="rw rw-detail-unreg">_
                                                     <!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
-                                            } => (); else {
+                                            } => () else {
                                                     " Direkte Zulassung "
                                                 </td>_
                                                 <td class="rw rw-detail-block">
@@ -337,7 +338,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 </tr>_
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                 <tr class="tbdata">_
-                                            } => (); else {
+                                            } => () else {
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                             } => ();
                                             extern {
@@ -491,7 +492,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                         rowspan -= 1;
                                                     }
                                                 } => ();
-                                            } => (); else {
+                                            } => () else {
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                 <tr class="tbdata">_
                                                     <td class="tbborderleft rw rw-detail-exam">

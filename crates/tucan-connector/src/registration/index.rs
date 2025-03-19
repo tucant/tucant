@@ -83,7 +83,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <option value=value selected="selected">
                                                                 study
                                                             </option>_
-                                                        } => (); else {
+                                                        } => () else {
                                                             <option value=value>
                                                                 study
                                                             </option>_
@@ -177,7 +177,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                 </tr>_
                                             </tbody>
                                         </table>_
-                                    } => (); else {
+                                    } => () else {
                                                     <td class="tbsubhead">_
                                                         <!--"OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc"-->_
                                                     </td>_
@@ -234,12 +234,12 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                         <a href=registration_button_link class="img noFloat register">
                                                                             "Anmelden"
                                                                         </a>_
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link }; else {
+                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
                                                                         </a>_
                                                                     } => RegistrationState::Registered { unregister_link: registration_button_link };
-                                                                } => registered.either_into::<RegistrationState>(); else {
+                                                                } => registered.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>_
                                                             <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
@@ -325,7 +325,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                     let location_or_additional_info = if html_handler.peek().is_some() {
                                                                             let location_or_additional_info = html_handler.next_any_child();
                                                                         </p>_
-                                                                    } => location_or_additional_info; else {
+                                                                    } => location_or_additional_info else {
                                                                         </p>_
                                                                     } => ();
                                                                 let location = if html_handler.peek().is_some() {
@@ -347,12 +347,12 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                         <a href=registration_button_link class="img noFLoat register">
                                                                             "Anmelden"
                                                                         </a>_
-                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link }; else {
+                                                                    } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             " Abmelden"
                                                                         </a>_
                                                                     } => RegistrationState::Registered { unregister_link: registration_button_link };
-                                                                } => registration_button_link.either_into::<RegistrationState>(); else {
+                                                                } => registration_button_link.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
                                                             </td>_
                                                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_

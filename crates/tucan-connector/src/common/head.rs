@@ -26,7 +26,6 @@ pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root
     html_handler
 }
 
-#[must_use]
 pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError> {
     html_extractor::html! {
         <title>
@@ -78,7 +77,7 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
                         return Err(TucanError::Timeout);
                     }
                 </body>
-            } => (); else {
+            } => () else {
                 let afwe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("access_denied", scraper::CaseSensitivity::CaseSensitive) {
                     <body class="access_denied">
                         extern {
@@ -86,7 +85,7 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
                             return Err(TucanError::AccessDenied);
                         }
                     </body>
-                } => (); else {
+                } => () else {
                     extern {
                         panic!();
                     }

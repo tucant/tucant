@@ -206,8 +206,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "50376aa2";
-            hash = "sha256-QkGijMZ+YoP8GImcOXWx2OD5xOIbY739K8o9Q5jLnns=";
+            rev = "8a247352126d1dc076935d8e085b9ce98c7c656c";
+            hash = "sha256-a5tYCh6xlOd/P3GWtkcI2s5Iv4aXgf6jTy1sPkTcZ6w=";
           };
           doCheck = false;
         };
@@ -329,17 +329,14 @@
           '';
         };
 
-        devShells.default = craneNightlyLib.devShell {
-          # Inherit inputs from checks.
-          checks = self.checks.${system};
+        devShells.default = pkgs.mkShell {
 
           RUSTFMT = "${yew-fmt}/bin/yew-fmt";
 
           shellHook = ''
-            export CLIENT_DIST=$PWD/tucant-yew/dist;
+            export LD_LIBRARY_PATH="${pkgs.zlib}/lib''${LD_LIBRARY_PATH:+:}''${LD_LIBRARY_PATH}"
           '';
 
-          # Extra inputs can be added here; cargo and rustc are provided by default.
           packages = [
             pkgs.trunk
             rustfmt

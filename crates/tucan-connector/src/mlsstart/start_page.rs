@@ -87,7 +87,7 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                                     } => ();
                                 </tbody>
                             </table>_
-                        } => (); else {
+                        } => () else {
                             <div class="tbsubhead">
                                 "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
                             </div>_
