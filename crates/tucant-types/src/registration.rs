@@ -1,23 +1,51 @@
+use std::{convert::Infallible, fmt::Display, str::FromStr};
+
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::moduledetails::ModuleDetailsRequest;
+use crate::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct AnmeldungRequest {
-    pub arguments: String,
+    arguments: String,
 }
 
-impl Default for AnmeldungRequest {
-    fn default() -> Self {
-        Self::new()
+impl FromStr for AnmeldungRequest {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parse(s))
+    }
+}
+
+impl Display for AnmeldungRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.arguments)
     }
 }
 
 impl AnmeldungRequest {
     #[must_use]
-    pub fn new() -> Self {
-        Self { arguments: ",-N000311,-A".to_owned() }
+    pub fn parse(input: &str) -> Self {
+        if input.is_empty() {
+            Self { arguments: "-A".to_owned() }
+        } else {
+            let registration_details_regex = Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap();
+            let c = &registration_details_regex.captures(input).expect(input);
+            Self { arguments: format!("-N{},-N{},-N{},-N{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"],) }
+        }
+    }
+
+    #[must_use]
+    pub const fn inner(&self) -> &str {
+        self.arguments.as_str()
+    }
+}
+
+impl Default for AnmeldungRequest {
+    fn default() -> Self {
+        Self::parse("")
     }
 }
 
@@ -61,7 +89,7 @@ pub struct AnmeldungExam {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnmeldungCourse {
-    pub url: String,
+    pub url: CourseDetailsRequest,
     pub id: String,
     pub name: String,
     pub lecturers: Option<String>,

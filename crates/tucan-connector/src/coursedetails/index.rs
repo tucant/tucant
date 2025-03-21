@@ -1,7 +1,7 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
     LoginResponse, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe},
+    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImage, Room, Termin},
 };
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
 use html_handler::Root;
 
 pub async fn course_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
-    let key = format!("coursedetails.{}", request.arguments.clone());
+    let key = format!("coursedetails.{}", request.inner());
     if let Some(response) = tucan.database.get(&key).await {
         return Ok(response);
     }
@@ -23,10 +23,11 @@ pub async fn course_details_cached(tucan: &TucanConnector, login_response: &Logi
     Ok(response)
 }
 
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::similar_names)]
+#[expect(clippy::too_many_lines)]
 pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &LoginResponse, args: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let id = login_response.id;
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", id, args.inner());
     // TODO FIXME generalize
     let key = format!("url.{url}");
     let content = if let Some(content) = tucan.database.get(&key).await {
@@ -246,7 +247,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             </table>_
                             <!--"rLgWPHovMo94GGr9fjSOcwUR-V0yqvfB-QchTzSNf04"-->_
                             <!--"GwYigtfCarUUFmHd9htM5OAGB7-tTFf7jgzMI1jnYLc"-->_
-                            let unused = if html_handler.peek().unwrap().value().is_element() {
+                            let _kein_material = if html_handler.peek().unwrap().value().is_element() {
                                 <table class="tb rw-table">_
                                     <caption>
                                         "Material zur gesamten Veranstaltung"
@@ -336,19 +337,19 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                             "Raum"
                                         </td>_
                                         <td class="tbsubhead">
-                                            let lehrende = if html_handler.peek().is_some() {
+                                            let _lehrende = if html_handler.peek().is_some() {
                                                 "Lehrende"
                                             } => ();
                                         </td>_
                                     </tr>_
-                                    let wfwef = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("colspan").is_some() {
+                                    let termine = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("colspan").is_some() {
                                         <tr>_
                                             <td class="tbdata" colspan="6">
                                                 "Es liegen keine Termine vor."
                                             </td>_
                                         </tr>_
-                                    } => () else {
-                                        let wfwe = while html_handler.peek().is_some() {
+                                    } => Vec::<Termin>::new() else {
+                                        let termine = while html_handler.peek().is_some() {
                                             <tr>_
                                                 <td class="tbdata rw">
                                                     id
@@ -363,28 +364,28 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                     time_end
                                                 </td>_
                                                 <td class="tbdata rw rw-course-room">
-                                                    let few = if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                                                        let test = if html_handler.peek().is_some() {
+                                                    let rooms = if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {_
+                                                        let rooms = if html_handler.peek().is_some() {
                                                             <a name="appointmentRooms" href=room_url>
                                                                 room
                                                             </a>
-                                                            let teewfwest = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
+                                                            let more_rooms = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
                                                                 "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
-                                                            } => ();
-                                                        } => ();
-                                                    } => () else {
+                                                            } => Room { name: room, url: Some(room_url) };_
+                                                        } => std::iter::once(Room { name: room, url: Some(room_url) }).chain(more_rooms.into_iter()).collect::<Vec<_>>();
+                                                    } => rooms.unwrap_or_default() else {
                                                         room_text
-                                                    } => ();
+                                                    } => vec![Room { name: room_text, url: None }];
                                                 </td>_
                                                 <td class="tbdata rw rw-course-instruct" name="appointmentInstructors">
                                                     instructors
                                                 </td>_
                                             </tr>_
-                                        } => ();
-                                    } => ();
+                                        } => Termin { id, date, time_start, time_end, instructors, rooms: rooms.either_into() };
+                                    } => termine;
                                 </tbody>
                             </table>_
                             <!--"FWVkdRmmQuTMcELIsP6K4V7eWsWq-329gXr8xe8lNtA"-->_
@@ -393,7 +394,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             <!--"gHS9yEb7gEJDeScOtAZVCap074mrvjNhbKo847wghz0"-->_
                             <!--"mbPNYaxxs1wcICUrnywS30UgNmaCxMVGn19JDG2Cdcc"-->_
                             <!--"Jr35iwnqHKCxqhgkYtMNg-l-g8g9FFUlmpPW5CyF_3A"-->_
-                            let agwef = if login_response.id != 1 {
+                            let enthalten_in_modulen = if login_response.id != 1 {
                                 <table class="tb rw-table rw-all">_
                                     <caption>
                                         "Enthalten in Modulen"
@@ -404,16 +405,16 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 "Modul"
                                             </td>_
                                         </tr>_
-                                        let dew = while html_handler.peek().is_some() {
+                                        let enthalten_in_modulen = while html_handler.peek().is_some() {
                                             <tr>_
                                                 <td class="tbdata">
                                                     module_name
                                                 </td>_
                                             </tr>_
-                                        } => ();
+                                        } => module_name;
                                     </tbody>
                                 </table>_
-                            } => ();
+                            } => enthalten_in_modulen;
                             <!--"ugaD_Kkb-bp5Gg7mdtxXDcj0jeHrTsW_v8Nh9DQBdB0"-->_
                             <!--"1ip8eDvrLDhgIPqPeWuUMJdlOaat0QKUTPyfIPoyqBE"-->_
                             <!--"9BaxcLXoDbvFC8da2E3MHfCwukHBrtNa5jNlA1FIvws"-->_
@@ -431,36 +432,36 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                     "Übersicht der Kurstermine"
                                 </div>_
                                 <ul class="courseList">_
-                                    let ewf = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap() == *"Es liegen keine Termine vor." {
+                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap() == *"Es liegen keine Termine vor." {
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
                                         </li>_
-                                    } => () else {
-                                        let efw = while html_handler.peek().is_some() {
+                                    } => Vec::<(String, String)>::new() else {
+                                        let short_termine = while html_handler.peek().is_some() {
                                             extern {
                                                 let mut i = 0;
                                             }
-                                            let effw = while i < 5 {
-                                                let few = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
+                                            let short_termine = while i < 5 {
+                                                let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
                                                     <li class="courseListCell numout" title=title>
                                                         number
                                                     </li>_
-                                                    let wefewfwfef = if i == 4 {
+                                                    let _comment = if i == 4 {
                                                         <!--"i8Po0v92EOSGgcX-6wsqvMrRzAhexv5hS7uSfRxFXQ4"-->_
                                                     } => ();
-                                                } => () else {
+                                                } => (title, number) else {
                                                     <li class="courseListCell noLink">_
                                                     </li>_
                                                 } => ();
                                                 extern {
                                                     i += 1;
                                                 }
-                                            } => ();
-                                        } => ();
-                                    } => ();
+                                            } => short_termin.left();
+                                        } => short_termine.into_iter().flatten().collect::<Vec<_>>();
+                                    } => short_termine.into_iter().flatten().collect::<Vec<_>>();
                                 </ul>_
                             </div>_
-                            let ewf = if html_handler.peek().unwrap().value().is_element() {
+                            let instructors = if html_handler.peek().unwrap().value().is_element() {
                                 <table class="tb rw-table">_
                                     <tbody>
                                         <tr class="rw-all">_
@@ -468,8 +469,8 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 "Lehrende"
                                             </td>_
                                         </tr>_
-                                        let efw = while html_handler.peek().is_some() {
-                                            let few = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("name").is_none() {
+                                        let instructors = while html_handler.peek().is_some() {
+                                            let instructor_image = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("name").is_none() {
                                                 <tr>_
                                                     <td class="tbdata_nob h_center">_
                                                         <a href=href>_
@@ -477,16 +478,16 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                         </a>_
                                                     </td>_
                                                 </tr>_
-                                            } => ();
+                                            } => InstructorImage { href, imgsrc, alt };
                                             <tr>_
                                                 <td class="tbdata" name="instructorTitle">
-                                                    instructors
+                                                    instructor
                                                 </td>_
                                             </tr>_
-                                        } => ();
+                                        } => (instructor, instructor_image);
                                     </tbody>
                                 </table>_
-                            } => ();
+                            } => instructors;
                             <!--"f3Dd2OExxbOC6O6K52a9HWTpBxipUfPXKU7YBJsuGck"-->_
                         </div>_
                     </form>_
@@ -521,5 +522,9 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         description,
         uebungsgruppen: uebungsgruppen.unwrap_or_default(),
         course_anmeldefristen: course_anmeldefristen.unwrap_or_default(),
+        enhalten_in_modulen: enthalten_in_modulen.unwrap_or_default(),
+        termine: termine.either_into(),
+        short_termine: short_termine.either_into(),
+        instructors: instructors.unwrap_or_default(),
     })
 }

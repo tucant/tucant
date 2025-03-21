@@ -8,7 +8,7 @@ use moduledetails::index::module_details_cached;
 use registration::index::anmeldung_cached;
 use reqwest::header;
 use tokio::time::sleep;
-use tucant_types::{Tucan, TucanError, Vorlesungsverzeichnis};
+use tucant_types::{Tucan, TucanError, Vorlesungsverzeichnis, mlsstart::MlsStart};
 use vv::vv;
 
 pub mod common;
@@ -69,6 +69,14 @@ impl TucanConnector {
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
         Ok(Self { client, database: Database::new().await })
     }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn new_test() -> Result<Self, TucanError> {
+        let mut headers = header::HeaderMap::new();
+        headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
+        let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
+        Ok(Self { client, database: Database::new_test().await })
+    }
 }
 
 impl Tucan for TucanConnector {
@@ -76,7 +84,7 @@ impl Tucan for TucanConnector {
         login(&self.client, &request).await
     }
 
-    async fn after_login(&self, request: &tucant_types::LoginResponse) -> Result<tucant_types::LoggedInHead, TucanError> {
+    async fn after_login(&self, request: &tucant_types::LoginResponse) -> Result<MlsStart, TucanError> {
         after_login(&self.client, request).await
     }
 
@@ -109,13 +117,13 @@ mod tests {
 
     #[tokio::test]
     pub async fn login_incorrect() {
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         assert!(matches!(login(&tucan.client, &LoginRequest { username: "not_found".to_owned(), password: "not_correct".to_owned() },).await, Err(TucanError::InvalidCredentials)));
     }
 
     #[tokio::test]
     pub async fn test_root_page() {
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         root(&tucan.client).await.unwrap();
     }
 
@@ -124,7 +132,7 @@ mod tests {
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
     #[tokio::test]
     pub async fn test_startpage_dispatch_1() {
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         startpage_dispatch_1(&tucan.client).await.unwrap();
     }
 
@@ -133,38 +141,38 @@ mod tests {
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome
     #[tokio::test]
     pub async fn test_welcome() {
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         welcome(&tucan.client).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn module_1() {
-        let tucan = TucanConnector::new().await.unwrap();
-        let result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, ModuleDetailsRequest { arguments: ",-N000311,-N389455489906019".to_owned() }).await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, ModuleDetailsRequest::parse("-N389455489906019")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_1() {
-        let tucan = TucanConnector::new().await.unwrap();
-        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest { arguments: ",-N000311,-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3".to_owned() }).await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_2() {
-        let tucan = TucanConnector::new().await.unwrap();
-        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest { arguments: ",-N000311,-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3".to_owned() }).await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_3() {
-        let tucan = TucanConnector::new().await.unwrap();
-        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest { arguments: ",-N000311,-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3".to_owned() }).await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_4() {
-        let tucan = TucanConnector::new().await.unwrap();
-        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest { arguments: ",-N000311,-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3".to_owned() }).await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
     }
 }
 
@@ -185,7 +193,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_login() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         assert!(matches!(
             login(
                 &tucan.client,
@@ -202,7 +210,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_redirect_after_login() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -218,7 +226,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_mlsstart() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -234,7 +242,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn test_registration() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -250,7 +258,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn vv_top_level() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -260,14 +268,14 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn vv_first_level() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -277,7 +285,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap().entries[0].clone();
         let result = tucan.vv(&login_response, result).await.unwrap();
     }
@@ -285,7 +293,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn vv_first_level_4_courses() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -295,7 +303,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let result = tucan.vv(&login_response, action).await.unwrap().entries[4].clone();
         let result = tucan.vv(&login_response, result).await.unwrap();
     }
@@ -303,7 +311,7 @@ mod authenticated_tests {
     #[tokio::test]
     pub async fn vv_first_level_all() {
         dotenvy::dotenv().unwrap();
-        let tucan = TucanConnector::new().await.unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
         let login_response = login(
             &tucan.client,
             &LoginRequest {
@@ -317,7 +325,7 @@ mod authenticated_tests {
             id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
             cookie_cnsc: std::env::var("SESSION_KEY").unwrap(),
         };
-        let action = tucan.after_login(&login_response).await.unwrap().vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         for action in tucan.vv(&login_response, action).await.unwrap().entries {
             println!("{}", action);
             let result = tucan.vv(&login_response, action).await.unwrap();

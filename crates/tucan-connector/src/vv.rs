@@ -1,4 +1,4 @@
-use scraper::Html;
+use scraper::{ElementRef, Html};
 use tucant_types::{LoginResponse, TucanError, Vorlesungsverzeichnis};
 
 use crate::{
@@ -38,7 +38,7 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                     <!--"kVJ9mNrY2XJb35ukyO3hMoLc_9dEHSgzMALBDLwWpHM"-->_
                     <!--"Z6v-LbjcnKpltlabF99VIGyltOdElMLHxTYIzpsZgUU"-->_
                     <h2>_
-                        let vorlesungsverzeichnisse = while html_handler.peek().is_some() {
+                        let path = while html_handler.peek().is_some() {
                             <a href=url>
                                 let title = if html_handler.peek().is_some() {
                                     title
@@ -47,13 +47,13 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                         } => (url, title);
                     </h2>_
                     <!--"fVvNiSxy43a6FBZQ0m9H05M74W8TF3aAE1n-6VH7y7g"-->_
-                    let children = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
+                    let description = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
                         <div class="tb nb">
-                            let children = while html_handler.peek().is_some() {
+                            let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
-                            } => any_child;
+                            } => ElementRef::wrap(any_child).unwrap().html();
                         </div>_
-                    } => children;
+                    } => description;
                     let entries = if html_handler.peek().unwrap().value().is_element() {
                         <ul class="auditRegistrationList" id="auditRegistration_list">_
                             let entries = while html_handler.peek().is_some() {
@@ -134,5 +134,5 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
     }
     let html_handler = footer(html_handler, login_response.id, 326);
     html_handler.end_document();
-    Ok(Vorlesungsverzeichnis { entries: entries.unwrap_or_default() })
+    Ok(Vorlesungsverzeichnis { entries: entries.unwrap_or_default(), path, description: description.unwrap_or_default() })
 }

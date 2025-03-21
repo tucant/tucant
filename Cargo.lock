@@ -2896,6 +2896,7 @@ name = "tucant-types"
 version = "0.1.2"
 dependencies = [
  "axum-core",
+ "regex",
  "reqwest",
  "serde",
  "thiserror 2.0.12",

@@ -1,15 +1,15 @@
-use tucant_types::{LoggedInHead, LoginResponse};
+use tucant_types::{LoggedInHead, LoginResponse, mlsstart::MlsStart};
 use yew::{Html, Properties, classes, function_component, html};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisseProps {
-    pub data: Option<LoggedInHead>,
+    pub data: Option<MlsStart>,
 }
 
 #[function_component(Vorlesungsverzeichnisse)]
 pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
     html! {
-        { data.iter().flat_map(|v| v.vv.vvs.iter()).map(|(name, url)| {
+        { data.iter().flat_map(|v| v.logged_in_head.vv.vvs.iter()).map(|(name, url)| {
             html!{
                 <li>
                 <a
@@ -33,7 +33,7 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
 #[derive(Properties, PartialEq)]
 pub struct NavbarLoggedInProps {
     pub current_session: LoginResponse,
-    pub data: Option<LoggedInHead>,
+    pub data: Option<MlsStart>,
 }
 
 #[function_component(NavbarLoggedIn)]
@@ -50,7 +50,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.messages_url))}>
+                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
                             if data.is_none() {
                                 { " " }
@@ -65,7 +65,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{ "VV" }</a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.vorlesungsverzeichnis_url))}>
+                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vorlesungsverzeichnis_url))}>
                             { "Vorlesungsverzeichnis" }
                             if data.is_none() {
                                 { " " }
@@ -78,7 +78,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.vv.lehrveranstaltungssuche_url))}>
+                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
                             if data.is_none() {
                                 { " " }
@@ -192,7 +192,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,", current_session.id)}>{ "Meine Dokumente" }</a>
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.antraege_url))}>
+                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
                         if data.is_none() {
                             { " " }
@@ -214,7 +214,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.meine_bewerbung_url))}>
+                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
                         if data.is_none() {
                             { " " }

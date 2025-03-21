@@ -13,7 +13,7 @@ use crate::{
 use html_handler::Root;
 
 pub async fn module_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
-    let key = format!("moduledetails.{}", request.arguments.clone());
+    let key = format!("moduledetails.{}", request.inner());
     if let Some(response) = tucan.database.get(&key).await {
         return Ok(response);
     }
@@ -28,7 +28,7 @@ pub async fn module_details_cached(tucan: &TucanConnector, login_response: &Logi
 #[expect(clippy::too_many_lines)]
 pub async fn module_details(tucan: &TucanConnector, login_response: &LoginResponse, args: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015}{}", id, args.arguments);
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", id, args.inner());
     println!("{url}");
     // TODO FIXME generalize
     let key = format!("url.{url}");
@@ -78,6 +78,9 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                     } => ();
                                     <tr class="tbcontrol">_
                                         <td>_
+                                            let schliessen_link = if html_handler.peek().is_some() {
+                                                let any_child = html_handler.next_any_child();_
+                                            } => ();
                                         </td>_
                                     </tr>_
                                     <tr class="tbdata">_
@@ -549,6 +552,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
             </div>_
         </div>_
     };
+    // TODO pass value depending on module details url or maybe normalize 275
     let html_handler = footer(html_handler, id, 311);
 
     Ok(ModuleDetailsResponse {

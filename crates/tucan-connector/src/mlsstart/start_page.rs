@@ -1,5 +1,8 @@
-use scraper::Html;
-use tucant_types::{LoggedInHead, LoginResponse};
+use scraper::{ElementRef, Html};
+use tucant_types::{
+    LoggedInHead, LoginResponse,
+    mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
+};
 
 use crate::{
     MyClient, TucanError, authenticated_retryable_get,
@@ -7,7 +10,8 @@ use crate::{
 };
 use html_handler::Root;
 
-pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> Result<LoggedInHead, TucanError> {
+#[expect(clippy::too_many_lines)]
+pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> Result<MlsStart, TucanError> {
     let id = login_response.id;
     let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
@@ -46,7 +50,7 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                                 "Stundenplan"
                             </a>_
                         </div>_
-                        let wef = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        let stundenplan = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                             <table class="nb rw-table" summary="Studium Generale">_
                                 <tbody>
                                     <tr class="tbsubhead">_
@@ -63,7 +67,7 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                                             "bis"
                                         </th>_
                                     </tr>_
-                                    let efw = while html_handler.peek().is_some() {
+                                    let stundenplan = while html_handler.peek().is_some() {
                                         <tr class="tbdata">_
                                             <td headers="Veranstaltung">
                                                 "Kurse"
@@ -79,19 +83,19 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                                                 </a>
                                             </td>_
                                             <td headers="bis">
-                                                <a class="link" href=courseprep_url>
+                                                <a class="link" href=courseprep_url2>
                                                     to
                                                 </a>
                                             </td>_
                                         </tr>_
-                                    } => ();
+                                    } => StundenplanEintrag { course_name, coursedetails_url, courseprep_url, courseprep_url2, from, to };
                                 </tbody>
                             </table>_
-                        } => () else {
+                        } => stundenplan else {
                             <div class="tbsubhead">
                                 "\n        \tFür heute sind keine Termine angesetzt!\n\t\t"
                             </div>_
-                        } => ();
+                        } => Vec::<StundenplanEintrag>::new();
                     </div>_
                     <!--"jcECXQ7Iovu3-f4IpT-2ykwKMYpSGOecnocvEf5bo3A"-->_
                     <div class="tb rw-table">_
@@ -122,35 +126,49 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
                                         "Aktion"
                                     </th>_
                                 </tr>_
-                                let wef = while html_handler.peek().is_some() {
+                                let messages = while html_handler.peek().is_some() {
                                     <tr class="tbdata">_
                                         <td headers="Datum" class="rw rw-maildate">
-                                            <a class="link" href=_url>
-                                                _date
+                                            <a class="link" href=url1>
+                                                date
                                             </a>
                                         </td>_
                                         <td headers="Uhrzeit" class="rw rw-mailtime">
-                                            <a class="link" href=_url>
-                                                _hour
+                                            <a class="link" href=url2>
+                                                hour
                                             </a>
                                         </td>_
                                         <td headers="Absender" class="rw rw-mailpers">
-                                            <a class="link" href=_url>
-                                                _source
+                                            <a class="link" href=url3>
+                                                source
                                             </a>
                                         </td>_
                                         <td headers="Betreff" class="rw rw-mailsubject">
-                                            <a class="link" href=_url>
-                                                let any_child = html_handler.next_any_child();
+                                            <a class="link" href=url4>
+                                                let message = html_handler.next_any_child();
                                             </a>
                                         </td>_
                                         <td headers="Aktion" class="rw rw-maildel">
-                                            <a class="link" href=_url>
+                                            <a class="link" href=delete_url>
                                                 "Löschen"
                                             </a>
                                         </td>_
                                     </tr>_
-                                } => ();
+                                } => Nachricht {
+                                    url1,
+                                    url2,
+                                    url3,
+                                    url4,
+                                    date,
+                                    hour,
+                                    source,
+                                    message: match message.value() {
+                                        scraper::Node::Text(text) => text.trim().to_owned(),
+                                        scraper::Node::Element(_element) => ElementRef::wrap(message).unwrap().html(),
+                                        _ => panic!(),
+                                    },
+                                    delete_url
+                                };
                             </tbody>
                         </table>_
                     </div>_
@@ -161,5 +179,5 @@ pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> R
     };
     let html_handler = footer(html_handler, id, 19);
     html_handler.end_document();
-    Ok(head)
+    Ok(MlsStart { logged_in_head: head, stundenplan: stundenplan.either_into(), messages })
 }

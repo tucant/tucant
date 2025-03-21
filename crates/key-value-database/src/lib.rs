@@ -35,6 +35,13 @@ impl Database {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn new_test() -> Self {
+        let database = sqlx::SqlitePool::connect("sqlite://:memory:").await.unwrap();
+        sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
+        Self { database }
+    }
+
     pub async fn get<V: serde::de::DeserializeOwned>(&self, key: &str) -> Option<V> {
         #[cfg(target_arch = "wasm32")]
         {
@@ -64,11 +71,11 @@ impl Database {
         }
     }
 
-    pub async fn put<V: serde::ser::Serialize + ?Sized>(&self, key: &str, value: &V) {
+    pub async fn put<V: serde::ser::Serialize>(&self, key: &str, value: V) {
         #[cfg(target_arch = "wasm32")]
         {
             let key = js_sys::wasm_bindgen::JsValue::from(key);
-            let value = serde_wasm_bindgen::to_value(value).unwrap();
+            let value = serde_wasm_bindgen::to_value(&value).unwrap();
             self.database
                 .transaction(&["store"])
                 .rw()
@@ -82,7 +89,7 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1").bind(key).bind(serde_json::to_string(value).unwrap()).execute(&self.database).await.unwrap();
+            sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1").bind(key).bind(serde_json::to_string(&value).unwrap()).execute(&self.database).await.unwrap();
         }
     }
 }

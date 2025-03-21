@@ -44,7 +44,7 @@ const customUiRules = [{
     priority: 3,
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/registration/,-N000311,-A' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/registration/' },
     },
     "condition": {
         "isUrlFilterCaseSensitive": true,

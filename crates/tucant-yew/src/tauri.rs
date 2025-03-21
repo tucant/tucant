@@ -2,6 +2,7 @@ use serde_json::json;
 use tucant_types::{
     LoginRequest, LoginResponse, Tucan, TucanError, Vorlesungsverzeichnis,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
 };
@@ -84,7 +85,7 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn after_login(&self, _request: &LoginResponse) -> Result<tucant_types::LoggedInHead, TucanError> {
+    async fn after_login(&self, _request: &LoginResponse) -> Result<MlsStart, TucanError> {
         todo!()
     }
 

@@ -135,7 +135,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
 
                 current_session.set(Some(response.clone()));
 
-                navigator.push(&Route::Registration { registration: format!("-N{:015},-N000311,-A", response.id) });
+                navigator.push(&Route::Registration { registration: AnmeldungRequest::default() });
             })
         })
     };
@@ -187,37 +187,30 @@ enum Route {
     #[at("/404")]
     NotFound,
     #[at("/module-details/:module")]
-    ModuleDetails { module: String },
+    ModuleDetails { module: ModuleDetailsRequest },
     #[at("/course-details/:course")]
-    CourseDetails { course: String },
+    CourseDetails { course: CourseDetailsRequest },
     #[at("/registration/:registration")]
-    Registration { registration: String },
+    Registration { registration: AnmeldungRequest },
+    #[at("/registration/")]
+    RootRegistration,
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {
-            html! { <Registration<TucanType> registration={AnmeldungRequest {arguments: registration}} /> }
+            html! { <Registration<TucanType> registration={registration} /> }
+        }
+        Route::RootRegistration => {
+            html! { <Registration<TucanType> registration={AnmeldungRequest::default()} /> }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
         Route::Root => html! { <div>{ "TODO" }</div> },
         Route::ModuleDetails { module } => {
-            html! {
-                <ModuleDetails<TucanType>
-                    module_details={ModuleDetailsRequest {
-                arguments: module
-            }}
-                />
-            }
+            html! { <ModuleDetails<TucanType> module_details={module} /> }
         }
         Route::CourseDetails { course } => {
-            html! {
-                <CourseDetails<TucanType>
-                    course_details={CourseDetailsRequest {
-                arguments: course
-            }}
-                />
-            }
+            html! { <CourseDetails<TucanType> course_details={course} /> }
         }
     }
 }

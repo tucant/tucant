@@ -2,6 +2,9 @@ use tucant_types::{LoggedInHead, TucanError, VorlesungsverzeichnisUrls};
 
 use html_handler::{InElement, InRoot, Root};
 
+// 275 means "Meine Module" is selected in menu
+// 311 means "Anmeldung" is selected in menu
+
 #[must_use]
 pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
@@ -73,7 +76,6 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
             let adv = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
                 <body class="timeout">
                     extern {
-                        let _html_handler = html_handler;
                         return Err(TucanError::Timeout);
                     }
                 </body>
@@ -81,7 +83,6 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
                 let afwe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("access_denied", scraper::CaseSensitivity::CaseSensitive) {
                     <body class="access_denied">
                         extern {
-                            let _html_handler = html_handler;
                             return Err(TucanError::AccessDenied);
                         }
                     </body>
@@ -216,7 +217,7 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
                     vv_2_title
                 </a>
             </li>
-            let a = if id != 1 {
+            let _unit = if id != 1 {
                 <li class="intern depth_2 linkItem " title=_title_wise202421 id=_linkclass>
                     <a class=_linkclass href=vv_3_url>
                         vv_3_title
@@ -228,13 +229,13 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
                     "Archiv"
                 </a>
                 <ul class="nav depth_3 linkItemContainer">
-                    let temp_vec = while html_handler.peek().is_some() {
-                        <li class="intern depth_3 linkItem " title=_title id=_linkclass>
-                            <a class=_linkclass href=_url>
-                                _text
+                    let archiv_links = while html_handler.peek().is_some() {
+                        <li class="intern depth_3 linkItem " title=title id=_linkclass>
+                            <a class=_linkclass href=url>
+                                text
                             </a>
                         </li>
-                    } => ();
+                    } => (title, url, text);
                 </ul>
             </li>
         </ul>
@@ -242,9 +243,10 @@ pub fn vv_something<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, 
     vvs.insert(0, (aktuell_title, aktuell_url));
     vvs.insert(1, (vv_1_title, vv_1_url));
     vvs.insert(2, (vv_2_title, vv_2_url));
-    (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs })
+    (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs, archiv_links })
 }
 
+#[expect(clippy::too_many_lines)]
 #[must_use]
 pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, id: u64) -> (InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>>>>, LoggedInHead) {
     assert_ne!(id, 1);

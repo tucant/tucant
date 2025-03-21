@@ -2,6 +2,7 @@ use regex::Regex;
 use scraper::{ElementRef, Html};
 use tucant_types::{
     LoginResponse,
+    coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState},
 };
@@ -13,7 +14,7 @@ use crate::{
 use html_handler::Root;
 
 pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
-    let key = format!("registration.{}", request.arguments.clone());
+    let key = format!("registration.{}", request.inner());
     if let Some(anmeldung_response) = tucan.database.get(&key).await {
         return Ok(anmeldung_response);
     }
@@ -25,9 +26,10 @@ pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResp
     Ok(anmeldung_response)
 }
 
+#[expect(clippy::too_many_lines)]
 pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, args: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let id = login_response.id;
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015}{}", login_response.id, args.arguments);
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, args.inner());
     // TODO FIXME generalize
     let key = format!("url.{url}");
     let content = if let Some(content) = tucan.database.get(&key).await {
@@ -119,14 +121,14 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                         } => match any_child.value() {
                             scraper::Node::Comment(_comment) => None,
                             scraper::Node::Text(text) => {
-                                let url = url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"));
-                                Some((text.to_string(), AnmeldungRequest { arguments: url.to_owned() }))
+                                let url = url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"));
+                                Some((text.to_string(), AnmeldungRequest::parse(url)))
                             }
                             _ => panic!(),
                         };
                         extern {
-                            let registration_url = registration_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}"));
-                            path.insert(0, Some((study, AnmeldungRequest { arguments: registration_url.to_owned() })));
+                            let registration_url = registration_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"));
+                            path.insert(0, Some((study, AnmeldungRequest::parse(registration_url))));
                         }_
                     </h2>_
                     let submenus = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
@@ -137,12 +139,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                         item
                                     </a>_
                                 </li>_
-                            } => (
-                                item.trim().to_owned(),
-                                AnmeldungRequest {
-                                    arguments: url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015}")).to_owned()
-                                },
-                            );
+                            } => (item.trim().to_owned(), AnmeldungRequest::parse(url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"))));
                         </ul>_
                     } => submenus;
                     <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
@@ -250,10 +247,10 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                                         </tr>_
                                                     } => {
-                                                        let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015}"));
+                                                        let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015},-N000311,"));
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
                                                         let module = AnmeldungModule {
-                                                            url: ModuleDetailsRequest { arguments: module_url.to_owned() },
+                                                            url: ModuleDetailsRequest::parse(module_url),
                                                             id: module_id.trim().to_owned(),
                                                             name: module_name,
                                                             lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
@@ -358,10 +355,10 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                                         </tr>_
                                                     } => {
-                                                        let course_url = course_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015}"));
+                                                        let course_url = course_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015},-N000311,"));
                                                         let course_url = course_url.split_once(",-A").unwrap().0;
                                                         let course = AnmeldungCourse {
-                                                            url: course_url.to_owned(),
+                                                            url: CourseDetailsRequest::parse(course_url),
                                                             id: course_id.trim().to_owned(),
                                                             name: course_name.trim().to_owned(),
                                                             lecturers,

@@ -7,6 +7,7 @@ use crate::{
 };
 use html_handler::Root;
 
+#[expect(clippy::too_many_lines)]
 pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
     let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
     let document = Html::parse_document(&content);

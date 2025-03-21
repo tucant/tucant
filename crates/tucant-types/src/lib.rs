@@ -1,9 +1,11 @@
 pub mod coursedetails;
+pub mod mlsstart;
 pub mod moduledetails;
 pub mod registration;
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
+use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
@@ -35,11 +37,14 @@ pub struct LoggedInHead {
 pub struct VorlesungsverzeichnisUrls {
     pub lehrveranstaltungssuche_url: String,
     pub vvs: Vec<(String, String)>,
+    pub archiv_links: Vec<(String, String, String)>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
 pub struct Vorlesungsverzeichnis {
     pub entries: Vec<String>,
+    pub path: Vec<(String, Option<String>)>,
+    pub description: Vec<String>,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -66,7 +71,7 @@ impl IntoResponse for TucanError {
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
-    fn after_login(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<LoggedInHead, TucanError>>;
+    fn after_login(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
 
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 

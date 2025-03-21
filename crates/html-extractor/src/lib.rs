@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
 use syn::{
     Block, Expr, Ident, LitStr, Token, braced,
@@ -377,7 +377,7 @@ struct HtmlIf {
     body: HtmlCommands,
     eq: Token![=],
     gt: Token![>],
-    result_expr: Expr,
+    result_expr: TokenStream,
     else_: Option<HtmlElse>,
 }
 
@@ -388,7 +388,7 @@ struct HtmlElse {
     body: HtmlCommands,
     eq: Token![=],
     gt: Token![>],
-    result_expr: Expr,
+    result_expr: TokenStream,
 }
 
 impl HtmlElse {
@@ -412,7 +412,28 @@ impl Parse for HtmlIf {
         let body = body_parse_buffer.parse()?;
         let eq = input.parse::<Token![=]>()?;
         let gt = input.parse::<Token![>]>()?;
-        let result_expr = input.parse()?;
+        let result_expr: TokenStream = input
+            .step(|cursor| {
+                let mut trees = vec![];
+                let mut rest = *cursor;
+                while let Some((tt, next)) = rest.token_tree() {
+                    match &tt {
+                        TokenTree::Punct(punct) if punct.as_char() == ';' => {
+                            return Ok((trees, rest));
+                        }
+                        TokenTree::Ident(ident) if ident == "else" => {
+                            return Ok((trees, rest));
+                        }
+                        _ => {
+                            trees.push(tt);
+                            rest = next;
+                        }
+                    }
+                }
+                Err(cursor.error("no `;` or `else` was found after this point"))
+            })?
+            .into_iter()
+            .collect();
         let else_ = if input.peek(Token![else]) {
             let else_ = input.parse::<Token![else]>()?;
             let body_parse_buffer;
@@ -420,7 +441,25 @@ impl Parse for HtmlIf {
             let body = body_parse_buffer.parse()?;
             let eq = input.parse::<Token![=]>()?;
             let gt = input.parse::<Token![>]>()?;
-            let result_expr = input.parse()?;
+            let result_expr: TokenStream = input
+                .step(|cursor| {
+                    let mut trees = vec![];
+                    let mut rest = *cursor;
+                    while let Some((tt, next)) = rest.token_tree() {
+                        match &tt {
+                            TokenTree::Punct(punct) if punct.as_char() == ';' => {
+                                return Ok((trees, rest));
+                            }
+                            _ => {
+                                trees.push(tt);
+                                rest = next;
+                            }
+                        }
+                    }
+                    Err(cursor.error("no `;` or `else` was found after this point"))
+                })?
+                .into_iter()
+                .collect();
             Some(HtmlElse { else_, brace_token, body, eq, gt, result_expr })
         } else {
             None
@@ -437,7 +476,7 @@ struct HtmlWhile {
     body: HtmlCommands,
     eq: Token![=],
     gt: Token![>],
-    result_expr: Expr,
+    result_expr: TokenStream,
 }
 
 impl HtmlWhile {
@@ -455,7 +494,25 @@ impl Parse for HtmlWhile {
         let body = body_parse_buffer.parse()?;
         let eq = input.parse::<Token![=]>()?;
         let gt = input.parse::<Token![>]>()?;
-        let result_expr = input.parse()?;
+        let result_expr: TokenStream = input
+            .step(|cursor| {
+                let mut trees = vec![];
+                let mut rest = *cursor;
+                while let Some((tt, next)) = rest.token_tree() {
+                    match &tt {
+                        TokenTree::Punct(punct) if punct.as_char() == ';' => {
+                            return Ok((trees, rest));
+                        }
+                        _ => {
+                            trees.push(tt);
+                            rest = next;
+                        }
+                    }
+                }
+                Err(cursor.error("no `;` or `else` was found after this point"))
+            })?
+            .into_iter()
+            .collect();
         Ok(Self { while_, conditional, brace_token, body, eq, gt, result_expr })
     }
 }
@@ -565,7 +622,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                 }
             },
             HtmlCommand::Use(HtmlUse { use_: _, expr, semi }) => {
-                quote_spanned! {expr.span()=>
+                quote! {
                     #[allow(unused_mut)]
                     let mut html_handler = #expr #semi
                 }
@@ -584,33 +641,23 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                             let (html_handler, #variable) = #expr;
                         }
                     }
-                    HtmlLetInner::If(HtmlIf { if_, conditional, brace_token, body, eq, gt, result_expr, else_ }) => {
+                    HtmlLetInner::If(HtmlIf { if_, conditional, brace_token, body, eq: _, gt: _, result_expr, else_ }) => {
                         let body_stmts = convert_commands(body);
                         let temp_var = Ident::new("temp_var", Span::mixed_site());
                         else_.as_ref().map_or_else(
                             || {
-                                quote_spanned! {body.span().unwrap_or_else(|| brace_token.span.span())=>
-                                    let #temp_var;
+                                quote! {
                                     #[allow(clippy::if_not_else)]
-                                    {
-                                        (html_handler, #temp_var) = if #conditional {
-                                            #(#body_stmts)*
-                                            (html_handler, Some(#result_expr))
-                                        } else {
-                                            (html_handler, None)
-                                        };
-                                    }
-                                    let #variable = #temp_var;
+                                    #[allow(unused_mut)]
+                                    let (mut html_handler, #variable) = if #conditional {
+                                        #(#body_stmts)*
+                                        (html_handler, Some(#result_expr))
+                                    } else {
+                                        (html_handler, None)
+                                    };
                                 }
                             },
-                            |HtmlElse {
-                                 else_,
-                                 brace_token: else_brace_token,
-                                 body: else_body,
-                                 eq: else_eq,
-                                 gt: else_gt,
-                                 result_expr: else_result_expr,
-                             }| {
+                            |HtmlElse { else_, brace_token: else_brace_token, body: else_body, eq: _, gt: _, result_expr: else_result_expr }| {
                                 let else_body_stmts = convert_commands(else_body);
                                 let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap()=>
                                     {

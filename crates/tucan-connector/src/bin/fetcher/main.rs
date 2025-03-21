@@ -29,7 +29,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let mut fetcher = Fetcher::new().await?;
 
-    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::new()).await?;
+    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default()).await?;
 
     fetcher.anmeldung_file.flush().await?;
     fetcher.module_file.flush().await?;
@@ -66,10 +66,10 @@ impl Fetcher {
     async fn recursive_anmeldung(&mut self, tucan: &TucanConnector, login_response: &LoginResponse, anmeldung_request: AnmeldungRequest) -> Result<(), TucanError> {
         // here we can use cached but for the actual test we can't use cached
 
-        self.anmeldung_file.write_all(anmeldung_request.arguments.as_bytes()).await?;
+        self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
         self.anmeldung_file.write_all(b"\n").await?;
 
-        println!("anmeldung {}", anmeldung_request.arguments);
+        println!("anmeldung {}", anmeldung_request.inner());
         let anmeldung_response = tucan.anmeldung(login_response.clone(), anmeldung_request).await?;
         println!("anmeldung counter: {}", self.anmeldung_counter);
         self.anmeldung_counter += 1;
@@ -80,8 +80,8 @@ impl Fetcher {
 
         for entry in &anmeldung_response.entries {
             if let Some(module) = &entry.module {
-                println!("module {}", module.url.arguments.clone());
-                self.module_file.write_all(module.url.arguments.as_bytes()).await?;
+                println!("module {}", module.url.inner());
+                self.module_file.write_all(module.url.inner().as_bytes()).await?;
                 self.module_file.write_all(b"\n").await?;
 
                 let module_details = tucan.module_details(login_response, module.url.clone()).await?;
@@ -90,11 +90,11 @@ impl Fetcher {
             }
 
             for course in &entry.courses {
-                println!("course {}", course.1.url.clone());
-                self.course_file.write_all(course.1.url.as_bytes()).await?;
+                println!("course {}", course.1.url.inner());
+                self.course_file.write_all(course.1.url.inner().as_bytes()).await?;
                 self.course_file.write_all(b"\n").await?;
 
-                let course_details = tucan.course_details(login_response, CourseDetailsRequest { arguments: course.1.url.clone() }).await?;
+                let course_details = tucan.course_details(login_response, CourseDetailsRequest::parse(&course.1.url.inner())).await?;
                 println!("course counter: {}", self.course_counter);
                 self.course_counter += 1;
             }

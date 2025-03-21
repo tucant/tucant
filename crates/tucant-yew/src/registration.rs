@@ -67,7 +67,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
     };
 
     if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() && !*loading {
-        navigator.replace(&Route::Registration { registration: data.submenus[0].1.arguments.clone().to_string() });
+        navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
         return Ok(html! { <></> });
     }
 
@@ -78,14 +78,14 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
             <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>() }
                 </ol>
             </nav>
             <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
                 { data.submenus.iter().map(|entry| {
-                        html!{<Link<Route> to={Route::Registration { registration: entry.1.arguments.clone().to_string()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                        html!{<Link<Route> to={Route::Registration { registration: entry.1.clone()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                     }).collect::<Html>() }
             </ul>
             <h2 class="text-center">{ "Modules and courses" }</h2>
@@ -95,7 +95,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                         html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.map(|module| module.url.clone().arguments).unwrap_or("/notfound".to_owned())}}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
+                                    <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
@@ -119,7 +119,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                         html! {
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: format!(":N{:015}{}", current_session.as_ref().map(|s| s.id.to_string()).unwrap_or("1".to_owned()), course.1.url.clone()) }}>{ format!("Kurs {} {}", course.1.id, course.1.name) }</Link<Route>></h5>
+                                                    <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>{ format!("Kurs {} {}", course.1.id, course.1.name) }</Link<Route>></h5>
                                                     <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
                                                 </div>
 

@@ -10,6 +10,7 @@ utoipa = { git = "https://github.com/juhaku/utoipa.git" }
 axum-core = "0.5.0"
 thiserror = "2"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "charset", "stream"] }
+regex = { version = "1" }
 
 [lints]
 workspace = true

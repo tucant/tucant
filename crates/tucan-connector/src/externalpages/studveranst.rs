@@ -7,6 +7,7 @@ use crate::{
 };
 use html_handler::Root;
 
+#[expect(clippy::too_many_lines)]
 pub async fn veranstaltungen(client: &MyClient, login_response: LoginResponse) -> Result<(), TucanError> {
     let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml", login_response.id), &login_response.cookie_cnsc).await?;
     let document = Html::parse_document(&content);
@@ -155,6 +156,5 @@ pub async fn veranstaltungen(client: &MyClient, login_response: LoginResponse) -
                             "."
                         </p>
     };
-    let _html_handler = html_handler;
     Ok(())
 }
