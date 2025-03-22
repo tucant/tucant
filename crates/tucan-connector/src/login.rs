@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use log::info;
 use regex::Regex;
 use reqwest::header::HeaderValue;
@@ -7,11 +9,12 @@ use tucant_types::{LoginRequest, LoginResponse};
 use crate::{MyClient, TucanError, authenticated_retryable_get};
 
 pub async fn logout(client: &MyClient, login_response: &LoginResponse) -> Result<(), TucanError> {
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id), &login_response.cookie_cnsc).await?;
+    let _content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N{:015},-N001", login_response.id), &login_response.cookie_cnsc).await?;
     Ok(())
 }
 
 pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<LoginResponse, TucanError> {
+    static NEXT_URL_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000").unwrap());
     assert_ne!(login_request.username, "");
     assert_ne!(login_request.password, "");
     let mut response = client
@@ -40,10 +43,9 @@ pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<Lo
         assert!(content.contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."));
         return Err(TucanError::InvalidCredentials);
     }
-    let next_url_regex = Regex::new(r"0; URL=/scripts/mgrqispi\.dll\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(?P<id>\d+),-N000019,-N000000000000000").unwrap();
     let next_url = next_url.unwrap();
     let next_url = next_url.to_str().unwrap();
-    let id = &next_url_regex.captures(next_url).expect("english is not supported")["id"];
+    let id = &NEXT_URL_REGEX.captures(next_url).expect("english is not supported")["id"];
     let cookie_cnsc = if cfg!(target_arch = "wasm32") {
         String::new()
     } else {

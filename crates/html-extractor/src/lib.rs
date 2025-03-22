@@ -2,7 +2,7 @@ use itertools::Itertools;
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
 use syn::{
-    Block, Expr, Ident, LitStr, Token, braced,
+    Block, Expr, ExprClosure, Ident, LitStr, Token, braced,
     ext::IdentExt,
     parse::{Parse, ParseStream},
     parse_macro_input,
@@ -225,7 +225,7 @@ impl Parse for DashOrColon {
 enum StringLiteralOrVariable {
     Literal(LitStr),
     Variable(Ident),
-    Expression(Brace, Expr),
+    Clousure(Brace, ExprClosure),
 }
 
 impl StringLiteralOrVariable {
@@ -233,7 +233,7 @@ impl StringLiteralOrVariable {
         match self {
             Self::Literal(lit_str) => lit_str.span(),
             Self::Variable(ident) => ident.span(),
-            Self::Expression(brace, _expr) => brace.span.join(),
+            Self::Clousure(brace, _expr) => brace.span.join(),
         }
     }
 }
@@ -244,7 +244,7 @@ impl Parse for StringLiteralOrVariable {
         if lookahead.peek(Brace) {
             let content;
             let brace_token = braced!(content in input);
-            content.parse().map(|b| Self::Expression(brace_token, b))
+            content.parse().map(|b| Self::Clousure(brace_token, b))
         } else if lookahead.peek(LitStr) {
             input.parse().map(Self::Literal)
         } else if lookahead.peek(Ident::peek_any) {
@@ -547,11 +547,12 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                                 let mut html_handler = html_handler.attribute(#name, #lit_str);
                             }
                         }
-                        StringLiteralOrVariable::Expression(_brace, expr) => {
+                        StringLiteralOrVariable::Clousure(_brace, expr) => {
                             quote_spanned! {expr.span()=>
-                                let tmp_internal_html_extractor_proc_macro: &str = #expr;
                                 #[allow(unused_mut)]
-                                let mut html_handler = html_handler.attribute(#name, tmp_internal_html_extractor_proc_macro);
+                                let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.attribute_value(#name);
+                                #[allow(clippy::redundant_closure_call)]
+                                (#expr)(tmp_internal_html_extractor_proc_macro_2);
                             }
                         }
                         StringLiteralOrVariable::Variable(ident) => {
@@ -608,10 +609,12 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                         let mut html_handler = html_handler.skip_text(#lit_str);
                     }
                 }
-                StringLiteralOrVariable::Expression(_brace, expr) => {
+                StringLiteralOrVariable::Clousure(_brace, expr) => {
                     quote_spanned! {expr.span()=>
                         #[allow(unused_mut)]
-                        let mut html_handler = html_handler.skip_text(#expr);
+                        let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) = html_handler.text();
+                        #[allow(clippy::redundant_closure_call)]
+                        (#expr)(tmp_internal_html_extractor_proc_macro_2);
                     }
                 }
                 StringLiteralOrVariable::Variable(ident) => {
@@ -629,7 +632,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
             }
             HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
                 let body = &block.stmts;
-                quote_spanned! {block.span()=>
+                quote! {
                     #(#body)*
                 }
             }

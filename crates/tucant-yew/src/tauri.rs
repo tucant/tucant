@@ -1,10 +1,11 @@
 use serde_json::json;
 use tucant_types::{
-    LoginRequest, LoginResponse, Tucan, TucanError, Vorlesungsverzeichnis,
+    LoginRequest, LoginResponse, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
+    vv::Vorlesungsverzeichnis,
 };
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 

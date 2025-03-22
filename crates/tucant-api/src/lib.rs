@@ -5,13 +5,13 @@ use tucan_connector::{
     login::{login, logout},
     registration::index::anmeldung_cached,
 };
-use tucant_types::{LoggedInHead, Tucan, coursedetails::CourseDetailsResponse, mlsstart::MlsStart, moduledetails::ModuleDetailsResponse};
 use tucant_types::{
     LoginRequest, LoginResponse, TucanError,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
 };
+use tucant_types::{Tucan, coursedetails::CourseDetailsResponse, mlsstart::MlsStart, moduledetails::ModuleDetailsResponse};
 use utoipa::{
     Modify, OpenApi,
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},

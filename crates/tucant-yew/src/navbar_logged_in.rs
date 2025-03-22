@@ -1,4 +1,4 @@
-use tucant_types::{LoggedInHead, LoginResponse, mlsstart::MlsStart};
+use tucant_types::{LoginResponse, mlsstart::MlsStart};
 use yew::{Html, Properties, classes, function_component, html};
 
 #[derive(Properties, PartialEq)]

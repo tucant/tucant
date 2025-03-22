@@ -1,5 +1,7 @@
 use scraper::CaseSensitivity::CaseSensitive;
 use scraper::{ElementRef, Html};
+use tucant_types::InstructorImage;
+use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
 use tucant_types::{
     LoginResponse,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -31,7 +33,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", id, args.inner());
     println!("{url}");
     // TODO FIXME generalize
-    let key = format!("url.{url}");
+    let key = format!("unparsed_module_details.{}", args.inner());
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -78,9 +80,6 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                     } => ();
                                     <tr class="tbcontrol">_
                                         <td>_
-                                            let schliessen_link = if html_handler.peek().is_some() {
-                                                let any_child = html_handler.next_any_child();_
-                                            } => ();
                                         </td>_
                                     </tr>_
                                     <tr class="tbdata">_
@@ -116,7 +115,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             </b>
                                             credits
                                             <br></br>
-                                            let few = if html_handler.peek().unwrap().value().is_text() {
+                                            let abweichende_credits = if html_handler.peek().unwrap().value().is_text() {
                                                 "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein.\n                                                             "
                                                 <br></br>
                                             } => ();
@@ -164,7 +163,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                     </tr>_
                                     <tr class="tbdata">_
                                         <td class="rw rw-detail-phase">
-                                            let wefwefwf = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {_
+                                            let anmeldefristen = if **html_handler.peek().unwrap().value().as_text().unwrap() == *" " {_
                                                     <!--"kPjkB9iIB5XqgqsRtfVaZtHvbKDQKU61Hu3gnq6EKAw"-->_
                                                 </td>_
                                                 <td class="rw rw-detail-block">_
@@ -185,15 +184,15 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     registration_range
                                                 </td>_
                                                 <td class="rw rw-detail-unreg">
-                                                    unregistration
-                                            } => ();
+                                                    unregistration_range
+                                            } => Anmeldefristen { registration_range, unregistration_range };
                                         </td>_
                                     </tr>_
                                 </tbody>
                             </table>_
                             <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8"-->_
                             <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
-                            let efw = if html_handler.peek().unwrap().value().is_element() {
+                            let kurs_kategorien = if html_handler.peek().unwrap().value().is_element() {
                                 <table class="tb rw-table rw-all">_
                                     <caption>
                                         "Kurse"
@@ -221,7 +220,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             <td>_
                                             </td>_
                                         </tr>_
-                                        let fwe = while html_handler.peek().is_some() {
+                                        let kurs_kategorien = while html_handler.peek().is_some() {
                                             <tr class="tbsubhead">_
                                                 <td class="rw rw-detail-logo">
                                                     <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
@@ -241,33 +240,33 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     } => semester;
                                                 </td>_
                                                 <td class="rw rw-detail-credits">
-                                                    _credits
+                                                    credits
                                                 </td>_
                                                 <td>_
                                                 </td>_
                                             </tr>_
-                                            let test = while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
+                                            let kurse = while html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.has_class("tbdata", CaseSensitive)) == Some(true) {
                                                 <tr class="tbdata">_
                                                     <td class="tbdata">
                                                         <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                                                        let schwangere = if html_handler.peek().is_some() {
+                                                        let gefaehrungspotential_schwangere = if html_handler.peek().is_some() {
                                                             <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
                                                         } => ();
                                                     </td>_
                                                     <td>
-                                                        <a name="eventLink" class="link" href=course_url_1>
-                                                            course_no
+                                                        <a name="eventLink" class="link" href=url>
+                                                            course_id
                                                         </a>
                                                     </td>_
                                                     <td>
-                                                        <a name="eventLink" class="link" href=course_url_1>
+                                                        <a name="eventLink" class="link" href={|v| assert_eq!(v, url)}>
                                                             name
                                                         </a>
                                                     </td>_
                                                     <td>_
                                                     </td>_
                                                     <td>
-                                                        <a name="eventLink" class="link" href=course_url_1>
+                                                        <a name="eventLink" class="link" href={|v| assert_eq!(v, url)}>
                                                             semester
                                                         </a>
                                                     </td>_
@@ -276,11 +275,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     <td>_
                                                     </td>_
                                                 </tr>_
-                                            } => ();
-                                        } => ();
+                                            } => Kurs { name, course_id, gefaehrungspotential_schwangere: gefaehrungspotential_schwangere.is_some(), semester, url };
+                                        } => KursKategorie { course_no, name, mandatory, semester, credits, kurse };
                                     </tbody>
                                 </table>_
-                            } => ();
+                            } => kurs_kategorien;
                             <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
                             <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
                             <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -315,17 +314,20 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                     </tr>_
                                 </thead>_
                                 <tbody>_
-                                    let efw = while html_handler.peek().is_some() {
+                                    let leistungen = while html_handler.peek().is_some() {
                                         <!--"Q978vY9eIUQSe-WWhOD-KiCLuTJDGO6f_xVROPE7soI"-->_
                                         <tr>_
                                             <td rowspan=rowspan class="tbsubhead level02_color ">
                                                 modulabschlussleistungen_or_module_name
                                             </td>_
-                                            let fwe = if leistungskombination.is_some() {
+                                            extern {
+                                                let mut rowspan: u64 = rowspan.parse().unwrap();
+                                            }
+                                            let leistungen = if leistungskombination.is_some() {
                                                     <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                                                     <td rowspan="0002" class="level03_color tbborderleft">_
                                                         <b>
-                                                            exam_type
+                                                            name
                                                         </b>_
                                                     </td>_
                                                     <td colspan="2" class="level03_color alignRight">
@@ -341,47 +343,22 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 </tr>_
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                 <tr class="tbdata">_
-                                            } => () else {
-                                                <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                                            } => ();
-                                            extern {
-                                                // TODO we need to remove the block around here
-                                                let mut rowspan: u64 = rowspan.parse().unwrap();
-                                                rowspan -= 1;
-                                            }
-                                            <td class="tbborderleft rw rw-detail-reqachieve">
-                                                examination_type
-                                            </td>_
-                                            <td class="rw rw-detail-compulsory">
-                                                compulsory
-                                            </td>_
-                                            <td class="rw rw-detail-weight alignRight">
-                                                weight
-                                            </td>_
-                                        </tr>_
-                                        let efw = while leistungskombination.is_none() && rowspan > 0 {
-                                            <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
-                                            <tr class="tbdata">_
-                                                <td class="tbborderleft rw rw-detail-reqachieve">
-                                                    examination_type
-                                                </td>_
-                                                <td class="rw rw-detail-compulsory">
-                                                    compulsory
-                                                </td>_
-                                                <td class="rw rw-detail-weight alignRight">
-                                                    weight
-                                                </td>_
-                                            </tr>_
-                                        } => {
-                                            rowspan -= 1;
-                                        };
-                                        let fwe = while leistungskombination.is_none() && html_handler.peek().is_some() {
-                                            <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
-                                            <tr>_
-                                                let test = if leistungskombination.is_none() {
+                                                    <td class="tbborderleft rw rw-detail-reqachieve">
+                                                        {|v: String| assert_eq!(name.trim(), v.trim())}
+                                                    </td>_
+                                                    <td class="rw rw-detail-compulsory">
+                                                        compulsory
+                                                    </td>_
+                                                    <td class="rw rw-detail-weight alignRight">
+                                                        {|v: String| assert_eq!(weight.trim(), v.trim())}
+                                                    </td>_
+                                                </tr>_
+                                                let leistungen = while rowspan > 2 {
+                                                    <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
+                                                    <tr>_
                                                         <td rowspan="0002" class="level03_color tbborderleft">_
                                                             <b>
-                                                                exam_type
+                                                                name
                                                             </b>_
                                                         </td>_
                                                         <td colspan="2" class="level03_color alignRight">
@@ -397,28 +374,66 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </tr>_
                                                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                     <tr class="tbdata">_
-                                                } => ();
-                                                <td class="tbborderleft rw rw-detail-reqachieve">
-                                                    examination_type
-                                                </td>_
-                                                <td class="rw rw-detail-compulsory">
-                                                    "\tJa"
-                                                </td>_
-                                                <td class="rw rw-detail-weight alignRight">
-                                                    weight
-                                                    let weight_more = if html_handler.peek().is_some() {
-                                                        <br></br>
-                                                        weight_more
-                                                    } => weight_more;
-                                                </td>_
-                                            </tr>_
-                                        } => ();
-                                    } => ();
+                                                        <td class="tbborderleft rw rw-detail-reqachieve">
+                                                            {|v: String| assert_eq!(name.trim(), v.trim())}
+                                                        </td>_
+                                                        <td class="rw rw-detail-compulsory">
+                                                            compulsory
+                                                        </td>_
+                                                        <td class="rw rw-detail-weight alignRight">
+                                                            {|v: String| assert_eq!(weight.trim(), v.trim())}
+                                                            let weight_more = if html_handler.peek().is_some() {
+                                                                <br></br>
+                                                                weight_more
+                                                            } => weight_more;
+                                                        </td>_
+                                                    </tr>_
+                                                } => {
+                                                    rowspan -= 2;
+                                                    Leistung { name, weight, compulsory, weight_more }
+                                                };
+                                            } => {
+                                                leistungen.insert(0, Leistung { name, weight, compulsory, weight_more: None });
+                                                leistungen
+                                            } else {
+                                                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                                                    <td class="tbborderleft rw rw-detail-reqachieve">
+                                                        name
+                                                    </td>_
+                                                    <td class="rw rw-detail-compulsory">
+                                                        compulsory
+                                                    </td>_
+                                                    <td class="rw rw-detail-weight alignRight">
+                                                        weight
+                                                    </td>_
+                                                </tr>_
+                                                let leistungen = while rowspan > 1 {
+                                                    <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
+                                                    <tr class="tbdata">_
+                                                        <td class="tbborderleft rw rw-detail-reqachieve">
+                                                            name
+                                                        </td>_
+                                                        <td class="rw rw-detail-compulsory">
+                                                            compulsory
+                                                        </td>_
+                                                        <td class="rw rw-detail-weight alignRight">
+                                                            weight
+                                                        </td>_
+                                                    </tr>_
+                                                } => {
+                                                    rowspan -= 1;
+                                                    Leistung { name, weight, compulsory, weight_more: None }
+                                                };
+                                            } => {
+                                                leistungen.insert(0, Leistung { name, weight, compulsory, weight_more: None });
+                                                leistungen
+                                            };
+                                    } => leistungen.either_into::<Vec<Leistung>>();
                                 </tbody>_
                             </table>_
                             <!--"2ZbUIAyW1jo5-WUMeTNt-IKv23wZ26ul3DgqOFYk-Cs"-->_
                             <!--"yzI2g2lOkYEZ9daP_HPMEVsNji03iv9OjslJBotOfZ0"-->_
-                            let efwfwf = if !html_handler.peek().unwrap().value().is_comment() {
+                            let pruefungen = if !html_handler.peek().unwrap().value().is_comment() {
                                 <table class="tb rw-table rw-all" summary="Modulabschlussprüfungen">_
                                     <caption>
                                         "Modulabschlussprüfungen"
@@ -445,104 +460,103 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                         </tr>_
                                     </thead>_
                                     <tbody>_
-                                        let wef = while html_handler.peek().is_some() {
-                                            let ewf = if leistungskombination.is_some() {
-                                                extern {
-                                                    let mut rowspan: u64 = 0;
-                                                }
+                                        let pruefungen = while html_handler.peek().is_some() {
+                                            let pruefung = if leistungskombination.is_some() {
                                                 <!--"m9kKtyJq8n6Nc3k3DA46XI-06Jmq77IMLKAgoMJn5zE"-->_
                                                 <tr class="tbdata">_
-                                                    <td rowspan=rowspan_str class="level03_color rw rw-detail-combination ">_
+                                                    <td rowspan=rowspan class="level03_color rw rw-detail-combination ">_
                                                         <b>
-                                                            "Fachprüfung"
+                                                            name
                                                         </b>_
                                                     </td>_
                                                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                     <td class="tbborderleft rw rw-detail-exam">
-                                                        exam_type
+                                                        subname
                                                     </td>_
                                                     <td class="rw rw-detail-date">
-                                                        exam_date
+                                                        date
                                                     </td>_
                                                     <td class="rw rw-detail-instructors">
-                                                        instructor
+                                                        examiner
                                                     </td>_
                                                     <td class="rw rw-detail-compulsory">
                                                         compulsory
                                                     </td>_
                                                 </tr>_
                                                 extern {
-                                                    rowspan = rowspan_str.parse().unwrap();
-                                                    rowspan -= 1;
+                                                    let mut rowspan: u64 = rowspan.parse().unwrap();
                                                 }
-                                                let wfwf = while rowspan > 0 {
+                                                let termine = while rowspan > 1 {
                                                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                     <tr class="tbdata">_
                                                         <td class="tbborderleft rw rw-detail-exam">
-                                                            exam_type
+                                                            subname
                                                         </td>_
                                                         <td class="rw rw-detail-date">
-                                                            exam_date
+                                                            date
                                                         </td>_
                                                         <td class="rw rw-detail-instructors">
-                                                            instructor
+                                                            examiner
                                                         </td>_
                                                         <td class="rw rw-detail-compulsory">
-                                                            compulsory
+                                                            {|v: String| assert_eq!(compulsory.trim(), v.trim())}
                                                         </td>_
                                                     </tr>_
-                                                    extern {
-                                                        rowspan -= 1;
-                                                    }
-                                                } => ();
-                                            } => () else {
+                                                } => {
+                                                    rowspan -= 1;
+                                                    Pruefungstermin { date, examiner, subname }
+                                                };
+                                            } => {
+                                                termine.insert(0, Pruefungstermin { date, examiner, subname });
+                                                Pruefung { compulsory, name, termine }
+                                            } else {
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                 <tr class="tbdata">_
                                                     <td class="tbborderleft rw rw-detail-exam">
-                                                        exam_type
+                                                        name
                                                     </td>_
                                                     <td class="rw rw-detail-date">
-                                                        exam_date
+                                                        date
                                                     </td>_
                                                     <td class="rw rw-detail-instructors">
-                                                        instructor
+                                                        examiner
                                                     </td>_
                                                     <td class="rw rw-detail-compulsory">
                                                         compulsory
                                                     </td>_
                                                 </tr>_
-                                            } => ();
-                                        } => ();
+                                            } => Pruefung { name: name.clone(), compulsory, termine: vec![Pruefungstermin { date, examiner, subname: name }] };
+                                        } => pruefung.either_into();
                                     </tbody>_
                                 </table>_
-                            } => ();
+                            } => pruefungen;
                             <!--"uhyYYbUSVjP7_XQEDDQOad7J3GgMGl4q_WFqXNEWGOA"-->_
                         </div>_
                         <!--"Dy5f5hoTub6F0a3hjk3r6NHBbyjBZKm2Ax1gR8Jn7HQ"-->_
                         <div class="contentlayoutright" id="contentlayoutright">_
-                            let wedqw = if html_handler.peek().is_some() {
+                            let modulverantwortliche = if html_handler.peek().is_some() {
                                 <table class="tb_contentright">_
                                     <caption>
                                         "Modulverantwortliche"
                                     </caption>_
                                     <tbody>
-                                        let dfwf = while html_handler.peek().is_some() {
-                                            let a = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
+                                        let modulverantwortliche = while html_handler.peek().is_some() {
+                                            let bild = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
                                                 <tr>_
                                                     <td class="tbdata_nob" style="text-align:center;padding-top:10px;padding-left:0px;">_
-                                                        <img src=_src width="120" height="160" border="0" alt=_alt></img>_
+                                                        <img src=imgsrc width="120" height="160" border="0" alt=alt></img>_
                                                     </td>_
                                                 </tr>_
-                                            } => ();
+                                            } => InstructorImage { alt, imgsrc };
                                             <tr class="tbdata">_
                                                 <td style="text-align:center;">
                                                     name
                                                 </td>_
                                             </tr>_
-                                        } => ();
+                                        } => (name, bild);
                                     </tbody>
                                 </table>_
-                            } => ();
+                            } => modulverantwortliche;
                         </div>_
                         <!--"SzJAJfnnubn5SpplE3qoUsG2QoqW6EEMiB36flFP3BQ"-->_
                         <br style="clear:both;"></br>_
@@ -564,5 +578,12 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
         display_in_timetable,
         dozenten,
         duration: length,
+        abweichende_credits: abweichende_credits.is_some(),
+        start_semester,
+        anmeldefristen: anmeldefristen.right(),
+        kurskategorien: kurs_kategorien.unwrap_or_default(),
+        modulverantwortliche: modulverantwortliche.unwrap_or_default(),
+        leistungen: leistungen.into_iter().flatten().collect(),
+        pruefungen: pruefungen.unwrap_or_default(),
     })
 }

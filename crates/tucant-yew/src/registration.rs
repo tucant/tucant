@@ -19,7 +19,7 @@ pub struct AnmeldungRequestProps {
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    let data = use_state(|| Ok(AnmeldungResponse { path: vec![], submenus: vec![], entries: vec![], additional_information: vec![] }));
+    let data = use_state(|| Ok(AnmeldungResponse { path: vec![], submenus: vec![], entries: vec![], additional_information: vec![], studiumsauswahl: vec![] }));
     let loading = use_state(|| false);
     let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {

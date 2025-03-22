@@ -1,7 +1,7 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    LoginResponse, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImage, Room, Termin},
+    InstructorImage, LoginResponse, TucanError,
+    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
 };
 
 use crate::{
@@ -29,7 +29,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", id, args.inner());
     // TODO FIXME generalize
-    let key = format!("url.{url}");
+    let key = format!("unparsed_course_details.{}", args.inner());
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -156,7 +156,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                     <input type="hidden" name="credits" value=credits></input>_
                                                 </p>_
                                             } => {
-                                                assert_eq!(credits_text, credits);
+                                                assert_eq!(credits_text.trim(), credits.trim());
                                                 credits
                                             };
                                             <input type="hidden" name="location" value="327576461398991"></input>_
@@ -174,7 +174,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                     "Min. | Max. Teilnehmerzahl:"
                                                 </b>
                                                 teilnehmer_range
-                                                <input type="hidden" name="min_participantsno" value="-"></input>_
+                                                <input type="hidden" name="min_participantsno" value=teilnehmer_min></input>_
                                                 <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>_
                                             </p>_
                                             <!--"u8GEiL8QtgIxvCs-Vf3CkMBYw-XHp4bjwN_4-b3nrOQ"-->_
@@ -202,34 +202,40 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                         </div>_
                                     </div>_
                                     <ul class="dl-ul-listview">_
-                                        let uebungsgruppen = while html_handler.peek().is_some() {
-                                            <li class="tbdata listelement">_
-                                                <div class="dl-inner">_
-                                                    <p class="dl-ul-li-headline">
-                                                        <strong>
-                                                            uebung_name
-                                                        </strong>
-                                                    </p>_
-                                                    <p>
-                                                        uebungsleiter
-                                                    </p>_
-                                                    <p>
-                                                        let date_range = if html_handler.peek().is_some() {
-                                                            date_range
-                                                        } => date_range;
-                                                    </p>_
-                                                </div>_
-                                                <div class="dl-link">_
-                                                    <a href=_url class="img img_arrowLeft pageElementRight">
-                                                        "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
-                                                    </a>_
-                                                </div>_
+                                        let uebungsgruppen = if html_handler.peek().unwrap().children().count() == 1 {
+                                            <li class="tbdata listelement">
+                                                "\n\t\t\t\t\t\t\t\t\t\t\tEs sind keine Kleingruppen eingerichtet.\n\t\t\t\t\t\t\t\t\t"
                                             </li>_
-                                        } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                        } => Vec::<CourseUebungsGruppe>::new() else {
+                                            let uebungsgruppen = while html_handler.peek().is_some() {
+                                                <li class="tbdata listelement">_
+                                                    <div class="dl-inner">_
+                                                        <p class="dl-ul-li-headline">
+                                                            <strong>
+                                                                uebung_name
+                                                            </strong>
+                                                        </p>_
+                                                        <p>
+                                                            uebungsleiter
+                                                        </p>_
+                                                        <p>
+                                                            let date_range = if html_handler.peek().is_some() {
+                                                                date_range
+                                                            } => date_range;
+                                                        </p>_
+                                                    </div>_
+                                                    <div class="dl-link">_
+                                                        <a href=_url class="img img_arrowLeft pageElementRight">
+                                                            "\n\t\t\t\t\t\t\t\t\tKleingruppe anzeigen\n\t\t\t\t\t\t\t\t"
+                                                        </a>_
+                                                    </div>_
+                                                </li>_
+                                            } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                        } => uebungsgruppen;
                                     </ul>_
                                 </div>_
                                 <!--"0x4FAGT9tkPZPnjGhLVSIyUwzWJVg5LmPPopzaVekvg"-->_
-                            } => uebungsgruppen;
+                            } => uebungsgruppen.either_into();
                             <!--"gjmJkszfvlTVATkzxj9UfHJAWhksvjlPhatwUMepicA"-->_
                             <table class="tb rw-table">_
                                 <caption>
@@ -478,7 +484,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                         </a>_
                                                     </td>_
                                                 </tr>_
-                                            } => InstructorImage { href, imgsrc, alt };
+                                            } => InstructorImageWithLink { href, inner: InstructorImage { imgsrc, alt } };
                                             <tr>_
                                                 <td class="tbdata" name="instructorTitle">
                                                     instructor
@@ -513,11 +519,12 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         anzeige_im_stundenplan,
         shortname,
         courselevel: courselevel.parse().unwrap(),
-        sws: sws.right().map(|sws| sws.parse().unwrap()),
+        sws: sws.right().map(|sws| sws.replace(',', ".").parse().expect(&sws)),
         credits: credits.right().map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
         language,
         language_id: language_id.parse().unwrap(),
         teilnehmer_range,
+        teilnehmer_min,
         teilnehmer_max,
         description,
         uebungsgruppen: uebungsgruppen.unwrap_or_default(),

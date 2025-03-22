@@ -1,10 +1,12 @@
+use std::sync::LazyLock;
+
 use regex::Regex;
 use scraper::{ElementRef, Html};
 use tucant_types::{
     LoginResponse,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
-    registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState},
+    registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState, Studiumsauswahl},
 };
 
 use crate::{
@@ -28,10 +30,14 @@ pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResp
 
 #[expect(clippy::too_many_lines)]
 pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, args: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
+    static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap());
+    static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N000311,").unwrap());
+    static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N000311,").unwrap());
+    static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap());
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, args.inner());
     // TODO FIXME generalize
-    let key = format!("url.{url}");
+    let key = format!("unparsed_anmeldung.{}", args.inner());
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -43,7 +49,6 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
-    let re: Regex = Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap();
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>_
@@ -63,7 +68,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                     <h1>
                         "Anmeldung zu Modulen und Veranstaltungen"
                     </h1>_
-                    let wef = if html_handler.peek().unwrap().value().is_comment() {
+                    let studiumsauswahl = if html_handler.peek().unwrap().value().is_comment() {
                         <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
                         <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
                             <table class="tbcoursestatus rw-table rw-all">_
@@ -80,24 +85,27 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                     "Studium:"
                                                 </label>_
                                                 <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
-                                                    let wfeew = while html_handler.peek().is_some() {
-                                                        let fwee = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                    let studiumsauswahl = while html_handler.peek().is_some() {
+                                                        let studiumsauswahl = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                             <option value=value selected="selected">
-                                                                study
+                                                                name
                                                             </option>_
-                                                        } => () else {
+                                                        } => Studiumsauswahl { name, value, selected: true } else {
                                                             <option value=value>
-                                                                study
+                                                                name
                                                             </option>_
-                                                        } => ();
-                                                    } => ();
+                                                        } => Studiumsauswahl { name, value, selected: false };
+                                                    } => studiumsauswahl.either_into();
                                                 </select>_
                                                 <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
                                             </div>_
                                             <input name="APPNAME" type="hidden" value="CampusNet"></input>_
                                             <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
                                             <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
-                                            <input name="sessionno" type="hidden" value={&format!("{id:015}")}></input>_
+                                            <input name="sessionno" type="hidden" value={|v: String| {
+                                                static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
+                                                assert!(REGEX.is_match(&v), "{v}");
+                                            }}></input>_
                                             <input name="menuno" type="hidden" value="000311"></input>_
                                             <input name="pa rent1" type="hidden" value="000000000000000"></input>_
                                             <input name="parent2" type="hidden" value="000000000000000"></input>_
@@ -108,7 +116,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             </table>_
                         </form>_
                         <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
-                    } => ();
+                    } => studiumsauswahl;
                     <h2>_
                         <a href=registration_url>
                             study
@@ -121,14 +129,14 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                         } => match any_child.value() {
                             scraper::Node::Comment(_comment) => None,
                             scraper::Node::Text(text) => {
-                                let url = url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"));
-                                Some((text.to_string(), AnmeldungRequest::parse(url)))
+                                let url = REGISTRATION_REGEX.replace(&url, "");
+                                Some((text.to_string(), AnmeldungRequest::parse(&url)))
                             }
                             _ => panic!(),
                         };
                         extern {
-                            let registration_url = registration_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"));
-                            path.insert(0, Some((study, AnmeldungRequest::parse(registration_url))));
+                            let registration_url = REGISTRATION_REGEX.replace(&registration_url, "");
+                            path.insert(0, Some((study, AnmeldungRequest::parse(&registration_url))));
                         }_
                     </h2>_
                     let submenus = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
@@ -139,7 +147,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                         item
                                     </a>_
                                 </li>_
-                            } => (item.trim().to_owned(), AnmeldungRequest::parse(url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{id:015},-N000311,"))));
+                            } => (item.trim().to_owned(), AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>_
                     } => submenus;
                     <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
@@ -247,7 +255,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                                         </tr>_
                                                     } => {
-                                                        let module_url = module_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{id:015},-N000311,"));
+                                                        let module_url = MODULEDETAILS_REGEX.replace(&module_url, "");
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
                                                         let module = AnmeldungModule {
                                                             url: ModuleDetailsRequest::parse(module_url),
@@ -293,7 +301,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
                                                             <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
                                                             <td class="tbdata">_
-                                                                let gefaehrung_schwangere = if html_handler.peek().is_some() {
+                                                                let gefaehrdung_schwangere = if html_handler.peek().is_some() {
                                                                     <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
                                                                 } => ();
                                                             </td>_
@@ -309,7 +317,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                     </strong>
                                                                 </p>_
                                                                 <p>
-                                                                    let lecturers = if html_handler.peek().is_some() && !re.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
+                                                                    let lecturers = if html_handler.peek().is_some() && !RE.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
                                                                             lecturers
                                                                         </p>_
                                                                         <p>
@@ -322,7 +330,11 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                     let location_or_additional_info = if html_handler.peek().is_some() {
                                                                             let location_or_additional_info = html_handler.next_any_child();
                                                                         </p>_
-                                                                    } => location_or_additional_info else {
+                                                                    } => match location_or_additional_info.value() {
+                                                                        scraper::Node::Text(text) => text.trim().to_owned(),
+                                                                        scraper::Node::Element(_element) => ElementRef::wrap(location_or_additional_info).unwrap().html(),
+                                                                        _ => panic!(),
+                                                                    } else {
                                                                         </p>_
                                                                     } => ();
                                                                 let location = if html_handler.peek().is_some() {
@@ -355,9 +367,10 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
                                                         </tr>_
                                                     } => {
-                                                        let course_url = course_url.trim_start_matches(&format!("/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{id:015},-N000311,"));
+                                                        let course_url = COURSEDETAILS_REGEX.replace(&course_url, "");
                                                         let course_url = course_url.split_once(",-A").unwrap().0;
                                                         let course = AnmeldungCourse {
+                                                            gefaehrdung_schwangere: gefaehrdung_schwangere.is_some(),
                                                             url: CourseDetailsRequest::parse(course_url),
                                                             id: course_id.trim().to_owned(),
                                                             name: course_name.trim().to_owned(),
@@ -366,6 +379,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             registration_until: registration_until.trim().to_owned(),
                                                             limit_and_size: limit_and_size.trim().to_owned(),
                                                             registration_button_link: registration_button_link.either_into(),
+                                                            location_or_additional_info: location_or_additional_info.left(),
+                                                            location: location.flatten(),
                                                         };
                                                         (exam, course)
                                                     };
@@ -385,5 +400,6 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
         submenus: submenus.unwrap_or_default(),
         entries: anmeldung_entries.unwrap_or_default(),
         additional_information: additional_information.into_iter().flatten().collect(),
+        studiumsauswahl: studiumsauswahl.unwrap_or_default(),
     })
 }

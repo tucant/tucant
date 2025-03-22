@@ -1,10 +1,11 @@
 use reqwest::Client;
 use tucant_types::{
-    LoggedInHead, LoginRequest, LoginResponse, Tucan, TucanError, Vorlesungsverzeichnis,
+    LoginRequest, LoginResponse, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
+    vv::Vorlesungsverzeichnis,
 };
 use url::Url;
 
@@ -34,14 +35,14 @@ impl Tucan for ApiServerTucan {
 
     async fn anmeldung(&self, _login_response: LoginResponse, request: AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
         let mut url = Url::parse("http://localhost:1420/api/v1/registration").unwrap();
-        url.path_segments_mut().unwrap().push(&request.inner());
+        url.path_segments_mut().unwrap().push(request.inner());
         let response: AnmeldungResponse = self.client.get(url).send().await.unwrap().error_for_status()?.json().await.unwrap();
         Ok(response)
     }
 
     async fn module_details(&self, _login_response: &LoginResponse, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
         let mut url = Url::parse("http://localhost:1420/api/v1/module-details").unwrap();
-        url.path_segments_mut().unwrap().push(&request.inner());
+        url.path_segments_mut().unwrap().push(request.inner());
         let response: ModuleDetailsResponse = self.client.get(url).send().await.unwrap().error_for_status()?.json().await.unwrap();
         Ok(response)
     }

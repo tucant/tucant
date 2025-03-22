@@ -1,3 +1,6 @@
+flamegraph.svg
+perf.data
+perf.data.old
 rustc-ice-*.txt
 out
 _metadata

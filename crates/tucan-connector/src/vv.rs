@@ -1,5 +1,9 @@
 use scraper::{ElementRef, Html};
-use tucant_types::{LoginResponse, TucanError, Vorlesungsverzeichnis};
+use tucant_types::{
+    LoginResponse, TucanError,
+    coursedetails::CourseDetailsRequest,
+    vv::{Veranstaltung, Vorlesungsverzeichnis},
+};
 
 use crate::{
     MyClient, authenticated_retryable_get,
@@ -51,7 +55,11 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                         <div class="tb nb">
                             let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
-                            } => ElementRef::wrap(any_child).unwrap().html();
+                            } => match any_child.value() {
+                                scraper::Node::Text(text) => text.trim().to_owned(),
+                                scraper::Node::Element(_element) => ElementRef::wrap(any_child).unwrap().html(),
+                                _ => panic!(),
+                            };
                         </div>_
                     } => description;
                     let entries = if html_handler.peek().unwrap().value().is_element() {
@@ -65,7 +73,7 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                             } => reg_href;
                         </ul>_
                     } => entries;
-                    let wef = if html_handler.peek().unwrap().value().as_comment().unwrap().contains("CourseCatalogue") {
+                    let veranstaltungen_or_module = if html_handler.peek().unwrap().value().as_comment().unwrap().contains("CourseCatalogue") {
                         <!--"ghFV6aOhMFy66ulVWC-xyzA5Lqi3uWdHa7LqLHaceWQ"-->_
                         <div class="tb">_
                             <div class="tbhead">
@@ -73,7 +81,7 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                             </div>_
                             <!--"tY3gu8Sk4aG_lsXAU_2a_w0_Efi8P3WOIpWjl2FxXDw"-->_
                             <!--"bZr1IgdrSm713Ht01158Vkl5zMzSBwIDp2ufIuDtU-g"-->_
-                            let veranstaltungen = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                            let veranstaltungen_or_module = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                                 <table class="nb eventTable">_
                                     <tbody>
                                         <tr class="tbsubhead">_
@@ -95,17 +103,17 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                                                 "\n\t\t \t\t  \t\tRaum\n\t\t \t\t  \t\t\t \t\t"
                                             </th>_
                                         </tr>_
-                                        let ent = while html_handler.peek().is_some() {
+                                        let veranstaltungen = while html_handler.peek().is_some() {
                                             <tr class="tbdata">_
                                                 <td>
                                                     <!--"P_nzuS6nMPntyFOEKnRuKsS4n5YXNP3TWd4dCLhMjaM"-->_
                                                 </td>_
                                                 <td>_
                                                     <a name="eventLink" href=coursedetails_url class="eventTitle">
-                                                        title_url
+                                                        title
                                                     </a>
                                                     <br></br>
-                                                    name
+                                                    lecturer_name
                                                     let date_range = if html_handler.peek().is_some() {
                                                         <br></br>
                                                         date_range
@@ -117,16 +125,22 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
                                                     course_type
                                                 </td>_
                                             </tr>_
-                                        } => ();
+                                        } => Veranstaltung {
+                                            title,
+                                            coursedetails_url: CourseDetailsRequest::parse(&coursedetails_url),
+                                            lecturer_name,
+                                            date_range,
+                                            course_type
+                                        };
                                     </tbody>
                                 </table>_
-                            } => () else {
+                            } => veranstaltungen else {
                                 <div class="tbdata" colspan="3">
                                     "\n\t\t\t\tEs wurden keine Veranstaltungen gefunden.\n\t\t\t"
                                 </div>_
-                            } => ();
+                            } => Vec::<Veranstaltung>::new();
                         </div>_
-                    } => ();
+                    } => veranstaltungen_or_module.either_into();
                     <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_
                 </div>_
             </div>_
@@ -134,5 +148,10 @@ pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String
     }
     let html_handler = footer(html_handler, login_response.id, 326);
     html_handler.end_document();
-    Ok(Vorlesungsverzeichnis { entries: entries.unwrap_or_default(), path, description: description.unwrap_or_default() })
+    Ok(Vorlesungsverzeichnis {
+        entries: entries.unwrap_or_default(),
+        path,
+        description: description.unwrap_or_default(),
+        veranstaltungen_or_module: veranstaltungen_or_module.unwrap_or_default(),
+    })
 }

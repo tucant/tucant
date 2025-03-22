@@ -1,4 +1,4 @@
-use std::{convert::Infallible, fmt::Display, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr, sync::LazyLock};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -31,8 +31,8 @@ impl AnmeldungRequest {
         if input.is_empty() {
             Self { arguments: "-A".to_owned() }
         } else {
-            let registration_details_regex = Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap();
-            let c = &registration_details_regex.captures(input).expect(input);
+            static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap());
+            let c = &REGISTRATION_DETAILS_REGEX.captures(input).expect(input);
             Self { arguments: format!("-N{},-N{},-N{},-N{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"],) }
         }
     }
@@ -55,6 +55,7 @@ pub struct AnmeldungResponse {
     pub submenus: Vec<(String, AnmeldungRequest)>,
     pub entries: Vec<AnmeldungEntry>,
     pub additional_information: Vec<String>,
+    pub studiumsauswahl: Vec<Studiumsauswahl>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -97,4 +98,14 @@ pub struct AnmeldungCourse {
     pub registration_until: String,
     pub limit_and_size: String,
     pub registration_button_link: RegistrationState,
+    pub gefaehrdung_schwangere: bool,
+    pub location_or_additional_info: Option<String>,
+    pub location: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct Studiumsauswahl {
+    pub name: String,
+    pub value: String,
+    pub selected: bool,
 }

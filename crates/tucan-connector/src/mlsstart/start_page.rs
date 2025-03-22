@@ -1,6 +1,6 @@
 use scraper::{ElementRef, Html};
 use tucant_types::{
-    LoggedInHead, LoginResponse,
+    LoginResponse,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 

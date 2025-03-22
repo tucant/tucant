@@ -1,8 +1,10 @@
-use std::{convert::Infallible, fmt::Display, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr, sync::LazyLock};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+
+use crate::InstructorImage;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct ModuleDetailsRequest {
@@ -26,8 +28,8 @@ impl Display for ModuleDetailsRequest {
 impl ModuleDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        let module_details_regex = Regex::new(r"^-N(?P<n1>\d+)(,-A[a-zA-Z0-9_~-]+)?$").unwrap();
-        let c = &module_details_regex.captures(input).expect("invalid module details url");
+        static MODULE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+)(,-A[a-zA-Z0-9_~-]+)?$").unwrap());
+        let c = &MODULE_DETAILS_REGEX.captures(input).expect("invalid module details url");
         Self { arguments: format!("-N{}", &c["n1"],) }
     }
 
@@ -47,4 +49,58 @@ pub struct ModuleDetailsResponse {
     pub count_elective_courses: String,
     pub credits: String,
     pub description: Vec<String>,
+    pub abweichende_credits: bool,
+    pub start_semester: String,
+    pub anmeldefristen: Option<Anmeldefristen>,
+    pub kurskategorien: Vec<KursKategorie>,
+    pub modulverantwortliche: Vec<(String, Option<InstructorImage>)>,
+    pub leistungen: Vec<Leistung>,
+    pub pruefungen: Vec<Pruefung>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct Anmeldefristen {
+    pub registration_range: String,
+    pub unregistration_range: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct KursKategorie {
+    pub course_no: String,
+    pub name: String,
+    pub mandatory: String,
+    pub semester: Option<String>,
+    pub credits: String,
+    pub kurse: Vec<Kurs>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct Kurs {
+    pub name: String,
+    pub course_id: String,
+    pub gefaehrungspotential_schwangere: bool,
+    pub semester: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct Leistung {
+    pub name: String,
+    pub compulsory: String,
+    pub weight: String,
+    pub weight_more: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct Pruefung {
+    pub name: String,
+    pub compulsory: String,
+    pub termine: Vec<Pruefungstermin>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct Pruefungstermin {
+    pub subname: String,
+    pub date: String,
+    pub examiner: String,
 }

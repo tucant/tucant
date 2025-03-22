@@ -1,8 +1,10 @@
-use std::{convert::Infallible, fmt::Display, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr, sync::LazyLock};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+
+use crate::InstructorImage;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct CourseDetailsRequest {
@@ -26,8 +28,8 @@ impl Display for CourseDetailsRequest {
 impl CourseDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        let course_details_regex = Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+),-N(?P<n5>\d+)(,-N(?P<n6>\d+)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap();
-        let c = &course_details_regex.captures(input).expect("invalid course details url");
+        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+),-N(?P<n5>\d+)(,-N(?P<n6>\d+)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
+        let c = &COURSE_DETAILS_REGEX.captures(input).expect("invalid course details url");
         Self {
             arguments: format!("-N{},-N{},-N{},-N{},-N{}{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"], &c["n5"], c.name("n6").map(|e| format!(",-N{}", e.as_str())).unwrap_or_default()),
         }
@@ -39,7 +41,7 @@ impl CourseDetailsRequest {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct CourseDetailsResponse {
     pub name: String,
     pub material_and_messages_url: Option<(String, String)>,
@@ -50,11 +52,12 @@ pub struct CourseDetailsResponse {
     pub anzeige_im_stundenplan: String,
     pub shortname: String,
     pub courselevel: u64,
-    pub sws: Option<u64>,
+    pub sws: Option<f64>,
     pub credits: Option<u64>,
     pub language: String,
     pub language_id: u64,
     pub teilnehmer_range: String,
+    pub teilnehmer_min: String,
     pub teilnehmer_max: String,
     pub description: Vec<String>,
     pub uebungsgruppen: Vec<CourseUebungsGruppe>,
@@ -62,14 +65,13 @@ pub struct CourseDetailsResponse {
     pub enhalten_in_modulen: Vec<String>,
     pub termine: Vec<Termin>,
     pub short_termine: Vec<(String, String)>,
-    pub instructors: Vec<(String, Option<InstructorImage>)>,
+    pub instructors: Vec<(String, Option<InstructorImageWithLink>)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
-pub struct InstructorImage {
+pub struct InstructorImageWithLink {
     pub href: String,
-    pub imgsrc: String,
-    pub alt: String,
+    pub inner: InstructorImage,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]

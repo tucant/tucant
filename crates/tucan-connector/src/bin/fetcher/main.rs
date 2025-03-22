@@ -84,7 +84,7 @@ impl Fetcher {
                 self.module_file.write_all(module.url.inner().as_bytes()).await?;
                 self.module_file.write_all(b"\n").await?;
 
-                let module_details = tucan.module_details(login_response, module.url.clone()).await?;
+                let _module_details = tucan.module_details(login_response, module.url.clone()).await?;
                 println!("module counter: {}", self.module_counter);
                 self.module_counter += 1;
             }
@@ -94,7 +94,7 @@ impl Fetcher {
                 self.course_file.write_all(course.1.url.inner().as_bytes()).await?;
                 self.course_file.write_all(b"\n").await?;
 
-                let course_details = tucan.course_details(login_response, CourseDetailsRequest::parse(&course.1.url.inner())).await?;
+                let _course_details = tucan.course_details(login_response, CourseDetailsRequest::parse(course.1.url.inner())).await?;
                 println!("course counter: {}", self.course_counter);
                 self.course_counter += 1;
             }

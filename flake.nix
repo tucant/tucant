@@ -38,7 +38,9 @@
           src = lib.fileset.toSource {
             root = ./.;
             fileset = lib.fileset.unions [
-              (craneNightlyLib.fileset.commonCargoSources ./.)
+              (craneNightlyLib.fileset.commonCargoSources ./crates)
+              ./Cargo.toml
+              ./Cargo.lock
               (lib.fileset.fileFilter
                 (file: lib.any file.hasExt [ "html" "scss" ])
                 ./.

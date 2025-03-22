@@ -2,6 +2,7 @@ pub mod coursedetails;
 pub mod mlsstart;
 pub mod moduledetails;
 pub mod registration;
+pub mod vv;
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
@@ -11,6 +12,7 @@ use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use vv::Vorlesungsverzeichnis;
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
@@ -40,11 +42,10 @@ pub struct VorlesungsverzeichnisUrls {
     pub archiv_links: Vec<(String, String, String)>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
-pub struct Vorlesungsverzeichnis {
-    pub entries: Vec<String>,
-    pub path: Vec<(String, Option<String>)>,
-    pub description: Vec<String>,
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+pub struct InstructorImage {
+    pub imgsrc: String,
+    pub alt: String,
 }
 
 #[derive(thiserror::Error, Debug)]
