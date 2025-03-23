@@ -5,7 +5,7 @@ use crate::{
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::Root;
 use itertools::Itertools;
-use scraper::{ElementRef, Html};
+use scraper::{CaseSensitivity, ElementRef, Html};
 use sha3::{Digest, Sha3_256};
 use tucant_types::{
     InstructorImage, LoginResponse, TucanError,
@@ -274,55 +274,72 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                             <!--"9hTczu-fkDkzcT9pdtsf0mVFViOxhsg27F08pHvlprA"-->_
                             <!--"hcTmLh_Cojhg5bcfJ6dO6SnSw0Z-aNG6pVtxpGhGkK0"-->_
                             let course_anmeldefristen = if html_handler.peek().unwrap().value().is_element() {
-                                <table class="tb list rw-table">_
-                                    <caption>
-                                        "Anmeldefristen"
-                                    </caption>_
-                                    <tbody>
-                                        <tr>_
-                                            <td class="tbsubhead">
-                                                " Phase "
-                                            </td>_
-                                            <td class="tbsubhead">
-                                                " Block "
-                                            </td>_
-                                            <td class="tbsubhead">
-                                                " Start "
-                                            </td>_
-                                            <td class="tbsubhead">
-                                                " Ende Anmeldung "
-                                            </td>_
-                                            <td class="tbsubhead">
-                                                " Ende Abmeldung"
-                                            </td>_
-                                            <td class="tbsubhead">
-                                                " Ende Hörer "
-                                            </td>_
-                                        </tr>_
-                                        let course_anmeldefristen = while html_handler.peek().is_some() {
+                                let course_anmeldefristen = if !html_handler.peek().unwrap().value().as_element().unwrap().has_class("list", CaseSensitivity::CaseSensitive) {
+                                    <table class="tb rw-table">_
+                                        <tbody>
                                             <tr>_
-                                                <td class="tbdata">
-                                                    zulassungstyp
-                                                </td>_
-                                                <td class="tbdata">
-                                                    block_type
-                                                </td>_
-                                                <td class="tbdata">
-                                                    start
-                                                </td>_
-                                                <td class="tbdata">
-                                                    ende_anmeldung
-                                                </td>_
-                                                <td class="tbdata">
-                                                    ende_abmeldung
-                                                </td>_
-                                                <td class="tbdata">
-                                                    ende_hoerer
+                                                <td class="tbhead" colspan="6">
+                                                    "Anmeldefristen"
                                                 </td>_
                                             </tr>_
-                                        } => CourseAnmeldefrist { zulassungstyp, block_type, start, ende_anmeldung, ende_abmeldung, ende_hoerer };
-                                    </tbody>
-                                </table>_
+                                            <tr>_
+                                                <td class="tbdata">
+                                                    " Für diese Veranstaltung sind keine Anmeldephasen eingerichtet. Sie können sich zu der Veranstaltung nicht über das Webportal anmelden. "
+                                                </td>_
+                                            </tr>_
+                                        </tbody>
+                                    </table>_
+                                } => Vec::<CourseAnmeldefrist>::new() else {
+                                    <table class="tb list rw-table">_
+                                        <caption>
+                                            "Anmeldefristen"
+                                        </caption>_
+                                        <tbody>
+                                            <tr>_
+                                                <td class="tbsubhead">
+                                                    " Phase "
+                                                </td>_
+                                                <td class="tbsubhead">
+                                                    " Block "
+                                                </td>_
+                                                <td class="tbsubhead">
+                                                    " Start "
+                                                </td>_
+                                                <td class="tbsubhead">
+                                                    " Ende Anmeldung "
+                                                </td>_
+                                                <td class="tbsubhead">
+                                                    " Ende Abmeldung"
+                                                </td>_
+                                                <td class="tbsubhead">
+                                                    " Ende Hörer "
+                                                </td>_
+                                            </tr>_
+                                            let course_anmeldefristen = while html_handler.peek().is_some() {
+                                                <tr>_
+                                                    <td class="tbdata">
+                                                        zulassungstyp
+                                                    </td>_
+                                                    <td class="tbdata">
+                                                        block_type
+                                                    </td>_
+                                                    <td class="tbdata">
+                                                        start
+                                                    </td>_
+                                                    <td class="tbdata">
+                                                        ende_anmeldung
+                                                    </td>_
+                                                    <td class="tbdata">
+                                                        ende_abmeldung
+                                                    </td>_
+                                                    <td class="tbdata">
+                                                        ende_hoerer
+                                                    </td>_
+                                                </tr>_
+                                            } => CourseAnmeldefrist { zulassungstyp, block_type, start, ende_anmeldung, ende_abmeldung, ende_hoerer };
+                                        </tbody>
+                                    </table>_
+                                } => course_anmeldefristen;
                             } => course_anmeldefristen;
                             <!--"jqi9g3rkaAfzvYMoNoUy1kaNO-LZHLBDXL8OW4hAioM"-->_
                             <!--"y8Y0kF-8a-W4aY1VMRgIGgsP_KmWzGK6jhpfDWop4Wc"-->_
@@ -524,6 +541,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         </div>_
     }
     let html_handler = footer(html_handler, login_response.id, 311);
+    let course_anmeldefristen = if let Some(anmeldefristen) = course_anmeldefristen { if anmeldefristen.is_left() { anmeldefristen.unwrap_left() } else { anmeldefristen.unwrap_right() } } else { Vec::new() };
     html_handler.end_document();
 
     let instructors = instructors.unwrap_or_default();
@@ -554,7 +572,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
         description,
         uebungsgruppen: uebungsgruppen.unwrap_or_default(),
-        course_anmeldefristen: course_anmeldefristen.unwrap_or_default(),
+        course_anmeldefristen,
         enhalten_in_modulen: enthalten_in_modulen.unwrap_or_default(),
         termine: termine.either_into(),
         short_termine: short_termine.either_into(),

@@ -185,6 +185,12 @@ mod tests {
         let tucan = TucanConnector::new_test().await.unwrap();
         let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
     }
+
+    #[tokio::test]
+    pub async fn course_5() {
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
+    }
 }
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]
