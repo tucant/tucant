@@ -39,14 +39,159 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 html!{
                     <div>
 
-                    <h1>{ &course.name }</h1>
+                    <h1>
+                        { &course.name }
+                        if let Some(credits) = course.credits {
+                            {" "}<span class="badge text-bg-secondary">{ format!("{} CP", credits) }</span>
+                        }
+                    </h1>
 
-                    <div>{ format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default()) }</div>
+                    <h2>{"Lehrende"}</h2>
+                    <ul>
+                    {
+                        course.instructors.iter().map(|instructor| {
+                            html!{
+                                <li>{ &instructor.0 }</li>
+                            }
+                        }).collect::<Html>()
+                    }
+                    </ul>
 
-                    <div>{ format!("Credits: {}", course.credits.map(|v| v.to_string()).unwrap_or_default()) }</div>
+                    <div>{ format!("Typ: {}", course.r#type) }</div>
+
+                    <div>{ format!("Fachbereich: {}", course.fachbereich) }</div>
+
+                    {
+                        match (course.teilnehmer_min, course.teilnehmer_max) {
+                            (None, None) => html! {
+                            },
+                            (None, Some(max)) => html! {
+                                <div>{ format!("Maximal {max} Teilnehmende") }</div>
+                            },
+                            (Some(min), None) => html! {
+                                <div>{ format!("Mindestens {min} Teilnehmende", ) }</div>
+                            },
+                            (Some(min), Some(max)) => html! {
+                                <div>{ format!("{min} - {max} Teilnehmende", ) }</div>
+                            }
+                        }
+                    }
+
+                    <h2>{"Übungsgruppen"}</h2>
+                    <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">{"Name"}</th>
+                        <th scope="col">{"Zeitraum"}</th>
+                        <th scope="col">{"Uebungsleitende"}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        course.uebungsgruppen.iter().map(|uebungsgruppe| {
+                            html!{
+                                <tr>
+                                    <th scope="row">{&uebungsgruppe.name}</th>
+                                    <td>{uebungsgruppe.date_range.clone().unwrap_or_default()}</td>
+                                    <td>{&uebungsgruppe.uebungsleiter}</td>
+                                </tr>
+                            }
+                        }).collect::<Html>()
+                    }
+                    </tbody>
+                    </table>
+
+                    <h2>{"Anmeldefristen"}</h2>
+                    <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">{"Phase"}</th>
+                        <th scope="col">{"Block"}</th>
+                        <th scope="col">{"Start"}</th>
+                        <th scope="col">{"Ende Anmeldung"}</th>
+                        <th scope="col">{"Ende Abmeldung"}</th>
+                        <th scope="col">{"Ende Hörer"}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        course.course_anmeldefristen.iter().map(|anmeldefrist| {
+                            html!{
+                                <tr>
+                                    <td>{&anmeldefrist.zulassungstyp}</td>
+                                    <td>{&anmeldefrist.block_type}</td>
+                                    <td>{&anmeldefrist.start}</td>
+                                    <td>{&anmeldefrist.ende_anmeldung}</td>
+                                    <td>{&anmeldefrist.ende_abmeldung}</td>
+                                    <td>{&anmeldefrist.ende_hoerer}</td>
+                                </tr>
+                            }
+                        }).collect::<Html>()
+                    }
+                    </tbody>
+                    </table>
+
+                    <h2>{"Termine"}</h2>
+                    <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">{"Datum"}</th>
+                        <th scope="col">{"Start"}</th>
+                        <th scope="col">{"Ende"}</th>
+                        <th scope="col">{"Kursleitende"}</th>
+                        <th scope="col">{"Räume"}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        course.termine.iter().map(|termin| {
+                            html!{
+                                <tr>
+                                    <td>{&termin.date}</td>
+                                    <td>{&termin.time_start}</td>
+                                    <td>{&termin.time_end}</td>
+                                    <td>{&termin.instructors}</td>
+                                    <td><ul>
+                                    {
+                                        termin.rooms.iter().map(|room| {
+                                            html!{
+                                                <li>{&room.name}</li>
+                                            }
+                                        }).collect::<Html>()
+                                    }
+                                    </ul></td>
+                                </tr>
+                            }
+                        }).collect::<Html>()
+                    }
+                    </tbody>
+                    </table>
+
+                    <h2>{"Beschreibung"}</h2>
 
                     // TODO FIXME this is dangerous
                     { Html::from_html_unchecked(course.description.join("\n").into()) }
+
+                    <h2>{"Sonstige Informationen"}</h2>
+
+                    <div>{ format!("Sprache: {}", course.language) }</div>
+
+                    <div>{ format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default()) }</div>
+
+                    <div>{ format!("Anzeige im Stundenplan: {}", course.anzeige_im_stundenplan) }</div>
+
+                    <div>{ format!("Kurslevel: {}", course.courselevel) }</div>
+
+                    <h2>{"Enhalten in Modulen"}</h2>
+                    <ul>
+                    {
+                        course.enhalten_in_modulen.iter().map(|modul| {
+                            html!{
+                                <li>{modul}</li>
+                            }
+                        }).collect::<Html>()
+                    }
+                    </ul>
 
                     </div>
                 }

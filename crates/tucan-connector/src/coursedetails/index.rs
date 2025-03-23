@@ -1,14 +1,16 @@
-use scraper::{ElementRef, Html};
-use tucant_types::{
-    InstructorImage, LoginResponse, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
-};
-
 use crate::{
     TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
+use data_encoding::BASE64URL_NOPAD;
 use html_handler::Root;
+use itertools::Itertools;
+use scraper::{ElementRef, Html};
+use sha3::{Digest, Sha3_256};
+use tucant_types::{
+    InstructorImage, LoginResponse, TucanError,
+    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+};
 
 pub async fn course_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("coursedetails.{}", request.inner());
@@ -21,6 +23,10 @@ pub async fn course_details_cached(tucan: &TucanConnector, login_response: &Logi
     tucan.database.put(&key, &response).await;
 
     Ok(response)
+}
+
+fn h(input: &str) -> String {
+    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
 #[expect(clippy::similar_names)]
@@ -86,16 +92,14 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                     <tr>_
                                         <td class="tbdata" colspan="3">_
                                             <!--"7mR3L45uIzjYs57_yUuqAgGUVvt88EQ1apLxlExwuH4"-->_
-                                            let dozent = if html_handler.peek().unwrap().first_child().unwrap().value().is_text() {
-                                                <p>_
-                                                    <b>
-                                                        "Lehrende: "
-                                                    </b>
-                                                    <span id="dozenten">
-                                                        dozent
-                                                    </span>_
-                                                </p>_
-                                            } => dozent;
+                                            <p>_
+                                                <b>
+                                                    "Lehrende: "
+                                                </b>
+                                                <span id="dozenten">
+                                                    dozent
+                                                </span>_
+                                            </p>_
                                             <p>
                                                 <b>
                                                     "Veranstaltungsart:"
@@ -376,7 +380,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                                 room
                                                             </a>
                                                             let more_rooms = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                                                                "\n                                                                                                                                                                                                                                                                                                                                                                   ,\u{a0}\n                                                                                                                                                            "
+                                                                whitespace
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
@@ -490,7 +494,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                     instructor
                                                 </td>_
                                             </tr>_
-                                        } => (instructor, instructor_image);
+                                        } => (instructor.trim().to_owned(), instructor_image);
                                     </tbody>
                                 </table>_
                             } => instructors;
@@ -509,29 +513,39 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
     }
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
+
+    let instructors = instructors.unwrap_or_default();
+    if instructors.is_empty() {
+        assert_eq!(dozent, "N.N.");
+    } else if h(&dozent) == "fRArPBELwQcLhe4KzBODOZ7RNkKzNttCYuicWPUNx4w" && instructors.iter().map(|m| h(&m.0)).eq(["ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ", "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo", "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo"].into_iter()) {
+        // hack, one person has a second name at one place and not at the other place
+    } else {
+        assert_eq!(dozent.split("; ").sorted().collect::<Vec<_>>(), instructors.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
+    }
+    let anzeige_im_stundenplan = anzeige_im_stundenplan.trim().to_owned();
+    assert_eq!(anzeige_im_stundenplan, shortname.trim());
+
+    assert_eq!(teilnehmer_range.trim(), format!("{teilnehmer_min} | {teilnehmer_max}"));
     Ok(CourseDetailsResponse {
         name,
         material_and_messages_url,
-        dozent,
         r#type: course_type,
         type_number: course_type_number.parse().unwrap(),
         fachbereich,
         anzeige_im_stundenplan,
-        shortname,
         courselevel: courselevel.parse().unwrap(),
         sws: sws.right().map(|sws| sws.replace(',', ".").parse().expect(&sws)),
         credits: credits.right().map(|credits| credits.trim().trim_end_matches(",0").parse().expect(&credits)),
         language,
         language_id: language_id.parse().unwrap(),
-        teilnehmer_range,
-        teilnehmer_min,
-        teilnehmer_max,
+        teilnehmer_min: if teilnehmer_min == "-" { None } else { Some(teilnehmer_min.parse().unwrap()) },
+        teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
         description,
         uebungsgruppen: uebungsgruppen.unwrap_or_default(),
         course_anmeldefristen: course_anmeldefristen.unwrap_or_default(),
         enhalten_in_modulen: enthalten_in_modulen.unwrap_or_default(),
         termine: termine.either_into(),
         short_termine: short_termine.either_into(),
-        instructors: instructors.unwrap_or_default(),
+        instructors,
     })
 }

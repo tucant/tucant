@@ -28,7 +28,7 @@ impl Display for AnmeldungRequest {
 impl AnmeldungRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        if input.is_empty() {
+        if input.is_empty() || input == "-A" {
             Self { arguments: "-A".to_owned() }
         } else {
             static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap());

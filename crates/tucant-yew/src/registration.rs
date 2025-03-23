@@ -75,6 +75,8 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
     Ok(html! {
         <div class="container">
             <h2 class="text-center">{ "Registration" }</h2>
+            // TODO FIXME this is dangerous
+            { Html::from_html_unchecked(data.additional_information.join("\n").into()) }
             <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {

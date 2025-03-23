@@ -48,7 +48,11 @@ async fn main() {
     #[cfg(feature = "api")]
     {
         let login_response = tucant_yew::api_login_response().await;
-        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(tucant_yew::AppProps { initial_session: login_response, tucan: RcTucanType(Rc::new(ApiServerTucan::new())) }).render();
+        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(tucant_yew::AppProps {
+            initial_session: login_response,
+            tucan: tucant_yew::RcTucanType(std::rc::Rc::new(tucant_yew::api_server::ApiServerTucan::new())),
+        })
+        .render();
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");

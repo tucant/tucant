@@ -226,9 +226,9 @@ checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
 name = "cc"
-version = "1.2.16"
+version = "1.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be714c154be609ec7f5dad223a33bf1482fff90472de28f7362806e6d4832b8c"
+checksum = "1fcb57c740ae1daf453ae85f16e37396f672b039e00d9d866e07ddb24e328e3a"
 dependencies = [
  "shlex",
 ]
@@ -2492,9 +2492,9 @@ dependencies = [
 
 [[package]]
 name = "tempfile"
-version = "3.19.0"
+version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "488960f40a3fd53d72c2a29a58722561dee8afdd175bd88e3db4677d7b2ba600"
+checksum = "7437ac7763b9b123ccf33c338a5cc1bac6f69b45a136c19bdd8a65e3916435bf"
 dependencies = [
  "fastrand",
  "getrandom 0.3.2",
@@ -3449,7 +3449,7 @@ checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
 [[package]]
 name = "yew"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew#7f5305b2078b6d8acabb275b9221f2f8fb5de416"
+source = "git+https://github.com/mohe2015/yew?branch=improve-html-macro-rust-analyzer-autocompletion#b4185b51e9d87ebfec999536908786b2dd9e1ab2"
 dependencies = [
  "console_error_panic_hook",
  "futures",
@@ -3484,7 +3484,7 @@ dependencies = [
 [[package]]
 name = "yew-macro"
 version = "0.21.0"
-source = "git+https://github.com/yewstack/yew#7f5305b2078b6d8acabb275b9221f2f8fb5de416"
+source = "git+https://github.com/mohe2015/yew?branch=improve-html-macro-rust-analyzer-autocompletion#b4185b51e9d87ebfec999536908786b2dd9e1ab2"
 dependencies = [
  "once_cell",
  "prettyplease",
@@ -3497,7 +3497,7 @@ dependencies = [
 [[package]]
 name = "yew-router"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew#7f5305b2078b6d8acabb275b9221f2f8fb5de416"
+source = "git+https://github.com/mohe2015/yew?branch=improve-html-macro-rust-analyzer-autocompletion#b4185b51e9d87ebfec999536908786b2dd9e1ab2"
 dependencies = [
  "gloo",
  "js-sys",
@@ -3515,7 +3515,7 @@ dependencies = [
 [[package]]
 name = "yew-router-macro"
 version = "0.18.0"
-source = "git+https://github.com/yewstack/yew#7f5305b2078b6d8acabb275b9221f2f8fb5de416"
+source = "git+https://github.com/mohe2015/yew?branch=improve-html-macro-rust-analyzer-autocompletion#b4185b51e9d87ebfec999536908786b2dd9e1ab2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3548,18 +3548,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd97444d05a4328b90e75e503a34bad781f14e28a823ad3557f0750df1ebcbc6"
+checksum = "2586fea28e186957ef732a5f8b3be2da217d65c5969d4b1e17f973ebbe876879"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.8.23"
+version = "0.8.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6352c01d0edd5db859a63e2605f4ea3183ddbd15e2c4a9e7d32184df75e4f154"
+checksum = "a996a8f63c5c4448cd959ac1bab0aaa3306ccfd060472f85943ee0750f0169be"
 dependencies = [
  "proc-macro2",
  "quote",

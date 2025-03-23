@@ -16,8 +16,8 @@ api = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-yew = { git = "https://github.com/yewstack/yew", features = ["csr"] }
-yew-router = { git = "https://github.com/yewstack/yew" }
+yew = { git = "https://github.com/mohe2015/yew", features = ["csr"], branch = "improve-html-macro-rust-analyzer-autocompletion" }
+yew-router = { git = "https://github.com/mohe2015/yew", branch = "improve-html-macro-rust-analyzer-autocompletion" }
 wasm-bindgen = "0.2"
 key-value-database = { path = "../key-value-database" }
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList"] }

@@ -49,6 +49,7 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
 
 #[cfg(feature = "api")]
 pub async fn api_login_response() -> Option<LoginResponse> {
+    use wasm_bindgen::JsCast;
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();

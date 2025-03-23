@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use scraper::CaseSensitivity::CaseSensitive;
 use scraper::{ElementRef, Html};
 use tucant_types::InstructorImage;
@@ -101,7 +102,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             <b>
                                                 "Dauer: "
                                             </b>
-                                            length
+                                            duration
                                             <br></br>
                                             <br></br>_
                                             <b>
@@ -127,6 +128,20 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             <br></br>
                                             <br></br>_
                                             <!--"ht3ZhEBbY24m_TsTzk888qBQdrwgMawUHy-7WLRZ64E"-->_
+                                            let warteliste = if html_handler.peek().unwrap().value().is_element() {
+                                                <p>_
+                                                    <b>
+                                                        "Warteliste:"
+                                                    </b>_
+                                                    <input type="checkbox" class="checkBox" checked="checked" disabled="disabled"></input>_
+                                                </p>_
+                                                <p>_
+                                                    <b>
+                                                        "Wartelistenquote:"
+                                                    </b>
+                                                    percentage
+                                                </p>_
+                                            } => ();
                                             <!--"dTJeqGsAPhiwl6lY8BwASSkwEUwc22jswDtjP8U2nwk"-->_
                                             <!--"FAZCaZTDbb4OpO3ZiNhfY9eB8iBPTRyUJmS1mRrUbG4"-->_
                                             let description = while !html_handler.peek().unwrap().value().is_comment() {
@@ -175,7 +190,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 <td class="rw rw-detail-unreg">_
                                                     <!--"Eu0RetmnaGYewt3dcmPEOlL9zLLQgN_Qp4HbEiivkLc"-->_
                                             } => () else {
-                                                    " Direkte Zulassung "
+                                                    anmeldeart
                                                 </td>_
                                                 <td class="rw rw-detail-block">
                                                     " Vorlesungszeit "
@@ -192,7 +207,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                             </table>_
                             <!--"_8_RUJ-7SbM4FO6YEtXyjl9DGFNUKS7bRQWuZem55j8"-->_
                             <!--"hytjHG1ygOTxnrK8R8oSrKCt_AYYyEg9yfxJA9JCPA4"-->_
-                            let kurs_kategorien = if html_handler.peek().unwrap().value().is_element() {
+                            let kurskategorien = if html_handler.peek().unwrap().value().is_element() {
                                 <table class="tb rw-table rw-all">_
                                     <caption>
                                         "Kurse"
@@ -220,7 +235,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             <td>_
                                             </td>_
                                         </tr>_
-                                        let kurs_kategorien = while html_handler.peek().is_some() {
+                                        let kurskategorien = while html_handler.peek().is_some() {
                                             <tr class="tbsubhead">_
                                                 <td class="rw rw-detail-logo">
                                                     <!--"8vHLi99O2SybT1z2ozFMDBJ5m4XT2KjEAoJCxdT0AvY"-->
@@ -276,10 +291,23 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </td>_
                                                 </tr>_
                                             } => Kurs { name, course_id, gefaehrungspotential_schwangere: gefaehrungspotential_schwangere.is_some(), semester, url };
-                                        } => KursKategorie { course_no, name, mandatory, semester, credits, kurse };
+                                        } => KursKategorie {
+                                            course_no,
+                                            name,
+                                            mandatory: if mandatory.trim() == "Ja" {
+                                                true
+                                            } else if mandatory.trim() == "Nein" {
+                                                false
+                                            } else {
+                                                panic!("unknown mandatory {mandatory}")
+                                            },
+                                            semester,
+                                            credits,
+                                            kurse
+                                        };
                                     </tbody>
                                 </table>_
-                            } => kurs_kategorien;
+                            } => kurskategorien;
                             <!--"XcS-L7xmJsSo5diKeWPZAV2RODpFrumE7AcbFe7AScI"-->_
                             <!--"XmeYv2pdNCa3eVg5mHzpnB67M0-EIs1lMtB2eTrYM6A"-->_
                             <!--"WqHIJmzxI_wd1gXFBYNCiRZr6szuNek-ldCeZFo3R8M"-->_
@@ -390,10 +418,35 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </tr>_
                                                 } => {
                                                     rowspan -= 2;
-                                                    Leistung { name, weight, compulsory, weight_more }
+                                                    Leistung {
+                                                        name: name.trim().to_owned(),
+                                                        weight,
+                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                            true
+                                                        } else if compulsory.trim() == "Nein" {
+                                                            false
+                                                        } else {
+                                                            panic!("unknown compulsory {compulsory}")
+                                                        },
+                                                        weight_more,
+                                                    }
                                                 };
                                             } => {
-                                                leistungen.insert(0, Leistung { name, weight, compulsory, weight_more: None });
+                                                leistungen.insert(
+                                                    0,
+                                                    Leistung {
+                                                        name: name.trim().to_owned(),
+                                                        weight,
+                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                            true
+                                                        } else if compulsory.trim() == "Nein" {
+                                                            false
+                                                        } else {
+                                                            panic!("unknown compulsory {compulsory}")
+                                                        },
+                                                        weight_more: None,
+                                                    },
+                                                );
                                                 leistungen
                                             } else {
                                                     <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
@@ -422,10 +475,35 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </tr>_
                                                 } => {
                                                     rowspan -= 1;
-                                                    Leistung { name, weight, compulsory, weight_more: None }
+                                                    Leistung {
+                                                        name: name.trim().to_owned(),
+                                                        weight,
+                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                            true
+                                                        } else if compulsory.trim() == "Nein" {
+                                                            false
+                                                        } else {
+                                                            panic!("unknown compulsory {compulsory}")
+                                                        },
+                                                        weight_more: None,
+                                                    }
                                                 };
                                             } => {
-                                                leistungen.insert(0, Leistung { name, weight, compulsory, weight_more: None });
+                                                leistungen.insert(
+                                                    0,
+                                                    Leistung {
+                                                        name: name.trim().to_owned(),
+                                                        weight,
+                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                            true
+                                                        } else if compulsory.trim() == "Nein" {
+                                                            false
+                                                        } else {
+                                                            panic!("unknown compulsory {compulsory}")
+                                                        },
+                                                        weight_more: None,
+                                                    },
+                                                );
                                                 leistungen
                                             };
                                     } => leistungen.either_into::<Vec<Leistung>>();
@@ -508,7 +586,17 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 };
                                             } => {
                                                 termine.insert(0, Pruefungstermin { date, examiner, subname });
-                                                Pruefung { compulsory, name, termine }
+                                                Pruefung {
+                                                    compulsory: if compulsory.trim() == "Ja" {
+                                                        true
+                                                    } else if compulsory.trim() == "Nein" {
+                                                        false
+                                                    } else {
+                                                        panic!("unknown compulsory {compulsory}")
+                                                    },
+                                                    name,
+                                                    termine,
+                                                }
                                             } else {
                                                 <!--"wZPrppUHfMMSm1oo3-4LsQWn8863dt2JZSJPupEG9Oo"-->_
                                                 <tr class="tbdata">_
@@ -525,7 +613,17 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                         compulsory
                                                     </td>_
                                                 </tr>_
-                                            } => Pruefung { name: name.clone(), compulsory, termine: vec![Pruefungstermin { date, examiner, subname: name }] };
+                                            } => Pruefung {
+                                                name: name.clone(),
+                                                compulsory: if compulsory.trim() == "Ja" {
+                                                    true
+                                                } else if compulsory.trim() == "Nein" {
+                                                    false
+                                                } else {
+                                                    panic!("unknown compulsory {compulsory}")
+                                                },
+                                                termine: vec![Pruefungstermin { date, examiner, subname: name }]
+                                            };
                                         } => pruefung.either_into();
                                     </tbody>_
                                 </table>_
@@ -569,6 +667,12 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     // TODO pass value depending on module details url or maybe normalize 275
     let html_handler = footer(html_handler, id, 311);
 
+    let modulverantwortliche = modulverantwortliche.unwrap_or_default();
+    if modulverantwortliche.is_empty() {
+        assert_eq!(dozenten, "N.N.");
+    } else {
+        assert_eq!(dozenten.split("; ").sorted().collect::<Vec<_>>(), modulverantwortliche.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
+    }
     Ok(ModuleDetailsResponse {
         module_id,
         registered: registered.is_some(),
@@ -576,13 +680,12 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
         credits,
         description,
         display_in_timetable,
-        dozenten,
-        duration: length,
+        duration,
         abweichende_credits: abweichende_credits.is_some(),
         start_semester,
         anmeldefristen: anmeldefristen.right(),
-        kurskategorien: kurs_kategorien.unwrap_or_default(),
-        modulverantwortliche: modulverantwortliche.unwrap_or_default(),
+        kurskategorien: kurskategorien.unwrap_or_default(),
+        modulverantwortliche,
         leistungen: leistungen.into_iter().flatten().collect(),
         pruefungen: pruefungen.unwrap_or_default(),
     })

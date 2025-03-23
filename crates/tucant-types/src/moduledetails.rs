@@ -43,7 +43,6 @@ impl ModuleDetailsRequest {
 pub struct ModuleDetailsResponse {
     pub module_id: String,
     pub registered: bool,
-    pub dozenten: String,
     pub display_in_timetable: String,
     pub duration: String,
     pub count_elective_courses: String,
@@ -68,7 +67,7 @@ pub struct Anmeldefristen {
 pub struct KursKategorie {
     pub course_no: String,
     pub name: String,
-    pub mandatory: String,
+    pub mandatory: bool,
     pub semester: Option<String>,
     pub credits: String,
     pub kurse: Vec<Kurs>,
@@ -86,7 +85,7 @@ pub struct Kurs {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct Leistung {
     pub name: String,
-    pub compulsory: String,
+    pub compulsory: bool,
     pub weight: String,
     pub weight_more: Option<String>,
 }
@@ -94,7 +93,7 @@ pub struct Leistung {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct Pruefung {
     pub name: String,
-    pub compulsory: String,
+    pub compulsory: bool,
     pub termine: Vec<Pruefungstermin>,
 }
 
