@@ -6,10 +6,6 @@ use scraper::Node;
 use scraper::node::Attrs;
 use sha3::{Digest, Sha3_256};
 
-// TODO FIXME according to clippy this uses lots of stack space
-
-// the idea would be to only store the current node and then have a zst of the state we're in
-
 pub struct Root<'a> {
     node: NodeRef<'a, Node>,
 }
@@ -18,7 +14,6 @@ pub struct BeforeDoctype;
 
 pub struct AfterDoctype;
 
-// TODO FIXME maybe merge with InElement
 pub struct InRoot<'a, OuterState> {
     node: NodeRef<'a, Node>,
     current_child: Option<NodeRef<'a, Node>>,

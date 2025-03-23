@@ -376,16 +376,28 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
                                                 <td class="tbdata rw rw-course-room">
                                                     let rooms = if html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {_
                                                         let rooms = if html_handler.peek().is_some() {
-                                                            <a name="appointmentRooms" href=room_url>
-                                                                room
-                                                            </a>
-                                                            let more_rooms = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                                                                whitespace
+                                                            let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
-                                                            } => Room { name: room, url: Some(room_url) };_
-                                                        } => std::iter::once(Room { name: room, url: Some(room_url) }).chain(more_rooms.into_iter()).collect::<Vec<_>>();
+                                                            } => Room { name: room, url: Some(room_url) } else {
+                                                                <span name="appointmentRooms">
+                                                                    room
+                                                                </span>
+                                                            } => Room { name: room, url: None };
+                                                            let more_rooms = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
+                                                                whitespace
+                                                                let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                                                    <a name="appointmentRooms" href=room_url>
+                                                                        room
+                                                                    </a>
+                                                                } => Room { name: room, url: Some(room_url) } else {
+                                                                    <span name="appointmentRooms">
+                                                                        room
+                                                                    </span>
+                                                                } => Room { name: room, url: None };
+                                                            } => room.either_into();_
+                                                        } => std::iter::once(room.either_into()).chain(more_rooms.into_iter()).collect::<Vec<_>>();
                                                     } => rooms.unwrap_or_default() else {
                                                         room_text
                                                     } => vec![Room { name: room_text, url: None }];

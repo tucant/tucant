@@ -40,8 +40,10 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                     <div>
                         <h1>
                             { &module.module_id }
-                            {" "}<span class="badge text-bg-secondary">{ format!("{} CP", module.credits) }</span>
-                            if  module.registered {
+                            if let Some(credits) = &module.credits {
+                                {" "}<span class="badge text-bg-secondary">{ format!("{credits} CP", ) }</span>
+                            }
+                            if module.registered {
                                 {" "}<span class="badge text-bg-secondary">{ "Angemeldet" }</span>
                             }
                         </h1>
@@ -64,14 +66,18 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                 html!{
                                     <>
                                         <h3>
-                                            {& kurskategorie.course_no}{" "}
-                                            { &kurskategorie.name }{" "}
-                                            <span class="badge text-bg-secondary">{ format!("{} CP", kurskategorie.credits) }</span>
+                                            {& kurskategorie.course_no}
+                                            {" "}{ &kurskategorie.name }
+                                            if kurskategorie.credits != 0.0 {
+                                                {" "}<span class="badge text-bg-secondary">{ format!("{} CP", kurskategorie.credits) }</span>
+                                            }
                                             if kurskategorie.mandatory {
                                                 {" "}<span class="badge text-bg-secondary">{ "Pflicht" }</span>
                                             }
                                             if let Some(semester) = &kurskategorie.semester {
-                                                {" "}<span class="badge text-bg-secondary">{ format!("{semester} Semester") }</span>
+                                                if *semester != 1 {
+                                                    {" "}<span class="badge text-bg-secondary">{ format!("{semester} Semester") }</span>
+                                                }
                                             }
                                         </h3>
                                         <table class="table">

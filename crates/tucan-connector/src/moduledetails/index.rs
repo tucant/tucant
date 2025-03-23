@@ -252,7 +252,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 <td class="rw rw-detail-semester">
                                                     let semester = if html_handler.peek().is_some() {
                                                         semester
-                                                    } => semester;
+                                                    } => semester.parse().unwrap();
                                                 </td>_
                                                 <td class="rw rw-detail-credits">
                                                     credits
@@ -302,7 +302,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 panic!("unknown mandatory {mandatory}")
                                             },
                                             semester,
-                                            credits,
+                                            credits: credits.trim().replace(',', ".").parse().expect(&credits),
                                             kurse
                                         };
                                     </tbody>
@@ -664,7 +664,6 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
             </div>_
         </div>_
     };
-    // TODO pass value depending on module details url or maybe normalize 275
     let html_handler = footer(html_handler, id, 311);
 
     let modulverantwortliche = modulverantwortliche.unwrap_or_default();
@@ -673,11 +672,12 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     } else {
         assert_eq!(dozenten.split("; ").sorted().collect::<Vec<_>>(), modulverantwortliche.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
     }
+    let credits = credits.trim().trim_end_matches(",0");
     Ok(ModuleDetailsResponse {
         module_id,
         registered: registered.is_some(),
         count_elective_courses,
-        credits,
+        credits: if credits.is_empty() { None } else { Some(credits.parse().expect(credits)) },
         description,
         display_in_timetable,
         duration,

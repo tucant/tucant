@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Delimiter, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
 use syn::{
     Block, Expr, ExprClosure, Ident, LitStr, Token, braced,
@@ -367,12 +367,10 @@ impl Parse for HtmlComment {
     }
 }
 
-// TODO FIXME  => a = statement_evaluating_to_unit
-// html_handler = html_handler.skip_any_comment(); probably a special case. maybe allow <!-- variable -->
 #[derive(Debug)]
 struct HtmlIf {
     if_: Token![if],
-    conditional: Expr,
+    conditional: TokenStream,
     brace_token: Brace,
     body: HtmlCommands,
     eq: Token![=],
@@ -406,7 +404,25 @@ impl HtmlIf {
 impl Parse for HtmlIf {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let if_ = input.parse::<Token![if]>()?;
-        let conditional = input.parse()?;
+        let conditional = input
+            .step(|cursor| {
+                let mut trees = vec![];
+                let mut rest = *cursor;
+                while let Some((tt, next)) = rest.token_tree() {
+                    match &tt {
+                        TokenTree::Group(group) if group.delimiter() == Delimiter::Brace => {
+                            return Ok((trees, rest));
+                        }
+                        _ => {
+                            trees.push(tt);
+                            rest = next;
+                        }
+                    }
+                }
+                Err(cursor.error("no `;` or `else` was found after this point"))
+            })?
+            .into_iter()
+            .collect();
         let body_parse_buffer;
         let brace_token = braced!(body_parse_buffer in input);
         let body = body_parse_buffer.parse()?;
@@ -471,7 +487,7 @@ impl Parse for HtmlIf {
 #[derive(Debug)]
 struct HtmlWhile {
     while_: Token![while],
-    conditional: Expr,
+    conditional: TokenStream,
     brace_token: Brace,
     body: HtmlCommands,
     eq: Token![=],
@@ -488,7 +504,25 @@ impl HtmlWhile {
 impl Parse for HtmlWhile {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let while_ = input.parse::<Token![while]>()?;
-        let conditional = input.parse()?;
+        let conditional = input
+            .step(|cursor| {
+                let mut trees = vec![];
+                let mut rest = *cursor;
+                while let Some((tt, next)) = rest.token_tree() {
+                    match &tt {
+                        TokenTree::Group(group) if group.delimiter() == Delimiter::Brace => {
+                            return Ok((trees, rest));
+                        }
+                        _ => {
+                            trees.push(tt);
+                            rest = next;
+                        }
+                    }
+                }
+                Err(cursor.error("no `;` or `else` was found after this point"))
+            })?
+            .into_iter()
+            .collect();
         let body_parse_buffer;
         let brace_token = braced!(body_parse_buffer in input);
         let body = body_parse_buffer.parse()?;

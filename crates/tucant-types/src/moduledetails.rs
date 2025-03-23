@@ -39,14 +39,14 @@ impl ModuleDetailsRequest {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct ModuleDetailsResponse {
     pub module_id: String,
     pub registered: bool,
     pub display_in_timetable: String,
     pub duration: String,
     pub count_elective_courses: String,
-    pub credits: String,
+    pub credits: Option<u64>,
     pub description: Vec<String>,
     pub abweichende_credits: bool,
     pub start_semester: String,
@@ -63,13 +63,13 @@ pub struct Anmeldefristen {
     pub unregistration_range: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct KursKategorie {
     pub course_no: String,
     pub name: String,
     pub mandatory: bool,
-    pub semester: Option<String>,
-    pub credits: String,
+    pub semester: Option<u64>,
+    pub credits: f64,
     pub kurse: Vec<Kurs>,
 }
 

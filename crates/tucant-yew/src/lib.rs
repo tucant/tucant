@@ -206,7 +206,26 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
             html! { <Registration<TucanType> registration={AnmeldungRequest::default()} /> }
         }
         Route::NotFound => html! { <div>{ "404" }</div> },
-        Route::Root => html! { <div>{ "TODO" }</div> },
+        Route::Root => html! {
+            <div class="container">
+                <h1>{ "Willkommen bei TUCaN't!" }</h1>
+                <p>
+                    { "Du kannst gerne die " }
+                    <a href="https://tucant.github.io/tucant/" target="_blank">{ "Browsererweiterung herunterladen" }</a>
+                    { ", falls Du diese noch nicht verwendest." }
+                </p>
+                <p>
+                    { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
+                    <a href="https://github.com/tucant/tucant/" target="_blank">{ "GitHub" }</a>
+                    { " verfügbar." }
+                </p>
+                <p>
+                    { "Du kannst Dir deine " }
+                    <a href="#/registration/">{ "anmeldbaren Module ansehen" }</a>
+                    { "." }
+                </p>
+            </div>
+        },
         Route::ModuleDetails { module } => {
             html! { <ModuleDetails<TucanType> module_details={module} /> }
         }
