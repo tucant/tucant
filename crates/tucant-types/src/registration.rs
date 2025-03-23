@@ -38,7 +38,7 @@ impl AnmeldungRequest {
     }
 
     #[must_use]
-    pub const fn inner(&self) -> &str {
+    pub fn inner(&self) -> &str {
         self.arguments.as_str()
     }
 }

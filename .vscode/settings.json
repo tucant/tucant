@@ -11,5 +11,15 @@
     "rust-analyzer.cargo.features": [
         "authenticated_tests",
     ],
-    "rust-analyzer.check.command": "clippy"
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.rustfmt.overrideCommand": [
+        "rustup",
+        "run",
+        "nightly-2025-03-16",
+        "--",
+        "rustfmt",
+        "--edition",
+        "2024",
+        "--"
+    ],
 }

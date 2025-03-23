@@ -696,13 +696,13 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                             },
                             |HtmlElse { else_, brace_token: else_brace_token, body: else_body, eq: _, gt: _, result_expr: else_result_expr }| {
                                 let else_body_stmts = convert_commands(else_body);
-                                let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap()=>
+                                let if_inner = quote_spanned! {brace_token.span.span().join(result_expr.span()).unwrap_or_else(|| brace_token.span.span())=>
                                     {
                                         #(#body_stmts)*
                                         (html_handler, ::itertools::Either::Left(#result_expr))
                                     }
                                 };
-                                let else_inner = quote_spanned! {else_brace_token.span.span().join(else_result_expr.span()).unwrap()=>
+                                let else_inner = quote_spanned! {else_brace_token.span.span().join(else_result_expr.span()).unwrap_or_else(|| else_brace_token.span.span())=>
                                     {
                                         #(#else_body_stmts)*
                                         (html_handler, ::itertools::Either::Right(#else_result_expr))
