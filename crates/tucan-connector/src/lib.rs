@@ -7,7 +7,7 @@ use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
 use registration::index::anmeldung;
 use reqwest::header;
-use tokio::time::sleep;
+use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{Tucan, TucanError, mlsstart::MlsStart, vv::Vorlesungsverzeichnis};
 use vv::vv;
 
@@ -27,13 +27,16 @@ type MyClient = reqwest::Client;
 pub struct TucanConnector {
     pub client: MyClient,
     pub database: Database,
+    semaphore: Semaphore,
 }
 
 /// `TUCaN` being unreliable is a feature
-pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String, TucanError> {
+pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<String, TucanError> {
     let mut i = 0;
     loop {
-        let result = async { client.get(url).send().await?.error_for_status()?.text().await }.await;
+        let permit = connector.semaphore.acquire().await.unwrap();
+        let result = connector.client.get(url).send().await?.error_for_status()?.text().await;
+        drop(permit);
         if i == 4 {
             return Ok(result?);
         }
@@ -46,10 +49,12 @@ pub async fn retryable_get(client: &reqwest::Client, url: &str) -> Result<String
     }
 }
 
-pub async fn authenticated_retryable_get(client: &reqwest::Client, url: &str, cookie_cnsc: &str) -> Result<String, TucanError> {
+pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, cookie_cnsc: &str) -> Result<String, TucanError> {
     let mut i = 0;
     loop {
-        let result = async { client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?.text().await }.await;
+        let permit = connector.semaphore.acquire().await.unwrap();
+        let result = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?.text().await;
+        drop(permit);
         if i == 4 {
             return Ok(result?);
         }
@@ -67,7 +72,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await })
+        Ok(Self { client, database: Database::new().await, semaphore: Semaphore::new(10) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -75,7 +80,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new_test().await })
+        Ok(Self { client, database: Database::new_test().await, semaphore: Semaphore::new(10) })
     }
 }
 
@@ -85,11 +90,11 @@ impl Tucan for TucanConnector {
     }
 
     async fn after_login(&self, request: &tucant_types::LoginResponse) -> Result<MlsStart, TucanError> {
-        after_login(&self.client, request).await
+        after_login(self, request).await
     }
 
     async fn logout(&self, request: &tucant_types::LoginResponse) -> Result<(), TucanError> {
-        logout(&self.client, request).await
+        logout(self, request).await
     }
 
     async fn anmeldung(&self, login_response: tucant_types::LoginResponse, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
@@ -105,7 +110,7 @@ impl Tucan for TucanConnector {
     }
 
     async fn vv(&self, login_response: &tucant_types::LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
-        vv(&self.client, login_response.clone(), action).await
+        vv(self, login_response.clone(), action).await
     }
 }
 
@@ -124,7 +129,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_root_page() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        root(&tucan.client).await.unwrap();
+        root(&tucan).await.unwrap();
     }
 
     /// /
@@ -133,7 +138,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_startpage_dispatch_1() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        startpage_dispatch_1(&tucan.client).await.unwrap();
+        startpage_dispatch_1(&tucan).await.unwrap();
     }
 
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
@@ -142,7 +147,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_welcome() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        welcome(&tucan.client).await.unwrap();
+        welcome(&tucan).await.unwrap();
     }
 
     #[tokio::test]
@@ -226,7 +231,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        redirect_after_login(&tucan.client, login_response).await.unwrap();
+        redirect_after_login(&tucan, login_response).await.unwrap();
     }
 
     #[tokio::test]
@@ -242,7 +247,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        after_login(&tucan.client, &login_response).await.unwrap();
+        after_login(&tucan, &login_response).await.unwrap();
     }
 
     #[tokio::test]

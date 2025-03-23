@@ -1,5 +1,10 @@
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
+use std::future::Future;
+use std::panic::AssertUnwindSafe;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use futures_util::stream::FuturesUnordered;
+use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::AnmeldungRequest;
@@ -27,79 +32,97 @@ async fn async_main() -> Result<(), TucanError> {
         .await
         .unwrap();
 
-    let mut fetcher = Fetcher::new().await?;
+    let fetcher = Arc::new(Fetcher::new());
 
-    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default()).await?;
+    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default()).await;
 
-    fetcher.anmeldung_file.flush().await?;
-    fetcher.module_file.flush().await?;
+    //fetcher.anmeldung_file.flush().await?;
+    //fetcher.module_file.flush().await?;
+    //fetcher.course_file.flush().await?;
 
     Ok(())
 }
 
 struct Fetcher {
-    anmeldung_counter: u64,
-    anmeldung_file: File,
-    module_file: File,
-    module_counter: u64,
-    course_file: File,
-    course_counter: u64,
+    anmeldung_counter: AtomicU64,
+    module_counter: AtomicU64,
+    course_counter: AtomicU64,
 }
 
-// N675523572713350
-// 7159A90AD44826D065E8F1E43AA16A23
-
 impl Fetcher {
-    pub async fn new() -> Result<Self, TucanError> {
-        Ok(Self {
-            anmeldung_counter: 0,
-            anmeldung_file: File::options().append(true).create(true).open("anmeldung.log").await?,
-            module_file: File::options().append(true).create(true).open("module.log").await?,
-            module_counter: 0,
-            course_file: File::options().append(true).create(true).open("course.log").await?,
-            course_counter: 0,
-        })
+    pub const fn new() -> Self {
+        Self { anmeldung_counter: AtomicU64::new(0), module_counter: AtomicU64::new(0), course_counter: AtomicU64::new(0) }
     }
 
-    // we should retry:
-    // Error: Http(reqwest::Error { kind: Decode, source: hyper::Error(Body, Os { code: 104, kind: ConnectionReset, message: "Connection reset by peer" }) })
-    async fn recursive_anmeldung(&mut self, tucan: &TucanConnector, login_response: &LoginResponse, anmeldung_request: AnmeldungRequest) -> Result<(), TucanError> {
-        // here we can use cached but for the actual test we can't use cached
+    #[expect(clippy::manual_async_fn)]
+    fn recursive_anmeldung<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, anmeldung_request: AnmeldungRequest) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+        async move {
+            //self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
+            //self.anmeldung_file.write_all(b"\n").await?;
 
-        self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
-        self.anmeldung_file.write_all(b"\n").await?;
+            //println!("anmeldung {}", anmeldung_request.inner());
+            let result = AssertUnwindSafe(async { tucan.anmeldung(login_response.clone(), anmeldung_request.clone()).await.unwrap() }).catch_unwind().await;
+            let anmeldung_response = match result {
+                Err(err) => {
+                    eprintln!("failed to fetch anmeldung {anmeldung_request} with error {err:?}");
+                    return;
+                }
+                Ok(value) => value,
+            };
+            //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
+            self.anmeldung_counter.fetch_add(1, Ordering::Relaxed);
 
-        println!("anmeldung {}", anmeldung_request.inner());
-        let anmeldung_response = tucan.anmeldung(login_response.clone(), anmeldung_request).await?;
-        println!("anmeldung counter: {}", self.anmeldung_counter);
-        self.anmeldung_counter += 1;
+            let results: FuturesUnordered<_> = anmeldung_response
+                .submenus
+                .iter()
+                .map(|entry| {
+                    async {
+                        self.clone().recursive_anmeldung(tucan, login_response, entry.1.clone()).await;
+                    }
+                    .boxed()
+                })
+                .chain(anmeldung_response.entries.iter().map(|entry| {
+                    async {
+                        if let Some(module) = &entry.module {
+                            //println!("module {}", module.url.inner());
+                            //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
+                            //self.module_file.write_all(b"\n").await.unwrap();
 
-        for entry in &anmeldung_response.submenus {
-            Box::pin(self.recursive_anmeldung(tucan, login_response, entry.1.clone())).await?;
+                            let result = AssertUnwindSafe(async {
+                                let _module_details = tucan.module_details(login_response, module.url.clone()).await.unwrap();
+                            })
+                            .catch_unwind()
+                            .await;
+                            if let Err(err) = result {
+                                eprintln!("failed to fetch module {} with error {err:?}", module.url);
+                            }
+
+                            //println!("module counter: {}", self.module_counter.load(Ordering::Relaxed));
+                            self.module_counter.fetch_add(1, Ordering::Relaxed);
+                        }
+
+                        for course in &entry.courses {
+                            //println!("course {}", course.1.url.inner());
+                            //self.course_file.write_all(course.1.url.inner().as_bytes()).await.unwrap();
+                            //self.course_file.write_all(b"\n").await.unwrap();
+
+                            let result = AssertUnwindSafe(async {
+                                let _course_details = tucan.course_details(login_response, CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
+                            })
+                            .catch_unwind()
+                            .await;
+                            if let Err(err) = result {
+                                eprintln!("failed to fetch course {} with error {err:?}", course.1.url);
+                            }
+
+                            //println!("course counter: {}", self.course_counter.load(Ordering::Relaxed));
+                            self.course_counter.fetch_add(1, Ordering::Relaxed);
+                        }
+                    }
+                    .boxed()
+                }))
+                .collect();
+            let results = results.collect::<Vec<()>>().await;
         }
-
-        for entry in &anmeldung_response.entries {
-            if let Some(module) = &entry.module {
-                println!("module {}", module.url.inner());
-                self.module_file.write_all(module.url.inner().as_bytes()).await?;
-                self.module_file.write_all(b"\n").await?;
-
-                let _module_details = tucan.module_details(login_response, module.url.clone()).await?;
-                println!("module counter: {}", self.module_counter);
-                self.module_counter += 1;
-            }
-
-            for course in &entry.courses {
-                println!("course {}", course.1.url.inner());
-                self.course_file.write_all(course.1.url.inner().as_bytes()).await?;
-                self.course_file.write_all(b"\n").await?;
-
-                let _course_details = tucan.course_details(login_response, CourseDetailsRequest::parse(course.1.url.inner())).await?;
-                println!("course counter: {}", self.course_counter);
-                self.course_counter += 1;
-            }
-        }
-
-        Ok(())
     }
 }

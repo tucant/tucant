@@ -6,14 +6,14 @@ use tucant_types::{
 };
 
 use crate::{
-    MyClient, authenticated_retryable_get,
+    TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
 use html_handler::Root;
 
 #[expect(clippy::too_many_lines)]
-pub async fn vv(client: &MyClient, login_response: LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de{action}"), &login_response.cookie_cnsc).await?;
+pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
+    let content = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de{action}"), &login_response.cookie_cnsc).await?;
     /*login_response = LoginResponse {
         id: 299831749011778,
         cookie_cnsc: "".to_owned(),

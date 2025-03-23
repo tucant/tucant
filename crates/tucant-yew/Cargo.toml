@@ -1,7 +1,7 @@
 [package]
 name = "tucant-yew"
 version.workspace = true
-edition = "2021"
+edition.workspace = true
 description = "Template for starting a Yew project using Trunk"
 readme = "README.md"
 repository = "https://github.com/yewstack/yew-trunk-minimal-template"

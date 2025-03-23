@@ -1,10 +1,6 @@
 use axum::{Json, extract::Path, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::{CookieJar, cookie::Cookie};
-use tucan_connector::{
-    TucanConnector,
-    login::{login, logout},
-    registration::index::anmeldung_cached,
-};
+use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung_cached};
 use tucant_types::{
     LoginRequest, LoginResponse, TucanError,
     coursedetails::CourseDetailsRequest,
@@ -83,7 +79,7 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    logout(&tucan.client, &login_response).await.unwrap();
+    tucan.logout(&login_response).await.unwrap();
 
     let jar = jar.remove(Cookie::from("id")).remove(Cookie::from("cnsc"));
 

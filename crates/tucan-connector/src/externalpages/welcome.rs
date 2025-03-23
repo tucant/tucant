@@ -1,15 +1,15 @@
 use scraper::Html;
 
 use crate::{
-    MyClient, TucanError,
+    TucanConnector, TucanError,
     common::head::{footer, html_head, logged_out_head},
     retryable_get,
 };
 use html_handler::Root;
 
 #[expect(clippy::too_many_lines)]
-pub async fn welcome(client: &MyClient) -> Result<(), TucanError> {
-    let content = retryable_get(client, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
+pub async fn welcome(connector: &TucanConnector) -> Result<(), TucanError> {
+    let content = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
     let document = Html::parse_document(&content);
     let html_handler = Root::new(document.tree.root());
     let html_handler = html_handler.document_start();

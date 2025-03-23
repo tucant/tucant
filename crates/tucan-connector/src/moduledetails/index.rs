@@ -32,13 +32,12 @@ pub async fn module_details_cached(tucan: &TucanConnector, login_response: &Logi
 pub async fn module_details(tucan: &TucanConnector, login_response: &LoginResponse, args: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", id, args.inner());
-    println!("{url}");
     // TODO FIXME generalize
     let key = format!("unparsed_module_details.{}", args.inner());
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let content = authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
+        let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };

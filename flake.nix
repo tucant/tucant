@@ -227,7 +227,7 @@
 
         craneYewFmtLib = craneNightlyLib.overrideScope (final: prev: {
           mkCargoDerivation = args: prev.mkCargoDerivation ({
-            RUSTFMT = "${yew-fmt}/bin/yew-fmt";
+            # RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # does not support edition 2024 use
           } // args);
         });
       in
@@ -333,7 +333,7 @@
 
         devShells.default = pkgs.mkShell {
 
-          RUSTFMT = "${yew-fmt}/bin/yew-fmt";
+          # RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # does not support edition 2024 use
 
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.zlib}/lib''${LD_LIBRARY_PATH:+:}''${LD_LIBRARY_PATH}"
@@ -342,7 +342,7 @@
           packages = [
             pkgs.trunk
             rustfmt
-            yew-fmt
+            # yew-fmt
             pkgs.bashInteractive
             pkgs.diffoscope
             pkgs.bacon

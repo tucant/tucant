@@ -41,7 +41,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let content = authenticated_retryable_get(&tucan.client, &url, &login_response.cookie_cnsc).await?;
+        let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content
     };

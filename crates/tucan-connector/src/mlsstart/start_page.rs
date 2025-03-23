@@ -5,15 +5,15 @@ use tucant_types::{
 };
 
 use crate::{
-    MyClient, TucanError, authenticated_retryable_get,
+    TucanConnector, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
 use html_handler::Root;
 
 #[expect(clippy::too_many_lines)]
-pub async fn after_login(client: &MyClient, login_response: &LoginResponse) -> Result<MlsStart, TucanError> {
+pub async fn after_login(connector: &TucanConnector, login_response: &LoginResponse) -> Result<MlsStart, TucanError> {
     let id = login_response.id;
-    let content = authenticated_retryable_get(client, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
+    let content = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
     let document = Html::parse_document(&content);
     //tokio::fs::write("input.html", document.html()).await;
