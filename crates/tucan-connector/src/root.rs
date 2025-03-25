@@ -1,5 +1,3 @@
-use scraper::Html;
-
 use crate::{TucanConnector, TucanError, retryable_get};
 use html_handler::{Root, parse_document};
 

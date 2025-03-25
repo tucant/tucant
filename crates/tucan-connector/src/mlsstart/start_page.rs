@@ -1,4 +1,3 @@
-use scraper::{ElementRef, Html};
 use tucant_types::{
     LoginResponse,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
@@ -161,7 +160,7 @@ pub async fn after_login(connector: &TucanConnector, login_response: &LoginRespo
                                     hour,
                                     source,
                                     message: match message.value() {
-                                        MyNode::Text(text) => text.trim().to_owned(),
+                                        MyNode::Text(text) => text.to_string(),
                                         MyNode::Element(_element) => MyElementRef::wrap(message).unwrap().html(),
                                         _ => panic!(),
                                     },

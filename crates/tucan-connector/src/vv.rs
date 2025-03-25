@@ -1,24 +1,28 @@
-use scraper::{ElementRef, Html};
 use tucant_types::{
     LoginResponse, TucanError,
     coursedetails::CourseDetailsRequest,
-    vv::{Veranstaltung, Vorlesungsverzeichnis},
+    vv::{ActionRequest, Veranstaltung, Vorlesungsverzeichnis},
 };
 
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head},
+    common::head::{ACTION_REGEX, footer, html_head, logged_in_head, logged_out_head},
+    retryable_get,
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
 #[expect(clippy::too_many_lines)]
-pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let content = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de{action}"), &login_response.cookie_cnsc).await?;
-    /*login_response = LoginResponse {
-        id: 299831749011778,
-        cookie_cnsc: "".to_owned(),
+pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+    // TODO check if actions are unique for logged in sessions and maybe not cache then at all?
+    let key = format!("unparsed_vv.{}", action);
+    let content = if let Some(content) = tucan.database.get(&key).await {
+        content
+    } else {
+        let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={action}");
+        let content = if let Some(login_response) = login_response { authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await? } else { retryable_get(tucan, &url).await? };
+        tucan.database.put(&key, &content).await;
+        content
     };
-    let content = include_str!("../../../target/index.html");*/
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -28,11 +32,11 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
                 <head>
                     use html_head(html_handler)?;
                     <style type="text/css">
-                        "BjqYdi4ObBJkUieEorQw0YdKnpcMGF20vHHYGe3AyYE"
+                        "6ibPd8W1svwn5hvUuxbqcrnt1KCX53PwyrHrnJlfoyc"
                     </style>
                 </head>
                 <body class="registration_auditor">
-                    use logged_in_head(html_handler, login_response.id).0;
+                    use if login_response.is_none() { logged_out_head(html_handler, 334).0 } else { logged_in_head(html_handler, login_response.unwrap().id).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
@@ -52,7 +56,7 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
                             let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
                             } => match any_child.value() {
-                                MyNode::Text(text) => text.trim().to_owned(),
+                                MyNode::Text(text) => text.to_string(),
                                 MyNode::Element(_element) => MyElementRef::wrap(any_child).unwrap().html(),
                                 _ => panic!(),
                             };
@@ -61,15 +65,21 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
                     let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
-                                <li title=_title>
+                                <li title=_title xss="is-here">
                                     <a class="auditRegNodeLink" href=reg_href>
                                         _title
                                     </a>
                                 </li>
-                            } => reg_href;
+                            } => ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, ""));
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
+                        extern {
+                            if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                // XSS
+                                return Err(TucanError::UniverseExploded);
+                            }
+                        }
                         <div class="tb">
                             <div class="tbhead">
                                 "Veranstaltungen / Module"
@@ -98,13 +108,18 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
                                         let veranstaltungen = while html_handler.peek().is_some() {
                                             <tr class="tbdata">
                                                 <td>
+                                                    let gefaehrdung_schwangere = if html_handler.peek().is_some() {
+                                                        <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>
+                                                    } => ();
                                                 </td>
                                                 <td>
                                                     <a name="eventLink" href=coursedetails_url class="eventTitle">
                                                         title
                                                     </a>
                                                     <br></br>
-                                                    lecturer_name
+                                                    let lecturer_name = if html_handler.peek().is_some() {
+                                                        lecturer_name
+                                                    } => lecturer_name;
                                                     let date_range = if html_handler.peek().is_some() {
                                                         <br></br>
                                                         date_range
@@ -121,7 +136,8 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
                                             coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
                                             lecturer_name,
                                             date_range,
-                                            course_type
+                                            course_type,
+                                            gefaehrdung_schwangere: gefaehrdung_schwangere.is_some()
                                         };
                                     </tbody>
                                 </table>
@@ -136,7 +152,7 @@ pub async fn vv(connector: &TucanConnector, login_response: LoginResponse, actio
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.id, 326);
+    let html_handler = footer(html_handler, login_response.map(|l| l.id).unwrap_or(1), 326);
     html_handler.end_document();
     Ok(Vorlesungsverzeichnis {
         entries: entries.unwrap_or_default(),

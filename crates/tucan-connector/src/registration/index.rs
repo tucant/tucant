@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
-use scraper::{CaseSensitivity, ElementRef, Html};
+use scraper::CaseSensitivity;
 use tucant_types::{
     LoginResponse,
     coursedetails::CourseDetailsRequest,
@@ -137,7 +137,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                             path.insert(0, Some((study, AnmeldungRequest::parse(&registration_url))));
                         }
                     </h2>
-                    let submenus = if html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.name() == "ul").unwrap_or(false) {
+                    let submenus = if html_handler.peek().and_then(|e| e.value().as_element()).is_some_and(|e| e.name() == "ul") {
                         <ul>
                             let submenus = while html_handler.peek().is_some() {
                                 <li>
@@ -145,21 +145,12 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                         item
                                     </a>
                                 </li>
-                            } => (item.trim().to_owned(), AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
+                            } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-                    let additional_information = while html_handler.peek().is_some() && html_handler.peek().and_then(|e| e.value().as_element()).map(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)).unwrap_or(true) {
+                    let additional_information = while html_handler.peek().is_some() && html_handler.peek().and_then(|e| e.value().as_element()).is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
                         let child = html_handler.next_any_child();
-                    } => match child.value() {
-                        MyNode::Text(text) => {
-                            assert!(text.trim().is_empty());
-                            None
-                        }
-                        MyNode::Element(_element) => {
-                            Some(MyElementRef::wrap(child).unwrap().html())
-                        }
-                        _ => panic!(),
-                    };
+                    } => if let MyNode::Element(_element) = child.value() { Some(MyElementRef::wrap(child).unwrap().html()) } else { panic!() };
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
                             <tbody>
@@ -247,11 +238,11 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
                                                         let module = AnmeldungModule {
                                                             url: ModuleDetailsRequest::parse(module_url),
-                                                            id: module_id.trim().to_owned(),
+                                                            id: module_id,
                                                             name: module_name,
                                                             lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
                                                             date,
-                                                            limit_and_size: limit_and_size.unwrap_or_default().trim().to_owned(), // TODO FIXME
+                                                            limit_and_size,
                                                             registration_button_link: registration_button_link.either_into(),
                                                         };
                                                         module
@@ -273,7 +264,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                 <td class="tbdata">
                                                                 </td>
                                                             </tr>
-                                                        } => AnmeldungExam { name: exam_name.trim().to_owned(), typ: exam_type };
+                                                        } => AnmeldungExam { name: exam_name, typ: exam_type };
                                                         <tr>
                                                             <td class="tbdata">
                                                                 let gefaehrdung_schwangere = if html_handler.peek().is_some() {
@@ -306,7 +297,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                             let location_or_additional_info = html_handler.next_any_child();
                                                                         </p>
                                                                     } => match location_or_additional_info.value() {
-                                                                        MyNode::Text(text) => text.trim().to_owned(),
+                                                                        MyNode::Text(text) => text.to_string(),
                                                                         MyNode::Element(_element) => MyElementRef::wrap(location_or_additional_info).unwrap().html(),
                                                                         _ => panic!(),
                                                                     } else {
@@ -350,11 +341,11 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                         let course = AnmeldungCourse {
                                                             gefaehrdung_schwangere: gefaehrdung_schwangere.is_some(),
                                                             url: CourseDetailsRequest::parse(course_url),
-                                                            id: course_id.trim().to_owned(),
-                                                            name: course_name.trim().to_owned(),
+                                                            id: course_id,
+                                                            name: course_name,
                                                             lecturers,
                                                             begin_and_end,
-                                                            registration_until: registration_until,
+                                                            registration_until,
                                                             limit_and_size,
                                                             registration_button_link: registration_button_link.either_into(),
                                                             location_or_additional_info: location_or_additional_info.left(),

@@ -1,14 +1,13 @@
-use scraper::Html;
-
 use crate::{
     TucanConnector, TucanError,
     common::head::{footer, html_head, logged_out_head},
     retryable_get,
 };
 use html_handler::{Root, parse_document};
+use tucant_types::LoggedOutHead;
 
 #[expect(clippy::too_many_lines)]
-pub async fn welcome(connector: &TucanConnector) -> Result<(), TucanError> {
+pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanError> {
     let content = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome").await?;
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());
@@ -23,7 +22,7 @@ pub async fn welcome(connector: &TucanConnector) -> Result<(), TucanError> {
                     </style>
                 </head>
                 <body class="external_pages">
-                    use logged_out_head(html_handler, 344);
+                    let vv = logged_out_head(html_handler, 344);
                     <script type="text/javascript">
                     </script>
                     <meta http-equiv="content-type" content="text/html; charset=windows-1252"></meta>
@@ -151,5 +150,5 @@ pub async fn welcome(connector: &TucanConnector) -> Result<(), TucanError> {
         use footer(html_handler, 1, 344);
     }
     html_handler.end_document();
-    Ok(())
+    Ok(vv)
 }

@@ -1,4 +1,3 @@
-use scraper::Html;
 use tucant_types::LoginResponse;
 
 use crate::{

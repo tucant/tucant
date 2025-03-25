@@ -5,7 +5,7 @@ use tucant_types::{
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
-    vv::Vorlesungsverzeichnis,
+    vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -90,7 +90,11 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn vv(&self, _login_response: &LoginResponse, _action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
+    async fn vv(&self, _login_response: Option<&LoginResponse>, _action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+        todo!()
+    }
+
+    async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
         todo!()
     }
 }

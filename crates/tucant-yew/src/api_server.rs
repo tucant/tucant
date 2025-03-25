@@ -5,7 +5,7 @@ use tucant_types::{
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     registration::{AnmeldungRequest, AnmeldungResponse},
-    vv::Vorlesungsverzeichnis,
+    vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use url::Url;
 
@@ -66,10 +66,14 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn vv(&self, _login_response: &LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
+    async fn vv(&self, _login_response: Option<&LoginResponse>, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
         let mut url = Url::parse("http://localhost:1420/api/v1/vv").unwrap();
-        url.path_segments_mut().unwrap().push(&action);
+        url.path_segments_mut().unwrap().push(action.inner());
         let response: Vorlesungsverzeichnis = self.client.get(url).send().await.unwrap().error_for_status()?.json().await.unwrap();
         Ok(response)
+    }
+
+    async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
+        todo!()
     }
 }

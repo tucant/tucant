@@ -28,11 +28,9 @@ impl Display for CourseDetailsRequest {
 impl CourseDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+),-N(?P<n5>\d+)(,-N(?P<n6>\d+)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
+        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N0,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0)(,-N(0|3)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
         let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
-        Self {
-            arguments: format!("-N{},-N{},-N{},-N{},-N{}{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"], &c["n5"], c.name("n6").map(|e| format!(",-N{}", e.as_str())).unwrap_or_default()),
-        }
+        Self { arguments: format!("-N0,-N{},-N{},-N0,-N0,-N0", &c["n2"], &c["n3"]) }
     }
 
     #[must_use]
@@ -101,5 +99,5 @@ pub struct Termin {
     pub time_start: String,
     pub time_end: String,
     pub rooms: Vec<Room>,
-    pub instructors: String,
+    pub instructors: Option<String>,
 }

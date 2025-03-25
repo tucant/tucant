@@ -1,6 +1,7 @@
 use std::{sync::LazyLock, time::Duration};
 
 use coursedetails::index::course_details;
+use externalpages::welcome::welcome;
 use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::start_page::after_login;
@@ -9,7 +10,11 @@ use regex::Regex;
 use registration::index::anmeldung;
 use reqwest::header;
 use tokio::{sync::Semaphore, time::sleep};
-use tucant_types::{Tucan, TucanError, mlsstart::MlsStart, vv::Vorlesungsverzeichnis};
+use tucant_types::{
+    Tucan, TucanError,
+    mlsstart::MlsStart,
+    vv::{ActionRequest, Vorlesungsverzeichnis},
+};
 use vv::vv;
 
 pub mod common;
@@ -92,6 +97,10 @@ impl Tucan for TucanConnector {
         login(&self.client, &request).await
     }
 
+    async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
+        welcome(self).await
+    }
+
     async fn after_login(&self, request: &tucant_types::LoginResponse) -> Result<MlsStart, TucanError> {
         after_login(self, request).await
     }
@@ -112,8 +121,8 @@ impl Tucan for TucanConnector {
         course_details(self, login_response, request).await
     }
 
-    async fn vv(&self, login_response: &tucant_types::LoginResponse, action: String) -> Result<Vorlesungsverzeichnis, TucanError> {
-        vv(self, login_response.clone(), action).await
+    async fn vv(&self, login_response: Option<&tucant_types::LoginResponse>, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+        vv(self, login_response, action).await
     }
 }
 
@@ -289,7 +298,7 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let _result = tucan.vv(&login_response, action).await.unwrap();
+        let _result = tucan.vv(Some(&login_response), action).await.unwrap();
     }
 
     #[tokio::test]
@@ -306,8 +315,8 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(&login_response, action).await.unwrap().entries[0].clone();
-        let _result = tucan.vv(&login_response, result).await.unwrap();
+        let result = tucan.vv(Some(&login_response), action).await.unwrap().entries[0].clone();
+        let _result = tucan.vv(Some(&login_response), result).await.unwrap();
     }
 
     #[tokio::test]
@@ -324,8 +333,8 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(&login_response, action).await.unwrap().entries[4].clone();
-        let _result = tucan.vv(&login_response, result).await.unwrap();
+        let result = tucan.vv(Some(&login_response), action).await.unwrap().entries[4].clone();
+        let _result = tucan.vv(Some(&login_response), result).await.unwrap();
     }
 
     #[tokio::test]
@@ -342,9 +351,9 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        for action in tucan.vv(&login_response, action).await.unwrap().entries {
+        for action in tucan.vv(Some(&login_response), action).await.unwrap().entries {
             println!("{action}");
-            let _result = tucan.vv(&login_response, action).await.unwrap();
+            let _result = tucan.vv(Some(&login_response), action).await.unwrap();
         }
     }
 }

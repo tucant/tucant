@@ -106,7 +106,11 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
-                                    <small class="text-body-secondary">{ module.map(|module| "Teilnehmerlimit ".to_owned() + &module.limit_and_size).unwrap_or_default() }</small>
+                                    if let Some(module) = module {
+                                        if let Some(limit_and_size) = &module.limit_and_size {
+                                            <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + limit_and_size) }</small>
+                                        }
+                                    }
                                 </div>
 
                                 {
@@ -135,7 +139,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                                     <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
                                                     // needing the parentheses is a yew bug
                                                     if let Some(limit_and_size) = &course.1.limit_and_size {
-                                                        <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &limit_and_size) }</small>
+                                                        <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + limit_and_size) }</small>
                                                     }
                                                 </div>
 

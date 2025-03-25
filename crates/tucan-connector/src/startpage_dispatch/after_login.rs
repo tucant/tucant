@@ -1,4 +1,3 @@
-use scraper::Html;
 use tucant_types::LoginResponse;
 
 use crate::{TucanConnector, TucanError, authenticated_retryable_get, common::head::html_head_2};

@@ -598,7 +598,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     }
                 });
 
-                let open = quote_spanned! {input.element.span()=>
+                let open = quote_spanned! {input.open_start.span()=>
                     #[allow(unused_mut)]
                     let mut html_handler = html_handler.next_child_tag_open_start(#tag);
                 };
@@ -608,7 +608,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                     let mut html_handler = html_handler.tag_open_end();
                 };
 
-                quote_spanned! {open.span()=>
+                quote! {
                     #open
                     #(
                         #attributes
@@ -624,17 +624,13 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
             }
             HtmlCommand::ElementClose(html_element_close) => {
                 let name = html_element_close.element.to_string();
-                quote_spanned! {html_element_close.element.span()=>
+                quote_spanned! {html_element_close.close_start.span()=>
                     #[allow(unused_mut)]
                     let mut html_handler = html_handler.close_element(#name);
                 }
             }
-            HtmlCommand::Comment(html_comment) => {
-                let comment = &html_comment.comment;
-                quote_spanned! {html_comment.comment.span()=>
-                    #[allow(unused_mut)]
-                    let mut html_handler = html_handler.skip_comment(#comment);
-                }
+            HtmlCommand::Comment(_html_comment) => {
+                quote! {}
             }
             HtmlCommand::Text(html_text) => match html_text {
                 StringLiteralOrVariable::Literal(lit_str) => {
@@ -684,8 +680,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                         else_.as_ref().map_or_else(
                             || {
                                 quote! {
-                                    #[allow(clippy::if_not_else)]
-                                    #[allow(unused_mut)]
+                                    #[allow(unused_mut, clippy::if_not_else)]
                                     let (mut html_handler, #variable) = if #conditional {
                                         #(#body_stmts)*
                                         (html_handler, Some(#result_expr))
@@ -709,7 +704,7 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                                     }
                                 };
                                 quote! {
-                                    #[allow(unused_mut)]
+                                    #[allow(unused_mut, clippy::suspicious_else_formatting, clippy::branches_sharing_code)]
                                     let (mut html_handler, #temp_var) = #if_ #conditional
                                         #if_inner
                                     #else_

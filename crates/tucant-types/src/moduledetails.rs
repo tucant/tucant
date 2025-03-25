@@ -55,10 +55,12 @@ pub struct ModuleDetailsResponse {
     pub modulverantwortliche: Vec<(String, Option<InstructorImage>)>,
     pub leistungen: Vec<Leistung>,
     pub pruefungen: Vec<Pruefung>,
+    pub warteliste_percentage: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct Anmeldefristen {
+    pub anmeldeart: String,
     pub registration_range: String,
     pub unregistration_range: String,
 }

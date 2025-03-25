@@ -31,9 +31,9 @@ impl AnmeldungRequest {
         if input.is_empty() || input == "-A" {
             Self { arguments: "-A".to_owned() }
         } else {
-            static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap());
+            static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N0,-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap());
             let c = &REGISTRATION_DETAILS_REGEX.captures(input).expect(input);
-            Self { arguments: format!("-N{},-N{},-N{},-N{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"],) }
+            Self { arguments: format!("-N{},-N0,-N{},-N{}", &c["n1"], &c["n3"], &c["n4"],) }
         }
     }
 
@@ -78,7 +78,7 @@ pub struct AnmeldungModule {
     pub name: String,
     pub lecturer: Option<String>,
     pub date: Option<String>,
-    pub limit_and_size: String,
+    pub limit_and_size: Option<String>,
     pub registration_button_link: RegistrationState,
 }
 

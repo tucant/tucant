@@ -44,14 +44,14 @@ async fn async_main() -> Result<(), TucanError> {
 }
 
 struct Fetcher {
-    anmeldung_counter: AtomicU64,
-    module_counter: AtomicU64,
-    course_counter: AtomicU64,
+    anmeldung: AtomicU64,
+    module: AtomicU64,
+    course: AtomicU64,
 }
 
 impl Fetcher {
     pub const fn new() -> Self {
-        Self { anmeldung_counter: AtomicU64::new(0), module_counter: AtomicU64::new(0), course_counter: AtomicU64::new(0) }
+        Self { anmeldung: AtomicU64::new(0), module: AtomicU64::new(0), course: AtomicU64::new(0) }
     }
 
     #[expect(clippy::manual_async_fn)]
@@ -70,7 +70,7 @@ impl Fetcher {
                 Ok(value) => value,
             };
             //println!("anmeldung counter: {}", self.anmeldung_counter.load(Ordering::Relaxed));
-            self.anmeldung_counter.fetch_add(1, Ordering::Relaxed);
+            self.anmeldung.fetch_add(1, Ordering::Relaxed);
 
             let results: FuturesUnordered<_> = anmeldung_response
                 .submenus
@@ -98,7 +98,7 @@ impl Fetcher {
                             }
 
                             //println!("module counter: {}", self.module_counter.load(Ordering::Relaxed));
-                            self.module_counter.fetch_add(1, Ordering::Relaxed);
+                            self.module.fetch_add(1, Ordering::Relaxed);
                         }
 
                         for course in &entry.courses {
@@ -116,13 +116,13 @@ impl Fetcher {
                             }
 
                             //println!("course counter: {}", self.course_counter.load(Ordering::Relaxed));
-                            self.course_counter.fetch_add(1, Ordering::Relaxed);
+                            self.course.fetch_add(1, Ordering::Relaxed);
                         }
                     }
                     .boxed()
                 }))
                 .collect();
-            let results = results.collect::<Vec<()>>().await;
+            results.collect::<Vec<()>>().await;
         }
     }
 }

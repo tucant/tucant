@@ -7,7 +7,7 @@ use ego_tree::iter::Edge;
 use ego_tree::{NodeMut, NodeRef, Tree};
 use html5ever::serialize::{Serialize, SerializeOpts, Serializer, TraversalScope, serialize};
 use scraper::node::{Attrs, Element, ProcessingInstruction, Text};
-use scraper::{Html, Selector, StrTendril};
+use scraper::{Html, StrTendril};
 use scraper::{Node, node::Doctype};
 use sha3::{Digest, Sha3_256};
 
@@ -53,58 +53,58 @@ pub enum MyNode {
 
 impl MyNode {
     /// Returns true if node is the document root.
-    pub fn is_document(&self) -> bool {
-        matches!(*self, MyNode::Document)
+    pub const fn is_document(&self) -> bool {
+        matches!(*self, Self::Document)
     }
 
     /// Returns true if node is the fragment root.
-    pub fn is_fragment(&self) -> bool {
-        matches!(*self, MyNode::Fragment)
+    pub const fn is_fragment(&self) -> bool {
+        matches!(*self, Self::Fragment)
     }
 
     /// Returns true if node is a doctype.
-    pub fn is_doctype(&self) -> bool {
-        matches!(*self, MyNode::Doctype(_))
+    pub const fn is_doctype(&self) -> bool {
+        matches!(*self, Self::Doctype(_))
     }
 
     /// Returns true if node is text.
-    pub fn is_text(&self) -> bool {
-        matches!(*self, MyNode::Text(_))
+    pub const fn is_text(&self) -> bool {
+        matches!(*self, Self::Text(_))
     }
 
     /// Returns true if node is an element.
-    pub fn is_element(&self) -> bool {
-        matches!(*self, MyNode::Element(_))
+    pub const fn is_element(&self) -> bool {
+        matches!(*self, Self::Element(_))
     }
 
     /// Returns self as a doctype.
-    pub fn as_doctype(&self) -> Option<&Doctype> {
+    pub const fn as_doctype(&self) -> Option<&Doctype> {
         match *self {
-            MyNode::Doctype(ref d) => Some(d),
+            Self::Doctype(ref d) => Some(d),
             _ => None,
         }
     }
 
     /// Returns self as text.
-    pub fn as_text(&self) -> Option<&Text> {
+    pub const fn as_text(&self) -> Option<&Text> {
         match *self {
-            MyNode::Text(ref t) => Some(t),
+            Self::Text(ref t) => Some(t),
             _ => None,
         }
     }
 
     /// Returns self as an element.
-    pub fn as_element(&self) -> Option<&Element> {
+    pub const fn as_element(&self) -> Option<&Element> {
         match *self {
-            MyNode::Element(ref e) => Some(e),
+            Self::Element(ref e) => Some(e),
             _ => None,
         }
     }
 
     /// Returns self as an element.
-    pub fn as_processing_instruction(&self) -> Option<&ProcessingInstruction> {
+    pub const fn as_processing_instruction(&self) -> Option<&ProcessingInstruction> {
         match *self {
-            MyNode::ProcessingInstruction(ref pi) => Some(pi),
+            Self::ProcessingInstruction(ref pi) => Some(pi),
             _ => None,
         }
     }
@@ -114,12 +114,12 @@ impl MyNode {
 impl core::fmt::Debug for MyNode {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> Result<(), core::fmt::Error> {
         match *self {
-            MyNode::Document => write!(f, "Document"),
-            MyNode::Fragment => write!(f, "Fragment"),
-            MyNode::Doctype(ref d) => write!(f, "Doctype({:?})", d),
-            MyNode::Text(ref t) => write!(f, "Text({:?})", t),
-            MyNode::Element(ref e) => write!(f, "Element({:?})", e),
-            MyNode::ProcessingInstruction(ref pi) => write!(f, "ProcessingInstruction({:?})", pi),
+            Self::Document => write!(f, "Document"),
+            Self::Fragment => write!(f, "Fragment"),
+            Self::Doctype(ref d) => write!(f, "Doctype({d:?})"),
+            Self::Text(ref t) => write!(f, "Text({t:?})"),
+            Self::Element(ref e) => write!(f, "Element({e:?})"),
+            Self::ProcessingInstruction(ref pi) => write!(f, "ProcessingInstruction({pi:?})"),
         }
     }
 }
@@ -130,16 +130,18 @@ pub struct MyElementRef<'a> {
 }
 
 impl<'a> MyElementRef<'a> {
-    fn new(node: NodeRef<'a, MyNode>) -> Self {
+    const fn new(node: NodeRef<'a, MyNode>) -> Self {
         MyElementRef { node }
     }
 
     /// Wraps a `NodeRef` only if it references a `Node::Element`.
+    #[must_use]
     pub fn wrap(node: NodeRef<'a, MyNode>) -> Option<Self> {
         if node.value().is_element() { Some(MyElementRef::new(node)) } else { None }
     }
 
     /// Returns the `Element` referenced by `self`.
+    #[must_use]
     pub fn value(&self) -> &'a Element {
         self.node.value().as_element().unwrap()
     }
@@ -156,16 +158,19 @@ impl<'a> MyElementRef<'a> {
     }
 
     /// Returns the HTML of this element.
+    #[must_use]
     pub fn html(&self) -> String {
         self.serialize(TraversalScope::IncludeNode)
     }
 
     /// Returns the inner HTML of this element.
+    #[must_use]
     pub fn inner_html(&self) -> String {
         self.serialize(TraversalScope::ChildrenOnly(None))
     }
 
     /// Returns the value of an attribute.
+    #[must_use]
     pub fn attr(&self, attr: &str) -> Option<&'a str> {
         self.value().attr(attr)
     }
@@ -186,16 +191,16 @@ impl<'a> Deref for MyElementRef<'a> {
 
 impl Serialize for MyElementRef<'_> {
     fn serialize<S: Serializer>(&self, serializer: &mut S, traversal_scope: TraversalScope) -> Result<(), std::io::Error> {
-        myserialize(**self, serializer, traversal_scope)
+        myserialize(**self, serializer, &traversal_scope)
     }
 }
 
 /// Serialize an HTML node using html5ever serializer.
-pub(crate) fn myserialize<S: Serializer>(self_node: NodeRef<MyNode>, serializer: &mut S, traversal_scope: TraversalScope) -> Result<(), std::io::Error> {
+pub(crate) fn myserialize<S: Serializer>(self_node: NodeRef<MyNode>, serializer: &mut S, traversal_scope: &TraversalScope) -> Result<(), std::io::Error> {
     for edge in self_node.traverse() {
         match edge {
             Edge::Open(node) => {
-                if node == self_node && traversal_scope == TraversalScope::ChildrenOnly(None) {
+                if node == self_node && *traversal_scope == TraversalScope::ChildrenOnly(None) {
                     continue;
                 }
 
@@ -215,7 +220,7 @@ pub(crate) fn myserialize<S: Serializer>(self_node: NodeRef<MyNode>, serializer:
             }
 
             Edge::Close(node) => {
-                if node == self_node && traversal_scope == TraversalScope::ChildrenOnly(None) {
+                if node == self_node && *traversal_scope == TraversalScope::ChildrenOnly(None) {
                     continue;
                 }
 
@@ -267,11 +272,6 @@ pub struct InRoot<'a, OuterState> {
     outer_state: PhantomData<OuterState>,
 }
 
-pub struct BeforeNode<'a, OuterState> {
-    node: NodeRef<'a, MyNode>,
-    outer_state: PhantomData<OuterState>,
-}
-
 pub struct Open<'a, OuterState> {
     element: NodeRef<'a, MyNode>,
     attrs: Attrs<'a>,
@@ -287,7 +287,7 @@ pub struct InElement<'a, OuterState> {
 impl<'a> Root<'a> {
     #[must_use]
     pub fn new(node: NodeRef<'a, MyNode>) -> Self {
-        assert_eq!(*node.value(), MyNode::Document);
+        assert_eq!(*node.value(), MyNode::Document, "expected document but got {:?}", node.value());
         Self { node }
     }
 
@@ -307,44 +307,29 @@ impl<'a> InRoot<'a, Root<'a>> {
     #[must_use]
     pub fn doctype(self) -> Self {
         let child_node = self.current_child.expect("expected child but none left");
-        let Some(_child_element) = child_node.value().as_doctype() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(_child_element) = child_node.value().as_doctype() else { panic!("expected doctype but got {:?}", child_node.value()) };
         InRoot { node: self.node, current_child: child_node.next_sibling(), outer_state: self.outer_state }
     }
 
     #[track_caller]
     pub fn end_document(self) {
-        assert_eq!(self.current_child.map(|v| v.value()), None);
+        assert_eq!(self.current_child, None, "Expected no remaining children but got {:?}", self.current_child);
     }
 }
 
 impl<'a, OuterState> InRoot<'a, OuterState> {
     #[track_caller]
     #[must_use]
-    pub fn skip_whitespace(self) -> Self {
+    pub const fn skip_whitespace(self) -> Self {
         self
     }
 
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
         let child_node = self.current_child.expect("expected child but one left");
-        let Some(child_element) = child_node.value().as_element() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
         assert_eq!(child_element.name(), name);
         Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
-    }
-
-    #[track_caller]
-    #[must_use]
-    pub fn skip_comment(mut self, expected_hash: &str) -> Self {
-        self
-    }
-}
-
-impl<'a, OuterState> BeforeNode<'a, OuterState> {
-    #[must_use]
-    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, OuterState> {
-        let Some(element) = self.node.value().as_element() else { panic!("unexpected element {:?}", self.node.value()) };
-        assert_eq!(element.name(), name);
-        Open { element: self.node, attrs: element.attrs(), outer_state: self.outer_state }
     }
 }
 
@@ -352,6 +337,10 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
+        if name == "xss" {
+            for a in self.attrs.by_ref() {}
+            return self;
+        }
         assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value));
         self
     }
@@ -367,8 +356,9 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
-        let _element = self.element.value().as_element().expect("expected element but not an element");
-        assert_eq!(self.attrs.next(), None, "unexpected attribute");
+        let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
+        let attr = self.attrs.next();
+        assert_eq!(attr, None, "expected no remaining attributes but got {attr:?}");
         InElement { element: self.element, current_child: self.element.children().next(), outer_state: self.outer_state }
     }
 }
@@ -389,7 +379,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     #[must_use]
-    pub fn skip_whitespace(mut self) -> Self {
+    pub const fn skip_whitespace(self) -> Self {
         self
     }
 
@@ -397,7 +387,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[must_use]
     pub fn text(mut self) -> (Self, String) {
         let child_node = self.current_child.expect("expected child with text but got no children. maybe there is a closing tag?");
-        let Some(child_element) = child_node.value().as_text() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_text() else { panic!("expected text but got {:?}", child_node.value()) };
         self.current_child = child_node.next_sibling();
         (self, child_element.to_string())
     }
@@ -406,7 +396,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[must_use]
     pub fn skip_text(mut self, text: &str) -> Self {
         let child_node = self.current_child.expect("expected child with text but got no children. maybe there is a closing tag?");
-        let Some(child_element) = child_node.value().as_text() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_text() else { panic!("expected text but got {:?}", child_node.value()) };
         match BASE64URL_NOPAD.decode(text.as_bytes()) {
             Ok(value) if value.len() == 32 => {
                 let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
@@ -422,28 +412,18 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     #[must_use]
-    pub fn skip_comment(mut self, expected_hash: &str) -> Self {
-        self
-    }
-
-    #[track_caller]
-    #[must_use]
-    pub fn skip_any_comment(mut self) -> Self {
+    pub const fn skip_any_comment(self) -> Self {
         self
     }
 
     #[track_caller]
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
-        let _element = self.element.value().as_element().expect("expected element");
+        let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
         let child_node = self.current_child.expect("expected one more child");
-        let Some(child_element) = child_node.value().as_element() else { panic!("unexpected element {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
         assert_eq!(child_element.name(), name);
-        Open {
-            element: child_node,
-            attrs: child_node.value().as_element().expect("expected child to be element").attrs(),
-            outer_state: PhantomData,
-        }
+        Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
     }
 }
 
@@ -452,7 +432,8 @@ impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     #[must_use]
     pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
         assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
-        assert_eq!(self.element.value().as_element().expect("expected element").name(), name);
+        let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
+        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
         InElement {
             element: self.element.parent().unwrap(),
             current_child: self.element.next_sibling(),
@@ -466,7 +447,8 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
     #[must_use]
     pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
         assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
-        assert_eq!(self.element.value().as_element().expect("expected element").name(), name);
+        let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
+        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
         InRoot { node: self.element.parent().unwrap(), current_child: self.element.next_sibling(), outer_state: PhantomData }
     }
 }

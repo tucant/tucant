@@ -150,7 +150,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                                     <td>{&termin.date}</td>
                                     <td>{&termin.time_start}</td>
                                     <td>{&termin.time_end}</td>
-                                    <td>{&termin.instructors}</td>
+                                    <td>{&termin.instructors.clone().unwrap_or_default()}</td>
                                     <td><ul>
                                     {
                                         termin.rooms.iter().map(|room| {

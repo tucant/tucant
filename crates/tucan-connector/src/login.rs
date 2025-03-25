@@ -4,7 +4,6 @@ use html_handler::parse_document;
 use log::info;
 use regex::Regex;
 use reqwest::header::HeaderValue;
-use scraper::Html;
 use tucant_types::{LoginRequest, LoginResponse};
 
 use crate::{MyClient, TucanConnector, TucanError, authenticated_retryable_get};
@@ -57,6 +56,6 @@ pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<Lo
     response.headers_mut().remove("vary");
     assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
     let content = response.text().await?;
-    let document = parse_document(&content);
+    parse_document(&content);
     Ok(LoginResponse { id: id.parse().unwrap(), cookie_cnsc })
 }

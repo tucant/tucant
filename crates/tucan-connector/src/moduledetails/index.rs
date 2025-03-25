@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use scraper::CaseSensitivity::CaseSensitive;
-use scraper::{ElementRef, Html};
 use tucant_types::InstructorImage;
 use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
 use tucant_types::{
@@ -57,7 +56,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                     </style>
                 </head>
                 <body class="moduledetails">
-                    use if login_response.id == 1 { logged_out_head(html_handler, 311) } else { logged_in_head(html_handler, login_response.id).0 };
+                    use if login_response.id == 1 { logged_out_head(html_handler, 311).0 } else { logged_in_head(html_handler, login_response.id).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
@@ -129,7 +128,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             start_semester
                                             <br></br>
                                             <br></br>
-                                            let warteliste = if html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().first_child().map(|v| &**v.value().as_text().unwrap() == "Warteliste:").unwrap_or(false) {
+                                            let warteliste_percentage = if html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().first_child().is_some_and(|v| &**v.value().as_text().unwrap() == "Warteliste:") {
                                                 <p>
                                                     <b>
                                                         "Warteliste:"
@@ -142,11 +141,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </b>
                                                     percentage
                                                 </p>
-                                            } => ();
+                                            } => percentage;
                                             let description = while html_handler.peek().is_some() {
                                                 let child = html_handler.next_any_child();
                                             } => match child.value() {
-                                                MyNode::Text(text) => text.trim().to_owned(),
+                                                MyNode::Text(text) => text.to_string(),
                                                 MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),
                                                 _ => panic!(),
                                             };
@@ -199,10 +198,10 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 unregistration_range
                                             </td>
                                         </tr>
-                                    } => Anmeldefristen { registration_range, unregistration_range };
+                                    } => Anmeldefristen { anmeldeart, registration_range, unregistration_range };
                                 </tbody>
                             </table>
-                            let kurskategorien = if html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().map(|v| &**v == "Kurse").unwrap_or(false) {
+                            let kurskategorien = if html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().is_some_and(|v| &**v == "Kurse") {
                                 <table class="tb rw-table rw-all">
                                     <caption>
                                         "Kurse"
@@ -286,15 +285,15 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                         } => KursKategorie {
                                             course_no,
                                             name,
-                                            mandatory: if mandatory.trim() == "Ja" {
+                                            mandatory: if mandatory == "Ja" {
                                                 true
-                                            } else if mandatory.trim() == "Nein" {
+                                            } else if mandatory == "Nein" {
                                                 false
                                             } else {
                                                 panic!("unknown mandatory {mandatory}")
                                             },
                                             semester,
-                                            credits: credits.trim().replace(',', ".").parse().expect(&credits),
+                                            credits: credits.replace(',', ".").parse().expect(&credits),
                                             kurse
                                         };
                                     </tbody>
@@ -329,7 +328,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                     let leistungen = while html_handler.peek().is_some() {
                                         <tr>
                                             <td rowspan=rowspan class="tbsubhead level02_color ">
-                                                modulabschlussleistungen_or_module_name
+                                                _modulabschlussleistungen_or_module_id_and_name
                                             </td>
                                             extern {
                                                 let mut rowspan: u64 = rowspan.parse().unwrap();
@@ -353,13 +352,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 </tr>
                                                 <tr class="tbdata">
                                                     <td class="tbborderleft rw rw-detail-reqachieve">
-                                                        {|v: String| assert_eq!(name.trim(), v.trim())}
+                                                        {|v: String| assert_eq!(name, v)}
                                                     </td>
                                                     <td class="rw rw-detail-compulsory">
                                                         compulsory
                                                     </td>
                                                     <td class="rw rw-detail-weight alignRight">
-                                                        {|v: String| assert_eq!(weight.trim(), v.trim())}
+                                                        {|v: String| assert_eq!(weight, v)}
                                                     </td>
                                                 </tr>
                                                 let leistungen = while rowspan > 2 {
@@ -382,13 +381,13 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                     </tr>
                                                     <tr class="tbdata">
                                                         <td class="tbborderleft rw rw-detail-reqachieve">
-                                                            {|v: String| assert_eq!(name.trim(), v.trim())}
+                                                            {|v: String| assert_eq!(name, v)}
                                                         </td>
                                                         <td class="rw rw-detail-compulsory">
                                                             compulsory
                                                         </td>
                                                         <td class="rw rw-detail-weight alignRight">
-                                                            {|v: String| assert_eq!(weight.trim(), v.trim())}
+                                                            {|v: String| assert_eq!(weight, v)}
                                                             let weight_more = if html_handler.peek().is_some() {
                                                                 <br></br>
                                                                 weight_more
@@ -398,11 +397,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 } => {
                                                     rowspan -= 2;
                                                     Leistung {
-                                                        name: name.trim().to_owned(),
+                                                        name,
                                                         weight,
-                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                        compulsory: if compulsory == "Ja" {
                                                             true
-                                                        } else if compulsory.trim() == "Nein" {
+                                                        } else if compulsory == "Nein" {
                                                             false
                                                         } else {
                                                             panic!("unknown compulsory {compulsory}")
@@ -414,11 +413,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 leistungen.insert(
                                                     0,
                                                     Leistung {
-                                                        name: name.trim().to_owned(),
+                                                        name,
                                                         weight,
-                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                        compulsory: if compulsory == "Ja" {
                                                             true
-                                                        } else if compulsory.trim() == "Nein" {
+                                                        } else if compulsory == "Nein" {
                                                             false
                                                         } else {
                                                             panic!("unknown compulsory {compulsory}")
@@ -453,11 +452,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 } => {
                                                     rowspan -= 1;
                                                     Leistung {
-                                                        name: name.trim().to_owned(),
+                                                        name,
                                                         weight,
-                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                        compulsory: if compulsory == "Ja" {
                                                             true
-                                                        } else if compulsory.trim() == "Nein" {
+                                                        } else if compulsory == "Nein" {
                                                             false
                                                         } else {
                                                             panic!("unknown compulsory {compulsory}")
@@ -469,11 +468,11 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 leistungen.insert(
                                                     0,
                                                     Leistung {
-                                                        name: name.trim().to_owned(),
+                                                        name,
                                                         weight,
-                                                        compulsory: if compulsory.trim() == "Ja" {
+                                                        compulsory: if compulsory == "Ja" {
                                                             true
-                                                        } else if compulsory.trim() == "Nein" {
+                                                        } else if compulsory == "Nein" {
                                                             false
                                                         } else {
                                                             panic!("unknown compulsory {compulsory}")
@@ -549,7 +548,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                             examiner
                                                         </td>
                                                         <td class="rw rw-detail-compulsory">
-                                                            {|v: String| assert_eq!(compulsory.trim(), v.trim())}
+                                                            {|v: String| assert_eq!(compulsory, v)}
                                                         </td>
                                                     </tr>
                                                 } => {
@@ -559,9 +558,9 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                             } => {
                                                 termine.insert(0, Pruefungstermin { date, examiner, subname });
                                                 Pruefung {
-                                                    compulsory: if compulsory.trim() == "Ja" {
+                                                    compulsory: if compulsory == "Ja" {
                                                         true
-                                                    } else if compulsory.trim() == "Nein" {
+                                                    } else if compulsory == "Nein" {
                                                         false
                                                     } else {
                                                         panic!("unknown compulsory {compulsory}")
@@ -586,9 +585,9 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
                                                 </tr>
                                             } => Pruefung {
                                                 name: name.clone(),
-                                                compulsory: if compulsory.trim() == "Ja" {
+                                                compulsory: if compulsory == "Ja" {
                                                     true
-                                                } else if compulsory.trim() == "Nein" {
+                                                } else if compulsory == "Nein" {
                                                     false
                                                 } else {
                                                     panic!("unknown compulsory {compulsory}")
@@ -654,5 +653,6 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
         modulverantwortliche,
         leistungen: leistungen.into_iter().flatten().collect(),
         pruefungen: pruefungen.unwrap_or_default(),
+        warteliste_percentage,
     })
 }

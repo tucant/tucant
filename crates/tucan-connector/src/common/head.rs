@@ -1,12 +1,14 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
-use tucant_types::{LoggedInHead, TucanError, VorlesungsverzeichnisUrls};
+use tucant_types::{LoggedInHead, LoggedOutHead, TucanError, VorlesungsverzeichnisUrls, vv::ActionRequest};
 
 use html_handler::{InElement, InRoot, Root};
 
 // 275 means "Meine Module" is selected in menu
 // 311 means "Anmeldung" is selected in menu
+
+pub(crate) static ACTION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=").unwrap());
 
 #[must_use]
 pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
@@ -570,11 +572,20 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
                 </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
     };
-    (html_handler, LoggedInHead { messages_url, vorlesungsverzeichnis_url, vv, antraege_url, meine_bewerbung_url })
+    (
+        html_handler,
+        LoggedInHead {
+            messages_url,
+            vorlesungsverzeichnis_url: ActionRequest::parse(&ACTION_REGEX.replace(&vorlesungsverzeichnis_url, "")),
+            vv,
+            antraege_url,
+            meine_bewerbung_url,
+        },
+    )
 }
 
 #[must_use]
-pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
+pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, menuno: u64) -> (InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>, LoggedOutHead) {
     html_extractor::html! {
                     use page_start(html_handler);
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
@@ -583,10 +594,10 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
                         </a>
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="Vorlesungsverzeichnis (VV)" id="link000334">
-                        <a class="depth_1 link000334 navLink branchLink " href=_url>
+                        <a class="depth_1 link000334 navLink branchLink " href=vorlesungsverzeichnis_url>
                             "Vorlesungsverzeichnis (VV)"
                         </a>
-                        let _unused = vv_something(html_handler, 1);
+                        let vv = vv_something(html_handler, 1);
                     </li>
                     <li class="tree depth_1 linkItem branchLinkItem " title="TUCaN-Account" id="link000410">
                         <a class="depth_1 link000410 navLink branchLink " href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000410,-Atucan%5Faccount%2Ehtml">
@@ -666,7 +677,7 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
                 </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
     }
-    html_handler
+    (html_handler, LoggedOutHead { vorlesungsverzeichnis_url: ActionRequest::parse(&ACTION_REGEX.replace(&vorlesungsverzeichnis_url, "")), vv })
 }
 
 #[must_use]
