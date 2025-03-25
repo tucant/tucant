@@ -98,7 +98,11 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
-                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", module.map(|module| module.date.clone()).unwrap_or_default()) }</small>
+                                    if let Some(module) = module {
+                                        if let Some(date) = &module.date {
+                                            <small class="text-body-secondary">{ format!("Anmeldung bis {}", date) }</small>
+                                        }
+                                    }
                                 </div>
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
@@ -122,13 +126,17 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                             <li class="list-group-item">
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>{ format!("Kurs {} {}", course.1.id, course.1.name) }</Link<Route>></h5>
-                                                    <small class="text-body-secondary">{ format!("Anmeldung bis {}", course.1.registration_until) }</small>
+                                                    if let Some(registration_until) = &course.1.registration_until {
+                                                        <small class="text-body-secondary">{ format!("Anmeldung bis {}", registration_until) }</small>
+                                                    }
                                                 </div>
 
                                                 <div class="d-flex w-100 justify-content-between">
                                                     <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
                                                     // needing the parentheses is a yew bug
-                                                    <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &course.1.limit_and_size) }</small>
+                                                    if let Some(limit_and_size) = &course.1.limit_and_size {
+                                                        <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + &limit_and_size) }</small>
+                                                    }
                                                 </div>
 
                                                 <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }</h6>

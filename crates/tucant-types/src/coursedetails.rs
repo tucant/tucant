@@ -29,7 +29,7 @@ impl CourseDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
         static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N(?P<n2>\d+),-N(?P<n3>\d+),-N(?P<n4>\d+),-N(?P<n5>\d+)(,-N(?P<n6>\d+)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
-        let c = &COURSE_DETAILS_REGEX.captures(input).expect("invalid course details url");
+        let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
         Self {
             arguments: format!("-N{},-N{},-N{},-N{},-N{}{}", &c["n1"], &c["n2"], &c["n3"], &c["n4"], &c["n5"], c.name("n6").map(|e| format!(",-N{}", e.as_str())).unwrap_or_default()),
         }
@@ -48,7 +48,7 @@ pub struct CourseDetailsResponse {
     pub r#type: String,
     pub type_number: u64,
     pub fachbereich: String,
-    pub anzeige_im_stundenplan: String,
+    pub anzeige_im_stundenplan: Option<String>,
     pub courselevel: u64,
     pub sws: Option<f64>,
     pub credits: Option<u64>,
@@ -82,10 +82,10 @@ pub struct CourseUebungsGruppe {
 pub struct CourseAnmeldefrist {
     pub zulassungstyp: String,
     pub block_type: String,
-    pub start: String,
-    pub ende_anmeldung: String,
-    pub ende_abmeldung: String,
-    pub ende_hoerer: String,
+    pub start: Option<String>,
+    pub ende_anmeldung: Option<String>,
+    pub ende_abmeldung: Option<String>,
+    pub ende_hoerer: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]

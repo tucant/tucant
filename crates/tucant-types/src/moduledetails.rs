@@ -43,7 +43,7 @@ impl ModuleDetailsRequest {
 pub struct ModuleDetailsResponse {
     pub module_id: String,
     pub registered: bool,
-    pub display_in_timetable: String,
+    pub display_in_timetable: Option<String>,
     pub duration: String,
     pub count_elective_courses: String,
     pub credits: Option<u64>,

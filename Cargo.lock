@@ -974,6 +974,7 @@ dependencies = [
  "data-encoding",
  "ego-tree",
  "html-extractor",
+ "html5ever",
  "scraper",
  "sha3",
 ]

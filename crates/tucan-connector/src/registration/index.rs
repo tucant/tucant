@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
-use scraper::{ElementRef, Html};
+use scraper::{CaseSensitivity, ElementRef, Html};
 use tucant_types::{
     LoginResponse,
     coursedetails::CourseDetailsRequest,
@@ -10,10 +10,10 @@ use tucant_types::{
 };
 
 use crate::{
-    TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
-use html_handler::Root;
+use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
 pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResponse, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("registration.{}", request.inner());
@@ -32,7 +32,6 @@ pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResp
 pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, args: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap());
     static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N000311,").unwrap());
-    static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N000311,").unwrap());
     static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap());
     let id = login_response.id;
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, args.inner());
@@ -45,175 +44,166 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
         tucan.database.put(&key, &content).await;
         content
     };
-    let document = Html::parse_document(&content);
-    let html_handler = Root::new(document.tree.root());
+    let document = parse_document(&content);
+    let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-                <head>_
+                <head>
                     use html_head(html_handler)?;
                     <style type="text/css">
-                        "Z8Nk5s0HqiFiRYeqc3zP-bPxIN31ePraM-bbLg_KfNQ"
-                    </style>_
+                        "lbOQfuwTSH1NQfB9sjkC-_xOS0UGzyKBoNNl8bXs_FE"
+                    </style>
                     <style type="text/css">
-                        "3CC0xpJgjHprYY59D1krvfwrI2LSV2-OtaN3CviYnG8"
-                    </style>_
-                </head>_
-                <body class="registration">_
+                        "qZ_1IiJLIcPvkbl6wYm5QbasBhsSKdRw5fl6vVyINxY"
+                    </style>
+                </head>
+                <body class="registration">
                     use logged_in_head(html_handler, login_response.id).0;
-                    <!--"up71ljpj_w5JCBcjI0pvus0gS__0taKvkYJ-_QU1yNk"-->_
                     <script type="text/javascript">
-                    </script>_
+                    </script>
                     <h1>
                         "Anmeldung zu Modulen und Veranstaltungen"
-                    </h1>_
-                    let studiumsauswahl = if html_handler.peek().unwrap().value().is_comment() {
-                        <!--"UU9Ju2ASETVrRfIpA3xWkFcE5n3oN4PCI9QksTmApIA"-->_
-                        <form id="registration" action="/scripts/mgrqispi.dll" method="post">_
-                            <table class="tbcoursestatus rw-table rw-all">_
+                    </h1>
+                    let studiumsauswahl = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "form" {
+                        <form id="registration" action="/scripts/mgrqispi.dll" method="post">
+                            <table class="tbcoursestatus rw-table rw-all">
                                 <tbody>
-                                    <tr>_
+                                    <tr>
                                         <td class="tbhead" colspan="100%">
                                             "Weitere Studien"
-                                        </td>_
-                                    </tr>_
-                                    <tr>_
-                                        <td class="tbcontrol" colspan="100%">_
-                                            <div class="inputFieldLabel">_
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="tbcontrol" colspan="100%">
+                                            <div class="inputFieldLabel">
                                                 <label for="study">
                                                     "Studium:"
-                                                </label>_
-                                                <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">_
+                                                </label>
+                                                <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="pageElementLeft">
                                                     let studiumsauswahl = while html_handler.peek().is_some() {
                                                         let studiumsauswahl = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                             <option value=value selected="selected">
                                                                 name
-                                                            </option>_
+                                                            </option>
                                                         } => Studiumsauswahl { name, value, selected: true } else {
                                                             <option value=value>
                                                                 name
-                                                            </option>_
+                                                            </option>
                                                         } => Studiumsauswahl { name, value, selected: false };
                                                     } => studiumsauswahl.either_into();
-                                                </select>_
-                                                <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>_
-                                            </div>_
-                                            <input name="APPNAME" type="hidden" value="CampusNet"></input>_
-                                            <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>_
-                                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>_
+                                                </select>
+                                                <input name="Aktualisieren" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft"></input>
+                                            </div>
+                                            <input name="APPNAME" type="hidden" value="CampusNet"></input>
+                                            <input name="PRGNAME" type="hidden" value="REGISTRATION"></input>
+                                            <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,study,changestudy,parent1,parent2"></input>
                                             <input name="sessionno" type="hidden" value={|v: String| {
                                                 static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\d+$").unwrap());
                                                 assert!(REGEX.is_match(&v), "{v}");
-                                            }}></input>_
-                                            <input name="menuno" type="hidden" value="000311"></input>_
-                                            <input name="pa rent1" type="hidden" value="000000000000000"></input>_
-                                            <input name="parent2" type="hidden" value="000000000000000"></input>_
-                                            <input name="changestudy" type="hidden" value="1"></input>_
-                                        </td>_
-                                    </tr>_
+                                            }}></input>
+                                            <input name="menuno" type="hidden" value="000311"></input>
+                                            <input name="pa rent1" type="hidden" value="000000000000000"></input>
+                                            <input name="parent2" type="hidden" value="000000000000000"></input>
+                                            <input name="changestudy" type="hidden" value="1"></input>
+                                        </td>
+                                    </tr>
                                 </tbody>
-                            </table>_
-                        </form>_
-                        <!--"mrUJOOH3fqYzcWGWygCuNQGMPfDRh8akKXEihfucyR0"-->_
+                            </table>
+                        </form>
                     } => studiumsauswahl;
-                    <h2>_
+                    <h2>
                         <a href=registration_url>
                             study
                         </a>
-                        let path = while !html_handler.peek().unwrap().value().as_text().unwrap().trim().is_empty() {
-                            "\n        \u{a0}>\u{a0}\n                "
+                        let path = while html_handler.peek().is_some() {
+                            ">"
                             <a href=url>
-                                let any_child = html_handler.next_any_child();
+                                let any_child = if html_handler.peek().is_some() {
+                                    let any_child = html_handler.next_any_child();
+                                } => any_child;
                             </a>
-                        } => match any_child.value() {
-                            scraper::Node::Comment(_comment) => None,
-                            scraper::Node::Text(text) => {
+                        } => match any_child.map(|c| c.value()) {
+                            Some(MyNode::Text(text)) => {
                                 let url = REGISTRATION_REGEX.replace(&url, "");
                                 Some((text.to_string(), AnmeldungRequest::parse(&url)))
                             }
+                            None => None,
                             _ => panic!(),
                         };
                         extern {
                             let registration_url = REGISTRATION_REGEX.replace(&registration_url, "");
                             path.insert(0, Some((study, AnmeldungRequest::parse(&registration_url))));
-                        }_
-                    </h2>_
-                    let submenus = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
-                        <ul>_
+                        }
+                    </h2>
+                    let submenus = if html_handler.peek().and_then(|e| e.value().as_element()).map(|e| e.name() == "ul").unwrap_or(false) {
+                        <ul>
                             let submenus = while html_handler.peek().is_some() {
-                                <li>_
+                                <li>
                                     <a href=url>
                                         item
-                                    </a>_
-                                </li>_
+                                    </a>
+                                </li>
                             } => (item.trim().to_owned(), AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
-                        </ul>_
+                        </ul>
                     } => submenus;
-                    <!--"gACLM-J4jmb4gKmvgI-c8EqENeLydqGZuryaUY-7Lm4"-->_
-                    let additional_information = while !html_handler.peek().unwrap().value().is_comment() {
+                    let additional_information = while html_handler.peek().is_some() && html_handler.peek().and_then(|e| e.value().as_element()).map(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)).unwrap_or(true) {
                         let child = html_handler.next_any_child();
                     } => match child.value() {
-                        scraper::Node::Text(text) => {
+                        MyNode::Text(text) => {
                             assert!(text.trim().is_empty());
                             None
                         }
-                        scraper::Node::Element(_element) => {
-                            Some(ElementRef::wrap(child).unwrap().html())
+                        MyNode::Element(_element) => {
+                            Some(MyElementRef::wrap(child).unwrap().html())
                         }
                         _ => panic!(),
                     };
-                    <!--"PQQwWAU_NypeYX1Jw191sjka_fWLRqDlYVWZm-gWSFs"-->_
-                    <br></br>_
-                    <!--"9XmEOh66hIETO2XPWUf_msfayuKwcwW3Q-0NvQQ6mvA"-->_
-                    let anmeldung_entries = if html_handler.peek().unwrap().value().is_element() {
-                        <table class="tbcoursestatus rw-table rw-all">_
+                    let anmeldung_entries = if html_handler.peek().is_some() {
+                        <table class="tbcoursestatus rw-table rw-all">
                             <tbody>
-                                <tr>_
+                                <tr>
                                     <td class="tbhead" colspan="100%">
                                         "Anmeldung zu Modulen und Veranstaltungen"
-                                    </td>_
-                                </tr>_
-                                <tr>_
+                                    </td>
+                                </tr>
+                                <tr>
                                     let anmeldung_entries = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
                                                     <td class="tbdata" colspan="4">
                                                         "Keine Module oder Veranstaltungen zur Anmeldung gefunden"
-                                                    </td>_
-                                                </tr>_
+                                                    </td>
+                                                </tr>
                                             </tbody>
-                                        </table>_
+                                        </table>
                                     } => () else {
-                                                    <td class="tbsubhead">_
-                                                        <!--"OyACS3xJTkWGHAVncWgagM4cYhq_aivzGyGMi9Ycvhc"-->_
-                                                    </td>_
                                                     <td class="tbsubhead">
-                                                        "\n\n\t\t\t\t\t\tVeranstaltung"
-                                                        <br></br>
-                                                        "\n\t\t\t\t\t\tDozenten\n\t\t\t\t\t\t\t\t\t\t\t\t\t"
-                                                        <br></br>
-                                                        "Zeitraum\n\t\t\t\t\t\t\t\t\t\t\t\t"
-                                                        <br></br>
-                                                        "Anmeldegruppe\n\t\t\t\t\t\t"
-                                                        <br></br>
-                                                        "Standort\n\t\t\t\t\t"
-                                                    </td>_
+                                                    </td>
                                                     <td class="tbsubhead">
-                                                        "\n\t\t\t\t\t\t\t\t\t\t\t\tAnmeld. bis\n\t\t\t\t\t\t\t\t\t\t"
+                                                        "Veranstaltung"
                                                         <br></br>
-                                                        "\n\t\t\t\t\tMax.Teiln.|Anm.\n\t\t\t   "
-                                                    </td>_
-                                                    <td class="tbsubhead">_
-                                                    </td>_
-                                                </tr>_
+                                                        "Dozenten"
+                                                        <br></br>
+                                                        "Zeitraum"
+                                                        <br></br>
+                                                        "Anmeldegruppe"
+                                                        <br></br>
+                                                        "Standort"
+                                                    </td>
+                                                    <td class="tbsubhead">
+                                                        "Anmeld. bis"
+                                                        <br></br>
+                                                        "Max.Teiln.|Anm."
+                                                    </td>
+                                                    <td class="tbsubhead">
+                                                    </td>
+                                                </tr>
                                                 let anmeldung_entries = while html_handler.peek().is_some() {
-                                                    let module = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() == "logo column" {
-                                                        <tr>_
-                                                            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                                                            <td class="tbsubhead">_
-                                                                <!--"5IqHfue5CE0Heo5nzO7DJGi3oBaXZc5Ldk_iJ-M2h-0"-->_
-                                                            </td>_
-                                                            <!--"Oed-0ppULuj5oPWBUECe-K3BAgMKxIzcX4-pZZuvMjU"-->_
-                                                            <td class="tbsubhead dl-inner">_
+                                                    let module = if html_handler.peek().is_some() && html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                        <tr>
+                                                            <td class="tbsubhead">
+                                                            </td>
+                                                            <td class="tbsubhead dl-inner">
                                                                 <p>
                                                                     <strong>
                                                                         <a href=module_url>
@@ -223,37 +213,35 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                             </span>
                                                                         </a>
                                                                     </strong>
-                                                                </p>_
+                                                                </p>
                                                                 <p>
                                                                     lecturer
-                                                                </p>_
-                                                            </td>_
+                                                                </p>
+                                                            </td>
                                                             <td class="tbsubhead">
-                                                                date
+                                                                let date = if html_handler.peek().unwrap().value().is_text() {
+                                                                    date
+                                                                } => date;
                                                                 <br></br>
-                                                                limit_and_size
-                                                            </td>_
-                                                            <td class="tbsubhead rw-qbf">_
+                                                                let limit_and_size = if html_handler.peek().is_some() {
+                                                                    limit_and_size
+                                                                } => limit_and_size;
+                                                            </td>
+                                                            <td class="tbsubhead rw-qbf">
                                                                 let registration_button_link = if html_handler.peek().is_some() {
                                                                     let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
                                                                         <a href=registration_button_link class="img noFloat register">
                                                                             "Anmelden"
-                                                                        </a>_
+                                                                        </a>
                                                                     } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
                                                                             "Abmelden"
-                                                                        </a>_
+                                                                        </a>
                                                                     } => RegistrationState::Registered { unregister_link: registration_button_link };
                                                                 } => registered.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
-                                                            </td>_
-                                                            <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                                            <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
-                                                            <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                                                            <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
-                                                            <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
-                                                            <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
-                                                        </tr>_
+                                                            </td>
+                                                        </tr>
                                                     } => {
                                                         let module_url = MODULEDETAILS_REGEX.replace(&module_url, "");
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
@@ -262,50 +250,37 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             id: module_id.trim().to_owned(),
                                                             name: module_name,
                                                             lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
-                                                            date: date.trim().to_owned(),
-                                                            limit_and_size: limit_and_size.trim().to_owned(),
+                                                            date,
+                                                            limit_and_size: limit_and_size.unwrap_or_default().trim().to_owned(), // TODO FIXME
                                                             registration_button_link: registration_button_link.either_into(),
                                                         };
                                                         module
                                                     };
-                                                    let courses = while html_handler.peek().is_some() && html_handler.peek().unwrap().children().nth(1).unwrap().value().as_comment().unwrap().to_string() != "logo column" {
-                                                        let exam = if !html_handler.peek().unwrap().children().nth(5).unwrap().value().is_comment() {
-                                                            <tr>_
-                                                                <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                                                <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
-                                                                <td class="tbdata">_
-                                                                    <!--"r60FpxPoqFJu64MiLDBXezdJpTET0vVgi2dvCZ0TUI8"-->_
-                                                                </td>_
+                                                    let courses = while html_handler.peek().is_some() && !html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
+                                                        let exam = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {
+                                                            <tr>
+                                                                <td class="tbdata">
+                                                                </td>
                                                                 <td class="tbdata">
                                                                     exam_name
                                                                     let exam_type = if html_handler.peek().is_some() {
                                                                         <br></br>
                                                                         exam_type
                                                                     } => exam_type;
-                                                                </td>_
-                                                                <td class="tbdata">_
-                                                                </td>_
-                                                                <td class="tbdata">_
-                                                                </td>_
-                                                                <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                                                                <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
-                                                                <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
-                                                                <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
-                                                            </tr>_
+                                                                </td>
+                                                                <td class="tbdata">
+                                                                </td>
+                                                                <td class="tbdata">
+                                                                </td>
+                                                            </tr>
                                                         } => AnmeldungExam { name: exam_name.trim().to_owned(), typ: exam_type };
-                                                        <tr>_
-                                                            <!--"o10-cLtyMRZ7GTG_AsgU91-xv5MS_W-LjurxsulBAKI"-->_
-                                                            <!--"-SsWn7gBGa5GC1Ds7oXC-dHS2kBuF2yJjZzwt6ieu_E"-->_
-                                                            <!--"EfR5cxw_o8B_kd0pjKiSGEdMGoTwEUFKD7nwyOK5Qhc"-->_
-                                                            <!--"I1qHM7Q-rAMXujuYDjTzmkkUzH0c2zK1Z43rc_xoiIY"-->_
-                                                            <!--"1SjHxH8_QziRK63W2_1gyP4qaAMQP4Wc0Bap0cE8px8"-->_
-                                                            <!--"cKueW5TXNZALIFusa3P6ggsr9upFINMVVycC2TDTMY4"-->_
-                                                            <td class="tbdata">_
+                                                        <tr>
+                                                            <td class="tbdata">
                                                                 let gefaehrdung_schwangere = if html_handler.peek().is_some() {
-                                                                    <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>_
+                                                                    <img src="../../gfx/_default/icons/eventIcon.gif" title="Gefährdungspotential für Schwangere"></img>
                                                                 } => ();
-                                                            </td>_
-                                                            <td class="tbdata dl-inner">_
+                                                            </td>
+                                                            <td class="tbdata dl-inner">
                                                                 <p>
                                                                     <strong>
                                                                         <a href=course_url name="eventLink">
@@ -315,57 +290,60 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                             </span>
                                                                         </a>
                                                                     </strong>
-                                                                </p>_
+                                                                </p>
                                                                 <p>
                                                                     let lecturers = if html_handler.peek().is_some() && !RE.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
                                                                             lecturers
-                                                                        </p>_
+                                                                        </p>
                                                                         <p>
                                                                     } => lecturers;
                                                                     let begin_and_end = if html_handler.peek().is_some() {
                                                                             begin_and_end
-                                                                        </p>_
+                                                                        </p>
                                                                         <p>
                                                                     } => begin_and_end;
                                                                     let location_or_additional_info = if html_handler.peek().is_some() {
                                                                             let location_or_additional_info = html_handler.next_any_child();
-                                                                        </p>_
+                                                                        </p>
                                                                     } => match location_or_additional_info.value() {
-                                                                        scraper::Node::Text(text) => text.trim().to_owned(),
-                                                                        scraper::Node::Element(_element) => ElementRef::wrap(location_or_additional_info).unwrap().html(),
+                                                                        MyNode::Text(text) => text.trim().to_owned(),
+                                                                        MyNode::Element(_element) => MyElementRef::wrap(location_or_additional_info).unwrap().html(),
                                                                         _ => panic!(),
                                                                     } else {
-                                                                        </p>_
+                                                                        </p>
                                                                     } => ();
                                                                 let location = if html_handler.peek().is_some() {
                                                                     <p>
                                                                         let location = if html_handler.peek().is_some() {
                                                                             location
                                                                         } => location;
-                                                                    </p>_
+                                                                    </p>
                                                                 } => location;
-                                                            </td>_
+                                                            </td>
                                                             <td class="tbdata">
-                                                                registration_until
+                                                                let registration_until = if html_handler.peek().unwrap().value().is_text() {
+                                                                    registration_until
+                                                                } => registration_until;
                                                                 <br></br>
-                                                                limit_and_size
-                                                            </td>_
-                                                            <td class="tbdata rw-qbf">_
+                                                                let limit_and_size = if html_handler.peek().is_some() {
+                                                                    limit_and_size
+                                                                } => limit_and_size;
+                                                            </td>
+                                                            <td class="tbdata rw-qbf">
                                                                 let registration_button_link = if html_handler.peek().is_some() {
                                                                     let registration_button_link = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFLoat register" {
                                                                         <a href=registration_button_link class="img noFLoat register">
                                                                             "Anmelden"
-                                                                        </a>_
+                                                                        </a>
                                                                     } => RegistrationState::NotRegistered { register_link: registration_button_link } else {
                                                                         <a href=registration_button_link class="img img_arrowLeftRed noFLoat unregister">
-                                                                            " Abmelden"
-                                                                        </a>_
+                                                                            "Abmelden"
+                                                                        </a>
                                                                     } => RegistrationState::Registered { unregister_link: registration_button_link };
                                                                 } => registration_button_link.either_into::<RegistrationState>() else {
                                                                 } => RegistrationState::Unknown;
-                                                            </td>_
-                                                            <!--"ybVEa17xGUste1jxqx8VN9yhVuTCZICjBaDfIp7y728"-->_
-                                                        </tr>_
+                                                            </td>
+                                                        </tr>
                                                     } => {
                                                         let course_url = COURSEDETAILS_REGEX.replace(&course_url, "");
                                                         let course_url = course_url.split_once(",-A").unwrap().0;
@@ -376,8 +354,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             name: course_name.trim().to_owned(),
                                                             lecturers,
                                                             begin_and_end,
-                                                            registration_until: registration_until.trim().to_owned(),
-                                                            limit_and_size: limit_and_size.trim().to_owned(),
+                                                            registration_until: registration_until,
+                                                            limit_and_size,
                                                             registration_button_link: registration_button_link.either_into(),
                                                             location_or_additional_info: location_or_additional_info.left(),
                                                             location: location.flatten(),
@@ -386,13 +364,12 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                     };
                                                 } => AnmeldungEntry { module, courses };
                                             </tbody>
-                                        </table>_
+                                        </table>
                                     } => anmeldung_entries;
                     } => anmeldung_entries.right().unwrap_or_default();
-                    <!--"fS28-ufck45gusNkaJA-yHsPF7qDLp0dqCxzpxz56og"-->_
-                </div>_
-            </div>_
-        </div>_
+                </div>
+            </div>
+        </div>
     };
     let _html_handler = footer(html_handler, id, 311);
     Ok(AnmeldungResponse {

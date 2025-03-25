@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use html_handler::parse_document;
 use log::info;
 use regex::Regex;
 use reqwest::header::HeaderValue;
@@ -56,6 +57,6 @@ pub async fn login(client: &MyClient, login_request: &LoginRequest) -> Result<Lo
     response.headers_mut().remove("vary");
     assert_eq!(response.headers().into_iter().collect::<Vec<_>>(), []);
     let content = response.text().await?;
-    let _document = Html::parse_document(&content);
+    let document = parse_document(&content);
     Ok(LoginResponse { id: id.parse().unwrap(), cookie_cnsc })
 }

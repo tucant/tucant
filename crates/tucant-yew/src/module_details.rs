@@ -185,7 +185,9 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
 
                         <div>{ format!("Startsemester: {}", module.start_semester) }</div>
 
-                        <div>{ format!("Display in timetable: {}", module.display_in_timetable) }</div>
+                        if let Some(display_in_timetable) = &module.display_in_timetable {
+                            <div>{ format!("Display in timetable: {}", display_in_timetable) }</div>
+                        }
 
                         <div>{ format!("Dauer: {}", module.duration) }</div>
 

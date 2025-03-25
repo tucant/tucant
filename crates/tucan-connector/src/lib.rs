@@ -1,10 +1,11 @@
-use std::time::Duration;
+use std::{sync::LazyLock, time::Duration};
 
 use coursedetails::index::course_details;
 use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
+use regex::Regex;
 use registration::index::anmeldung;
 use reqwest::header;
 use tokio::{sync::Semaphore, time::sleep};
@@ -21,6 +22,8 @@ pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
 pub mod vv;
+
+static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
 
 type MyClient = reqwest::Client;
 

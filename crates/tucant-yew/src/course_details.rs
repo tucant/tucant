@@ -120,10 +120,10 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                                 <tr>
                                     <td>{&anmeldefrist.zulassungstyp}</td>
                                     <td>{&anmeldefrist.block_type}</td>
-                                    <td>{&anmeldefrist.start}</td>
-                                    <td>{&anmeldefrist.ende_anmeldung}</td>
-                                    <td>{&anmeldefrist.ende_abmeldung}</td>
-                                    <td>{&anmeldefrist.ende_hoerer}</td>
+                                    <td>{anmeldefrist.start.clone().unwrap_or_default()}</td>
+                                    <td>{&anmeldefrist.ende_anmeldung.clone().unwrap_or_default()}</td>
+                                    <td>{&anmeldefrist.ende_abmeldung.clone().unwrap_or_default()}</td>
+                                    <td>{&anmeldefrist.ende_hoerer.clone().unwrap_or_default()}</td>
                                 </tr>
                             }
                         }).collect::<Html>()
@@ -178,7 +178,9 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
 
                     <div>{ format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default()) }</div>
 
-                    <div>{ format!("Anzeige im Stundenplan: {}", course.anzeige_im_stundenplan) }</div>
+                    if let Some(anzeige_im_stundenplan) = &course.anzeige_im_stundenplan {
+                        <div>{ format!("Anzeige im Stundenplan: {}", anzeige_im_stundenplan) }</div>
+                    }
 
                     <div>{ format!("Kurslevel: {}", course.courselevel) }</div>
 

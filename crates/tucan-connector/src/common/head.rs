@@ -11,23 +11,21 @@ use html_handler::{InElement, InRoot, Root};
 #[must_use]
 pub fn html_head_2<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
-        <!--"TpH4lBnEvBoB3gHo7u9UYwu2X7fAAlmIE2tkBMpvsak"-->_
-        <!--"IcATzFs-AhJLlgCbtH_f4J_riUKWfS8yoLLT9ozdTlA"-->_
         <script type="text/javascript">
-        </script>_
+        </script>
         <title>
             "Technische Universität Darmstadt"
-        </title>_
-        <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>_
-        <meta http-equiv="cache-control" content="no-cache"></meta>_
-        <meta http-equiv="expires" content="-1"></meta>_
-        <meta http-equiv="pragma" content="no-cache"></meta>_
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>_
-        <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>_
-        <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>_
-        <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>_
-        <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>_
-        <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>_
+        </title>
+        <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9"></meta>
+        <meta http-equiv="cache-control" content="no-cache"></meta>
+        <meta http-equiv="expires" content="-1"></meta>
+        <meta http-equiv="pragma" content="no-cache"></meta>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+        <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0"></meta>
+        <link href="/css/_default/dl.startpage.css" rel="stylesheet" type="text/css"></link>
+        <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>
+        <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>
     };
     html_handler
 }
@@ -38,46 +36,34 @@ pub fn html_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'
     html_extractor::html! {
         <title>
             "Technische Universität Darmstadt"
-        </title>_
-        <!--"iPRTdQsauRZVOSpz0PmEl_ubhHccJRCaNU_bI6seaq0"-->_
-        <!--"muh4fptckC_Ch7T74xLI7ivPp07sWskCVg2gy3woY28"-->_
-        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>_
-        <meta http-equiv="cache-control" content="no-cache"></meta>_
-        <meta http-equiv="expires" content="-1"></meta>_
-        <meta http-equiv="pragma" content="no-cache"></meta>_
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>_
-        <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>_
-        <meta name="referrer" content="origin"></meta>_
-        <meta name="keywords" content="Datenlotsen,Datenlotsen Informationssysteme GmbH,CampusNet,Campus Management"></meta>_
-        <!--"PVD_IUFslfLcokMkhhqUJ2XUD8f4-KrQiSrt7qeobqU"-->_
-        <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>_
+        </title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+        <meta http-equiv="cache-control" content="no-cache"></meta>
+        <meta http-equiv="expires" content="-1"></meta>
+        <meta http-equiv="pragma" content="no-cache"></meta>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"></meta>
+        <meta http-equiv="Content-Script-Type" content="text/javascript"></meta>
+        <meta name="referrer" content="origin"></meta>
+        <meta name="keywords" content="Datenlotsen,Datenlotsen Informationssysteme GmbH,CampusNet,Campus Management"></meta>
+        <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>
         <script src="/js/jquery-3.6.0.min.js" type="text/javascript">
-        </script>_
+        </script>
         <script src="/js/checkDate.js" type="text/javascript">
-        </script>_
+        </script>
         <script src="/js/edittext.js" type="text/javascript">
-        </script>_
+        </script>
         <script src="/js/skripts.js" type="text/javascript">
-        </script>_
+        </script>
         <script src="/js/x.js" type="text/javascript">
-        </script>_
-        <!--"-cBtAUCsH5L1QCSAXhrWUyjqREZ-qAM6anBuGb0jpis"-->_
-        <link id="defLayout" href="/css/_default/def_layout.css" rel="stylesheet" type="text/css" media="screen"></link>_
-        <link id="defMenu" href="/css/_default/def_menu.css" rel="stylesheet" type="text/css" media="screen"></link>_
+        </script>
+        <link id="defLayout" href="/css/_default/def_layout.css" rel="stylesheet" type="text/css" media="screen"></link>
+        <link id="defMenu" href="/css/_default/def_menu.css" rel="stylesheet" type="text/css" media="screen"></link>
         <link id="defStyles" href="/css/_default/def_styles.css" rel="stylesheet" type="text/css"></link>
-        <!--"8ohjoL_DKlESc2buIQIqpMDCPv88imAStNDyjxAd2yY"-->_
-        <link id="pagePrint" href="/css/_default/def_print.css" rel="stylesheet" type="text/css" media="print"></link>_
-        <!--"tsCXIkgf7AHAT6f4SFdkYqr9qZ1RI2wPidDGXYoyb-M"-->_
-        <link id="pageStyle" href="/css/styles.css" rel="stylesheet" type="text/css"></link>_
-        <!--"8ohjoL_DKlESc2buIQIqpMDCPv88imAStNDyjxAd2yY"-->_
-        <link id="pageColors" href="/css/colors.css" rel="stylesheet" type="text/css" media="screen"></link>_
-        <!--"Bv96RRDpRJh6Mov4faCHyudSmfHE7HfK_7sTjNxd1wY"-->_
-        <!--"dIBUikqFO2tcT78tvc7dv_E180BxF6LhwTNb4gpSuQM"-->_
-        <!--"fD1xdYETGI2QrMhnwhN-3obm-UIuRhNpzKv2Qbz53Ac"-->_
-        <!--"NIHfntnP_QYxOqBt0vrT3UIfpe7DzzHCCiQbHrVLrXE"-->_
-        <!--"x2WUiOGjWA_UDiUqZA9skrh_uNAWGlcC-R__ip9vYyg"-->_
+        <link id="pagePrint" href="/css/_default/def_print.css" rel="stylesheet" type="text/css" media="print"></link>
+        <link id="pageStyle" href="/css/styles.css" rel="stylesheet" type="text/css"></link>
+        <link id="pageColors" href="/css/colors.css" rel="stylesheet" type="text/css" media="screen"></link>
         let _unused = if html_handler.peek().is_none() {
-            </head>_
+            </head>
             let _unused = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("timeout", scraper::CaseSensitivity::CaseSensitive) {
                 <body class="timeout">
                     extern {
@@ -110,86 +96,84 @@ type InElement5<'a, T> = InElement<'a, InElement<'a, InElement<'a, InElement<'a,
 #[must_use]
 pub fn page_start<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>) -> InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
     html_extractor::html! {
-        <div id="Cn-system-desc">_
-        </div>_
+        <div id="Cn-system-desc">
+        </div>
         <script type="text/javascript">
-            "JSQjAjNPl1OG1yTeHLoTj6JEhV74LO2CassBGq9DPqo"
-        </script>_
+            "6f1xplmmi__XaOfSpuTqnwmS3e7kjEtoMr5AEG10Alc"
+        </script>
         <div id="acc_pageDescription" class="hidden">
             <a name="keypadDescription" class="hidden">
                 "keypadDescription"
             </a>
-            "TvMjLPj4FsS4YUVJn3nppMhuQYkGn5LXsWX2f54ngjY"
+            "NogHj2hSzz5S9t6TCuQ_Uo6OSW4RuUVHr-y75R1O8lU"
             <a href="#mainNavi" accesskey="1">
                 "1 Hauptmenü"
-            </a>_
+            </a>
             <a href="#mainContent" accesskey="2">
                 "2 Inhalt"
-            </a>_
+            </a>
             <a href="#keypadDescription" accesskey="3">
                 "3 Zurück zu dieser Anleitung"
-            </a>_
-        </div>_
-        <div id="pageContainer" class="pageElementTop">_
-            <div class="invAnchor">_
+            </a>
+        </div>
+        <div id="pageContainer" class="pageElementTop">
+            <div class="invAnchor">
                 <a name="top" class="invAnchor">
-                </a>_
-            </div>_
-            <div id="pageHead" class="pageElementTop">_
-                <div id="pageHeadTop" class="pageElementTop">_
+                </a>
+            </div>
+            <div id="pageHead" class="pageElementTop">
+                <div id="pageHeadTop" class="pageElementTop">
                     <a href=_imprint_url class="img img_arrowImprint pageElementLeft">
                         "Impressum"
-                    </a>_
+                    </a>
                     <a href=_contact_url class="img img_arrowContact pageElementLeft">
                         "Kontakt"
-                    </a>_
+                    </a>
                     <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft">
                         "Drucken"
-                    </a>_
+                    </a>
                     <a href="#bottom" class="img img_arrowDown pageElementRight">
                         "Zum Ende der Seite"
-                    </a>_
-                </div>_
-                <div id="pageHeadCenter" class="pageElementTop">_
-                    <div id="pageHeadLeft" class="pageElementLeft">_
-                        <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">_
-                            <img id="imagePageHeadLeft" src="/gfx/tuda/logo.gif" alt="Logo Technische Universität Darmstadt"></img>_
-                        </a>_
-                    </div>_
-                    <div id="pageHeadRight" class="pageElementRight">_
-                    </div>_
-                </div>_
-                <div id="pageHeadBottom_1" class="pageElementTop">_
-                    <div id="pageHeadControlsLeft" class="pageElementLeft">_
+                    </a>
+                </div>
+                <div id="pageHeadCenter" class="pageElementTop">
+                    <div id="pageHeadLeft" class="pageElementLeft">
+                        <a href="http://www.tu-darmstadt.de" title="extern http://www.tu-darmstadt.de">
+                            <img id="imagePageHeadLeft" src="/gfx/tuda/logo.gif" alt="Logo Technische Universität Darmstadt"></img>
+                        </a>
+                    </div>
+                    <div id="pageHeadRight" class="pageElementRight">
+                    </div>
+                </div>
+                <div id="pageHeadBottom_1" class="pageElementTop">
+                    <div id="pageHeadControlsLeft" class="pageElementLeft">
                         <a class="img pageHeadLink" href="#" id="extraNav_link1" target="_blank">
                             "Homepage"
-                        </a>_
+                        </a>
                         <a class="img pageHeadLink" href="#" id="extraNav_link2" target="_blank">
                             "standardLink undef"
-                        </a>_
-                    </div>_
-                    <div id="pageHeadControlsRight" class="pageElementRight">_
+                        </a>
+                    </div>
+                    <div id="pageHeadControlsRight" class="pageElementRight">
                         <a class="img" href="#" id="extraNav_link3" target="_blank">
                             "standardLink undef"
-                        </a>_
+                        </a>
                         <a class="img" href="#" id="extraNav_link4" target="_blank">
                             "standardLink undef"
-                        </a>_
-                        <a class="img" href="#" id="extraNav_link5" target="_blank">_
-                        </a>_
-                    </div>_
-                </div>_
-                <div id="pageHeadBottom_2" class="pageElementTop">_
-                    <div id="pageHeadBottom_2sub_1" class="pageElementTop">_
-                    </div>_
-                    <div id="pageHeadBottom_2sub_2" class="pageElementTop">_
-                    </div>_
-                </div>_
-                <div id="pageTopNavi" class="pageElementTop">_
-                    <!--"ZBEoCwQSg8mkwKf8K01M4zjrmKcSX5rBMXmyr7o7Z5M"-->_
-                    <a name="mainNavi" class="hidden">_
-                    </a>_
-                    <!--"IC0hcooG1AR9WlCqc3It73C95p-H60EQzIprCbZQSoM"-->_
+                        </a>
+                        <a class="img" href="#" id="extraNav_link5" target="_blank">
+                        </a>
+                    </div>
+                </div>
+                <div id="pageHeadBottom_2" class="pageElementTop">
+                    <div id="pageHeadBottom_2sub_1" class="pageElementTop">
+                    </div>
+                    <div id="pageHeadBottom_2sub_2" class="pageElementTop">
+                    </div>
+                </div>
+                <div id="pageTopNavi" class="pageElementTop">
+                    <a name="mainNavi" class="hidden">
+                    </a>
                     <ul class="nav depth_1 linkItemContainer">
     };
     html_handler
@@ -519,54 +503,51 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
                             "Hilfe"
                         </a>
                     </li>
-                </ul>_
-            </div>_
-            <div id="pageHeadBottom_3" class="pageElementTop">_
-                <div id="pageHeadSwitchLang" class="pageElementRight">_
+                </ul>
+            </div>
+            <div id="pageHeadBottom_3" class="pageElementTop">
+                <div id="pageHeadSwitchLang" class="pageElementRight">
                     <a href=_wef class="img img_LangEnglish pageElementLeft" title="English">
                         "English"
-                    </a>_
+                    </a>
                     <a href={|v: String| {
                         static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&ARGUMENTS=-N\\d+,-N001$").unwrap());
                         assert!(REGEX.is_match(&v), "{v}");
                     }} id="logoutButton" class="img img_arrowLogout logout" title="Abmelden">
                         "Abmelden"
-                    </a>_
-                </div>_
-            </div>_
-        </div>_
-        <div id="pageContentContainer" class="pageElementTop">_
-            <!--"kZd6CmmgS-q3ZJsbi_QXJmy4uIhbl0Pt05ddWHx3vcs"-->_
-            <div id="pageLeft" class="pageElementLeft">_
-                <!--"bhHbWVACRyHBE-MoOAfeLy6SUZbsJmGyCbT94cYBHHI"-->_
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div id="pageContentContainer" class="pageElementTop">
+            <div id="pageLeft" class="pageElementLeft">
                 <div id="pageLeftTop">
-                </div>_
-            </div>_
-            <div id="pageContent" class="pageElementLeft">_
+                </div>
+            </div>
+            <div id="pageContent" class="pageElementLeft">
                 <div id="featureBanner">
-                </div>_
-                <a name="mainContent" class="hidden">_
-                </a>_
-                <!--"up1YWWVw7bFlV69jn_wheiJ5MLDQ9_KdGWCUZ5gGeuw"-->_
-                <div id="pageContentTop" class="pageElementTop">_
-                    <div id="loginData">_
+                </div>
+                <a name="mainContent" class="hidden">
+                </a>
+                <div id="pageContentTop" class="pageElementTop">
+                    <div id="loginData">
                         <span class="loginDataLoggedAs">
                             <b>
                                 "Sie sind angemeldet als"
                                 <span class="colon">
                                     ":"
-                                </span>_
+                                </span>
                             </b>
-                        </span>_
+                        </span>
                         <span class="loginDataName" id="loginDataName">
                             <b>
                                 "Name"
                                 <span class="colon">
                                     ":"
-                                </span>_
+                                </span>
                             </b>
                             _full_name
-                        </span>_
+                        </span>
                         <span class="loginDataDate">
                             <b>
                                 "am"
@@ -575,7 +556,7 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
                                 </span>
                             </b>
                             _date
-                        </span>_
+                        </span>
                         <span class="loginDataTime">
                             <b>
                                 "um"
@@ -584,12 +565,10 @@ pub fn logged_in_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, R
                                 </span>
                             </b>
                             _time
-                        </span>_
-                    </div>_
-                </div>_
+                        </span>
+                    </div>
+                </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
-                    <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
-                    <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     };
     (html_handler, LoggedInHead { messages_url, vorlesungsverzeichnis_url, vv, antraege_url, meine_bewerbung_url })
 }
@@ -631,67 +610,61 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
                             "Hilfe"
                         </a>
                     </li>
-                </ul>_
-            </div>_
-            <div id="pageHeadBottom_3" class="pageElementTop">_
-                <div id="pageHeadSwitchLang" class="pageElementRight">_
+                </ul>
+            </div>
+            <div id="pageHeadBottom_3" class="pageElementTop">
+                <div id="pageHeadSwitchLang" class="pageElementRight">
                     <a href="/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N000000000000002,-N002" class="img img_LangEnglish pageElementLeft" title="English">
                         "English"
-                    </a>_
-                </div>_
-                <form name="cn_loginForm" id="cn_loginForm" action="/scripts/mgrqispi.dll" method="post" class="pageElementRight">_
-                    <div>_
-                        <fieldset id="fieldSet_login">_
+                    </a>
+                </div>
+                <form name="cn_loginForm" id="cn_loginForm" action="/scripts/mgrqispi.dll" method="post" class="pageElementRight">
+                    <div>
+                        <fieldset id="fieldSet_login">
                             <legend>
                                 "Anmeldung"
-                            </legend>_
-                            <div class="formRow nb">_
-                                <div class="inputFieldLabel">_
+                            </legend>
+                            <div class="formRow nb">
+                                <div class="inputFieldLabel">
                                     <label for="field_user">
                                         "TU-ID:"
-                                    </label>_
-                                    <input type="text" id="field_user" name="usrname" size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>_
-                                </div>_
-                                <div class="inputFieldLabel">_
+                                    </label>
+                                    <input type="text" id="field_user" name="usrname" size="15" class="login" maxlength="255" accesskey="n" autofocus=""></input>
+                                </div>
+                                <div class="inputFieldLabel">
                                     <label for="field_pass">
                                         "Passwort:"
-                                    </label>_
-                                    <input type="password" id="field_pass" name="pass" value="" size="15" class="login" maxlength="255" accesskey="p"></input>_
-                                </div>_
-                            </div>_
-                        </fieldset>_
-                        <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" value="Anmelden" onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>_
-                        <!--"416mrhkWvn83zXJacA3wOy6ZHvHNbAfVlkkb_PMmkEg"-->_
-                        <input name="APPNAME" type="hidden" value="CampusNet"></input>_
-                        <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>_
-                        <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>_
-                        <input name="clino" type="hidden" value="000000000000001"></input>_
-                        <input name="menuno" type="hidden" value={|v| assert_eq!(v, format!("{menuno:0>6}"))}></input>_
-                        <input name="menu_type" type="hidden" value="classic"></input>_
-                        <input name="browser" type="hidden" value=""></input>_
-                        <input name="platform" type="hidden" value=""></input>_
-                    </div>_
-                </form>_
-            </div>_
-        </div>_
-        <div id="pageContentContainer" class="pageElementTop">_
-            <!--"kZd6CmmgS-q3ZJsbi_QXJmy4uIhbl0Pt05ddWHx3vcs"-->_
-            <div id="pageLeft" class="pageElementLeft">_
-                <!--"bhHbWVACRyHBE-MoOAfeLy6SUZbsJmGyCbT94cYBHHI"-->_
+                                    </label>
+                                    <input type="password" id="field_pass" name="pass" value="" size="15" class="login" maxlength="255" accesskey="p"></input>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <input class="img img_arrowSubmit login_btn" type="submit" id="logIn_btn" value="Anmelden" onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','000000000000001');"></input>
+                        <input name="APPNAME" type="hidden" value="CampusNet"></input>
+                        <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>
+                        <input name="ARGUMENTS" type="hidden" value="clino,usrname,pass,menuno,menu_type,browser,platform"></input>
+                        <input name="clino" type="hidden" value="000000000000001"></input>
+                        <input name="menuno" type="hidden" value={|v| assert_eq!(v, format!("{menuno:0>6}"))}></input>
+                        <input name="menu_type" type="hidden" value="classic"></input>
+                        <input name="browser" type="hidden" value=""></input>
+                        <input name="platform" type="hidden" value=""></input>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="pageContentContainer" class="pageElementTop">
+            <div id="pageLeft" class="pageElementLeft">
                 <div id="pageLeftTop">
-                </div>_
-            </div>_
-            <div id="pageContent" class="pageElementLeft">_
+                </div>
+            </div>
+            <div id="pageContent" class="pageElementLeft">
                 <div id="featureBanner">
-                </div>_
-                <a name="mainContent" class="hidden">_
-                </a>_
-                <!--"up1YWWVw7bFlV69jn_wheiJ5MLDQ9_KdGWCUZ5gGeuw"-->_
-                <div id="pageContentTop" class="pageElementTop">_
-                </div>_
+                </div>
+                <a name="mainContent" class="hidden">
+                </a>
+                <div id="pageContentTop" class="pageElementTop">
+                </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
-                    <!--"WVhEeLYGpyH0bXmFoofJIUMWxdfkLBe5aUmIdmUfqiM"-->_
-                    <!--"CKcFISCJjRLw3ii080mSqvobpMA3Z3OFHiqwurhqzcI"-->_
     }
     html_handler
 }
@@ -699,41 +672,38 @@ pub fn logged_out_head<'a>(html_handler: InElement<'a, InElement<'a, InRoot<'a, 
 #[must_use]
 pub fn footer<'a>(html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>, _id: u64, _subid: u64) -> InRoot<'a, Root<'a>> {
     html_extractor::html! {
-                    <div id="pageFoot" class="pageElementTop">_
-                        <div id="pageFootControls" class="pageElementTop">_
-                            <div id="pageFootControlsLeft">_
+                    <div id="pageFoot" class="pageElementTop">
+                        <div id="pageFootControls" class="pageElementTop">
+                            <div id="pageFootControlsLeft">
                                 <a href={|v: String| {
                                     static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Aimprint$").unwrap());
                                     assert!(REGEX.is_match(&v), "{v}");
                                 }} class="img img_arrowImprint pageElementLeft" id="pageFootControl_imp">
                                     "Impressum"
-                                </a>_
+                                </a>
                                 <a href={|v: String| {
                                     static REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N\\d+,-N\\d+,-Acontact$").unwrap());
                                     assert!(REGEX.is_match(&v), "{v}");
                                 }} class="img img_arrowContact pageElementLeft" id="pageFootControl_con">
                                     "Kontakt"
-                                </a>_
+                                </a>
                                 <a href="#" onclick="window.print();" class="img img_arrowPrint pageElementLeft" id="pageFootControl_pri">
                                     "Drucken"
-                                </a>_
-                            </div>_
-                            <div id="pageFootControlsRight">_
-                                <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">_
-                                </a>_
-                            </div>_
-                        </div>_
-                    </div>_
-                </div>_
-                <div id="IEdiv">_
+                                </a>
+                            </div>
+                            <div id="pageFootControlsRight">
+                                <a href="#top" class="img img_arrowUp pageElementRight" id="pageFootControl_up">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!--"sA0YIGyByIKeA31YLo4xBo8n4XODq22IfHyrzzrnD-w"-->_
-                <!--"em2y7JxbjqWZd3r7SQA-YKIJZsneemykpZ46ZXTq7Tw"-->_
-                <!--"VwiU8OlvNnMu2C0d8thjT7A2X3pYuFyyhLNGOJ87AXc"-->_
-                <div class="invAnchor">_
-                    <a name="bottom" class="invAnchor">_
-                    </a>_
-                </div>_
+                <div id="IEdiv">
+                </div>
+                <div class="invAnchor">
+                    <a name="bottom" class="invAnchor">
+                    </a>
+                </div>
             </body>
         </html>
     };
