@@ -98,6 +98,12 @@ impl TucanConnector {
     }
 }
 
+pub struct RevalidationStrategy {
+    /// u64::MAX is equivalent to use cache if exists
+    max_age: u64,
+    invalidate_dependents: bool,
+}
+
 impl Tucan for TucanConnector {
     async fn login(&self, request: tucant_types::LoginRequest) -> Result<tucant_types::LoginResponse, TucanError> {
         login(&self.client, &request).await
