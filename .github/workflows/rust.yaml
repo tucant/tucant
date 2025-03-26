@@ -13,9 +13,8 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: nixbuild/nix-quick-install-action@v30
-    - uses: nix-community/cache-nix-action@v6
+    - uses: cachix/install-nix-action@v31
       with:
-        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v4
     - run: nix build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
