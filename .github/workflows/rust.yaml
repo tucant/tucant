@@ -15,5 +15,7 @@ jobs:
     steps:
     - uses: nixbuild/nix-quick-install-action@v30
     - uses: nix-community/cache-nix-action@v6
+      with:
+        primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
     - uses: actions/checkout@v4
     - run: nix build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
