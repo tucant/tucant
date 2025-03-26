@@ -32,7 +32,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
                 <head>
                     use html_head(html_handler)?;
                     <style type="text/css">
-                        "6ibPd8W1svwn5hvUuxbqcrnt1KCX53PwyrHrnJlfoyc"
+                        "BjqYdi4ObBJkUieEorQw0YdKnpcMGF20vHHYGe3AyYE"
                     </style>
                 </head>
                 <body class="registration_auditor">
