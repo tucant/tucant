@@ -6,12 +6,12 @@ use tucant_types::{
 
 use crate::{TucanConnector, authenticated_retryable_get, common::head::html_head};
 
-pub async fn mymodules(tucan: &TucanConnector, login_response: &LoginResponse) -> Result<(), TucanError> {
-    let key = format!("unparsed_mymodules");
+pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse) -> Result<(), TucanError> {
+    let key = format!("unparsed_mycourse");
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
-        let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,", login_response.id);
+        let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,", login_response.id);
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
         tucan.database.put(&key, &content).await;
         content

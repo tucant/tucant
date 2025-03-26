@@ -23,6 +23,7 @@ pub mod externalpages;
 pub mod login;
 pub mod mlsstart;
 pub mod moduledetails;
+pub mod mycourses;
 pub mod mymodules;
 pub mod registration;
 pub mod root;
@@ -218,7 +219,7 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, login::login, mlsstart::start_page::after_login, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
+    use crate::{Tucan, TucanConnector, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
 
     #[tokio::test]
     pub async fn test_login() {
@@ -359,7 +360,6 @@ mod authenticated_tests {
     }
 
     #[tokio::test]
-    #[ignore = "not implemented yet"]
     pub async fn test_mymodules() {
         dotenvy::dotenv().unwrap();
         let tucan = TucanConnector::new_test().await.unwrap();
@@ -373,5 +373,21 @@ mod authenticated_tests {
         .await
         .unwrap();
         mymodules(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_mycourses() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        mycourses(&tucan, &login_response).await.unwrap();
     }
 }
