@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: nixbuild/nix-quick-install-action@v30
+    - uses: nix-community/cache-nix-action@v6
     - uses: actions/checkout@v4
     - run: nix build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
