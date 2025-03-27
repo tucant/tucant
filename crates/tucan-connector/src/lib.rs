@@ -142,18 +142,9 @@ mod tests {
     pub fn broken_html() {
         let broken_html = r#"
         <html>
-        <head>
-        </head>
         <body>
         <div class="tb nb"><a href="https://www.humanw.tu-darmstadt.de/fachbereich/index.de.jspZur Homepage des Fachbereichs.</a><br></div>
-
-
-
-
-	<!--  2. Detailinfos for Auditregistration and CourseCatalogue -->
 	<div class="tb" >
-  		<div class="tbhead">Veranstaltungen / Module</div>
-        </div>
     </div>
     </body>
     </html>"#;
