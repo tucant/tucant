@@ -22,4 +22,7 @@
         "2024",
         "--"
     ],
+    "files.watcherExclude": {
+        "**/target": true
+    },
 }

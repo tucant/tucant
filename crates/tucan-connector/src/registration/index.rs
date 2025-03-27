@@ -236,7 +236,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                     } => {
                                                         let module_url = MODULEDETAILS_REGEX.replace(&module_url, "");
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
-                                                        let module = AnmeldungModule {
+                                                        
+                                                        AnmeldungModule {
                                                             url: ModuleDetailsRequest::parse(module_url),
                                                             id: module_id,
                                                             name: module_name,
@@ -244,8 +245,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                             date,
                                                             limit_and_size,
                                                             registration_button_link: registration_button_link.either_into(),
-                                                        };
-                                                        module
+                                                        }
                                                     };
                                                     let courses = while html_handler.peek().is_some() && !html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {
                                                         let exam = if html_handler.peek().unwrap().children().nth(1).unwrap().value().as_element().unwrap().attr("class").unwrap() == "tbdata" {

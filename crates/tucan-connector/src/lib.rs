@@ -19,10 +19,16 @@ use vv::vv;
 
 pub mod common;
 pub mod coursedetails;
+pub mod courseresults;
+pub mod examresults;
 pub mod externalpages;
 pub mod login;
 pub mod mlsstart;
 pub mod moduledetails;
+pub mod mycourses;
+pub mod mydocuments;
+pub mod myexams;
+pub mod mymodules;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
@@ -217,7 +223,7 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, login::login, mlsstart::start_page::after_login, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
+    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
 
     #[tokio::test]
     pub async fn test_login() {
@@ -355,5 +361,101 @@ mod authenticated_tests {
             println!("{action}");
             let _result = tucan.vv(Some(&login_response), action).await.unwrap();
         }
+    }
+
+    #[tokio::test]
+    pub async fn test_mymodules() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        mymodules(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_mycourses() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        mycourses(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_myexams() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        myexams(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_courseresults() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        courseresults(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_examresults() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        examresults(&tucan, &login_response).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn test_mydocuments() {
+        dotenvy::dotenv().unwrap();
+        let tucan = TucanConnector::new_test().await.unwrap();
+        let login_response = login(
+            &tucan.client,
+            &LoginRequest {
+                username: std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing"),
+                password: std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing"),
+            },
+        )
+        .await
+        .unwrap();
+        mydocuments(&tucan, &login_response).await.unwrap();
     }
 }
