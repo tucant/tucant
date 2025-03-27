@@ -26,6 +26,7 @@ pub mod login;
 pub mod mlsstart;
 pub mod moduledetails;
 pub mod mycourses;
+pub mod mydocuments;
 pub mod myexams;
 pub mod mymodules;
 pub mod registration;
