@@ -1,13 +1,12 @@
 use html_handler::{Root, parse_document};
 use tucant_types::{
     LoginResponse, TucanError,
-    vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 
 use crate::{TucanConnector, authenticated_retryable_get, common::head::html_head};
 
 pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse) -> Result<(), TucanError> {
-    let key = format!("unparsed_examresults");
+    let key = "unparsed_examresults".to_string();
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {

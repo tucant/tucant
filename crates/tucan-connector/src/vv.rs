@@ -14,7 +14,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 #[expect(clippy::too_many_lines)]
 pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
     // TODO check if actions are unique for logged in sessions and maybe not cache then at all?
-    let key = format!("unparsed_vv.{}", action);
+    let key = format!("unparsed_vv.{action}");
     let content = if let Some(content) = tucan.database.get(&key).await {
         content
     } else {
@@ -152,7 +152,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.map(|l| l.id).unwrap_or(1), 326);
+    let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326);
     html_handler.end_document();
     Ok(Vorlesungsverzeichnis {
         entries: entries.unwrap_or_default(),
