@@ -133,7 +133,6 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use html_handler::{MyElementRef, parse_document};
     use tucant_types::{LoginRequest, LoginResponse, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
     use crate::{Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root, startpage_dispatch::one::startpage_dispatch_1};
