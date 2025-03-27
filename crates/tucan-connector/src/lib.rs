@@ -133,9 +133,33 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
+    use html_handler::parse_document;
     use tucant_types::{LoginRequest, LoginResponse, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
     use crate::{Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root, startpage_dispatch::one::startpage_dispatch_1};
+
+    #[test]
+    pub fn broken_html() {
+        let broken_html = r#"
+        <html>
+        <head>
+        </head>
+        <body>
+        <div class="tb nb"><a href="https://www.humanw.tu-darmstadt.de/fachbereich/index.de.jspZur Homepage des Fachbereichs.</a><br></div>
+
+
+
+
+	<!--  2. Detailinfos for Auditregistration and CourseCatalogue -->
+	<div class="tb" >
+  		<div class="tbhead">Veranstaltungen / Module</div>
+        </div>
+    </div>
+    </body>
+    </html>"#;
+        let document = parse_document(broken_html);
+        panic!("{:?}", document);
+    }
 
     #[tokio::test]
     pub async fn login_incorrect() {
