@@ -21,12 +21,12 @@ pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse) -
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
     html_extractor::html! {
-            <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
-                <head>
-                    use html_head(html_handler)?;
-                    <style type="text/css">
-                        "lbOQfuwTSH1NQfB9sjkC-_xOS0UGzyKBoNNl8bXs_FE"
-                    </style>
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+            <head>
+                use html_head(html_handler)?;
+                <style type="text/css">
+                    "lbOQfuwTSH1NQfB9sjkC-_xOS0UGzyKBoNNl8bXs_FE"
+                </style>
     }
     Ok(())
 }

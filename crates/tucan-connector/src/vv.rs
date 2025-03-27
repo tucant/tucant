@@ -74,23 +74,16 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
-                        let fail = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
-                            <a href=_fail xss="is-here"></a></div>
-                            <a href=_fail xss="is-here"></a></div>
-                            <a href=_fail xss="is-here"></a></div>
+                        extern {
+                            if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                // XSS
+                                return Err(TucanError::UniverseExploded);
+                            }
+                        }
+                        <div class="tb">
                             <div class="tbhead">
                                 "Veranstaltungen / Module"
                             </div>
-                            <div>
-                            <div>
-                            <div>
-                            <div>
-                        } => () else {
-                            <div class="tb">
-                            <div class="tbhead">
-                                "Veranstaltungen / Module"
-                            </div>
-                        } => ();
                             let veranstaltungen_or_module = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
                                 <table class="nb eventTable">
                                     <tbody>
