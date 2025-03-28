@@ -1,7 +1,5 @@
 use html_handler::{Root, parse_document};
-use tucant_types::{
-    LoginResponse, TucanError,
-};
+use tucant_types::{LoginResponse, TucanError};
 
 use crate::{TucanConnector, authenticated_retryable_get, common::head::html_head};
 

@@ -236,7 +236,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                     } => {
                                                         let module_url = MODULEDETAILS_REGEX.replace(&module_url, "");
                                                         let module_url = module_url.split_once(",-A").unwrap().0;
-                                                        
+
                                                         AnmeldungModule {
                                                             url: ModuleDetailsRequest::parse(module_url),
                                                             id: module_id,
