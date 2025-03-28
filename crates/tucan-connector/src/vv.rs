@@ -22,12 +22,11 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
         let content = if let Some(login_response) = login_response { authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await? } else { retryable_get(tucan, &url).await? };
         content
     };
-    let document = parse_document(&content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
-
     let result = {
+        let document = parse_document(&content);
+        let html_handler = Root::new(document.root());
+        let html_handler = html_handler.document_start();
+        let html_handler = html_handler.doctype();
         html_extractor::html! {
                 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                     <head>
