@@ -10,7 +10,6 @@ pub async fn myexams(tucan: &TucanConnector, login_response: &LoginResponse) -> 
     } else {
         let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,", login_response.id);
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -25,5 +24,6 @@ pub async fn myexams(tucan: &TucanConnector, login_response: &LoginResponse) -> 
                     "hmeJiQNKqsf_yG6nmm6z0mPHuZmNXFlumNxu52NwnGY"
                 </style>
     }
+    tucan.database.put(&key, &content).await;
     Ok(())
 }

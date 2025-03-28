@@ -10,7 +10,6 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
     } else {
         let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,", login_response.id);
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -25,5 +24,6 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
                     "hmeJiQNKqsf_yG6nmm6z0mPHuZmNXFlumNxu52NwnGY"
                 </style>
     }
+    tucan.database.put(&key, &content).await;
     Ok(())
 }
