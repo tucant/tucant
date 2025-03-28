@@ -7,7 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 html-extractor = { path = "../html-extractor" }
-scraper = { version = "0.23", features = ["deterministic"] }
+scraper = { version = "0.23", features = ["deterministic", "atomic"] }
 data-encoding = "2"
 sha3 = "0.10"
 ego-tree = "0.10"
