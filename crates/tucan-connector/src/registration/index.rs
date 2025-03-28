@@ -41,7 +41,6 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
         content
     } else {
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -363,6 +362,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
         </div>
     };
     let _html_handler = footer(html_handler, id, 311);
+    tucan.database.put(&key, &content).await;
     Ok(AnmeldungResponse {
         path: path.into_iter().flatten().collect(),
         submenus: submenus.unwrap_or_default(),

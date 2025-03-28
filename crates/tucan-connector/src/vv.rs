@@ -20,7 +20,6 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     } else {
         let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={action}");
         let content = if let Some(login_response) = login_response { authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await? } else { retryable_get(tucan, &url).await? };
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -154,6 +153,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     }
     let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326);
     html_handler.end_document();
+    tucan.database.put(&key, &content).await;
     Ok(Vorlesungsverzeichnis {
         entries: entries.unwrap_or_default(),
         path,

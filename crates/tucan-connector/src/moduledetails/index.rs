@@ -37,7 +37,6 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
         content
     } else {
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -638,6 +637,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     } else {
         assert_eq!(dozenten.split("; ").sorted().collect::<Vec<_>>(), modulverantwortliche.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
     }
+    tucan.database.put(&key, &content).await;
     Ok(ModuleDetailsResponse {
         module_id,
         registered: registered.is_some(),

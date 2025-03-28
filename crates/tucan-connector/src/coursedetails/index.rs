@@ -40,7 +40,6 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
         content
     } else {
         let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-        tucan.database.put(&key, &content).await;
         content
     };
     let document = parse_document(&content);
@@ -573,6 +572,7 @@ pub(crate) async fn course_details(tucan: &TucanConnector, login_response: &Logi
 
     let (teilnehmer_range, teilnehmer_min, teilnehmer_max) = teilnehmer.either_into();
     assert_eq!(teilnehmer_range, format!("{teilnehmer_min} | {teilnehmer_max}"));
+    tucan.database.put(&key, &content).await;
     Ok(CourseDetailsResponse {
         name: name.either_into(),
         material_and_messages_url,
