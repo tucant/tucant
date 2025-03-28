@@ -1,7 +1,5 @@
 use html_handler::{Root, parse_document};
-use tucant_types::{
-    LoginResponse, TucanError,
-};
+use tucant_types::{LoginResponse, TucanError};
 
 use crate::{TucanConnector, authenticated_retryable_get, common::head::html_head};
 
@@ -24,7 +22,7 @@ pub async fn mydocuments(tucan: &TucanConnector, login_response: &LoginResponse)
             <head>
                 use html_head(html_handler)?;
                 <style type="text/css">
-                    "lbOQfuwTSH1NQfB9sjkC-_xOS0UGzyKBoNNl8bXs_FE"
+                    "41e2ICphaTflKCWDw0-D6hVTXfSC73XVLf9m4PcOeCc"
                 </style>
     }
     Ok(())
