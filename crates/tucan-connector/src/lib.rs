@@ -7,8 +7,8 @@ use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
 use regex::Regex;
-use registration::index::anmeldung;
 use reqwest::header;
+use time::OffsetDateTime;
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
     Tucan, TucanError,
@@ -45,17 +45,17 @@ pub struct TucanConnector {
 }
 
 /// `TUCaN` being unreliable is a feature
-pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<String, TucanError> {
+pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(String, OffsetDateTime), TucanError> {
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
         let result = connector.client.get(url).send().await?.error_for_status()?.text().await;
         drop(permit);
         if i == 4 {
-            return Ok(result?);
+            return Ok((result?, OffsetDateTime::now_utc()));
         }
         match result {
-            Ok(value) => return Ok(value),
+            Ok(value) => return Ok((value, OffsetDateTime::now_utc())),
             Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
@@ -63,17 +63,17 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<Stri
     }
 }
 
-pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, cookie_cnsc: &str) -> Result<String, TucanError> {
+pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, cookie_cnsc: &str) -> Result<(String, OffsetDateTime), TucanError> {
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
         let result = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?.text().await;
         drop(permit);
         if i == 4 {
-            return Ok(result?);
+            return Ok((result?, OffsetDateTime::now_utc()));
         }
         match result {
-            Ok(value) => return Ok(value),
+            Ok(value) => return Ok((value, OffsetDateTime::now_utc())),
             Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
@@ -98,11 +98,11 @@ impl TucanConnector {
     }
 }
 
-pub enum RevalidationStrategy {
-    /// Return failure if not in cache or if age too large.
-    OnlyCache { max_age: u64 },
+pub struct RevalidationStrategy {
     /// Try the cache first if age is not larger than `max_age`, then try network. max_age = 0 means never try cache and max_age = u64::MAX means always try cache first.
-    CacheFirst { max_age: u64, invalidate_dependents: bool },
+    max_age: u64,
+    /// If invalidate_dependents is None, then network is never used but failure is returned.
+    invalidate_dependents: Option<bool>,
 }
 
 impl Tucan for TucanConnector {
@@ -230,7 +230,7 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
+    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, startpage_dispatch::after_login::redirect_after_login};
 
     #[tokio::test]
     pub async fn test_login() {

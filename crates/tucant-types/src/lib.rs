@@ -66,8 +66,8 @@ pub enum TucanError {
     AccessDenied,
     #[error("Invalid credentials for TUCaN")]
     InvalidCredentials,
-    #[error("Universe exploded. Please reinstall TUCaN")]
-    UniverseExploded,
+    #[error("Not cached")]
+    NotCached,
 }
 
 impl IntoResponse for TucanError {

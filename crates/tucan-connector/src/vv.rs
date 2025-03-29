@@ -74,12 +74,6 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
                             </ul>
                         } => entries;
                         let veranstaltungen_or_module = if html_handler.peek().is_some() {
-                            extern {
-                                if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
-                                    // XSS
-                                    return Err(TucanError::UniverseExploded);
-                                }
-                            }
                             <div class="tb">
                                 <div class="tbhead">
                                     "Veranstaltungen / Module"
