@@ -95,7 +95,7 @@ impl Database {
         }
     }
 
-    pub async fn remove_many<V: serde::de::DeserializeOwned>(&self, keys: Vec<&str>) {
+    pub async fn remove_many(&self, keys: Vec<String>) {
         #[cfg(target_arch = "wasm32")]
         {
             stream::iter(keys)
@@ -116,11 +116,6 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            #[derive(sqlx::FromRow)]
-            struct Value {
-                value: String,
-            }
-
             sqlx::query("DELETE FROM store WHERE WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
         }
     }
