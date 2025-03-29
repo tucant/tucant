@@ -84,6 +84,12 @@ pub struct RevalidationStrategy {
     pub invalidate_dependents: Option<bool>,
 }
 
+impl Default for RevalidationStrategy {
+    fn default() -> Self {
+        Self { max_age: 0, invalidate_dependents: Some(false) }
+    }
+}
+
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 

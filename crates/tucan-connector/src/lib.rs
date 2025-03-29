@@ -135,7 +135,7 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use tucant_types::{LoginRequest, LoginResponse, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
+    use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
     use crate::{Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root, startpage_dispatch::one::startpage_dispatch_1};
 
@@ -172,43 +172,43 @@ mod tests {
     #[tokio::test]
     pub async fn module_keine_leistungskombination() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, ModuleDetailsRequest::parse("-N383723477792938")).await.unwrap();
+        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N383723477792938")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn module_leistungskombination() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, ModuleDetailsRequest::parse("-N374884241922478")).await.unwrap();
+        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N374884241922478")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_1() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3")).await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_2() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3")).await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_3() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3")).await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_4() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
     }
 
     #[tokio::test]
     pub async fn course_5() {
         let tucan = TucanConnector::new_test().await.unwrap();
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
+        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
     }
 }
 
@@ -222,7 +222,7 @@ mod authenticated_tests {
 
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
-    use tucant_types::{LoginRequest, registration::AnmeldungRequest};
+    use tucant_types::{LoginRequest, RevalidationStrategy, registration::AnmeldungRequest};
 
     use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
 
@@ -288,7 +288,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let _response = anmeldung(&tucan, &login_response, AnmeldungRequest::default()).await.unwrap();
+        let _response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::default()).await.unwrap();
     }
 
     #[tokio::test]
@@ -305,7 +305,7 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let _result = tucan.vv(Some(&login_response), action).await.unwrap();
+        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
     }
 
     #[tokio::test]
@@ -322,8 +322,8 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(Some(&login_response), action).await.unwrap().entries[0].clone();
-        let _result = tucan.vv(Some(&login_response), result).await.unwrap();
+        let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone();
+        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
     }
 
     #[tokio::test]
@@ -340,8 +340,8 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(Some(&login_response), action).await.unwrap().entries[4].clone();
-        let _result = tucan.vv(Some(&login_response), result).await.unwrap();
+        let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone();
+        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
     }
 
     #[tokio::test]
@@ -358,9 +358,9 @@ mod authenticated_tests {
         .await
         .unwrap();
         let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        for action in tucan.vv(Some(&login_response), action).await.unwrap().entries {
+        for action in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
             println!("{action}");
-            let _result = tucan.vv(Some(&login_response), action).await.unwrap();
+            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
         }
     }
 

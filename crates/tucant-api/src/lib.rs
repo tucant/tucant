@@ -1,8 +1,8 @@
-use axum::{Json, debug_handler, extract::Path, http::StatusCode, response::IntoResponse};
+use axum::{Json, extract::Path, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung};
 use tucant_types::{
-    LoginRequest, LoginResponse, TucanError,
+    LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
@@ -104,7 +104,8 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = anmeldung(&tucan, &login_response, AnmeldungRequest::parse(&registration)).await?;
+    // todo get revalidation strategy from client
+    let response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::parse(&registration)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -127,7 +128,8 @@ pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>)
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.module_details(&login_response, ModuleDetailsRequest::parse(&module)).await?;
+    // todo get revalidation strategy from client
+    let response = tucan.module_details(&login_response, RevalidationStrategy::default(), ModuleDetailsRequest::parse(&module)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -150,7 +152,8 @@ pub async fn course_details_endpoint(jar: CookieJar, Path(course): Path<String>)
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.course_details(&login_response, CourseDetailsRequest::parse(&course)).await?;
+    // todo get revalidation strategy from client
+    let response = tucan.course_details(&login_response, RevalidationStrategy::default(), CourseDetailsRequest::parse(&course)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
