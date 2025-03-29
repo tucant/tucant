@@ -77,6 +77,13 @@ impl IntoResponse for TucanError {
     }
 }
 
+pub struct RevalidationStrategy {
+    /// Try the cache first if age is not larger than `max_age`, then try network. max_age = 0 means never try cache and max_age = u64::MAX means always try cache first.
+    pub max_age: u64,
+    /// If invalidate_dependents is None, then network is never used but failure is returned.
+    pub invalidate_dependents: Option<bool>,
+}
+
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
@@ -86,11 +93,11 @@ pub trait Tucan {
 
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 
-    fn anmeldung(&self, login_response: LoginResponse, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
+    fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
-    fn module_details(&self, login_response: &LoginResponse, request: ModuleDetailsRequest) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
+    fn module_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: ModuleDetailsRequest) -> impl std::future::Future<Output = Result<ModuleDetailsResponse, TucanError>>;
 
-    fn course_details(&self, login_response: &LoginResponse, request: CourseDetailsRequest) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
+    fn course_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
 
-    fn vv(&self, login_response: Option<&LoginResponse>, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
+    fn vv(&self, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 }

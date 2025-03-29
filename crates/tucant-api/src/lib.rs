@@ -1,6 +1,6 @@
 use axum::{Json, debug_handler, extract::Path, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::{CookieJar, cookie::Cookie};
-use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung_cached};
+use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung};
 use tucant_types::{
     LoginRequest, LoginResponse, TucanError,
     coursedetails::CourseDetailsRequest,
@@ -104,7 +104,7 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = anmeldung_cached(&tucan, &login_response, AnmeldungRequest::parse(&registration)).await?;
+    let response = anmeldung(&tucan, &login_response, AnmeldungRequest::parse(&registration)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
