@@ -1,3 +1,5 @@
+use futures_util::{StreamExt, stream};
+
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -90,6 +92,36 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1").bind(key).bind(serde_json::to_string(&value).unwrap()).execute(&self.database).await.unwrap();
+        }
+    }
+
+    pub async fn remove_many<V: serde::de::DeserializeOwned>(&self, keys: Vec<&str>) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            stream::iter(keys)
+                .for_each(async |key| {
+                    let key = js_sys::wasm_bindgen::JsValue::from(key);
+                    self.database
+                        .transaction(&["store"])
+                        .run(|t| async move {
+                            let store = t.object_store("store")?;
+                            store.delete(&key).await.unwrap();
+
+                            Ok(())
+                        })
+                        .await
+                        .unwrap();
+                })
+                .await;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            #[derive(sqlx::FromRow)]
+            struct Value {
+                value: String,
+            }
+
+            sqlx::query("DELETE FROM store WHERE WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
         }
     }
 }

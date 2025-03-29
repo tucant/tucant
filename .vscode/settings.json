@@ -22,6 +22,11 @@
         "2024",
         "--"
     ],
+    "rust-analyzer.check.targets": [
+        "wasm32-unknown-unknown",
+        "x86_64-unknown-linux-gnu"
+    ],
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "files.watcherExclude": {
         "**/target": true
     },

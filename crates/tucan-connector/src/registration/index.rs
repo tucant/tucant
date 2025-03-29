@@ -35,10 +35,11 @@ pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResp
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = anmeldung_internal(login_response, &content)?;
     if invalidate_dependents {
-        // TODO
+        let modules = result.entries.iter().flat_map(|e| &e.module).map(|e| &e.url);
+        let courses = result.entries.iter().flat_map(|e| &e.courses).map(|e| &e.1.url);
     }
 
-    tucan.database.put(&key, &content).await;
+    tucan.database.put(&key, (content, date)).await;
 
     Ok(result)
 }
