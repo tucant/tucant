@@ -98,10 +98,11 @@ impl TucanConnector {
     }
 }
 
-pub struct RevalidationStrategy {
-    /// u64::MAX is equivalent to use cache if exists
-    max_age: u64,
-    invalidate_dependents: bool,
+pub enum RevalidationStrategy {
+    /// Return failure if not in cache or if age too large.
+    OnlyCache { max_age: u64 },
+    /// Try the cache first if age is not larger than `max_age`, then try network. max_age = 0 means never try cache and max_age = u64::MAX means always try cache first.
+    CacheFirst { max_age: u64, invalidate_dependents: bool },
 }
 
 impl Tucan for TucanConnector {
