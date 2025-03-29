@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: cachix/install-nix-action@v31
-      with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v4
     - name: Extract version
       id: version

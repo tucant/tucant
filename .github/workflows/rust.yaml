@@ -13,8 +13,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: cachix/install-nix-action@v31
-      with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v25
+    - uses: cachix/cachix-action@v14
+      with:
+        name: tucant
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - run: nix build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
