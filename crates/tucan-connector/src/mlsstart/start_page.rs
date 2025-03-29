@@ -12,7 +12,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 #[expect(clippy::too_many_lines)]
 pub async fn after_login(connector: &TucanConnector, login_response: &LoginResponse) -> Result<MlsStart, TucanError> {
     let id = login_response.id;
-    let content = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
+    let (content, ..) = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id), &login_response.cookie_cnsc).await?;
     //let content = tokio::fs::read_to_string("input.html").await?;
     let document = parse_document(&content);
     //tokio::fs::write("input.html", document.html()).await;

@@ -9,7 +9,7 @@ pub async fn mymodules(tucan: &TucanConnector, login_response: &LoginResponse) -
         content
     } else {
         let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,", login_response.id);
-        let content = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+        let (content, ..) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
         content
     };
     let document = parse_document(&content);
