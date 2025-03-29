@@ -1,21 +1,21 @@
 use itertools::Itertools;
 use scraper::CaseSensitivity::CaseSensitive;
 use time::{Duration, OffsetDateTime};
-use tucant_types::InstructorImage;
 use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
+use tucant_types::{InstructorImage, RevalidationStrategy};
 use tucant_types::{
     LoginResponse,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
 };
 
-use crate::{RevalidationStrategy, TucanConnector, authenticated_retryable_get};
+use crate::{TucanConnector, authenticated_retryable_get};
 use crate::{
     TucanError,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn module_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
+pub async fn module_details(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
     let key = format!("unparsed_module_details.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;

@@ -1,5 +1,5 @@
 use crate::{
-    RevalidationStrategy, TucanConnector, authenticated_retryable_get,
+    TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
@@ -9,11 +9,11 @@ use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    InstructorImage, LoginResponse, TucanError,
+    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
 };
 
-pub async fn course_details_cached(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
+pub async fn course_details(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("unparsed_course_details.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;

@@ -7,11 +7,12 @@ use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
 use regex::Regex;
+use registration::index::anmeldung;
 use reqwest::header;
 use time::OffsetDateTime;
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
-    Tucan, TucanError,
+    RevalidationStrategy, Tucan, TucanError,
     mlsstart::MlsStart,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
@@ -98,13 +99,6 @@ impl TucanConnector {
     }
 }
 
-pub struct RevalidationStrategy {
-    /// Try the cache first if age is not larger than `max_age`, then try network. max_age = 0 means never try cache and max_age = u64::MAX means always try cache first.
-    max_age: u64,
-    /// If invalidate_dependents is None, then network is never used but failure is returned.
-    invalidate_dependents: Option<bool>,
-}
-
 impl Tucan for TucanConnector {
     async fn login(&self, request: tucant_types::LoginRequest) -> Result<tucant_types::LoginResponse, TucanError> {
         login(&self.client, &request).await
@@ -122,20 +116,20 @@ impl Tucan for TucanConnector {
         logout(self, request).await
     }
 
-    async fn anmeldung(&self, login_response: tucant_types::LoginResponse, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
-        anmeldung(self, &login_response, request).await
+    async fn anmeldung(&self, login_response: tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
+        anmeldung(self, &login_response, revalidation_strategy, request).await
     }
 
-    async fn module_details(&self, login_response: &tucant_types::LoginResponse, request: tucant_types::moduledetails::ModuleDetailsRequest) -> Result<tucant_types::moduledetails::ModuleDetailsResponse, TucanError> {
-        module_details(self, login_response, request).await
+    async fn module_details(&self, login_response: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::moduledetails::ModuleDetailsRequest) -> Result<tucant_types::moduledetails::ModuleDetailsResponse, TucanError> {
+        module_details(self, login_response, revalidation_strategy, request).await
     }
 
-    async fn course_details(&self, login_response: &tucant_types::LoginResponse, request: tucant_types::coursedetails::CourseDetailsRequest) -> Result<tucant_types::coursedetails::CourseDetailsResponse, TucanError> {
-        course_details(self, login_response, request).await
+    async fn course_details(&self, login_response: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::coursedetails::CourseDetailsRequest) -> Result<tucant_types::coursedetails::CourseDetailsResponse, TucanError> {
+        course_details(self, login_response, revalidation_strategy, request).await
     }
 
-    async fn vv(&self, login_response: Option<&tucant_types::LoginResponse>, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
-        vv(self, login_response, action).await
+    async fn vv(&self, login_response: Option<&tucant_types::LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+        vv(self, login_response, revalidation_strategy, action).await
     }
 }
 
@@ -230,7 +224,7 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, startpage_dispatch::after_login::redirect_after_login};
+    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
 
     #[tokio::test]
     pub async fn test_login() {

@@ -1,13 +1,13 @@
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, TucanError,
+    LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Veranstaltung, Vorlesungsverzeichnis},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, RevalidationStrategy, TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{ACTION_REGEX, footer, html_head, logged_in_head, logged_out_head},
     retryable_get,
 };

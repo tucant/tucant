@@ -4,19 +4,19 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse,
+    LoginResponse, RevalidationStrategy,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungCourse, AnmeldungEntry, AnmeldungExam, AnmeldungModule, AnmeldungRequest, AnmeldungResponse, RegistrationState, Studiumsauswahl},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, RevalidationStrategy, TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
+pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("unparsed_anmeldung.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
