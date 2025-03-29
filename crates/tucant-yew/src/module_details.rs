@@ -1,4 +1,4 @@
-use tucant_types::{LoginResponse, Tucan, moduledetails::ModuleDetailsRequest};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, moduledetails::ModuleDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, HtmlResult, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
@@ -25,7 +25,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 let request = request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    let response = tucan.0.module_details(&current_session, request).await.unwrap();
+                    let response = tucan.0.module_details(&current_session, RevalidationStrategy::default(), request).await.unwrap();
                     data.set(Some(response));
                     loading.set(false);
                 })

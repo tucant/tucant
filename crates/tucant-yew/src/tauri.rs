@@ -1,6 +1,6 @@
 use serde_json::json;
 use tucant_types::{
-    LoginRequest, LoginResponse, Tucan, TucanError,
+    LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -37,7 +37,7 @@ impl Tucan for TauriTucan {
         .unwrap())
     }
 
-    async fn anmeldung(&self, login_response: LoginResponse, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
+    async fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
         Ok(serde_wasm_bindgen::from_value(
             invoke(
                 "tucant_registration",
@@ -52,7 +52,7 @@ impl Tucan for TauriTucan {
         .unwrap())
     }
 
-    async fn module_details(&self, login_response: &LoginResponse, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
+    async fn module_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: ModuleDetailsRequest) -> Result<ModuleDetailsResponse, TucanError> {
         Ok(serde_wasm_bindgen::from_value(
             invoke(
                 "tucant_module_details",
@@ -67,7 +67,7 @@ impl Tucan for TauriTucan {
         .unwrap())
     }
 
-    async fn course_details(&self, login_response: &LoginResponse, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
+    async fn course_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
         Ok(serde_wasm_bindgen::from_value(
             invoke(
                 "tucant_course_details",
@@ -90,7 +90,7 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn vv(&self, _login_response: Option<&LoginResponse>, _action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+    async fn vv(&self, _login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, _action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
         todo!()
     }
 

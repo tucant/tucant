@@ -1,7 +1,7 @@
 use std::ops::Deref as _;
 
 use tucant_types::{
-    LoginResponse, Tucan,
+    LoginResponse, RevalidationStrategy, Tucan,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
 };
 use wasm_bindgen_futures::spawn_local;
@@ -32,7 +32,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 let anmeldung_request = anmeldung_request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    match tucan.0.anmeldung(current_session, anmeldung_request).await {
+                    match tucan.0.anmeldung(current_session, RevalidationStrategy::default(), anmeldung_request).await {
                         Ok(response) => {
                             data.set(Ok(response));
                             loading.set(false);
