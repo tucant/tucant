@@ -213,23 +213,6 @@
           };
           doCheck = false;
         };
-
-        yew-fmt = craneNightlyLib.buildPackage {
-          pname = "yew-fmt";
-          src = pkgs.fetchFromGitHub {
-            owner = "mohe2015";
-            repo = "yew-fmt";
-            rev = "patch-1";
-            hash = "sha256-WECfuQ3mBzoRu8uzhf0v1mjT7N+iU+APWDj/u3H0FPU=";
-          };
-          doCheck = false;
-        };
-
-        craneYewFmtLib = craneNightlyLib.overrideScope (final: prev: {
-          mkCargoDerivation = args: prev.mkCargoDerivation ({
-            # RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # does not support edition 2024 use
-          } // args);
-        });
       in
       {
         checks = {
@@ -241,7 +224,7 @@
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           });
 
-          my-app-fmt = craneYewFmtLib.cargoFmt.override { rustfmt = rustfmt; } nativeArgs;
+          my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } nativeArgs;
         };
 
         packages.schema = schema;
@@ -253,7 +236,6 @@
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
         packages.rustfmt = rustfmt;
-        pkgs.yew-fmt = yew-fmt;
 
         apps.server = flake-utils.lib.mkApp {
           name = "server";
@@ -333,8 +315,6 @@
 
         devShells.default = pkgs.mkShell {
 
-          # RUSTFMT = "${yew-fmt}/bin/yew-fmt"; # does not support edition 2024 use
-
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.zlib}/lib''${LD_LIBRARY_PATH:+:}''${LD_LIBRARY_PATH}"
           '';
@@ -342,7 +322,6 @@
           packages = [
             pkgs.trunk
             rustfmt
-            # yew-fmt
             pkgs.bashInteractive
             pkgs.diffoscope
             pkgs.bacon
