@@ -19,9 +19,10 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> Result<AnmeldungResponse, TucanError> {
     let key = format!("unparsed_anmeldung.{}", request.inner());
 
+    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
-        if let Some((content, date)) = tucan.database.get::<(String, OffsetDateTime)>(&key).await {
-            if OffsetDateTime::now_utc() - date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
+        if let Some((content, date)) = &old_content_and_date {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
                 return anmeldung_internal(login_response, &content);
             }
         }
@@ -34,9 +35,10 @@ pub async fn anmeldung_cached(tucan: &TucanConnector, login_response: &LoginResp
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, request.inner());
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = anmeldung_internal(login_response, &content)?;
-    if invalidate_dependents {
-        let modules = result.entries.iter().flat_map(|e| &e.module).map(|e| &e.url);
-        let courses = result.entries.iter().flat_map(|e| &e.courses).map(|e| &e.1.url);
+    if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
+        // TODO invalidate cached ones?
+        let keys: Vec<String> = result.entries.iter().flat_map(|e| &e.module).map(|e| format!("unparsed_module_details.{}", e.url.inner())).chain(result.entries.iter().flat_map(|e| &e.courses).map(|e| format!("unparsed_course_details.{}", e.1.url.inner()))).collect();
+        tucan.database.remove_many(keys).await;
     }
 
     tucan.database.put(&key, (content, date)).await;
