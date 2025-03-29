@@ -25,4 +25,5 @@
     "files.watcherExclude": {
         "**/target": true
     },
+    "terminal.integrated.allowChords": false
 }

@@ -79,7 +79,7 @@ pub struct AnmeldungModule {
     pub lecturer: Option<String>,
     pub date: Option<String>,
     pub limit_and_size: Option<String>,
-    pub registration_button_link: RegistrationState,
+    pub registration_state: RegistrationState,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]

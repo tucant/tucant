@@ -219,7 +219,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                     } => limit_and_size;
                                                                 </td>
                                                                 <td class="tbsubhead rw-qbf">
-                                                                    let registration_button_link = if html_handler.peek().is_some() {
+                                                                    let registration_state = if html_handler.peek().is_some() {
                                                                         let registered = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "img noFloat register" {
                                                                             <a href=registration_button_link class="img noFloat register">
                                                                                 "Anmelden"
@@ -244,7 +244,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, a
                                                                 lecturer: if lecturer == "N.N." { None } else { Some(lecturer) },
                                                                 date,
                                                                 limit_and_size,
-                                                                registration_button_link: registration_button_link.either_into(),
+                                                                registration_state: registration_state.either_into(),
                                                             }
                                                         };
                                                         let courses = while html_handler.peek().is_some() && !html_handler.peek().unwrap().children().next().unwrap().value().as_element().unwrap().has_class("tbsubhead", scraper::CaseSensitivity::CaseSensitive) {

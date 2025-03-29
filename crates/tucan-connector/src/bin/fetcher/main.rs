@@ -7,7 +7,7 @@ use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::coursedetails::CourseDetailsRequest;
-use tucant_types::registration::AnmeldungRequest;
+use tucant_types::registration::{AnmeldungRequest, RegistrationState};
 use tucant_types::{LoginRequest, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
@@ -34,7 +34,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let fetcher = Arc::new(Fetcher::new());
 
-    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default()).await;
+    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default(), String::new()).await;
 
     //fetcher.anmeldung_file.flush().await?;
     //fetcher.module_file.flush().await?;
@@ -55,7 +55,7 @@ impl Fetcher {
     }
 
     #[expect(clippy::manual_async_fn)]
-    fn recursive_anmeldung<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, anmeldung_request: AnmeldungRequest) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+    fn recursive_anmeldung<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, anmeldung_request: AnmeldungRequest, path: String) -> impl Future<Output = ()> + Send + use<'a, 'b> {
         async move {
             //self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
             //self.anmeldung_file.write_all(b"\n").await?;
@@ -77,7 +77,7 @@ impl Fetcher {
                 .iter()
                 .map(|entry| {
                     async {
-                        self.clone().recursive_anmeldung(tucan, login_response, entry.1.clone()).await;
+                        self.clone().recursive_anmeldung(tucan, login_response, entry.1.clone(), path.clone() + " > " + &entry.0).await;
                     }
                     .boxed()
                 })
@@ -88,13 +88,20 @@ impl Fetcher {
                             //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
                             //self.module_file.write_all(b"\n").await.unwrap();
 
-                            let result = AssertUnwindSafe(async {
-                                let _module_details = tucan.module_details(login_response, module.url.clone()).await.unwrap();
-                            })
-                            .catch_unwind()
-                            .await;
-                            if let Err(err) = result {
-                                eprintln!("failed to fetch module {} with error {err:?}", module.url);
+                            if matches!(&module.registration_state, RegistrationState::Registered { unregister_link }) {
+                                println!("registered for {} at {}", module.name, path)
+                            }
+
+                            let result = AssertUnwindSafe(async { tucan.module_details(login_response, module.url.clone()).await.unwrap() }).catch_unwind().await;
+                            match result {
+                                Err(err) => {
+                                    eprintln!("failed to fetch module {} with error {err:?}", module.url);
+                                }
+                                Ok(module) => {
+                                    if module.registered {
+                                        //println!("registered for {} at {}", module.module_id, path)
+                                    }
+                                }
                             }
 
                             //println!("module counter: {}", self.module_counter.load(Ordering::Relaxed));

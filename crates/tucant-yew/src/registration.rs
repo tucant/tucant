@@ -115,7 +115,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
 
                                 {
                                     module.map(|module| {
-                                        match &module.registration_button_link {
+                                        match &module.registration_state {
                                             RegistrationState::Unknown => html! { },
                                             RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Modul abmelden"}</a> },
                                             RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>{"Zum Modul anmelden"}</a> },
