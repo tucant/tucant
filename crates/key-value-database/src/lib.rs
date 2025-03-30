@@ -14,8 +14,11 @@ impl Database {
             let factory = indexed_db::Factory::<std::io::Error>::get().unwrap();
 
             let database = factory
-                .open("database", 1, |evt| async move {
+                .open("database", 2, |evt| async move {
                     let db = evt.database();
+                    if evt.old_version() == 1 {
+                        db.delete_object_store("store")?;
+                    }
                     db.build_object_store("store").create()?;
                     Ok(())
                 })
@@ -32,6 +35,11 @@ impl Database {
             } else {
                 sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
             };
+            let version: u32 = sqlx::query_scalar("PRAGMA user_version").fetch_one(&database).await.unwrap();
+            if version != 2 {
+                sqlx::query("DROP TABLE IF EXISTS store").execute(&database).await.unwrap();
+                sqlx::query("PRAGMA user_version = 2").execute(&database).await.unwrap();
+            }
             sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
             Self { database }
         }
