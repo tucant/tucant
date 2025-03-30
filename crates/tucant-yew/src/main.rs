@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, warn};
 use wasm_bindgen::prelude::wasm_bindgen;
 use yew::set_custom_panic_hook;
 
@@ -34,7 +34,7 @@ async fn main() {
 
     console_log::init().unwrap();
 
-    info!("main");
+    warn!("main");
 
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
