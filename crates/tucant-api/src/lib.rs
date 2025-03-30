@@ -1,4 +1,9 @@
-use axum::{Json, extract::Path, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{FromRequestParts, Path},
+    http::{StatusCode, request::Parts},
+    response::IntoResponse,
+};
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung};
 use tucant_types::{
@@ -86,6 +91,19 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
     Ok((StatusCode::OK, jar, Json(())).into_response())
 }
 
+pub struct RevalidationStrategyW(RevalidationStrategy);
+
+impl<S> FromRequestParts<S> for RevalidationStrategyW
+where
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, &'static str);
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        parts.headers.get("X-Revalidation-Strategy").map_or_else(|| Ok(Self(RevalidationStrategy::default())), |user_agent| Ok(Self(serde_json::from_str(user_agent.to_str().unwrap()).unwrap())))
+    }
+}
+
 #[utoipa::path(
     get,
     path = "/api/v1/registration/{registration}",
@@ -96,7 +114,7 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<String>) -> Result<impl IntoResponse, TucanError> {
+pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<String>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -104,8 +122,7 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    // todo get revalidation strategy from client
-    let response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::parse(&registration)).await?;
+    let response = anmeldung(&tucan, &login_response, revalidation_strategy.0, AnmeldungRequest::parse(&registration)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -120,7 +137,7 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>) -> Result<impl IntoResponse, TucanError> {
+pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -128,8 +145,7 @@ pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>)
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    // todo get revalidation strategy from client
-    let response = tucan.module_details(&login_response, RevalidationStrategy::default(), ModuleDetailsRequest::parse(&module)).await?;
+    let response = tucan.module_details(&login_response, revalidation_strategy.0, ModuleDetailsRequest::parse(&module)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
@@ -144,7 +160,7 @@ pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>)
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn course_details_endpoint(jar: CookieJar, Path(course): Path<String>) -> Result<impl IntoResponse, TucanError> {
+pub async fn course_details_endpoint(jar: CookieJar, Path(course): Path<String>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -152,8 +168,7 @@ pub async fn course_details_endpoint(jar: CookieJar, Path(course): Path<String>)
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    // todo get revalidation strategy from client
-    let response = tucan.course_details(&login_response, RevalidationStrategy::default(), CourseDetailsRequest::parse(&course)).await?;
+    let response = tucan.course_details(&login_response, revalidation_strategy.0, CourseDetailsRequest::parse(&course)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
