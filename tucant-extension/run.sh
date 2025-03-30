@@ -1,7 +1,7 @@
 #!/bin/sh
 
 cd ../crates/tucant-yew
-trunk build --features direct --dist ../../tucant-extension/dist --public-url /dist
+trunk build --features direct --dist ../../tucant-extension/dist --public-url /dist --release
 
 #ls -lh pkg/tucant_extension_bg.wasm
 

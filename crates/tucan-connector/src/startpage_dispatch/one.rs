@@ -2,7 +2,7 @@ use crate::{TucanConnector, TucanError, common::head::html_head_2, retryable_get
 use html_handler::{Root, parse_document};
 
 pub async fn startpage_dispatch_1(connector: &TucanConnector) -> Result<(), TucanError> {
-    let content = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001").await?;
+    let (content, ..) = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001").await?;
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();

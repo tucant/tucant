@@ -7,7 +7,7 @@ use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
 use tucan_connector::TucanConnector;
 use tucant_types::vv::ActionRequest;
-use tucant_types::{LoginRequest, Tucan};
+use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
@@ -61,7 +61,7 @@ impl Fetcher {
             //self.anmeldung_file.write_all(b"\n").await?;
 
             //println!("action {}", action);
-            let result = AssertUnwindSafe(async { tucan.vv(None, action.clone()).await.unwrap() }).catch_unwind().await;
+            let result = AssertUnwindSafe(async { tucan.vv(None, RevalidationStrategy::cache(), action.clone()).await.unwrap() }).catch_unwind().await;
             let anmeldung_response = match result {
                 Err(err) => {
                     eprintln!("failed to fetch vv {action} with error {err:?}");
@@ -84,7 +84,7 @@ impl Fetcher {
                 .chain(anmeldung_response.veranstaltungen_or_module.iter().map(|entry| {
                     async {
                         let result = AssertUnwindSafe(async {
-                            let _course_details = tucan.course_details(login_response, entry.coursedetails_url.clone()).await.unwrap();
+                            let _course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), entry.coursedetails_url.clone()).await.unwrap();
                         })
                         .catch_unwind()
                         .await;

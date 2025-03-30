@@ -1,3 +1,5 @@
+use futures_util::{StreamExt, stream};
+
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
@@ -12,8 +14,11 @@ impl Database {
             let factory = indexed_db::Factory::<std::io::Error>::get().unwrap();
 
             let database = factory
-                .open("database", 1, |evt| async move {
+                .open("database", 2, |evt| async move {
                     let db = evt.database();
+                    if evt.old_version() == 1 {
+                        db.delete_object_store("store")?;
+                    }
                     db.build_object_store("store").create()?;
                     Ok(())
                 })
@@ -30,6 +35,11 @@ impl Database {
             } else {
                 sqlx::SqlitePool::connect("sqlite://data.db?mode=rwc").await.unwrap()
             };
+            let version: u32 = sqlx::query_scalar("PRAGMA user_version").fetch_one(&database).await.unwrap();
+            if version != 2 {
+                sqlx::query("DROP TABLE IF EXISTS store").execute(&database).await.unwrap();
+                sqlx::query("PRAGMA user_version = 2").execute(&database).await.unwrap();
+            }
             sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
             Self { database }
         }
@@ -90,6 +100,33 @@ impl Database {
         #[cfg(not(target_arch = "wasm32"))]
         {
             sqlx::query("INSERT INTO store (key, value) VALUES (?1, ?2) ON CONFLICT (key) DO UPDATE SET value = ?2 WHERE key = ?1").bind(key).bind(serde_json::to_string(&value).unwrap()).execute(&self.database).await.unwrap();
+        }
+    }
+
+    pub async fn remove_many(&self, keys: Vec<String>) {
+        #[cfg(target_arch = "wasm32")]
+        {
+            self.database
+                .transaction(&["store"])
+                .rw()
+                .run(|t| async move {
+                    let store = t.object_store("store")?;
+
+                    stream::iter(keys)
+                        .for_each(async |key| {
+                            let key = js_sys::wasm_bindgen::JsValue::from(key);
+                            store.delete(&key).await.unwrap();
+                        })
+                        .await;
+
+                    Ok(())
+                })
+                .await
+                .unwrap();
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            sqlx::query("DELETE FROM store WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
         }
     }
 }
