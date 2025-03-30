@@ -30,7 +30,7 @@ utoipa = { git = "https://github.com/juhaku/utoipa.git" }
 axum-core = "0.5.0"
 tucant-types = { path = "../tucant-types" }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
-time = { version = "0.3.41", features = ["serde"] }
+time = { version = "0.3.41", features = ["serde", "wasm-bindgen"] }
 
 [features]
 authenticated_tests = []

@@ -9,7 +9,7 @@ use moduledetails::index::module_details;
 use regex::Regex;
 use registration::index::anmeldung;
 use reqwest::header;
-use time::OffsetDateTime;
+use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
     RevalidationStrategy, Tucan, TucanError,
@@ -50,13 +50,16 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(Str
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let result = connector.client.get(url).send().await?.error_for_status()?.text().await;
+        let response = connector.client.get(url).send().await?.error_for_status()?;
+        let date = &response.headers()["Date"];
+        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+        let result = response.text().await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, OffsetDateTime::now_utc()));
+            return Ok((result?, date));
         }
         match result {
-            Ok(value) => return Ok((value, OffsetDateTime::now_utc())),
+            Ok(value) => return Ok((value, date)),
             Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
@@ -68,13 +71,16 @@ pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, 
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let result = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?.text().await;
+        let response = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?;
+        let date = &response.headers()["Date"];
+        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+        let result = response.text().await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, OffsetDateTime::now_utc()));
+            return Ok((result?, date));
         }
         match result {
-            Ok(value) => return Ok((value, OffsetDateTime::now_utc())),
+            Ok(value) => return Ok((value, date)),
             Err(err) => println!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;

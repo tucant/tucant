@@ -19,8 +19,8 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
-                return vv_internal(login_response, &content);
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+                return vv_internal(login_response, content);
             }
         }
     }

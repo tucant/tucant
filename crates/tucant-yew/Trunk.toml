@@ -4,7 +4,7 @@ trunk-version = "^0.21.6"
 target = "./index.html"
 
 [watch]
-watch = ["../tucant-yew", "../tucan-connector", "../tucant-types", "../tucant-api/src", "../tucant-api/Cargo.toml"]
+watch = ["../tucant-yew", "../tucan-connector", "../tucant-types", "../tucant-api/src", "../tucant-api/Cargo.toml", "../key-value-database"]
 
 [serve]
 port = 1420

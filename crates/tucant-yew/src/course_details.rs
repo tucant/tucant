@@ -1,7 +1,6 @@
 use std::ops::Deref;
 
 use log::info;
-use time::Duration;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
@@ -32,12 +31,12 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: Duration::days(14).whole_seconds(), invalidate_dependents: Some(true) }, request.clone()).await {
+                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: Duration::days(3).whole_seconds(), invalidate_dependents: Some(true) }, request).await {
+                            match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)

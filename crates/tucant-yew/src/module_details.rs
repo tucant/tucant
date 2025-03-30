@@ -1,7 +1,6 @@
-use std::ops::Deref;
+use std::{ops::Deref, time::Duration};
 
 use log::info;
-use time::Duration;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, moduledetails::ModuleDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
@@ -31,12 +30,12 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 let anmeldung_request = request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: Duration::days(14).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
+                    match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: Duration::days(3).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request).await {
+                            match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: 3 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)

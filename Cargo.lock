@@ -2604,6 +2604,7 @@ checksum = "8a7619e19bc266e0f9c5e6686659d394bc57973859340060a69221e57dbc0c40"
 dependencies = [
  "deranged",
  "itoa",
+ "js-sys",
  "num-conv",
  "powerfmt",
  "serde",
@@ -2920,7 +2921,6 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "time",
  "tucan-connector",
  "tucant-types",
  "url",

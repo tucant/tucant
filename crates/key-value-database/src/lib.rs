@@ -106,21 +106,23 @@ impl Database {
     pub async fn remove_many(&self, keys: Vec<String>) {
         #[cfg(target_arch = "wasm32")]
         {
-            stream::iter(keys)
-                .for_each(async |key| {
-                    let key = js_sys::wasm_bindgen::JsValue::from(key);
-                    self.database
-                        .transaction(&["store"])
-                        .run(|t| async move {
-                            let store = t.object_store("store")?;
-                            store.delete(&key).await.unwrap();
+            self.database
+                .transaction(&["store"])
+                .rw()
+                .run(|t| async move {
+                    let store = t.object_store("store")?;
 
-                            Ok(())
+                    stream::iter(keys)
+                        .for_each(async |key| {
+                            let key = js_sys::wasm_bindgen::JsValue::from(key);
+                            store.delete(&key).await.unwrap();
                         })
-                        .await
-                        .unwrap();
+                        .await;
+
+                    Ok(())
                 })
-                .await;
+                .await
+                .unwrap();
         }
         #[cfg(not(target_arch = "wasm32"))]
         {

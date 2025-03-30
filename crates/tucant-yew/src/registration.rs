@@ -1,7 +1,6 @@
 use std::ops::Deref as _;
 
 use log::info;
-use time::Duration;
 use tucant_types::{
     LoginResponse, RevalidationStrategy, Tucan,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
@@ -37,12 +36,12 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 let anmeldung_request = anmeldung_request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    match tucan.0.anmeldung(current_session.clone(), RevalidationStrategy { max_age: Duration::days(14).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
+                    match tucan.0.anmeldung(current_session.clone(), RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(response));
                             loading.set(false);
 
-                            match tucan.0.anmeldung(current_session, RevalidationStrategy { max_age: Duration::days(3).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request).await {
+                            match tucan.0.anmeldung(current_session, RevalidationStrategy { max_age: 3 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request).await {
                                 Ok(response) => data.set(Ok(response)),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)
