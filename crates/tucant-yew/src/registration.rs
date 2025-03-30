@@ -21,7 +21,6 @@ pub struct AnmeldungRequestProps {
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    // TODO refresh button
     // TODO add invalidation if you press the register button (I think we need to add this to revalidation strategy)
 
     let data = use_state(|| Ok(AnmeldungResponse { path: vec![], submenus: vec![], entries: vec![], additional_information: vec![], studiumsauswahl: vec![] }));
