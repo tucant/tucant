@@ -47,7 +47,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{ "Aktuelles" }</a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{:015},-N000019,", current_session.id)}>{ "Aktuelles" }</a>
+                        <Link<Route> to={Route::Overview } classes="dropdown-item">{ "Aktuelles" }</Link<Route>>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />

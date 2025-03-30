@@ -8,7 +8,7 @@ use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, fu
 use crate::RcTucanType;
 
 #[function_component(Mlsstart)]
-pub fn course_details<TucanType: Tucan + 'static>() -> HtmlResult {
+pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -19,7 +19,7 @@ pub fn course_details<TucanType: Tucan + 'static>() -> HtmlResult {
         let loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        use_effect(move || {
+        use_effect_with((), move |()| {
             if let Some(current_session) = (*current_session_handle).to_owned() {
                 loading.set(true);
                 let data = data.clone();
