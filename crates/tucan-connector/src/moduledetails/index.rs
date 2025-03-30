@@ -23,8 +23,8 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
-                return module_details_internal(login_response, &content);
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+                return module_details_internal(login_response, content);
             }
         }
     }
@@ -45,9 +45,9 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     Ok(result)
 }
 
-#[expect(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn module_details_internal(login_response: &LoginResponse, content: &str) -> Result<ModuleDetailsResponse, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

@@ -99,7 +99,7 @@ where
 {
     type Rejection = (StatusCode, &'static str);
 
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         parts.headers.get("X-Revalidation-Strategy").map_or_else(|| Ok(Self(RevalidationStrategy::default())), |user_agent| Ok(Self(serde_json::from_str(user_agent.to_str().unwrap()).unwrap())))
     }
 }

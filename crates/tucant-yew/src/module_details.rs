@@ -1,4 +1,4 @@
-use std::{ops::Deref, time::Duration};
+use std::ops::Deref;
 
 use log::info;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, moduledetails::ModuleDetailsRequest};
@@ -61,7 +61,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
         let loading = loading.clone();
         let current_session = current_session.clone();
         let tucan = tucan.clone();
-        Callback::from(move |e: MouseEvent| {
+        Callback::from(move |_e: MouseEvent| {
             if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
                 let module_details = module_details.clone();

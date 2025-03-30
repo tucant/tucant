@@ -3,7 +3,6 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
-    registration::{AnmeldungRequest, AnmeldungResponse},
 };
 
 use crate::{
@@ -45,7 +44,7 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
 
 #[expect(clippy::too_many_lines)]
 fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result<MlsStart, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

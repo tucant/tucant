@@ -21,8 +21,8 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
-                return course_details_internal(login_response, &content);
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+                return course_details_internal(login_response, content);
             }
         }
     }
@@ -47,10 +47,9 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-#[expect(clippy::similar_names)]
-#[expect(clippy::too_many_lines)]
+#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
 fn course_details_internal(login_response: &LoginResponse, content: &str) -> Result<CourseDetailsResponse, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

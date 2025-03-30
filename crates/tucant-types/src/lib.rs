@@ -79,9 +79,9 @@ impl IntoResponse for TucanError {
 
 #[derive(Serialize, Deserialize)]
 pub struct RevalidationStrategy {
-    /// Try the cache first if age is not larger than `max_age` seconds, then try network. max_age = 0 means never try cache and max_age = i64::MAX means always try cache first.
+    /// Try the cache first if age is not larger than `max_age` seconds, then try network. `max_age` = 0 means never try cache and `max_age` = `i64::MAX` means always try cache first.
     pub max_age: i64,
-    /// If invalidate_dependents is None, then network is never used but failure is returned.
+    /// If `invalidate_dependents` is None, then network is never used but failure is returned.
     pub invalidate_dependents: Option<bool>,
 }
 
@@ -92,7 +92,7 @@ impl Default for RevalidationStrategy {
 }
 
 impl RevalidationStrategy {
-    pub fn cache() -> Self {
+    #[must_use] pub const fn cache() -> Self {
         Self { max_age: i64::MAX, invalidate_dependents: Some(true) }
     }
 }

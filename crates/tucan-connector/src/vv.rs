@@ -3,7 +3,6 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
-    registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Veranstaltung, Vorlesungsverzeichnis},
 };
 
@@ -45,7 +44,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
 
 #[expect(clippy::too_many_lines)]
 fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -58,7 +57,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     </style>
                 </head>
                 <body class="registration_auditor">
-                    use if login_response.is_none() { logged_out_head(html_handler, 334).0 } else { logged_in_head(html_handler, login_response.unwrap().id).0 };
+                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else {logged_out_head(html_handler, 334).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>

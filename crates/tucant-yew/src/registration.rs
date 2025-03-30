@@ -67,7 +67,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
         let loading = loading.clone();
         let current_session = current_session.clone();
         let tucan = tucan.clone();
-        Callback::from(move |e: MouseEvent| {
+        Callback::from(move |_e: MouseEvent| {
             if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
                 let anmeldung_request = registration.clone();

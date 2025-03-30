@@ -1,5 +1,3 @@
-use futures_util::{StreamExt, stream};
-
 pub struct Database {
     #[cfg(target_arch = "wasm32")]
     database: indexed_db::Database<std::io::Error>,
