@@ -4,7 +4,7 @@ use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest};
+use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
@@ -199,6 +199,8 @@ enum Route {
     RootRegistration,
     #[at("/overview")]
     Overview,
+    #[at("/vv/:vv")]
+    Vorlesungsverzeichnis { vv: ActionRequest },
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
@@ -238,6 +240,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
         Route::Overview => {
             html! { <Mlsstart<TucanType>  /> }
+        }
+        Route::Vorlesungsverzeichnis { vv } => {
+            html! {}
         }
     }
 }

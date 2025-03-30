@@ -1,5 +1,8 @@
-use tucant_types::{LoginResponse, mlsstart::MlsStart};
+use tucant_types::{LoginResponse, mlsstart::MlsStart, registration::AnmeldungRequest};
 use yew::{Html, Properties, classes, function_component, html};
+use yew_router::prelude::Link;
+
+use crate::Route;
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisseProps {
@@ -65,14 +68,14 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{ "VV" }</a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vorlesungsverzeichnis_url))}>
+                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
                             { "Vorlesungsverzeichnis" }
                             if data.is_none() {
                                 { " " }
                                 <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
                                 <span class="visually-hidden" role="status">{ "Loading..." }</span>
                             }
-                        </a>
+                        </Link<Route>>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
@@ -138,7 +141,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session.id)}>{ "Meine Wahlbereiche" }</a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,-A", current_session.id)}>{ "Anmeldung" }</a>
+                        <Link<Route> to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item">{ "Anmeldung" }</Link<Route>>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000", current_session.id)}>{ "Mein aktueller Anmeldestatus" }</a>
