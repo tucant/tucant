@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use axum::{
     Json,
     extract::{FromRequestParts, Path},
@@ -97,7 +99,7 @@ impl<S> FromRequestParts<S> for RevalidationStrategyW
 where
     S: Send + Sync,
 {
-    type Rejection = (StatusCode, &'static str);
+    type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         parts.headers.get("X-Revalidation-Strategy").map_or_else(|| Ok(Self(RevalidationStrategy::default())), |user_agent| Ok(Self(serde_json::from_str(user_agent.to_str().unwrap()).unwrap())))

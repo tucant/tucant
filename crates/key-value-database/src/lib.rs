@@ -104,13 +104,14 @@ impl Database {
     pub async fn remove_many(&self, keys: Vec<String>) {
         #[cfg(target_arch = "wasm32")]
         {
+            use futures_util::StreamExt;
             self.database
                 .transaction(&["store"])
                 .rw()
                 .run(|t| async move {
                     let store = t.object_store("store")?;
 
-                    stream::iter(keys)
+                    futures_util::stream::iter(keys)
                         .for_each(async |key| {
                             let key = js_sys::wasm_bindgen::JsValue::from(key);
                             store.delete(&key).await.unwrap();

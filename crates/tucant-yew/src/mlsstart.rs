@@ -3,17 +3,12 @@ use std::ops::Deref;
 use log::info;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
+use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect, use_effect_with, use_state};
 
 use crate::RcTucanType;
 
-#[derive(Properties, PartialEq)]
-pub struct CourseDetailsProps {
-    pub course_details: CourseDetailsRequest,
-}
-
-#[function_component(CourseDetails)]
-pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
+#[function_component(Mlsstart)]
+pub fn course_details<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -24,19 +19,18 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
         let loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        use_effect_with(course_details.to_owned(), move |request| {
+        use_effect(move || {
             if let Some(current_session) = (*current_session_handle).to_owned() {
                 loading.set(true);
-                let request = request.clone();
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request.clone()).await {
+                    match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request).await {
+                            match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)
@@ -57,7 +51,6 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
 
     let reload = {
         let current_session = current_session_handle.clone();
-        let course_details = course_details.clone();
         let data = data.clone();
         let loading = loading.clone();
         let current_session = current_session.clone();
@@ -65,12 +58,11 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
         Callback::from(move |e: MouseEvent| {
             if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
-                let course_details = course_details.clone();
                 let data = data.clone();
                 let tucan = tucan.clone();
                 let loading = loading.clone();
                 spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
+                    match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
@@ -116,14 +108,12 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 </div>
             }
 
-            if let Some(course) = data {
+            if let Some(mlsstart) = data {
                     <div>
 
                     <h1>
-                        { &course.name }
-                        if let Some(credits) = course.credits {
-                            {" "}<span class="badge text-bg-secondary">{ format!("{} CP", credits) }</span>
-                        }{" "}<button onclick={reload} type="button" class="btn btn-light">
+                        { "Übersicht" }
+                        {" "}<button onclick={reload} type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -134,54 +124,23 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     </button>
                     </h1>
 
-                    <h2>{"Lehrende"}</h2>
-                    <ul>
-                    {
-                        course.instructors.iter().map(|instructor| {
-                            html!{
-                                <li>{ &instructor.0 }</li>
-                            }
-                        }).collect::<Html>()
-                    }
-                    </ul>
-
-                    <div>{ format!("Typ: {}", course.r#type) }</div>
-
-                    <div>{ format!("Fachbereich: {}", course.fachbereich) }</div>
-
-                    {
-                        match (course.teilnehmer_min, course.teilnehmer_max) {
-                            (None, None) => html! {
-                            },
-                            (None, Some(max)) => html! {
-                                <div>{ format!("Maximal {max} Teilnehmende") }</div>
-                            },
-                            (Some(min), None) => html! {
-                                <div>{ format!("Mindestens {min} Teilnehmende", ) }</div>
-                            },
-                            (Some(min), Some(max)) => html! {
-                                <div>{ format!("{min} - {max} Teilnehmende", ) }</div>
-                            }
-                        }
-                    }
-
-                    <h2>{"Übungsgruppen"}</h2>
+                    <h2>{"Stundenplan"}</h2>
                     <table class="table">
                     <thead>
                     <tr>
-                        <th scope="col">{"Name"}</th>
-                        <th scope="col">{"Zeitraum"}</th>
-                        <th scope="col">{"Uebungsleitende"}</th>
+                        <th scope="col">{"Kurs"}</th>
+                        <th scope="col">{"Von"}</th>
+                        <th scope="col">{"Bis"}</th>
                     </tr>
                     </thead>
                     <tbody>
                     {
-                        course.uebungsgruppen.iter().map(|uebungsgruppe| {
+                        mlsstart.stundenplan.iter().map(|stundenplaneintrag| {
                             html!{
                                 <tr>
-                                    <th scope="row">{&uebungsgruppe.name}</th>
-                                    <td>{uebungsgruppe.date_range.clone().unwrap_or_default()}</td>
-                                    <td>{&uebungsgruppe.uebungsleiter}</td>
+                                    <th scope="row">{&stundenplaneintrag.course_name}</th>
+                                    <td>{&stundenplaneintrag.from}</td>
+                                    <td>{&stundenplaneintrag.to}</td>
                                 </tr>
                             }
                         }).collect::<Html>()
@@ -189,99 +148,29 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     </tbody>
                     </table>
 
-                    <h2>{"Anmeldefristen"}</h2>
-                    <table class="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">{"Phase"}</th>
-                        <th scope="col">{"Block"}</th>
-                        <th scope="col">{"Start"}</th>
-                        <th scope="col">{"Ende Anmeldung"}</th>
-                        <th scope="col">{"Ende Abmeldung"}</th>
-                        <th scope="col">{"Ende Hörer"}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        course.course_anmeldefristen.iter().map(|anmeldefrist| {
-                            html!{
-                                <tr>
-                                    <td>{&anmeldefrist.zulassungstyp}</td>
-                                    <td>{&anmeldefrist.block_type}</td>
-                                    <td>{anmeldefrist.start.clone().unwrap_or_default()}</td>
-                                    <td>{&anmeldefrist.ende_anmeldung.clone().unwrap_or_default()}</td>
-                                    <td>{&anmeldefrist.ende_abmeldung.clone().unwrap_or_default()}</td>
-                                    <td>{&anmeldefrist.ende_hoerer.clone().unwrap_or_default()}</td>
-                                </tr>
-                            }
-                        }).collect::<Html>()
-                    }
-                    </tbody>
-                    </table>
-
-                    <h2>{"Termine"}</h2>
+                    <h2>{"Nachrichten"}</h2>
                     <table class="table">
                     <thead>
                     <tr>
                         <th scope="col">{"Datum"}</th>
-                        <th scope="col">{"Start"}</th>
-                        <th scope="col">{"Ende"}</th>
-                        <th scope="col">{"Kursleitende"}</th>
-                        <th scope="col">{"Räume"}</th>
+                        <th scope="col">{"Absender"}</th>
+                        <th scope="col">{"Nachricht"}</th>
                     </tr>
                     </thead>
                     <tbody>
                     {
-                        course.termine.iter().map(|termin| {
+                        mlsstart.messages.iter().map(|nachricht| {
                             html!{
                                 <tr>
-                                    <td>{&termin.date}</td>
-                                    <td>{&termin.time_start}</td>
-                                    <td>{&termin.time_end}</td>
-                                    <td>{&termin.instructors.clone().unwrap_or_default()}</td>
-                                    <td><ul>
-                                    {
-                                        termin.rooms.iter().map(|room| {
-                                            html!{
-                                                <li>{&room.name}</li>
-                                            }
-                                        }).collect::<Html>()
-                                    }
-                                    </ul></td>
+                                    <th scope="row">{&nachricht.date}</th>
+                                    <td>{&nachricht.source}</td>
+                                    <td>{&nachricht.message}</td>
                                 </tr>
                             }
                         }).collect::<Html>()
                     }
                     </tbody>
                     </table>
-
-                    <h2>{"Beschreibung"}</h2>
-
-                    // TODO FIXME this is dangerous
-                    { Html::from_html_unchecked(course.description.join("\n").into()) }
-
-                    <h2>{"Sonstige Informationen"}</h2>
-
-                    <div>{ format!("Sprache: {}", course.language) }</div>
-
-                    <div>{ format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default()) }</div>
-
-                    if let Some(anzeige_im_stundenplan) = &course.anzeige_im_stundenplan {
-                        <div>{ format!("Anzeige im Stundenplan: {}", anzeige_im_stundenplan) }</div>
-                    }
-
-                    <div>{ format!("Kurslevel: {}", course.courselevel) }</div>
-
-                    <h2>{"Enhalten in Modulen"}</h2>
-                    <ul>
-                    {
-                        course.enhalten_in_modulen.iter().map(|modul| {
-                            html!{
-                                <li>{modul}</li>
-                            }
-                        }).collect::<Html>()
-                    }
-                    </ul>
 
                     </div>
                 }

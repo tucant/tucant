@@ -4,6 +4,8 @@ pub mod moduledetails;
 pub mod registration;
 pub mod vv;
 
+use std::io::ErrorKind;
+
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use mlsstart::MlsStart;
@@ -72,8 +74,14 @@ pub enum TucanError {
 
 impl IntoResponse for TucanError {
     fn into_response(self) -> Response {
-        let body = self.to_string();
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+        match self {
+            Self::Http(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Self::Io(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Self::Timeout => (StatusCode::UNAUTHORIZED, "session timeout").into_response(),
+            Self::AccessDenied => (StatusCode::FORBIDDEN, "access denied").into_response(),
+            Self::InvalidCredentials => (StatusCode::UNAUTHORIZED, "invalid credentials").into_response(),
+            Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
+        }
     }
 }
 
@@ -92,7 +100,8 @@ impl Default for RevalidationStrategy {
 }
 
 impl RevalidationStrategy {
-    #[must_use] pub const fn cache() -> Self {
+    #[must_use]
+    pub const fn cache() -> Self {
         Self { max_age: i64::MAX, invalidate_dependents: Some(true) }
     }
 }

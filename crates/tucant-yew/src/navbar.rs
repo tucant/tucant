@@ -1,3 +1,4 @@
+use log::info;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
@@ -22,7 +23,9 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                             data.set(Some(response));
                         }
                         Err(error) => {
-                            panic!("{}", error)
+                            // TODO pass through tucanerror from server
+                            // TODO logout clientside
+                            info!("{}", error)
                         }
                     }
                 })

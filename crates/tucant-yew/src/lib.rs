@@ -1,4 +1,5 @@
 use course_details::CourseDetails;
+use mlsstart::Mlsstart;
 use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
@@ -16,6 +17,7 @@ pub mod navbar_logged_out;
 
 pub mod api_server;
 pub mod course_details;
+pub mod mlsstart;
 pub mod module_details;
 pub mod registration;
 pub mod tauri;
@@ -195,6 +197,8 @@ enum Route {
     Registration { registration: AnmeldungRequest },
     #[at("/registration/")]
     RootRegistration,
+    #[at("/overview")]
+    Overview,
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
@@ -231,6 +235,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
         Route::CourseDetails { course } => {
             html! { <CourseDetails<TucanType> course_details={course} /> }
+        }
+        Route::Overview => {
+            html! { <Mlsstart<TucanType>  /> }
         }
     }
 }
