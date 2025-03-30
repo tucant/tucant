@@ -1,3 +1,4 @@
+use log::info;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, TucanError,
@@ -19,6 +20,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
+            info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
                 return vv_internal(login_response, content);
             }

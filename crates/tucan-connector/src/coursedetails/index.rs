@@ -5,6 +5,7 @@ use crate::{
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::Itertools;
+use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
@@ -19,6 +20,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
+            info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
                 return course_details_internal(login_response, &content);
             }

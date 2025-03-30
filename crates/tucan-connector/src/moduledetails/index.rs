@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use log::info;
 use scraper::CaseSensitivity::CaseSensitive;
 use time::{Duration, OffsetDateTime};
 use tucant_types::moduledetails::{Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin};
@@ -21,6 +22,7 @@ pub async fn module_details(tucan: &TucanConnector, login_response: &LoginRespon
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
+            info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
                 return module_details_internal(login_response, &content);
             }

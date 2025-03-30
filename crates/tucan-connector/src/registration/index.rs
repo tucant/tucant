@@ -1,5 +1,6 @@
 use std::sync::LazyLock;
 
+use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
@@ -22,6 +23,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, r
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
+            info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.into()) {
                 return anmeldung_internal(login_response, &content);
             }
