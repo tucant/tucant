@@ -2,6 +2,7 @@ pub mod coursedetails;
 pub mod mlsstart;
 pub mod moduledetails;
 pub mod mycourses;
+pub mod myexams;
 pub mod mymodules;
 pub mod registration;
 pub mod vv;
@@ -13,6 +14,7 @@ use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use mycourses::MyCoursesResponse;
+use myexams::MyExamsResponse;
 use mymodules::MyModulesResponse;
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
@@ -129,6 +131,8 @@ pub trait Tucan {
     fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
 
     fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
+
+    fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
 
     fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
