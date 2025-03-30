@@ -1,6 +1,7 @@
 pub mod coursedetails;
 pub mod mlsstart;
 pub mod moduledetails;
+pub mod mymodules;
 pub mod registration;
 pub mod vv;
 
