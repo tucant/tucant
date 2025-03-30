@@ -31,6 +31,7 @@ cargo test
 
 We use a fork of rustfmt to format our custom html extractor macro.
 ```
+rustup component remove --toolchain nightly-2025-03-16 rustfmt
 cargo +nightly-2025-03-16 install --force --git https://github.com/tucant/rustfmt --branch html-extractor-formatting rustfmt-nightly
 cargo +nightly-2025-03-16 fmt
 ```

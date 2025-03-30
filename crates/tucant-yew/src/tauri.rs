@@ -97,4 +97,8 @@ impl Tucan for TauriTucan {
     async fn welcome(&self) -> Result<tucant_types::LoggedOutHead, TucanError> {
         todo!()
     }
+
+    async fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
+        todo!()
+    }
 }
