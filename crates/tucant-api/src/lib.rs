@@ -12,6 +12,7 @@ use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
+    mymodules::MyModulesResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
@@ -221,6 +222,28 @@ pub async fn after_login_endpoint(jar: CookieJar, revalidation_strategy: Revalid
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/my-modules",
+    tag = TUCANT_TAG,
+    responses(
+        (status = 200, description = "Successful", body = MyModulesResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+pub async fn my_modules_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
+
+    let response = tucan.my_modules(&login_response, revalidation_strategy.0).await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
 pub fn router() -> OpenApiRouter {
-    OpenApiRouter::with_openapi(ApiDoc::openapi()).routes(routes!(login_endpoint)).routes(routes!(logout_endpoint)).routes(routes!(registration_endpoint)).routes(routes!(vv_endpoint)).routes(routes!(module_details_endpoint)).routes(routes!(course_details_endpoint)).routes(routes!(after_login_endpoint))
+    OpenApiRouter::with_openapi(ApiDoc::openapi()).routes(routes!(login_endpoint)).routes(routes!(logout_endpoint)).routes(routes!(registration_endpoint)).routes(routes!(vv_endpoint)).routes(routes!(module_details_endpoint)).routes(routes!(course_details_endpoint)).routes(routes!(after_login_endpoint)).routes(routes!(my_modules_endpoint))
 }

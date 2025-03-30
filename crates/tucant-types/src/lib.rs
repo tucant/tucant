@@ -11,6 +11,7 @@ use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
+use mymodules::MyModulesResponse;
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -115,6 +116,8 @@ pub trait Tucan {
     fn after_login(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
 
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
+
+    fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
 
     fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
