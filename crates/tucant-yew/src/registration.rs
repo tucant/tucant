@@ -1,5 +1,7 @@
 use std::ops::Deref as _;
 
+use log::info;
+use time::Duration;
 use tucant_types::{
     LoginResponse, RevalidationStrategy, Tucan,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
@@ -19,6 +21,9 @@ pub struct AnmeldungRequestProps {
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
+    // TODO refresh button
+    // TODO add invalidation if you press the register button (I think we need to add this to revalidation strategy)
+
     let data = use_state(|| Ok(AnmeldungResponse { path: vec![], submenus: vec![], entries: vec![], additional_information: vec![], studiumsauswahl: vec![] }));
     let loading = use_state(|| false);
     let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
@@ -32,10 +37,17 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 let anmeldung_request = anmeldung_request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    match tucan.0.anmeldung(current_session, RevalidationStrategy { max_age: u32::MAX, invalidate_dependents: Some(true) }, anmeldung_request).await {
+                    match tucan.0.anmeldung(current_session.clone(), RevalidationStrategy { max_age: Duration::days(14).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(response));
                             loading.set(false);
+
+                            match tucan.0.anmeldung(current_session, RevalidationStrategy { max_age: Duration::days(3).whole_seconds(), invalidate_dependents: Some(true) }, anmeldung_request).await {
+                                Ok(response) => data.set(Ok(response)),
+                                Err(error) => {
+                                    info!("ignoring error when refetching: {}", error)
+                                }
+                            }
                         }
                         Err(error) => {
                             data.set(Err(error.to_string()));

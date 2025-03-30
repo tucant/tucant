@@ -33,6 +33,7 @@ tucant-types = { path = "../tucant-types" }
 serde_json = "1"
 yew-autoprops = "0.4.1"
 js-sys = "0.3"
+time = { version = "0.3.41", features = ["serde"] }
 
 tucan-connector = { optional = true, path = "../tucan-connector" }
 web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-extensions-sys", branch = "cookies" }
