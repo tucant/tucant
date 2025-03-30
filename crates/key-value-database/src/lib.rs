@@ -124,7 +124,7 @@ impl Database {
         }
         #[cfg(not(target_arch = "wasm32"))]
         {
-            sqlx::query("DELETE FROM store WHERE WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
+            sqlx::query("DELETE FROM store WHERE key IN (SELECT value FROM json_each(?))").bind(serde_json::to_string(&keys).unwrap()).execute(&self.database).await.unwrap();
         }
     }
 }

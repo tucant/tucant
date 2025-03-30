@@ -22,7 +22,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, r
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.try_into().unwrap()) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.into()) {
                 return anmeldung_internal(login_response, &content);
             }
         }
@@ -37,6 +37,7 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, r
     let result = anmeldung_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
+        // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
         let keys: Vec<String> = result.entries.iter().flat_map(|e| &e.module).map(|e| format!("unparsed_module_details.{}", e.url.inner())).chain(result.entries.iter().flat_map(|e| &e.courses).map(|e| format!("unparsed_course_details.{}", e.1.url.inner()))).collect();
         tucan.database.remove_many(keys).await;
     }

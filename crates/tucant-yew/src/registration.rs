@@ -32,7 +32,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 let anmeldung_request = anmeldung_request.clone();
                 let data = data.clone();
                 spawn_local(async move {
-                    match tucan.0.anmeldung(current_session, RevalidationStrategy::default(), anmeldung_request).await {
+                    match tucan.0.anmeldung(current_session, RevalidationStrategy { max_age: u32::MAX, invalidate_dependents: Some(true) }, anmeldung_request).await {
                         Ok(response) => {
                             data.set(Ok(response));
                             loading.set(false);
