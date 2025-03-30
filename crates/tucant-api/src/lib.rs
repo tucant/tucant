@@ -13,6 +13,7 @@ use tucant_types::{
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     mycourses::MyCoursesResponse,
+    myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
@@ -267,6 +268,28 @@ pub async fn my_courses_endpoint(jar: CookieJar, revalidation_strategy: Revalida
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/my-exams",
+    tag = TUCANT_TAG,
+    responses(
+        (status = 200, description = "Successful", body = MyExamsResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+pub async fn my_exams_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
+
+    let response = tucan.my_exams(&login_response, revalidation_strategy.0).await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
 pub fn router() -> OpenApiRouter {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(login_endpoint))
@@ -278,4 +301,5 @@ pub fn router() -> OpenApiRouter {
         .routes(routes!(after_login_endpoint))
         .routes(routes!(my_modules_endpoint))
         .routes(routes!(my_courses_endpoint))
+        .routes(routes!(my_exams_endpoint))
 }

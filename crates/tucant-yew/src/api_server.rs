@@ -5,6 +5,7 @@ use tucant_types::{
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     mycourses::MyCoursesResponse,
+    myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
@@ -76,6 +77,12 @@ impl Tucan for ApiServerTucan {
 
     async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
         let url = Url::parse("http://localhost:1420/api/v1/my-courses").unwrap();
+        let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
+        Ok(response)
+    }
+
+    async fn my_exams(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
+        let url = Url::parse("http://localhost:1420/api/v1/my-exams").unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }

@@ -2,6 +2,7 @@ use course_details::CourseDetails;
 use mlsstart::Mlsstart;
 use module_details::ModuleDetails;
 use my_courses::MyCourses;
+use my_exams::MyExams;
 use my_modules::MyModules;
 use navbar::Navbar;
 use registration::Registration;
@@ -23,6 +24,7 @@ pub mod course_details;
 pub mod mlsstart;
 pub mod module_details;
 pub mod my_courses;
+pub mod my_exams;
 pub mod my_modules;
 pub mod registration;
 pub mod tauri;
@@ -211,6 +213,8 @@ enum Route {
     MyModules,
     #[at("/my-courses")]
     MyCourses,
+    #[at("/my-exams")]
+    MyExams,
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
@@ -259,6 +263,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
         Route::MyCourses => {
             html! { <MyCourses<TucanType>  /> }
+        }
+        Route::MyExams => {
+            html! { <MyExams<TucanType>  /> }
         }
     }
 }

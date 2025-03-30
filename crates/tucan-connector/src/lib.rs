@@ -7,6 +7,7 @@ use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
 use mycourses::mycourses;
+use myexams::my_exams;
 use mymodules::mymodules;
 use regex::Regex;
 use registration::index::anmeldung;
@@ -17,6 +18,7 @@ use tucant_types::{
     RevalidationStrategy, Tucan, TucanError,
     mlsstart::MlsStart,
     mycourses::MyCoursesResponse,
+    myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
@@ -134,6 +136,10 @@ impl Tucan for TucanConnector {
         mycourses(self, request, revalidation_strategy).await
     }
 
+    async fn my_exams(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
+        my_exams(self, request, revalidation_strategy).await
+    }
+
     async fn anmeldung(&self, login_response: tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
         anmeldung(self, &login_response, revalidation_strategy, request).await
     }
@@ -242,7 +248,7 @@ mod authenticated_tests {
 mod authenticated_tests {
     use tucant_types::{LoginRequest, RevalidationStrategy, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::myexams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
+    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::my_exams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login};
 
     #[tokio::test]
     pub async fn test_login() {
@@ -427,7 +433,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        myexams(&tucan, &login_response).await.unwrap();
+        my_exams(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
     }
 
     #[tokio::test]
