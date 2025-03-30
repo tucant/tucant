@@ -57,20 +57,20 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     </style>
                 </head>
                 <body class="registration_auditor">
-                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else {logged_out_head(html_handler, 334).0 };
+                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler, 334).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
                         "Vorlesungsverzeichnis"
                     </h1>
                     <h2>
-                        let path = while html_handler.peek().is_some() {
+                        let path = while html_handler.peek().and_then(|e| e.next_sibling()).is_some() {
                             <a href=url>
-                                let title = if html_handler.peek().is_some() {
-                                    title
-                                } => title;
+                                title
                             </a>
-                        } => (url, title);
+                        } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&url, "")));
+                        <a href=_garbage_url>
+                        </a>
                     </h2>
                     let description = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">

@@ -115,7 +115,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
     #[expect(unused_parens)]
     Ok(html! {
         <div class="container">
-            <h2 class="text-center">{ "Registration " }<button onclick={reload} type="button" class="btn btn-light">
+            <h2 class="text-center">{ "Vorlesungsverzeichnis " }<button onclick={reload} type="button" class="btn btn-light">
                 // https://github.com/twbs/icons
                 // The MIT License (MIT)
                 // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -124,15 +124,15 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                     <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
                 </svg>
             </button></h2>
-            // TODO FIXME this is dangerous
-            { Html::from_html_unchecked(data.description.join("\n").into()) }
-            /*<nav style="min-height: 5.5rem" aria-label="breadcrumb">
+            <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
-                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
+                            html!{<li class="breadcrumb-item"><Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
                         }).collect::<Html>() }
                 </ol>
-            </nav>*/
+            </nav>
+            // TODO FIXME this is dangerous
+            { Html::from_html_unchecked(data.description.join("\n").into()) }
             <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
                 { data.entries.iter().map(|entry| {

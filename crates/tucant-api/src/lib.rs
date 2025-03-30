@@ -13,6 +13,7 @@ use tucant_types::{
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{AnmeldungRequest, AnmeldungResponse},
+    vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use tucant_types::{Tucan, coursedetails::CourseDetailsResponse, mlsstart::MlsStart, moduledetails::ModuleDetailsResponse};
 use utoipa::{
@@ -131,6 +132,29 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
 
 #[utoipa::path(
     get,
+    path = "/api/v1/vv/{vv}",
+    tag = TUCANT_TAG,
+    params(("vv" = String, Path)),
+    responses(
+        (status = 200, description = "Successful", body = Vorlesungsverzeichnis),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+pub async fn vv_endpoint(jar: CookieJar, Path(vv): Path<String>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
+
+    let response = tucan.vv(Some(&login_response), revalidation_strategy.0, ActionRequest::parse(&vv)).await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
+#[utoipa::path(
+    get,
     path = "/api/v1/module-details/{module}",
     tag = TUCANT_TAG,
     params(("module" = String, Path)),
@@ -198,5 +222,5 @@ pub async fn after_login_endpoint(jar: CookieJar, revalidation_strategy: Revalid
 }
 
 pub fn router() -> OpenApiRouter {
-    OpenApiRouter::with_openapi(ApiDoc::openapi()).routes(routes!(login_endpoint)).routes(routes!(logout_endpoint)).routes(routes!(registration_endpoint)).routes(routes!(module_details_endpoint)).routes(routes!(course_details_endpoint)).routes(routes!(after_login_endpoint))
+    OpenApiRouter::with_openapi(ApiDoc::openapi()).routes(routes!(login_endpoint)).routes(routes!(logout_endpoint)).routes(routes!(registration_endpoint)).routes(routes!(vv_endpoint)).routes(routes!(module_details_endpoint)).routes(routes!(course_details_endpoint)).routes(routes!(after_login_endpoint))
 }
