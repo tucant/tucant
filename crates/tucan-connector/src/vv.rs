@@ -55,13 +55,18 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     <style type="text/css">
                         _ignore
                     </style>
+                    let _ewf = if login_response.is_some() {
+                        <style type="text/css">
+                            _ignore
+                        </style>
+                    } => ();
                 </head>
                 <body class="registration_auditor">
                     use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler, 334).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        "Vorlesungsverzeichnis"
+                        title
                     </h1>
                     <h2>
                         let path = while html_handler.peek().and_then(|e| e.next_sibling()).is_some() {
@@ -170,6 +175,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
     let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326);
     html_handler.end_document();
     Ok(Vorlesungsverzeichnis {
+        title,
         entries: entries.unwrap_or_default(),
         path,
         description: description.unwrap_or_default(),

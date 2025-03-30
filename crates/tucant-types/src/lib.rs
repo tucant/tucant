@@ -46,7 +46,7 @@ pub struct LoggedOutHead {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
 pub struct VorlesungsverzeichnisUrls {
     pub lehrveranstaltungssuche_url: String,
-    pub vvs: Vec<(String, String)>,
+    pub vvs: Vec<(String, ActionRequest)>,
     pub archiv_links: Vec<(String, String, String)>,
 }
 

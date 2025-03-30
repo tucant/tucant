@@ -23,7 +23,15 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
 
     // TODO add invalidation if you press the register button (I think we need to add this to revalidation strategy)
 
-    let data = use_state(|| Ok(Vorlesungsverzeichnis { entries: Vec::new(), path: Vec::new(), description: Vec::new(), veranstaltungen_or_module: Vec::new() }));
+    let data = use_state(|| {
+        Ok(Vorlesungsverzeichnis {
+            title: "Wird geladen...".to_owned(),
+            entries: Vec::new(),
+            path: Vec::new(),
+            description: Vec::new(),
+            veranstaltungen_or_module: Vec::new(),
+        })
+    });
     let loading = use_state(|| false);
     let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
@@ -115,7 +123,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
     #[expect(unused_parens)]
     Ok(html! {
         <div class="container">
-            <h2 class="text-center">{ "Vorlesungsverzeichnis " }<button onclick={reload} type="button" class="btn btn-light">
+            <h2 class="text-center">{ &data.title }<button onclick={reload} type="button" class="btn btn-light">
                 // https://github.com/twbs/icons
                 // The MIT License (MIT)
                 // Copyright (c) 2019-2024 The Bootstrap Authors

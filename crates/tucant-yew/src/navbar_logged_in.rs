@@ -15,17 +15,14 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
         { data.iter().flat_map(|v| v.logged_in_head.vv.vvs.iter()).map(|(name, url)| {
             html!{
                 <li>
-                <a
-                    class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}
-                    href={ format!("https://www.tucan.tu-darmstadt.de{}", url)}
-                >
+                <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
                     { name }
                     if data.is_none() {
                         { " " }
                         <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
                         <span class="visually-hidden" role="status">{ "Loading..." }</span>
                     }
-                </a>
+                </Link<Route>>
             </li>
 
             }
