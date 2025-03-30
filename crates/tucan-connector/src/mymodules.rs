@@ -1,9 +1,9 @@
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
+    LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
     moduledetails::ModuleDetailsRequest,
-    mymodules::{Module, MyModulesResponse, Semesterauswahl},
+    mymodules::{Module, MyModulesResponse},
 };
 
 use crate::{

@@ -6,6 +6,7 @@ use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
+use mycourses::mycourses;
 use mymodules::mymodules;
 use regex::Regex;
 use registration::index::anmeldung;
@@ -15,6 +16,7 @@ use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
     RevalidationStrategy, Tucan, TucanError,
     mlsstart::MlsStart,
+    mycourses::MyCoursesResponse,
     mymodules::MyModulesResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
@@ -126,6 +128,10 @@ impl Tucan for TucanConnector {
 
     async fn my_modules(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyModulesResponse, TucanError> {
         mymodules(self, request, revalidation_strategy).await
+    }
+
+    async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
+        mycourses(self, request, revalidation_strategy).await
     }
 
     async fn anmeldung(&self, login_response: tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
@@ -405,7 +411,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        mycourses(&tucan, &login_response).await.unwrap();
+        mycourses(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
     }
 
     #[tokio::test]

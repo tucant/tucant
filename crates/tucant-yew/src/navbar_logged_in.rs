@@ -132,7 +132,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <Link<Route> to={Route::MyModules} classes="dropdown-item">{ "Meine Module" }</Link<Route>>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,", current_session.id)}>{ "Meine Veranstaltungen" }</a>
+                        <Link<Route> to={Route::MyCourses} classes="dropdown-item">{ "Meine Veranstaltungen" }</Link<Route>>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session.id)}>{ "Meine Wahlbereiche" }</a>

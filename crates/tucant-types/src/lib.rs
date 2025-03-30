@@ -1,6 +1,7 @@
 pub mod coursedetails;
 pub mod mlsstart;
 pub mod moduledetails;
+pub mod mycourses;
 pub mod mymodules;
 pub mod registration;
 pub mod vv;
@@ -11,6 +12,7 @@ use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
+use mycourses::MyCoursesResponse;
 use mymodules::MyModulesResponse;
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
@@ -108,6 +110,13 @@ impl RevalidationStrategy {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct Semesterauswahl {
+    pub name: String,
+    pub value: String,
+    pub selected: bool,
+}
+
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 
@@ -118,6 +127,8 @@ pub trait Tucan {
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 
     fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
+
+    fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
 
     fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
