@@ -91,6 +91,12 @@ impl Default for RevalidationStrategy {
     }
 }
 
+impl RevalidationStrategy {
+    pub fn cache() -> Self {
+        Self { max_age: i64::MAX, invalidate_dependents: Some(true) }
+    }
+}
+
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 

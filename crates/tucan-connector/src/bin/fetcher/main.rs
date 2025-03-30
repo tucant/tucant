@@ -61,7 +61,7 @@ impl Fetcher {
             //self.anmeldung_file.write_all(b"\n").await?;
 
             //println!("anmeldung {}", anmeldung_request.inner());
-            let result = AssertUnwindSafe(async { tucan.anmeldung(login_response.clone(), RevalidationStrategy::default(), anmeldung_request.clone()).await.unwrap() }).catch_unwind().await;
+            let result = AssertUnwindSafe(async { tucan.anmeldung(login_response.clone(), RevalidationStrategy::cache(), anmeldung_request.clone()).await.unwrap() }).catch_unwind().await;
             let anmeldung_response = match result {
                 Err(err) => {
                     eprintln!("failed to fetch anmeldung {anmeldung_request} with error {err:?}");
@@ -92,7 +92,7 @@ impl Fetcher {
                                 println!("registered for {} at {}", module.name, path)
                             }
 
-                            let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::default(), module.url.clone()).await.unwrap() }).catch_unwind().await;
+                            let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap() }).catch_unwind().await;
                             match result {
                                 Err(err) => {
                                     eprintln!("failed to fetch module {} with error {err:?}", module.url);
@@ -114,7 +114,7 @@ impl Fetcher {
                             //self.course_file.write_all(b"\n").await.unwrap();
 
                             let result = AssertUnwindSafe(async {
-                                let _course_details = tucan.course_details(login_response, RevalidationStrategy::default(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
+                                let _course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
                             })
                             .catch_unwind()
                             .await;

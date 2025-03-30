@@ -156,9 +156,10 @@ fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<A
                             } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-                    let additional_information = while html_handler.peek().is_some() && html_handler.peek().and_then(|e| e.value().as_element()).is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
+                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some() && html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).and_then(|e| e.value().as_element()).is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
                         let child = html_handler.next_any_child();
                     } => if let MyNode::Element(_element) = child.value() { Some(MyElementRef::wrap(child).unwrap().html()) } else { panic!() };
+                    <br></br>
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
                             <tbody>
