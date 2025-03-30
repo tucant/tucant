@@ -77,7 +77,7 @@ impl Fetcher {
                 .iter()
                 .map(|entry| {
                     async {
-                        self.clone().recursive_vv(tucan, login_response, entry.clone()).await;
+                        self.clone().recursive_vv(tucan, login_response, entry.1.clone()).await;
                     }
                     .boxed()
                 })

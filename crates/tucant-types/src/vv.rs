@@ -8,7 +8,7 @@ use crate::coursedetails::CourseDetailsRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
 pub struct Vorlesungsverzeichnis {
-    pub entries: Vec<ActionRequest>,
+    pub entries: Vec<(String, ActionRequest)>,
     pub path: Vec<(String, Option<String>)>,
     pub description: Vec<String>,
     pub veranstaltungen_or_module: Vec<Veranstaltung>,

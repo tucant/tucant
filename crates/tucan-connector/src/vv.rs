@@ -86,12 +86,12 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
-                                <li title=_title xss="is-here">
+                                <li title=title xss="is-here">
                                     <a class="auditRegNodeLink" href=reg_href>
-                                        _title
+                                        title
                                     </a>
                                 </li>
-                            } => ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, ""));
+                            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, "")));
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
