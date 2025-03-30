@@ -1,4 +1,4 @@
-use tucant_types::{LoginResponse, Tucan};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
@@ -17,7 +17,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
         use_effect_with((*current_session).clone(), move |current_session| {
             if let Some(current_session) = current_session.to_owned() {
                 spawn_local(async move {
-                    match tucan.0.after_login(&current_session).await {
+                    match tucan.0.after_login(&current_session, RevalidationStrategy::cache()).await {
                         Ok(response) => {
                             data.set(Some(response));
                         }

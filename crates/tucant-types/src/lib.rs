@@ -102,7 +102,7 @@ pub trait Tucan {
 
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;
 
-    fn after_login(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
+    fn after_login(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MlsStart, TucanError>>;
 
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 

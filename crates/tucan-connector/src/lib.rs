@@ -114,8 +114,8 @@ impl Tucan for TucanConnector {
         welcome(self).await
     }
 
-    async fn after_login(&self, request: &tucant_types::LoginResponse) -> Result<MlsStart, TucanError> {
-        after_login(self, request).await
+    async fn after_login(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
+        after_login(self, request, revalidation_strategy).await
     }
 
     async fn logout(&self, request: &tucant_types::LoginResponse) -> Result<(), TucanError> {
@@ -278,7 +278,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        after_login(&tucan, &login_response).await.unwrap();
+        after_login(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
     }
 
     #[tokio::test]
@@ -310,7 +310,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
     }
 
@@ -327,7 +327,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone();
         let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
     }
@@ -345,7 +345,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone();
         let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
     }
@@ -363,7 +363,7 @@ mod authenticated_tests {
         )
         .await
         .unwrap();
-        let action = tucan.after_login(&login_response).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
         for action in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
             println!("{action}");
             let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();

@@ -60,9 +60,9 @@ impl Tucan for ApiServerTucan {
         Ok(())
     }
 
-    async fn after_login(&self, _request: &LoginResponse) -> Result<MlsStart, TucanError> {
+    async fn after_login(&self, _request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
         let url = Url::parse("http://localhost:1420/api/v1/after-login").unwrap();
-        let response: MlsStart = self.client.get(url).send().await.unwrap().error_for_status()?.json().await.unwrap();
+        let response: MlsStart = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await.unwrap().error_for_status()?.json().await.unwrap();
         Ok(response)
     }
 

@@ -182,7 +182,7 @@ pub async fn course_details_endpoint(jar: CookieJar, Path(course): Path<String>,
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn after_login_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanError> {
+pub async fn after_login_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -190,7 +190,7 @@ pub async fn after_login_endpoint(jar: CookieJar) -> Result<impl IntoResponse, T
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.after_login(&login_response).await?;
+    let response = tucan.after_login(&login_response, revalidation_strategy.0).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }

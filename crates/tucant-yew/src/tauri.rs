@@ -86,7 +86,7 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn after_login(&self, _request: &LoginResponse) -> Result<MlsStart, TucanError> {
+    async fn after_login(&self, _request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
         todo!()
     }
 
