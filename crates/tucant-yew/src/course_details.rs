@@ -62,7 +62,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
         let loading = loading.clone();
         let current_session = current_session.clone();
         let tucan = tucan.clone();
-        Callback::from(move |e: MouseEvent| {
+        Callback::from(move |_e: MouseEvent| {
             if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
                 let course_details = course_details.clone();

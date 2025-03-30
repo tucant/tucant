@@ -4,6 +4,8 @@ pub mod moduledetails;
 pub mod registration;
 pub mod vv;
 
+use std::io::ErrorKind;
+
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use mlsstart::MlsStart;
@@ -44,7 +46,7 @@ pub struct LoggedOutHead {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, ToSchema)]
 pub struct VorlesungsverzeichnisUrls {
     pub lehrveranstaltungssuche_url: String,
-    pub vvs: Vec<(String, String)>,
+    pub vvs: Vec<(String, ActionRequest)>,
     pub archiv_links: Vec<(String, String, String)>,
 }
 
@@ -72,16 +74,22 @@ pub enum TucanError {
 
 impl IntoResponse for TucanError {
     fn into_response(self) -> Response {
-        let body = self.to_string();
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+        match self {
+            Self::Http(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Self::Io(error) => (StatusCode::INTERNAL_SERVER_ERROR, error.to_string()).into_response(),
+            Self::Timeout => (StatusCode::UNAUTHORIZED, "session timeout").into_response(),
+            Self::AccessDenied => (StatusCode::FORBIDDEN, "access denied").into_response(),
+            Self::InvalidCredentials => (StatusCode::UNAUTHORIZED, "invalid credentials").into_response(),
+            Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
+        }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct RevalidationStrategy {
-    /// Try the cache first if age is not larger than `max_age` seconds, then try network. max_age = 0 means never try cache and max_age = i64::MAX means always try cache first.
+    /// Try the cache first if age is not larger than `max_age` seconds, then try network. `max_age` = 0 means never try cache and `max_age` = `i64::MAX` means always try cache first.
     pub max_age: i64,
-    /// If invalidate_dependents is None, then network is never used but failure is returned.
+    /// If `invalidate_dependents` is None, then network is never used but failure is returned.
     pub invalidate_dependents: Option<bool>,
 }
 
@@ -92,7 +100,8 @@ impl Default for RevalidationStrategy {
 }
 
 impl RevalidationStrategy {
-    pub fn cache() -> Self {
+    #[must_use]
+    pub const fn cache() -> Self {
         Self { max_age: i64::MAX, invalidate_dependents: Some(true) }
     }
 }

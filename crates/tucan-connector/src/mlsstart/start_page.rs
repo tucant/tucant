@@ -3,7 +3,6 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
-    registration::{AnmeldungRequest, AnmeldungResponse},
 };
 
 use crate::{
@@ -13,15 +12,15 @@ use crate::{
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
 pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
-    // add session id if this is not stable
-    let key = format!("unparsed_mlsstart");
+    // TODO just overwrite old values if id does not match
+    let key = format!("unparsed_mlsstart.{}", login_response.id);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.into()) {
-                return after_login_internal(login_response, &content);
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+                return after_login_internal(login_response, content);
             }
         }
     }
@@ -45,7 +44,7 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
 
 #[expect(clippy::too_many_lines)]
 fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result<MlsStart, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();

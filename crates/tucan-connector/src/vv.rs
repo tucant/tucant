@@ -3,7 +3,6 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, TucanError,
     coursedetails::CourseDetailsRequest,
-    registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Veranstaltung, Vorlesungsverzeichnis},
 };
 
@@ -45,7 +44,7 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
 
 #[expect(clippy::too_many_lines)]
 fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<Vorlesungsverzeichnis, TucanError> {
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
@@ -56,22 +55,27 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     <style type="text/css">
                         _ignore
                     </style>
+                    let _ewf = if login_response.is_some() {
+                        <style type="text/css">
+                            _ignore
+                        </style>
+                    } => ();
                 </head>
                 <body class="registration_auditor">
-                    use if login_response.is_none() { logged_out_head(html_handler, 334).0 } else { logged_in_head(html_handler, login_response.unwrap().id).0 };
+                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler, 334).0 };
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        "Vorlesungsverzeichnis"
+                        title
                     </h1>
                     <h2>
-                        let path = while html_handler.peek().is_some() {
+                        let path = while html_handler.peek().and_then(|e| e.next_sibling()).is_some() {
                             <a href=url>
-                                let title = if html_handler.peek().is_some() {
-                                    title
-                                } => title;
+                                title
                             </a>
-                        } => (url, title);
+                        } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&url, "")));
+                        <a href=_garbage_url>
+                        </a>
                     </h2>
                     let description = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">
@@ -87,12 +91,12 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
-                                <li title=_title xss="is-here">
+                                <li title=title xss="is-here">
                                     <a class="auditRegNodeLink" href=reg_href>
-                                        _title
+                                        title
                                     </a>
                                 </li>
-                            } => ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, ""));
+                            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, "")));
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
@@ -171,6 +175,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
     let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326);
     html_handler.end_document();
     Ok(Vorlesungsverzeichnis {
+        title,
         entries: entries.unwrap_or_default(),
         path,
         description: description.unwrap_or_default(),

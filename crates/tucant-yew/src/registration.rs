@@ -67,7 +67,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
         let loading = loading.clone();
         let current_session = current_session.clone();
         let tucan = tucan.clone();
-        Callback::from(move |e: MouseEvent| {
+        Callback::from(move |_e: MouseEvent| {
             if let Some(current_session) = (*current_session).to_owned() {
                 loading.set(true);
                 let anmeldung_request = registration.clone();
@@ -130,8 +130,6 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                     <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
                 </svg>
             </button></h2>
-            // TODO FIXME this is dangerous
-            { Html::from_html_unchecked(data.additional_information.join("\n").into()) }
             <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     { data.path.iter().map(|entry| {
@@ -139,6 +137,8 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                         }).collect::<Html>() }
                 </ol>
             </nav>
+            // TODO FIXME this is dangerous
+            { Html::from_html_unchecked(data.additional_information.join("\n").into()) }
             <h2 class="text-center">{ "Submenus" }</h2>
             <ul class="list-group">
                 { data.submenus.iter().map(|entry| {

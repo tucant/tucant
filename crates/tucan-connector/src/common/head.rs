@@ -218,7 +218,7 @@ pub fn vv_something<'a>(html_handler: InElement5<'a, InElement<'a, InElement<'a,
                         vv_3_title
                     </a>
                 </li>
-            } => vvs.push((vv_3_title, vv_3_url));
+            } => vvs.push((vv_3_title, ActionRequest::parse(&ACTION_REGEX.replace(&vv_3_url, ""))));
             <li class="tree depth_2 linkItem branchLinkItem " title="Archiv" id=_linkclass>
                 <a class=_linkclass href=_url>
                     "Archiv"
@@ -235,9 +235,9 @@ pub fn vv_something<'a>(html_handler: InElement5<'a, InElement<'a, InElement<'a,
             </li>
         </ul>
     };
-    vvs.insert(0, (aktuell_title, aktuell_url));
-    vvs.insert(1, (vv_1_title, vv_1_url));
-    vvs.insert(2, (vv_2_title, vv_2_url));
+    vvs.insert(0, (aktuell_title, ActionRequest::parse(&ACTION_REGEX.replace(&aktuell_url, ""))));
+    vvs.insert(1, (vv_1_title, ActionRequest::parse(&ACTION_REGEX.replace(&vv_1_url, ""))));
+    vvs.insert(2, (vv_2_title, ActionRequest::parse(&ACTION_REGEX.replace(&vv_2_url, ""))));
     (html_handler, VorlesungsverzeichnisUrls { lehrveranstaltungssuche_url, vvs, archiv_links })
 }
 

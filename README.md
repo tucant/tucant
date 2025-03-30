@@ -39,7 +39,7 @@ cargo +nightly-2025-03-16 fmt
 
 ```bash
 cd crates/tucant-yew/
-trunk serve --features api
+trunk serve --features api --release
 
 # in second tab
 cargo run --bin tucant-api

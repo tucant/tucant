@@ -338,7 +338,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[must_use]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         if name == "xss" {
-            for a in self.attrs.by_ref() {}
+            for _a in self.attrs.by_ref() {}
             return self;
         }
         assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value));

@@ -1,9 +1,11 @@
 use course_details::CourseDetails;
+use mlsstart::Mlsstart;
 use module_details::ModuleDetails;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest};
+use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
+use vv::VorlesungsverzeichnisComponent;
 
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
@@ -16,9 +18,11 @@ pub mod navbar_logged_out;
 
 pub mod api_server;
 pub mod course_details;
+pub mod mlsstart;
 pub mod module_details;
 pub mod registration;
 pub mod tauri;
+pub mod vv;
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {
@@ -195,6 +199,10 @@ enum Route {
     Registration { registration: AnmeldungRequest },
     #[at("/registration/")]
     RootRegistration,
+    #[at("/overview")]
+    Overview,
+    #[at("/vv/:vv")]
+    Vorlesungsverzeichnis { vv: ActionRequest },
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
@@ -231,6 +239,12 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
         Route::CourseDetails { course } => {
             html! { <CourseDetails<TucanType> course_details={course} /> }
+        }
+        Route::Overview => {
+            html! { <Mlsstart<TucanType>  /> }
+        }
+        Route::Vorlesungsverzeichnis { vv } => {
+            html! { <VorlesungsverzeichnisComponent<TucanType> vv={vv} />}
         }
     }
 }

@@ -24,8 +24,8 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, r
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age.into()) {
-                return anmeldung_internal(login_response, &content);
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+                return anmeldung_internal(login_response, content);
             }
         }
     }
@@ -49,12 +49,12 @@ pub async fn anmeldung(tucan: &TucanConnector, login_response: &LoginResponse, r
     Ok(result)
 }
 
-#[expect(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn anmeldung_internal(login_response: &LoginResponse, content: &str) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N000311,").unwrap());
     static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N000311,").unwrap());
     static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap());
-    let document = parse_document(&content);
+    let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
     let html_handler = html_handler.doctype();
