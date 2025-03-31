@@ -126,7 +126,7 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                 </tr>
                             </thead>
                             <tbody>
-                                let results = while html_handler.peek().is_some() {
+                                let results = while html_handler.peek().unwrap().next_sibling().is_some() {
                                     <tr>
                                         <td class="tbdata">
                                             nr
@@ -141,10 +141,12 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             credits
                                         </td>
                                         <td class="tbdata">
-                                            status
+                                            let status = if html_handler.peek().is_some() {
+                                                status
+                                            } => status;
                                         </td>
                                         <td class="tbdata" style="vertical-align:top;">
-                                            <a id="Popup_details0001" href=pruefungen_url>
+                                            <a id=_some_id href=pruefungen_url>
                                                 "Prüfungen"
                                             </a>
                                             <script type="text/javascript">
@@ -152,17 +154,32 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             </script>
                                         </td>
                                         <td class="tbdata">
-                                            <a id=some_id href=average_url class="link" title="Notenspiegel">
-                                                <b>
-                                                    "Ø"
-                                                </b>
-                                            </a>
-                                            <script type="text/javascript">
-                                                _script
-                                            </script>
+                                            let average_url = if html_handler.peek().is_some() {
+                                                <a id=_some_id href=average_url class="link" title="Notenspiegel">
+                                                    <b>
+                                                        "Ø"
+                                                    </b>
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _script
+                                                </script>
+                                            } => average_url;
                                         </td>
                                     </tr>
                                 } => ModuleResult {};
+                                <tr>
+                                    <th colspan="2">
+                                        "Semester-GPA"
+                                    </th>
+                                    <th class="tbdata">
+                                        average_grade
+                                    </th>
+                                    <th>
+                                        sum_credits
+                                    </th>
+                                    <th class="tbdata" colspan="4">
+                                    </th>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
