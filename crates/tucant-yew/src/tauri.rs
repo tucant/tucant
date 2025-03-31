@@ -2,6 +2,7 @@ use serde_json::json;
 use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -114,6 +115,10 @@ impl Tucan for TauriTucan {
     }
 
     async fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
         todo!()
     }
 }

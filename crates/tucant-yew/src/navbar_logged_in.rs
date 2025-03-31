@@ -167,7 +167,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml", current_session.id)}>{ "Semesterergebnisse" }</a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,", current_session.id)}>{ "Modulergebnisse" }</a>
+                        <Link<Route> to={Route::CourseResults} classes="dropdown-item">{ "Modulergebnisse" }</Link<Route>>
                     </li>
                     <li>
                         <Link<Route> to={Route::ExamResults} classes="dropdown-item">{ "Prüfungsergebnisse" }</Link<Route>>

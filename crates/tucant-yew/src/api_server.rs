@@ -2,6 +2,7 @@ use reqwest::Client;
 use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -90,6 +91,12 @@ impl Tucan for ApiServerTucan {
 
     async fn exam_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
         let url = Url::parse("http://localhost:1420/api/v1/exam-results").unwrap();
+        let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
+        Ok(response)
+    }
+
+    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+        let url = Url::parse("http://localhost:1420/api/v1/course-results").unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }

@@ -1,6 +1,7 @@
 use std::{sync::LazyLock, time::Duration};
 
 use coursedetails::index::course_details;
+use courseresults::courseresults;
 use examresults::examresults;
 use externalpages::welcome::welcome;
 use key_value_database::Database;
@@ -17,6 +18,7 @@ use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
     RevalidationStrategy, Tucan, TucanError,
+    courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
     mycourses::MyCoursesResponse,
@@ -144,6 +146,10 @@ impl Tucan for TucanConnector {
 
     async fn exam_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
         examresults(self, request, revalidation_strategy).await
+    }
+
+    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+        courseresults(self, request, revalidation_strategy).await
     }
 
     async fn anmeldung(&self, login_response: tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {

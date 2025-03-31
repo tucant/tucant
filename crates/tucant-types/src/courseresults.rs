@@ -14,6 +14,7 @@ pub struct ModuleResultsResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ModuleResult {
     pub nr: String,
+    pub name: String,
     pub grade: String,
     pub credits: String,
     pub status: Option<String>,

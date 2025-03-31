@@ -166,7 +166,7 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             } => average_url;
                                         </td>
                                     </tr>
-                                } => ModuleResult { nr, grade, credits, status, pruefungen_url, average_url };
+                                } => ModuleResult { nr, name, grade, credits, status, pruefungen_url, average_url };
                                 <tr>
                                     <th colspan="2">
                                         "Semester-GPA"
