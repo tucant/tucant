@@ -19,6 +19,7 @@ use examresults::ExamResultsResponse;
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use mycourses::MyCoursesResponse;
+use mydocuments::MyDocumentsResponse;
 use myexams::MyExamsResponse;
 use mymodules::MyModulesResponse;
 use registration::{AnmeldungRequest, AnmeldungResponse};
@@ -142,6 +143,8 @@ pub trait Tucan {
     fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
 
     fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<ModuleResultsResponse, TucanError>>;
+
+    fn my_documents(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyDocumentsResponse, TucanError>>;
 
     fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 

@@ -7,6 +7,7 @@ use tucant_types::{
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     mycourses::MyCoursesResponse,
+    mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
@@ -119,6 +120,10 @@ impl Tucan for TauriTucan {
     }
 
     async fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn my_documents(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
         todo!()
     }
 }

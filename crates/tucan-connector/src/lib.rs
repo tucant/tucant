@@ -9,6 +9,7 @@ use login::{login, logout};
 use mlsstart::start_page::after_login;
 use moduledetails::index::module_details;
 use mycourses::mycourses;
+use mydocuments::my_documents;
 use myexams::my_exams;
 use mymodules::mymodules;
 use regex::Regex;
@@ -22,6 +23,7 @@ use tucant_types::{
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
     mycourses::MyCoursesResponse,
+    mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
@@ -150,6 +152,10 @@ impl Tucan for TucanConnector {
 
     async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
         courseresults(self, request, revalidation_strategy).await
+    }
+
+    async fn my_documents(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
+        my_documents(self, request, revalidation_strategy).await
     }
 
     async fn anmeldung(&self, login_response: tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, request: tucant_types::registration::AnmeldungRequest) -> Result<tucant_types::registration::AnmeldungResponse, TucanError> {
