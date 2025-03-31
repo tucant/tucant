@@ -166,7 +166,7 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             } => average_url;
                                         </td>
                                     </tr>
-                                } => ModuleResult {};
+                                } => ModuleResult { nr, grade, credits, status, pruefungen_url, average_url };
                                 <tr>
                                     <th colspan="2">
                                         "Semester-GPA"
@@ -189,5 +189,5 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    Ok(ModuleResultsResponse { semester, results })
+    Ok(ModuleResultsResponse { semester, results, average_grade, sum_credits })
 }
