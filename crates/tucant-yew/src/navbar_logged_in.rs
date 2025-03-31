@@ -167,10 +167,10 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml", current_session.id)}>{ "Semesterergebnisse" }</a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,", current_session.id)}>{ "Modulergebnisse" }</a>
+                        <Link<Route> to={Route::CourseResults} classes="dropdown-item">{ "Modulergebnisse" }</Link<Route>>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,", current_session.id)}>{ "Prüfungsergebnisse" }</a>
+                        <Link<Route> to={Route::ExamResults} classes="dropdown-item">{ "Prüfungsergebnisse" }</Link<Route>>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000", current_session.id)}>{ "Leistungsspiegel" }</a>
@@ -190,7 +190,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{:015},-N000339,-A", current_session.id)}>{ "Persönliche Daten" }</a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,", current_session.id)}>{ "Meine Dokumente" }</a>
+                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item">{ "Meine Dokumente" }</Link<Route>>
                     </li>
                     <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
@@ -223,7 +223,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         }
                     </a>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000444,", current_session.id)}>{ "Meine Dokumente" }</a>
+                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item">{ "Meine Dokumente" }</Link<Route>>
                     </li>
                 </ul>
             </li>

@@ -2,9 +2,12 @@ use serde_json::json;
 use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    courseresults::ModuleResultsResponse,
+    examresults::ExamResultsResponse,
     mlsstart::MlsStart,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
     mycourses::MyCoursesResponse,
+    mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
     vv::{ActionRequest, Vorlesungsverzeichnis},
@@ -109,6 +112,18 @@ impl Tucan for TauriTucan {
     }
 
     async fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn my_documents(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
         todo!()
     }
 }
