@@ -12,6 +12,7 @@ use std::io::ErrorKind;
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
+use examresults::ExamResultsResponse;
 use mlsstart::MlsStart;
 use moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse};
 use mycourses::MyCoursesResponse;
@@ -134,6 +135,8 @@ pub trait Tucan {
     fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
 
     fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
+
+    fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
 
     fn anmeldung(&self, login_response: LoginResponse, revalidation_strategy: RevalidationStrategy, request: AnmeldungRequest) -> impl std::future::Future<Output = Result<AnmeldungResponse, TucanError>>;
 
