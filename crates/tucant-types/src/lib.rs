@@ -1,4 +1,5 @@
 pub mod coursedetails;
+pub mod courseresults;
 pub mod examresults;
 pub mod mlsstart;
 pub mod moduledetails;

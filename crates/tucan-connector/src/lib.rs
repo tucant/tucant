@@ -381,7 +381,7 @@ mod authenticated_tests {
         dotenvy::dotenv().unwrap();
         let tucan = get_tucan_connector().await;
         let login_response = get_login_session().await;
-        courseresults(&tucan, &login_response).await.unwrap();
+        courseresults(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
     }
 
     #[tokio::test]
