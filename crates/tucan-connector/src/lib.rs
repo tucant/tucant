@@ -268,7 +268,7 @@ mod authenticated_tests {
     use tokio::sync::OnceCell;
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::mydocuments, myexams::my_exams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login, tests::get_tucan_connector};
+    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::my_documents, myexams::my_exams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login, tests::get_tucan_connector};
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();
 
@@ -403,6 +403,6 @@ mod authenticated_tests {
         dotenvy::dotenv().unwrap();
         let tucan = get_tucan_connector().await;
         let login_response = get_login_session().await;
-        mydocuments(&tucan, &login_response).await.unwrap();
+        my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
     }
 }
