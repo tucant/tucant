@@ -10,7 +10,7 @@ use tucant_types::{
     mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
-    registration::{AnmeldungRequest, AnmeldungResponse},
+    registration::AnmeldungRequest,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use url::Url;

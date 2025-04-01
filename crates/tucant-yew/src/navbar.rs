@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
-use log::{error, info};
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
+use log::error;
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 

@@ -3,15 +3,12 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
-    moduledetails::ModuleDetailsRequest,
     mycourses::{Course, MyCoursesResponse},
-    mymodules::{Module, MyModulesResponse},
 };
 
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    registration::index::MODULEDETAILS_REGEX,
 };
 
 pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {

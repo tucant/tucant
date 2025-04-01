@@ -69,7 +69,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                         title
                     </h1>
                     <h2>
-                        let path = while html_handler.peek().and_then(|e| e.next_sibling()).is_some() {
+                        let path = while html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).is_some() {
                             <a href=url>
                                 title
                             </a>

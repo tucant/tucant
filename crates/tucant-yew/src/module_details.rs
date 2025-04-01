@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
-use log::info;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, moduledetails::ModuleDetailsRequest};
-use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
+use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
+use yew::{Html, HtmlResult, Properties, function_component, html};
 
-use crate::RcTucanType;
+use crate::{
+    RcTucanType,
+    common::{DataLoaderReturn, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct ModuleDetailsProps {
@@ -14,77 +15,9 @@ pub struct ModuleDetailsProps {
 
 #[function_component(ModuleDetails)]
 pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
-    let data = use_state(|| Ok(None));
-    let loading = use_state(|| false);
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    {
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session_handle = current_session_handle.clone();
-        let tucan = tucan.clone();
-        use_effect_with(module_details.clone(), move |request| {
-            if let Some(current_session) = (*current_session_handle).to_owned() {
-                loading.set(true);
-                let anmeldung_request = request.clone();
-                let data = data.clone();
-                spawn_local(async move {
-                    match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-
-                            match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: 3 * 24 * 60 * 60, invalidate_dependents: Some(true) }, anmeldung_request).await {
-                                Ok(response) => data.set(Ok(Some(response))),
-                                Err(error) => {
-                                    info!("ignoring error when refetching: {}", error)
-                                }
-                            }
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        });
-    }
-
-    let reload = {
-        let current_session = current_session_handle.clone();
-        let module_details = module_details.clone();
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session = current_session.clone();
-        let tucan = tucan.clone();
-        Callback::from(move |_e: MouseEvent| {
-            if let Some(current_session) = (*current_session).to_owned() {
-                loading.set(true);
-                let module_details = module_details.clone();
-                let data = data.clone();
-                let tucan = tucan.clone();
-                let loading = loading.clone();
-                spawn_local(async move {
-                    match tucan.0.module_details(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, module_details.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        })
-    };
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, module_details.clone());
 
     let data = match data.deref() {
         Ok(data) => data,

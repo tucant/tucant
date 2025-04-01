@@ -3,7 +3,6 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
-    examresults::{ExamResult, ExamResultsResponse},
 };
 
 use crate::{

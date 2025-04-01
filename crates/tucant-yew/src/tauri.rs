@@ -103,27 +103,27 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
+    async fn my_modules(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
+    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
+    async fn my_exams(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
         todo!()
     }
 
-    async fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
+    async fn exam_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
         todo!()
     }
 
-    async fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+    async fn course_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
         todo!()
     }
 
-    async fn my_documents(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
+    async fn my_documents(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
         todo!()
     }
 }

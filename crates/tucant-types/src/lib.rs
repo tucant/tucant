@@ -10,8 +10,6 @@ pub mod mymodules;
 pub mod registration;
 pub mod vv;
 
-use std::io::ErrorKind;
-
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use courseresults::ModuleResultsResponse;

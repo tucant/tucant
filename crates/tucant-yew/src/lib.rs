@@ -23,6 +23,7 @@ pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 
 pub mod api_server;
+pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;

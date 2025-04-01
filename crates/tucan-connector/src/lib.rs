@@ -197,7 +197,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_root_page() {
         let tucan = get_tucan_connector().await;
-        root(&tucan).await.unwrap();
+        root(tucan).await.unwrap();
     }
 
     /// /
@@ -206,7 +206,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_startpage_dispatch_1() {
         let tucan = get_tucan_connector().await;
-        startpage_dispatch_1(&tucan).await.unwrap();
+        startpage_dispatch_1(tucan).await.unwrap();
     }
 
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
@@ -215,7 +215,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_welcome() {
         let tucan = get_tucan_connector().await;
-        welcome(&tucan).await.unwrap();
+        welcome(tucan).await.unwrap();
     }
 
     #[tokio::test]
