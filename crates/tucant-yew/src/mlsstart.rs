@@ -1,97 +1,22 @@
-use std::ops::Deref;
+use std::{ops::Deref, rc::Rc};
 
 use log::info;
-use tucant_types::{coursedetails::CourseDetailsRequest, mlsstart::MlsStart, LoginResponse, RevalidationStrategy, Tucan};
+use tucant_types::{coursedetails::CourseDetailsRequest, mlsstart::MlsStart, LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use yew::{function_component, hook, html, use_context, use_effect, use_effect_with, use_state, Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle};
 
-use crate::RcTucanType;
-
-pub struct DataLoaderReturn {
-    data: UseStateHandle<Result<Option<MlsStart>, String>>,
-    loading: UseStateHandle<bool>,
-    reload: Callback<MouseEvent>
-}
-
-#[hook]
-pub fn use_data_loader<TucanType: Tucan + 'static>() -> DataLoaderReturn {
-    use tucant_types::mlsstart::MlsStart;
-
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let data = use_state(|| Ok(None));
-    let loading = use_state(|| false);
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    {
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session_handle = current_session_handle.clone();
-        let tucan = tucan.clone();
-        use_effect_with((), move |()| {
-            if let Some(current_session) = (*current_session_handle).to_owned() {
-                loading.set(true);
-                let data = data.clone();
-                let tucan = tucan.clone();
-                spawn_local(async move {
-                    match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-
-                            match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
-                                Ok(response) => data.set(Ok(Some(response))),
-                                Err(error) => {
-                                    info!("ignoring error when refetching: {}", error)
-                                }
-                            }
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        });
-    }
-
-    let reload = {
-        let current_session = current_session_handle.clone();
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session = current_session.clone();
-        let tucan = tucan.clone();
-        Callback::from(move |e: MouseEvent| {
-            if let Some(current_session) = (*current_session).to_owned() {
-                loading.set(true);
-                let data = data.clone();
-                let tucan = tucan.clone();
-                let loading = loading.clone();
-                spawn_local(async move {
-                    match tucan.0.after_login(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        })
-    };
-    DataLoaderReturn { data, loading, reload }
-}
+use crate::{common::{use_data_loader, DataLoaderReturn, WhatTheHell}, RcTucanType};
 
 #[function_component(Mlsstart)]
 pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
-    let DataLoaderReturn { data, loading, reload } = use_data_loader::<TucanType>();
+    struct A;
+    impl<TucanType: Tucan + 'static> WhatTheHell<TucanType, MlsStart> for A {
+        fn execute(tucan: &TucanType, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MlsStart, TucanError>> {
+            tucan.after_login(request, revalidation_strategy)
+        }
+    }
+
+    let DataLoaderReturn { data, loading, reload } = use_data_loader::<TucanType, MlsStart, A>();
 
     let data = match data.deref() {
         Ok(data) => data,
