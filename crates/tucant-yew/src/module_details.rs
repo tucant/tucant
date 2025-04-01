@@ -3,7 +3,10 @@ use std::ops::Deref;
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 use yew::{Html, HtmlResult, Properties, function_component, html};
 
-use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType};
+use crate::{
+    RcTucanType,
+    common::{DataLoaderReturn, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct ModuleDetailsProps {
@@ -12,10 +15,7 @@ pub struct ModuleDetailsProps {
 
 #[function_component(ModuleDetails)]
 pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
-    let handler =
-    async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-        tucan.0.module_details(&current_session, revalidation_strategy, additional).await
-    };
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
     let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, module_details.clone());
 

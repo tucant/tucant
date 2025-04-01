@@ -10,7 +10,6 @@ pub mod mymodules;
 pub mod registration;
 pub mod vv;
 
-
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use courseresults::ModuleResultsResponse;

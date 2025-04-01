@@ -3,14 +3,14 @@ use std::ops::Deref;
 use tucant_types::Tucan;
 use yew::{Html, HtmlResult, function_component, html};
 
-use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType};
+use crate::{
+    RcTucanType,
+    common::{DataLoaderReturn, use_data_loader},
+};
 
 #[function_component(MyCourses)]
 pub fn my_courses<TucanType: Tucan + 'static>() -> HtmlResult {
-    let handler =
-    async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-        tucan.0.my_courses(&current_session, revalidation_strategy).await
-    };
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_courses(&current_session, revalidation_strategy).await;
 
     let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, ());
 

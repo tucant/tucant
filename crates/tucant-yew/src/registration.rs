@@ -7,7 +7,10 @@ use tucant_types::{
 use yew::{Html, HtmlResult, Properties, function_component, html};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType, Route};
+use crate::{
+    RcTucanType, Route,
+    common::{DataLoaderReturn, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
@@ -16,13 +19,10 @@ pub struct AnmeldungRequestProps {
 
 #[function_component(Registration)]
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
-    let handler =
-    async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-        tucan.0.anmeldung(current_session, revalidation_strategy, additional).await
-    };
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, registration.to_owned());
-   
+
     let navigator = use_navigator().unwrap();
 
     let data = match data.deref() {

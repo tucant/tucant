@@ -1,8 +1,11 @@
 use std::ops::Deref;
 
+use crate::{
+    RcTucanType,
+    common::{DataLoaderReturn, use_data_loader},
+};
 use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
-use yew::{function_component, html, Html, HtmlResult, Properties};
-use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType};
+use yew::{Html, HtmlResult, Properties, function_component, html};
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {
@@ -11,11 +14,7 @@ pub struct CourseDetailsProps {
 
 #[function_component(CourseDetails)]
 pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
-
-    let handler =
-        async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-            tucan.0.course_details(&current_session, revalidation_strategy, additional).await
-        };
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
 
     let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, course_details.to_owned());
 

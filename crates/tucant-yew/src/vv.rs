@@ -7,7 +7,10 @@ use tucant_types::{
 use yew::{Html, HtmlResult, Properties, function_component, html};
 use yew_router::prelude::Link;
 
-use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType, Route};
+use crate::{
+    RcTucanType, Route,
+    common::{DataLoaderReturn, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisProps {
@@ -16,10 +19,7 @@ pub struct VorlesungsverzeichnisProps {
 
 #[function_component(VorlesungsverzeichnisComponent)]
 pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisProps { vv }: &VorlesungsverzeichnisProps) -> HtmlResult {
-    let handler =
-    async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-        tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await
-    };
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await;
 
     let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, vv.to_owned());
 

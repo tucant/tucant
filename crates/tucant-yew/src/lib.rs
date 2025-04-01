@@ -23,6 +23,7 @@ pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 
 pub mod api_server;
+pub mod common;
 pub mod course_details;
 pub mod course_results;
 pub mod exam_results;
@@ -35,7 +36,6 @@ pub mod my_modules;
 pub mod registration;
 pub mod tauri;
 pub mod vv;
-pub mod common;
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {
