@@ -10,7 +10,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{RcTucanType, Route, vv};
+use crate::{common::{use_data_loader, DataLoaderReturn}, vv, RcTucanType, Route};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisProps {
@@ -19,90 +19,21 @@ pub struct VorlesungsverzeichnisProps {
 
 #[function_component(VorlesungsverzeichnisComponent)]
 pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisProps { vv }: &VorlesungsverzeichnisProps) -> HtmlResult {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
+    let handler =
+    async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
+        tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await
+    };
 
-    // TODO add invalidation if you press the register button (I think we need to add this to revalidation strategy)
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, vv.to_owned());
 
-    let data = use_state(|| {
-        Ok(Vorlesungsverzeichnis {
+    let data = match data.deref() {
+        Ok(data) => data.clone().unwrap_or(Vorlesungsverzeichnis {
             title: "Wird geladen...".to_owned(),
             entries: Vec::new(),
             path: Vec::new(),
             description: Vec::new(),
             veranstaltungen_or_module: Vec::new(),
-        })
-    });
-    let loading = use_state(|| false);
-    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    {
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session = current_session.clone();
-        let tucan = tucan.clone();
-        use_effect_with(vv.clone(), move |vv| {
-            if let Some(current_session) = (*current_session).to_owned() {
-                loading.set(true);
-                let vv = vv.clone();
-                let data = data.clone();
-                spawn_local(async move {
-                    match tucan.0.vv(Some(&current_session), RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, vv.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(response));
-                            loading.set(false);
-
-                            match tucan.0.vv(Some(&current_session), RevalidationStrategy { max_age: 3 * 24 * 60 * 60, invalidate_dependents: Some(true) }, vv).await {
-                                Ok(response) => data.set(Ok(response)),
-                                Err(error) => {
-                                    info!("ignoring error when refetching: {}", error)
-                                }
-                            }
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        });
-    }
-
-    let reload = {
-        let current_session = current_session.clone();
-        let vv = vv.clone();
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session = current_session.clone();
-        let tucan = tucan.clone();
-        Callback::from(move |_e: MouseEvent| {
-            if let Some(current_session) = (*current_session).to_owned() {
-                loading.set(true);
-                let vv = vv.clone();
-                let data = data.clone();
-                let tucan = tucan.clone();
-                let loading = loading.clone();
-                spawn_local(async move {
-                    match tucan.0.vv(Some(&current_session), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, vv.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(response));
-                            loading.set(false);
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        })
-    };
-
-    let data = match data.deref() {
-        Ok(data) => data,
+        }),
         Err(error) => {
             return Ok(html! {
                 <div class="container">
