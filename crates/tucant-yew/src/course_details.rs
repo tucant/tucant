@@ -3,22 +3,23 @@ use std::{ops::Deref, rc::Rc};
 use log::info;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
 use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
-
+use yew::{function_component, hook, html, use_context, use_effect_with, use_state, Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle};
 use crate::RcTucanType;
+use tucant_types::{coursedetails::CourseDetailsResponse, TucanError};
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {
     pub course_details: CourseDetailsRequest,
 }
 
-#[function_component(CourseDetails)]
-pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
+pub struct DataLoaderReturn {
+    pub data: UseStateHandle<Result<Option<CourseDetailsResponse>, String>>,
+    pub loading: UseStateHandle<bool>,
+    pub reload: Callback<MouseEvent>
+}
 
-    let handler =
-        async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
-            tucan.0.course_details(&current_session, revalidation_strategy, additional).await
-        };
+#[hook]
+pub fn use_data_loader<TucanType: Tucan + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> + Copy + 'static, request: CourseDetailsRequest) -> DataLoaderReturn {
 
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
@@ -30,7 +31,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
         let loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        use_effect_with(course_details.to_owned(), move |request| {
+        use_effect_with(request.to_owned(), move |request| {
             if let Some(current_session) = (*current_session_handle).to_owned() {
                 loading.set(true);
                 let request = request.clone();
@@ -63,7 +64,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
 
     let reload = {
         let current_session = current_session_handle.clone();
-        let course_details = course_details.clone();
+        let course_details = request.clone();
         let data = data.clone();
         let loading = loading.clone();
         let current_session = current_session.clone();
@@ -92,6 +93,19 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             }
         })
     };
+
+    DataLoaderReturn { data, loading, reload }
+}
+
+#[function_component(CourseDetails)]
+pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
+
+    let handler =
+        async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| {
+            tucan.0.course_details(&current_session, revalidation_strategy, additional).await
+        };
+
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, course_details.to_owned());
 
     let data = match data.deref() {
         Ok(data) => data,
