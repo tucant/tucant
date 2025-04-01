@@ -76,7 +76,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 let tucan = tucan.clone();
                 let loading = loading.clone();
                 spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
+                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
