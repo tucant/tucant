@@ -18,6 +18,7 @@ pub struct AnmeldungRequestProps {
 
 #[function_component(Registration)]
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
+    
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     // TODO add invalidation if you press the register button (I think we need to add this to revalidation strategy)
