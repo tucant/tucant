@@ -1,11 +1,11 @@
 use std::ops::Deref;
 
 use log::info;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
+use tucant_types::{coursedetails::{CourseDetailsRequest, CourseDetailsResponse}, LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
-use crate::RcTucanType;
+use crate::{common::WhatTheHell, RcTucanType};
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {
@@ -14,78 +14,13 @@ pub struct CourseDetailsProps {
 
 #[function_component(CourseDetails)]
 pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let data = use_state(|| Ok(None));
-    let loading = use_state(|| false);
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    {
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session_handle = current_session_handle.clone();
-        let tucan = tucan.clone();
-        use_effect_with(course_details.to_owned(), move |request| {
-            if let Some(current_session) = (*current_session_handle).to_owned() {
-                loading.set(true);
-                let request = request.clone();
-                let data = data.clone();
-                let tucan = tucan.clone();
-                spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-
-                            match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request).await {
-                                Ok(response) => data.set(Ok(Some(response))),
-                                Err(error) => {
-                                    info!("ignoring error when refetching: {}", error)
-                                }
-                            }
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        });
+    struct A;
+    impl<TucanType: Tucan + 'static> WhatTheHell<TucanType, CourseDetailsResponse> for A {
+        fn execute(tucan: &TucanType, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>> {
+            tucan.course_details(request, revalidation_strategy, course_details)
+        }
     }
-
-    let reload = {
-        let current_session = current_session_handle.clone();
-        let course_details = course_details.clone();
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session = current_session.clone();
-        let tucan = tucan.clone();
-        Callback::from(move |_e: MouseEvent| {
-            if let Some(current_session) = (*current_session).to_owned() {
-                loading.set(true);
-                let course_details = course_details.clone();
-                let data = data.clone();
-                let tucan = tucan.clone();
-                let loading = loading.clone();
-                spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-                        }
-                        Err(error) => {
-                            data.set(Err(error.to_string()));
-                            loading.set(false);
-                        }
-                    }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
-        })
-    };
+    let DataLoaderReturn { data, loading, reload } = use_data_loader::<TucanType, MlsStart, A>();
 
     let data = match data.deref() {
         Ok(data) => data,
