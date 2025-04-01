@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, rc::Rc};
 
 use log::info;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
@@ -14,6 +14,12 @@ pub struct CourseDetailsProps {
 
 #[function_component(CourseDetails)]
 pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
+
+    let course_details_clone = course_details.clone();
+    let handler = async move |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy| {
+        tucan.0.course_details(&current_session, revalidation_strategy, course_details_clone).await
+    };
+
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -31,12 +37,12 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request.clone()).await {
+                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match tucan.0.course_details(&current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request).await {
+                            match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)
