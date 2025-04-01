@@ -15,7 +15,6 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
             tucan.after_login(request, revalidation_strategy)
         }
     }
-
     let DataLoaderReturn { data, loading, reload } = use_data_loader::<TucanType, MlsStart, A>();
 
     let data = match data.deref() {

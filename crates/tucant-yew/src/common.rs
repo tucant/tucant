@@ -12,11 +12,11 @@ pub struct DataLoaderReturn<T> {
 }
 
 pub trait WhatTheHell<TucanType: Tucan + 'static, T> {
-    fn execute(tucan: &TucanType, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<T, TucanError>>;
+    fn execute(&self, tucan: &TucanType, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<T, TucanError>>;
 }
 
 #[hook]
-pub fn use_data_loader<TucanType: Tucan + 'static, T: 'static, W: WhatTheHell<TucanType, T>>() -> DataLoaderReturn<T> {
+pub fn use_data_loader<TucanType: Tucan + 'static, T: 'static, W: WhatTheHell<TucanType, T> + 'static>(w: W ) -> DataLoaderReturn<T> {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -33,12 +33,12 @@ pub fn use_data_loader<TucanType: Tucan + 'static, T: 'static, W: WhatTheHell<Tu
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match W::execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
+                    match w.execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match W::execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
+                            match w.execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)
@@ -69,8 +69,9 @@ pub fn use_data_loader<TucanType: Tucan + 'static, T: 'static, W: WhatTheHell<Tu
                 let data = data.clone();
                 let tucan = tucan.clone();
                 let loading = loading.clone();
+                let w = &w;
                 spawn_local(async move {
-                    match W::execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }).await {
+                    match w.execute(&tucan.0, &current_session, RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
