@@ -1,14 +1,22 @@
 use std::ops::Deref;
 
 use log::info;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
+use tucant_types::{coursedetails::CourseDetailsRequest, mlsstart::MlsStart, LoginResponse, RevalidationStrategy, Tucan};
 use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect, use_effect_with, use_state};
+use yew::{function_component, hook, html, use_context, use_effect, use_effect_with, use_state, Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle};
 
 use crate::RcTucanType;
 
-#[function_component(Mlsstart)]
-pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
+pub struct DataLoaderReturn {
+    data: UseStateHandle<Result<Option<MlsStart>, String>>,
+    loading: UseStateHandle<bool>,
+    reload: Callback<MouseEvent>
+}
+
+#[hook]
+pub fn use_data_loader<TucanType: Tucan + 'static>() -> DataLoaderReturn {
+    use tucant_types::mlsstart::MlsStart;
+
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -78,6 +86,12 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
             }
         })
     };
+    DataLoaderReturn { data, loading, reload }
+}
+
+#[function_component(Mlsstart)]
+pub fn mlsstart<TucanType: Tucan + 'static>() -> HtmlResult {
+    let DataLoaderReturn { data, loading, reload } = use_data_loader::<TucanType>();
 
     let data = match data.deref() {
         Ok(data) => data,
