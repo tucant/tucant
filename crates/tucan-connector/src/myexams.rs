@@ -2,17 +2,12 @@ use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
-    coursedetails::CourseDetailsRequest,
-    moduledetails::ModuleDetailsRequest,
-    mycourses::{Course, MyCoursesResponse},
     myexams::{Exam, MyExamsResponse},
-    mymodules::{Module, MyModulesResponse},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
+    TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    registration::index::MODULEDETAILS_REGEX,
 };
 
 pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {

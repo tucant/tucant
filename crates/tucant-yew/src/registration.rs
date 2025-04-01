@@ -1,12 +1,10 @@
 use std::ops::Deref as _;
 
-use log::info;
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, Tucan,
+    Tucan,
     registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
 };
-use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
+use yew::{Html, HtmlResult, Properties, function_component, html};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType, Route};

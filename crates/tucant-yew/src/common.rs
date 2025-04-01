@@ -2,7 +2,7 @@ use yew::{hook, Callback, MouseEvent, UseStateHandle};
 use tucant_types::Tucan;
 use crate::RcTucanType;
 use yew::use_context;
-use tucant_types::{coursedetails::{CourseDetailsRequest, CourseDetailsResponse}, LoginResponse, RevalidationStrategy, TucanError};
+use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 use log::info;
 use yew::{platform::spawn_local, use_effect_with, use_state};
 

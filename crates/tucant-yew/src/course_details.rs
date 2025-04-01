@@ -1,11 +1,8 @@
-use std::{ops::Deref, rc::Rc};
+use std::ops::Deref;
 
-use log::info;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, coursedetails::CourseDetailsRequest};
-use wasm_bindgen_futures::spawn_local;
-use yew::{function_component, hook, html, use_context, use_effect_with, use_state, Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle};
+use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
+use yew::{function_component, html, Html, HtmlResult, Properties};
 use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType};
-use tucant_types::{coursedetails::CourseDetailsResponse, TucanError};
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {

@@ -1,16 +1,13 @@
 use std::ops::Deref as _;
 
-use log::info;
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, Tucan,
-    registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
+    Tucan,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
-use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
-use yew_router::{hooks::use_navigator, prelude::Link};
+use yew::{Html, HtmlResult, Properties, function_component, html};
+use yew_router::prelude::Link;
 
-use crate::{common::{use_data_loader, DataLoaderReturn}, vv, RcTucanType, Route};
+use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType, Route};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisProps {

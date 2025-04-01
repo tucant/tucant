@@ -1,9 +1,7 @@
 use std::ops::Deref;
 
-use log::info;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, moduledetails::ModuleDetailsRequest};
-use wasm_bindgen_futures::spawn_local;
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
+use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
+use yew::{Html, HtmlResult, Properties, function_component, html};
 
 use crate::{common::{use_data_loader, DataLoaderReturn}, RcTucanType};
 
