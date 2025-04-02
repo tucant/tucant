@@ -21,7 +21,7 @@ pub struct AnmeldungRequestProps {
 pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> HtmlResult {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.anmeldung(current_session, revalidation_strategy, additional).await;
 
-    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, registration.to_owned());
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60);
 
     let navigator = use_navigator().unwrap();
 

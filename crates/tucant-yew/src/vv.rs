@@ -21,7 +21,7 @@ pub struct VorlesungsverzeichnisProps {
 pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisProps { vv }: &VorlesungsverzeichnisProps) -> HtmlResult {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await;
 
-    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, vv.to_owned());
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60);
 
     let data = match data.deref() {
         Ok(data) => data.clone().unwrap_or(Vorlesungsverzeichnis {

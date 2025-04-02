@@ -13,7 +13,7 @@ pub struct DataLoaderReturn<O> {
 }
 
 #[hook]
-pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I) -> DataLoaderReturn<O> {
+pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64) -> DataLoaderReturn<O> {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -31,12 +31,12 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 14 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request.clone()).await {
+                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 4 * 24 * 60 * 60, invalidate_dependents: Some(true) }, request).await {
+                            match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)

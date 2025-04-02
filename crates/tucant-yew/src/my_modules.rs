@@ -12,7 +12,7 @@ use crate::{
 pub fn my_modules<TucanType: Tucan + 'static>() -> HtmlResult {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy).await;
 
-    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, ());
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, (), 14 * 24 * 60 * 60, 1 * 60 * 60);
 
     let data = match data.deref() {
         Ok(data) => data,
