@@ -16,7 +16,7 @@ pub struct CourseDetailsProps {
 pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> HtmlResult {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
 
-    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 1 * 60 * 60);
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60);
 
     let data = match data.deref() {
         Ok(data) => data,

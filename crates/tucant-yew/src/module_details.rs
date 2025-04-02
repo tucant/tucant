@@ -17,7 +17,7 @@ pub struct ModuleDetailsProps {
 pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> HtmlResult {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
-    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 1 * 60 * 60);
+    let DataLoaderReturn { data, loading, reload } = use_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60);
 
     let data = match data.deref() {
         Ok(data) => data,
