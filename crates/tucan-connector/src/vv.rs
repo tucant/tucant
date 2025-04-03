@@ -55,7 +55,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     <style type="text/css">
                         _ignore
                     </style>
-                    let _ewf = if login_response.is_some() {
+                    let _ewf = if html_handler.peek().is_some() {
                         <style type="text/css">
                             _ignore
                         </style>
