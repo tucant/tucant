@@ -38,7 +38,7 @@ pub fn exam_results<TucanType: Tucan + 'static>() -> Html {
             <tbody>
             {
                 exam_results.results.iter().map(|exam| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <th scope="row">{&exam.name}</th>
                             <td>{&exam.exam_type}</td>

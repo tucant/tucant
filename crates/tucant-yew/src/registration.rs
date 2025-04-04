@@ -23,9 +23,9 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
     use_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
-            return html! { <></> };
+            return yew::html! { <></> };
         }
-        html! {
+        yew::html! {
             <div class="container">
                 <h2 class="text-center">{ "Registration " }<button onclick={reload} type="button" class="btn btn-light">
                     // https://github.com/twbs/icons
@@ -39,7 +39,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         { data.path.iter().map(|entry| {
-                                html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
+                            yew::html!{<li class="breadcrumb-item"><Link<Route> to={Route::Registration { registration: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
                             }).collect::<Html>() }
                     </ol>
                 </nav>
@@ -48,14 +48,14 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 <h2 class="text-center">{ "Submenus" }</h2>
                 <ul class="list-group">
                     { data.submenus.iter().map(|entry| {
-                            html!{<Link<Route> to={Route::Registration { registration: entry.1.clone()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                            yew::html!{<Link<Route> to={Route::Registration { registration: entry.1.clone()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                         }).collect::<Html>() }
                 </ul>
                 <h2 class="text-center">{ "Modules and courses" }</h2>
                 <ul class="list-group">
                     { for data.entries.iter().map(|entry| {
                             let module = entry.module.as_ref();
-                            html!{
+                            yew::html!{
                                 <li class="list-group-item">
                                     <div class="d-flex w-100 justify-content-between">
                                         <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
@@ -77,9 +77,9 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                     {
                                         module.map(|module| {
                                             match &module.registration_state {
-                                                RegistrationState::Unknown => html! { },
-                                                RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Modul abmelden"}</a> },
-                                                RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>{"Zum Modul anmelden"}</a> },
+                                                RegistrationState::Unknown => yew::html! { },
+                                                RegistrationState::Registered { unregister_link } => yew::html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Modul abmelden"}</a> },
+                                                RegistrationState::NotRegistered { register_link } => yew::html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>{"Zum Modul anmelden"}</a> },
                                             }
                                         })
                                     }
@@ -87,7 +87,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                     {
                                         for entry.courses.iter().map(|course|
                                          {
-                                            html! {
+                                            yew::html! {
                                                 <li class="list-group-item">
                                                     <div class="d-flex w-100 justify-content-between">
                                                         <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>{ format!("Kurs {} {}", course.1.id, course.1.name) }</Link<Route>></h5>
@@ -108,9 +108,9 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
 
                                                     {
                                                         match &course.1.registration_button_link {
-                                                            RegistrationState::Unknown => html! { },
-                                                            RegistrationState::Registered { unregister_link } => html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Kurs abmelden"}</a> },
-                                                            RegistrationState::NotRegistered { register_link } => html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",register_link.clone())}>{"Zum Kurs anmelden"}</a> },
+                                                            RegistrationState::Unknown => yew::html! { },
+                                                            RegistrationState::Registered { unregister_link } => yew::html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Kurs abmelden"}</a> },
+                                                            RegistrationState::NotRegistered { register_link } => yew::html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",register_link.clone())}>{"Zum Kurs anmelden"}</a> },
                                                         }
                                                     }
                                                 </li>

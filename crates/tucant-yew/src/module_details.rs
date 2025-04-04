@@ -15,7 +15,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
     use_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
-        html! {
+        yew::html! {
             <div>
                 <h1>
                     { &module.module_id }
@@ -39,7 +39,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 <ul>
                 {
                     module.modulverantwortliche.iter().map(|modulverantwortliche| {
-                        html!{
+                        yew::html!{
                             <li>{ &modulverantwortliche.0 }</li>
                         }
                     }).collect::<Html>()
@@ -50,7 +50,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
 
                 {
                     module.kurskategorien.iter().map(|kurskategorie| {
-                        html!{
+                        yew::html!{
                             <>
                                 <h3>
                                     {& kurskategorie.course_no}
@@ -78,7 +78,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <tbody>
                                 {
                                     kurskategorie.kurse.iter().map(|kurs| {
-                                    html! {
+                                    yew::html! {
                                         <tr>
                                             <th scope="row">{&kurs.course_id}</th>
                                             <td>{&kurs.name}</td>
@@ -97,7 +97,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 <h2>{"Leistungen"}</h2>
                 {
                     module.leistungen.iter().map(|leistung| {
-                        html!{
+                        yew::html!{
                             <>
                             <h3>
                                 { &leistung.name }
@@ -117,7 +117,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 <h2>{"Pruefungen"}</h2>
                 {
                     module.pruefungen.iter().map(|pruefung| {
-                        html!{
+                        yew::html!{
                             <>
                             <h3>
                                 { &pruefung.name }
@@ -136,7 +136,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <tbody>
                             {
                                 pruefung.termine.iter().map(|termin| {
-                                html! {
+                                yew::html! {
                                     <tr>
                                         <th scope="row">{& termin.subname}</th>
                                         <td>{  &termin.date }</td>

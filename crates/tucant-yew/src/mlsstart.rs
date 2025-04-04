@@ -10,7 +10,7 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.after_login(&current_session, revalidation_strategy).await;
 
     use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart, reload| {
-        html! {
+        yew::html! {
             <div>
 
                         <h1>
@@ -38,7 +38,7 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                         <tbody>
                         {
                             mlsstart.stundenplan.iter().map(|stundenplaneintrag| {
-                                html!{
+                                yew::html!{
                                     <tr>
                                         <th scope="row">{&stundenplaneintrag.course_name}</th>
                                         <td>{&stundenplaneintrag.from}</td>
@@ -62,7 +62,7 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                         <tbody>
                         {
                             mlsstart.messages.iter().map(|nachricht| {
-                                html!{
+                                yew::html!{
                                     <tr>
                                         <th scope="row">{&nachricht.date}</th>
                                         <td>{&nachricht.source}</td>

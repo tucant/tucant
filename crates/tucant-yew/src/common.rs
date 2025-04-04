@@ -87,7 +87,7 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
     let data = match data.deref() {
         Ok(data) => data,
         Err(error) => {
-            return html! {
+            return yew::html! {
                 <div class="container">
                     <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
                         // https://github.com/twbs/icons
@@ -103,7 +103,7 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
         }
     };
 
-    html! {
+    yew::html! {
         <div class="container">
             if *loading {
                 <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">

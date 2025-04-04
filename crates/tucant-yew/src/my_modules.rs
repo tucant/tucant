@@ -10,7 +10,7 @@ pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy).await;
 
     use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |my_modules, reload| {
-        html! {
+        yew::html! {
            <div>
             <h1>
                 { "Meine Module" }
@@ -37,7 +37,7 @@ pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
             <tbody>
             {
                 my_modules.modules.iter().map(|stundenplaneintrag| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <th scope="row">{&stundenplaneintrag.nr}</th>
                             <td>{&stundenplaneintrag.title}</td>

@@ -36,7 +36,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
         });
     }
 
-    html! {
+    yew::html! {
         <>
         <nav class="navbar navbar-expand-xl bg-body-tertiary">
             <div class="container-fluid">
@@ -64,9 +64,9 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
         </nav>
         {
             match data.deref() {
-                Ok(data) => html! {},
+                Ok(data) => yew::html! {},
                 Err(error) => {
-                    html! {
+                    yew::html! {
                         <div class="container">
                             <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
                                 // https://github.com/twbs/icons

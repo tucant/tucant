@@ -19,7 +19,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await;
 
     use_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
-        html! {
+        yew::html! {
             <div class="container">
                 <h2 class="text-center">{ &data.title }<button onclick={reload} type="button" class="btn btn-light">
                     // https://github.com/twbs/icons
@@ -33,7 +33,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                 <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         { data.path.iter().map(|entry| {
-                                html!{<li class="breadcrumb-item"><Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
+                                yew::html!{<li class="breadcrumb-item"><Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone()}}>{entry.0.clone()}</Link<Route>></li>}
                             }).collect::<Html>() }
                     </ol>
                 </nav>
@@ -42,13 +42,13 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                 <h2 class="text-center">{ "Submenus" }</h2>
                 <ul class="list-group">
                     { data.entries.iter().map(|entry| {
-                            html!{<Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
+                            yew::html!{<Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone()}} classes="list-group-item list-group-item-action">{ format!("{}", entry.0) }</Link<Route>>}
                         }).collect::<Html>() }
                 </ul>
                 <h2 class="text-center">{ "Modules and courses" }</h2>
                 <ul class="list-group">
                     { for data.veranstaltungen_or_module.iter().map(|entry| {
-                        html!{
+                        yew::html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: entry.coursedetails_url.clone() }}>{ format!("Kurs {}", entry.title) }</Link<Route>></h5>

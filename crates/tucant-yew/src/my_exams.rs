@@ -10,7 +10,7 @@ pub fn my_exams<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_exams(&current_session, revalidation_strategy).await;
 
     use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |exams, reload| {
-        html! {
+        yew::html! {
             <div>
                 <h1>
                     { "Prüfungen" }
@@ -37,7 +37,7 @@ pub fn my_exams<TucanType: Tucan + 'static>() -> Html {
                 <tbody>
                 {
                     exams.exams.iter().map(|exam| {
-                        html!{
+                        yew::html!{
                             <tr>
                                 <th scope="row">{&exam.id}</th>
                                 <td>{&exam.name}</td>

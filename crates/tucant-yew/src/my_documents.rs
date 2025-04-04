@@ -10,7 +10,7 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_documents(&current_session, revalidation_strategy).await;
 
     use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
-        html! {
+        yew::html! {
             <div>
 
             <h1>
@@ -37,7 +37,7 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
             <tbody>
             {
                 documents.documents.iter().map(|document| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <th scope="row">{&document.name}</th>
                             <td>{&document.date}{" "}{&document.time}</td>

@@ -17,7 +17,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
 
     use_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
-        html! {
+        yew::html! {
             <div>
 
             <h1>
@@ -39,7 +39,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             <ul>
             {
                 course.instructors.iter().map(|instructor| {
-                    html!{
+                    yew::html!{
                         <li>{ &instructor.0 }</li>
                     }
                 }).collect::<Html>()
@@ -52,15 +52,15 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
 
             {
                 match (course.teilnehmer_min, course.teilnehmer_max) {
-                    (None, None) => html! {
+                    (None, None) => yew::html! {
                     },
-                    (None, Some(max)) => html! {
+                    (None, Some(max)) => yew::html! {
                         <div>{ format!("Maximal {max} Teilnehmende") }</div>
                     },
-                    (Some(min), None) => html! {
+                    (Some(min), None) => yew::html! {
                         <div>{ format!("Mindestens {min} Teilnehmende", ) }</div>
                     },
-                    (Some(min), Some(max)) => html! {
+                    (Some(min), Some(max)) => yew::html! {
                         <div>{ format!("{min} - {max} Teilnehmende", ) }</div>
                     }
                 }
@@ -78,7 +78,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             <tbody>
             {
                 course.uebungsgruppen.iter().map(|uebungsgruppe| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <th scope="row">{&uebungsgruppe.name}</th>
                             <td>{uebungsgruppe.date_range.clone().unwrap_or_default()}</td>
@@ -105,7 +105,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             <tbody>
             {
                 course.course_anmeldefristen.iter().map(|anmeldefrist| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <td>{&anmeldefrist.zulassungstyp}</td>
                             <td>{&anmeldefrist.block_type}</td>
@@ -134,7 +134,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             <tbody>
             {
                 course.termine.iter().map(|termin| {
-                    html!{
+                    yew::html!{
                         <tr>
                             <td>{&termin.date}</td>
                             <td>{&termin.time_start}</td>
@@ -143,7 +143,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                             <td><ul>
                             {
                                 termin.rooms.iter().map(|room| {
-                                    html!{
+                                    yew::html!{
                                         <li>{&room.name}</li>
                                     }
                                 }).collect::<Html>()
@@ -177,7 +177,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
             <ul>
             {
                 course.enhalten_in_modulen.iter().map(|modul| {
-                    html!{
+                    yew::html!{
                         <li>{modul}</li>
                     }
                 }).collect::<Html>()

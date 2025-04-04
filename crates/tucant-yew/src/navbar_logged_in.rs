@@ -11,9 +11,9 @@ pub struct VorlesungsverzeichnisseProps {
 
 #[function_component(Vorlesungsverzeichnisse)]
 pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
-    html! {
+    yew::html! {
         { data.iter().flat_map(|v| v.logged_in_head.vv.vvs.iter()).map(|(name, url)| {
-            html!{
+            yew::html!{
                 <li>
                 <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
                     { name }
@@ -38,7 +38,7 @@ pub struct NavbarLoggedInProps {
 
 #[function_component(NavbarLoggedIn)]
 pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLoggedInProps) -> Html {
-    html! {
+    yew::html! {
         <>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{ "Aktuelles" }</a>

@@ -2,7 +2,7 @@ use yew::{Html, function_component, html};
 
 #[function_component(NavbarLoggedOut)]
 pub fn navbar_logged_out() -> Html {
-    html! {
+    yew::html! {
         <>
             <li class="nav-item">
                 <a class="nav-link" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">{ "Startseite" }</a>
