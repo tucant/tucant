@@ -24,7 +24,7 @@
 
         inherit (pkgs) lib;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-03-16".minimal.override {
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-04-02".minimal.override {
           extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
           targets = [ "wasm32-unknown-unknown" ];
         };

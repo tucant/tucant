@@ -10,7 +10,7 @@ pub fn exam_results<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.exam_results(&current_session, revalidation_strategy).await;
 
     use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |exam_results, reload| {
-        html! {
+        yew::html! {
             <div>
 
             <h1>
