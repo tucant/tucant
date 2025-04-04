@@ -23,7 +23,9 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
     use_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
-            return yew::html! { <></> };
+            return ::yew::html! {
+                <></>
+            };
         }
         yew::html! {
             <div class="container">
