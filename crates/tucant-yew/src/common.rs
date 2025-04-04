@@ -103,20 +103,19 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
         }
     };
 
-    yew::html! {
+    ::yew::html! {
         <div class="container">
             if *loading {
                 <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
                     <div class="spinner-grow" role="status">
-                        <span class="visually-hidden">{"Loading..."}</span>
+                        <span class="visually-hidden">
+                            {"Loading..."}
+                        </span>
                     </div>
                 </div>
             }
-
             if let Some(course) = data {
-               {
-                    render(course.to_owned(), reload)
-               }
+                {render(course.to_owned(), reload)}
             }
         </div>
     }

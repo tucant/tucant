@@ -11,9 +11,11 @@ pub struct VorlesungsverzeichnisseProps {
 
 #[function_component(Vorlesungsverzeichnisse)]
 pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
-    yew::html! {
-        { data.iter().flat_map(|v| v.logged_in_head.vv.vvs.iter()).map(|(name, url)| {
-            yew::html!{
+    ::yew::html! {
+        {data.iter()
+            .flat_map(|v| v.logged_in_head.vv.vvs.iter())
+            .map(|(name, url)| {
+                yew::html!{
                 <li>
                 <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
                     { name }
@@ -26,7 +28,8 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
             </li>
 
             }
-        }).collect::<Html>() }
+            })
+            .collect::<Html>()}
     }
 }
 
