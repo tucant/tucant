@@ -24,13 +24,13 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         <span class="badge text-bg-secondary">
                             {format!("{credits} CP",)}
                         </span>
-                    } 
+                    }
                     if module.registered {
                         {" "}
                         <span class="badge text-bg-secondary">
                             {"Angemeldet"}
                         </span>
-                    } 
+                    }
                     {" "}
                     <button onclick={reload} type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
@@ -77,21 +77,21 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <span class="badge text-bg-secondary">
                                         {format!("{} CP", kurskategorie.credits)}
                                     </span>
-                                } 
+                                }
                                 if kurskategorie.mandatory {
                                     {" "}
                                     <span class="badge text-bg-secondary">
                                         {"Pflicht"}
                                     </span>
-                                } 
+                                }
                                 if let Some(semester) = &kurskategorie.semester {
                                     if *semester != 1 {
                                         {" "}
                                         <span class="badge text-bg-secondary">
                                             {format!("{semester} Semester")}
                                         </span>
-                                    } 
-                                } 
+                                    }
+                                }
                             </h3>
                             <table class="table">
                                 <thead>
@@ -148,7 +148,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <span class="badge text-bg-secondary">
                                         {"Pflicht"}
                                     </span>
-                                } 
+                                }
                                 {" "}
                                 <span class="badge text-bg-secondary">
                                     {format!("{} Gewichtung", leistung.weight)}
@@ -158,7 +158,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <span class="badge text-bg-secondary">
                                         {format!("Zusatzinfo {weight_more}")}
                                     </span>
-                                } 
+                                }
                             </h3></>
                     }
                 })
@@ -179,7 +179,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     <span class="badge text-bg-secondary">
                                         {"Pflicht"}
                                     </span>
-                                } 
+                                }
                             </h3>
                             <table class="table">
                                 <thead>
@@ -233,7 +233,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             <div class="alert alert-warning" role="alert">
                                 {"Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein."}
                             </div>
-                        } 
+                        }
                         if let Some(anmeldefristen) = &module.anmeldefristen {
                             <div>
                                 {format!("Anmeldefrist: {}", anmeldefristen.registration_range)}
@@ -241,7 +241,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             <div>
                                 {format!("Abmeldefrist: {}", anmeldefristen.unregistration_range)}
                             </div>
-                        } 
+                        }
                         <div>
                             {format!("Startsemester: {}", module.start_semester)}
                         </div>
@@ -249,7 +249,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             <div>
                                 {format!("Display in timetable: {}", display_in_timetable)}
                             </div>
-                        } 
+                        }
                         <div>
                             {format!("Dauer: {}", module.duration)}
                         </div>

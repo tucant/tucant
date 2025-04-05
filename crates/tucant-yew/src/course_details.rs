@@ -26,7 +26,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         <span class="badge text-bg-secondary">
                             {format!("{} CP", credits)}
                         </span>
-                    } 
+                    }
                     {" "}
                     <button onclick={reload} type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
@@ -257,7 +257,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                             <div>
                                 {format!("Anzeige im Stundenplan: {}", anzeige_im_stundenplan)}
                             </div>
-                        } 
+                        }
                         <div>
                             {format!("Kurslevel: {}", course.courselevel)}
                         </div>
