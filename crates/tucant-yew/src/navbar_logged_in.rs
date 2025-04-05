@@ -65,7 +65,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                                         <span class="visually-hidden" role="status">
                                             { "Loading..." }
                                         </span>
-                                } 
+                                }
                                 </a>
                             </li>
                         </ul>
@@ -84,7 +84,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                                             <span class="visually-hidden" role="status">
                                                 { "Loading..." }
                                             </span>
-                                    } 
+                                    }
                                     </Link<Route>>
                                 </li>
                                 <li>
@@ -99,7 +99,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                                                     <span class="visually-hidden" role="status">
                                                         { "Loading..." }
                                                     </span>
-                                            } 
+                                            }
                                             </a>
                                         </li>
                                         <li>
@@ -271,7 +271,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                                                                         <span class="visually-hidden" role="status">
                                                                             { "Loading..." }
                                                                         </span>
-                                                                } 
+                                                                }
                                                                 </a>
                                                                 <li>
                                                                     <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -301,7 +301,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                                                                                 <span class="visually-hidden" role="status">
                                                                                     { "Loading..." }
                                                                                 </span>
-                                                                        } 
+                                                                        }
                                                                         </a>
                                                                         <li>
                                                                             <Link<Route> to={Route::MyDocuments} classes="dropdown-item">
