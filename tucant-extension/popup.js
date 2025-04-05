@@ -17,18 +17,20 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         url: `${EXTENSION_PAGE}*`
     })
 
+    let tabs = await chrome.tabs.query({
+        url: `${EXTENSION_PAGE}*`
+    })
+
+    const notice = URL.createObjectURL(new Blob([`<body><h1>Extension is reloading ...</h1></body>`,], { type: 'text/html', })) + "#reloading";
+
     await Promise.all(activeTabs.map(tab => {
         chrome.tabs.create({
             active: true,
             index: tab.index,
             windowId: tab.windowId,
-            url: `${EXTENSION_PAGE}dist/index.html#/`
+            url: notice
         })
     }))
-
-    let tabs = await chrome.tabs.query({
-        url: `${EXTENSION_PAGE}*`
-    })
 
     await Promise.all(tabs.map(tab => {
         chrome.tabs.discard(tab.id)
