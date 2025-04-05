@@ -85,7 +85,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                         <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
                                         if let Some(module) = module {
                                             if let Some(date) = &module.date {
-                                                <small class="text-body-secondary">{ format!("Anmeldung bis {}", date) }</small>
+                                        <small class="text-body-secondary">{ format!("Anmeldung bis {}", date) }</small>
                                             }
                                         }
                                     </div>

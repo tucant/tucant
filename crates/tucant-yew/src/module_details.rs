@@ -235,7 +235,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             </div>
                         }
                         if let Some(anmeldefristen) = &module.anmeldefristen {
-                            <div>
+                    <div>
                                 {format!("Anmeldefrist: {}", anmeldefristen.registration_range)}
                             </div>
                             <div>

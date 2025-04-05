@@ -254,7 +254,7 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                             {format!("SWS: {}", course.sws.map(|v| v.to_string()).unwrap_or_default())}
                         </div>
                         if let Some(anzeige_im_stundenplan) = &course.anzeige_im_stundenplan {
-                            <div>
+                    <div>
                                 {format!("Anzeige im Stundenplan: {}", anzeige_im_stundenplan)}
                             </div>
                         }

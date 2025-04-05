@@ -115,7 +115,7 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
                             {"Loading..."}
                         </span>
                     </div>
-                </div>
+            </div>
             }
             if let Some(course) = data {
                 {render(course.to_owned(), reload)}
