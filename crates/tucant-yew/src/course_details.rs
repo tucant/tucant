@@ -242,7 +242,6 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                             {"Beschreibung"}
                         </h2>
                         // TODO FIXME this is dangerous
-                        {
 
                         {Html::from_html_unchecked(course.description.join("\n").into())}
                         <h2>
