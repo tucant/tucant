@@ -6,6 +6,12 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
     }
 });
 
+document.querySelector("#update-extension")?.addEventListener('click', async function () {
+    console.log("test")
+    //await chrome.runtime.requestUpdateCheck();
+    chrome.runtime.reload();
+})
+
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
     if (await chrome.permissions.request({
         origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/']
