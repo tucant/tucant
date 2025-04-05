@@ -12,7 +12,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     chrome.contextMenus.create({
         id: "open-in-tucan",
         title: "Open in TUCaN",
-        contexts: ["link", "page"],
+        contexts: ["link"],
         targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
@@ -21,8 +21,24 @@ chrome.runtime.onInstalled.addListener(async () => {
     chrome.contextMenus.create({
         id: "open-in-tucant",
         title: "Open in TUCaN't",
-        contexts: ["link", "page"],
+        contexts: ["link"],
         targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "open-in-tucan-page",
+        title: "Open in TUCaN",
+        contexts: ["page"],
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "open-in-tucant-page",
+        title: "Open in TUCaN't",
+        contexts: ["page"],
     }, () => {
         console.log(chrome.runtime.lastError)
     })
