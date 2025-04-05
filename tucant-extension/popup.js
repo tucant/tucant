@@ -12,15 +12,29 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     console.log("test")
     // https://gist.github.com/NiklasGollenstede/63a6099d97e82ffe0cc064d4d4d82b62
 
+    let activeTabs = await chrome.tabs.query({
+        active: true,
+        url: `${EXTENSION_PAGE}*`
+    })
+
+    await Promise.all(activeTabs.map(tab => {
+        chrome.tabs.create({
+            active: true,
+            index: tab.index,
+            windowId: tab.windowId,
+            url: `${EXTENSION_PAGE}dist/index.html#/`
+        })
+    }))
+
     let tabs = await chrome.tabs.query({
         url: `${EXTENSION_PAGE}*`
     })
 
-    tabs.forEach(tab => {
+    await Promise.all(tabs.map(tab => {
         chrome.tabs.discard(tab.id)
-    })
+    }))
 
-    chrome.runtime.reload();
+    await chrome.runtime.reload();
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
