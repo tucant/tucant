@@ -2,19 +2,27 @@ import "./fix-session-id-in-url.js"
 
 console.log("background script")
 
-chrome.runtime.onInstalled.addListener(() => {
+const EXTENSION_PAGE = chrome.runtime.getURL('/');
+
+chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
     chrome.contextMenus.create({
         id: "open-in-tucan",
         title: "Open in TUCaN",
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        contexts: ["link", "page"],
+        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
     })
 
     chrome.contextMenus.create({
         id: "open-in-tucant",
         title: "Open in TUCaN't",
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        contexts: ["link", "page"],
+        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
     })
 });
 
