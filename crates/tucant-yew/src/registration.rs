@@ -55,7 +55,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                 </ul>
                 <h2 class="text-center">{ "Modules and courses" }</h2>
                 <ul class="list-group">
-                    { for data.entries.iter().map(|entry| {
+                    { data.entries.iter().map(|entry| {
                             let module = entry.module.as_ref();
                             yew::html!{
                                 <li class="list-group-item">
@@ -122,7 +122,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                     </ul>
                                 </li>
                             }
-                        }) }
+                        }).collect::<Html>() }
                 </ul>
                 </div>
         }

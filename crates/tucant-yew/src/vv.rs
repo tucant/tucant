@@ -47,7 +47,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                 </ul>
                 <h2 class="text-center">{ "Modules and courses" }</h2>
                 <ul class="list-group">
-                    { for data.veranstaltungen_or_module.iter().map(|entry| {
+                    { data.veranstaltungen_or_module.iter().map(|entry| {
                         yew::html!{
                             <li class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
@@ -60,7 +60,7 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
 
                                 <h6 class="mb-1">{ format!("{}", entry.date_range.clone().unwrap_or_default()) }</h6>
                             </li>
-                        } })
+                        } }).collect::<Html>() 
                     }
                 </ul>
             </div>
