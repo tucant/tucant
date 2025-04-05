@@ -5,9 +5,12 @@ console.log("background script")
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant-page") {
-        // TODO url conversion
-    }
+    chrome.notifications.create({
+        type: "basic",
+        iconUrl: chrome.runtime.getURL("/icon-512.png"),
+        title: "Unfortunately this feature is not implemented yet",
+        message: "We welcome any contribution",
+    });
 })
 
 chrome.runtime.onInstalled.addListener(async () => {

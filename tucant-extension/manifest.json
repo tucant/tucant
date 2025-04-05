@@ -19,7 +19,8 @@
         "scripting",
         "storage",
         "cookies",
-        "contextMenus"
+        "contextMenus",
+        "notifications"
     ],
     "omnibox": {
         "keyword": "tucan"
