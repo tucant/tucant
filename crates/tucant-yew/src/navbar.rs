@@ -51,7 +51,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                 if let Some(current_session) = &*current_session {
                                     if let Ok(data) = &*data {
                                         <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />
-                                    } 
+                                    }
                                 }  else {
                                     <NavbarLoggedOut />
                                 }
