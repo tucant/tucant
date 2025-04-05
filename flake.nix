@@ -24,7 +24,7 @@
 
         inherit (pkgs) lib;
 
-        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-03-16".minimal.override {
+        rustNightlyToolchainFor = p: p.rust-bin.nightly."2025-04-02".minimal.override {
           extensions = [ "rust-docs" "clippy" "rust-src" "rustc-dev" "llvm-tools-preview" ];
           targets = [ "wasm32-unknown-unknown" ];
         };
@@ -208,8 +208,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "bf96b5a73851a762be7905f3296f279376fc058f";
-            hash = "sha256-hE60drkKUbi4J1OVkBJ+I48nAtsM+bld1NmIjjqIEik=";
+            rev = "5c651de342ab906ba5e25ff6f9664858908b3c5b";
+            hash = "sha256-w80g0enRR7lQFiJklXjJbliXn0iyOfRd88RemnTroIQ=";
           };
           doCheck = false;
         };

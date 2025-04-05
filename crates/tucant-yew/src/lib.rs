@@ -233,61 +233,97 @@ enum Route {
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {
-            html! { <Registration<TucanType> registration={registration} /> }
+            ::yew::html! {
+                <Registration<TucanType> registration={registration} />
+            }
         }
         Route::RootRegistration => {
-            html! { <Registration<TucanType> registration={AnmeldungRequest::default()} /> }
+            ::yew::html! {
+                <Registration<TucanType> registration={AnmeldungRequest::default()} />
+            }
         }
-        Route::NotFound => html! { <div>{ "404" }</div> },
-        Route::Root => html! {
+        Route::NotFound => ::yew::html! {
+            <div>
+                {"404"}
+            </div>
+        },
+        Route::Root => ::yew::html! {
             <div class="container">
-                <h1>{ "Willkommen bei TUCaN't!" }</h1>
+                <h1>
+                    {"Willkommen bei TUCaN't!"}
+                </h1>
                 <p>
-                    { "Du kannst gerne die " }
-                    <a href="https://tucant.github.io/tucant/" target="_blank">{ "Browsererweiterung herunterladen" }</a>
-                    { ", falls Du diese noch nicht verwendest." }
+                    {"Du kannst gerne die "}
+                    <a href="https://tucant.github.io/tucant/" target="_blank">
+                        {"Browsererweiterung herunterladen"}
+                    </a>
+                    {", falls Du diese noch nicht verwendest."}
                 </p>
                 <p>
-                    { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
-                    <a href="https://github.com/tucant/tucant/" target="_blank">{ "GitHub" }</a>
-                    { " verfügbar." }
+                    {"Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf "}
+                    <a href="https://github.com/tucant/tucant/" target="_blank">
+                        {"GitHub"}
+                    </a>
+                    {" verfügbar."}
                 </p>
                 <p>
-                    { "Du kannst Dir deine " }
-                    <a href="#/registration/">{ "anmeldbaren Module ansehen" }</a>
-                    { "." }
+                    {"Du kannst Dir deine "}
+                    <a href="#/registration/">
+                        {"anmeldbaren Module ansehen"}
+                    </a>
+                    {"."}
                 </p>
             </div>
         },
         Route::ModuleDetails { module } => {
-            html! { <ModuleDetails<TucanType> module_details={module} /> }
+            ::yew::html! {
+                <ModuleDetails<TucanType> module_details={module} />
+            }
         }
         Route::CourseDetails { course } => {
-            html! { <CourseDetails<TucanType> course_details={course} /> }
+            ::yew::html! {
+                <CourseDetails<TucanType> course_details={course} />
+            }
         }
         Route::Overview => {
-            html! { <Mlsstart<TucanType>  /> }
+            ::yew::html! {
+                <Mlsstart<TucanType> />
+            }
         }
         Route::Vorlesungsverzeichnis { vv } => {
-            html! { <VorlesungsverzeichnisComponent<TucanType> vv={vv} />}
+            ::yew::html! {
+                <VorlesungsverzeichnisComponent<TucanType> vv={vv} />
+            }
         }
         Route::MyModules => {
-            html! { <MyModules<TucanType>  /> }
+            ::yew::html! {
+                <MyModules<TucanType> />
+            }
         }
         Route::MyCourses => {
-            html! { <MyCourses<TucanType>  /> }
+            ::yew::html! {
+                <MyCourses<TucanType> />
+            }
         }
         Route::MyExams => {
-            html! { <MyExams<TucanType>  /> }
+            ::yew::html! {
+                <MyExams<TucanType> />
+            }
         }
         Route::ExamResults => {
-            html! { <ExamResults<TucanType>  /> }
+            ::yew::html! {
+                <ExamResults<TucanType> />
+            }
         }
         Route::CourseResults => {
-            html! { <CourseResults<TucanType>  /> }
+            ::yew::html! {
+                <CourseResults<TucanType> />
+            }
         }
         Route::MyDocuments => {
-            html! { <MyDocuments<TucanType>  /> }
+            ::yew::html! {
+                <MyDocuments<TucanType> />
+            }
         }
     }
 }
