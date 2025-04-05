@@ -16,6 +16,29 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
+    let tabs = await chrome.tabs.query({
+        discarded: true,
+        url: `${EXTENSION_PAGE}*`
+    })
+
+    await Promise.all(tabs.map(tab => {
+        if (tab.id) {
+            chrome.tabs.reload(tab.id)
+        }
+    }))
+
+    // I think we need the tab permission for this.
+    let activeTabs = await chrome.tabs.query({
+        url: `blob:${EXTENSION_PAGE}*`
+    })
+
+    await Promise.all(activeTabs.map(tab => {
+        console.log("got active tab", tab)
+        if (tab.url?.endsWith("#reloading") && tab.id) {
+            chrome.tabs.remove(tab.id)
+        }
+    }))
+
     await chrome.contextMenus.removeAll();
 
     chrome.contextMenus.create({
