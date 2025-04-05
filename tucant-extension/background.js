@@ -4,6 +4,12 @@ console.log("background script")
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant-page") {
+        // TODO url conversion
+    }
+})
+
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
@@ -13,7 +19,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucan",
         title: "Open in TUCaN",
         contexts: ["link"],
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        targetUrlPatterns: [`${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
@@ -22,7 +28,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucant",
         title: "Open in TUCaN't",
         contexts: ["link"],
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
@@ -31,7 +37,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucan-page",
         title: "Open in TUCaN",
         contexts: ["page"],
-        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        documentUrlPatterns: [`${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
@@ -40,7 +46,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucant-page",
         title: "Open in TUCaN't",
         contexts: ["page"],
-        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
