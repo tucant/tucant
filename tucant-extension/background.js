@@ -31,6 +31,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucan-page",
         title: "Open in TUCaN",
         contexts: ["page"],
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
@@ -39,6 +40,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "open-in-tucant-page",
         title: "Open in TUCaN't",
         contexts: ["page"],
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
