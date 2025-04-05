@@ -7,6 +7,8 @@ const EXTENSION_PAGE = chrome.runtime.getURL('/');
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
+    await chrome.contextMenus.removeAll();
+
     chrome.contextMenus.create({
         id: "open-in-tucan",
         title: "Open in TUCaN",
