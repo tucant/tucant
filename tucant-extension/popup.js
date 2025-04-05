@@ -6,9 +6,20 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
     }
 });
 
+const EXTENSION_PAGE = chrome.runtime.getURL('/');
+
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
     console.log("test")
-    //await chrome.runtime.requestUpdateCheck();
+    // https://gist.github.com/NiklasGollenstede/63a6099d97e82ffe0cc064d4d4d82b62
+
+    let tabs = await chrome.tabs.query({
+        url: `${EXTENSION_PAGE}*`
+    })
+
+    tabs.forEach(tab => {
+        chrome.tabs.discard(tab.id)
+    })
+
     chrome.runtime.reload();
 })
 
