@@ -233,10 +233,14 @@ enum Route {
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {
-            yew::html! { <Registration<TucanType> registration={registration} /> }
+            ::yew::html! {
+                <Registration<TucanType> registration={registration} />
+            }
         }
         Route::RootRegistration => {
-            yew::html! { <Registration<TucanType> registration={AnmeldungRequest::default()} /> }
+            ::yew::html! {
+                <Registration<TucanType> registration={AnmeldungRequest::default()} />
+            }
         }
         Route::NotFound => ::yew::html! {
             <div>
@@ -272,34 +276,54 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
             </div>
         },
         Route::ModuleDetails { module } => {
-            yew::html! { <ModuleDetails<TucanType> module_details={module} /> }
+            ::yew::html! {
+                <ModuleDetails<TucanType> module_details={module} />
+            }
         }
         Route::CourseDetails { course } => {
-            yew::html! { <CourseDetails<TucanType> course_details={course} /> }
+            ::yew::html! {
+                <CourseDetails<TucanType> course_details={course} />
+            }
         }
         Route::Overview => {
-            yew::html! { <Mlsstart<TucanType>  /> }
+            ::yew::html! {
+                <Mlsstart<TucanType> />
+            }
         }
         Route::Vorlesungsverzeichnis { vv } => {
-            yew::html! { <VorlesungsverzeichnisComponent<TucanType> vv={vv} />}
+            ::yew::html! {
+                <VorlesungsverzeichnisComponent<TucanType> vv={vv} />
+            }
         }
         Route::MyModules => {
-            yew::html! { <MyModules<TucanType>  /> }
+            ::yew::html! {
+                <MyModules<TucanType> />
+            }
         }
         Route::MyCourses => {
-            yew::html! { <MyCourses<TucanType>  /> }
+            ::yew::html! {
+                <MyCourses<TucanType> />
+            }
         }
         Route::MyExams => {
-            yew::html! { <MyExams<TucanType>  /> }
+            ::yew::html! {
+                <MyExams<TucanType> />
+            }
         }
         Route::ExamResults => {
-            yew::html! { <ExamResults<TucanType>  /> }
+            ::yew::html! {
+                <ExamResults<TucanType> />
+            }
         }
         Route::CourseResults => {
-            yew::html! { <CourseResults<TucanType>  /> }
+            ::yew::html! {
+                <CourseResults<TucanType> />
+            }
         }
         Route::MyDocuments => {
-            yew::html! { <MyDocuments<TucanType>  /> }
+            ::yew::html! {
+                <MyDocuments<TucanType> />
+            }
         }
     }
 }
