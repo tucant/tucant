@@ -224,7 +224,6 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             {"Beschreibung"}
                         </h2>
                         // TODO FIXME this is dangerous
-                        {
 
                         {Html::from_html_unchecked(module.description.join("\n").into())}
                         <h2>
