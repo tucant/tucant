@@ -3,22 +3,32 @@ import "./fix-session-id-in-url.js"
 console.log("background script")
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
 // maybe first write the declarative net rules?
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-    chrome.notifications.create({
+    /*chrome.notifications.create({
         type: "basic",
         iconUrl: chrome.runtime.getURL("/icon-512.png"),
         title: "Unfortunately this feature is not implemented yet",
         message: "We welcome any contribution",
-    });
+    });*/
 
     let url = info.linkUrl
 
+    if (!info.linkUrl) {
+        return;
+    }
+
+    let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
+    if (match) {
+        chrome.tabs.create({
+            url: `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
+        })
+    }
 })
 
-const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
