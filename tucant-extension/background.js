@@ -22,6 +22,7 @@ chrome.runtime.onInstalled.addListener(async () => {
         removeRuleIds: [4100], // TODO check that rules have no dupes
         addRules: [{
             id: 4100,
+            priority: 10,
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {

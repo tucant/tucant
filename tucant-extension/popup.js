@@ -8,8 +8,6 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
-const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
-
 // TODO maybe chrome.runtime.onUpdateAvailable
 
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
@@ -18,10 +16,12 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     // Chrome will close all extension tabs including blob urls, see https://issues.chromium.org/issues/41189391
     // The following is a hack and should mostly be used for development
 
+    console.log(`^${EXTENSION_PAGE}dist/index\\.html#(.*)$`)
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
         addRules: [{
             id: 4100,
+            priority: 10,
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
@@ -34,27 +34,28 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
                 resourceTypes: [
                     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                regexFilter: `^${EXT_PAGE_INDEX_HTML}#(.*)$`
+                regexFilter: `^${EXTENSION_PAGE}dist/index\\.html#(.*)$`
             }
         }],
     });
 
-    await new Promise(r => setTimeout(r, 500));
+    /*await new Promise(r => setTimeout(r, 500));
 
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
-        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */ ("TAB")],
-    })
+        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */ /*("TAB")],
+})
 
-    console.log("tabs", tabs)
+console.log("tabs", tabs)
 
-    await Promise.all(tabs.map(tab => {
-        return chrome.tabs.reload(tab.tabId)
-    }))
+await Promise.all(tabs.map(tab => {
+return chrome.tabs.reload(tab.tabId)
+}))
 
-    await new Promise(r => setTimeout(r, 500));
+await new Promise(r => setTimeout(r, 500));
 
-    chrome.runtime.reload();
+chrome.runtime.reload();
+*/
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
