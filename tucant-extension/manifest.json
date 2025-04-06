@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TUCaN't",
-    "version": "0.28.0",
+    "version": "0.29.0",
     "description": "Quality of life improvements for TUCaN",
     "update_url": "https://tucant.github.io/tucant/updates.xml",
     "declarative_net_request": {
