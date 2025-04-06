@@ -39,6 +39,8 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         }],
     });
 
+    await new Promise(r => setTimeout(r, 500));
+
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
         contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */ ("TAB")],
