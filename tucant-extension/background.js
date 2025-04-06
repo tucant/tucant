@@ -37,6 +37,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
+    if (match) {
+        chrome.tabs.create({
+            url: `${EXT_PAGE_INDEX_HTML}#/overview`
+        })
+        return;
+    }
+
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.create({
@@ -57,6 +65,22 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (id && match) {
         chrome.tabs.create({
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id.value},-N000311,${match[1]}`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.create({
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/overview$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.create({
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
         })
         return;
     }
