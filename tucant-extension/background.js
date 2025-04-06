@@ -23,7 +23,7 @@ chrome.runtime.onInstalled.addListener(async () => {
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
-                    regexSubstitution: `\\1`,
+                    regexSubstitution: `https://example.org/\\1`,
                 },
             },
             condition: {
@@ -31,7 +31,7 @@ chrome.runtime.onInstalled.addListener(async () => {
                 resourceTypes: [
                     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/(.*)$`
             }
         }],
     });
