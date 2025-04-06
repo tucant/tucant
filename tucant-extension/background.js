@@ -27,28 +27,54 @@ chrome.runtime.onInstalled.addListener(async () => {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
                     // I think this needs to statically be an allowed url
-                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
+                    transform: {
+                        scheme: "https",
+                        host: "tucant.selfmade4u.de",
+                    }
                 },
             },
             condition: {
                 isUrlFilterCaseSensitive: true,
-                resourceTypes: [
-                    /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-                ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+                resourceTypes:
+                    /** @type {chrome.declarativeNetRequest.ResourceType[]} */ (["main_frame", "sub_frame", "other"])
+                ,
+                initiatorDomains: ["jdmjpehgmiafdnhmoambipgghlodiagm"]
             }
         }],
     });
 
-    let tabs = await chrome.tabs.query({
-        url: `https://tucant.selfmade4u.de/*`
-    })
+    /*
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [4100], // TODO check that rules have no dupes
+        addRules: [{
+            id: 4100,
+            priority: 10,
+            action: {
+                type: /** @type {chrome.declarativeNetRequest.RuleActionType} *//* ('redirect'),
+    redirect: {
+        // I think this needs to statically be an allowed url
+        regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
+    },
+},
+condition: {
+    isUrlFilterCaseSensitive: true,
+    resourceTypes: [
+        /** @type {chrome.declarativeNetRequest.ResourceType} */ /*("main_frame")
+],
+regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+}
+}],
+});
 
-    await Promise.all(tabs.map(tab => {
-        if (tab.id) {
-            chrome.tabs.reload(tab.id)
-        }
-    }))
+let tabs = await chrome.tabs.query({
+url: `https://tucant.selfmade4u.de/*`
+})
+
+await Promise.all(tabs.map(tab => {
+if (tab.id) {
+chrome.tabs.reload(tab.id)
+}
+}))*/
 
     await chrome.contextMenus.removeAll();
 

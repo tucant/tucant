@@ -16,7 +16,8 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     // Chrome will close all extension tabs including blob urls, see https://issues.chromium.org/issues/41189391
     // The following is a hack and should mostly be used for development
 
-    console.log(`^${EXTENSION_PAGE}dist/index\\.html#(.*)$`)
+    // https://stackoverflow.com/questions/68422688/chrome-extension-declarativenetrequest-isnt-matching-rulecondition
+
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
         addRules: [{
@@ -26,15 +27,18 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
                     // I think this needs to statically be an allowed url
-                    regexSubstitution: `https://tucant.selfmade4u.de/#\\1`,
+                    transform: {
+                        scheme: "https",
+                        host: "tucant.selfmade4u.de",
+                    }
                 },
             },
             condition: {
                 isUrlFilterCaseSensitive: true,
-                resourceTypes: [
-                    /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-                ],
-                regexFilter: `^${EXTENSION_PAGE}dist/index\\.html#(.*)$`
+                resourceTypes:
+                    /** @type {chrome.declarativeNetRequest.ResourceType[]} */ (["main_frame", "sub_frame", "other"])
+                ,
+                initiatorDomains: ["jdmjpehgmiafdnhmoambipgghlodiagm"]
             }
         }],
     });
