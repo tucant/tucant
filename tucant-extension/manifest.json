@@ -19,14 +19,16 @@
         "scripting",
         "storage",
         "cookies",
-        "contextMenus"
+        "contextMenus",
+        "notifications"
     ],
     "omnibox": {
         "keyword": "tucan"
     },
     "host_permissions": [
         "https://www.tucan.tu-darmstadt.de/*",
-        "http://www.tucan.tu-darmstadt.de/*"
+        "http://www.tucan.tu-darmstadt.de/*",
+        "https://tucant.selfmade4u.de/*"
     ],
     "content_scripts": [
         {
@@ -81,7 +83,8 @@
                 "dist/index.html"
             ],
             "matches": [
-                "https://www.tucan.tu-darmstadt.de/*"
+                "https://www.tucan.tu-darmstadt.de/*",
+                "https://tucant.selfmade4u.de/*"
             ]
         }
     ],

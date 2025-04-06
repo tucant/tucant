@@ -2,19 +2,90 @@ import "./fix-session-id-in-url.js"
 
 console.log("background script")
 
-chrome.runtime.onInstalled.addListener(() => {
+const EXTENSION_PAGE = chrome.runtime.getURL('/');
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    chrome.notifications.create({
+        type: "basic",
+        iconUrl: chrome.runtime.getURL("/icon-512.png"),
+        title: "Unfortunately this feature is not implemented yet",
+        message: "We welcome any contribution",
+    });
+})
+
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+
+chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
+
+    await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [4100], // TODO check that rules have no dupes
+        addRules: [{
+            id: 4100,
+            priority: 10,
+            action: {
+                type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+                redirect: {
+                    // I think this needs to statically be an allowed url
+                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
+                },
+            },
+            condition: {
+                isUrlFilterCaseSensitive: true,
+                resourceTypes: [
+/** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                ],
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+            }
+        }],
+    });
+
+    let tabs = await chrome.tabs.query({
+        url: `https://tucant.selfmade4u.de/*`
+    })
+
+    await Promise.all(tabs.map(tab => {
+        if (tab.id) {
+            chrome.tabs.reload(tab.id)
+        }
+    }))
+
+    await chrome.contextMenus.removeAll();
 
     chrome.contextMenus.create({
         id: "open-in-tucan",
         title: "Open in TUCaN",
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        contexts: ["link"],
+        targetUrlPatterns: [`${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
     })
 
     chrome.contextMenus.create({
         id: "open-in-tucant",
         title: "Open in TUCaN't",
+        contexts: ["link"],
         targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "open-in-tucan-page",
+        title: "Open in TUCaN",
+        contexts: ["page"],
+        documentUrlPatterns: [`${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "open-in-tucant-page",
+        title: "Open in TUCaN't",
+        contexts: ["page"],
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+    }, () => {
+        console.log(chrome.runtime.lastError)
     })
 });
 

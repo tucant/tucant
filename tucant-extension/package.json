@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/chrome": "^0.0.308",
-    "typescript": "^5.8.2"
+    "@types/chrome": "^0.0.313",
+    "typescript": "^5.8.3"
   }
 }

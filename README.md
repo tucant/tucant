@@ -43,7 +43,7 @@ cd crates/tucant-yew/
 trunk serve --features api --release
 
 # in second tab
-cargo run --bin tucant-api
+cargo run --bin tucant-api --release
 
 # http://localhost:1420/#/
 ```
