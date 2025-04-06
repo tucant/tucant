@@ -123,11 +123,11 @@ const customUiRules = [{
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$"
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/registration/' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/' },
     },
 }, {
     id: 201,
@@ -137,13 +137,41 @@ const customUiRules = [{
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
-        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$"
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$"
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/registration/\\1' },
     },
-}];
+}, {
+    id: 202,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$"
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/course-details/\\1' },
+    },
+}, {
+    id: 203,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$"
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/module-details/\\1' },
+    },
+},];
 
 function enableCustomUi() {
     chrome.declarativeNetRequest.updateDynamicRules({
