@@ -5,30 +5,53 @@ console.log("background script")
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-// maybe first write the declarative net rules?
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    const id = await chrome.cookies.get({
+        url: "https://www.tucan.tu-darmstadt.de/scripts/",
+        name: "id",
+    })
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-    /*chrome.notifications.create({
-        type: "basic",
-        iconUrl: chrome.runtime.getURL("/icon-512.png"),
-        title: "Unfortunately this feature is not implemented yet",
-        message: "We welcome any contribution",
-    });*/
-
-    let url = info.linkUrl
-
-    if (!info.linkUrl) {
-        return;
-    }
+    let url = info.linkUrl || info.pageUrl
 
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
         chrome.tabs.create({
             url: `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
         })
+        return;
     }
-})
 
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
+    if (match) {
+        chrome.tabs.create({
+            url: `${EXT_PAGE_INDEX_HTML}#/course-details/${match[1]}`
+        })
+        return;
+    }
+
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
+    if (match) {
+        chrome.tabs.create({
+            url: `${EXT_PAGE_INDEX_HTML}#/registration/${match[1]}`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
+    if (match) {
+        chrome.tabs.create({
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id},-N000274,${match[1]}`
+        })
+        return;
+    }
+
+    chrome.notifications.create({
+        type: "basic",
+        iconUrl: chrome.runtime.getURL("/icon-512.png"),
+        title: "URL not supported",
+        message: "Unfortunately this URL is not supported yet. We welcome any contribution",
+    });
+})
 
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
