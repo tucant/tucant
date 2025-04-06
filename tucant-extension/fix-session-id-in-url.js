@@ -68,47 +68,47 @@ chrome.cookies.onChanged.addListener(async (changeInfo) => {
 const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => [{
     // redirect any session id to the currently valid session id
     id: 100,
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: {
-            regexSubstitution: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=\\1&ARGUMENTS=-N${sessionId},\\2`,
-        },
-    },
     condition: {
         isUrlFilterCaseSensitive: true,
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N\\d+,(.+)$`
-    }
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: {
+            regexSubstitution: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=\\1&ARGUMENTS=-N${sessionId},\\2`,
+        },
+    },
 }, {
     // but don't create an infinite loop
     id: 101,
     priority: 2,
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
-    },
     condition: {
         isUrlFilterCaseSensitive: true,
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N${sessionId},(.+)$`
-    }
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
+    },
 }, {
     // and don't redirect explicitly unauthenticated urls
     id: 102,
     priority: 2,
-    action: {
-        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
-    },
     condition: {
         isUrlFilterCaseSensitive: true,
         resourceTypes: [
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N000000000000001,(.+)$`
-    }
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
+    },
 }];
 
 chrome.storage.sync.onChanged.addListener(async (changes) => {
