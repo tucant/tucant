@@ -8,6 +8,8 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
+// TODO maybe chrome.runtime.onUpdateAvailable
+
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
     console.log("test")
 
