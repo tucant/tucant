@@ -14,7 +14,7 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     // Chrome will close all extension tabs including blob urls, see https://issues.chromium.org/issues/41189391
     // The following is a hack and should mostly be used for development
 
-    chrome.declarativeNetRequest.updateDynamicRules({
+    await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
     });
 
@@ -35,7 +35,7 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
 
     await new Promise(r => setTimeout(r, 500));
 
-    await chrome.runtime.reload();
+    chrome.runtime.reload();
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
