@@ -22,14 +22,10 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         removeRuleIds: [4100], // TODO check that rules have no dupes
     });
 
-    await new Promise(r => setTimeout(r, 2000));
-
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
         contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */("TAB")],
     })
-
-    console.log("tabs", tabs)
 
     await Promise.all(tabs.map(tab => {
         if (!tab.documentUrl) {
@@ -41,10 +37,9 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         })
     }))
 
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 500));
 
     chrome.runtime.reload();
-
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
