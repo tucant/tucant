@@ -130,6 +130,7 @@ const customUiRules = [{
         redirect: { regexSubstitution: EXT_PAGE + '#/' },
     },
 }, {
+    // TODO normalize all the urls below, see AnmeldungRequest etc
     id: 201,
     priority: 3,
     condition: {
