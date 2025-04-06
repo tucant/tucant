@@ -22,10 +22,7 @@ pub struct StundenplanEintrag {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct Nachricht {
-    pub url1: String,
-    pub url2: String,
-    pub url3: String,
-    pub url4: String,
+    pub url: String,
     pub date: String,
     pub hour: String,
     pub source: String,
