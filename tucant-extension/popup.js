@@ -39,19 +39,15 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         }],
     });
 
-    let tabs = await chrome.tabs.query({
-        // I think chrome is too stupid for this, other host urls work
-        url: `${EXTENSION_PAGE}*`
+    // https://issues.chromium.org/issues/40670457
+    let tabs = await chrome.runtime.getContexts({
+        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */ ("TAB")],
     })
 
     console.log("tabs", tabs)
 
     await Promise.all(tabs.map(tab => {
-        if (!tab.id) {
-            return;
-        }
-        console.log(tab)
-        return chrome.tabs.reload(tab.id)
+        return chrome.tabs.reload(tab.tabId)
     }))
 
     await new Promise(r => setTimeout(r, 500));
