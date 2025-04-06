@@ -8,6 +8,8 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+
 // TODO maybe chrome.runtime.onUpdateAvailable
 
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
@@ -18,6 +20,23 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
 
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
+        addRules: [{
+            id: 4100,
+            action: {
+                type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+                redirect: {
+                    // I think this needs to statically be an allowed url
+                    regexSubstitution: `https://tucant.selfmade4u.de/#\\1`,
+                },
+            },
+            condition: {
+                isUrlFilterCaseSensitive: true,
+                resourceTypes: [
+                    /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                ],
+                regexFilter: `^${EXT_PAGE_INDEX_HTML}#(.*)$`
+            }
+        }],
     });
 
     let tabs = await chrome.tabs.query({
@@ -32,7 +51,6 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
             return;
         }
         return chrome.tabs.reload(tab.id)
-        //   url: `https://tucant.selfmade4u.de/${url.hash}`
     }))
 
     await new Promise(r => setTimeout(r, 500));
