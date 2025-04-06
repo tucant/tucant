@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use tucant_types::Tucan;
+use tucant_types::{Tucan, mlsstart::MlsStart};
 use yew::{Html, HtmlResult, function_component, html};
 
 use crate::{RcTucanType, common::use_data_loader};
@@ -9,7 +9,7 @@ use crate::{RcTucanType, common::use_data_loader};
 pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.after_login(&current_session, revalidation_strategy).await;
 
-    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart, reload| {
+    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
         ::yew::html! {
             <div>
                 <h1>
@@ -80,6 +80,9 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                     <th scope="col">
                                         {"Nachricht"}
                                     </th>
+                                    <th scope="col">
+                                        {"Löschen"}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,7 +99,10 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                 {&nachricht.source}
                             </td>
                             <td>
-                                {&nachricht.message}
+                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url)}>{&nachricht.message}</a>
+                            </td>
+                            <td>
+                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.delete_url)}>{"Löschen"}</a>
                             </td>
                         </tr>
                     }

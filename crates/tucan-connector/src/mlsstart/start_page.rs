@@ -155,22 +155,22 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                 let messages = while html_handler.peek().is_some() {
                                     <tr class="tbdata">
                                         <td headers="Datum" class="rw rw-maildate">
-                                            <a class="link" href=url1>
+                                            <a class="link" href=url>
                                                 date
                                             </a>
                                         </td>
                                         <td headers="Uhrzeit" class="rw rw-mailtime">
-                                            <a class="link" href=url2>
+                                            <a class="link" href={|u| assert_eq!(url, u)}>
                                                 hour
                                             </a>
                                         </td>
                                         <td headers="Absender" class="rw rw-mailpers">
-                                            <a class="link" href=url3>
+                                            <a class="link" href={|u| assert_eq!(url, u)}>
                                                 source
                                             </a>
                                         </td>
                                         <td headers="Betreff" class="rw rw-mailsubject">
-                                            <a class="link" href=url4>
+                                            <a class="link" href={|u| assert_eq!(url, u)}>
                                                 let message = html_handler.next_any_child();
                                             </a>
                                         </td>
@@ -181,10 +181,7 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                         </td>
                                     </tr>
                                 } => Nachricht {
-                                    url1,
-                                    url2,
-                                    url3,
-                                    url4,
+                                    url,
                                     date,
                                     hour,
                                     source,
