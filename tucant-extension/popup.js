@@ -24,15 +24,15 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         url: `${EXTENSION_PAGE}*`
     })
 
+    console.log("tabs", tabs)
+
+    // wait if we use declarative net api here, maybe we can do this without permissions?
     await Promise.all(tabs.map(tab => {
-        if (!tab.id || !tab.url) {
+        if (!tab.id) {
             return;
         }
-        console.log("update tab")
-        let url = new URL(tab.url);
-        return chrome.tabs.update(tab.id, {
-            url: `https://tucant.selfmade4u.de/${url.hash}`
-        })
+        return chrome.tabs.reload(tab.id)
+        //   url: `https://tucant.selfmade4u.de/${url.hash}`
     }))
 
     await new Promise(r => setTimeout(r, 500));
