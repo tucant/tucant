@@ -20,7 +20,8 @@
         "storage",
         "cookies",
         "contextMenus",
-        "notifications"
+        "notifications",
+        "declarativeNetRequestFeedback"
     ],
     "omnibox": {
         "keyword": "tucan"
