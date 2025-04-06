@@ -40,16 +40,17 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     });
 
     let tabs = await chrome.tabs.query({
+        // I think chrome is too stupid for this, other host urls work
         url: `${EXTENSION_PAGE}*`
     })
 
     console.log("tabs", tabs)
 
-    // wait if we use declarative net api here, maybe we can do this without permissions?
     await Promise.all(tabs.map(tab => {
         if (!tab.id) {
             return;
         }
+        console.log(tab)
         return chrome.tabs.reload(tab.id)
     }))
 
