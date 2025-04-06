@@ -23,12 +23,13 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     })
 
     await Promise.all(tabs.map(tab => {
-        if (!tab.id) {
+        if (!tab.id || !tab.url) {
             return;
         }
         console.log("update tab")
+        let url = new URL(tab.url);
         return chrome.tabs.update(tab.id, {
-            url: `https://tucant.selfmade4u.de/#${tab.url}`
+            url: `https://tucant.selfmade4u.de/${url.hash}`
         })
     }))
 

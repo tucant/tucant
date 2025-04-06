@@ -18,8 +18,6 @@ const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
-    console.log(`${EXT_PAGE_INDEX_HTML}#/`)
-
     chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
         addRules: [{
@@ -28,7 +26,7 @@ chrome.runtime.onInstalled.addListener(async () => {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
                     // I think this needs to statically be an allowed url
-                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#/`,
+                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
                 },
             },
             condition: {
@@ -36,7 +34,7 @@ chrome.runtime.onInstalled.addListener(async () => {
                 resourceTypes: [
                     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/$`
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
             }
         }],
     });
