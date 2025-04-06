@@ -18,6 +18,8 @@ const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
+    console.log(`${EXT_PAGE_INDEX_HTML}#/`)
+
     chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
         addRules: [{
