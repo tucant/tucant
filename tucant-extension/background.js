@@ -4,6 +4,8 @@ console.log("background script")
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
+// maybe first write the declarative net rules?
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.notifications.create({
         type: "basic",
@@ -11,6 +13,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         title: "Unfortunately this feature is not implemented yet",
         message: "We welcome any contribution",
     });
+
+    let url = info.linkUrl
+
 })
 
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
@@ -23,6 +28,13 @@ chrome.runtime.onInstalled.addListener(async () => {
         addRules: [{
             id: 4100,
             priority: 10,
+            condition: {
+                isUrlFilterCaseSensitive: true,
+                resourceTypes: [
+/** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                ],
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+            },
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
@@ -30,13 +42,6 @@ chrome.runtime.onInstalled.addListener(async () => {
                     regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
                 },
             },
-            condition: {
-                isUrlFilterCaseSensitive: true,
-                resourceTypes: [
-/** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-                ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
-            }
         }],
     });
 
@@ -113,31 +118,31 @@ const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
 const customUiRules = [{
     id: 200,
     priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
+    },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
         redirect: { regexSubstitution: EXT_PAGE + '#/registration/' },
     },
-    "condition": {
-        "isUrlFilterCaseSensitive": true,
-        "resourceTypes": [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N(\\d+),-N000311,-A$"
-    }
 }, {
     id: 201,
     priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$"
+    },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
         redirect: { regexSubstitution: EXT_PAGE + '#/' },
     },
-    "condition": {
-        "isUrlFilterCaseSensitive": true,
-        "resourceTypes": [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-        ],
-        "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/$"
-    }
 }];
 
 function enableCustomUi() {
