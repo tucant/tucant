@@ -10,45 +10,43 @@ const EXTENSION_PAGE = chrome.runtime.getURL('/');
 
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
     console.log("test")
-    // https://gist.github.com/NiklasGollenstede/63a6099d97e82ffe0cc064d4d4d82b62
 
-    let activeTabs = await chrome.tabs.query({
-        active: true,
-        url: `${EXTENSION_PAGE}*`
-    })
+    // Chrome will close all extension tabs including blob urls, see https://issues.chromium.org/issues/41189391
+    // The following is a hack and should mostly be used for development
+
+    chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [4100], // TODO check that rules have no dupes
+    });
 
     let tabs = await chrome.tabs.query({
         url: `${EXTENSION_PAGE}*`
     })
 
-    const notice = URL.createObjectURL(new Blob([`<body><h1>Extension is reloading ...</h1></body>`,], { type: 'text/html', })) + "#reloading";
-
-    await Promise.all(activeTabs.map(tab => {
-        chrome.tabs.create({
-            active: true,
-            index: tab.index,
-            windowId: tab.windowId,
-            url: notice
+    await Promise.all(tabs.map(tab => {
+        if (!tab.id) {
+            return;
+        }
+        console.log("update tab")
+        return chrome.tabs.update(tab.id, {
+            url: `https://tucant.selfmade4u.de/#${tab.url}`
         })
     }))
 
-    await Promise.all(tabs.map(tab => {
-        chrome.tabs.discard(tab.id)
-    }))
+    await new Promise(r => setTimeout(r, 500));
 
     await chrome.runtime.reload();
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
     if (await chrome.permissions.request({
-        origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/']
+        origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
     })) {
         document.querySelector("#grant-permission-area").style.display = "none";
     }
 });
 
 if (!await chrome.permissions.contains({
-    origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/']
+    origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
 })) {
     console.log("no host permissions")
     document.querySelector("#grant-permission-area").style.display = "block";

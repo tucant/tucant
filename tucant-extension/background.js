@@ -16,26 +16,33 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
+    chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [4100], // TODO check that rules have no dupes
+        addRules: [{
+            id: 4100,
+            action: {
+                type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+                redirect: {
+                    regexSubstitution: `\\1`,
+                },
+            },
+            condition: {
+                isUrlFilterCaseSensitive: true,
+                resourceTypes: [
+                    /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                ],
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+            }
+        }],
+    });
+
     let tabs = await chrome.tabs.query({
-        discarded: true,
-        url: `${EXTENSION_PAGE}*`
+        url: `https://tucant.selfmade4u.de/*`
     })
 
     await Promise.all(tabs.map(tab => {
         if (tab.id) {
             chrome.tabs.reload(tab.id)
-        }
-    }))
-
-    // I think we need the tab permission for this.
-    let activeTabs = await chrome.tabs.query({
-        url: `blob:${EXTENSION_PAGE}*`
-    })
-
-    await Promise.all(activeTabs.map(tab => {
-        console.log("got active tab", tab)
-        if (tab.url?.endsWith("#reloading") && tab.id) {
-            chrome.tabs.remove(tab.id)
         }
     }))
 
