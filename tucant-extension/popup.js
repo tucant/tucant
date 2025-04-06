@@ -20,46 +20,27 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
 
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
-        addRules: [{
-            id: 4100,
-            priority: 10,
-            action: {
-                type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-                redirect: {
-                    // I think this needs to statically be an allowed url
-                    transform: {
-                        scheme: "https",
-                        host: "tucant.selfmade4u.de",
-                    }
-                },
-            },
-            condition: {
-                isUrlFilterCaseSensitive: true,
-                resourceTypes:
-                    /** @type {chrome.declarativeNetRequest.ResourceType[]} */ (["main_frame", "sub_frame", "other"])
-                ,
-                initiatorDomains: ["jdmjpehgmiafdnhmoambipgghlodiagm"]
-            }
-        }],
     });
 
-    /*await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 2000));
 
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
-        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */ /*("TAB")],
-})
+        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */("TAB")],
+    })
 
-console.log("tabs", tabs)
+    console.log("tabs", tabs)
 
-await Promise.all(tabs.map(tab => {
-return chrome.tabs.reload(tab.tabId)
-}))
+    await Promise.all(tabs.map(tab => {
+        return chrome.tabs.update(tab.tabId, {
+            url: "https://tucant.selfmade4u.de/#" + tab.documentUrl
+        })
+    }))
 
-await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 2000));
 
-chrome.runtime.reload();
-*/
+    chrome.runtime.reload();
+
 })
 
 document.querySelector('#grant-permission').addEventListener('click', async (event) => {
