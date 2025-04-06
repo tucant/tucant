@@ -45,6 +45,22 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/module-details/(.*)$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.create({
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N${id.value},-N000275,${match[1]}`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.create({
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id.value},-N000311,${match[1]}`
+        })
+        return;
+    }
+
     chrome.notifications.create({
         type: "basic",
         iconUrl: chrome.runtime.getURL("/icon-512.png"),
