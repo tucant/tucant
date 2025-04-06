@@ -13,6 +13,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
 })
 
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+
 chrome.runtime.onInstalled.addListener(async () => {
     console.log("on installed")
 
@@ -23,7 +25,8 @@ chrome.runtime.onInstalled.addListener(async () => {
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                 redirect: {
-                    regexSubstitution: `https://example.org/\\1`,
+                    // I think this needs to statically be an allowed url
+                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#/`,
                 },
             },
             condition: {
@@ -31,7 +34,7 @@ chrome.runtime.onInstalled.addListener(async () => {
                 resourceTypes: [
                     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/(.*)$`
+                regexFilter: `^https://tucant\\.selfmade4u\\.de/$`
             }
         }],
     });
