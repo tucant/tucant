@@ -38,9 +38,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
-    if (match) {
+    if (id && match) {
         chrome.tabs.create({
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id},-N000274,${match[1]}`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id.value},-N000274,${match[1]}`
         })
         return;
     }
