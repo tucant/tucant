@@ -38,7 +38,7 @@ chrome.runtime.onInstalled.addListener(async () => {
                 resourceTypes:
                     /** @type {chrome.declarativeNetRequest.ResourceType[]} */ (["main_frame", "sub_frame", "other"])
                 ,
-                urlFilter: "|chrome-extension://jdmjpehgmiafdnhmoambipgghlodiagm/*"
+                urlFilter: "|https://www.tucan.tu-darmstadt.de/test/*"
             }
         }],
     });
@@ -60,21 +60,21 @@ condition: {
 isUrlFilterCaseSensitive: true,
 resourceTypes: [
 /** @type {chrome.declarativeNetRequest.ResourceType} */ /*("main_frame")
-        ],
-        regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
-        }
-        }],
-        });
-        
-        let tabs = await chrome.tabs.query({
-        url: `https://tucant.selfmade4u.de/*`
-        })
-        
-        await Promise.all(tabs.map(tab => {
-        if (tab.id) {
-        chrome.tabs.reload(tab.id)
-        }
-        }))*/
+            ],
+            regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+            }
+            }],
+            });
+            
+            let tabs = await chrome.tabs.query({
+            url: `https://tucant.selfmade4u.de/*`
+            })
+            
+            await Promise.all(tabs.map(tab => {
+            if (tab.id) {
+            chrome.tabs.reload(tab.id)
+            }
+            }))*/
 
     await chrome.contextMenus.removeAll();
 
