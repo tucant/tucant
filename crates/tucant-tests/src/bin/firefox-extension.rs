@@ -26,6 +26,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
         let caps = DesiredCapabilities::firefox();
         let driver = WebDriver::new("http://localhost:4444", caps).await?;
+        driver.set_window_rect(0, 0, 1300, 768).await?;
         let tools = FirefoxTools::new(driver.handle.clone());
         tools.install_addon(&std::env::var("EXTENSION_DIR").unwrap(), Some(true)).await?;
 

@@ -309,7 +309,7 @@
             #cargo run --bin tucant-api &
             #(cd tucant-yew && trunk serve --features api) &
             #sleep 1
-            cargo run --bin chromium-api
+            #cargo run --bin chromium-api
           '';
         };
 
