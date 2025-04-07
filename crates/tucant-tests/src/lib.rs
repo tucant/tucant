@@ -49,8 +49,6 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
     username_input.focus().await?;
     login_button.click().await?;
 
-    sleep(Duration::from_secs(10)).await;
-
     driver.quit().await?;
 
     Ok(())

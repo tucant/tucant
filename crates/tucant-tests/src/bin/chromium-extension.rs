@@ -32,8 +32,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let driver = WebDriver::new("http://localhost:9515", caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
-        sleep(Duration::from_secs(2)).await; // wait for extension?
-
         test(tucant_tests::Browser::Chromium, tucant_tests::Mode::Extension, driver).await?;
 
         Ok::<(), Box<dyn Error + Send + Sync>>(())

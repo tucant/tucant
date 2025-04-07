@@ -206,19 +206,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
-    console.log("on installed")
-
-    chrome.notifications.create({
-        type: "basic",
-        iconUrl: chrome.runtime.getURL("/icon-512.png"),
-        title: "Installed",
-        message: "Should be ready now",
-    });
-
     let { mobileDesign, customUi } = await chrome.storage.sync.get(
         { mobileDesign: false, customUi: true },
     );
-    console.log("custom ui", customUi)
 
     if (customUi) {
         await enableCustomUi()
@@ -231,8 +221,6 @@ chrome.runtime.onInstalled.addListener(async () => {
     } else {
         await disableMobileDesign()
     }
-
-    console.log("done")
 
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
