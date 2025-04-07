@@ -7,7 +7,7 @@ use tucant_tests::test;
 // geckodriver --binary firefox-nightly
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let mut child = tokio::process::Command::new("geckodriver").arg("--binary=firefox-nightly").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("geckodriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 

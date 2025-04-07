@@ -4,10 +4,11 @@ use thirtyfour::prelude::*;
 use tokio::io::{AsyncBufReadExt as _, BufReader};
 use tucant_tests::test;
 
-// cargo test --test chromium-extension -- --nocapture
+// cargo run --bin chromium-extension
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let mut child = tokio::process::Command::new("chromedriver").arg("--port=9515").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    // .arg("--enable-chrome-logs")
+    let mut child = tokio::process::Command::new("chromedriver").arg("--port=9515").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 

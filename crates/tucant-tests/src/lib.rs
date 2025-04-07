@@ -46,7 +46,7 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
     username_input.send_keys(username).await?;
     password_input.send_keys(password).await?;
     // probably https://yew.rs/docs/concepts/html/events#event-delegation
-    //username_input.focus().await?;
+    username_input.focus().await?;
     login_button.click().await?;
 
     sleep(Duration::from_secs(10)).await;
