@@ -18,7 +18,7 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
 
     driver
         .goto(match mode {
-            Mode::Extension => "https://www.tucan.tu-darmstadt.de",
+            Mode::Extension => "https://www.tucan.tu-darmstadt.de/",
             Mode::Api => "http://localhost:1420",
         })
         .await?;
