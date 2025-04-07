@@ -1,7 +1,10 @@
-use std::{error::Error, process::Stdio};
+use std::{error::Error, process::Stdio, time::Duration};
 
 use thirtyfour::prelude::*;
-use tokio::io::{AsyncBufReadExt as _, BufReader};
+use tokio::{
+    io::{AsyncBufReadExt as _, BufReader},
+    time::sleep,
+};
 use tucant_tests::test;
 
 // cargo run --bin chromium-extension
@@ -27,6 +30,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         //caps.set_headless()?;
         caps.add_arg(&format!("--load-extension={}", std::env::var("EXTENSION_DIR").unwrap()))?;
         let driver = WebDriver::new("http://localhost:9515", caps).await?;
+
+        sleep(Duration::from_secs(2)).await; // wait for extension?
 
         test(tucant_tests::Browser::Chromium, tucant_tests::Mode::Extension, driver).await?;
 

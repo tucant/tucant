@@ -1,7 +1,10 @@
-use std::{error::Error, process::Stdio};
+use std::{error::Error, process::Stdio, time::Duration};
 
 use thirtyfour::{extensions::addons::firefox::FirefoxTools, prelude::*};
-use tokio::io::{AsyncBufReadExt as _, BufReader};
+use tokio::{
+    io::{AsyncBufReadExt as _, BufReader},
+    time::sleep,
+};
 use tucant_tests::test;
 
 // geckodriver --binary firefox-nightly
@@ -25,6 +28,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let driver = WebDriver::new("http://localhost:4444", caps).await?;
         let tools = FirefoxTools::new(driver.handle.clone());
         tools.install_addon(&std::env::var("EXTENSION_DIR").unwrap(), Some(true)).await?;
+
+        sleep(Duration::from_secs(2)).await; // wait for extension?
 
         test(tucant_tests::Browser::Firefox, tucant_tests::Mode::Extension, driver).await?;
 

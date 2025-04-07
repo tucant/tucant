@@ -9,7 +9,7 @@
     "terminal.integrated.scrollback": 100000,
     //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [
-        "authenticated_tests",
+        //"authenticated_tests",
     ],
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.rustfmt.overrideCommand": [
