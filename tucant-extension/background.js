@@ -2,6 +2,7 @@ import "./fix-session-id-in-url.js"
 
 console.log("background script")
 
+const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
@@ -12,10 +13,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     })
 
     let url = info.linkUrl || info.pageUrl
+    let tabId = tab?.id
+
+    if (!tabId) {
+        return;
+    }
 
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
         })
         return;
@@ -23,7 +29,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/course-details/${match[1]}`
         })
         return;
@@ -31,7 +37,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/registration/${match[1]}`
         })
         return;
@@ -39,7 +45,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/overview`
         })
         return;
@@ -47,7 +53,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/vv/${match[1]}`
         })
         return;
@@ -55,7 +61,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-modules`
         })
         return;
@@ -63,7 +69,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-courses`
         })
         return;
@@ -71,7 +77,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-exams`
         })
         return;
@@ -79,7 +85,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/exam-results`
         })
         return;
@@ -87,7 +93,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/course-results`
         })
         return;
@@ -95,7 +101,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-documents`
         })
         return;
@@ -105,7 +111,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id.value},-N000274,${match[1]}`
         })
         return;
@@ -113,7 +119,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/module-details/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N${id.value},-N000275,${match[1]}`
         })
         return;
@@ -121,7 +127,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id.value},-N000311,${match[1]}`
         })
         return;
@@ -129,7 +135,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
         })
         return;
@@ -137,7 +143,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/overview$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
         })
         return;
@@ -145,7 +151,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id.value},-N000275,`
         })
         return;
@@ -153,7 +159,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-courses$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N${id.value},-N000274,`
         })
         return;
@@ -161,7 +167,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id.value},-N000318,`
         })
         return;
@@ -169,7 +175,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/exam-results$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N${id.value},-N000325,`
         })
         return;
@@ -177,7 +183,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-results$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N${id.value},-N000324,`
         })
         return;
@@ -185,7 +191,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-documents$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.create({
+        chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${id.value},-N000557,`
         })
         return;
@@ -291,8 +297,16 @@ chrome.storage.sync.onChanged.addListener(async (changes) => {
         }
     }
 });
-
+/*
+chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
+    event => {
+        console.log(event)
+    }
+)
+*/
+// https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
 const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
+console.log(EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", ""))
 /** @type {chrome.declarativeNetRequest.Rule[]} */
 const customUiRules = [{
     id: 200,
@@ -303,7 +317,7 @@ const customUiRules = [{
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/$",
-        excludedInitiatorDomains: [EXTENSION_PAGE + "*"]
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
@@ -319,7 +333,7 @@ const customUiRules = [{
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_PAGE + "*"]
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
@@ -334,7 +348,7 @@ const customUiRules = [{
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_PAGE + "*"]
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
@@ -349,7 +363,7 @@ const customUiRules = [{
             /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
         ],
         regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$",
-        excludedInitiatorDomains: [EXTENSION_PAGE + "*"]
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
