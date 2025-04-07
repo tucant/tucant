@@ -297,13 +297,13 @@ chrome.storage.sync.onChanged.addListener(async (changes) => {
         }
     }
 });
-
+/*
 chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
     event => {
         console.log(event)
     }
 )
-
+*/
 // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/v3yrOjZIDJc
 const EXT_PAGE = chrome.runtime.getURL('/dist/index.html');
 console.log(EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", ""))
