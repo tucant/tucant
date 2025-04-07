@@ -291,25 +291,14 @@
         packages.test-dev = pkgs.writeShellApplication {
           name = "test-dev";
 
-          runtimeInputs = [
-            pkgs.chromedriver
-            pkgs.geckodriver
-            pkgs.chromium
-            pkgs.firefox
-          ];
-
           text = ''
             set -ex
             EXTENSION_DIR=$(mktemp -d)
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            cargo run --bin firefox-extension
+            #cargo run --bin firefox-extension
             cargo run --bin chromium-extension
-            #cargo run --bin tucant-api &
-            #(cd tucant-yew && trunk serve --features api) &
-            #sleep 1
-            #cargo run --bin chromium-api
           '';
         };
 
