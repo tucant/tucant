@@ -16,6 +16,8 @@ pub enum Mode {
 pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
     dotenvy::dotenv().unwrap();
 
+    sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+
     driver
         .goto(match mode {
             Mode::Extension => "https://www.tucan.tu-darmstadt.de/",

@@ -1,17 +1,13 @@
-use std::{error::Error, process::Stdio, time::Duration};
+use std::{error::Error, process::Stdio};
 
 use thirtyfour::prelude::*;
-use tokio::{
-    io::{AsyncBufReadExt as _, BufReader},
-    time::sleep,
-};
+use tokio::io::{AsyncBufReadExt as _, BufReader};
 use tucant_tests::test;
 
 // cargo run --bin chromium-extension
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    // .arg("--enable-chrome-logs")
-    let mut child = tokio::process::Command::new("chromedriver").arg("--port=9515").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").arg("--port=9515").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
