@@ -13,7 +13,7 @@ mod tests {
     static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
 
     async fn get_session() -> WebDriverBiDiSession {
-        SESSION.get_or_init(async || setup_session().await.unwrap()).await
+        SESSION.get_or_init(async || setup_session().await.unwrap()).await.clone()
     }
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
