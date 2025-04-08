@@ -23,13 +23,14 @@ chrome.commands.onCommand.addListener(async (command) => {
 
     let tab = await getCurrentTab()
 
-    if (!tab?.id) {
-        console.log("no tab id")
+    if (!tab?.id || !tab.url) {
+        console.log("no tab id or url")
         return;
     }
 
     if (command === "open-in-tucan-page") {
-        handleOpenInTucan(id?.value, tab.id)
+        console.log("opefwewf")
+        handleOpenInTucan(id?.value, tab.id, tab.url)
     }
 });
 
@@ -46,14 +47,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
-    handleOpenInTucan(id?.value, tabId)
+    handleOpenInTucan(id?.value, tabId, url)
 })
 
 /**
  * @param {string | undefined} id
  * @param {number} tabId
+ * @param {string} url
  */
-export function handleOpenInTucan(id, tabId) {
+export function handleOpenInTucan(id, tabId, url) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
         chrome.tabs.update(tabId, {
@@ -161,7 +163,10 @@ export function handleOpenInTucan(id, tabId) {
     }
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`, "g").exec(url)
+    console.log(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`)
+    console.log(url)
     if (id && match) {
+        console.log("yay")
         chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id},-N000311,${match[1]}`
         })
