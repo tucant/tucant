@@ -8,6 +8,7 @@ rust-version.workspace = true
 [dependencies]
 webdriverbidi = "0.1.16"
 tokio = { features = ["full"], version = "1" }
+anyhow = "1.0.97"
 
 [lints]
 workspace = true
