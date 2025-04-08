@@ -16,7 +16,7 @@ pub enum Mode {
     Api,
 }
 
-async fn run_with_chromium_api() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
     // .arg("--enable-chrome-logs")
     let mut child = tokio::process::Command::new("chromedriver").arg("--port=9515").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
@@ -38,7 +38,7 @@ async fn run_with_chromium_api() -> Result<(), Box<dyn Error + Send + Sync>> {
         let driver = WebDriver::new("http://localhost:9515", caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
-        test(Browser::Chromium, Mode::Api, driver).await?;
+        fun(Browser::Chromium, Mode::Api, driver).await?;
 
         Ok::<(), Box<dyn Error + Send + Sync>>(())
     })
@@ -50,8 +50,9 @@ async fn run_with_chromium_api() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ok(())
 }
 
-async fn run_with_chromium_extension() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+async fn run_with_chromium_extension<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // .arg("--enable-chrome-logs")
+    let mut child = tokio::process::Command::new("chromedriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
@@ -75,11 +76,43 @@ async fn run_with_chromium_extension() -> Result<(), Box<dyn Error + Send + Sync
         let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
-        test(Browser::Chromium, Mode::Extension, driver).await?;
+        fun(Browser::Chromium, Mode::Extension, driver).await?;
 
         Ok::<(), Box<dyn Error + Send + Sync>>(())
     })
     .await;
+    child.kill().await?;
+    child.wait().await?;
+    task??;
+
+    Ok(())
+}
+
+async fn run_with_firefox_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let mut child = tokio::process::Command::new("geckodriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+
+    let stderr = child.stdout.take().unwrap();
+
+    let task = tokio::spawn(async move {
+        let mut reader = BufReader::new(stderr).lines();
+
+        while let Some(line) = reader.next_line().await? {
+            println!("{line}");
+            if line.contains("Listening on") {
+                break;
+            }
+        }
+
+        let caps = DesiredCapabilities::firefox();
+        let driver = WebDriver::new("http://localhost:4444", caps).await?;
+        driver.set_window_rect(0, 0, 1300, 768).await?;
+
+        fun(Browser::Firefox, Mode::Api, driver).await?;
+
+        Ok::<(), Box<dyn Error + Send + Sync>>(())
+    })
+    .await;
+
     child.kill().await?;
     child.wait().await?;
     task??;
@@ -170,8 +203,23 @@ macro_rules! all_browsers {
     ($function_name: ident) => {
         ::paste::paste! {
             #[::tokio::test]
-            pub async fn [<$function_name _firefox>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+            pub async fn [<$function_name _firefox_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
                 run_with_firefox_extension($function_name).await
+            }
+
+            #[::tokio::test]
+            pub async fn [<$function_name _firefox_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_firefox_api($function_name).await
+            }
+
+            #[::tokio::test]
+            pub async fn [<$function_name _chromium_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_chromium_extension($function_name).await
+            }
+
+            #[::tokio::test]
+            pub async fn [<$function_name _chromium_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_chromium_api($function_name).await
             }
         }
     };
