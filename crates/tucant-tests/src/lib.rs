@@ -170,8 +170,8 @@ macro_rules! all_browsers {
     ($function_name: ident) => {
         ::paste::paste! {
             #[::tokio::test]
-            pub async fn [<$function_name _firefox>]() {
-
+            pub async fn [<$function_name _firefox>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_firefox_extension($function_name).await
             }
         }
     };
