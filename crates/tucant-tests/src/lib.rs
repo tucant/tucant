@@ -87,12 +87,12 @@ async fn run_with_chromium_extension() -> Result<(), Box<dyn Error + Send + Sync
     Ok(())
 }
 
-async fn run_with_firefox_extension() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn run_with_firefox_extension<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut child = tokio::process::Command::new("geckodriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
-    let task = tokio::spawn(async {
+    let task = tokio::spawn(async move {
         let mut reader = BufReader::new(stderr).lines();
 
         while let Some(line) = reader.next_line().await? {
@@ -108,11 +108,12 @@ async fn run_with_firefox_extension() -> Result<(), Box<dyn Error + Send + Sync>
         let tools = FirefoxTools::new(driver.handle.clone());
         tools.install_addon(&std::env::var("EXTENSION_DIR").unwrap(), Some(true)).await?;
 
-        test(Browser::Firefox, Mode::Extension, driver).await?;
+        fun(Browser::Firefox, Mode::Extension, driver).await?;
 
         Ok::<(), Box<dyn Error + Send + Sync>>(())
     })
     .await;
+
     child.kill().await?;
     child.wait().await?;
     task??;
