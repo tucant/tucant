@@ -21,10 +21,7 @@ pub enum Mode {
 macro_rules! all_browsers {
     ($function_name: ident) => {
         ::paste::paste! {
-            #[::tokio::test]
-            pub async fn [<$function_name _firefox_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_firefox_extension($function_name).await
-            }
+            extension!($function_name);
 
             #[::tokio::test]
             pub async fn [<$function_name _firefox_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -32,13 +29,24 @@ macro_rules! all_browsers {
             }
 
             #[::tokio::test]
-            pub async fn [<$function_name _chromium_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_chromium_extension($function_name).await
+            pub async fn [<$function_name _chromium_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_chromium_api($function_name).await
+            }
+        }
+    };
+}
+
+macro_rules! extension {
+    ($function_name: ident) => {
+        ::paste::paste! {
+            #[::tokio::test]
+            pub async fn [<$function_name _firefox_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_firefox_extension($function_name).await
             }
 
             #[::tokio::test]
-            pub async fn [<$function_name _chromium_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_chromium_api($function_name).await
+            pub async fn [<$function_name _chromium_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
+                run_with_chromium_extension($function_name).await
             }
         }
     };
@@ -240,7 +248,7 @@ pub async fn login(browser: Browser, mode: Mode, driver: WebDriver) -> Result<()
     Ok(())
 }
 
-all_browsers!(open_in_tucan);
+extension!(open_in_tucan);
 pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
     login(browser, mode, driver.clone()).await?;
 
@@ -255,9 +263,10 @@ pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> R
 
     driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-    driver.action_chain().key_down(Key::Control).key_down(Key::Shift).key_down('1').perform().await?;
+    // maybe this can't activate browser extension shortcuts
+    driver.action_chain().key_down(Key::Control).key_down(Key::Shift).key_down('1').key_up('1').key_up(Key::Shift).key_up(Key::Control).perform().await?;
 
-    sleep(Duration::from_secs(10)).await;
+    sleep(Duration::from_secs(60)).await;
 
     Ok(())
 }
