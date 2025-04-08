@@ -6,13 +6,13 @@ use tokio::{
     time::sleep,
 };
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Browser {
     Firefox,
     Chromium,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Mode {
     Extension,
     Api,
@@ -235,17 +235,25 @@ pub async fn login(browser: Browser, mode: Mode, driver: WebDriver) -> Result<()
     // probably https://yew.rs/docs/concepts/html/events#event-delegation
     username_input.focus().await?;
     login_button.click().await?;
+
+    // wait for login
+    sleep(Duration::from_secs(5)).await;
+
     Ok(())
 }
 
 all_browsers!(open_in_tucan);
 pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    login(browser, mode, driver.clone()).await?;
+
     driver
         .goto(match mode {
             Mode::Extension => "https://www.tucan.tu-darmstadt.de/",
-            Mode::Api => "http://localhost:1420",
+            Mode::Api => "http://localhost:1420/",
         })
         .await?;
+
+    driver.action_chain().key_down(Key::Control).key_down(Key::Shift).key_down(Key::F1).perform().await?;
 
     sleep(Duration::from_secs(60)).await;
 
