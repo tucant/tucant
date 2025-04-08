@@ -14,7 +14,7 @@ futures-util = { version = "0.3", features = ["io"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 sqlx = { version = "0.8", default-features = false, features = [ "runtime-tokio", "sqlite", "derive" ] }
-tokio = { version = "1.42.0", features = ["fs"] }
+tokio = { version = "1", features = ["fs"] }
 
 [lints]
 workspace = true

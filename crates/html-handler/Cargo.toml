@@ -11,7 +11,7 @@ scraper = { version = "0.23", features = ["deterministic"] }
 data-encoding = "2"
 sha3 = "0.10"
 ego-tree = "0.10"
-html5ever = "0.29.0"
+html5ever = "=0.29.0"
 
 [lints]
 workspace = true
