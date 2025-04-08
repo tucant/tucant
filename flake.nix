@@ -297,7 +297,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            (cd crates/tucant-tests && cargo nextest run)
+            cargo nextest run
           '';
         };
 
