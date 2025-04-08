@@ -6,7 +6,7 @@ version.workspace = true
 
 [dependencies]
 axum = { version = "0.8.1", features = ["macros"] }
-tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.44.2", features = ["macros", "rt-multi-thread"] }
 utoipa = { git = "https://github.com/juhaku/utoipa.git" }
 serde = { version = "1.0", features = ["derive"] }
 utoipa-swagger-ui = { git = "https://github.com/juhaku/utoipa.git", features = ["axum", "vendored"] }
