@@ -263,10 +263,5 @@ pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> R
 
     driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-    // maybe this can't activate browser extension shortcuts
-    driver.action_chain().key_down(Key::Control).key_down(Key::Shift).key_down('1').key_up('1').key_up(Key::Shift).key_up(Key::Control).perform().await?;
-
-    sleep(Duration::from_secs(60)).await;
-
     Ok(())
 }
