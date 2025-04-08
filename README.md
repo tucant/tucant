@@ -27,6 +27,14 @@ Just open the project in VSCodium.
 cargo test
 ```
 
+### Running UI tests
+
+**Important: Do NOT run in `nix develop` environment**
+
+```
+nix run .#test-dev
+```
+
 ### Formatting
 
 We use a fork of rustfmt to format our custom html extractor macro.
