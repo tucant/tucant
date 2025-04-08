@@ -93,7 +93,7 @@
     "commands": {
         "open-in-tucan-page": {
             "suggested_key": {
-                "default": "Ctrl+Shift+F1"
+                "default": "Ctrl+Shift+1"
             },
             "description": "Open page in TUCaN"
         }
