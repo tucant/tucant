@@ -251,11 +251,13 @@ pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> R
         })
         .await?;
 
-    driver.find(By::XPath("//div/ul/li/a[text()='Veranstaltungen']")).await?.click().await?;
+    driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
+
+    driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
     driver.action_chain().key_down(Key::Control).key_down(Key::Shift).key_down('1').perform().await?;
 
-    sleep(Duration::from_secs(60)).await;
+    sleep(Duration::from_secs(10)).await;
 
     Ok(())
 }
