@@ -247,5 +247,7 @@ pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> R
         })
         .await?;
 
+    sleep(Duration::from_secs(60)).await;
+
     Ok(())
 }
