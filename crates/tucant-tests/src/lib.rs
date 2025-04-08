@@ -57,3 +57,16 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
 
     Ok(())
 }
+
+macro_rules! all_browsers {
+    ($function_name: ident) => {
+        ::paste::paste! {
+            #[::tokio::test]
+            pub async fn [<$function_name _firefox>]() {
+
+            }
+        }
+    };
+}
+
+all_browsers!(test);

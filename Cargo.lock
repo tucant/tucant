@@ -2892,6 +2892,7 @@ name = "tucant-tests"
 version = "0.1.2"
 dependencies = [
  "dotenvy",
+ "paste",
  "thirtyfour",
  "tokio",
 ]
