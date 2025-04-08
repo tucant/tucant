@@ -6,11 +6,13 @@ use tokio::{
     time::sleep,
 };
 
+#[derive(PartialEq)]
 pub enum Browser {
     Firefox,
     Chromium,
 }
 
+#[derive(PartialEq)]
 pub enum Mode {
     Extension,
     Api,
@@ -165,7 +167,9 @@ async fn run_with_firefox_extension<F: Future<Output = Result<(), Box<dyn Error 
 pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
     dotenvy::dotenv().unwrap();
 
-    sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+    if browser == Browser::Firefox && mode == Mode::Extension {
+        sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+    }
 
     driver
         .goto(match mode {
@@ -199,8 +203,6 @@ pub async fn test(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(),
     // probably https://yew.rs/docs/concepts/html/events#event-delegation
     username_input.focus().await?;
     login_button.click().await?;
-
-    sleep(Duration::from_secs(10)).await;
 
     driver.quit().await?;
 
