@@ -297,8 +297,7 @@
             export EXTENSION_DIR
             cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
             chmod -R ug+rw "$EXTENSION_DIR"
-            #cargo run --bin firefox-extension
-            cargo run --bin chromium-extension
+            (cd crates/tucant-tests && cargo nextest run)
           '';
         };
 
