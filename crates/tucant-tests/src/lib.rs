@@ -47,8 +47,7 @@ macro_rules! all_browsers {
 async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
     dotenvy::dotenv().unwrap();
 
-    // .arg("--enable-chrome-logs")
-    let mut child = tokio::process::Command::new("chromedriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
@@ -84,8 +83,7 @@ async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Sen
 async fn run_with_chromium_extension<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
     dotenvy::dotenv().unwrap();
 
-    // .arg("--enable-chrome-logs")
-    let mut child = tokio::process::Command::new("chromedriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
