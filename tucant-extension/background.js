@@ -6,6 +6,34 @@ const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
+async function getCurrentTab() {
+    let queryOptions = { active: true, lastFocusedWindow: true };
+    // `tab` will either be a `tabs.Tab` instance or `undefined`.
+    // TODO FIXME typescript is wrong here
+    let [tab] = await chrome.tabs.query(queryOptions);
+    return tab;
+}
+
+chrome.commands.onCommand.addListener(async (command) => {
+    console.log("handlecommand")
+    const id = await chrome.cookies.get({
+        url: "https://www.tucan.tu-darmstadt.de/scripts/",
+        name: "id",
+    })
+
+    let tab = await getCurrentTab()
+
+    if (!tab?.id || !tab.url) {
+        console.log("no tab id or url")
+        return;
+    }
+
+    if (command === "open-in-tucan-page") {
+        console.log("opefwewf")
+        handleOpenInTucan(id?.value, tab.id, tab.url)
+    }
+});
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const id = await chrome.cookies.get({
         url: "https://www.tucan.tu-darmstadt.de/scripts/",
@@ -19,6 +47,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
+    handleOpenInTucan(id?.value, tabId, url)
+})
+
+/**
+ * @param {string | undefined} id
+ * @param {number} tabId
+ * @param {string} url
+ */
+export function handleOpenInTucan(id, tabId, url) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
         chrome.tabs.update(tabId, {
@@ -112,7 +149,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id.value},-N000274,${match[1]}`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id},-N000274,${match[1]}`
         })
         return;
     }
@@ -120,15 +157,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/module-details/(.*)$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N${id.value},-N000275,${match[1]}`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N${id},-N000275,${match[1]}`
         })
         return;
     }
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`, "g").exec(url)
+    console.log(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`)
+    console.log(url)
     if (id && match) {
+        console.log("yay")
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id.value},-N000311,${match[1]}`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id},-N000311,${match[1]}`
         })
         return;
     }
@@ -136,7 +176,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
         })
         return;
     }
@@ -144,7 +184,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/overview$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id.value},-N000019,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
         })
         return;
     }
@@ -152,7 +192,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id.value},-N000275,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id},-N000275,`
         })
         return;
     }
@@ -160,7 +200,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-courses$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N${id.value},-N000274,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N${id},-N000274,`
         })
         return;
     }
@@ -168,7 +208,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id.value},-N000318,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id},-N000318,`
         })
         return;
     }
@@ -176,7 +216,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/exam-results$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N${id.value},-N000325,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N${id},-N000325,`
         })
         return;
     }
@@ -184,7 +224,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-results$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N${id.value},-N000324,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N${id},-N000324,`
         })
         return;
     }
@@ -192,7 +232,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-documents$`, "g").exec(url)
     if (id && match) {
         chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${id.value},-N000557,`
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${id},-N000557,`
         })
         return;
     }
@@ -203,7 +243,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         title: "URL not supported",
         message: "Unfortunately this URL is not supported yet. We welcome any contribution",
     });
-})
+}
 
 chrome.runtime.onInstalled.addListener(async () => {
     let { mobileDesign, customUi } = await chrome.storage.sync.get(

@@ -89,5 +89,13 @@
     ],
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+    },
+    "commands": {
+        "open-in-tucan-page": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+1"
+            },
+            "description": "Open page in TUCaN"
+        }
     }
 }
