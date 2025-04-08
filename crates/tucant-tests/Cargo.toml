@@ -9,6 +9,7 @@ rust-version.workspace = true
 thirtyfour = "0.35.0"
 tokio = { features = ["full"], version = "1.43.0" }
 dotenvy = "0.15"
+paste = "1"
 
 [lints]
 workspace = true

@@ -206,7 +206,21 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
-    console.log("on installed")
+    let { mobileDesign, customUi } = await chrome.storage.sync.get(
+        { mobileDesign: false, customUi: true },
+    );
+
+    if (customUi) {
+        await enableCustomUi()
+    } else {
+        await disableCustomUi()
+    }
+
+    if (mobileDesign) {
+        await enableMobileDesign()
+    } else {
+        await disableMobileDesign()
+    }
 
     await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: [4100], // TODO check that rules have no dupes
@@ -371,21 +385,21 @@ const customUiRules = [{
     },
 },];
 
-function enableCustomUi() {
-    chrome.declarativeNetRequest.updateDynamicRules({
+async function enableCustomUi() {
+    await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: customUiRules.map(r => r.id),
         addRules: customUiRules,
     })
 }
 
-function disableCustomUi() {
-    chrome.declarativeNetRequest.updateDynamicRules({
+async function disableCustomUi() {
+    await chrome.declarativeNetRequest.updateDynamicRules({
         removeRuleIds: customUiRules.map(r => r.id)
     })
 }
 
-function enableMobileDesign() {
-    chrome.scripting.registerContentScripts(
+async function enableMobileDesign() {
+    await chrome.scripting.registerContentScripts(
         [{
             id: "mobile",
             "matches": [
@@ -402,30 +416,14 @@ function enableMobileDesign() {
     )
 }
 
-function disableMobileDesign() {
-    chrome.scripting.unregisterContentScripts({
-        ids: ["mobile"]
-    })
+async function disableMobileDesign() {
+    const registeredContentScripts = await chrome.scripting.getRegisteredContentScripts()
+    if (registeredContentScripts.find(s => s.id === "mobile")) {
+        await chrome.scripting.unregisterContentScripts({
+            ids: ["mobile"]
+        })
+    }
 }
-
-// ensure its on when still loading the settings
-enableCustomUi()
-enableMobileDesign()
-
-chrome.storage.sync.get(
-    { mobileDesign: false, customUi: true },
-).then(({ mobileDesign, customUi }) => {
-    if (mobileDesign) {
-        enableMobileDesign()
-    } else {
-        disableMobileDesign()
-    }
-    if (customUi) {
-        enableCustomUi()
-    } else {
-        disableCustomUi()
-    }
-});
 
 chrome.omnibox.onInputStarted.addListener(function () {
     chrome.omnibox.setDefaultSuggestion({
