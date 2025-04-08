@@ -1,0 +1,13 @@
+[package]
+name = "tucant-tests-webdriver-bidi"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+webdriverbidi = "0.1.16"
+tokio = { features = ["full"], version = "1" }
+
+[lints]
+workspace = true
