@@ -37,8 +37,6 @@ async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Sen
         }
 
         let mut caps = DesiredCapabilities::chrome();
-        caps.set_no_sandbox()?;
-        //caps.set_headless()?;
         let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
@@ -73,9 +71,6 @@ async fn run_with_chromium_extension<F: Future<Output = Result<(), Box<dyn Error
         }
 
         let mut caps = DesiredCapabilities::chrome();
-        caps.set_no_sandbox()?;
-        caps.set_disable_gpu()?;
-        caps.unset_headless()?;
         caps.add_arg(&format!("--load-extension={}", std::env::var("EXTENSION_DIR").unwrap()))?;
         let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
