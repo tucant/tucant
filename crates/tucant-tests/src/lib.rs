@@ -18,16 +18,18 @@ pub enum Mode {
 
 async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
     // .arg("--enable-chrome-logs")
-    let mut child = tokio::process::Command::new("chromedriver").arg("--port=9515").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("chromedriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
     let task = tokio::spawn(async {
         let mut reader = BufReader::new(stderr).lines();
 
+        let mut port: Option<u16> = None;
         while let Some(line) = reader.next_line().await? {
             println!("{line}");
-            if line == "ChromeDriver was started successfully on port 9515." {
+            if line.starts_with("ChromeDriver was started successfully on port ") {
+                port = Some(line.strip_prefix("ChromeDriver was started successfully on port ").unwrap().strip_suffix(".").unwrap().parse().unwrap());
                 break;
             }
         }
@@ -35,7 +37,7 @@ async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Sen
         let mut caps = DesiredCapabilities::chrome();
         caps.set_no_sandbox()?;
         //caps.set_headless()?;
-        let driver = WebDriver::new("http://localhost:9515", caps).await?;
+        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
         fun(Browser::Chromium, Mode::Api, driver).await?;
@@ -89,22 +91,24 @@ async fn run_with_chromium_extension<F: Future<Output = Result<(), Box<dyn Error
 }
 
 async fn run_with_firefox_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let mut child = tokio::process::Command::new("geckodriver").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    let mut child = tokio::process::Command::new("geckodriver").arg("--port=0").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
 
     let stderr = child.stdout.take().unwrap();
 
     let task = tokio::spawn(async move {
         let mut reader = BufReader::new(stderr).lines();
 
+        let mut port: Option<u16> = None;
         while let Some(line) = reader.next_line().await? {
             println!("{line}");
             if line.contains("Listening on") {
+                port = Some(line.rsplit_once(':').unwrap().1.parse().unwrap());
                 break;
             }
         }
 
         let caps = DesiredCapabilities::firefox();
-        let driver = WebDriver::new("http://localhost:4444", caps).await?;
+        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
 
         fun(Browser::Firefox, Mode::Api, driver).await?;
@@ -128,20 +132,24 @@ async fn run_with_firefox_extension<F: Future<Output = Result<(), Box<dyn Error 
     let task = tokio::spawn(async move {
         let mut reader = BufReader::new(stderr).lines();
 
+        let mut port: Option<u16> = None;
         while let Some(line) = reader.next_line().await? {
             println!("{line}");
             if line.contains("Listening on") {
+                port = Some(line.rsplit_once(':').unwrap().1.parse().unwrap());
                 break;
             }
         }
 
         let caps = DesiredCapabilities::firefox();
-        let driver = WebDriver::new("http://localhost:4444", caps).await?;
+        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
         driver.set_window_rect(0, 0, 1300, 768).await?;
         let tools = FirefoxTools::new(driver.handle.clone());
         tools.install_addon(&std::env::var("EXTENSION_DIR").unwrap(), Some(true)).await?;
 
         fun(Browser::Firefox, Mode::Extension, driver).await?;
+
+        // TODO stop driver?
 
         Ok::<(), Box<dyn Error + Send + Sync>>(())
     })
