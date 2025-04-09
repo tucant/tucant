@@ -5,7 +5,9 @@ use winnow::Parser;
 use winnow::Result;
 use winnow::ascii::alpha1;
 use winnow::ascii::digit1;
+use winnow::ascii::multispace0;
 use winnow::combinator::alt;
+use winnow::combinator::separated;
 use winnow::combinator::trace;
 use winnow::error::ParserError;
 use winnow::error::{StrContext, StrContextValue};
@@ -23,7 +25,11 @@ fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
 }
 
 fn parse_entry(input: &mut &str) -> ModalResult<usize> {
-    (alpha1, ": ", ident).map(|v| 1).parse_next(input)
+    (multispace0, alpha1, ": ", ident).map(|v| 1).parse_next(input)
+}
+
+fn parse_group(input: &mut &str) -> ModalResult<usize> {
+    (parse_name, separated(0.., parse_entry, ",")).map(|(v, a): (usize, Vec<_>)| 1).parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -33,7 +39,7 @@ impl std::str::FromStr for Test {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        parse_name.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
+        parse_group.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
     }
 }
 
