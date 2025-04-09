@@ -42,7 +42,7 @@ impl std::str::FromStr for Test {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        repeat(1.., parse_group).context(StrContext::Label("groups")).map(|_: Vec<_>| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
+        repeat(1.., cut_err(parse_group)).context(StrContext::Label("groups")).map(|_: Vec<_>| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
     }
 }
 
