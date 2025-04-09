@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
     use tokio::sync::OnceCell;
     use webdriverbidi::{
         remote::{
@@ -9,6 +11,8 @@ mod tests {
         session::WebDriverBiDiSession,
         webdriver::capabilities::CapabilitiesRequest,
     };
+
+    static TEST_COUNT: AtomicUsize = AtomicUsize::new(2);
 
     static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
 
@@ -43,7 +47,10 @@ mod tests {
             .await?;
         navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
         session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
-        session.close().await?;
+
+        if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
+            session.close().await?;
+        }
 
         Ok(())
     }
@@ -62,7 +69,10 @@ mod tests {
             .await?;
         navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
         session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
-        session.close().await?;
+
+        if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
+            session.close().await?;
+        }
 
         Ok(())
     }
