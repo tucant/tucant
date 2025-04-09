@@ -1,14 +1,29 @@
 // https://www.rfc-editor.org/rfc/rfc8610
 
+use winnow::ModalResult;
 use winnow::Parser;
 use winnow::Result;
 use winnow::ascii::alpha1;
 use winnow::ascii::digit1;
 use winnow::combinator::alt;
+use winnow::combinator::trace;
+use winnow::error::ParserError;
 use winnow::error::{StrContext, StrContextValue};
+use winnow::stream::AsChar;
+use winnow::stream::Stream;
+use winnow::stream::StreamIsPartial;
+use winnow::token::take_while;
 
-fn parse_name(input: &mut &str) -> Result<usize> {
-    (alpha1, " ").map(|v| 1).parse_next(input)
+fn parse_name(input: &mut &str) -> ModalResult<usize> {
+    (alpha1, " = {\n").map(|v| 1).parse_next(input)
+}
+
+fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
+    take_while(1.., ('0'..='9', 'A'..='F', '-')).parse_next(s)
+}
+
+fn parse_entry(input: &mut &str) -> ModalResult<usize> {
+    (alpha1, ": ", ident).map(|v| 1).parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
