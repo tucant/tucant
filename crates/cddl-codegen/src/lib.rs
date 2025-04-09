@@ -41,7 +41,7 @@ fn parse_group(input: &mut &str) -> ModalResult<usize> {
         dispatch! {
             take(1usize);
             "{" => (multispace0, repeat(0.., parse_entry), multispace0, "}").map(|_: (_, Vec<_>, _, _)| 1),
-            "(" => (multispace0, repeat(0.., (ident, opt("//"))), ")").map(|_: (_, Vec<_>, _)| 1),
+            "(" => (multispace0, repeat(0.., (ident, multispace0, opt("//"), multispace0)), ")").map(|_: (_, Vec<_>, _)| 1),
             _ => (fail::<_, usize, _>).context(StrContext::Label("group open"))
             .context(StrContext::Expected(StrContextValue::StringLiteral("{")))
             .context(StrContext::Expected(StrContextValue::StringLiteral("("))),
