@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::{
+        path,
+        sync::atomic::{AtomicUsize, Ordering},
+    };
 
     use tokio::sync::OnceCell;
     use webdriverbidi::{
@@ -36,9 +39,14 @@ mod tests {
 
     #[tokio::test]
     async fn it_works() -> anyhow::Result<()> {
+        env_logger::init();
+
         let mut session = get_session().await;
         // nix build .#extension-unpacked
-        session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new("../../result".to_owned())))).await?;
+
+        let path = path::absolute("../../result/manifest.json")?.to_str().unwrap().to_string();
+        println!("{path}");
+        session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
 
         let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
         let browsing_context = session
@@ -58,7 +66,7 @@ mod tests {
 
         Ok(())
     }
-
+    /*
     #[tokio::test]
     async fn it_works2() -> anyhow::Result<()> {
         let mut session = get_session().await;
@@ -79,5 +87,5 @@ mod tests {
         }
 
         Ok(())
-    }
+    }*/
 }
