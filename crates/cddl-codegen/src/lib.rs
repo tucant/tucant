@@ -2,12 +2,13 @@
 
 use winnow::Parser;
 use winnow::Result;
+use winnow::ascii::alpha1;
 use winnow::ascii::digit1;
 use winnow::combinator::alt;
 use winnow::error::{StrContext, StrContextValue};
 
-fn parse_digits(input: &mut &str) -> Result<usize> {
-    digit1.parse_to().parse_next(input)
+fn parse_name(input: &mut &str) -> Result<usize> {
+    (alpha1, " ").map(|v| 1).parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -17,7 +18,7 @@ impl std::str::FromStr for Test {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        parse_digits.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
+        parse_name.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
     }
 }
 
