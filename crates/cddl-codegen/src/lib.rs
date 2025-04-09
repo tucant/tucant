@@ -22,7 +22,7 @@ fn parse_name(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
-    take_while(1.., ('0'..='9', 'A'..='F', '-')).context(StrContext::Label("ident")).parse_next(s)
+    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).context(StrContext::Label("ident")).parse_next(s)
 }
 
 fn parse_entry(input: &mut &str) -> ModalResult<usize> {
