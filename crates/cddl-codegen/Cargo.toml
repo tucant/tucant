@@ -1,0 +1,13 @@
+[package]
+name = "cddl-codegen"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow = "1.0.97"
+winnow = "0.7.6"
+
+[lints]
+workspace = true
