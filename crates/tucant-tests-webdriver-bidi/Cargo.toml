@@ -6,7 +6,7 @@ version.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-webdriverbidi = { path = "../../../webdriverbidi" }
+webdriverbidi = { git = "https://github.com/TahaHachana/webdriverbidi.git" }
 tokio = { features = ["full"], version = "1" }
 anyhow = "1.0.97"
 

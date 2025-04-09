@@ -7,6 +7,7 @@ mod tests {
         remote::{
             EmptyParams,
             browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, NavigateParameters, ReadinessState},
+            web_extension::{ExtensionData, ExtensionPath, InstallParameters},
         },
         session::WebDriverBiDiSession,
         webdriver::capabilities::CapabilitiesRequest,
@@ -36,6 +37,9 @@ mod tests {
     #[tokio::test]
     async fn it_works() -> anyhow::Result<()> {
         let mut session = get_session().await;
+        // nix build .#extension-unpacked
+        session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new("../../result".to_owned())))).await?;
+
         let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
         let browsing_context = session
             .browsing_context_create(CreateParameters {

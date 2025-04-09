@@ -3477,6 +3477,7 @@ dependencies = [
 [[package]]
 name = "webdriverbidi"
 version = "0.1.16"
+source = "git+https://github.com/TahaHachana/webdriverbidi.git#f9d80332a7383fd21a8caae304e95016a792ad7b"
 dependencies = [
  "futures",
  "log",
