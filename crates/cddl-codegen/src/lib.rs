@@ -8,6 +8,8 @@ use winnow::ascii::digit1;
 use winnow::ascii::multispace0;
 use winnow::combinator::alt;
 use winnow::combinator::cut_err;
+use winnow::combinator::dispatch;
+use winnow::combinator::fail;
 use winnow::combinator::opt;
 use winnow::combinator::repeat;
 use winnow::combinator::separated;
@@ -17,10 +19,11 @@ use winnow::error::{StrContext, StrContextValue};
 use winnow::stream::AsChar;
 use winnow::stream::Stream;
 use winnow::stream::StreamIsPartial;
+use winnow::token::take;
 use winnow::token::take_while;
 
 fn parse_name(input: &mut &str) -> ModalResult<usize> {
-    (alpha1, multispace0, "=", multispace0, "{").map(|v| 1).context(StrContext::Label("name")).parse_next(input)
+    (alpha1, multispace0, "=", multispace0).map(|v| 1).context(StrContext::Label("name")).parse_next(input)
 }
 
 fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
@@ -32,7 +35,18 @@ fn parse_entry(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn parse_group(input: &mut &str) -> ModalResult<usize> {
-    (multispace0, parse_name, multispace0, cut_err(repeat(0.., parse_entry)), multispace0, "}").context(StrContext::Label("group")).map(|(_, v, _, a, _, _): (_, usize, _, Vec<_>, _, _)| 1).parse_next(input)
+    (
+        multispace0,
+        parse_name,
+        dispatch! {
+            take(1usize);
+            "{" => (multispace0, repeat(0.., parse_entry), multispace0, "}"),
+            _ => fail::<_, (&str, Vec<_>, &str, &str), _>,
+        },
+    )
+        // .context(StrContext::Label("group"))
+        .map(|_: (&str, usize, (&str, Vec<_>, &str, &str))| 1)
+        .parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
