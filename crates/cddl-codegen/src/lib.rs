@@ -20,7 +20,7 @@ use winnow::stream::StreamIsPartial;
 use winnow::token::take_while;
 
 fn parse_name(input: &mut &str) -> ModalResult<usize> {
-    (alpha1, " = {\n").map(|v| 1).context(StrContext::Label("name")).parse_next(input)
+    (alpha1, multispace0, "=", multispace0, "{").map(|v| 1).context(StrContext::Label("name")).parse_next(input)
 }
 
 fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
@@ -32,7 +32,7 @@ fn parse_entry(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn parse_group(input: &mut &str) -> ModalResult<usize> {
-    (parse_name, repeat(0.., cut_err(parse_entry)), multispace0, "}").context(StrContext::Label("group")).map(|(v, a, _, _): (usize, Vec<_>, _, _)| 1).parse_next(input)
+    (multispace0, parse_name, multispace0, cut_err(repeat(0.., parse_entry)), multispace0, "}").context(StrContext::Label("group")).map(|(_, v, _, a, _, _): (_, usize, _, Vec<_>, _, _)| 1).parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -42,7 +42,7 @@ impl std::str::FromStr for Test {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        parse_group.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
+        repeat(1.., parse_group).context(StrContext::Label("groups")).map(|_: Vec<_>| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
     }
 }
 
