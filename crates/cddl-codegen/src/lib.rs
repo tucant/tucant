@@ -1,26 +1,12 @@
 // https://www.rfc-editor.org/rfc/rfc8610
 
-use winnow::ModalResult;
-use winnow::Parser;
-use winnow::Result;
-use winnow::ascii::alpha1;
-use winnow::ascii::digit1;
-use winnow::ascii::multispace0;
-use winnow::combinator::alt;
-use winnow::combinator::cut_err;
-use winnow::combinator::dispatch;
-use winnow::combinator::fail;
-use winnow::combinator::opt;
-use winnow::combinator::repeat;
-use winnow::combinator::separated;
-use winnow::combinator::trace;
-use winnow::error::ParserError;
-use winnow::error::{StrContext, StrContextValue};
-use winnow::stream::AsChar;
-use winnow::stream::Stream;
-use winnow::stream::StreamIsPartial;
-use winnow::token::take;
-use winnow::token::take_while;
+use winnow::{
+    ascii::{alpha1, multispace0},
+    combinator::{cut_err, dispatch, fail, opt, repeat},
+    error::{StrContext, StrContextValue},
+    prelude::*,
+    token::{take, take_while},
+};
 
 fn parse_name(input: &mut &str) -> ModalResult<usize> {
     (alpha1, multispace0, "=", multispace0).map(|v| 1).context(StrContext::Label("name")).parse_next(input)
