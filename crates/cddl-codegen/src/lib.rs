@@ -57,14 +57,14 @@ fn grpchoice(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn grpent(input: &mut &str) -> ModalResult<usize> {
-    let mut a = (opt(terminated(occur, s)), opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
-    let mut b = (opt(terminated(occur, s)), groupname).map(|v| 1usize); // not complete
-    let mut c = (opt(terminated(occur, s)), "(", s, group, s, ")").map(|v| 1usize);
-    trace("grpent", alt((a, b, c))).parse_next(input)
+    let mut a = (opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
+    let mut b = groupname.map(|v| 1usize); // not complete
+    let mut c = ("(", s, group, s, ")").map(|v| 1usize);
+    trace("grpent", (opt(terminated(occur, s)), alt((a, b, c))).map(|v| 1)).parse_next(input)
 }
 
 fn memberkey(input: &mut &str) -> ModalResult<usize> {
-    let mut a = terminated(type1, s).map(|v| 1usize); // not complete
+    let mut a = (terminated(type1, s), "=>").map(|v| 1usize); // not complete
     let mut b = (bareword, s, ":").map(|v| 1usize);
     let mut c = (value, s, ":").map(|v| 1usize);
     trace("memberkey", alt((a, b, c))).parse_next(input)
@@ -141,7 +141,7 @@ mod tests {
     #[test]
     fn test1() {
         let input = r#"Command = {
-            id
+            id: js
         }"#;
         let parsed = input.parse::<Test>().unwrap();
     }
