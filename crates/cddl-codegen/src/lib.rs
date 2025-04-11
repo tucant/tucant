@@ -1,6 +1,6 @@
 use winnow::{
     ascii::{alpha1, dec_uint, multispace0 as s},
-    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated},
+    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated, trace},
     error::{StrContext, StrContextValue},
     prelude::*,
     token::{take, take_until, take_while},
@@ -11,84 +11,84 @@ use winnow::{
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
 fn ccdl(input: &mut &str) -> ModalResult<usize> {
-    preceded(s, repeat(1.., (terminated(rule, s)))).map(|v: Vec<_>| 1).parse_next(input)
+    trace("ccdl", preceded(s, repeat(1.., (terminated(rule, s)))).map(|v: Vec<_>| 1)).parse_next(input)
 }
 
 fn rule(input: &mut &str) -> ModalResult<usize> {
-    alt(((typename, s, assignt, s, r#type), (groupname, s, assigng, s, grpent))).map(|v| 1).parse_next(input)
+    trace("rule", alt(((typename, s, assignt, s, r#type), (groupname, s, assigng, s, grpent))).map(|v| 1)).parse_next(input)
 }
 
 fn typename(input: &mut &str) -> ModalResult<usize> {
-    id.map(|v| 1).parse_next(input)
+    trace("typename", id.map(|v| 1)).parse_next(input)
 }
 
 fn groupname(input: &mut &str) -> ModalResult<usize> {
-    id.map(|v| 1).parse_next(input)
+    trace("groupname", id.map(|v| 1)).parse_next(input)
 }
 
 fn assignt(input: &mut &str) -> ModalResult<usize> {
-    alt(("=", "/=")).map(|v| 1).parse_next(input)
+    trace("assignt", alt(("=", "/=")).map(|v| 1)).parse_next(input)
 }
 
 fn assigng(input: &mut &str) -> ModalResult<usize> {
-    alt(("=", "//=")).map(|v| 1).parse_next(input)
+    trace("assigng", alt(("=", "//=")).map(|v| 1)).parse_next(input)
 }
 
 fn r#type(input: &mut &str) -> ModalResult<usize> {
-    (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| 1).parse_next(input)
+    trace("type", (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| 1)).parse_next(input)
 }
 
 fn type1(input: &mut &str) -> ModalResult<usize> {
     // TODO not complete
-    type2.parse_next(input)
+    trace("type1", type2).parse_next(input)
 }
 
 fn type2(input: &mut &str) -> ModalResult<usize> {
     // TODO not complete
-    alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1))).parse_next(input)
+    trace("type2", alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1)))).parse_next(input)
 }
 
 fn group(input: &mut &str) -> ModalResult<usize> {
-    (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1).parse_next(input)
+    trace("group", (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1)).parse_next(input)
 }
 
 fn grpchoice(input: &mut &str) -> ModalResult<usize> {
-    repeat(0.., (grpent, optcom)).parse_next(input)
+    trace("grpchoice", repeat(0.., (grpent, optcom))).parse_next(input)
 }
 
 fn grpent(input: &mut &str) -> ModalResult<usize> {
     let mut a = (opt(terminated(occur, s)), opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
     let mut b = (opt(terminated(occur, s)), groupname).map(|v| 1usize); // not complete
     let mut c = (opt(terminated(occur, s)), "(", s, group, s, ")").map(|v| 1usize);
-    alt((a, b, c)).parse_next(input)
+    trace("grpent", alt((a, b, c))).parse_next(input)
 }
 
 fn memberkey(input: &mut &str) -> ModalResult<usize> {
     let mut a = terminated(type1, s).map(|v| 1usize); // not complete
     let mut b = (bareword, s, ":").map(|v| 1usize);
     let mut c = (value, s, ":").map(|v| 1usize);
-    alt((a, b, c)).parse_next(input)
+    trace("memberkey", alt((a, b, c))).parse_next(input)
 }
 
 fn bareword(input: &mut &str) -> ModalResult<usize> {
-    id.map(|v| 1).parse_next(input)
+    trace("bareword", id.map(|v| 1)).parse_next(input)
 }
 
 fn optcom(input: &mut &str) -> ModalResult<usize> {
-    (s, opt((",", s))).map(|v| 1).parse_next(input)
+    trace("optcom", (s, opt((",", s))).map(|v| 1)).parse_next(input)
 }
 
 fn occur(input: &mut &str) -> ModalResult<usize> {
     // TODO dec_uint not fully correct
-    alt(((dec_uint, "*", dec_uint).map(|v: (u64, _, u64)| 1), "+".map(|v| 1), "?".map(|v| 1))).parse_next(input)
+    trace("occur", alt(((dec_uint, "*", dec_uint).map(|v: (u64, _, u64)| 1), "+".map(|v| 1), "?".map(|v| 1)))).parse_next(input)
 }
 
 fn value(input: &mut &str) -> ModalResult<usize> {
-    alt((dec_uint.map(|v: u64| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1))).parse_next(input)
+    trace("value", alt((dec_uint.map(|v: u64| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1)))).parse_next(input)
 }
 
 fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
-    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).parse_next(s)
+    trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-'))).parse_next(s)
 }
 
 /*
