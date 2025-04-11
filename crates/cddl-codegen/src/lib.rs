@@ -39,13 +39,20 @@ fn r#type(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn type1(input: &mut &str) -> ModalResult<usize> {
-    // TODO not complete
-    trace("type1", type2).parse_next(input)
+    trace("type1", (type2, opt((s, alt((rangeop, ctlop)), s, type2)))).map(|v| 1).parse_next(input)
 }
 
 fn type2(input: &mut &str) -> ModalResult<usize> {
     // TODO not complete
     trace("type2", alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1)))).parse_next(input)
+}
+
+fn rangeop(input: &mut &str) -> ModalResult<usize> {
+    alt(("...", "..")).map(|v| 1).parse_next(input)
+}
+
+fn ctlop(input: &mut &str) -> ModalResult<usize> {
+    preceded(".", id).map(|v| 1).parse_next(input)
 }
 
 fn group(input: &mut &str) -> ModalResult<usize> {
@@ -90,37 +97,6 @@ fn value(input: &mut &str) -> ModalResult<usize> {
 fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
     trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-'))).parse_next(s)
 }
-
-/*
-fn parse_name(input: &mut &str) -> ModalResult<usize> {
-    (alpha1, multispace0, "=", multispace0).map(|v| 1).context(StrContext::Label("name")).parse_next(input)
-}
-
-fn ident<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
-    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).context(StrContext::Label("ident")).parse_next(s)
-}
-
-fn parse_entry(input: &mut &str) -> ModalResult<usize> {
-    (multispace0, alpha1, opt((": ", ident)), opt(","), multispace0).map(|v| 1).context(StrContext::Label("entry")).parse_next(input)
-}
-
-fn parse_group(input: &mut &str) -> ModalResult<usize> {
-    (
-        multispace0,
-        parse_name,
-        dispatch! {
-            take(1usize);
-            "{" => (multispace0, repeat(0.., parse_entry), multispace0, "}").map(|_: (_, Vec<_>, _, _)| 1),
-            "(" => (multispace0, repeat(0.., (ident, multispace0, opt(alt(("//", "/"))), multispace0)), ")").map(|_: (_, Vec<_>, _)| 1),
-            _ => (fail::<_, usize, _>).context(StrContext::Label("group open"))
-            .context(StrContext::Expected(StrContextValue::StringLiteral("{")))
-            .context(StrContext::Expected(StrContextValue::StringLiteral("("))),
-        },
-    )
-        // .context(StrContext::Label("group"))
-        .map(|_| 1)
-        .parse_next(input)
-}*/
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Test(usize);
