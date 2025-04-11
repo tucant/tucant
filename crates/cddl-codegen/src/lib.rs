@@ -80,7 +80,7 @@ fn optcom(input: &mut &str) -> ModalResult<usize> {
 
 fn occur(input: &mut &str) -> ModalResult<usize> {
     // TODO dec_uint not fully correct
-    trace("occur", alt(((dec_uint, "*", dec_uint).map(|v: (u64, _, u64)| 1), "+".map(|v| 1), "?".map(|v| 1)))).parse_next(input)
+    trace("occur", alt(((opt(dec_uint), "*", opt(dec_uint)).map(|v: (Option<u64>, _, Option<u64>)| 1), "+".map(|v| 1), "?".map(|v| 1)))).parse_next(input)
 }
 
 fn value(input: &mut &str) -> ModalResult<usize> {
@@ -140,9 +140,7 @@ mod tests {
 
     #[test]
     fn test1() {
-        let input = r#"Command = {
-            id: js
-        }"#;
+        let input = r#"Extensible = (*text => any)"#;
         let parsed = input.parse::<Test>().unwrap();
     }
 
