@@ -139,6 +139,14 @@ mod tests {
     use std::fs::read_to_string;
 
     #[test]
+    fn test1() {
+        let input = r#"Command = {
+            id
+        }"#;
+        let parsed = input.parse::<Test>().unwrap();
+    }
+
+    #[test]
     fn it_works() {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
         let parsed = input.parse::<Test>().unwrap();
