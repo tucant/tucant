@@ -10,12 +10,24 @@ use winnow::{
 
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
-fn ccdl(input: &mut &str) -> ModalResult<usize> {
-    trace("ccdl", preceded(s, repeat(1.., (terminated(rule, s)))).map(|v: Vec<_>| 1)).parse_next(input)
+#[derive(Debug)]
+enum Rule {
+    Group { name: String, group: Group },
+    Type { name: String, r#type: Type },
 }
 
-fn rule(input: &mut &str) -> ModalResult<usize> {
-    trace("rule", alt(((typename, s, assignt, s, r#type), (groupname, s, assigng, s, grpent))).map(|v| 1)).parse_next(input)
+#[derive(Debug)]
+struct Group {}
+
+#[derive(Debug)]
+struct Type {}
+
+fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
+    trace("ccdl", preceded(s, repeat(1.., (terminated(rule, s))))).parse_next(input)
+}
+
+fn rule(input: &mut &str) -> ModalResult<Rule> {
+    trace("rule", alt(((typename, s, assignt, s, r#type).map(|v| Rule::Type { name: String::new(), r#type: Type {} }), (groupname, s, assigng, s, grpent).map(|v| Rule::Group { name: String::new(), group: Group {} })))).parse_next(input)
 }
 
 fn typename(input: &mut &str) -> ModalResult<usize> {
@@ -102,36 +114,18 @@ fn s(input: &mut &str) -> ModalResult<usize> {
     repeat(0.., alt((multispace1.map(|v| 1), (";", till_line_ending).map(|v| 1)))).parse_next(input)
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct Test(usize);
-
-impl std::str::FromStr for Test {
-    type Err = anyhow::Error;
-
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        ccdl.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::Test;
     use std::fs::read_to_string;
 
-    #[test]
-    fn test1() {
-        let input = r#"
-browsingContext.PrintParameters = {
-  ? scale: (0.1..2.0) .default 1.0,
-}
-"#;
-        let parsed = input.parse::<Test>().unwrap();
-    }
+    use winnow::Parser;
+
+    use crate::ccdl;
 
     #[test]
     fn it_works() {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
-        let parsed = input.parse::<Test>().unwrap();
+        let parsed = ccdl.parse(&input).unwrap();
         panic!("{parsed:?}");
     }
 }
