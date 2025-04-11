@@ -1,5 +1,5 @@
 use winnow::{
-    ascii::{alpha1, dec_uint, multispace0, multispace1, till_line_ending},
+    ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated, trace},
     error::{StrContext, StrContextValue},
     prelude::*,
@@ -91,7 +91,7 @@ fn occur(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn value(input: &mut &str) -> ModalResult<usize> {
-    trace("value", alt((dec_uint.map(|v: u64| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1)))).parse_next(input)
+    trace("value", alt((take_while(1.., ('0'..='9', 'e', '.', '-', '+')).map(|v| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1)))).parse_next(input)
 }
 
 fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
@@ -120,13 +120,11 @@ mod tests {
 
     #[test]
     fn test1() {
-        let input = r#"SessionCommand = (
-  session.End //
-  session.New //
-  session.Status //
-  session.Subscribe //
-  session.Unsubscribe
-)"#;
+        let input = r#"
+browsingContext.PrintParameters = {
+  ? scale: (0.1..2.0) .default 1.0,
+}
+"#;
         let parsed = input.parse::<Test>().unwrap();
     }
 
