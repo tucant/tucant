@@ -19,7 +19,7 @@ fn rule(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn typename(input: &mut &str) -> ModalResult<usize> {
-    id.parse_next(input)
+    id.map(|v| 1).parse_next(input)
 }
 
 fn assignt(input: &mut &str) -> ModalResult<usize> {
@@ -41,7 +41,7 @@ fn type2(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn groupname(input: &mut &str) -> ModalResult<usize> {
-    id.parse_next(input)
+    id.map(|v| 1).parse_next(input)
 }
 
 fn assigng(input: &mut &str) -> ModalResult<usize> {
@@ -63,11 +63,11 @@ fn memberkey(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn bareword(input: &mut &str) -> ModalResult<usize> {
-    id.parse_next(input)
+    id.map(|v| 1).parse_next(input)
 }
 
-fn id(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
+    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).parse_next(s)
 }
 
 fn occur(input: &mut &str) -> ModalResult<usize> {
