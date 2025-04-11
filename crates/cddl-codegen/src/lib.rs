@@ -1,15 +1,44 @@
 use winnow::{
-    ascii::{alpha1, multispace0},
-    combinator::{alt, cut_err, dispatch, fail, opt, repeat},
+    ascii::{alpha1, multispace0 as s},
+    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated},
     error::{StrContext, StrContextValue},
     prelude::*,
     token::{take, take_while},
 };
 
 // https://www.rfc-editor.org/rfc/rfc8610
+
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
 fn ccdl(input: &mut &str) -> ModalResult<usize> {
+    preceded(s, repeat(1.., (terminated(rule, s)))).map(|v| 1).parse_next(input)
+}
+
+fn rule(input: &mut &str) -> ModalResult<usize> {
+    alt(((typename, s, assignt, s, r#type), (groupname, s, assigng, s, grpent))).map(|v| 1).parse_next(input)
+}
+
+fn typename(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn assignt(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn r#type(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn groupname(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn assigng(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn grpent(input: &mut &str) -> ModalResult<usize> {
     todo!()
 }
 
