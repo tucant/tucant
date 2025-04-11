@@ -1,5 +1,5 @@
 use winnow::{
-    ascii::{alpha1, dec_uint, multispace0 as s},
+    ascii::{alpha1, dec_uint, multispace0, multispace1, till_line_ending},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated, trace},
     error::{StrContext, StrContextValue},
     prelude::*,
@@ -96,6 +96,10 @@ fn value(input: &mut &str) -> ModalResult<usize> {
 
 fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
     trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-', '.'))).parse_next(s)
+}
+
+fn s(input: &mut &str) -> ModalResult<usize> {
+    repeat(0.., alt((multispace1.map(|v| 1), (";", till_line_ending).map(|v| 1)))).parse_next(input)
 }
 
 #[derive(Debug, PartialEq, Eq)]
