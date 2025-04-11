@@ -9,6 +9,11 @@ use winnow::{
 // https://www.rfc-editor.org/rfc/rfc8610
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
+fn ccdl(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+/*
 fn parse_name(input: &mut &str) -> ModalResult<usize> {
     (alpha1, multispace0, "=", multispace0).map(|v| 1).context(StrContext::Label("name")).parse_next(input)
 }
@@ -37,7 +42,7 @@ fn parse_group(input: &mut &str) -> ModalResult<usize> {
         // .context(StrContext::Label("group"))
         .map(|_| 1)
         .parse_next(input)
-}
+}*/
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Test(usize);
@@ -46,7 +51,7 @@ impl std::str::FromStr for Test {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        repeat(1.., cut_err(parse_group)).context(StrContext::Label("groups")).map(|_: Vec<_>| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
+        ccdl.map(|_| Test(1)).parse(input).map_err(|e| anyhow::format_err!("{e}"))
     }
 }
 
