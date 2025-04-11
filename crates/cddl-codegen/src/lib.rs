@@ -50,7 +50,8 @@ fn assigng(input: &mut &str) -> ModalResult<usize> {
 
 fn grpent(input: &mut &str) -> ModalResult<usize> {
     let mut a = (opt(terminated(occur, s)), opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
-    a.parse_next(input)
+    let mut b = (opt(terminated(occur, s)), groupname).map(|v| 1usize); // not complete
+    alt((a, b)).parse_next(input)
 }
 
 fn memberkey(input: &mut &str) -> ModalResult<usize> {
