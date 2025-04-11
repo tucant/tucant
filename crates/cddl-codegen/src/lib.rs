@@ -11,7 +11,7 @@ use winnow::{
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
 fn ccdl(input: &mut &str) -> ModalResult<usize> {
-    preceded(s, repeat(1.., (terminated(rule, s)))).map(|v| 1).parse_next(input)
+    preceded(s, repeat(1.., (terminated(rule, s)))).map(|v: Vec<_>| 1).parse_next(input)
 }
 
 fn rule(input: &mut &str) -> ModalResult<usize> {
@@ -19,11 +19,11 @@ fn rule(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn typename(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    id.parse_next(input)
 }
 
 fn assignt(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    alt(("=", "/=")).map(|v| 1).parse_next(input)
 }
 
 fn r#type(input: &mut &str) -> ModalResult<usize> {
@@ -31,14 +31,18 @@ fn r#type(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn groupname(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    id.parse_next(input)
 }
 
 fn assigng(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    alt(("=", "//=")).map(|v| 1).parse_next(input)
 }
 
 fn grpent(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn id(input: &mut &str) -> ModalResult<usize> {
     todo!()
 }
 
