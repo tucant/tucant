@@ -22,8 +22,16 @@ fn typename(input: &mut &str) -> ModalResult<usize> {
     id.map(|v| 1).parse_next(input)
 }
 
+fn groupname(input: &mut &str) -> ModalResult<usize> {
+    id.map(|v| 1).parse_next(input)
+}
+
 fn assignt(input: &mut &str) -> ModalResult<usize> {
     alt(("=", "/=")).map(|v| 1).parse_next(input)
+}
+
+fn assigng(input: &mut &str) -> ModalResult<usize> {
+    alt(("=", "//=")).map(|v| 1).parse_next(input)
 }
 
 fn r#type(input: &mut &str) -> ModalResult<usize> {
@@ -40,12 +48,12 @@ fn type2(input: &mut &str) -> ModalResult<usize> {
     alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1))).parse_next(input)
 }
 
-fn groupname(input: &mut &str) -> ModalResult<usize> {
-    id.map(|v| 1).parse_next(input)
+fn group(input: &mut &str) -> ModalResult<usize> {
+    (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1).parse_next(input)
 }
 
-fn assigng(input: &mut &str) -> ModalResult<usize> {
-    alt(("=", "//=")).map(|v| 1).parse_next(input)
+fn grpchoice(input: &mut &str) -> ModalResult<usize> {
+    repeat(0.., (grpent, optcom)).parse_next(input)
 }
 
 fn grpent(input: &mut &str) -> ModalResult<usize> {
@@ -66,8 +74,8 @@ fn bareword(input: &mut &str) -> ModalResult<usize> {
     id.map(|v| 1).parse_next(input)
 }
 
-fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
-    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).parse_next(s)
+fn optcom(input: &mut &str) -> ModalResult<usize> {
+    (s, opt((",", s))).map(|v| 1).parse_next(input)
 }
 
 fn occur(input: &mut &str) -> ModalResult<usize> {
@@ -79,16 +87,8 @@ fn value(input: &mut &str) -> ModalResult<usize> {
     alt((dec_uint.map(|v: u64| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1))).parse_next(input)
 }
 
-fn group(input: &mut &str) -> ModalResult<usize> {
-    (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1).parse_next(input)
-}
-
-fn grpchoice(input: &mut &str) -> ModalResult<usize> {
-    repeat(0.., (grpent, optcom)).parse_next(input)
-}
-
-fn optcom(input: &mut &str) -> ModalResult<usize> {
-    (s, opt((",", s))).map(|v| 1).parse_next(input)
+fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
+    take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-')).parse_next(s)
 }
 
 /*
