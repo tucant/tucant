@@ -1,12 +1,13 @@
-// https://www.rfc-editor.org/rfc/rfc8610
-
 use winnow::{
     ascii::{alpha1, multispace0},
-    combinator::{cut_err, dispatch, fail, opt, repeat},
+    combinator::{alt, cut_err, dispatch, fail, opt, repeat},
     error::{StrContext, StrContextValue},
     prelude::*,
     token::{take, take_while},
 };
+
+// https://www.rfc-editor.org/rfc/rfc8610
+// grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
 fn parse_name(input: &mut &str) -> ModalResult<usize> {
     (alpha1, multispace0, "=", multispace0).map(|v| 1).context(StrContext::Label("name")).parse_next(input)
@@ -27,7 +28,7 @@ fn parse_group(input: &mut &str) -> ModalResult<usize> {
         dispatch! {
             take(1usize);
             "{" => (multispace0, repeat(0.., parse_entry), multispace0, "}").map(|_: (_, Vec<_>, _, _)| 1),
-            "(" => (multispace0, repeat(0.., (ident, multispace0, opt("//"), multispace0)), ")").map(|_: (_, Vec<_>, _)| 1),
+            "(" => (multispace0, repeat(0.., (ident, multispace0, opt(alt(("//", "/"))), multispace0)), ")").map(|_: (_, Vec<_>, _)| 1),
             _ => (fail::<_, usize, _>).context(StrContext::Label("group open"))
             .context(StrContext::Expected(StrContextValue::StringLiteral("{")))
             .context(StrContext::Expected(StrContextValue::StringLiteral("("))),
