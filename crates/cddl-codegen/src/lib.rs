@@ -1,9 +1,9 @@
 use winnow::{
-    ascii::{alpha1, multispace0 as s},
+    ascii::{alpha1, dec_uint, multispace0 as s},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated},
     error::{StrContext, StrContextValue},
     prelude::*,
-    token::{take, take_while},
+    token::{take, take_until, take_while},
 };
 
 // https://www.rfc-editor.org/rfc/rfc8610
@@ -56,7 +56,14 @@ fn grpent(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn memberkey(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    let mut a = terminated(type1, s).map(|v| 1usize); // not complete
+    let mut b = (bareword, s, ":").map(|v| 1usize);
+    let mut c = (value, s, ":").map(|v| 1usize);
+    alt((a, b, c)).parse_next(input)
+}
+
+fn bareword(input: &mut &str) -> ModalResult<usize> {
+    id.parse_next(input)
 }
 
 fn id(input: &mut &str) -> ModalResult<usize> {
@@ -64,15 +71,24 @@ fn id(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn occur(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    // TODO dec_uint not fully correct
+    alt(((dec_uint, "*", dec_uint).map(|v: (u64, _, u64)| 1), "+".map(|v| 1), "?".map(|v| 1))).parse_next(input)
 }
 
 fn value(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    alt((dec_uint.map(|v: u64| 1), ("\"", take_until(0.., "\""), "\"").map(|v| 1))).parse_next(input)
 }
 
 fn group(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1).parse_next(input)
+}
+
+fn grpchoice(input: &mut &str) -> ModalResult<usize> {
+    repeat(0.., (grpent, optcom)).parse_next(input)
+}
+
+fn optcom(input: &mut &str) -> ModalResult<usize> {
+    (s, opt((",", s))).map(|v| 1).parse_next(input)
 }
 
 /*
