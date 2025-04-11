@@ -95,7 +95,7 @@ fn value(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
-    trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-'))).parse_next(s)
+    trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-', '.'))).parse_next(s)
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -116,7 +116,13 @@ mod tests {
 
     #[test]
     fn test1() {
-        let input = r#"Extensible = (*text => any)"#;
+        let input = r#"SessionCommand = (
+  session.End //
+  session.New //
+  session.Status //
+  session.Subscribe //
+  session.Unsubscribe
+)"#;
         let parsed = input.parse::<Test>().unwrap();
     }
 
