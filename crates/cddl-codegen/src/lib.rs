@@ -27,7 +27,17 @@ fn assignt(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn r#type(input: &mut &str) -> ModalResult<usize> {
-    todo!()
+    (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| 1).parse_next(input)
+}
+
+fn type1(input: &mut &str) -> ModalResult<usize> {
+    // TODO not complete
+    type2.parse_next(input)
+}
+
+fn type2(input: &mut &str) -> ModalResult<usize> {
+    // TODO not complete
+    alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1))).parse_next(input)
 }
 
 fn groupname(input: &mut &str) -> ModalResult<usize> {
@@ -43,6 +53,14 @@ fn grpent(input: &mut &str) -> ModalResult<usize> {
 }
 
 fn id(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn value(input: &mut &str) -> ModalResult<usize> {
+    todo!()
+}
+
+fn group(input: &mut &str) -> ModalResult<usize> {
     todo!()
 }
 
