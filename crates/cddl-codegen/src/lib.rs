@@ -27,15 +27,30 @@ pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
 }
 
 fn rule(input: &mut &str) -> ModalResult<Rule> {
-    trace("rule", alt((seq! {Rule::Type { name: typename.map(ToOwned::to_owned), _: (s, assignt, s), r#type: r#type }}, (groupname, s, assigng, s, grpent).map(|v| Rule::Group { name: String::new(), group: Group {} })))).parse_next(input)
+    trace(
+        "rule",
+        alt((
+            seq! {Rule::Type {
+                name: typename.map(ToOwned::to_owned),
+                _: (s, assignt, s),
+                r#type: r#type
+            }},
+            seq! {Rule::Group {
+                name: groupname.map(ToOwned::to_owned),
+                _: (s, assigng, s),
+                group: grpent
+            }},
+        )),
+    )
+    .parse_next(input)
 }
 
 fn typename<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
     trace("typename", id).parse_next(input)
 }
 
-fn groupname(input: &mut &str) -> ModalResult<usize> {
-    trace("groupname", id.map(|v| 1)).parse_next(input)
+fn groupname<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
+    trace("groupname", id).parse_next(input)
 }
 
 fn assignt(input: &mut &str) -> ModalResult<usize> {
@@ -95,13 +110,13 @@ fn grpchoice(input: &mut &str) -> ModalResult<usize> {
     trace("grpchoice", repeat(0.., (grpent, optcom))).parse_next(input)
 }
 
-fn grpent(input: &mut &str) -> ModalResult<usize> {
+fn grpent(input: &mut &str) -> ModalResult<Group> {
     let mut a = (opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
     let mut b = groupname.map(|v| 1usize); // not complete
     let mut c = ("(", s, group, s, ")").map(|v| 1usize);
     trace(
         "grpent",
-        (opt(terminated(occur, s)), alt((a, b, c))).map(|v| 1),
+        (opt(terminated(occur, s)), alt((a, b, c))).map(|v| Group {}),
     )
     .parse_next(input)
 }
