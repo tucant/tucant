@@ -42,6 +42,9 @@ mod tests {
     async fn it_works() -> anyhow::Result<()> {
         env_logger::init();
 
+        // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
+        // Firefox 138 is required
+
         let mut session = get_session().await;
         // nix build .#extension
 
