@@ -17,7 +17,7 @@ mod tests {
         webdriver::capabilities::CapabilitiesRequest,
     };
 
-    static TEST_COUNT: AtomicUsize = AtomicUsize::new(2);
+    static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
     static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
 
@@ -43,27 +43,33 @@ mod tests {
         env_logger::init();
 
         let mut session = get_session().await;
-        // nix build .#extension-unpacked
+        // nix build .#extension
 
-        let path = path::absolute("../../result/manifest.json")?.to_str().unwrap().to_string();
-        println!("{path}");
-        session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
+        let try_catch: anyhow::Result<()> = async {
+            let path = std::fs::canonicalize("../../result")?.to_str().unwrap().to_string();
+            println!("{path}");
+            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
 
-        let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
-        let browsing_context = session
-            .browsing_context_create(CreateParameters {
-                create_type: CreateType::Window,
-                user_context: Some(user_context.user_context),
-                reference_context: None,
-                background: None,
-            })
-            .await?;
-        navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
-        session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
+            let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
+            let browsing_context = session
+                .browsing_context_create(CreateParameters {
+                    create_type: CreateType::Window,
+                    user_context: Some(user_context.user_context),
+                    reference_context: None,
+                    background: None,
+                })
+                .await?;
+            navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
+            session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
+
+            Ok(())
+        }.await;
 
         if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
             session.close().await?;
         }
+
+        try_catch?;
 
         Ok(())
     }
