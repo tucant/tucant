@@ -1,1 +1,1512 @@
-# [doc = r" https://www.rfc-editor.org/rfc/rfc8610#appendix-D"] pub struct TODO ; pub type Text = String ; pub type Any = serde_json :: Value ; pub struct Command { pub id : JsUint , pub NONE : CommandData , pub NONE : Extensible , } pub enum CommandData { Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , } pub struct EmptyParams { pub NONE : Extensible , } pub type Message = TODO ; pub struct CommandResponse { pub type : String , pub id : JsUint , pub result : ResultData , pub NONE : Extensible , } pub struct ErrorResponse { pub type : String , pub id : TODO , pub error : ErrorCode , pub message : Text , pub stacktrace : Text , pub NONE : Extensible , } pub type ResultData = TODO ; pub struct EmptyResult { pub NONE : Extensible , } pub struct Event { pub type : String , pub NONE : EventData , pub NONE : Extensible , } pub enum EventData { Todo , Todo , Todo , Todo , Todo , } pub struct Extensible { pub TODO : Any , } pub type JsInt = TODO ; pub type JsUint = TODO ; pub type ErrorCode = TODO ; pub enum SessionCommand { Todo , Todo , Todo , Todo , Todo , } pub type SessionResult = TODO ; pub struct SessionCapabilitiesRequest { pub alwaysMatch : SessionCapabilityRequest , pub firstMatch : TODO , } pub struct SessionCapabilityRequest { pub acceptInsecureCerts : Bool , pub browserName : Text , pub browserVersion : Text , pub platformName : Text , pub proxy : SessionProxyConfiguration , pub unhandledPromptBehavior : SessionUserPromptHandler , pub NONE : Extensible , } pub enum SessionProxyConfiguration { Todo , Todo , Todo , Todo , Todo , } pub struct SessionAutodetectProxyConfiguration { pub proxyType : String , pub NONE : Extensible , } pub struct SessionDirectProxyConfiguration { pub proxyType : String , pub NONE : Extensible , } pub struct SessionManualProxyConfiguration { pub proxyType : String , pub ftpProxy : Text , pub httpProxy : Text , pub sslProxy : Text , pub NONE : SessionSocksProxyConfiguration , pub noProxy : TODO , pub NONE : Extensible , } pub struct SessionSocksProxyConfiguration { pub socksProxy : Text , pub socksVersion : TODO , } pub struct SessionPacProxyConfiguration { pub proxyType : String , pub proxyAutoconfigUrl : Text , pub NONE : Extensible , } pub struct SessionSystemProxyConfiguration { pub proxyType : String , pub NONE : Extensible , } pub struct SessionUserPromptHandler { pub alert : SessionUserPromptHandlerType , pub beforeUnload : SessionUserPromptHandlerType , pub confirm : SessionUserPromptHandlerType , pub default : SessionUserPromptHandlerType , pub file : SessionUserPromptHandlerType , pub prompt : SessionUserPromptHandlerType , } pub type SessionUserPromptHandlerType = TODO ; pub type SessionSubscription = TODO ; pub struct SessionSubscriptionRequest { pub events : TODO , pub contexts : TODO , pub userContexts : TODO , } pub struct SessionUnsubscribeByIdRequest { pub subscriptions : TODO , } pub struct SessionUnsubscribeByAttributesRequest { pub events : TODO , pub contexts : TODO , } pub struct SessionStatus { pub method : String , pub params : EmptyParams , } pub struct SessionStatusResult { pub ready : Bool , pub message : Text , } pub struct SessionNew { pub method : String , pub params : SessionNewParameters , } pub struct SessionNewParameters { pub capabilities : SessionCapabilitiesRequest , } pub struct SessionNewResult { pub sessionId : Text , pub capabilities : TODO , } pub struct SessionEnd { pub method : String , pub params : EmptyParams , } pub struct SessionSubscribe { pub method : String , pub params : SessionSubscriptionRequest , } pub struct SessionSubscribeResult { pub subscription : SessionSubscription , } pub struct SessionUnsubscribe { pub method : String , pub params : SessionUnsubscribeParameters , } pub type SessionUnsubscribeParameters = TODO ; pub enum BrowserCommand { Todo , Todo , Todo , Todo , Todo , Todo , } pub type BrowserResult = TODO ; pub type BrowserClientWindow = TODO ; pub struct BrowserClientWindowInfo { pub active : Bool , pub clientWindow : BrowserClientWindow , pub height : JsUint , pub state : TODO , pub width : JsUint , pub x : JsInt , pub y : JsInt , } pub type BrowserUserContext = TODO ; pub struct BrowserUserContextInfo { pub userContext : BrowserUserContext , } pub struct BrowserClose { pub method : String , pub params : EmptyParams , } pub struct BrowserCreateUserContext { pub method : String , pub params : EmptyParams , } pub type BrowserCreateUserContextResult = TODO ; pub struct BrowserGetClientWindows { pub method : String , pub params : EmptyParams , } pub struct BrowserGetClientWindowsResult { pub clientWindows : TODO , } pub struct BrowserGetUserContexts { pub method : String , pub params : EmptyParams , } pub struct BrowserGetUserContextsResult { pub userContexts : TODO , } pub struct BrowserRemoveUserContext { pub method : String , pub params : BrowserRemoveUserContextParameters , } pub struct BrowserRemoveUserContextParameters { pub userContext : BrowserUserContext , } pub struct BrowserSetClientWindowState { pub method : String , pub params : BrowserSetClientWindowStateParameters , } pub struct BrowserSetClientWindowStateParameters { pub clientWindow : BrowserClientWindow , pub todo : TODO , } pub struct BrowserClientWindowNamedState { pub state : TODO , } pub struct BrowserClientWindowRectState { pub state : String , pub width : JsUint , pub height : JsUint , pub x : JsInt , pub y : JsInt , } pub enum BrowsingContextCommand { Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , } pub type BrowsingContextResult = TODO ; pub enum BrowsingContextEvent { Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , } pub type BrowsingContextBrowsingContext = TODO ; pub struct BrowsingContextInfoList { pub NONE : BrowsingContextInfo , } pub struct BrowsingContextInfo { pub children : TODO , pub clientWindow : BrowserClientWindow , pub context : BrowsingContextBrowsingContext , pub originalOpener : TODO , pub url : Text , pub userContext : BrowserUserContext , pub parent : TODO , } pub type BrowsingContextLocator = TODO ; pub struct BrowsingContextAccessibilityLocator { pub type : String , pub value : TODO , } pub struct BrowsingContextCssLocator { pub type : String , pub value : Text , } pub struct BrowsingContextContextLocator { pub type : String , pub value : TODO , } pub struct BrowsingContextInnerTextLocator { pub type : String , pub value : Text , pub ignoreCase : Bool , pub matchType : TODO , pub maxDepth : JsUint , } pub struct BrowsingContextXPathLocator { pub type : String , pub value : Text , } pub type BrowsingContextNavigation = TODO ; pub struct BrowsingContextBaseNavigationInfo { pub context : BrowsingContextBrowsingContext , pub navigation : TODO , pub timestamp : JsUint , pub url : Text , } pub struct BrowsingContextNavigationInfo { pub NONE : BrowsingContextBaseNavigationInfo , } pub type BrowsingContextReadinessState = TODO ; pub type BrowsingContextUserPromptType = TODO ; pub struct BrowsingContextActivate { pub method : String , pub params : BrowsingContextActivateParameters , } pub struct BrowsingContextActivateParameters { pub context : BrowsingContextBrowsingContext , } pub struct BrowsingContextCaptureScreenshot { pub method : String , pub params : BrowsingContextCaptureScreenshotParameters , } pub struct BrowsingContextCaptureScreenshotParameters { pub context : BrowsingContextBrowsingContext , pub origin : TODO , pub format : BrowsingContextImageFormat , pub clip : BrowsingContextClipRectangle , } pub struct BrowsingContextImageFormat { pub type : Text , pub quality : TODO , } pub type BrowsingContextClipRectangle = TODO ; pub struct BrowsingContextElementClipRectangle { pub type : String , pub element : ScriptSharedReference , } pub struct BrowsingContextBoxClipRectangle { pub type : String , pub x : Float , pub y : Float , pub width : Float , pub height : Float , } pub struct BrowsingContextCaptureScreenshotResult { pub data : Text , } pub struct BrowsingContextClose { pub method : String , pub params : BrowsingContextCloseParameters , } pub struct BrowsingContextCloseParameters { pub context : BrowsingContextBrowsingContext , pub promptUnload : TODO , } pub struct BrowsingContextCreate { pub method : String , pub params : BrowsingContextCreateParameters , } pub type BrowsingContextCreateType = TODO ; pub struct BrowsingContextCreateParameters { pub type : BrowsingContextCreateType , pub referenceContext : BrowsingContextBrowsingContext , pub background : TODO , pub userContext : BrowserUserContext , } pub struct BrowsingContextCreateResult { pub context : BrowsingContextBrowsingContext , } pub struct BrowsingContextGetTree { pub method : String , pub params : BrowsingContextGetTreeParameters , } pub struct BrowsingContextGetTreeParameters { pub maxDepth : JsUint , pub root : BrowsingContextBrowsingContext , } pub struct BrowsingContextGetTreeResult { pub contexts : BrowsingContextInfoList , } pub struct BrowsingContextHandleUserPrompt { pub method : String , pub params : BrowsingContextHandleUserPromptParameters , } pub struct BrowsingContextHandleUserPromptParameters { pub context : BrowsingContextBrowsingContext , pub accept : Bool , pub userText : Text , } pub struct BrowsingContextLocateNodes { pub method : String , pub params : BrowsingContextLocateNodesParameters , } pub struct BrowsingContextLocateNodesParameters { pub context : BrowsingContextBrowsingContext , pub locator : BrowsingContextLocator , pub maxNodeCount : TODO , pub serializationOptions : ScriptSerializationOptions , pub startNodes : TODO , } pub struct BrowsingContextLocateNodesResult { pub nodes : TODO , } pub struct BrowsingContextNavigate { pub method : String , pub params : BrowsingContextNavigateParameters , } pub struct BrowsingContextNavigateParameters { pub context : BrowsingContextBrowsingContext , pub url : Text , pub wait : BrowsingContextReadinessState , } pub struct BrowsingContextNavigateResult { pub navigation : TODO , pub url : Text , } pub struct BrowsingContextPrint { pub method : String , pub params : BrowsingContextPrintParameters , } pub struct BrowsingContextPrintParameters { pub context : BrowsingContextBrowsingContext , pub background : TODO , pub margin : BrowsingContextPrintMarginParameters , pub orientation : TODO , pub page : BrowsingContextPrintPageParameters , pub pageRanges : TODO , pub scale : TODO , pub shrinkToFit : TODO , } pub struct BrowsingContextPrintMarginParameters { pub bottom : TODO , pub left : TODO , pub right : TODO , pub top : TODO , } pub struct BrowsingContextPrintPageParameters { pub height : TODO , pub width : TODO , } pub struct BrowsingContextPrintResult { pub data : Text , } pub struct BrowsingContextReload { pub method : String , pub params : BrowsingContextReloadParameters , } pub struct BrowsingContextReloadParameters { pub context : BrowsingContextBrowsingContext , pub ignoreCache : Bool , pub wait : BrowsingContextReadinessState , } pub struct BrowsingContextSetViewport { pub method : String , pub params : BrowsingContextSetViewportParameters , } pub struct BrowsingContextSetViewportParameters { pub context : BrowsingContextBrowsingContext , pub viewport : TODO , pub devicePixelRatio : TODO , pub userContexts : TODO , } pub struct BrowsingContextViewport { pub width : JsUint , pub height : JsUint , } pub struct BrowsingContextTraverseHistory { pub method : String , pub params : BrowsingContextTraverseHistoryParameters , } pub struct BrowsingContextTraverseHistoryParameters { pub context : BrowsingContextBrowsingContext , pub delta : JsInt , } pub struct BrowsingContextTraverseHistoryResult { } pub struct BrowsingContextContextCreated { pub method : String , pub params : BrowsingContextInfo , } pub struct BrowsingContextContextDestroyed { pub method : String , pub params : BrowsingContextInfo , } pub struct BrowsingContextNavigationStarted { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextFragmentNavigated { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextHistoryUpdated { pub method : String , pub params : BrowsingContextHistoryUpdatedParameters , } pub struct BrowsingContextHistoryUpdatedParameters { pub context : BrowsingContextBrowsingContext , pub url : Text , } pub struct BrowsingContextDomContentLoaded { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextLoad { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextDownloadWillBegin { pub method : String , pub params : BrowsingContextDownloadWillBeginParams , } pub struct BrowsingContextDownloadWillBeginParams { pub suggestedFilename : Text , pub NONE : BrowsingContextBaseNavigationInfo , } pub struct BrowsingContextNavigationAborted { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextNavigationCommitted { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextNavigationFailed { pub method : String , pub params : BrowsingContextNavigationInfo , } pub struct BrowsingContextUserPromptClosed { pub method : String , pub params : BrowsingContextUserPromptClosedParameters , } pub struct BrowsingContextUserPromptClosedParameters { pub context : BrowsingContextBrowsingContext , pub accepted : Bool , pub type : BrowsingContextUserPromptType , pub userText : Text , } pub struct BrowsingContextUserPromptOpened { pub method : String , pub params : BrowsingContextUserPromptOpenedParameters , } pub struct BrowsingContextUserPromptOpenedParameters { pub context : BrowsingContextBrowsingContext , pub handler : SessionUserPromptHandlerType , pub message : Text , pub type : BrowsingContextUserPromptType , pub defaultValue : Text , } pub struct EmulationCommand { pub NONE : TODO , pub NONE : MulationSetGeolocationOverride , } pub struct EmulationSetGeolocationOverride { pub method : String , pub params : TODO , pub NONE : MulationSetGeolocationOverrideParameters , } pub struct EmulationSetGeolocationOverrideParameters { pub coordinates : TODO , pub NONE : TODO , pub contexts : TODO , pub userContexts : TODO , } pub struct EmulationGeolocationCoordinates { pub latitude : Float , pub longitude : Float , pub accuracy : TODO , pub altitude : TODO , pub altitudeAccuracy : TODO , pub heading : TODO , pub speed : TODO , } pub enum NetworkCommand { Todo , Todo , Todo , Todo , Todo , Todo , Todo , Todo , } pub type NetworkResult = TODO ; pub enum NetworkEvent { Todo , Todo , Todo , Todo , Todo , } pub struct NetworkAuthChallenge { pub scheme : Text , pub realm : Text , } pub struct NetworkAuthCredentials { pub type : String , pub username : Text , pub password : Text , } pub struct NetworkBaseParameters { pub context : TODO , pub isBlocked : Bool , pub navigation : TODO , pub redirectCount : JsUint , pub request : NetworkRequestData , pub timestamp : JsUint , pub intercepts : TODO , } pub type NetworkBytesValue = TODO ; pub struct NetworkStringValue { pub type : String , pub value : Text , } pub struct NetworkBase64Value { pub type : String , pub value : Text , } pub type NetworkSameSite = TODO ; pub struct NetworkCookie { pub name : Text , pub value : NetworkBytesValue , pub domain : Text , pub path : Text , pub size : JsUint , pub httpOnly : Bool , pub secure : Bool , pub sameSite : NetworkSameSite , pub expiry : JsUint , pub NONE : Extensible , } pub struct NetworkCookieHeader { pub name : Text , pub value : NetworkBytesValue , } pub struct NetworkFetchTimingInfo { pub timeOrigin : Float , pub requestTime : Float , pub redirectStart : Float , pub redirectEnd : Float , pub fetchStart : Float , pub dnsStart : Float , pub dnsEnd : Float , pub connectStart : Float , pub connectEnd : Float , pub tlsStart : Float , pub requestStart : Float , pub responseStart : Float , pub responseEnd : Float , } pub struct NetworkHeader { pub name : Text , pub value : NetworkBytesValue , } pub struct NetworkInitiator { pub columnNumber : JsUint , pub lineNumber : JsUint , pub request : NetworkRequest , pub stackTrace : ScriptStackTrace , pub type : TODO , } pub type NetworkIntercept = TODO ; pub type NetworkRequest = TODO ; pub struct NetworkRequestData { pub request : NetworkRequest , pub url : Text , pub method : Text , pub headers : TODO , pub cookies : TODO , pub headersSize : JsUint , pub bodySize : TODO , pub destination : Text , pub initiatorType : TODO , pub timings : NetworkFetchTimingInfo , } pub struct NetworkResponseContent { pub size : JsUint , } pub struct NetworkResponseData { pub url : Text , pub protocol : Text , pub status : JsUint , pub statusText : Text , pub fromCache : Bool , pub headers : TODO , pub mimeType : Text , pub bytesReceived : JsUint , pub headersSize : TODO , pub bodySize : TODO , pub content : NetworkResponseContent , pub authChallenges : TODO , } pub struct NetworkSetCookieHeader { pub name : Text , pub value : NetworkBytesValue , pub domain : Text , pub httpOnly : Bool , pub expiry : Text , pub maxAge : JsInt , pub path : Text , pub sameSite : NetworkSameSite , pub secure : Bool , } pub type NetworkUrlPattern = TODO ; pub struct NetworkUrlPatternPattern { pub type : String , pub protocol : Text , pub hostname : Text , pub port : Text , pub pathname : Text , pub search : Text , } pub struct NetworkUrlPatternString { pub type : String , pub pattern : Text , } pub struct NetworkAddIntercept { pub method : String , pub params : NetworkAddInterceptParameters , } pub struct NetworkAddInterceptParameters { pub phases : TODO , pub contexts : TODO , pub urlPatterns : TODO , } pub type NetworkInterceptPhase = TODO ; pub struct NetworkAddInterceptResult { pub intercept : NetworkIntercept , } pub struct NetworkContinueRequest { pub method : String , pub params : NetworkContinueRequestParameters , } pub struct NetworkContinueRequestParameters { pub request : NetworkRequest , pub body : NetworkBytesValue , pub cookies : TODO , pub headers : TODO , pub method : Text , pub url : Text , } pub struct NetworkContinueResponse { pub method : String , pub params : NetworkContinueResponseParameters , } pub struct NetworkContinueResponseParameters { pub request : NetworkRequest , pub cookies : TODO , pub credentials : NetworkAuthCredentials , pub headers : TODO , pub reasonPhrase : Text , pub statusCode : JsUint , } pub struct NetworkContinueWithAuth { pub method : String , pub params : NetworkContinueWithAuthParameters , } pub struct NetworkContinueWithAuthParameters { pub request : NetworkRequest , pub todo : TODO , } pub struct NetworkContinueWithAuthCredentials { pub action : String , pub credentials : NetworkAuthCredentials , } pub struct NetworkContinueWithAuthNoCredentials { pub action : TODO , } pub struct NetworkFailRequest { pub method : String , pub params : NetworkFailRequestParameters , } pub struct NetworkFailRequestParameters { pub request : NetworkRequest , } pub struct NetworkProvideResponse { pub method : String , pub params : NetworkProvideResponseParameters , } pub struct NetworkProvideResponseParameters { pub request : NetworkRequest , pub body : NetworkBytesValue , pub cookies : TODO , pub headers : TODO , pub reasonPhrase : Text , pub statusCode : JsUint , } pub struct NetworkRemoveIntercept { pub method : String , pub params : NetworkRemoveInterceptParameters , } pub struct NetworkRemoveInterceptParameters { pub intercept : NetworkIntercept , } pub struct NetworkSetCacheBehavior { pub method : String , pub params : NetworkSetCacheBehaviorParameters , } pub struct NetworkSetCacheBehaviorParameters { pub cacheBehavior : TODO , pub contexts : TODO , } pub struct NetworkAuthRequired { pub method : String , pub params : NetworkAuthRequiredParameters , } pub struct NetworkAuthRequiredParameters { pub NONE : NetworkBaseParameters , pub response : NetworkResponseData , } pub struct NetworkBeforeRequestSent { pub method : String , pub params : NetworkBeforeRequestSentParameters , } pub struct NetworkBeforeRequestSentParameters { pub NONE : NetworkBaseParameters , pub initiator : NetworkInitiator , } pub struct NetworkFetchError { pub method : String , pub params : NetworkFetchErrorParameters , } pub struct NetworkFetchErrorParameters { pub NONE : NetworkBaseParameters , pub errorText : Text , } pub struct NetworkResponseCompleted { pub method : String , pub params : NetworkResponseCompletedParameters , } pub struct NetworkResponseCompletedParameters { pub NONE : NetworkBaseParameters , pub response : NetworkResponseData , } pub struct NetworkResponseStarted { pub method : String , pub params : NetworkResponseStartedParameters , } pub struct NetworkResponseStartedParameters { pub NONE : NetworkBaseParameters , pub response : NetworkResponseData , } pub enum ScriptCommand { Todo , Todo , Todo , Todo , Todo , Todo , } pub type ScriptResult = TODO ; pub enum ScriptEvent { Todo , Todo , Todo , } pub type ScriptChannel = TODO ; pub struct ScriptChannelValue { pub type : String , pub value : ScriptChannelProperties , } pub struct ScriptChannelProperties { pub channel : ScriptChannel , pub serializationOptions : ScriptSerializationOptions , pub ownership : ScriptResultOwnership , } pub type ScriptEvaluateResult = TODO ; pub struct ScriptEvaluateResultSuccess { pub type : String , pub result : ScriptRemoteValue , pub realm : ScriptRealm , } pub struct ScriptEvaluateResultException { pub type : String , pub exceptionDetails : ScriptExceptionDetails , pub realm : ScriptRealm , } pub struct ScriptExceptionDetails { pub columnNumber : JsUint , pub exception : ScriptRemoteValue , pub lineNumber : JsUint , pub stackTrace : ScriptStackTrace , pub text : Text , } pub type ScriptHandle = TODO ; pub type ScriptInternalId = TODO ; pub type ScriptLocalValue = TODO ; pub struct ScriptListLocalValue { pub NONE : ScriptLocalValue , } pub struct ScriptArrayLocalValue { pub type : String , pub value : ScriptListLocalValue , } pub struct ScriptDateLocalValue { pub type : String , pub value : Text , } pub struct ScriptMappingLocalValue { pub NONE : TODO , } pub struct ScriptMapLocalValue { pub type : String , pub value : ScriptMappingLocalValue , } pub struct ScriptObjectLocalValue { pub type : String , pub value : ScriptMappingLocalValue , } pub struct ScriptRegExpValue { pub pattern : Text , pub flags : Text , } pub struct ScriptRegExpLocalValue { pub type : String , pub value : ScriptRegExpValue , } pub struct ScriptSetLocalValue { pub type : String , pub value : ScriptListLocalValue , } pub type ScriptPreloadScript = TODO ; pub type ScriptRealm = TODO ; pub type ScriptPrimitiveProtocolValue = TODO ; pub struct ScriptUndefinedValue { pub type : String , } pub struct ScriptNullValue { pub type : String , } pub struct ScriptStringValue { pub type : String , pub value : Text , } pub type ScriptSpecialNumber = TODO ; pub struct ScriptNumberValue { pub type : String , pub value : TODO , } pub struct ScriptBooleanValue { pub type : String , pub value : Bool , } pub struct ScriptBigIntValue { pub type : String , pub value : Text , } pub type ScriptRealmInfo = TODO ; pub struct ScriptBaseRealmInfo { pub realm : ScriptRealm , pub origin : Text , } pub struct ScriptWindowRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , pub context : BrowsingContextBrowsingContext , pub sandbox : Text , } pub struct ScriptDedicatedWorkerRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , pub owners : TODO , } pub struct ScriptSharedWorkerRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub struct ScriptServiceWorkerRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub struct ScriptWorkerRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub struct ScriptPaintWorkletRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub struct ScriptAudioWorkletRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub struct ScriptWorkletRealmInfo { pub NONE : ScriptBaseRealmInfo , pub type : String , } pub type ScriptRealmType = TODO ; pub type ScriptRemoteReference = TODO ; pub struct ScriptSharedReference { pub sharedId : ScriptSharedId , pub handle : ScriptHandle , pub NONE : Extensible , } pub struct ScriptRemoteObjectReference { pub handle : ScriptHandle , pub sharedId : ScriptSharedId , pub NONE : Extensible , } pub type ScriptRemoteValue = TODO ; pub struct ScriptListRemoteValue { pub NONE : ScriptRemoteValue , } pub struct ScriptMappingRemoteValue { pub NONE : TODO , } pub struct ScriptSymbolRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptArrayRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptListRemoteValue , } pub struct ScriptObjectRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptMappingRemoteValue , } pub struct ScriptFunctionRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub type ScriptRegExpRemoteValue = TODO ; pub type ScriptDateRemoteValue = TODO ; pub struct ScriptMapRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptMappingRemoteValue , } pub struct ScriptSetRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptListRemoteValue , } pub struct ScriptWeakMapRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptWeakSetRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptGeneratorRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptErrorRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptProxyRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptPromiseRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptTypedArrayRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptArrayBufferRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptNodeListRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptListRemoteValue , } pub struct ScriptHtmlCollectionRemoteValue { pub type : String , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptListRemoteValue , } pub struct ScriptNodeRemoteValue { pub type : String , pub sharedId : ScriptSharedId , pub handle : ScriptHandle , pub internalId : ScriptInternalId , pub value : ScriptNodeProperties , } pub struct ScriptNodeProperties { pub nodeType : JsUint , pub childNodeCount : JsUint , pub attributes : TODO , pub children : TODO , pub localName : Text , pub mode : TODO , pub namespaceURI : Text , pub nodeValue : Text , pub shadowRoot : TODO , } pub struct ScriptWindowProxyRemoteValue { pub type : String , pub value : ScriptWindowProxyProperties , pub handle : ScriptHandle , pub internalId : ScriptInternalId , } pub struct ScriptWindowProxyProperties { pub context : BrowsingContextBrowsingContext , } pub type ScriptResultOwnership = TODO ; pub struct ScriptSerializationOptions { pub maxDomDepth : TODO , pub maxObjectDepth : TODO , pub includeShadowTree : TODO , } pub type ScriptSharedId = TODO ; pub struct ScriptStackFrame { pub columnNumber : JsUint , pub functionName : Text , pub lineNumber : JsUint , pub url : Text , } pub struct ScriptStackTrace { pub callFrames : TODO , } pub struct ScriptSource { pub realm : ScriptRealm , pub context : BrowsingContextBrowsingContext , } pub struct ScriptRealmTarget { pub realm : ScriptRealm , } pub struct ScriptContextTarget { pub context : BrowsingContextBrowsingContext , pub sandbox : Text , } pub type ScriptTarget = TODO ; pub struct ScriptAddPreloadScript { pub method : String , pub params : ScriptAddPreloadScriptParameters , } pub struct ScriptAddPreloadScriptParameters { pub functionDeclaration : Text , pub arguments : TODO , pub contexts : TODO , pub userContexts : TODO , pub sandbox : Text , } pub struct ScriptAddPreloadScriptResult { pub script : ScriptPreloadScript , } pub struct ScriptDisown { pub method : String , pub params : ScriptDisownParameters , } pub struct ScriptDisownParameters { pub handles : TODO , pub target : ScriptTarget , } pub struct ScriptCallFunction { pub method : String , pub params : ScriptCallFunctionParameters , } pub struct ScriptCallFunctionParameters { pub functionDeclaration : Text , pub awaitPromise : Bool , pub target : ScriptTarget , pub arguments : TODO , pub resultOwnership : ScriptResultOwnership , pub serializationOptions : ScriptSerializationOptions , pub this : ScriptLocalValue , pub userActivation : TODO , } pub struct ScriptEvaluate { pub method : String , pub params : ScriptEvaluateParameters , } pub struct ScriptEvaluateParameters { pub expression : Text , pub target : ScriptTarget , pub awaitPromise : Bool , pub resultOwnership : ScriptResultOwnership , pub serializationOptions : ScriptSerializationOptions , pub userActivation : TODO , } pub struct ScriptGetRealms { pub method : String , pub params : ScriptGetRealmsParameters , } pub struct ScriptGetRealmsParameters { pub context : BrowsingContextBrowsingContext , pub type : ScriptRealmType , } pub struct ScriptGetRealmsResult { pub realms : TODO , } pub struct ScriptRemovePreloadScript { pub method : String , pub params : ScriptRemovePreloadScriptParameters , } pub struct ScriptRemovePreloadScriptParameters { pub script : ScriptPreloadScript , } pub struct ScriptMessage { pub method : String , pub params : ScriptMessageParameters , } pub struct ScriptMessageParameters { pub channel : ScriptChannel , pub data : ScriptRemoteValue , pub source : ScriptSource , } pub struct ScriptRealmCreated { pub method : String , pub params : ScriptRealmInfo , } pub struct ScriptRealmDestroyed { pub method : String , pub params : ScriptRealmDestroyedParameters , } pub struct ScriptRealmDestroyedParameters { pub realm : ScriptRealm , } pub enum StorageCommand { Todo , Todo , Todo , } pub type StorageResult = TODO ; pub struct StoragePartitionKey { pub userContext : Text , pub sourceOrigin : Text , pub NONE : Extensible , } pub struct StorageGetCookies { pub method : String , pub params : StorageGetCookiesParameters , } pub struct StorageCookieFilter { pub name : Text , pub value : NetworkBytesValue , pub domain : Text , pub path : Text , pub size : JsUint , pub httpOnly : Bool , pub secure : Bool , pub sameSite : NetworkSameSite , pub expiry : JsUint , pub NONE : Extensible , } pub struct StorageBrowsingContextPartitionDescriptor { pub type : String , pub context : BrowsingContextBrowsingContext , } pub struct StorageStorageKeyPartitionDescriptor { pub type : String , pub userContext : Text , pub sourceOrigin : Text , pub NONE : Extensible , } pub type StoragePartitionDescriptor = TODO ; pub struct StorageGetCookiesParameters { pub filter : StorageCookieFilter , pub partition : StoragePartitionDescriptor , } pub struct StorageGetCookiesResult { pub cookies : TODO , pub partitionKey : StoragePartitionKey , } pub struct StorageSetCookie { pub method : String , pub params : StorageSetCookieParameters , } pub struct StoragePartialCookie { pub name : Text , pub value : NetworkBytesValue , pub domain : Text , pub path : Text , pub httpOnly : Bool , pub secure : Bool , pub sameSite : NetworkSameSite , pub expiry : JsUint , pub NONE : Extensible , } pub struct StorageSetCookieParameters { pub cookie : StoragePartialCookie , pub partition : StoragePartitionDescriptor , } pub struct StorageSetCookieResult { pub partitionKey : StoragePartitionKey , } pub struct StorageDeleteCookies { pub method : String , pub params : StorageDeleteCookiesParameters , } pub struct StorageDeleteCookiesParameters { pub filter : StorageCookieFilter , pub partition : StoragePartitionDescriptor , } pub struct StorageDeleteCookiesResult { pub partitionKey : StoragePartitionKey , } pub type LogEvent = TODO ; pub type LogLevel = TODO ; pub type LogEntry = TODO ; pub struct LogBaseLogEntry { pub level : LogLevel , pub source : ScriptSource , pub text : TODO , pub timestamp : JsUint , pub stackTrace : ScriptStackTrace , } pub struct LogGenericLogEntry { pub NONE : LogBaseLogEntry , pub type : Text , } pub struct LogConsoleLogEntry { pub NONE : LogBaseLogEntry , pub type : String , pub method : Text , pub args : TODO , } pub struct LogJavascriptLogEntry { pub NONE : LogBaseLogEntry , pub type : String , } pub struct LogEntryAdded { pub method : String , pub params : LogEntry , } pub enum InputCommand { Todo , Todo , Todo , } pub type InputEvent = TODO ; pub struct InputElementOrigin { pub type : String , pub element : ScriptSharedReference , } pub struct InputPerformActions { pub method : String , pub params : InputPerformActionsParameters , } pub struct InputPerformActionsParameters { pub context : BrowsingContextBrowsingContext , pub actions : TODO , } pub type InputSourceActions = TODO ; pub struct InputNoneSourceActions { pub type : String , pub id : Text , pub actions : TODO , } pub type InputNoneSourceAction = TODO ; pub struct InputKeySourceActions { pub type : String , pub id : Text , pub actions : TODO , } pub type InputKeySourceAction = TODO ; pub struct InputPointerSourceActions { pub type : String , pub id : Text , pub parameters : InputPointerParameters , pub actions : TODO , } pub type InputPointerType = TODO ; pub struct InputPointerParameters { pub pointerType : TODO , } pub type InputPointerSourceAction = TODO ; pub struct InputWheelSourceActions { pub type : String , pub id : Text , pub actions : TODO , } pub type InputWheelSourceAction = TODO ; pub struct InputPauseAction { pub type : String , pub duration : JsUint , } pub struct InputKeyDownAction { pub type : String , pub value : Text , } pub struct InputKeyUpAction { pub type : String , pub value : Text , } pub struct InputPointerUpAction { pub type : String , pub button : JsUint , } pub struct InputPointerDownAction { pub type : String , pub button : JsUint , pub NONE : InputPointerCommonProperties , } pub struct InputPointerMoveAction { pub type : String , pub x : Float , pub y : Float , pub duration : JsUint , pub origin : InputOrigin , pub NONE : InputPointerCommonProperties , } pub struct InputWheelScrollAction { pub type : String , pub x : JsInt , pub y : JsInt , pub deltaX : JsInt , pub deltaY : JsInt , pub duration : JsUint , pub origin : TODO , } pub struct InputPointerCommonProperties { pub width : TODO , pub height : TODO , pub pressure : TODO , pub tangentialPressure : TODO , pub twist : TODO , pub altitudeAngle : TODO , pub azimuthAngle : TODO , } pub type InputOrigin = TODO ; pub struct InputReleaseActions { pub method : String , pub params : InputReleaseActionsParameters , } pub struct InputReleaseActionsParameters { pub context : BrowsingContextBrowsingContext , } pub struct InputSetFiles { pub method : String , pub params : InputSetFilesParameters , } pub struct InputSetFilesParameters { pub context : BrowsingContextBrowsingContext , pub element : ScriptSharedReference , pub files : TODO , } pub struct InputFileDialogOpened { pub method : String , pub params : InputFileDialogInfo , } pub struct InputFileDialogInfo { pub context : BrowsingContextBrowsingContext , pub element : ScriptSharedReference , pub multiple : Bool , } pub enum WebExtensionCommand { Todo , Todo , } pub type WebExtensionResult = TODO ; pub type WebExtensionExtension = TODO ; pub struct WebExtensionInstall { pub method : String , pub params : WebExtensionInstallParameters , } pub struct WebExtensionInstallParameters { pub extensionData : WebExtensionExtensionData , } pub type WebExtensionExtensionData = TODO ; pub struct WebExtensionExtensionPath { pub type : String , pub path : Text , } pub struct WebExtensionExtensionArchivePath { pub type : String , pub path : Text , } pub struct WebExtensionExtensionBase64Encoded { pub type : String , pub value : Text , } pub struct WebExtensionInstallResult { pub extension : WebExtensionExtension , } pub struct WebExtensionUninstall { pub method : String , pub params : WebExtensionUninstallParameters , } pub struct WebExtensionUninstallParameters { pub extension : WebExtensionExtension , }
+/// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
+pub struct TODO;
+pub type Text = String;
+pub type Any = serde_json::Value;
+pub struct r#Command {
+    pub r#id: r#JsUint,
+    pub NONE: r#CommandData,
+    pub NONE: r#Extensible,
+}
+pub enum r#CommandData {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub struct r#EmptyParams {
+    pub NONE: r#Extensible,
+}
+pub type r#Message = TODO;
+pub struct r#CommandResponse {
+    pub r#type: String,
+    pub r#id: r#JsUint,
+    pub r#result: r#ResultData,
+    pub NONE: r#Extensible,
+}
+pub struct r#ErrorResponse {
+    pub r#type: String,
+    pub r#id: TODO,
+    pub r#error: r#ErrorCode,
+    pub r#message: r#Text,
+    pub r#stacktrace: r#Text,
+    pub NONE: r#Extensible,
+}
+pub type r#ResultData = TODO;
+pub struct r#EmptyResult {
+    pub NONE: r#Extensible,
+}
+pub struct r#Event {
+    pub r#type: String,
+    pub NONE: r#EventData,
+    pub NONE: r#Extensible,
+}
+pub enum r#EventData {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub struct r#Extensible {
+    pub TODO: r#Any,
+}
+pub type r#JsInt = TODO;
+pub type r#JsUint = TODO;
+pub type r#ErrorCode = TODO;
+pub enum r#SessionCommand {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#SessionResult = TODO;
+pub struct r#SessionCapabilitiesRequest {
+    pub r#alwaysMatch: r#SessionCapabilityRequest,
+    pub r#firstMatch: TODO,
+}
+pub struct r#SessionCapabilityRequest {
+    pub r#acceptInsecureCerts: r#Bool,
+    pub r#browserName: r#Text,
+    pub r#browserVersion: r#Text,
+    pub r#platformName: r#Text,
+    pub r#proxy: r#SessionProxyConfiguration,
+    pub r#unhandledPromptBehavior: r#SessionUserPromptHandler,
+    pub NONE: r#Extensible,
+}
+pub enum r#SessionProxyConfiguration {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub struct r#SessionAutodetectProxyConfiguration {
+    pub r#proxyType: String,
+    pub NONE: r#Extensible,
+}
+pub struct r#SessionDirectProxyConfiguration {
+    pub r#proxyType: String,
+    pub NONE: r#Extensible,
+}
+pub struct r#SessionManualProxyConfiguration {
+    pub r#proxyType: String,
+    pub r#ftpProxy: r#Text,
+    pub r#httpProxy: r#Text,
+    pub r#sslProxy: r#Text,
+    pub NONE: r#SessionSocksProxyConfiguration,
+    pub r#noProxy: TODO,
+    pub NONE: r#Extensible,
+}
+pub struct r#SessionSocksProxyConfiguration {
+    pub r#socksProxy: r#Text,
+    pub r#socksVersion: TODO,
+}
+pub struct r#SessionPacProxyConfiguration {
+    pub r#proxyType: String,
+    pub r#proxyAutoconfigUrl: r#Text,
+    pub NONE: r#Extensible,
+}
+pub struct r#SessionSystemProxyConfiguration {
+    pub r#proxyType: String,
+    pub NONE: r#Extensible,
+}
+pub struct r#SessionUserPromptHandler {
+    pub r#alert: r#SessionUserPromptHandlerType,
+    pub r#beforeUnload: r#SessionUserPromptHandlerType,
+    pub r#confirm: r#SessionUserPromptHandlerType,
+    pub r#default: r#SessionUserPromptHandlerType,
+    pub r#file: r#SessionUserPromptHandlerType,
+    pub r#prompt: r#SessionUserPromptHandlerType,
+}
+pub type r#SessionUserPromptHandlerType = TODO;
+pub type r#SessionSubscription = TODO;
+pub struct r#SessionSubscriptionRequest {
+    pub r#events: TODO,
+    pub r#contexts: TODO,
+    pub r#userContexts: TODO,
+}
+pub struct r#SessionUnsubscribeByIdRequest {
+    pub r#subscriptions: TODO,
+}
+pub struct r#SessionUnsubscribeByAttributesRequest {
+    pub r#events: TODO,
+    pub r#contexts: TODO,
+}
+pub struct r#SessionStatus {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub struct r#SessionStatusResult {
+    pub r#ready: r#Bool,
+    pub r#message: r#Text,
+}
+pub struct r#SessionNew {
+    pub r#method: String,
+    pub r#params: r#SessionNewParameters,
+}
+pub struct r#SessionNewParameters {
+    pub r#capabilities: r#SessionCapabilitiesRequest,
+}
+pub struct r#SessionNewResult {
+    pub r#sessionId: r#Text,
+    pub r#capabilities: TODO,
+}
+pub struct r#SessionEnd {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub struct r#SessionSubscribe {
+    pub r#method: String,
+    pub r#params: r#SessionSubscriptionRequest,
+}
+pub struct r#SessionSubscribeResult {
+    pub r#subscription: r#SessionSubscription,
+}
+pub struct r#SessionUnsubscribe {
+    pub r#method: String,
+    pub r#params: r#SessionUnsubscribeParameters,
+}
+pub type r#SessionUnsubscribeParameters = TODO;
+pub enum r#BrowserCommand {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#BrowserResult = TODO;
+pub type r#BrowserClientWindow = TODO;
+pub struct r#BrowserClientWindowInfo {
+    pub r#active: r#Bool,
+    pub r#clientWindow: r#BrowserClientWindow,
+    pub r#height: r#JsUint,
+    pub r#state: TODO,
+    pub r#width: r#JsUint,
+    pub r#x: r#JsInt,
+    pub r#y: r#JsInt,
+}
+pub type r#BrowserUserContext = TODO;
+pub struct r#BrowserUserContextInfo {
+    pub r#userContext: r#BrowserUserContext,
+}
+pub struct r#BrowserClose {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub struct r#BrowserCreateUserContext {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub type r#BrowserCreateUserContextResult = TODO;
+pub struct r#BrowserGetClientWindows {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub struct r#BrowserGetClientWindowsResult {
+    pub r#clientWindows: TODO,
+}
+pub struct r#BrowserGetUserContexts {
+    pub r#method: String,
+    pub r#params: r#EmptyParams,
+}
+pub struct r#BrowserGetUserContextsResult {
+    pub r#userContexts: TODO,
+}
+pub struct r#BrowserRemoveUserContext {
+    pub r#method: String,
+    pub r#params: r#BrowserRemoveUserContextParameters,
+}
+pub struct r#BrowserRemoveUserContextParameters {
+    pub r#userContext: r#BrowserUserContext,
+}
+pub struct r#BrowserSetClientWindowState {
+    pub r#method: String,
+    pub r#params: r#BrowserSetClientWindowStateParameters,
+}
+pub struct r#BrowserSetClientWindowStateParameters {
+    pub r#clientWindow: r#BrowserClientWindow,
+    pub todo: TODO,
+}
+pub struct r#BrowserClientWindowNamedState {
+    pub r#state: TODO,
+}
+pub struct r#BrowserClientWindowRectState {
+    pub r#state: String,
+    pub r#width: r#JsUint,
+    pub r#height: r#JsUint,
+    pub r#x: r#JsInt,
+    pub r#y: r#JsInt,
+}
+pub enum r#BrowsingContextCommand {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#BrowsingContextResult = TODO;
+pub enum r#BrowsingContextEvent {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#BrowsingContextBrowsingContext = TODO;
+pub struct r#BrowsingContextInfoList {
+    pub NONE: r#BrowsingContextInfo,
+}
+pub struct r#BrowsingContextInfo {
+    pub r#children: TODO,
+    pub r#clientWindow: r#BrowserClientWindow,
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#originalOpener: TODO,
+    pub r#url: r#Text,
+    pub r#userContext: r#BrowserUserContext,
+    pub r#parent: TODO,
+}
+pub type r#BrowsingContextLocator = TODO;
+pub struct r#BrowsingContextAccessibilityLocator {
+    pub r#type: String,
+    pub r#value: TODO,
+}
+pub struct r#BrowsingContextCssLocator {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#BrowsingContextContextLocator {
+    pub r#type: String,
+    pub r#value: TODO,
+}
+pub struct r#BrowsingContextInnerTextLocator {
+    pub r#type: String,
+    pub r#value: r#Text,
+    pub r#ignoreCase: r#Bool,
+    pub r#matchType: TODO,
+    pub r#maxDepth: r#JsUint,
+}
+pub struct r#BrowsingContextXPathLocator {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub type r#BrowsingContextNavigation = TODO;
+pub struct r#BrowsingContextBaseNavigationInfo {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#navigation: TODO,
+    pub r#timestamp: r#JsUint,
+    pub r#url: r#Text,
+}
+pub struct r#BrowsingContextNavigationInfo {
+    pub NONE: r#BrowsingContextBaseNavigationInfo,
+}
+pub type r#BrowsingContextReadinessState = TODO;
+pub type r#BrowsingContextUserPromptType = TODO;
+pub struct r#BrowsingContextActivate {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextActivateParameters,
+}
+pub struct r#BrowsingContextActivateParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub struct r#BrowsingContextCaptureScreenshot {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextCaptureScreenshotParameters,
+}
+pub struct r#BrowsingContextCaptureScreenshotParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#origin: TODO,
+    pub r#format: r#BrowsingContextImageFormat,
+    pub r#clip: r#BrowsingContextClipRectangle,
+}
+pub struct r#BrowsingContextImageFormat {
+    pub r#type: r#Text,
+    pub r#quality: TODO,
+}
+pub type r#BrowsingContextClipRectangle = TODO;
+pub struct r#BrowsingContextElementClipRectangle {
+    pub r#type: String,
+    pub r#element: r#ScriptSharedReference,
+}
+pub struct r#BrowsingContextBoxClipRectangle {
+    pub r#type: String,
+    pub r#x: r#Float,
+    pub r#y: r#Float,
+    pub r#width: r#Float,
+    pub r#height: r#Float,
+}
+pub struct r#BrowsingContextCaptureScreenshotResult {
+    pub r#data: r#Text,
+}
+pub struct r#BrowsingContextClose {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextCloseParameters,
+}
+pub struct r#BrowsingContextCloseParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#promptUnload: TODO,
+}
+pub struct r#BrowsingContextCreate {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextCreateParameters,
+}
+pub type r#BrowsingContextCreateType = TODO;
+pub struct r#BrowsingContextCreateParameters {
+    pub r#type: r#BrowsingContextCreateType,
+    pub r#referenceContext: r#BrowsingContextBrowsingContext,
+    pub r#background: TODO,
+    pub r#userContext: r#BrowserUserContext,
+}
+pub struct r#BrowsingContextCreateResult {
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub struct r#BrowsingContextGetTree {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextGetTreeParameters,
+}
+pub struct r#BrowsingContextGetTreeParameters {
+    pub r#maxDepth: r#JsUint,
+    pub r#root: r#BrowsingContextBrowsingContext,
+}
+pub struct r#BrowsingContextGetTreeResult {
+    pub r#contexts: r#BrowsingContextInfoList,
+}
+pub struct r#BrowsingContextHandleUserPrompt {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextHandleUserPromptParameters,
+}
+pub struct r#BrowsingContextHandleUserPromptParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#accept: r#Bool,
+    pub r#userText: r#Text,
+}
+pub struct r#BrowsingContextLocateNodes {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextLocateNodesParameters,
+}
+pub struct r#BrowsingContextLocateNodesParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#locator: r#BrowsingContextLocator,
+    pub r#maxNodeCount: TODO,
+    pub r#serializationOptions: r#ScriptSerializationOptions,
+    pub r#startNodes: TODO,
+}
+pub struct r#BrowsingContextLocateNodesResult {
+    pub r#nodes: TODO,
+}
+pub struct r#BrowsingContextNavigate {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigateParameters,
+}
+pub struct r#BrowsingContextNavigateParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#url: r#Text,
+    pub r#wait: r#BrowsingContextReadinessState,
+}
+pub struct r#BrowsingContextNavigateResult {
+    pub r#navigation: TODO,
+    pub r#url: r#Text,
+}
+pub struct r#BrowsingContextPrint {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextPrintParameters,
+}
+pub struct r#BrowsingContextPrintParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#background: TODO,
+    pub r#margin: r#BrowsingContextPrintMarginParameters,
+    pub r#orientation: TODO,
+    pub r#page: r#BrowsingContextPrintPageParameters,
+    pub r#pageRanges: TODO,
+    pub r#scale: TODO,
+    pub r#shrinkToFit: TODO,
+}
+pub struct r#BrowsingContextPrintMarginParameters {
+    pub r#bottom: TODO,
+    pub r#left: TODO,
+    pub r#right: TODO,
+    pub r#top: TODO,
+}
+pub struct r#BrowsingContextPrintPageParameters {
+    pub r#height: TODO,
+    pub r#width: TODO,
+}
+pub struct r#BrowsingContextPrintResult {
+    pub r#data: r#Text,
+}
+pub struct r#BrowsingContextReload {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextReloadParameters,
+}
+pub struct r#BrowsingContextReloadParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#ignoreCache: r#Bool,
+    pub r#wait: r#BrowsingContextReadinessState,
+}
+pub struct r#BrowsingContextSetViewport {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextSetViewportParameters,
+}
+pub struct r#BrowsingContextSetViewportParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#viewport: TODO,
+    pub r#devicePixelRatio: TODO,
+    pub r#userContexts: TODO,
+}
+pub struct r#BrowsingContextViewport {
+    pub r#width: r#JsUint,
+    pub r#height: r#JsUint,
+}
+pub struct r#BrowsingContextTraverseHistory {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextTraverseHistoryParameters,
+}
+pub struct r#BrowsingContextTraverseHistoryParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#delta: r#JsInt,
+}
+pub struct r#BrowsingContextTraverseHistoryResult {}
+pub struct r#BrowsingContextContextCreated {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextInfo,
+}
+pub struct r#BrowsingContextContextDestroyed {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextInfo,
+}
+pub struct r#BrowsingContextNavigationStarted {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextFragmentNavigated {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextHistoryUpdated {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextHistoryUpdatedParameters,
+}
+pub struct r#BrowsingContextHistoryUpdatedParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#url: r#Text,
+}
+pub struct r#BrowsingContextDomContentLoaded {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextLoad {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextDownloadWillBegin {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextDownloadWillBeginParams,
+}
+pub struct r#BrowsingContextDownloadWillBeginParams {
+    pub r#suggestedFilename: r#Text,
+    pub NONE: r#BrowsingContextBaseNavigationInfo,
+}
+pub struct r#BrowsingContextNavigationAborted {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextNavigationCommitted {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextNavigationFailed {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextNavigationInfo,
+}
+pub struct r#BrowsingContextUserPromptClosed {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextUserPromptClosedParameters,
+}
+pub struct r#BrowsingContextUserPromptClosedParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#accepted: r#Bool,
+    pub r#type: r#BrowsingContextUserPromptType,
+    pub r#userText: r#Text,
+}
+pub struct r#BrowsingContextUserPromptOpened {
+    pub r#method: String,
+    pub r#params: r#BrowsingContextUserPromptOpenedParameters,
+}
+pub struct r#BrowsingContextUserPromptOpenedParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#handler: r#SessionUserPromptHandlerType,
+    pub r#message: r#Text,
+    pub r#type: r#BrowsingContextUserPromptType,
+    pub r#defaultValue: r#Text,
+}
+pub struct r#EmulationCommand {
+    pub NONE: TODO,
+    pub NONE: r#MulationSetGeolocationOverride,
+}
+pub struct r#EmulationSetGeolocationOverride {
+    pub r#method: String,
+    pub r#params: TODO,
+    pub NONE: r#MulationSetGeolocationOverrideParameters,
+}
+pub struct r#EmulationSetGeolocationOverrideParameters {
+    pub r#coordinates: TODO,
+    pub NONE: TODO,
+    pub r#contexts: TODO,
+    pub r#userContexts: TODO,
+}
+pub struct r#EmulationGeolocationCoordinates {
+    pub r#latitude: r#Float,
+    pub r#longitude: r#Float,
+    pub r#accuracy: TODO,
+    pub r#altitude: TODO,
+    pub r#altitudeAccuracy: TODO,
+    pub r#heading: TODO,
+    pub r#speed: TODO,
+}
+pub enum r#NetworkCommand {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#NetworkResult = TODO;
+pub enum r#NetworkEvent {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub struct r#NetworkAuthChallenge {
+    pub r#scheme: r#Text,
+    pub r#realm: r#Text,
+}
+pub struct r#NetworkAuthCredentials {
+    pub r#type: String,
+    pub r#username: r#Text,
+    pub r#password: r#Text,
+}
+pub struct r#NetworkBaseParameters {
+    pub r#context: TODO,
+    pub r#isBlocked: r#Bool,
+    pub r#navigation: TODO,
+    pub r#redirectCount: r#JsUint,
+    pub r#request: r#NetworkRequestData,
+    pub r#timestamp: r#JsUint,
+    pub r#intercepts: TODO,
+}
+pub type r#NetworkBytesValue = TODO;
+pub struct r#NetworkStringValue {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#NetworkBase64Value {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub type r#NetworkSameSite = TODO;
+pub struct r#NetworkCookie {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+    pub r#domain: r#Text,
+    pub r#path: r#Text,
+    pub r#size: r#JsUint,
+    pub r#httpOnly: r#Bool,
+    pub r#secure: r#Bool,
+    pub r#sameSite: r#NetworkSameSite,
+    pub r#expiry: r#JsUint,
+    pub NONE: r#Extensible,
+}
+pub struct r#NetworkCookieHeader {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+}
+pub struct r#NetworkFetchTimingInfo {
+    pub r#timeOrigin: r#Float,
+    pub r#requestTime: r#Float,
+    pub r#redirectStart: r#Float,
+    pub r#redirectEnd: r#Float,
+    pub r#fetchStart: r#Float,
+    pub r#dnsStart: r#Float,
+    pub r#dnsEnd: r#Float,
+    pub r#connectStart: r#Float,
+    pub r#connectEnd: r#Float,
+    pub r#tlsStart: r#Float,
+    pub r#requestStart: r#Float,
+    pub r#responseStart: r#Float,
+    pub r#responseEnd: r#Float,
+}
+pub struct r#NetworkHeader {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+}
+pub struct r#NetworkInitiator {
+    pub r#columnNumber: r#JsUint,
+    pub r#lineNumber: r#JsUint,
+    pub r#request: r#NetworkRequest,
+    pub r#stackTrace: r#ScriptStackTrace,
+    pub r#type: TODO,
+}
+pub type r#NetworkIntercept = TODO;
+pub type r#NetworkRequest = TODO;
+pub struct r#NetworkRequestData {
+    pub r#request: r#NetworkRequest,
+    pub r#url: r#Text,
+    pub r#method: r#Text,
+    pub r#headers: TODO,
+    pub r#cookies: TODO,
+    pub r#headersSize: r#JsUint,
+    pub r#bodySize: TODO,
+    pub r#destination: r#Text,
+    pub r#initiatorType: TODO,
+    pub r#timings: r#NetworkFetchTimingInfo,
+}
+pub struct r#NetworkResponseContent {
+    pub r#size: r#JsUint,
+}
+pub struct r#NetworkResponseData {
+    pub r#url: r#Text,
+    pub r#protocol: r#Text,
+    pub r#status: r#JsUint,
+    pub r#statusText: r#Text,
+    pub r#fromCache: r#Bool,
+    pub r#headers: TODO,
+    pub r#mimeType: r#Text,
+    pub r#bytesReceived: r#JsUint,
+    pub r#headersSize: TODO,
+    pub r#bodySize: TODO,
+    pub r#content: r#NetworkResponseContent,
+    pub r#authChallenges: TODO,
+}
+pub struct r#NetworkSetCookieHeader {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+    pub r#domain: r#Text,
+    pub r#httpOnly: r#Bool,
+    pub r#expiry: r#Text,
+    pub r#maxAge: r#JsInt,
+    pub r#path: r#Text,
+    pub r#sameSite: r#NetworkSameSite,
+    pub r#secure: r#Bool,
+}
+pub type r#NetworkUrlPattern = TODO;
+pub struct r#NetworkUrlPatternPattern {
+    pub r#type: String,
+    pub r#protocol: r#Text,
+    pub r#hostname: r#Text,
+    pub r#port: r#Text,
+    pub r#pathname: r#Text,
+    pub r#search: r#Text,
+}
+pub struct r#NetworkUrlPatternString {
+    pub r#type: String,
+    pub r#pattern: r#Text,
+}
+pub struct r#NetworkAddIntercept {
+    pub r#method: String,
+    pub r#params: r#NetworkAddInterceptParameters,
+}
+pub struct r#NetworkAddInterceptParameters {
+    pub r#phases: TODO,
+    pub r#contexts: TODO,
+    pub r#urlPatterns: TODO,
+}
+pub type r#NetworkInterceptPhase = TODO;
+pub struct r#NetworkAddInterceptResult {
+    pub r#intercept: r#NetworkIntercept,
+}
+pub struct r#NetworkContinueRequest {
+    pub r#method: String,
+    pub r#params: r#NetworkContinueRequestParameters,
+}
+pub struct r#NetworkContinueRequestParameters {
+    pub r#request: r#NetworkRequest,
+    pub r#body: r#NetworkBytesValue,
+    pub r#cookies: TODO,
+    pub r#headers: TODO,
+    pub r#method: r#Text,
+    pub r#url: r#Text,
+}
+pub struct r#NetworkContinueResponse {
+    pub r#method: String,
+    pub r#params: r#NetworkContinueResponseParameters,
+}
+pub struct r#NetworkContinueResponseParameters {
+    pub r#request: r#NetworkRequest,
+    pub r#cookies: TODO,
+    pub r#credentials: r#NetworkAuthCredentials,
+    pub r#headers: TODO,
+    pub r#reasonPhrase: r#Text,
+    pub r#statusCode: r#JsUint,
+}
+pub struct r#NetworkContinueWithAuth {
+    pub r#method: String,
+    pub r#params: r#NetworkContinueWithAuthParameters,
+}
+pub struct r#NetworkContinueWithAuthParameters {
+    pub r#request: r#NetworkRequest,
+    pub todo: TODO,
+}
+pub struct r#NetworkContinueWithAuthCredentials {
+    pub r#action: String,
+    pub r#credentials: r#NetworkAuthCredentials,
+}
+pub struct r#NetworkContinueWithAuthNoCredentials {
+    pub r#action: TODO,
+}
+pub struct r#NetworkFailRequest {
+    pub r#method: String,
+    pub r#params: r#NetworkFailRequestParameters,
+}
+pub struct r#NetworkFailRequestParameters {
+    pub r#request: r#NetworkRequest,
+}
+pub struct r#NetworkProvideResponse {
+    pub r#method: String,
+    pub r#params: r#NetworkProvideResponseParameters,
+}
+pub struct r#NetworkProvideResponseParameters {
+    pub r#request: r#NetworkRequest,
+    pub r#body: r#NetworkBytesValue,
+    pub r#cookies: TODO,
+    pub r#headers: TODO,
+    pub r#reasonPhrase: r#Text,
+    pub r#statusCode: r#JsUint,
+}
+pub struct r#NetworkRemoveIntercept {
+    pub r#method: String,
+    pub r#params: r#NetworkRemoveInterceptParameters,
+}
+pub struct r#NetworkRemoveInterceptParameters {
+    pub r#intercept: r#NetworkIntercept,
+}
+pub struct r#NetworkSetCacheBehavior {
+    pub r#method: String,
+    pub r#params: r#NetworkSetCacheBehaviorParameters,
+}
+pub struct r#NetworkSetCacheBehaviorParameters {
+    pub r#cacheBehavior: TODO,
+    pub r#contexts: TODO,
+}
+pub struct r#NetworkAuthRequired {
+    pub r#method: String,
+    pub r#params: r#NetworkAuthRequiredParameters,
+}
+pub struct r#NetworkAuthRequiredParameters {
+    pub NONE: r#NetworkBaseParameters,
+    pub r#response: r#NetworkResponseData,
+}
+pub struct r#NetworkBeforeRequestSent {
+    pub r#method: String,
+    pub r#params: r#NetworkBeforeRequestSentParameters,
+}
+pub struct r#NetworkBeforeRequestSentParameters {
+    pub NONE: r#NetworkBaseParameters,
+    pub r#initiator: r#NetworkInitiator,
+}
+pub struct r#NetworkFetchError {
+    pub r#method: String,
+    pub r#params: r#NetworkFetchErrorParameters,
+}
+pub struct r#NetworkFetchErrorParameters {
+    pub NONE: r#NetworkBaseParameters,
+    pub r#errorText: r#Text,
+}
+pub struct r#NetworkResponseCompleted {
+    pub r#method: String,
+    pub r#params: r#NetworkResponseCompletedParameters,
+}
+pub struct r#NetworkResponseCompletedParameters {
+    pub NONE: r#NetworkBaseParameters,
+    pub r#response: r#NetworkResponseData,
+}
+pub struct r#NetworkResponseStarted {
+    pub r#method: String,
+    pub r#params: r#NetworkResponseStartedParameters,
+}
+pub struct r#NetworkResponseStartedParameters {
+    pub NONE: r#NetworkBaseParameters,
+    pub r#response: r#NetworkResponseData,
+}
+pub enum r#ScriptCommand {
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#ScriptResult = TODO;
+pub enum r#ScriptEvent {
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#ScriptChannel = TODO;
+pub struct r#ScriptChannelValue {
+    pub r#type: String,
+    pub r#value: r#ScriptChannelProperties,
+}
+pub struct r#ScriptChannelProperties {
+    pub r#channel: r#ScriptChannel,
+    pub r#serializationOptions: r#ScriptSerializationOptions,
+    pub r#ownership: r#ScriptResultOwnership,
+}
+pub type r#ScriptEvaluateResult = TODO;
+pub struct r#ScriptEvaluateResultSuccess {
+    pub r#type: String,
+    pub r#result: r#ScriptRemoteValue,
+    pub r#realm: r#ScriptRealm,
+}
+pub struct r#ScriptEvaluateResultException {
+    pub r#type: String,
+    pub r#exceptionDetails: r#ScriptExceptionDetails,
+    pub r#realm: r#ScriptRealm,
+}
+pub struct r#ScriptExceptionDetails {
+    pub r#columnNumber: r#JsUint,
+    pub r#exception: r#ScriptRemoteValue,
+    pub r#lineNumber: r#JsUint,
+    pub r#stackTrace: r#ScriptStackTrace,
+    pub r#text: r#Text,
+}
+pub type r#ScriptHandle = TODO;
+pub type r#ScriptInternalId = TODO;
+pub type r#ScriptLocalValue = TODO;
+pub struct r#ScriptListLocalValue {
+    pub NONE: r#ScriptLocalValue,
+}
+pub struct r#ScriptArrayLocalValue {
+    pub r#type: String,
+    pub r#value: r#ScriptListLocalValue,
+}
+pub struct r#ScriptDateLocalValue {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#ScriptMappingLocalValue {
+    pub NONE: TODO,
+}
+pub struct r#ScriptMapLocalValue {
+    pub r#type: String,
+    pub r#value: r#ScriptMappingLocalValue,
+}
+pub struct r#ScriptObjectLocalValue {
+    pub r#type: String,
+    pub r#value: r#ScriptMappingLocalValue,
+}
+pub struct r#ScriptRegExpValue {
+    pub r#pattern: r#Text,
+    pub r#flags: r#Text,
+}
+pub struct r#ScriptRegExpLocalValue {
+    pub r#type: String,
+    pub r#value: r#ScriptRegExpValue,
+}
+pub struct r#ScriptSetLocalValue {
+    pub r#type: String,
+    pub r#value: r#ScriptListLocalValue,
+}
+pub type r#ScriptPreloadScript = TODO;
+pub type r#ScriptRealm = TODO;
+pub type r#ScriptPrimitiveProtocolValue = TODO;
+pub struct r#ScriptUndefinedValue {
+    pub r#type: String,
+}
+pub struct r#ScriptNullValue {
+    pub r#type: String,
+}
+pub struct r#ScriptStringValue {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub type r#ScriptSpecialNumber = TODO;
+pub struct r#ScriptNumberValue {
+    pub r#type: String,
+    pub r#value: TODO,
+}
+pub struct r#ScriptBooleanValue {
+    pub r#type: String,
+    pub r#value: r#Bool,
+}
+pub struct r#ScriptBigIntValue {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub type r#ScriptRealmInfo = TODO;
+pub struct r#ScriptBaseRealmInfo {
+    pub r#realm: r#ScriptRealm,
+    pub r#origin: r#Text,
+}
+pub struct r#ScriptWindowRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#sandbox: r#Text,
+}
+pub struct r#ScriptDedicatedWorkerRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+    pub r#owners: TODO,
+}
+pub struct r#ScriptSharedWorkerRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub struct r#ScriptServiceWorkerRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub struct r#ScriptWorkerRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub struct r#ScriptPaintWorkletRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub struct r#ScriptAudioWorkletRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub struct r#ScriptWorkletRealmInfo {
+    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#type: String,
+}
+pub type r#ScriptRealmType = TODO;
+pub type r#ScriptRemoteReference = TODO;
+pub struct r#ScriptSharedReference {
+    pub r#sharedId: r#ScriptSharedId,
+    pub r#handle: r#ScriptHandle,
+    pub NONE: r#Extensible,
+}
+pub struct r#ScriptRemoteObjectReference {
+    pub r#handle: r#ScriptHandle,
+    pub r#sharedId: r#ScriptSharedId,
+    pub NONE: r#Extensible,
+}
+pub type r#ScriptRemoteValue = TODO;
+pub struct r#ScriptListRemoteValue {
+    pub NONE: r#ScriptRemoteValue,
+}
+pub struct r#ScriptMappingRemoteValue {
+    pub NONE: TODO,
+}
+pub struct r#ScriptSymbolRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptArrayRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptListRemoteValue,
+}
+pub struct r#ScriptObjectRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptMappingRemoteValue,
+}
+pub struct r#ScriptFunctionRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub type r#ScriptRegExpRemoteValue = TODO;
+pub type r#ScriptDateRemoteValue = TODO;
+pub struct r#ScriptMapRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptMappingRemoteValue,
+}
+pub struct r#ScriptSetRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptListRemoteValue,
+}
+pub struct r#ScriptWeakMapRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptWeakSetRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptGeneratorRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptErrorRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptProxyRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptPromiseRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptTypedArrayRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptArrayBufferRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptNodeListRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptListRemoteValue,
+}
+pub struct r#ScriptHtmlCollectionRemoteValue {
+    pub r#type: String,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptListRemoteValue,
+}
+pub struct r#ScriptNodeRemoteValue {
+    pub r#type: String,
+    pub r#sharedId: r#ScriptSharedId,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+    pub r#value: r#ScriptNodeProperties,
+}
+pub struct r#ScriptNodeProperties {
+    pub r#nodeType: r#JsUint,
+    pub r#childNodeCount: r#JsUint,
+    pub r#attributes: TODO,
+    pub r#children: TODO,
+    pub r#localName: r#Text,
+    pub r#mode: TODO,
+    pub r#namespaceURI: r#Text,
+    pub r#nodeValue: r#Text,
+    pub r#shadowRoot: TODO,
+}
+pub struct r#ScriptWindowProxyRemoteValue {
+    pub r#type: String,
+    pub r#value: r#ScriptWindowProxyProperties,
+    pub r#handle: r#ScriptHandle,
+    pub r#internalId: r#ScriptInternalId,
+}
+pub struct r#ScriptWindowProxyProperties {
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub type r#ScriptResultOwnership = TODO;
+pub struct r#ScriptSerializationOptions {
+    pub r#maxDomDepth: TODO,
+    pub r#maxObjectDepth: TODO,
+    pub r#includeShadowTree: TODO,
+}
+pub type r#ScriptSharedId = TODO;
+pub struct r#ScriptStackFrame {
+    pub r#columnNumber: r#JsUint,
+    pub r#functionName: r#Text,
+    pub r#lineNumber: r#JsUint,
+    pub r#url: r#Text,
+}
+pub struct r#ScriptStackTrace {
+    pub r#callFrames: TODO,
+}
+pub struct r#ScriptSource {
+    pub r#realm: r#ScriptRealm,
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub struct r#ScriptRealmTarget {
+    pub r#realm: r#ScriptRealm,
+}
+pub struct r#ScriptContextTarget {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#sandbox: r#Text,
+}
+pub type r#ScriptTarget = TODO;
+pub struct r#ScriptAddPreloadScript {
+    pub r#method: String,
+    pub r#params: r#ScriptAddPreloadScriptParameters,
+}
+pub struct r#ScriptAddPreloadScriptParameters {
+    pub r#functionDeclaration: r#Text,
+    pub r#arguments: TODO,
+    pub r#contexts: TODO,
+    pub r#userContexts: TODO,
+    pub r#sandbox: r#Text,
+}
+pub struct r#ScriptAddPreloadScriptResult {
+    pub r#script: r#ScriptPreloadScript,
+}
+pub struct r#ScriptDisown {
+    pub r#method: String,
+    pub r#params: r#ScriptDisownParameters,
+}
+pub struct r#ScriptDisownParameters {
+    pub r#handles: TODO,
+    pub r#target: r#ScriptTarget,
+}
+pub struct r#ScriptCallFunction {
+    pub r#method: String,
+    pub r#params: r#ScriptCallFunctionParameters,
+}
+pub struct r#ScriptCallFunctionParameters {
+    pub r#functionDeclaration: r#Text,
+    pub r#awaitPromise: r#Bool,
+    pub r#target: r#ScriptTarget,
+    pub r#arguments: TODO,
+    pub r#resultOwnership: r#ScriptResultOwnership,
+    pub r#serializationOptions: r#ScriptSerializationOptions,
+    pub r#this: r#ScriptLocalValue,
+    pub r#userActivation: TODO,
+}
+pub struct r#ScriptEvaluate {
+    pub r#method: String,
+    pub r#params: r#ScriptEvaluateParameters,
+}
+pub struct r#ScriptEvaluateParameters {
+    pub r#expression: r#Text,
+    pub r#target: r#ScriptTarget,
+    pub r#awaitPromise: r#Bool,
+    pub r#resultOwnership: r#ScriptResultOwnership,
+    pub r#serializationOptions: r#ScriptSerializationOptions,
+    pub r#userActivation: TODO,
+}
+pub struct r#ScriptGetRealms {
+    pub r#method: String,
+    pub r#params: r#ScriptGetRealmsParameters,
+}
+pub struct r#ScriptGetRealmsParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#type: r#ScriptRealmType,
+}
+pub struct r#ScriptGetRealmsResult {
+    pub r#realms: TODO,
+}
+pub struct r#ScriptRemovePreloadScript {
+    pub r#method: String,
+    pub r#params: r#ScriptRemovePreloadScriptParameters,
+}
+pub struct r#ScriptRemovePreloadScriptParameters {
+    pub r#script: r#ScriptPreloadScript,
+}
+pub struct r#ScriptMessage {
+    pub r#method: String,
+    pub r#params: r#ScriptMessageParameters,
+}
+pub struct r#ScriptMessageParameters {
+    pub r#channel: r#ScriptChannel,
+    pub r#data: r#ScriptRemoteValue,
+    pub r#source: r#ScriptSource,
+}
+pub struct r#ScriptRealmCreated {
+    pub r#method: String,
+    pub r#params: r#ScriptRealmInfo,
+}
+pub struct r#ScriptRealmDestroyed {
+    pub r#method: String,
+    pub r#params: r#ScriptRealmDestroyedParameters,
+}
+pub struct r#ScriptRealmDestroyedParameters {
+    pub r#realm: r#ScriptRealm,
+}
+pub enum r#StorageCommand {
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#StorageResult = TODO;
+pub struct r#StoragePartitionKey {
+    pub r#userContext: r#Text,
+    pub r#sourceOrigin: r#Text,
+    pub NONE: r#Extensible,
+}
+pub struct r#StorageGetCookies {
+    pub r#method: String,
+    pub r#params: r#StorageGetCookiesParameters,
+}
+pub struct r#StorageCookieFilter {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+    pub r#domain: r#Text,
+    pub r#path: r#Text,
+    pub r#size: r#JsUint,
+    pub r#httpOnly: r#Bool,
+    pub r#secure: r#Bool,
+    pub r#sameSite: r#NetworkSameSite,
+    pub r#expiry: r#JsUint,
+    pub NONE: r#Extensible,
+}
+pub struct r#StorageBrowsingContextPartitionDescriptor {
+    pub r#type: String,
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub struct r#StorageStorageKeyPartitionDescriptor {
+    pub r#type: String,
+    pub r#userContext: r#Text,
+    pub r#sourceOrigin: r#Text,
+    pub NONE: r#Extensible,
+}
+pub type r#StoragePartitionDescriptor = TODO;
+pub struct r#StorageGetCookiesParameters {
+    pub r#filter: r#StorageCookieFilter,
+    pub r#partition: r#StoragePartitionDescriptor,
+}
+pub struct r#StorageGetCookiesResult {
+    pub r#cookies: TODO,
+    pub r#partitionKey: r#StoragePartitionKey,
+}
+pub struct r#StorageSetCookie {
+    pub r#method: String,
+    pub r#params: r#StorageSetCookieParameters,
+}
+pub struct r#StoragePartialCookie {
+    pub r#name: r#Text,
+    pub r#value: r#NetworkBytesValue,
+    pub r#domain: r#Text,
+    pub r#path: r#Text,
+    pub r#httpOnly: r#Bool,
+    pub r#secure: r#Bool,
+    pub r#sameSite: r#NetworkSameSite,
+    pub r#expiry: r#JsUint,
+    pub NONE: r#Extensible,
+}
+pub struct r#StorageSetCookieParameters {
+    pub r#cookie: r#StoragePartialCookie,
+    pub r#partition: r#StoragePartitionDescriptor,
+}
+pub struct r#StorageSetCookieResult {
+    pub r#partitionKey: r#StoragePartitionKey,
+}
+pub struct r#StorageDeleteCookies {
+    pub r#method: String,
+    pub r#params: r#StorageDeleteCookiesParameters,
+}
+pub struct r#StorageDeleteCookiesParameters {
+    pub r#filter: r#StorageCookieFilter,
+    pub r#partition: r#StoragePartitionDescriptor,
+}
+pub struct r#StorageDeleteCookiesResult {
+    pub r#partitionKey: r#StoragePartitionKey,
+}
+pub type r#LogEvent = TODO;
+pub type r#LogLevel = TODO;
+pub type r#LogEntry = TODO;
+pub struct r#LogBaseLogEntry {
+    pub r#level: r#LogLevel,
+    pub r#source: r#ScriptSource,
+    pub r#text: TODO,
+    pub r#timestamp: r#JsUint,
+    pub r#stackTrace: r#ScriptStackTrace,
+}
+pub struct r#LogGenericLogEntry {
+    pub NONE: r#LogBaseLogEntry,
+    pub r#type: r#Text,
+}
+pub struct r#LogConsoleLogEntry {
+    pub NONE: r#LogBaseLogEntry,
+    pub r#type: String,
+    pub r#method: r#Text,
+    pub r#args: TODO,
+}
+pub struct r#LogJavascriptLogEntry {
+    pub NONE: r#LogBaseLogEntry,
+    pub r#type: String,
+}
+pub struct r#LogEntryAdded {
+    pub r#method: String,
+    pub r#params: r#LogEntry,
+}
+pub enum r#InputCommand {
+    Todo,
+    Todo,
+    Todo,
+}
+pub type r#InputEvent = TODO;
+pub struct r#InputElementOrigin {
+    pub r#type: String,
+    pub r#element: r#ScriptSharedReference,
+}
+pub struct r#InputPerformActions {
+    pub r#method: String,
+    pub r#params: r#InputPerformActionsParameters,
+}
+pub struct r#InputPerformActionsParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#actions: TODO,
+}
+pub type r#InputSourceActions = TODO;
+pub struct r#InputNoneSourceActions {
+    pub r#type: String,
+    pub r#id: r#Text,
+    pub r#actions: TODO,
+}
+pub type r#InputNoneSourceAction = TODO;
+pub struct r#InputKeySourceActions {
+    pub r#type: String,
+    pub r#id: r#Text,
+    pub r#actions: TODO,
+}
+pub type r#InputKeySourceAction = TODO;
+pub struct r#InputPointerSourceActions {
+    pub r#type: String,
+    pub r#id: r#Text,
+    pub r#parameters: r#InputPointerParameters,
+    pub r#actions: TODO,
+}
+pub type r#InputPointerType = TODO;
+pub struct r#InputPointerParameters {
+    pub r#pointerType: TODO,
+}
+pub type r#InputPointerSourceAction = TODO;
+pub struct r#InputWheelSourceActions {
+    pub r#type: String,
+    pub r#id: r#Text,
+    pub r#actions: TODO,
+}
+pub type r#InputWheelSourceAction = TODO;
+pub struct r#InputPauseAction {
+    pub r#type: String,
+    pub r#duration: r#JsUint,
+}
+pub struct r#InputKeyDownAction {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#InputKeyUpAction {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#InputPointerUpAction {
+    pub r#type: String,
+    pub r#button: r#JsUint,
+}
+pub struct r#InputPointerDownAction {
+    pub r#type: String,
+    pub r#button: r#JsUint,
+    pub NONE: r#InputPointerCommonProperties,
+}
+pub struct r#InputPointerMoveAction {
+    pub r#type: String,
+    pub r#x: r#Float,
+    pub r#y: r#Float,
+    pub r#duration: r#JsUint,
+    pub r#origin: r#InputOrigin,
+    pub NONE: r#InputPointerCommonProperties,
+}
+pub struct r#InputWheelScrollAction {
+    pub r#type: String,
+    pub r#x: r#JsInt,
+    pub r#y: r#JsInt,
+    pub r#deltaX: r#JsInt,
+    pub r#deltaY: r#JsInt,
+    pub r#duration: r#JsUint,
+    pub r#origin: TODO,
+}
+pub struct r#InputPointerCommonProperties {
+    pub r#width: TODO,
+    pub r#height: TODO,
+    pub r#pressure: TODO,
+    pub r#tangentialPressure: TODO,
+    pub r#twist: TODO,
+    pub r#altitudeAngle: TODO,
+    pub r#azimuthAngle: TODO,
+}
+pub type r#InputOrigin = TODO;
+pub struct r#InputReleaseActions {
+    pub r#method: String,
+    pub r#params: r#InputReleaseActionsParameters,
+}
+pub struct r#InputReleaseActionsParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+}
+pub struct r#InputSetFiles {
+    pub r#method: String,
+    pub r#params: r#InputSetFilesParameters,
+}
+pub struct r#InputSetFilesParameters {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#element: r#ScriptSharedReference,
+    pub r#files: TODO,
+}
+pub struct r#InputFileDialogOpened {
+    pub r#method: String,
+    pub r#params: r#InputFileDialogInfo,
+}
+pub struct r#InputFileDialogInfo {
+    pub r#context: r#BrowsingContextBrowsingContext,
+    pub r#element: r#ScriptSharedReference,
+    pub r#multiple: r#Bool,
+}
+pub enum r#WebExtensionCommand {
+    Todo,
+    Todo,
+}
+pub type r#WebExtensionResult = TODO;
+pub type r#WebExtensionExtension = TODO;
+pub struct r#WebExtensionInstall {
+    pub r#method: String,
+    pub r#params: r#WebExtensionInstallParameters,
+}
+pub struct r#WebExtensionInstallParameters {
+    pub r#extensionData: r#WebExtensionExtensionData,
+}
+pub type r#WebExtensionExtensionData = TODO;
+pub struct r#WebExtensionExtensionPath {
+    pub r#type: String,
+    pub r#path: r#Text,
+}
+pub struct r#WebExtensionExtensionArchivePath {
+    pub r#type: String,
+    pub r#path: r#Text,
+}
+pub struct r#WebExtensionExtensionBase64Encoded {
+    pub r#type: String,
+    pub r#value: r#Text,
+}
+pub struct r#WebExtensionInstallResult {
+    pub r#extension: r#WebExtensionExtension,
+}
+pub struct r#WebExtensionUninstall {
+    pub r#method: String,
+    pub r#params: r#WebExtensionUninstallParameters,
+}
+pub struct r#WebExtensionUninstallParameters {
+    pub r#extension: r#WebExtensionExtension,
+}

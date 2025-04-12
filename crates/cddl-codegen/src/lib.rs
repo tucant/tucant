@@ -1,7 +1,8 @@
 use std::ops::{Range, RangeFrom, RangeFull, RangeInclusive};
 
 use heck::{ToPascalCase, ToSnakeCase, ToUpperCamelCase};
-use syn::File;
+use proc_macro2::Span;
+use syn::{File, Ident};
 use winnow::{
     ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, seq, terminated, trace},
@@ -290,7 +291,7 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
             Value::Number(_) => quote! { TODO },
         },
         Type::Typename(name) => {
-            let name = format_ident!("{}", name.to_upper_camel_case());
+            let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             quote! {
                 #name
             }
@@ -317,7 +318,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                 Some(Key::Type(_)) => quote! { TODO },
                 Some(Key::Value(value)) => quote! { TODO },
                 Some(Key::Literal(literal)) => {
-                    let key = format_ident!("{}", literal);
+                    let key = Ident::new_raw(literal, Span::call_site());
                     quote! {
                         #key
                     }   
@@ -330,8 +331,8 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
             }
         },
         Group::Name(name) => {
-            let name_snake = format_ident!("{}", name.to_snake_case());
-            let name = format_ident!("{}", name.to_upper_camel_case());
+            let name_snake = Ident::new_raw( &name.to_snake_case(), Span::call_site());
+            let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             quote! {
                 #[serde(flatten)]
                 pub #name_snake: #name,
@@ -345,7 +346,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
 fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
-            let name = format_ident!("{}", name.to_upper_camel_case());
+            let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             match &group.1 {
                 Group::And(items) => {
                     let inner = codegen_group(group);
@@ -362,7 +363,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                             Group::Or(groups) => todo!(),
                             Group::KeyValue(key, _) => todo!(),
                             Group::Name(name) => {
-                                let name = format_ident!("{}", name.to_upper_camel_case());
+                                let name = Ident::new_raw(& name.to_upper_camel_case(), Span::call_site());
                                 quote! { #name(#name), }
                             },
                         }
@@ -378,7 +379,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
             }
         }
         Rule::Type { name, r#type } => {
-            let name_ident = format_ident!("{}", name.to_upper_camel_case());
+            let name_ident = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             match r#type {
                 Type::Value(value) => quote! { pub type #name_ident = TODO; },
                 Type::Typename(name) => quote! { pub type #name_ident = TODO; },
