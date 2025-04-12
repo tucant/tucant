@@ -22,7 +22,10 @@ pub enum Rule {
 pub struct Group {}
 
 #[derive(Debug)]
-pub struct Type {}
+pub enum Type {
+    Value(Value),
+    Typename(String),
+}
 
 pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
     trace("ccdl", preceded(s, repeat(1.., terminated(rule, s)))).parse_next(input)
@@ -77,13 +80,13 @@ fn type1(input: &mut &str) -> ModalResult<usize> {
         .parse_next(input)
 }
 
-fn type2(input: &mut &str) -> ModalResult<usize> {
+fn type2(input: &mut &str) -> ModalResult<Type> {
     // TODO not complete
     trace(
         "type2",
         alt((
-            value,
-            typename.map(|v| 1),
+            value.map(|v| Type::Value(v)),
+            typename.map(|v| Type::Typename(v.to_owned())),
             ("(", s, r#type, s, ")").map(|v| 1),
             ("{", s, group, s, "}").map(|v| 1),
             ("[", s, group, s, "]").map(|v| 1),
@@ -138,6 +141,7 @@ fn optcom(input: &mut &str) -> ModalResult<usize> {
     trace("optcom", (s, opt((",", s))).map(|v| 1)).parse_next(input)
 }
 
+#[derive(Debug)]
 pub enum Occur {
     RangeInclusive(RangeInclusive<usize>),
     RangeFrom(RangeFrom<usize>),
@@ -163,6 +167,7 @@ fn occur(input: &mut &str) -> ModalResult<Occur> {
     .parse_next(input)
 }
 
+#[derive(Debug)]
 pub enum Value {
     String(String),
     Number(String),
