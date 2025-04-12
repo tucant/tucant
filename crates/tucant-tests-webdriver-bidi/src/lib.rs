@@ -73,7 +73,7 @@ mod tests {
             let contexts = session.browsing_context_get_tree(GetTreeParameters::new(None, None)).await?;
             println!("{:?}", contexts);
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(30)).await;
 
             session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
 
