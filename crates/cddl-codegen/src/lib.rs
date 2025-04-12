@@ -1,6 +1,6 @@
 use std::ops::{Range, RangeFrom, RangeFull, RangeInclusive};
 
-use heck::ToUpperCamelCase;
+use heck::{ToPascalCase, ToSnakeCase, ToUpperCamelCase};
 use syn::File;
 use winnow::{
     ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
@@ -205,7 +205,7 @@ fn optcom(input: &mut &str) -> ModalResult<()> {
     trace("optcom", (s, opt((",", s))).map(|v| ())).parse_next(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Occur {
     RangeInclusive(RangeInclusive<usize>),
     RangeFrom(RangeFrom<usize>),
@@ -279,8 +279,41 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
             let name = format_ident!("{}", name.to_upper_camel_case());
+            assert_eq!(group.0, None);
+            let group = &group.1;
+            let inner = match group {
+                Group::And(items) => quote! { TODO },
+                Group::Or(groups) => quote! { TODO },
+                Group::KeyValue(key, r#type) => {
+                    let key = key.as_ref().unwrap();
+                    let key = match key {
+                        Key::Type(_) => quote! { TODO },
+                        Key::Value(value) => quote! { TODO },
+                        Key::Literal(literal) => {
+                            let key = format_ident!("{}", literal);
+                            quote! {
+                                #key
+                            }   
+                        },
+                    };
+                    let r#type = quote! { TODO };
+                    quote! {
+                        pub #key: #r#type
+                    }
+                },
+                Group::Name(name) => {
+                    let name_snake = format_ident!("{}", name.to_snake_case());
+                    let name = format_ident!("{}", name.to_upper_camel_case());
+                    quote! {
+                        #[serde(flatten)]
+                        pub #name_snake: #name
+                    }
+                },
+            };
             quote! {
-                pub struct #name {}
+                pub struct #name {
+                    #inner
+                }
             }
         }
         Rule::Type { name, r#type } => {
