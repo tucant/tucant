@@ -332,6 +332,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                     Type::Typename(name) => {
                         let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
                         quote! {
+                            #[serde(flatten)]
                             pub #key: #type_tokens,
                         }
                     },
