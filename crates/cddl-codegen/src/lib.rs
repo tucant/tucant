@@ -282,8 +282,8 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
             assert_eq!(group.0, None);
             let group = &group.1;
             let inner = match group {
-                Group::And(items) => quote! { TODO },
-                Group::Or(groups) => quote! { TODO },
+                Group::And(items) => quote! { pub todo: TODO, },
+                Group::Or(groups) => quote! { pub todo: TODO, },
                 Group::KeyValue(key, r#type) => {
                     let key = key.as_ref().unwrap();
                     let key = match key {
@@ -298,7 +298,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                     };
                     let r#type = quote! { TODO };
                     quote! {
-                        pub #key: #r#type
+                        pub #key: #r#type,
                     }
                 },
                 Group::Name(name) => {
@@ -306,7 +306,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                     let name = format_ident!("{}", name.to_upper_camel_case());
                     quote! {
                         #[serde(flatten)]
-                        pub #name_snake: #name
+                        pub #name_snake: #name,
                     }
                 },
             };
