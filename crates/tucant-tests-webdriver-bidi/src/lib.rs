@@ -1,3 +1,5 @@
+pub mod cddl;
+
 #[cfg(test)]
 mod tests {
     use std::{

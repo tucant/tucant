@@ -288,7 +288,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
         Group::Or(groups) => quote! { pub todo: TODO, },
         Group::KeyValue(key, r#type) => {
             let key = match key {
-                Some(Key::Type(_)) => quote! { TODO },
+                Some(Key::Type(_)) => quote! { TODO1 },
                 Some(Key::Value(value)) => quote! { TODO },
                 Some(Key::Literal(literal)) => {
                     let key = format_ident!("{}", literal);
@@ -349,6 +349,7 @@ mod tests {
         let parsed = ccdl.parse(&input).unwrap();
         println!("{parsed:#?}");
         let code = codegen(&parsed);
+        std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", &code).unwrap();
         panic!("{code}");
     }
 }
