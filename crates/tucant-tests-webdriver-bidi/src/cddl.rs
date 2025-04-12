@@ -1,3 +1,7 @@
+/// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
+pub struct TODO;
+pub type Text = String;
+pub type Any = serde_json::Value;
 pub struct Command {}
 pub enum CommandData {}
 pub struct EmptyParams {}

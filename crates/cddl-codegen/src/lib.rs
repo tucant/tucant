@@ -269,6 +269,12 @@ fn s(input: &mut &str) -> ModalResult<()> {
 pub fn codegen(rules: &[Rule]) -> String {
     let rules = rules.iter().map(codegen_rule);
     let rules = quote! {
+        /// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
+        pub struct TODO;
+        pub type Text = String;
+        pub type Any = serde_json::Value;
+
+
         #(#rules)*
     };
     let syntax_tree = syn::parse2(rules).unwrap();
