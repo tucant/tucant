@@ -1,3 +1,5 @@
+use std::ops::{Range, RangeFrom, RangeFull, RangeInclusive};
+
 use winnow::{
     ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, seq, terminated, trace},
@@ -23,7 +25,7 @@ pub struct Group {}
 pub struct Type {}
 
 pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
-    trace("ccdl", preceded(s, repeat(1.., (terminated(rule, s))))).parse_next(input)
+    trace("ccdl", preceded(s, repeat(1.., terminated(rule, s)))).parse_next(input)
 }
 
 fn rule(input: &mut &str) -> ModalResult<Rule> {
@@ -136,25 +138,44 @@ fn optcom(input: &mut &str) -> ModalResult<usize> {
     trace("optcom", (s, opt((",", s))).map(|v| 1)).parse_next(input)
 }
 
-fn occur(input: &mut &str) -> ModalResult<usize> {
+pub enum Occur {
+    RangeInclusive(RangeInclusive<usize>),
+    RangeFrom(RangeFrom<usize>),
+}
+
+fn occur(input: &mut &str) -> ModalResult<Occur> {
     // TODO dec_uint not fully correct
     trace(
         "occur",
         alt((
-            (opt(dec_uint), "*", opt(dec_uint)).map(|v: (Option<u64>, _, Option<u64>)| 1),
-            "+".map(|v| 1),
-            "?".map(|v| 1),
+            (opt(dec_uint), "*", opt(dec_uint)).map(
+                |(l, _, u): (Option<usize>, _, Option<usize>)| match (l, u) {
+                    (Some(l), Some(u)) => Occur::RangeInclusive(l..=u),
+                    (Some(l), None) => Occur::RangeFrom(l..),
+                    (None, Some(u)) => Occur::RangeInclusive(0..=u),
+                    (None, None) => Occur::RangeFrom(0..),
+                },
+            ),
+            "+".map(|v| Occur::RangeFrom(1..)),
+            "?".map(|v| Occur::RangeInclusive(0..=1)),
         )),
     )
     .parse_next(input)
 }
 
-fn value(input: &mut &str) -> ModalResult<usize> {
+pub enum Value {
+    String(String),
+    Number(String),
+}
+
+fn value(input: &mut &str) -> ModalResult<Value> {
     trace(
         "value",
         alt((
-            take_while(1.., ('0'..='9', 'e', '.', '-', '+')).map(|v| 1),
-            ("\"", take_until(0.., "\""), "\"").map(|v| 1),
+            take_while(1.., ('0'..='9', 'e', '.', '-', '+'))
+                .map(|v: &str| Value::Number(v.to_owned())),
+            seq!(_: "\"", take_until(0.., "\""), _: "\"")
+                .map(|(v,): (&str,)| Value::String(v.to_owned())),
         )),
     )
     .parse_next(input)
@@ -168,10 +189,10 @@ fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
     .parse_next(s)
 }
 
-fn s(input: &mut &str) -> ModalResult<usize> {
+fn s(input: &mut &str) -> ModalResult<()> {
     repeat(
         0..,
-        alt((multispace1.map(|v| 1), (";", till_line_ending).map(|v| 1))),
+        alt((multispace1.map(|v| ()), (";", till_line_ending).map(|v| ()))),
     )
     .parse_next(input)
 }
