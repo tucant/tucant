@@ -275,41 +275,51 @@ pub fn codegen(rules: &[Rule]) -> String {
     prettyplease::unparse(&syntax_tree)
 }
 
+fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
+    // TODO occur
+    let group = &group.1;
+    let inner = match group {
+        Group::And(items) => {
+            let items = items.iter().map(codegen_group);
+            quote! {
+                #(#items)*
+            }
+        },
+        Group::Or(groups) => quote! { pub todo: TODO, },
+        Group::KeyValue(key, r#type) => {
+            let key = match key {
+                Some(Key::Type(_)) => quote! { TODO },
+                Some(Key::Value(value)) => quote! { TODO },
+                Some(Key::Literal(literal)) => {
+                    let key = format_ident!("{}", literal);
+                    quote! {
+                        #key
+                    }   
+                },
+                None => quote! { NONE },
+            };
+            let r#type = quote! { TODO };
+            quote! {
+                pub #key: #r#type,
+            }
+        },
+        Group::Name(name) => {
+            let name_snake = format_ident!("{}", name.to_snake_case());
+            let name = format_ident!("{}", name.to_upper_camel_case());
+            quote! {
+                #[serde(flatten)]
+                pub #name_snake: #name,
+            }
+        },
+    };
+    inner
+}
+
 fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
             let name = format_ident!("{}", name.to_upper_camel_case());
-            assert_eq!(group.0, None);
-            let group = &group.1;
-            let inner = match group {
-                Group::And(items) => quote! { pub todo: TODO, },
-                Group::Or(groups) => quote! { pub todo: TODO, },
-                Group::KeyValue(key, r#type) => {
-                    let key = key.as_ref().unwrap();
-                    let key = match key {
-                        Key::Type(_) => quote! { TODO },
-                        Key::Value(value) => quote! { TODO },
-                        Key::Literal(literal) => {
-                            let key = format_ident!("{}", literal);
-                            quote! {
-                                #key
-                            }   
-                        },
-                    };
-                    let r#type = quote! { TODO };
-                    quote! {
-                        pub #key: #r#type,
-                    }
-                },
-                Group::Name(name) => {
-                    let name_snake = format_ident!("{}", name.to_snake_case());
-                    let name = format_ident!("{}", name.to_upper_camel_case());
-                    quote! {
-                        #[serde(flatten)]
-                        pub #name_snake: #name,
-                    }
-                },
-            };
+            let inner = codegen_group(group);
             quote! {
                 pub struct #name {
                     #inner
