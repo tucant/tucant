@@ -337,11 +337,24 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
             let name = format_ident!("{}", name.to_upper_camel_case());
-            let inner = codegen_group(group);
-            quote! {
-                pub struct #name {
-                    #inner
+            match &group.1 {
+                Group::And(items) => {
+                    let inner = codegen_group(group);
+                    quote! {
+                        pub struct #name {
+                            #inner
+                        }
+                    }
+                },
+                Group::Or(groups) => {
+                    quote! {
+                        pub enum #name {
+                            
+                        }
+                    }
                 }
+                Group::KeyValue(key, _) => todo!(),
+                Group::Name(_) => todo!(),
             }
         }
         Rule::Type { name, r#type } => {

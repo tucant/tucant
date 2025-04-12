@@ -1,7 +1,5 @@
 pub struct Command {}
-pub struct CommandData {
-    pub todo: TODO,
-}
+pub enum CommandData {}
 pub struct EmptyParams {}
 pub struct Message {}
 pub struct CommandResponse {}
@@ -9,18 +7,14 @@ pub struct ErrorResponse {}
 pub struct ResultData {}
 pub struct EmptyResult {}
 pub struct Event {}
-pub struct EventData {
-    pub todo: TODO,
-}
+pub enum EventData {}
 pub struct Extensible {
     pub TODO: Any,
 }
 pub struct JsInt {}
 pub struct JsUint {}
 pub struct ErrorCode {}
-pub struct SessionCommand {
-    pub todo: TODO,
-}
+pub enum SessionCommand {}
 pub struct SessionResult {}
 pub struct SessionCapabilitiesRequest {}
 pub struct SessionCapabilityRequest {}
@@ -44,7 +38,7 @@ pub struct SessionManualProxyConfiguration {
 }
 pub struct SessionSocksProxyConfiguration {
     pub socksProxy: Text,
-    pub socksVersion: i64,
+    pub socksVersion: TODO,
 }
 pub struct SessionPacProxyConfiguration {
     pub proxyType: String,
@@ -86,9 +80,7 @@ pub struct SessionUnsubscribe {
     pub params: SessionUnsubscribeParameters,
 }
 pub struct SessionUnsubscribeParameters {}
-pub struct BrowserCommand {
-    pub todo: TODO,
-}
+pub enum BrowserCommand {}
 pub struct BrowserResult {}
 pub struct BrowserClientWindow {}
 pub struct BrowserClientWindowInfo {}
@@ -133,13 +125,9 @@ pub struct BrowserClientWindowRectState {
     pub x: JsInt,
     pub y: JsInt,
 }
-pub struct BrowsingContextCommand {
-    pub todo: TODO,
-}
+pub enum BrowsingContextCommand {}
 pub struct BrowsingContextResult {}
-pub struct BrowsingContextEvent {
-    pub todo: TODO,
-}
+pub enum BrowsingContextEvent {}
 pub struct BrowsingContextBrowsingContext {}
 pub struct BrowsingContextInfoList {}
 pub struct BrowsingContextInfo {}
@@ -291,23 +279,19 @@ pub struct BrowsingContextUserPromptOpened {
 }
 pub struct BrowsingContextUserPromptOpenedParameters {}
 pub struct EmulationCommand {
-    pub NONE: i64,
+    pub NONE: TODO,
     pub NONE: MulationSetGeolocationOverride,
 }
 pub struct EmulationSetGeolocationOverride {
     pub method: String,
-    pub params: i64,
+    pub params: TODO,
     pub NONE: MulationSetGeolocationOverrideParameters,
 }
 pub struct EmulationSetGeolocationOverrideParameters {}
 pub struct EmulationGeolocationCoordinates {}
-pub struct NetworkCommand {
-    pub todo: TODO,
-}
+pub enum NetworkCommand {}
 pub struct NetworkResult {}
-pub struct NetworkEvent {
-    pub todo: TODO,
-}
+pub enum NetworkEvent {}
 pub struct NetworkAuthChallenge {}
 pub struct NetworkAuthCredentials {}
 pub struct NetworkBaseParameters {
@@ -411,13 +395,9 @@ pub struct NetworkResponseStarted {
     pub params: NetworkResponseStartedParameters,
 }
 pub struct NetworkResponseStartedParameters {}
-pub struct ScriptCommand {
-    pub todo: TODO,
-}
+pub enum ScriptCommand {}
 pub struct ScriptResult {}
-pub struct ScriptEvent {
-    pub todo: TODO,
-}
+pub enum ScriptEvent {}
 pub struct ScriptChannel {}
 pub struct ScriptChannelValue {}
 pub struct ScriptChannelProperties {}
@@ -544,9 +524,7 @@ pub struct ScriptRealmDestroyed {
     pub params: ScriptRealmDestroyedParameters,
 }
 pub struct ScriptRealmDestroyedParameters {}
-pub struct StorageCommand {
-    pub todo: TODO,
-}
+pub enum StorageCommand {}
 pub struct StorageResult {}
 pub struct StoragePartitionKey {}
 pub struct StorageGetCookies {
@@ -589,9 +567,7 @@ pub struct LogEntryAdded {
     pub method: String,
     pub params: LogEntry,
 }
-pub struct InputCommand {
-    pub todo: TODO,
-}
+pub enum InputCommand {}
 pub struct InputEvent {}
 pub struct InputElementOrigin {}
 pub struct InputPerformActions {
@@ -642,9 +618,7 @@ pub struct InputFileDialogOpened {
     pub params: InputFileDialogInfo,
 }
 pub struct InputFileDialogInfo {}
-pub struct WebExtensionCommand {
-    pub todo: TODO,
-}
+pub enum WebExtensionCommand {}
 pub struct WebExtensionResult {}
 pub struct WebExtensionExtension {}
 pub struct WebExtensionInstall {
