@@ -14,13 +14,19 @@ use winnow::{
 
 #[derive(Debug)]
 pub enum Rule {
-    Group { name: String, group: Group },
-    Type { name: String, r#type: Type },
+    Group {
+        name: String,
+        group: (Option<Occur>, Group),
+    },
+    Type {
+        name: String,
+        r#type: Type,
+    },
 }
 
 #[derive(Debug)]
 pub enum Group {
-    And(Vec<Group>),
+    And(Vec<(Option<Occur>, Group)>),
     Or(Vec<Group>),
     KeyValue(Option<Key>, Type),
     Name(String),
@@ -36,6 +42,7 @@ pub enum Type {
         second: Box<Type>,
     },
     Or(Vec<Type>),
+    Group(Box<Group>),
 }
 
 pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
@@ -116,7 +123,7 @@ fn type2(input: &mut &str) -> ModalResult<Type> {
             value.map(|v| Type::Value(v)),
             typename.map(|v| Type::Typename(v.to_owned())),
             ("(", s, r#type, s, ")").map(|v| todo!()),
-            terminated(preceded(("{", s), group), (s, "}")).map(|v| todo!()),
+            terminated(preceded(("{", s), group), (s, "}")).map(|v| Type::Group(Box::new(v))),
             ("[", s, group, s, "]").map(|v| todo!()),
         )),
     )
