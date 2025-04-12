@@ -275,20 +275,20 @@ pub fn codegen(rules: &[Rule]) -> String {
     prettyplease::unparse(&syntax_tree)
 }
 
-fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream  {
+fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
             let name = format_ident!("{}", name.to_upper_camel_case());
             quote! {
-            pub struct #name {}
+                pub struct #name {}
+            }
         }
-    },
         Rule::Type { name, r#type } => {
             let name = format_ident!("{}", name.to_upper_camel_case());
             quote! {
                 pub struct #name {}
             }
-        },
+        }
     }
 }
 
