@@ -1,5 +1,7 @@
 use std::ops::{Range, RangeFrom, RangeFull, RangeInclusive};
 
+use heck::ToUpperCamelCase;
+use syn::File;
 use winnow::{
     ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
     combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, seq, terminated, trace},
@@ -7,6 +9,8 @@ use winnow::{
     prelude::*,
     token::{take, take_until, take_while},
 };
+
+use quote::{format_ident, quote};
 
 // https://www.rfc-editor.org/rfc/rfc8610
 
@@ -262,18 +266,46 @@ fn s(input: &mut &str) -> ModalResult<()> {
     .parse_next(input)
 }
 
+pub fn codegen(rules: &[Rule]) -> String {
+    let rules = rules.iter().map(codegen_rule);
+    let rules = quote! {
+        #(#rules)*
+    };
+    let syntax_tree = syn::parse2(rules).unwrap();
+    prettyplease::unparse(&syntax_tree)
+}
+
+fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream  {
+    match rule {
+        Rule::Group { name, group } => {
+            let name = format_ident!("{}", name.to_upper_camel_case());
+            quote! {
+            pub struct #name {}
+        }
+    },
+        Rule::Type { name, r#type } => {
+            let name = format_ident!("{}", name.to_upper_camel_case());
+            quote! {
+                pub struct #name {}
+            }
+        },
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs::read_to_string;
 
     use winnow::Parser;
 
-    use crate::ccdl;
+    use crate::{ccdl, codegen};
 
     #[test]
     fn it_works() {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
         let parsed = ccdl.parse(&input).unwrap();
-        panic!("{parsed:#?}");
+        println!("{parsed:#?}");
+        let code = codegen(&parsed);
+        panic!("{code}");
     }
 }

@@ -301,6 +301,11 @@ name = "cddl-codegen"
 version = "0.1.2"
 dependencies = [
  "anyhow",
+ "heck",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.100",
  "winnow 0.7.6",
 ]
 
