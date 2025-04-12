@@ -19,7 +19,12 @@ pub enum Rule {
 }
 
 #[derive(Debug)]
-pub struct Group {}
+pub enum Group {
+    And(Vec<Group>),
+    Or(Vec<Group>),
+    KeyValue(Option<Key>, Type),
+    Name(String),
+}
 
 #[derive(Debug)]
 pub enum Type {
@@ -136,42 +141,57 @@ fn ctlop(input: &mut &str) -> ModalResult<Operator> {
         .parse_next(input)
 }
 
-fn group(input: &mut &str) -> ModalResult<usize> {
+fn group(input: &mut &str) -> ModalResult<Group> {
     trace(
         "group",
-        (grpchoice, repeat(0.., (s, "//", s, grpchoice))).map(|v: (_, Vec<_>)| 1),
+        (grpchoice, repeat(0.., preceded((s, "//", s), grpchoice))).map(
+            |(first, mut rest): (_, Vec<_>)| {
+                if rest.is_empty() {
+                    first
+                } else {
+                    rest.insert(0, first);
+                    Group::Or(rest)
+                }
+            },
+        ),
     )
     .parse_next(input)
 }
 
-fn grpchoice(input: &mut &str) -> ModalResult<usize> {
-    trace("grpchoice", repeat(0.., (grpent, optcom))).parse_next(input)
+fn grpchoice(input: &mut &str) -> ModalResult<Group> {
+    trace("grpchoice", repeat(0.., terminated(grpent, optcom)))
+        .map(|v| Group::And(v))
+        .parse_next(input)
 }
 
-fn grpent(input: &mut &str) -> ModalResult<Group> {
-    let mut a = (opt(terminated(memberkey, s)), r#type).map(|v| 1usize);
-    let mut b = groupname.map(|v| 1usize); // not complete
-    let mut c = ("(", s, group, s, ")").map(|v| 1usize);
-    trace(
-        "grpent",
-        (opt(terminated(occur, s)), alt((a, b, c))).map(|v| Group {}),
-    )
-    .parse_next(input)
+fn grpent(input: &mut &str) -> ModalResult<(Option<Occur>, Group)> {
+    let mut a =
+        (opt(terminated(memberkey, s)), r#type).map(|(key, value)| Group::KeyValue(key, value));
+    let mut b = groupname.map(|v| Group::Name(v.to_owned())); // not complete
+    let mut c = terminated(preceded(("(", s), group), (s, ")"));
+    trace("grpent", (opt(terminated(occur, s)), alt((a, b, c)))).parse_next(input)
 }
 
-fn memberkey(input: &mut &str) -> ModalResult<usize> {
-    let mut a = (terminated(type1, s), "=>").map(|v| 1usize); // not complete
-    let mut b = (bareword, s, ":").map(|v| 1usize);
-    let mut c = (value, s, ":").map(|v| 1usize);
+#[derive(Debug)]
+pub enum Key {
+    Type(Type),
+    Value(Value),
+    Literal(String),
+}
+
+fn memberkey(input: &mut &str) -> ModalResult<Key> {
+    let mut a = terminated(type1, (s, "=>")).map(|v| Key::Type(v)); // not complete
+    let mut b = terminated(bareword, (s, ":")).map(|v| Key::Literal(v.to_owned()));
+    let mut c = terminated(value, (s, ":")).map(|v| Key::Value(v));
     trace("memberkey", alt((a, b, c))).parse_next(input)
 }
 
-fn bareword(input: &mut &str) -> ModalResult<usize> {
-    trace("bareword", id.map(|v| 1)).parse_next(input)
+fn bareword<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
+    trace("bareword", id).parse_next(input)
 }
 
-fn optcom(input: &mut &str) -> ModalResult<usize> {
-    trace("optcom", (s, opt((",", s))).map(|v| 1)).parse_next(input)
+fn optcom(input: &mut &str) -> ModalResult<()> {
+    trace("optcom", (s, opt((",", s))).map(|v| ())).parse_next(input)
 }
 
 #[derive(Debug)]
