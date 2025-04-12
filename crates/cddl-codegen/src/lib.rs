@@ -275,6 +275,21 @@ pub fn codegen(rules: &[Rule]) -> String {
     prettyplease::unparse(&syntax_tree)
 }
 
+fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
+    match r#type {
+        Type::Value(value) => quote! { TODO },
+        Type::Typename(name) => {
+            let name = format_ident!("{}", name.to_upper_camel_case());
+            quote! {
+                #name
+            }
+        },
+        Type::Combined { operator, first, second } => quote! { TODO },
+        Type::Or(items) => quote! { TODO },
+        Type::Group(group) => quote! { TODO },
+    }
+}
+
 fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
     // TODO occur
     let group = &group.1;
@@ -288,7 +303,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
         Group::Or(groups) => quote! { pub todo: TODO, },
         Group::KeyValue(key, r#type) => {
             let key = match key {
-                Some(Key::Type(_)) => quote! { TODO1 },
+                Some(Key::Type(_)) => quote! { TODO },
                 Some(Key::Value(value)) => quote! { TODO },
                 Some(Key::Literal(literal)) => {
                     let key = format_ident!("{}", literal);
@@ -298,7 +313,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                 },
                 None => quote! { NONE },
             };
-            let r#type = quote! { TODO };
+            let r#type = codegen_type(r#type);
             quote! {
                 pub #key: #r#type,
             }
@@ -350,6 +365,5 @@ mod tests {
         println!("{parsed:#?}");
         let code = codegen(&parsed);
         std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", &code).unwrap();
-        panic!("{code}");
     }
 }
