@@ -1,6 +1,6 @@
 use winnow::{
     ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
-    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, terminated, trace},
+    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, seq, terminated, trace},
     error::{StrContext, StrContextValue},
     prelude::*,
     token::{take, take_until, take_while},
@@ -11,27 +11,27 @@ use winnow::{
 // grammar: https://www.rfc-editor.org/rfc/rfc8610#appendix-B
 
 #[derive(Debug)]
-enum Rule {
+pub enum Rule {
     Group { name: String, group: Group },
     Type { name: String, r#type: Type },
 }
 
 #[derive(Debug)]
-struct Group {}
+pub struct Group {}
 
 #[derive(Debug)]
-struct Type {}
+pub struct Type {}
 
-fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
+pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
     trace("ccdl", preceded(s, repeat(1.., (terminated(rule, s))))).parse_next(input)
 }
 
 fn rule(input: &mut &str) -> ModalResult<Rule> {
-    trace("rule", alt(((typename, s, assignt, s, r#type).map(|v| Rule::Type { name: String::new(), r#type: Type {} }), (groupname, s, assigng, s, grpent).map(|v| Rule::Group { name: String::new(), group: Group {} })))).parse_next(input)
+    trace("rule", alt((seq! {Rule::Type { name: typename.map(ToOwned::to_owned), _: (s, assignt, s), r#type: r#type }}, (groupname, s, assigng, s, grpent).map(|v| Rule::Group { name: String::new(), group: Group {} })))).parse_next(input)
 }
 
-fn typename(input: &mut &str) -> ModalResult<usize> {
-    trace("typename", id.map(|v| 1)).parse_next(input)
+fn typename<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
+    trace("typename", id).parse_next(input)
 }
 
 fn groupname(input: &mut &str) -> ModalResult<usize> {
@@ -46,8 +46,8 @@ fn assigng(input: &mut &str) -> ModalResult<usize> {
     trace("assigng", alt(("=", "//=")).map(|v| 1)).parse_next(input)
 }
 
-fn r#type(input: &mut &str) -> ModalResult<usize> {
-    trace("type", (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| 1)).parse_next(input)
+fn r#type(input: &mut &str) -> ModalResult<Type> {
+    trace("type", (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| Type {})).parse_next(input)
 }
 
 fn type1(input: &mut &str) -> ModalResult<usize> {
@@ -56,7 +56,7 @@ fn type1(input: &mut &str) -> ModalResult<usize> {
 
 fn type2(input: &mut &str) -> ModalResult<usize> {
     // TODO not complete
-    trace("type2", alt((value, typename, ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1)))).parse_next(input)
+    trace("type2", alt((value, typename.map(|v| 1), ("(", s, r#type, s, ")").map(|v| 1), ("{", s, group, s, "}").map(|v| 1), ("[", s, group, s, "]").map(|v| 1)))).parse_next(input)
 }
 
 fn rangeop(input: &mut &str) -> ModalResult<usize> {
@@ -126,6 +126,6 @@ mod tests {
     fn it_works() {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
         let parsed = ccdl.parse(&input).unwrap();
-        panic!("{parsed:?}");
+        panic!("{parsed:#?}");
     }
 }

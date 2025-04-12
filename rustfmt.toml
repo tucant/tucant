@@ -2,4 +2,3 @@ format_strings = true
 error_on_line_overflow = true
 error_on_unformatted = true
 style_edition = "2024"
-max_width = 600
