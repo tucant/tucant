@@ -30,6 +30,7 @@ pub enum Type {
         first: Box<Type>,
         second: Box<Type>,
     },
+    Or(Vec<Type>),
 }
 
 pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
@@ -74,7 +75,14 @@ fn assigng(input: &mut &str) -> ModalResult<usize> {
 fn r#type(input: &mut &str) -> ModalResult<Type> {
     trace(
         "type",
-        (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| todo!()),
+        (type1, repeat(0.., preceded((s, "/", s), type1))).map(|(first, mut rest): (_, Vec<_>)| {
+            if rest.is_empty() {
+                first
+            } else {
+                rest.insert(0, first);
+                Type::Or(rest)
+            }
+        }),
     )
     .parse_next(input)
 }
@@ -103,7 +111,7 @@ fn type2(input: &mut &str) -> ModalResult<Type> {
             value.map(|v| Type::Value(v)),
             typename.map(|v| Type::Typename(v.to_owned())),
             ("(", s, r#type, s, ")").map(|v| todo!()),
-            ("{", s, group, s, "}").map(|v| todo!()),
+            terminated(preceded(("{", s), group), (s, "}")).map(|v| todo!()),
             ("[", s, group, s, "]").map(|v| todo!()),
         )),
     )
