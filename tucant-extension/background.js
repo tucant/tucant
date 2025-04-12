@@ -1,19 +1,11 @@
 import "./fix-session-id-in-url.js"
-import { handleOpenInTucan } from "./open-in-tucan.js"
+import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
 
 console.log("background script")
 
 const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
-
-async function getCurrentTab() {
-    let queryOptions = { active: true, lastFocusedWindow: true };
-    // `tab` will either be a `tabs.Tab` instance or `undefined`.
-    // TODO FIXME typescript is wrong here
-    let [tab] = await chrome.tabs.query(queryOptions);
-    return tab;
-}
 
 chrome.commands.onCommand.addListener(async (command) => {
     console.log("handlecommand")

@@ -1,5 +1,13 @@
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
+export async function getCurrentTab() {
+    let queryOptions = { active: true, lastFocusedWindow: true };
+    // `tab` will either be a `tabs.Tab` instance or `undefined`.
+    // TODO FIXME typescript is wrong here
+    let [tab] = await chrome.tabs.query(queryOptions);
+    return tab;
+}
+
 /**
  * @param {string | undefined} id
  * @param {number} tabId
