@@ -277,7 +277,10 @@ pub fn codegen(rules: &[Rule]) -> String {
 
 fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
     match r#type {
-        Type::Value(value) => quote! { TODO },
+        Type::Value(value) => match value {
+            Value::String(_) => quote! { String },
+            Value::Number(_) => quote! { TODO },
+        },
         Type::Typename(name) => {
             let name = format_ident!("{}", name.to_upper_camel_case());
             quote! {
