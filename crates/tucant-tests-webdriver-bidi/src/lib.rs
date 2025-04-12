@@ -3,18 +3,14 @@
 mod tests {
     use std::{
         path,
-        sync::atomic::{AtomicUsize, Ordering},
+        sync::atomic::{AtomicUsize, Ordering}, time::Duration,
     };
 
-    use tokio::sync::OnceCell;
+    use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        remote::{
-            EmptyParams,
-            browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, NavigateParameters, ReadinessState},
-            web_extension::{ExtensionData, ExtensionPath, InstallParameters},
-        },
-        session::WebDriverBiDiSession,
-        webdriver::capabilities::CapabilitiesRequest,
+        local::script::{RealmInfo, WindowRealmInfo}, remote::{
+            browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, NavigateParameters, ReadinessState}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+        }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
     static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
@@ -47,7 +43,7 @@ mod tests {
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
         let mut session = get_session().await;
-        // nix build .#extension
+        // nix build .#extension-unpacked
 
         let try_catch: anyhow::Result<()> = async {
             let path = std::fs::canonicalize("../../result")?.to_str().unwrap().to_string();
@@ -63,7 +59,20 @@ mod tests {
                     background: None,
                 })
                 .await?;
-            navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
+            navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
+
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.context.clone()), None)).await?;
+            println!("{:?}", realms);
+           
+            let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
+                panic!();
+            };
+            
+            session.script_evaluate(EvaluateParameters::new("console.log(1)".to_owned(), Target::ContextTarget(ContextTarget::new(window.context.clone(), None)), false, None, None, None)).await?;
+
+
+            sleep(Duration::from_secs(5)).await;
+
             session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
 
             Ok(())
