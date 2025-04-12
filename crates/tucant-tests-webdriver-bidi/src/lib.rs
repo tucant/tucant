@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, NavigateParameters, ReadinessState}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+            browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -68,8 +68,10 @@ mod tests {
                 panic!();
             };
             
-            session.script_evaluate(EvaluateParameters::new("console.log(1)".to_owned(), Target::ContextTarget(ContextTarget::new(window.context.clone(), None)), false, None, None, None)).await?;
+            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(window.context.clone(), None)), false, None, None, None)).await?;
 
+            let contexts = session.browsing_context_get_tree(GetTreeParameters::new(None, None)).await?;
+            println!("{:?}", contexts);
 
             sleep(Duration::from_secs(5)).await;
 
