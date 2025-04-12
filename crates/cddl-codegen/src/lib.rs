@@ -25,6 +25,11 @@ pub struct Group {}
 pub enum Type {
     Value(Value),
     Typename(String),
+    Combined {
+        operator: Operator,
+        first: Box<Type>,
+        second: Box<Type>,
+    },
 }
 
 pub fn ccdl(input: &mut &str) -> ModalResult<Vec<Rule>> {
@@ -77,8 +82,12 @@ fn r#type(input: &mut &str) -> ModalResult<Type> {
 fn type1(input: &mut &str) -> ModalResult<Type> {
     trace("type1", (type2, opt((s, alt((rangeop, ctlop)), s, type2))))
         .map(|(first, second)| {
-            if let Some(second) = second {
-                todo!()
+            if let Some(((), operator, (), second)) = second {
+                Type::Combined {
+                    operator,
+                    first,
+                    second,
+                }
             } else {
                 first
             }
@@ -101,12 +110,22 @@ fn type2(input: &mut &str) -> ModalResult<Type> {
     .parse_next(input)
 }
 
-fn rangeop(input: &mut &str) -> ModalResult<usize> {
-    alt(("...", "..")).map(|v| 1).parse_next(input)
+#[derive(Debug)]
+pub enum Operator {
+    Range,
+    Control(String),
 }
 
-fn ctlop(input: &mut &str) -> ModalResult<usize> {
-    preceded(".", id).map(|v| 1).parse_next(input)
+fn rangeop(input: &mut &str) -> ModalResult<Operator> {
+    alt(("...", ".."))
+        .map(|v| Operator::Range)
+        .parse_next(input)
+}
+
+fn ctlop(input: &mut &str) -> ModalResult<Operator> {
+    preceded(".", id)
+        .map(|v| Operator::Control(v.to_owned()))
+        .parse_next(input)
 }
 
 fn group(input: &mut &str) -> ModalResult<usize> {
@@ -192,7 +211,7 @@ fn value(input: &mut &str) -> ModalResult<Value> {
     .parse_next(input)
 }
 
-fn id<'i>(s: &mut &'i str) -> ModalResult<&'i str> {
+fn id<'a>(s: &mut &'a str) -> ModalResult<&'a str> {
     trace(
         "id",
         take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-', '.')),
