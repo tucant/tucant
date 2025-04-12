@@ -69,14 +69,20 @@ fn assigng(input: &mut &str) -> ModalResult<usize> {
 fn r#type(input: &mut &str) -> ModalResult<Type> {
     trace(
         "type",
-        (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| Type {}),
+        (type1, repeat(0.., (s, "/", s, type1))).map(|v: (_, Vec<_>)| todo!()),
     )
     .parse_next(input)
 }
 
-fn type1(input: &mut &str) -> ModalResult<usize> {
+fn type1(input: &mut &str) -> ModalResult<Type> {
     trace("type1", (type2, opt((s, alt((rangeop, ctlop)), s, type2))))
-        .map(|v| 1)
+        .map(|(first, second)| {
+            if let Some(second) = second {
+                todo!()
+            } else {
+                first
+            }
+        })
         .parse_next(input)
 }
 
