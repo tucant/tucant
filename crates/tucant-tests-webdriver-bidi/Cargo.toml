@@ -10,6 +10,7 @@ webdriverbidi = { git = "https://github.com/mohe2015/webdriverbidi.git", branch 
 tokio = { features = ["full"], version = "1" }
 anyhow = "1.0.97"
 env_logger = "0.11.8"
+serde_json = "1.0.140"
 
 [lints]
 workspace = true

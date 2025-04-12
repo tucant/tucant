@@ -4,8 +4,8 @@ pub type Text = String;
 pub type Any = serde_json::Value;
 pub struct r#Command {
     pub r#id: r#JsUint,
-    pub NONE: r#CommandData,
-    pub NONE: r#Extensible,
+    pub r#command_data: r#CommandData,
+    pub r#extensible: r#Extensible,
 }
 pub enum r#CommandData {
     Todo,
@@ -19,14 +19,14 @@ pub enum r#CommandData {
     Todo,
 }
 pub struct r#EmptyParams {
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub type r#Message = TODO;
 pub struct r#CommandResponse {
     pub r#type: String,
     pub r#id: r#JsUint,
     pub r#result: r#ResultData,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#ErrorResponse {
     pub r#type: String,
@@ -34,16 +34,16 @@ pub struct r#ErrorResponse {
     pub r#error: r#ErrorCode,
     pub r#message: r#Text,
     pub r#stacktrace: r#Text,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub type r#ResultData = TODO;
 pub struct r#EmptyResult {
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#Event {
     pub r#type: String,
-    pub NONE: r#EventData,
-    pub NONE: r#Extensible,
+    pub r#event_data: r#EventData,
+    pub r#extensible: r#Extensible,
 }
 pub enum r#EventData {
     Todo,
@@ -77,7 +77,7 @@ pub struct r#SessionCapabilityRequest {
     pub r#platformName: r#Text,
     pub r#proxy: r#SessionProxyConfiguration,
     pub r#unhandledPromptBehavior: r#SessionUserPromptHandler,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub enum r#SessionProxyConfiguration {
     Todo,
@@ -88,20 +88,20 @@ pub enum r#SessionProxyConfiguration {
 }
 pub struct r#SessionAutodetectProxyConfiguration {
     pub r#proxyType: String,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#SessionDirectProxyConfiguration {
     pub r#proxyType: String,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#SessionManualProxyConfiguration {
     pub r#proxyType: String,
     pub r#ftpProxy: r#Text,
     pub r#httpProxy: r#Text,
     pub r#sslProxy: r#Text,
-    pub NONE: r#SessionSocksProxyConfiguration,
+    pub r#session_socks_proxy_configuration: r#SessionSocksProxyConfiguration,
     pub r#noProxy: TODO,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#SessionSocksProxyConfiguration {
     pub r#socksProxy: r#Text,
@@ -110,11 +110,11 @@ pub struct r#SessionSocksProxyConfiguration {
 pub struct r#SessionPacProxyConfiguration {
     pub r#proxyType: String,
     pub r#proxyAutoconfigUrl: r#Text,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#SessionSystemProxyConfiguration {
     pub r#proxyType: String,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#SessionUserPromptHandler {
     pub r#alert: r#SessionUserPromptHandlerType,
@@ -276,7 +276,7 @@ pub enum r#BrowsingContextEvent {
 }
 pub type r#BrowsingContextBrowsingContext = TODO;
 pub struct r#BrowsingContextInfoList {
-    pub NONE: r#BrowsingContextInfo,
+    pub r#browsing_context_info: r#BrowsingContextInfo,
 }
 pub struct r#BrowsingContextInfo {
     pub r#children: TODO,
@@ -319,7 +319,7 @@ pub struct r#BrowsingContextBaseNavigationInfo {
     pub r#url: r#Text,
 }
 pub struct r#BrowsingContextNavigationInfo {
-    pub NONE: r#BrowsingContextBaseNavigationInfo,
+    pub r#browsing_context_base_navigation_info: r#BrowsingContextBaseNavigationInfo,
 }
 pub type r#BrowsingContextReadinessState = TODO;
 pub type r#BrowsingContextUserPromptType = TODO;
@@ -525,7 +525,7 @@ pub struct r#BrowsingContextDownloadWillBegin {
 }
 pub struct r#BrowsingContextDownloadWillBeginParams {
     pub r#suggestedFilename: r#Text,
-    pub NONE: r#BrowsingContextBaseNavigationInfo,
+    pub r#browsing_context_base_navigation_info: r#BrowsingContextBaseNavigationInfo,
 }
 pub struct r#BrowsingContextNavigationAborted {
     pub r#method: String,
@@ -561,17 +561,17 @@ pub struct r#BrowsingContextUserPromptOpenedParameters {
     pub r#defaultValue: r#Text,
 }
 pub struct r#EmulationCommand {
-    pub NONE: TODO,
-    pub NONE: r#MulationSetGeolocationOverride,
+    pub NO_KEY: TODO,
+    pub r#mulation_set_geolocation_override: r#MulationSetGeolocationOverride,
 }
 pub struct r#EmulationSetGeolocationOverride {
     pub r#method: String,
     pub r#params: TODO,
-    pub NONE: r#MulationSetGeolocationOverrideParameters,
+    pub r#mulation_set_geolocation_override_parameters: r#MulationSetGeolocationOverrideParameters,
 }
 pub struct r#EmulationSetGeolocationOverrideParameters {
     pub r#coordinates: TODO,
-    pub NONE: TODO,
+    pub NO_KEY: TODO,
     pub r#contexts: TODO,
     pub r#userContexts: TODO,
 }
@@ -640,7 +640,7 @@ pub struct r#NetworkCookie {
     pub r#secure: r#Bool,
     pub r#sameSite: r#NetworkSameSite,
     pub r#expiry: r#JsUint,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#NetworkCookieHeader {
     pub r#name: r#Text,
@@ -818,7 +818,7 @@ pub struct r#NetworkAuthRequired {
     pub r#params: r#NetworkAuthRequiredParameters,
 }
 pub struct r#NetworkAuthRequiredParameters {
-    pub NONE: r#NetworkBaseParameters,
+    pub r#network_base_parameters: r#NetworkBaseParameters,
     pub r#response: r#NetworkResponseData,
 }
 pub struct r#NetworkBeforeRequestSent {
@@ -826,7 +826,7 @@ pub struct r#NetworkBeforeRequestSent {
     pub r#params: r#NetworkBeforeRequestSentParameters,
 }
 pub struct r#NetworkBeforeRequestSentParameters {
-    pub NONE: r#NetworkBaseParameters,
+    pub r#network_base_parameters: r#NetworkBaseParameters,
     pub r#initiator: r#NetworkInitiator,
 }
 pub struct r#NetworkFetchError {
@@ -834,7 +834,7 @@ pub struct r#NetworkFetchError {
     pub r#params: r#NetworkFetchErrorParameters,
 }
 pub struct r#NetworkFetchErrorParameters {
-    pub NONE: r#NetworkBaseParameters,
+    pub r#network_base_parameters: r#NetworkBaseParameters,
     pub r#errorText: r#Text,
 }
 pub struct r#NetworkResponseCompleted {
@@ -842,7 +842,7 @@ pub struct r#NetworkResponseCompleted {
     pub r#params: r#NetworkResponseCompletedParameters,
 }
 pub struct r#NetworkResponseCompletedParameters {
-    pub NONE: r#NetworkBaseParameters,
+    pub r#network_base_parameters: r#NetworkBaseParameters,
     pub r#response: r#NetworkResponseData,
 }
 pub struct r#NetworkResponseStarted {
@@ -850,7 +850,7 @@ pub struct r#NetworkResponseStarted {
     pub r#params: r#NetworkResponseStartedParameters,
 }
 pub struct r#NetworkResponseStartedParameters {
-    pub NONE: r#NetworkBaseParameters,
+    pub r#network_base_parameters: r#NetworkBaseParameters,
     pub r#response: r#NetworkResponseData,
 }
 pub enum r#ScriptCommand {
@@ -899,7 +899,7 @@ pub type r#ScriptHandle = TODO;
 pub type r#ScriptInternalId = TODO;
 pub type r#ScriptLocalValue = TODO;
 pub struct r#ScriptListLocalValue {
-    pub NONE: r#ScriptLocalValue,
+    pub r#script_local_value: r#ScriptLocalValue,
 }
 pub struct r#ScriptArrayLocalValue {
     pub r#type: String,
@@ -910,7 +910,7 @@ pub struct r#ScriptDateLocalValue {
     pub r#value: r#Text,
 }
 pub struct r#ScriptMappingLocalValue {
-    pub NONE: TODO,
+    pub NO_KEY: TODO,
 }
 pub struct r#ScriptMapLocalValue {
     pub r#type: String,
@@ -964,38 +964,38 @@ pub struct r#ScriptBaseRealmInfo {
     pub r#origin: r#Text,
 }
 pub struct r#ScriptWindowRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
     pub r#context: r#BrowsingContextBrowsingContext,
     pub r#sandbox: r#Text,
 }
 pub struct r#ScriptDedicatedWorkerRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
     pub r#owners: TODO,
 }
 pub struct r#ScriptSharedWorkerRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub struct r#ScriptServiceWorkerRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub struct r#ScriptWorkerRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub struct r#ScriptPaintWorkletRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub struct r#ScriptAudioWorkletRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub struct r#ScriptWorkletRealmInfo {
-    pub NONE: r#ScriptBaseRealmInfo,
+    pub r#script_base_realm_info: r#ScriptBaseRealmInfo,
     pub r#type: String,
 }
 pub type r#ScriptRealmType = TODO;
@@ -1003,19 +1003,19 @@ pub type r#ScriptRemoteReference = TODO;
 pub struct r#ScriptSharedReference {
     pub r#sharedId: r#ScriptSharedId,
     pub r#handle: r#ScriptHandle,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#ScriptRemoteObjectReference {
     pub r#handle: r#ScriptHandle,
     pub r#sharedId: r#ScriptSharedId,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub type r#ScriptRemoteValue = TODO;
 pub struct r#ScriptListRemoteValue {
-    pub NONE: r#ScriptRemoteValue,
+    pub r#script_remote_value: r#ScriptRemoteValue,
 }
 pub struct r#ScriptMappingRemoteValue {
-    pub NONE: TODO,
+    pub NO_KEY: TODO,
 }
 pub struct r#ScriptSymbolRemoteValue {
     pub r#type: String,
@@ -1255,7 +1255,7 @@ pub type r#StorageResult = TODO;
 pub struct r#StoragePartitionKey {
     pub r#userContext: r#Text,
     pub r#sourceOrigin: r#Text,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#StorageGetCookies {
     pub r#method: String,
@@ -1271,7 +1271,7 @@ pub struct r#StorageCookieFilter {
     pub r#secure: r#Bool,
     pub r#sameSite: r#NetworkSameSite,
     pub r#expiry: r#JsUint,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#StorageBrowsingContextPartitionDescriptor {
     pub r#type: String,
@@ -1281,7 +1281,7 @@ pub struct r#StorageStorageKeyPartitionDescriptor {
     pub r#type: String,
     pub r#userContext: r#Text,
     pub r#sourceOrigin: r#Text,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub type r#StoragePartitionDescriptor = TODO;
 pub struct r#StorageGetCookiesParameters {
@@ -1305,7 +1305,7 @@ pub struct r#StoragePartialCookie {
     pub r#secure: r#Bool,
     pub r#sameSite: r#NetworkSameSite,
     pub r#expiry: r#JsUint,
-    pub NONE: r#Extensible,
+    pub r#extensible: r#Extensible,
 }
 pub struct r#StorageSetCookieParameters {
     pub r#cookie: r#StoragePartialCookie,
@@ -1336,17 +1336,17 @@ pub struct r#LogBaseLogEntry {
     pub r#stackTrace: r#ScriptStackTrace,
 }
 pub struct r#LogGenericLogEntry {
-    pub NONE: r#LogBaseLogEntry,
+    pub r#log_base_log_entry: r#LogBaseLogEntry,
     pub r#type: r#Text,
 }
 pub struct r#LogConsoleLogEntry {
-    pub NONE: r#LogBaseLogEntry,
+    pub r#log_base_log_entry: r#LogBaseLogEntry,
     pub r#type: String,
     pub r#method: r#Text,
     pub r#args: TODO,
 }
 pub struct r#LogJavascriptLogEntry {
-    pub NONE: r#LogBaseLogEntry,
+    pub r#log_base_log_entry: r#LogBaseLogEntry,
     pub r#type: String,
 }
 pub struct r#LogEntryAdded {
@@ -1420,7 +1420,7 @@ pub struct r#InputPointerUpAction {
 pub struct r#InputPointerDownAction {
     pub r#type: String,
     pub r#button: r#JsUint,
-    pub NONE: r#InputPointerCommonProperties,
+    pub r#input_pointer_common_properties: r#InputPointerCommonProperties,
 }
 pub struct r#InputPointerMoveAction {
     pub r#type: String,
@@ -1428,7 +1428,7 @@ pub struct r#InputPointerMoveAction {
     pub r#y: r#Float,
     pub r#duration: r#JsUint,
     pub r#origin: r#InputOrigin,
-    pub NONE: r#InputPointerCommonProperties,
+    pub r#input_pointer_common_properties: r#InputPointerCommonProperties,
 }
 pub struct r#InputWheelScrollAction {
     pub r#type: String,

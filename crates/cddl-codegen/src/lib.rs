@@ -314,20 +314,31 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
         },
         Group::Or(groups) => quote! { pub todo: TODO, },
         Group::KeyValue(key, r#type) => {
-            let key = match key {
-                Some(Key::Type(_)) => quote! { TODO },
-                Some(Key::Value(value)) => quote! { TODO },
+            let type_tokens = codegen_type(r#type);
+            match key {
+                Some(Key::Type(_)) => quote! {
+                    pub TODO: #type_tokens,
+                },
+                Some(Key::Value(value)) => quote! {
+                    pub TODO: #type_tokens,
+                },
                 Some(Key::Literal(literal)) => {
                     let key = Ident::new_raw(literal, Span::call_site());
                     quote! {
-                        #key
-                    }   
+                        pub #key: #type_tokens,
+                    }
                 },
-                None => quote! { NONE },
-            };
-            let r#type = codegen_type(r#type);
-            quote! {
-                pub #key: #r#type,
+                None => match r#type {
+                    Type::Typename(name) => {
+                        let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
+                        quote! {
+                            pub #key: #type_tokens,
+                        }
+                    },
+                    _ => quote! {
+                        pub NO_KEY: #type_tokens,
+                    }
+                },
             }
         },
         Group::Name(name) => {

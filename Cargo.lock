@@ -3265,6 +3265,7 @@ version = "0.1.2"
 dependencies = [
  "anyhow",
  "env_logger",
+ "serde_json",
  "tokio",
  "webdriverbidi",
 ]
