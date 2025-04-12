@@ -85,8 +85,8 @@ fn type1(input: &mut &str) -> ModalResult<Type> {
             if let Some(((), operator, (), second)) = second {
                 Type::Combined {
                     operator,
-                    first,
-                    second,
+                    first: Box::new(first),
+                    second: Box::new(second),
                 }
             } else {
                 first
