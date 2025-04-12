@@ -28,7 +28,7 @@ pub enum Rule {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Group {
     And(Vec<(Option<Occur>, Group)>),
     Or(Vec<Group>),
@@ -36,7 +36,7 @@ pub enum Group {
     Name(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Type {
     Value(Value),
     Typename(String),
@@ -134,7 +134,7 @@ fn type2(input: &mut &str) -> ModalResult<Type> {
     .parse_next(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Operator {
     Range,
     Control(String),
@@ -183,7 +183,7 @@ fn grpent(input: &mut &str) -> ModalResult<(Option<Occur>, Group)> {
     trace("grpent", (opt(terminated(occur, s)), alt((a, b, c)))).parse_next(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Key {
     Type(Type),
     Value(Value),
@@ -205,7 +205,7 @@ fn optcom(input: &mut &str) -> ModalResult<()> {
     trace("optcom", (s, opt((",", s))).map(|v| ())).parse_next(input)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Occur {
     RangeInclusive(RangeInclusive<usize>),
     RangeFrom(RangeFrom<usize>),
@@ -231,7 +231,7 @@ fn occur(input: &mut &str) -> ModalResult<Occur> {
     .parse_next(input)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     String(String),
     Number(String),
@@ -266,7 +266,7 @@ fn s(input: &mut &str) -> ModalResult<()> {
     .parse_next(input)
 }
 
-pub fn codegen(rules: &[Rule]) -> String {
+pub fn codegen(rules: &[Rule]) {
     let rules = rules.iter().map(codegen_rule);
     let rules = quote! {
         /// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
@@ -277,8 +277,10 @@ pub fn codegen(rules: &[Rule]) -> String {
 
         #(#rules)*
     };
+    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", format!("{}", rules)).unwrap();
     let syntax_tree = syn::parse2(rules).unwrap();
-    prettyplease::unparse(&syntax_tree)
+    let code = prettyplease::unparse(&syntax_tree);
+    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", &code).unwrap();
 }
 
 fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
@@ -339,6 +341,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
     inner
 }
 
+
 fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
         Rule::Group { name, group } => {
@@ -353,9 +356,20 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                     }
                 },
                 Group::Or(groups) => {
+                    let groups = groups.iter().map(|group| {
+                        match group {
+                            Group::And(items) => quote! { Todo, },
+                            Group::Or(groups) => todo!(),
+                            Group::KeyValue(key, _) => todo!(),
+                            Group::Name(name) => {
+                                let name = format_ident!("{}", name.to_upper_camel_case());
+                                quote! { #name(#name), }
+                            },
+                        }
+                    });
                     quote! {
                         pub enum #name {
-                            
+                            #(#groups)*
                         }
                     }
                 }
@@ -364,9 +378,13 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
             }
         }
         Rule::Type { name, r#type } => {
-            let name = format_ident!("{}", name.to_upper_camel_case());
-            quote! {
-                pub struct #name {}
+            let name_ident = format_ident!("{}", name.to_upper_camel_case());
+            match r#type {
+                Type::Value(value) => quote! { pub type #name_ident = TODO; },
+                Type::Typename(name) => quote! { pub type #name_ident = TODO; },
+                Type::Combined { operator, first, second } => quote! { pub type #name_ident = TODO; },
+                Type::Or(items) => quote! { pub type #name_ident = TODO; },
+                Type::Group(group) => codegen_rule(&Rule::Group { name: name.to_owned(), group: (None, *group.clone()) }),
             }
         }
     }
@@ -386,6 +404,5 @@ mod tests {
         let parsed = ccdl.parse(&input).unwrap();
         println!("{parsed:#?}");
         let code = codegen(&parsed);
-        std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", &code).unwrap();
     }
 }
