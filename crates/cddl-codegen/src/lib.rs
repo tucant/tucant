@@ -268,6 +268,7 @@ fn s(input: &mut &str) -> ModalResult<()> {
 }
 
 pub fn codegen(rules: &[Rule]) {
+    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.txt", format!("{:#?}", rules)).unwrap();
     let rules = rules.iter().map(codegen_rule);
     let rules = quote! {
         /// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
@@ -381,6 +382,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                         }
                     });
                     quote! {
+                        #[derive(Serialize, Deserialize)]
                         pub enum #name {
                             #(#groups)*
                         }
