@@ -87,9 +87,9 @@ fn type2(input: &mut &str) -> ModalResult<Type> {
         alt((
             value.map(|v| Type::Value(v)),
             typename.map(|v| Type::Typename(v.to_owned())),
-            ("(", s, r#type, s, ")").map(|v| 1),
-            ("{", s, group, s, "}").map(|v| 1),
-            ("[", s, group, s, "]").map(|v| 1),
+            ("(", s, r#type, s, ")").map(|v| todo!()),
+            ("{", s, group, s, "}").map(|v| todo!()),
+            ("[", s, group, s, "]").map(|v| todo!()),
         )),
     )
     .parse_next(input)
