@@ -44,6 +44,7 @@ mod tests {
 
         // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
         // Firefox 138 is required
+        // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
         let mut session = get_session().await;
         // nix build .#extension
