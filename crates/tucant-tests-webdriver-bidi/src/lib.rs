@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -58,9 +58,30 @@ mod tests {
                     background: None,
                 })
                 .await?;
+
+            session.browsing_context_set_viewport(SetViewportParameters { context: browsing_context.context.clone(), viewport: Some(Viewport { width: 1300, height: 768 }), device_pixel_ratio: None }).await?;
+
+            /*
+            let client_windows = session.browser_get_client_windows(EmptyParams::new()).await?;
+
+            for window in client_windows.client_windows {
+                session.browser_set_client_window_state(SetClientWindowStateParameters::new(window.client_window.clone(), ClientWindowNamedOrRectState::ClientWindowRectState(ClientWindowRectState { state: "normal".to_owned(), width: Some(1300), height: Some(768), x: None, y: None }))).await?;                
+            }
+            */
+
             navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             // TODO first login
+
+
+/*
+    let username_input = driver.query(By::Css("#login-username")).first().await?;
+    let password_input = driver.find(By::Css("#login-password")).await?;
+    let login_button = driver.find(By::Css("#login-button")).await?;
+
+    let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
+    let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+*/
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.context.clone()), None)).await?;
             println!("{:?}", realms);
