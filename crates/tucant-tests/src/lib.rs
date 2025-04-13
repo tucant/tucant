@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -70,6 +70,12 @@ mod tests {
             */
 
             navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
+
+            sleep(Duration::from_secs(5)).await;
+
+            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.context.clone(), Locator::CssLocator(CssLocator::new("#login-username".to_owned())), None, None, None)).await?;
+            panic!("{:?}", node);
+
 
             // TODO first login
 
