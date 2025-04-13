@@ -1,15 +1,17 @@
 [package]
-name = "tucant-tests"
+name = "tucant-tests-webdriver-bidi"
 license.workspace = true
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-thirtyfour = "0.35.0"
+webdriverbidi = { git = "https://github.com/mohe2015/webdriverbidi.git", branch = "main" }
 tokio = { features = ["full"], version = "1" }
-dotenvy = "0.15"
-paste = "1"
+anyhow = "1.0.97"
+env_logger = "0.11.8"
+serde_json = "1.0.140"
+serde = "1.0.219"
 
 [lints]
 workspace = true

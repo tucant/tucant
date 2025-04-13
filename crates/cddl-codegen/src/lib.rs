@@ -268,7 +268,7 @@ fn s(input: &mut &str) -> ModalResult<()> {
 }
 
 pub fn codegen(rules: &[Rule]) {
-    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.txt", format!("{:#?}", rules)).unwrap();
+    std::fs::write("../tucant-tests/src/cddl.txt", format!("{:#?}", rules)).unwrap();
     let rules = rules.iter().map(codegen_rule);
     let rules = quote! {
         /// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
@@ -279,10 +279,10 @@ pub fn codegen(rules: &[Rule]) {
 
         #(#rules)*
     };
-    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", format!("{}", rules)).unwrap();
+    std::fs::write("../tucant-tests/src/cddl.rs", format!("{}", rules)).unwrap();
     let syntax_tree = syn::parse2(rules).unwrap();
     let code = prettyplease::unparse(&syntax_tree);
-    std::fs::write("../tucant-tests-webdriver-bidi/src/cddl.rs", &code).unwrap();
+    std::fs::write("../tucant-tests/src/cddl.rs", &code).unwrap();
 }
 
 fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {

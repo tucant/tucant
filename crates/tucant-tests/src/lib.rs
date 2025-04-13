@@ -1,267 +1,151 @@
-use std::{error::Error, process::Stdio, time::Duration};
 
-use thirtyfour::{extensions::addons::firefox::FirefoxTools, prelude::*};
-use tokio::{
-    io::{AsyncBufReadExt as _, BufReader},
-    time::sleep,
-};
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub enum Browser {
-    Firefox,
-    Chromium,
-}
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub enum Mode {
-    Extension,
-    Api,
-}
-
-macro_rules! all_browsers {
-    ($function_name: ident) => {
-        ::paste::paste! {
-            extension!($function_name);
-
-            #[::tokio::test]
-            pub async fn [<$function_name _firefox_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_firefox_api($function_name).await
-            }
-
-            #[::tokio::test]
-            pub async fn [<$function_name _chromium_api>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_chromium_api($function_name).await
-            }
-        }
+#[cfg(test)]
+mod tests {
+    use std::{
+        path,
+        sync::atomic::{AtomicUsize, Ordering}, time::Duration,
     };
-}
 
-macro_rules! extension {
-    ($function_name: ident) => {
-        ::paste::paste! {
-            #[::tokio::test]
-            pub async fn [<$function_name _firefox_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_firefox_extension($function_name).await
-            }
-
-            #[::tokio::test]
-            pub async fn [<$function_name _chromium_extension>]() -> Result<(), Box<dyn Error + Send + Sync>> {
-                run_with_chromium_extension($function_name).await
-            }
-        }
+    use tokio::{sync::OnceCell, time::sleep};
+    use webdriverbidi::{
+        local::script::{RealmInfo, WindowRealmInfo}, remote::{
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+        }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
-}
 
-async fn run_with_chromium_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
-    dotenvy::dotenv().unwrap();
+    static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
-    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
+    static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
 
-    let stderr = child.stdout.take().unwrap();
+    async fn get_session() -> WebDriverBiDiSession {
+        SESSION.get_or_init(async || setup_session().await.unwrap()).await.clone()
+    }
 
-    let task = tokio::spawn(async {
-        let mut reader = BufReader::new(stderr).lines();
+    async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+        let capabilities = CapabilitiesRequest::default();
+        let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
+        session.start().await?;
+        Ok(session)
+    }
 
-        let mut port: Option<u16> = None;
-        while let Some(line) = reader.next_line().await? {
-            println!("{line}");
-            if line.starts_with("ChromeDriver was started successfully on port ") {
-                port = Some(line.strip_prefix("ChromeDriver was started successfully on port ").unwrap().strip_suffix(".").unwrap().parse().unwrap());
-                break;
+    async fn navigate(session: &mut WebDriverBiDiSession, ctx: BrowsingContext, url: String) -> anyhow::Result<()> {
+        let navigate_params = NavigateParameters::new(ctx, url, Some(ReadinessState::Complete));
+        session.browsing_context_navigate(navigate_params).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn it_works() -> anyhow::Result<()> {
+        env_logger::init();
+
+        // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
+        // Firefox 138 is required
+        // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
+
+        let mut session = get_session().await;
+
+        let try_catch: anyhow::Result<()> = async {
+            let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
+            println!("{path}");
+            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
+
+            let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
+            let browsing_context = session
+                .browsing_context_create(CreateParameters {
+                    create_type: CreateType::Window,
+                    user_context: Some(user_context.user_context),
+                    reference_context: None,
+                    background: None,
+                })
+                .await?;
+
+            session.browsing_context_set_viewport(SetViewportParameters { context: browsing_context.context.clone(), viewport: Some(Viewport { width: 1300, height: 768 }), device_pixel_ratio: None }).await?;
+
+            /*
+            let client_windows = session.browser_get_client_windows(EmptyParams::new()).await?;
+
+            for window in client_windows.client_windows {
+                session.browser_set_client_window_state(SetClientWindowStateParameters::new(window.client_window.clone(), ClientWindowNamedOrRectState::ClientWindowRectState(ClientWindowRectState { state: "normal".to_owned(), width: Some(1300), height: Some(768), x: None, y: None }))).await?;                
             }
-        }
+            */
 
-        let mut caps = DesiredCapabilities::chrome();
-        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
-        driver.set_window_rect(0, 0, 1300, 768).await?;
+            navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
-        fun(Browser::Chromium, Mode::Api, driver.clone()).await?;
-        driver.quit().await?;
+            // TODO first login
 
-        Ok::<(), Box<dyn Error + Send + Sync>>(())
-    })
-    .await;
-    child.kill().await?;
-    child.wait().await?;
-    task??;
+            let a: Box<[PointerSourceAction]> = Box::new([
+                //PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(shared_id, handle, extensible)))), PointerCommonProperties::new(None, None, None, None, None, None, None)))
+            ]);
+            let a = a.into_vec();
 
-    Ok(())
-}
+            let b: Box<[SourceActions]> = Box::new([
+                SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), None, a))
+            ]);
+            let b = b.into_vec();
 
-async fn run_with_chromium_extension<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
-    dotenvy::dotenv().unwrap();
+            session.input_perform_actions(PerformActionsParameters::new(browsing_context.context.clone(), b)).await?;
 
-    let mut child = tokio::process::Command::new("chromedriver").arg("--enable-chrome-logs").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
-
-    let stderr = child.stdout.take().unwrap();
-
-    let task = tokio::spawn(async {
-        let mut reader = BufReader::new(stderr).lines();
-
-        let mut port: Option<u16> = None;
-        while let Some(line) = reader.next_line().await? {
-            println!("{line}");
-            if line.starts_with("ChromeDriver was started successfully on port ") {
-                port = Some(line.strip_prefix("ChromeDriver was started successfully on port ").unwrap().strip_suffix(".").unwrap().parse().unwrap());
-                break;
-            }
-        }
-
-        let mut caps = DesiredCapabilities::chrome();
-        caps.add_arg(&format!("--load-extension={}", std::env::var("EXTENSION_DIR").unwrap()))?;
-        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
-        driver.set_window_rect(0, 0, 1300, 768).await?;
-
-        sleep(Duration::from_secs(1)).await; // wait for extension to be installed
-
-        fun(Browser::Chromium, Mode::Extension, driver.clone()).await?;
-        driver.quit().await?;
-
-        Ok::<(), Box<dyn Error + Send + Sync>>(())
-    })
-    .await;
-    child.kill().await?;
-    child.wait().await?;
-    task??;
-
-    Ok(())
-}
-
-async fn run_with_firefox_api<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
-    dotenvy::dotenv().unwrap();
-
-    let mut child = tokio::process::Command::new("geckodriver").arg("--port=0").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
-
-    let stderr = child.stdout.take().unwrap();
-
-    let task = tokio::spawn(async move {
-        let mut reader = BufReader::new(stderr).lines();
-
-        let mut port: Option<u16> = None;
-        while let Some(line) = reader.next_line().await? {
-            println!("{line}");
-            if line.contains("Listening on") {
-                port = Some(line.rsplit_once(':').unwrap().1.parse().unwrap());
-                break;
-            }
-        }
-
-        let caps = DesiredCapabilities::firefox();
-        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
-        driver.set_window_rect(0, 0, 1300, 768).await?;
-
-        fun(Browser::Firefox, Mode::Api, driver.clone()).await?;
-        driver.quit().await?;
-
-        Ok::<(), Box<dyn Error + Send + Sync>>(())
-    })
-    .await;
-
-    child.kill().await?;
-    child.wait().await?;
-    task??;
-
-    Ok(())
-}
-
-async fn run_with_firefox_extension<F: Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send, A: FnOnce(Browser, Mode, WebDriver) -> F + Send + 'static>(fun: A) -> Result<(), Box<dyn Error + Send + Sync>> {
-    dotenvy::dotenv().unwrap();
-
-    let mut child = tokio::process::Command::new("geckodriver").arg("--port=0").kill_on_drop(true).stdout(Stdio::piped()).spawn()?;
-
-    let stderr = child.stdout.take().unwrap();
-
-    let task = tokio::spawn(async move {
-        let mut reader = BufReader::new(stderr).lines();
-
-        let mut port: Option<u16> = None;
-        while let Some(line) = reader.next_line().await? {
-            println!("{line}");
-            if line.contains("Listening on") {
-                port = Some(line.rsplit_once(':').unwrap().1.parse().unwrap());
-                break;
-            }
-        }
-
-        let caps = DesiredCapabilities::firefox();
-        let driver = WebDriver::new(format!("http://localhost:{}", port.unwrap()), caps).await?;
-        driver.set_window_rect(0, 0, 1300, 768).await?;
-        let tools = FirefoxTools::new(driver.handle.clone());
-        tools.install_addon(&std::env::var("EXTENSION_DIR").unwrap(), Some(true)).await?;
-
-        sleep(Duration::from_secs(1)).await; // wait for extension to be installed
-
-        fun(Browser::Firefox, Mode::Extension, driver.clone()).await?;
-        driver.quit().await?;
-
-        // TODO stop driver?
-
-        Ok::<(), Box<dyn Error + Send + Sync>>(())
-    })
-    .await;
-
-    child.kill().await?;
-    child.wait().await?;
-    task??;
-
-    Ok(())
-}
-
-all_browsers!(login);
-pub async fn login(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    driver
-        .goto(match mode {
-            Mode::Extension => "https://www.tucan.tu-darmstadt.de/",
-            Mode::Api => "http://localhost:1420",
-        })
-        .await?;
-
-    assert_eq!(driver.title().await?, "TUCaN't");
-
-    assert_eq!(
-        driver.current_url().await.unwrap().scheme(),
-        match mode {
-            Mode::Extension => match browser {
-                Browser::Firefox => "moz-extension",
-                Browser::Chromium => "chrome-extension",
-            },
-            Mode::Api => "http",
-        }
-    );
-
+/*
     let username_input = driver.query(By::Css("#login-username")).first().await?;
     let password_input = driver.find(By::Css("#login-password")).await?;
     let login_button = driver.find(By::Css("#login-button")).await?;
 
     let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
     let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+*/
 
-    username_input.send_keys(username).await?;
-    password_input.send_keys(password).await?;
-    // probably https://yew.rs/docs/concepts/html/events#event-delegation
-    username_input.focus().await?;
-    login_button.click().await?;
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.context.clone()), None)).await?;
+            println!("{:?}", realms);
+           
+            let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
+                panic!();
+            };
+            
+            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(window.context.clone(), None)), false, None, None, None)).await?;
 
-    // wait for login
-    sleep(Duration::from_secs(5)).await;
+            let contexts = session.browsing_context_get_tree(GetTreeParameters::new(None, None)).await?;
+            println!("{:?}", contexts);
 
-    Ok(())
-}
+            // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
-extension!(open_in_tucan);
-pub async fn open_in_tucan(browser: Browser, mode: Mode, driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    login(browser, mode, driver.clone()).await?;
+            // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-    driver
-        .goto(match mode {
-            Mode::Extension => "https://www.tucan.tu-darmstadt.de/",
-            Mode::Api => "http://localhost:1420/",
-        })
-        .await?;
 
-    driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
+            sleep(Duration::from_secs(30)).await;
 
-    driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
+            session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
 
-    Ok(())
+            Ok(())
+        }.await;
+
+        if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
+            session.close().await?;
+        }
+
+        try_catch?;
+
+        Ok(())
+    }
+    /*
+    #[tokio::test]
+    async fn it_works2() -> anyhow::Result<()> {
+        let mut session = get_session().await;
+        let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
+        let browsing_context = session
+            .browsing_context_create(CreateParameters {
+                create_type: CreateType::Window,
+                user_context: Some(user_context.user_context),
+                reference_context: None,
+                background: None,
+            })
+            .await?;
+        navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
+        session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
+
+        if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
+            session.close().await?;
+        }
+
+        Ok(())
+    }*/
 }
