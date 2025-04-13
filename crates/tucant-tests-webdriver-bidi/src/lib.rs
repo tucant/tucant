@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{PerformActionsParameters, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -74,7 +74,7 @@ mod tests {
             // TODO first login
 
             let a: Box<[PointerSourceAction]> = Box::new([
-                PointerSourceAction::PointerMoveAction(PointerMoveAction { pointer_move_action_type: todo!(), x: todo!(), y: todo!(), duration: todo!(), origin: todo!(), pointer_common_properties: todo!() })
+                //PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(shared_id, handle, extensible)))), PointerCommonProperties::new(None, None, None, None, None, None, None)))
             ]);
             let a = a.into_vec();
 
