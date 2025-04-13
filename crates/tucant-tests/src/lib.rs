@@ -41,6 +41,8 @@ mod tests {
         // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
         // Firefox 138 is required
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
+        // chromedriver --port=4444
+        // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
         let mut session = get_session().await;
 
@@ -75,12 +77,13 @@ mod tests {
 
             // TODO type should be fixed in constructor
             let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
-            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.context.clone()]), None, None)).await?;
+            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), None, Some(vec![user_context.user_context.clone()]), None)).await?;
 
             session.register_event_handler(EventType::ScriptMessage, async |event| {
                 println!("{event:?}")
             }).await;
 
+            // preload script works for google
             navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             sleep(Duration::from_secs(5)).await;
