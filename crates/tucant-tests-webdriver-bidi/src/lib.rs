@@ -43,10 +43,9 @@ mod tests {
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
         let mut session = get_session().await;
-        // nix build .#extension-unpacked
 
         let try_catch: anyhow::Result<()> = async {
-            let path = std::fs::canonicalize("../../result")?.to_str().unwrap().to_string();
+            let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
             session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
 
@@ -60,6 +59,8 @@ mod tests {
                 })
                 .await?;
             navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
+
+            // TODO first login
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.context.clone()), None)).await?;
             println!("{:?}", realms);
