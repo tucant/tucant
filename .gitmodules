@@ -1,3 +1,0 @@
-[submodule "crates/webdriverbidi"]
-	path = crates/webdriverbidi
-	url = git@github.com:mohe2015/webdriverbidi.git
