@@ -36,10 +36,10 @@ pub fn my_courses<TucanType: Tucan + 'static>() -> Html {
                                         {"Name"}
                                     </th>
                                     <th scope="col">
-                                        {"Verantwortliche Person"}
+                                        {"Zeitraum"}
                                     </th>
                                     <th scope="col">
-                                        {"Credits"}
+                                        {"Standort"}
                                     </th>
                                 </tr>
                             </thead>
