@@ -1,4 +1,7 @@
-use std::{sync::LazyLock, time::Duration};
+use std::{
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 
 use coursedetails::index::course_details;
 use courseresults::courseresults;
@@ -54,7 +57,7 @@ type MyClient = reqwest::Client;
 pub struct TucanConnector {
     pub client: MyClient,
     pub database: Database,
-    semaphore: Semaphore,
+    semaphore: Arc<Semaphore>,
 }
 
 /// `TUCaN` being unreliable is a feature
@@ -105,15 +108,12 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await, semaphore: Semaphore::new(10) })
+        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(10)) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn new_test() -> Result<Self, TucanError> {
-        let mut headers = header::HeaderMap::new();
-        headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
-        let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new_test().await, semaphore: Semaphore::new(10) })
+    pub async fn new_test(client: reqwest::Client, semaphore: Arc<Semaphore>) -> Result<Self, TucanError> {
+        Ok(Self { client, database: Database::new_test().await, semaphore })
     }
 }
 
@@ -177,15 +177,28 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use tokio::sync::OnceCell;
+    use std::sync::Arc;
+
+    use reqwest::{Client, header};
+    use tokio::sync::{OnceCell, Semaphore};
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
     use crate::{Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root, startpage_dispatch::one::startpage_dispatch_1};
 
-    static ONCE_CONNECTOR: OnceCell<TucanConnector> = OnceCell::const_new();
+    static ONCE_CONNECTOR: OnceCell<(Client, Arc<Semaphore>)> = OnceCell::const_new();
 
-    pub async fn get_tucan_connector() -> &'static TucanConnector {
-        ONCE_CONNECTOR.get_or_init(|| async { TucanConnector::new_test().await.unwrap() }).await
+    pub async fn get_tucan_connector() -> TucanConnector {
+        let (client, semaphore) = ONCE_CONNECTOR
+            .get_or_init(|| async {
+                let mut headers = header::HeaderMap::new();
+                headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
+                let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
+
+                let semaphore = Arc::new(Semaphore::new(10));
+                (client, semaphore)
+            })
+            .await;
+        TucanConnector::new_test(client.clone(), semaphore.clone()).await.unwrap()
     }
 
     #[tokio::test]
@@ -197,7 +210,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_root_page() {
         let tucan = get_tucan_connector().await;
-        root(tucan).await.unwrap();
+        root(&tucan).await.unwrap();
     }
 
     /// /
@@ -206,7 +219,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_startpage_dispatch_1() {
         let tucan = get_tucan_connector().await;
-        startpage_dispatch_1(tucan).await.unwrap();
+        startpage_dispatch_1(&tucan).await.unwrap();
     }
 
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
@@ -215,7 +228,7 @@ mod tests {
     #[tokio::test]
     pub async fn test_welcome() {
         let tucan = get_tucan_connector().await;
-        welcome(tucan).await.unwrap();
+        welcome(&tucan).await.unwrap();
     }
 
     #[tokio::test]
@@ -304,7 +317,7 @@ mod authenticated_tests {
         dotenvy::dotenv().unwrap();
         let tucan = get_tucan_connector().await;
         let login_response = get_login_session().await;
-        redirect_after_login(tucan, login_response.clone()).await.unwrap();
+        redirect_after_login(&tucan, login_response.clone()).await.unwrap();
     }
 
     #[tokio::test]
