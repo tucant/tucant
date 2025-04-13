@@ -133,67 +133,73 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                 "Archiv"
                             </a>
                         </div>
-                        <table class="nb rw-table rw-all" summary="Eingegangene Nachrichten">
-                            <tbody>
-                                <tr class="tbsubhead rw-hide">
-                                    <th id="Datum">
-                                        "Datum"
-                                    </th>
-                                    <th id="Uhrzeit">
-                                        "Uhrzeit"
-                                    </th>
-                                    <th id="Absender">
-                                        "Absender"
-                                    </th>
-                                    <th id="Betreff">
-                                        "Betreff"
-                                    </th>
-                                    <th id="Aktion">
-                                        "Aktion"
-                                    </th>
-                                </tr>
-                                let messages = while html_handler.peek().is_some() {
-                                    <tr class="tbdata">
-                                        <td headers="Datum" class="rw rw-maildate">
-                                            <a class="link" href=url>
-                                                date
-                                            </a>
-                                        </td>
-                                        <td headers="Uhrzeit" class="rw rw-mailtime">
-                                            <a class="link" href={|u| assert_eq!(url, u)}>
-                                                hour
-                                            </a>
-                                        </td>
-                                        <td headers="Absender" class="rw rw-mailpers">
-                                            <a class="link" href={|u| assert_eq!(url, u)}>
-                                                source
-                                            </a>
-                                        </td>
-                                        <td headers="Betreff" class="rw rw-mailsubject">
-                                            <a class="link" href={|u| assert_eq!(url, u)}>
-                                                let message = html_handler.next_any_child();
-                                            </a>
-                                        </td>
-                                        <td headers="Aktion" class="rw rw-maildel">
-                                            <a class="link" href=delete_url>
-                                                "Löschen"
-                                            </a>
-                                        </td>
+                        let messages = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                            <table class="nb rw-table rw-all" summary="Eingegangene Nachrichten">
+                                <tbody>
+                                    <tr class="tbsubhead rw-hide">
+                                        <th id="Datum">
+                                            "Datum"
+                                        </th>
+                                        <th id="Uhrzeit">
+                                            "Uhrzeit"
+                                        </th>
+                                        <th id="Absender">
+                                            "Absender"
+                                        </th>
+                                        <th id="Betreff">
+                                            "Betreff"
+                                        </th>
+                                        <th id="Aktion">
+                                            "Aktion"
+                                        </th>
                                     </tr>
-                                } => Nachricht {
-                                    url,
-                                    date,
-                                    hour,
-                                    source,
-                                    message: match message.value() {
-                                        MyNode::Text(text) => text.to_string(),
-                                        MyNode::Element(_element) => MyElementRef::wrap(message).unwrap().html(),
-                                        _ => panic!(),
-                                    },
-                                    delete_url
-                                };
-                            </tbody>
-                        </table>
+                                    let messages = while html_handler.peek().is_some() {
+                                        <tr class="tbdata">
+                                            <td headers="Datum" class="rw rw-maildate">
+                                                <a class="link" href=url>
+                                                    date
+                                                </a>
+                                            </td>
+                                            <td headers="Uhrzeit" class="rw rw-mailtime">
+                                                <a class="link" href={|u| assert_eq!(url, u)}>
+                                                    hour
+                                                </a>
+                                            </td>
+                                            <td headers="Absender" class="rw rw-mailpers">
+                                                <a class="link" href={|u| assert_eq!(url, u)}>
+                                                    source
+                                                </a>
+                                            </td>
+                                            <td headers="Betreff" class="rw rw-mailsubject">
+                                                <a class="link" href={|u| assert_eq!(url, u)}>
+                                                    let message = html_handler.next_any_child();
+                                                </a>
+                                            </td>
+                                            <td headers="Aktion" class="rw rw-maildel">
+                                                <a class="link" href=delete_url>
+                                                    "Löschen"
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    } => Nachricht {
+                                        url,
+                                        date,
+                                        hour,
+                                        source,
+                                        message: match message.value() {
+                                            MyNode::Text(text) => text.to_string(),
+                                            MyNode::Element(_element) => MyElementRef::wrap(message).unwrap().html(),
+                                            _ => panic!(),
+                                        },
+                                        delete_url
+                                    };
+                                </tbody>
+                            </table>
+                        } => messages else {
+                            <div class="tbsubhead">
+                                "Sie haben keine neuen Nachrichten!"
+                            </div>
+                        } => Vec::<Nachricht>::new();
                     </div>
                 </div>
             </div>
@@ -201,5 +207,5 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
     };
     let html_handler = footer(html_handler, login_response.id, 19);
     html_handler.end_document();
-    Ok(MlsStart { logged_in_head: head, stundenplan: stundenplan.either_into(), messages })
+    Ok(MlsStart { logged_in_head: head, stundenplan: stundenplan.either_into(), messages: messages.either_into() })
 }
