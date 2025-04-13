@@ -22,6 +22,7 @@ mod tests {
     }
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+        // TODO FIXME use google-chrome-canary
         let capabilities = CapabilitiesRequest::default();
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
