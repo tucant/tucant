@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, GetTree, GetTreeParameters, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{PerformActionsParameters, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -73,6 +73,17 @@ mod tests {
 
             // TODO first login
 
+            let a: Box<[PointerSourceAction]> = Box::new([
+                PointerSourceAction::PointerMoveAction(PointerMoveAction { pointer_move_action_type: todo!(), x: todo!(), y: todo!(), duration: todo!(), origin: todo!(), pointer_common_properties: todo!() })
+            ]);
+            let a = a.into_vec();
+
+            let b: Box<[SourceActions]> = Box::new([
+                SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), None, a))
+            ]);
+            let b = b.into_vec();
+
+            session.input_perform_actions(PerformActionsParameters::new(browsing_context.context.clone(), b)).await?;
 
 /*
     let username_input = driver.query(By::Css("#login-username")).first().await?;
