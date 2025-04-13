@@ -75,7 +75,7 @@ mod tests {
 
             // TODO type should be fixed in constructor
             let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
-            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { channel("hi") }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.context.clone()]), None, None)).await?;
+            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.context.clone()]), None, None)).await?;
 
             session.register_event_handler(EventType::ScriptMessage, async |event| {
                 println!("{event:?}")
