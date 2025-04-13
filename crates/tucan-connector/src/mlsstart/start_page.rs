@@ -124,7 +124,6 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                             </div>
                         } => Vec::<StundenplanEintrag>::new();
                     </div>
-
                     <div class="tb rw-table">
                         <div class="tbhead">
                             "Eingegangene Nachrichten:"
