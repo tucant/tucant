@@ -8,8 +8,8 @@ mod tests {
 
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
+        events::EventType, local::script::{RealmInfo, WindowRealmInfo}, remote::{
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -53,7 +53,7 @@ mod tests {
             let browsing_context = session
                 .browsing_context_create(CreateParameters {
                     create_type: CreateType::Window,
-                    user_context: Some(user_context.user_context),
+                    user_context: Some(user_context.user_context.clone()),
                     reference_context: None,
                     background: None,
                 })
@@ -68,6 +68,18 @@ mod tests {
                 session.browser_set_client_window_state(SetClientWindowStateParameters::new(window.client_window.clone(), ClientWindowNamedOrRectState::ClientWindowRectState(ClientWindowRectState { state: "normal".to_owned(), width: Some(1300), height: Some(768), x: None, y: None }))).await?;                
             }
             */
+
+            // https://github.com/SeleniumHQ/selenium/issues/13992
+            // https://github.com/w3c/webdriver-bidi/blob/main/proposals/bootstrap-scripts.md
+            // https://github.com/SeleniumHQ/selenium/pull/14238/files#diff-c905a3b55dc121eee1ed81ed41659372f4e9eb47971bbdf7a876a10c44f3ff48R80
+
+            // TODO type should be fixed in constructor
+            let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
+            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { channel("hi") }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.context.clone()]), None, None)).await?;
+
+            session.register_event_handler(EventType::ScriptMessage, async |event| {
+                println!("{event:?}")
+            }).await;
 
             navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
