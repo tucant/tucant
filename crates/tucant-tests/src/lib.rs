@@ -123,11 +123,17 @@ mod tests {
 
             let b: Box<[SourceActions]> = Box::new([
                 SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
-                SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), c))
             ]);
             let b = b.into_vec();
 
             session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
+
+            let e: Box<[SourceActions]> = Box::new([
+                SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), c))
+            ]);
+            let e = e.into_vec();
+
+            session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e)).await?;
 
             sleep(Duration::from_secs(5)).await;
 
