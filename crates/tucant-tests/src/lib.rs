@@ -106,6 +106,9 @@ mod tests {
         // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444 --enable-chrome-logs
         // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
+        // https://groups.google.com/a/chromium.org/g/chromium-extensions/c/aEHdhDZ-V0E/m/WvvehPqKAwAJ
+        // seems like context menu clicking etc may happen at some point in webdriver bidi
+
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
@@ -139,12 +142,12 @@ mod tests {
             // https://github.com/SeleniumHQ/selenium/pull/14238/files#diff-c905a3b55dc121eee1ed81ed41659372f4e9eb47971bbdf7a876a10c44f3ff48R80
 
             // TODO type should be fixed in constructor
-            let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
-            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.clone()]), None, None)).await?;
+            //let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
+            //session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.clone()]), None, None)).await?;
 
-            session.register_event_handler(EventType::ScriptMessage, async |event| {
-                println!("{event:?}")
-            }).await;
+            //session.register_event_handler(EventType::ScriptMessage, async |event| {
+            //    println!("{event:?}")
+            //}).await;
 
             // preload script works for google
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
@@ -172,8 +175,6 @@ mod tests {
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
             // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
-
-            sleep(Duration::from_secs(60)).await;
 
             session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
 

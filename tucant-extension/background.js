@@ -9,20 +9,6 @@ const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
 chrome.runtime.onMessage.addListener(async (event) => {
     console.log("onMessage")
-    const id = await chrome.cookies.get({
-        url: "https://www.tucan.tu-darmstadt.de/scripts/",
-        name: "id",
-    })
-
-    let tab = await getCurrentTab()
-
-    if (!tab?.id || !tab.url) {
-        console.log("no tab id or url")
-        return;
-    }
-
-    console.log("opefwewf")
-    handleOpenInTucan(id?.value, tab.id, tab.url)
 })
 
 chrome.commands.onCommand.addListener(async (command) => {

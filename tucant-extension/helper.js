@@ -1,10 +1,19 @@
 import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
 
-// TODO try using https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/sendMessage
-
 // @ts-ignore
 window.sayHello = async () => {
-    console.log("sending message")
-    let response = await chrome.runtime.sendMessage({})
-    console.log("sent message")
+    const id = await chrome.cookies.get({
+        url: "https://www.tucan.tu-darmstadt.de/scripts/",
+        name: "id",
+    })
+
+    let tab = await getCurrentTab()
+
+    if (!tab?.id) {
+        console.log("no tab id")
+        return;
+    }
+
+    console.log("opefwewf")
+    handleOpenInTucan(id?.value, tab.id, document.location.href)
 }
