@@ -1,17 +1,16 @@
-use std::ops::{Range, RangeFrom, RangeFull, RangeInclusive};
+use std::ops::{RangeFrom, RangeInclusive};
 
-use heck::{ToPascalCase, ToSnakeCase, ToUpperCamelCase};
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::Span;
-use syn::{File, Ident};
+use syn::Ident;
 use winnow::{
-    ascii::{alpha1, dec_uint, float, multispace0, multispace1, till_line_ending},
-    combinator::{alt, cut_err, dispatch, fail, opt, preceded, repeat, seq, terminated, trace},
-    error::{StrContext, StrContextValue},
+    ascii::{dec_uint, multispace1, till_line_ending},
+    combinator::{alt, opt, preceded, repeat, seq, terminated, trace},
     prelude::*,
-    token::{take, take_until, take_while},
+    token::{take_until, take_while},
 };
 
-use quote::{format_ident, quote};
+use quote::quote;
 
 // https://www.rfc-editor.org/rfc/rfc8610
 
@@ -172,15 +171,15 @@ fn group(input: &mut &str) -> ModalResult<Group> {
 
 fn grpchoice(input: &mut &str) -> ModalResult<Group> {
     trace("grpchoice", repeat(0.., terminated(grpent, optcom)))
-        .map(|v| Group::And(v))
+        .map(Group::And)
         .parse_next(input)
 }
 
 fn grpent(input: &mut &str) -> ModalResult<(Option<Occur>, Group)> {
-    let mut a =
+    let a =
         (opt(terminated(memberkey, s)), r#type).map(|(key, value)| Group::KeyValue(key, value));
-    let mut b = groupname.map(|v| Group::Name(v.to_owned())); // not complete
-    let mut c = terminated(preceded(("(", s), group), (s, ")"));
+    let b = groupname.map(|v| Group::Name(v.to_owned())); // not complete
+    let c = terminated(preceded(("(", s), group), (s, ")"));
     trace("grpent", (opt(terminated(occur, s)), alt((a, b, c)))).parse_next(input)
 }
 
@@ -192,9 +191,9 @@ pub enum Key {
 }
 
 fn memberkey(input: &mut &str) -> ModalResult<Key> {
-    let mut a = terminated(type1, (s, "=>")).map(|v| Key::Type(v)); // not complete
-    let mut b = terminated(bareword, (s, ":")).map(|v| Key::Literal(v.to_owned()));
-    let mut c = terminated(value, (s, ":")).map(|v| Key::Value(v));
+    let a = terminated(type1, (s, "=>")).map(Key::Type); // not complete
+    let b = terminated(bareword, (s, ":")).map(|v| Key::Literal(v.to_owned()));
+    let c = terminated(value, (s, ":")).map(Key::Value);
     trace("memberkey", alt((a, b, c))).parse_next(input)
 }
 
@@ -206,7 +205,7 @@ fn optcom(input: &mut &str) -> ModalResult<()> {
     trace("optcom", (s, opt((",", s))).map(|v| ())).parse_next(input)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Occur {
     RangeInclusive(RangeInclusive<usize>),
     RangeFrom(RangeFrom<usize>),
@@ -268,7 +267,7 @@ fn s(input: &mut &str) -> ModalResult<()> {
 }
 
 pub fn codegen(rules: &[Rule]) {
-    std::fs::write("../tucant-tests/src/cddl.txt", format!("{:#?}", rules)).unwrap();
+    std::fs::write("../tucant-tests/src/cddl.txt", format!("{rules:#?}")).unwrap();
     let rules = rules.iter().map(codegen_rule);
     let rules = quote! {
         /// https://www.rfc-editor.org/rfc/rfc8610#appendix-D
@@ -279,7 +278,7 @@ pub fn codegen(rules: &[Rule]) {
 
         #(#rules)*
     };
-    std::fs::write("../tucant-tests/src/cddl.rs", format!("{}", rules)).unwrap();
+    std::fs::write("../tucant-tests/src/cddl.rs", format!("{rules}")).unwrap();
     let syntax_tree = syn::parse2(rules).unwrap();
     let code = prettyplease::unparse(&syntax_tree);
     std::fs::write("../tucant-tests/src/cddl.rs", &code).unwrap();
@@ -329,18 +328,15 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                         pub #key: #type_tokens,
                     }
                 },
-                None => match r#type {
-                    Type::Typename(name) => {
-                        let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
-                        quote! {
-                            #[serde(flatten)]
-                            pub #key: #type_tokens,
-                        }
-                    },
-                    _ => quote! {
-                        pub NO_KEY: #type_tokens,
+                None => if let Type::Typename(name) = r#type {
+                    let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
+                    quote! {
+                        #[serde(flatten)]
+                        pub #key: #type_tokens,
                     }
-                },
+                } else { quote! {
+                    pub NO_KEY: #type_tokens,
+                } },
             }
         },
         Group::Name(name) => {
@@ -418,6 +414,6 @@ mod tests {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
         let parsed = ccdl.parse(&input).unwrap();
         println!("{parsed:#?}");
-        let code = codegen(&parsed);
+        codegen(&parsed);
     }
 }

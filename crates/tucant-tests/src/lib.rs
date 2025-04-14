@@ -2,14 +2,14 @@
 #[cfg(test)]
 mod tests {
     use std::{
-        collections::HashMap, path, sync::atomic::{AtomicUsize, Ordering}, time::Duration
+        collections::HashMap, sync::atomic::{AtomicUsize, Ordering}, time::Duration
     };
 
     use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        events::EventType, local::script::{NodeRemoteValue, RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
+        local::script::{NodeRemoteValue, RealmInfo}, remote::{
+            browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport}, input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions}, script::{ContextTarget, EvaluateParameters, GetRealmsParameters, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, Extensible
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -81,7 +81,7 @@ mod tests {
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
         let e: Box<[SourceActions]> = Box::new([
-            SourceActions::KeySourceActions(KeySourceActions::new(id.to_string(), generate_keypresses(&input)))
+            SourceActions::KeySourceActions(KeySourceActions::new(id.to_string(), generate_keypresses(input)))
         ]);
         let e = e.into_vec();
 
@@ -164,7 +164,7 @@ mod tests {
             sleep(Duration::from_secs(3)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
-            println!("{:?}", realms);
+            println!("{realms:?}");
            
             let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
                 panic!();
