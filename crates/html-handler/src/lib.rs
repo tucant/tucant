@@ -137,7 +137,11 @@ impl<'a> MyElementRef<'a> {
     /// Wraps a `NodeRef` only if it references a `Node::Element`.
     #[must_use]
     pub fn wrap(node: NodeRef<'a, MyNode>) -> Option<Self> {
-        if node.value().is_element() { Some(MyElementRef::new(node)) } else { None }
+        if node.value().is_element() {
+            Some(MyElementRef::new(node))
+        } else {
+            None
+        }
     }
 
     /// Returns the `Element` referenced by `self`.
@@ -190,13 +194,21 @@ impl<'a> Deref for MyElementRef<'a> {
 }
 
 impl Serialize for MyElementRef<'_> {
-    fn serialize<S: Serializer>(&self, serializer: &mut S, traversal_scope: TraversalScope) -> Result<(), std::io::Error> {
+    fn serialize<S: Serializer>(
+        &self,
+        serializer: &mut S,
+        traversal_scope: TraversalScope,
+    ) -> Result<(), std::io::Error> {
         myserialize(**self, serializer, &traversal_scope)
     }
 }
 
 /// Serialize an HTML node using html5ever serializer.
-pub(crate) fn myserialize<S: Serializer>(self_node: NodeRef<MyNode>, serializer: &mut S, traversal_scope: &TraversalScope) -> Result<(), std::io::Error> {
+pub(crate) fn myserialize<S: Serializer>(
+    self_node: NodeRef<MyNode>,
+    serializer: &mut S,
+    traversal_scope: &TraversalScope,
+) -> Result<(), std::io::Error> {
     for edge in self_node.traverse() {
         match edge {
             Edge::Open(node) => {
@@ -248,9 +260,13 @@ fn convert_children_inner(mut new_parent: NodeMut<'_, MyNode>, old_node: NodeRef
             Node::Document => MyNode::Document,
             Node::Fragment => MyNode::Fragment,
             Node::Doctype(doctype) => MyNode::Doctype(doctype.clone()),
-            Node::Text(text) if !text.trim().is_empty() => MyNode::Text(Text { text: StrTendril::from_slice(text.trim()) }),
+            Node::Text(text) if !text.trim().is_empty() => MyNode::Text(Text {
+                text: StrTendril::from_slice(text.trim()),
+            }),
             Node::Element(element) => MyNode::Element(element.clone()),
-            Node::ProcessingInstruction(processing_instruction) => MyNode::ProcessingInstruction(processing_instruction.clone()),
+            Node::ProcessingInstruction(processing_instruction) => {
+                MyNode::ProcessingInstruction(processing_instruction.clone())
+            }
             _ => return,
         };
         let new_child = new_parent.append(new_child);
@@ -287,13 +303,22 @@ pub struct InElement<'a, OuterState> {
 impl<'a> Root<'a> {
     #[must_use]
     pub fn new(node: NodeRef<'a, MyNode>) -> Self {
-        assert_eq!(*node.value(), MyNode::Document, "expected document but got {:?}", node.value());
+        assert_eq!(
+            *node.value(),
+            MyNode::Document,
+            "expected document but got {:?}",
+            node.value()
+        );
         Self { node }
     }
 
     #[must_use]
     pub fn document_start(self) -> InRoot<'a, Self> {
-        InRoot { node: self.node, current_child: self.node.children().next(), outer_state: PhantomData }
+        InRoot {
+            node: self.node,
+            current_child: self.node.children().next(),
+            outer_state: PhantomData,
+        }
     }
 }
 
@@ -307,13 +332,23 @@ impl<'a> InRoot<'a, Root<'a>> {
     #[must_use]
     pub fn doctype(self) -> Self {
         let child_node = self.current_child.expect("expected child but none left");
-        let Some(_child_element) = child_node.value().as_doctype() else { panic!("expected doctype but got {:?}", child_node.value()) };
-        InRoot { node: self.node, current_child: child_node.next_sibling(), outer_state: self.outer_state }
+        let Some(_child_element) = child_node.value().as_doctype() else {
+            panic!("expected doctype but got {:?}", child_node.value())
+        };
+        InRoot {
+            node: self.node,
+            current_child: child_node.next_sibling(),
+            outer_state: self.outer_state,
+        }
     }
 
     #[track_caller]
     pub fn end_document(self) {
-        assert_eq!(self.current_child, None, "Expected no remaining children but got {:?}", self.current_child);
+        assert_eq!(
+            self.current_child, None,
+            "Expected no remaining children but got {:?}",
+            self.current_child
+        );
     }
 }
 
@@ -327,9 +362,15 @@ impl<'a, OuterState> InRoot<'a, OuterState> {
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
         let child_node = self.current_child.expect("expected child but one left");
-        let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_element() else {
+            panic!("expected element but got {:?}", child_node.value())
+        };
         assert_eq!(child_element.name(), name);
-        Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
+        Open {
+            element: child_node,
+            attrs: child_element.attrs(),
+            outer_state: PhantomData,
+        }
     }
 }
 
@@ -341,7 +382,10 @@ impl<'a, OuterState> Open<'a, OuterState> {
             for _a in self.attrs.by_ref() {}
             return self;
         }
-        assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value));
+        assert_eq!(
+            self.attrs.next().expect("expected attribute but none left"),
+            (name, value)
+        );
         self
     }
 
@@ -356,10 +400,19 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
-        let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
+        let Some(_child_element) = self.element.value().as_element() else {
+            panic!("expected element but got {:?}", self.element.value())
+        };
         let attr = self.attrs.next();
-        assert_eq!(attr, None, "expected no remaining attributes but got {attr:?}");
-        InElement { element: self.element, current_child: self.element.children().next(), outer_state: self.outer_state }
+        assert_eq!(
+            attr, None,
+            "expected no remaining attributes but got {attr:?}"
+        );
+        InElement {
+            element: self.element,
+            current_child: self.element.children().next(),
+            outer_state: self.outer_state,
+        }
     }
 }
 
@@ -386,8 +439,12 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn text(mut self) -> (Self, String) {
-        let child_node = self.current_child.expect("expected child with text but got no children. maybe there is a closing tag?");
-        let Some(child_element) = child_node.value().as_text() else { panic!("expected text but got {:?}", child_node.value()) };
+        let child_node = self
+            .current_child
+            .expect("expected child with text but got no children. maybe there is a closing tag?");
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("expected text but got {:?}", child_node.value())
+        };
         self.current_child = child_node.next_sibling();
         (self, child_element.to_string())
     }
@@ -395,15 +452,24 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn skip_text(mut self, text: &str) -> Self {
-        let child_node = self.current_child.expect("expected child with text but got no children. maybe there is a closing tag?");
-        let Some(child_element) = child_node.value().as_text() else { panic!("expected text but got {:?}", child_node.value()) };
+        let child_node = self
+            .current_child
+            .expect("expected child with text but got no children. maybe there is a closing tag?");
+        let Some(child_element) = child_node.value().as_text() else {
+            panic!("expected text but got {:?}", child_node.value())
+        };
         match BASE64URL_NOPAD.decode(text.as_bytes()) {
             Ok(value) if value.len() == 32 => {
                 let actual_hash = BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element));
                 assert_eq!(actual_hash, text);
             }
             _ => {
-                assert_eq!(&**child_element, text, "{}", BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element)));
+                assert_eq!(
+                    &**child_element,
+                    text,
+                    "{}",
+                    BASE64URL_NOPAD.encode(&Sha3_256::digest(&**child_element))
+                );
             }
         }
         self.current_child = child_node.next_sibling();
@@ -419,11 +485,19 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[track_caller]
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
-        let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
+        let Some(_child_element) = self.element.value().as_element() else {
+            panic!("expected element but got {:?}", self.element.value())
+        };
         let child_node = self.current_child.expect("expected one more child");
-        let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
+        let Some(child_element) = child_node.value().as_element() else {
+            panic!("expected element but got {:?}", child_node.value())
+        };
         assert_eq!(child_element.name(), name);
-        Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
+        Open {
+            element: child_node,
+            attrs: child_element.attrs(),
+            outer_state: PhantomData,
+        }
     }
 }
 
@@ -431,9 +505,20 @@ impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     #[track_caller]
     #[must_use]
     pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
-        assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
-        let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
-        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
+        assert_eq!(
+            self.current_child.map(|child| child.value()),
+            None,
+            "expected there to be no more children"
+        );
+        let Some(element) = self.element.value().as_element() else {
+            panic!("expected element but got {:?}", self.element.value())
+        };
+        assert_eq!(
+            element.name(),
+            name,
+            "Expected tag to be {name} but got {}",
+            element.name()
+        );
         InElement {
             element: self.element.parent().unwrap(),
             current_child: self.element.next_sibling(),
@@ -446,9 +531,24 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
     #[track_caller]
     #[must_use]
     pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
-        assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
-        let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
-        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
-        InRoot { node: self.element.parent().unwrap(), current_child: self.element.next_sibling(), outer_state: PhantomData }
+        assert_eq!(
+            self.current_child.map(|child| child.value()),
+            None,
+            "expected there to be no more children"
+        );
+        let Some(element) = self.element.value().as_element() else {
+            panic!("expected element but got {:?}", self.element.value())
+        };
+        assert_eq!(
+            element.name(),
+            name,
+            "Expected tag to be {name} but got {}",
+            element.name()
+        );
+        InRoot {
+            node: self.element.parent().unwrap(),
+            current_child: self.element.next_sibling(),
+            outer_state: PhantomData,
+        }
     }
 }

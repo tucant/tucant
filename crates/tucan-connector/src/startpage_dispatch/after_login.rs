@@ -3,7 +3,10 @@ use tucant_types::LoginResponse;
 use crate::{TucanConnector, TucanError, authenticated_retryable_get, common::head::html_head_2};
 use html_handler::{Root, parse_document};
 
-pub async fn redirect_after_login(connector: &TucanConnector, login_response: LoginResponse) -> Result<(), TucanError> {
+pub async fn redirect_after_login(
+    connector: &TucanConnector,
+    login_response: LoginResponse,
+) -> Result<(), TucanError> {
     let (content, ..) = authenticated_retryable_get(connector, &format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N{},-N000019,-N000000000000000", login_response.id), &login_response.cookie_cnsc).await?;
     let document = parse_document(&content);
     let html_handler = Root::new(document.root());

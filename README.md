@@ -131,11 +131,3 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
 
 xdg-open target/coverage/index.html 
 ```
-
-## WebDriver BiDi
-
-```
-git clone git@github.com:w3c/webdriver-bidi.git
-cd webdriver-bidi
-./scripts/test.sh
-```

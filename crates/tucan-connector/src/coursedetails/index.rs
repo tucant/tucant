@@ -11,17 +11,26 @@ use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+    coursedetails::{
+        CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
+        InstructorImageWithLink, Room, Termin,
+    },
 };
 
-pub async fn course_details(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
+pub async fn course_details(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+    request: CourseDetailsRequest,
+) -> Result<CourseDetailsResponse, TucanError> {
     let key = format!("unparsed_course_details.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return course_details_internal(login_response, content);
             }
         }
@@ -32,7 +41,8 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, request.inner());
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = course_details_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -47,8 +57,15 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
-fn course_details_internal(login_response: &LoginResponse, content: &str) -> Result<CourseDetailsResponse, TucanError> {
+#[expect(
+    clippy::similar_names,
+    clippy::too_many_lines,
+    clippy::cognitive_complexity
+)]
+fn course_details_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -65,14 +82,26 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                     </style>
                 </head>
                 <body class="coursedetails">
-                    use if login_response.id == 1 { logged_out_head(html_handler, 311).0 } else { logged_in_head(html_handler, login_response.id).0 };
+                    use if login_response.id == 1 {
+                        logged_out_head(html_handler, 311).0
+                    } else {
+                        logged_in_head(html_handler, login_response.id).0
+                    };
                     <script type="text/javascript">
                     </script>
                     <script type="text/javascript">
                         _trash
                     </script>
                     <form name="courseform" action="/scripts/mgrqispi.dll" method="post">
-                        let name = if html_handler.peek().unwrap().value().as_element().unwrap().attrs().next().is_some() {
+                        let name = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .attrs()
+                            .next()
+                            .is_some() {
                             <h1 class="eventTitle img img_arrowEventIcon" title="Gefährdungspotential für Schwangere">
                                 name
                             </h1>
@@ -102,7 +131,17 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                     </tr>
                                     <tr>
                                         <td class="tbdata" colspan="3">
-                                            let dozent = if &**html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().unwrap() == "Lehrende:" {
+                                            let dozent = if &**html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .value()
+                                                .as_text()
+                                                .unwrap()
+                                                == "Lehrende:" {
                                                 <p>
                                                     <b>
                                                         "Lehrende:"
@@ -112,7 +151,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     </span>
                                                 </p>
                                             } => dozent;
-                                            let course_type_and_number = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let course_type_and_number = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="coursetyp" value=course_type_number></input>
                                             } => ("unknown".to_owned(), course_type_number) else {
                                                 <p>
@@ -141,7 +187,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 <input type="hidden" name="shortdescription" value=shortname></input>
                                             </p>
                                             <input type="hidden" name="courselevel" value=courselevel></input>
-                                            let fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let fach = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="coursearea" value=""></input>
                                             } => () else {
                                                 <p>
@@ -151,7 +204,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     <input type="hidden" name="coursearea" value=""></input>
                                                 </p>
                                             } => ();
-                                            let fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let fach = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="creditingfor" value=""></input>
                                             } => () else {
                                                 <p>
@@ -161,7 +221,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     <input type="hidden" name="creditingfor" value=""></input>
                                                 </p>
                                             } => ();
-                                            let sws = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let sws = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="sws" value="0"></input>
                                             } => () else {
                                                 <p>
@@ -175,7 +242,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 assert_eq!(sws_text, sws);
                                                 sws
                                             };
-                                            let credits = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let credits = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="credits" value="  0,0"></input>
                                             } => () else {
                                                 <p>
@@ -190,7 +264,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 credits_text
                                             };
                                             <input type="hidden" name="location" value="327576461398991"></input>
-                                            let language_and_id = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let language_and_id = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="language" value=language_id></input>
                                             } => ("unknown".to_owned(), language_id) else {
                                                 <p>
@@ -203,10 +284,21 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     <input type="hidden" name="language" value=language_id></input>
                                                 </p>
                                             } => (language, language_id);
-                                            let teilnehmer = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let teilnehmer = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .name()
+                                                == "input" {
                                                 <input type="hidden" name="min_participantsno" value=teilnehmer_min></input>
                                                 <input type="hidden" name="max_participantsno" value=teilnehmer_max></input>
-                                            } => (format!("{teilnehmer_min} | {teilnehmer_max}"), teilnehmer_min, teilnehmer_max) else {
+                                            } => (
+                                                format!("{teilnehmer_min} | {teilnehmer_max}"),
+                                                teilnehmer_min,
+                                                teilnehmer_max
+                                            ) else {
                                                 <p>
                                                     <b>
                                                         "Min. | Max. Teilnehmerzahl:"
@@ -220,14 +312,22 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 let child = html_handler.next_any_child();
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
-                                                MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),
+                                                MyNode::Element(_element) =>
+                                                    MyElementRef::wrap(child).unwrap().html(),
                                                 _ => panic!(),
                                             };
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            let uebungsgruppen = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "div" {
+                            let uebungsgruppen = if html_handler
+                                .peek()
+                                .unwrap()
+                                .value()
+                                .as_element()
+                                .unwrap()
+                                .name()
+                                == "div" {
                                 <div class="tb">
                                     <div>
                                         <div class="tbhead">
@@ -266,7 +366,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         </a>
                                                     </div>
                                                 </li>
-                                            } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                            } => CourseUebungsGruppe {
+                                                date_range,
+                                                name: uebung_name,
+                                                uebungsleiter
+                                            };
                                         } => uebungsgruppen;
                                     </ul>
                                 </div>
@@ -284,7 +388,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                     </tr>
                                 </tbody>
                             </table>
-                            let _kein_material = if html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().is_some_and(|v| &**v == "Material zur gesamten Veranstaltung") {
+                            let _kein_material = if html_handler
+                                .peek()
+                                .unwrap()
+                                .first_child()
+                                .unwrap()
+                                .first_child()
+                                .unwrap()
+                                .value()
+                                .as_text()
+                                .is_some_and(|v| &**v == "Material zur gesamten Veranstaltung") {
                                 <table class="tb rw-table">
                                     <caption>
                                         "Material zur gesamten Veranstaltung"
@@ -298,8 +411,23 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                     </tbody>
                                 </table>
                             } => ();
-                            let course_anmeldefristen = if html_handler.peek().unwrap().first_child().unwrap().first_child().unwrap().value().as_text().is_none_or(|v| &**v != "Termine") {
-                                let course_anmeldefristen = if !html_handler.peek().unwrap().value().as_element().unwrap().has_class("list", CaseSensitivity::CaseSensitive) {
+                            let course_anmeldefristen = if html_handler
+                                .peek()
+                                .unwrap()
+                                .first_child()
+                                .unwrap()
+                                .first_child()
+                                .unwrap()
+                                .value()
+                                .as_text()
+                                .is_none_or(|v| &**v != "Termine") {
+                                let course_anmeldefristen = if !html_handler
+                                    .peek()
+                                    .unwrap()
+                                    .value()
+                                    .as_element()
+                                    .unwrap()
+                                    .has_class("list", CaseSensitivity::CaseSensitive) {
                                     <table class="tb rw-table">
                                         <tbody>
                                             <tr>
@@ -369,7 +497,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         } => ende_hoerer;
                                                     </td>
                                                 </tr>
-                                            } => CourseAnmeldefrist { zulassungstyp, block_type, start, ende_anmeldung, ende_abmeldung, ende_hoerer };
+                                            } => CourseAnmeldefrist {
+                                                zulassungstyp,
+                                                block_type,
+                                                start,
+                                                ende_anmeldung,
+                                                ende_abmeldung,
+                                                ende_hoerer
+                                            };
                                         </tbody>
                                     </table>
                                 } => course_anmeldefristen;
@@ -400,7 +535,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             } => ();
                                         </td>
                                     </tr>
-                                    let termine = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
+                                    let termine = if html_handler
+                                        .peek()
+                                        .unwrap()
+                                        .first_child()
+                                        .unwrap()
+                                        .value()
+                                        .as_element()
+                                        .unwrap()
+                                        .attr("colspan")
+                                        .is_some() {
                                         <tr>
                                             <td class="tbdata" colspan="6">
                                                 "Es liegen keine Termine vor."
@@ -422,32 +566,68 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     time_end
                                                 </td>
                                                 <td class="tbdata rw rw-course-room">
-                                                    let rooms = if html_handler.peek().is_some() && html_handler.peek().unwrap().value().is_element() {
-                                                        let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                                    let rooms = if html_handler.peek().is_some()
+                                                        && html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .value()
+                                                            .is_element() {
+                                                        let room = if html_handler
+                                                            .peek()
+                                                            .unwrap()
+                                                            .value()
+                                                            .as_element()
+                                                            .unwrap()
+                                                            .name()
+                                                            == "a" {
                                                             <a name="appointmentRooms" href=room_url>
                                                                 room
                                                             </a>
-                                                        } => Room { name: room, url: Some(room_url) } else {
+                                                        } => Room {
+                                                            name: room,
+                                                            url: Some(room_url)
+                                                        } else {
                                                             <span name="appointmentRooms">
                                                                 room
                                                             </span>
-                                                        } => Room { name: room, url: None };
+                                                        } => Room {
+                                                            name: room,
+                                                            url: None
+                                                        };
                                                         let more_rooms = while html_handler.peek().is_some() {
                                                             ","
-                                                            let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                                                            let room = if html_handler
+                                                                .peek()
+                                                                .unwrap()
+                                                                .value()
+                                                                .as_element()
+                                                                .unwrap()
+                                                                .name()
+                                                                == "a" {
                                                                 <a name="appointmentRooms" href=room_url>
                                                                     room
                                                                 </a>
-                                                            } => Room { name: room, url: Some(room_url) } else {
+                                                            } => Room {
+                                                                name: room,
+                                                                url: Some(room_url)
+                                                            } else {
                                                                 <span name="appointmentRooms">
                                                                     room
                                                                 </span>
-                                                            } => Room { name: room, url: None };
+                                                            } => Room {
+                                                                name: room,
+                                                                url: None
+                                                            };
                                                         } => room.either_into();
-                                                    } => std::iter::once(room.either_into()).chain(more_rooms.into_iter()).collect::<Vec<_>>() else {
+                                                    } => std::iter::once(room.either_into())
+                                                        .chain(more_rooms.into_iter())
+                                                        .collect::<Vec<_>>() else {
                                                         let room = if html_handler.peek().is_some() {
                                                             room_text
-                                                        } => vec![Room { name: room_text, url: None }] else {
+                                                        } => vec![Room {
+                                                            name: room_text,
+                                                            url: None
+                                                        }] else {
                                                         } => Vec::<Room>::new();
                                                     } => room.either_into::<Vec<Room>>();
                                                 </td>
@@ -457,7 +637,14 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     } => instructors;
                                                 </td>
                                             </tr>
-                                        } => Termin { id, date, time_start, time_end, instructors, rooms: rooms.either_into() };
+                                        } => Termin {
+                                            id,
+                                            date,
+                                            time_start,
+                                            time_end,
+                                            instructors,
+                                            rooms: rooms.either_into()
+                                        };
                                     } => termine;
                                 </tbody>
                             </table>
@@ -472,7 +659,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 "Modul"
                                             </td>
                                         </tr>
-                                        let enthalten_in_modulen = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("colspan").is_none() {
+                                        let enthalten_in_modulen = if html_handler
+                                            .peek()
+                                            .unwrap()
+                                            .first_child()
+                                            .unwrap()
+                                            .value()
+                                            .as_element()
+                                            .unwrap()
+                                            .attr("colspan")
+                                            .is_none() {
                                             let enthalten_in_modulen = while html_handler.peek().is_some() {
                                                 <tr>
                                                     <td class="tbdata">
@@ -497,7 +693,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                     "Übersicht der Kurstermine"
                                 </div>
                                 <ul class="courseList">
-                                    let short_termine = if **html_handler.peek().unwrap().children().next().unwrap().value().as_text().unwrap() == *"Es liegen keine Termine vor." {
+                                    let short_termine = if **html_handler
+                                        .peek()
+                                        .unwrap()
+                                        .children()
+                                        .next()
+                                        .unwrap()
+                                        .value()
+                                        .as_text()
+                                        .unwrap()
+                                        == *"Es liegen keine Termine vor." {
                                         <li class="courseListCell noLink">
                                             "Es liegen keine Termine vor."
                                         </li>
@@ -507,7 +712,15 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 let mut i = 0;
                                             }
                                             let short_termine = while i < 5 {
-                                                let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
+                                                let short_termin = if html_handler
+                                                    .peek()
+                                                    .unwrap()
+                                                    .value()
+                                                    .as_element()
+                                                    .unwrap()
+                                                    .attr("class")
+                                                    .unwrap()
+                                                    == "courseListCell numout" {
                                                     <li class="courseListCell numout" title=title xss="is-here">
                                                         number
                                                     </li>
@@ -534,7 +747,16 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             </td>
                                         </tr>
                                         let instructors = while html_handler.peek().is_some() {
-                                            let instructor_image = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().attr("name").is_none() {
+                                            let instructor_image = if html_handler
+                                                .peek()
+                                                .unwrap()
+                                                .first_child()
+                                                .unwrap()
+                                                .value()
+                                                .as_element()
+                                                .unwrap()
+                                                .attr("name")
+                                                .is_none() {
                                                 <tr>
                                                     <td class="tbdata_nob h_center">
                                                         <a href=href>
@@ -542,7 +764,10 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         </a>
                                                     </td>
                                                 </tr>
-                                            } => InstructorImageWithLink { href, inner: InstructorImage { imgsrc, alt } };
+                                            } => InstructorImageWithLink {
+                                                href,
+                                                inner: InstructorImage { imgsrc, alt }
+                                            };
                                             <tr>
                                                 <td class="tbdata" name="instructorTitle">
                                                     instructor
@@ -564,35 +789,84 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
         </div>
     }
     let html_handler = footer(html_handler, login_response.id, 311);
-    let course_anmeldefristen = course_anmeldefristen.map_or_else(Vec::new, |anmeldefristen| if anmeldefristen.is_left() { anmeldefristen.unwrap_left() } else { anmeldefristen.unwrap_right() });
+    let course_anmeldefristen = course_anmeldefristen.map_or_else(Vec::new, |anmeldefristen| {
+        if anmeldefristen.is_left() {
+            anmeldefristen.unwrap_left()
+        } else {
+            anmeldefristen.unwrap_right()
+        }
+    });
     html_handler.end_document();
 
     let instructors = instructors.unwrap_or_default();
     if dozent.is_none() || dozent == Some("N.N.".to_owned()) {
         assert!(instructors.is_empty());
-    } else if h(dozent.as_ref().unwrap()) == "fRArPBELwQcLhe4KzBODOZ7RNkKzNttCYuicWPUNx4w" && instructors.iter().map(|m| h(&m.0)).eq(["ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ", "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo", "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo"].into_iter()) {
+    } else if h(dozent.as_ref().unwrap()) == "fRArPBELwQcLhe4KzBODOZ7RNkKzNttCYuicWPUNx4w"
+        && instructors.iter().map(|m| h(&m.0)).eq([
+            "ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ",
+            "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo",
+            "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo",
+        ]
+        .into_iter())
+    {
         // hack, one person has a second name at one place and not at the other place
     } else {
-        assert_eq!(dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(), instructors.iter().map(|m| &m.0).sorted().collect::<Vec<_>>());
+        assert_eq!(
+            dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(),
+            instructors
+                .iter()
+                .map(|m| &m.0)
+                .sorted()
+                .collect::<Vec<_>>()
+        );
     }
-    assert_eq!(anzeige_im_stundenplan.clone().unwrap_or_default(), shortname.trim());
+    assert_eq!(
+        anzeige_im_stundenplan.clone().unwrap_or_default(),
+        shortname.trim()
+    );
 
     let (teilnehmer_range, teilnehmer_min, teilnehmer_max) = teilnehmer.either_into();
-    assert_eq!(teilnehmer_range, format!("{teilnehmer_min} | {teilnehmer_max}"));
+    assert_eq!(
+        teilnehmer_range,
+        format!("{teilnehmer_min} | {teilnehmer_max}")
+    );
     Ok(CourseDetailsResponse {
         name: name.either_into(),
         material_and_messages_url,
-        r#type: course_type_and_number.clone().either_into::<(String, String)>().0,
-        type_number: course_type_and_number.either_into::<(String, String)>().1.parse().unwrap(),
+        r#type: course_type_and_number
+            .clone()
+            .either_into::<(String, String)>()
+            .0,
+        type_number: course_type_and_number
+            .either_into::<(String, String)>()
+            .1
+            .parse()
+            .unwrap(),
         fachbereich,
         anzeige_im_stundenplan,
         courselevel: courselevel.parse().unwrap(),
-        sws: sws.right().map(|sws| sws.replace(',', ".").parse().expect(&sws)),
-        credits: credits.right().map(|credits| credits.trim_end_matches(",0").parse().expect(&credits)),
+        sws: sws
+            .right()
+            .map(|sws| sws.replace(',', ".").parse().expect(&sws)),
+        credits: credits
+            .right()
+            .map(|credits| credits.trim_end_matches(",0").parse().expect(&credits)),
         language: language_and_id.clone().either_into::<(String, String)>().0,
-        language_id: language_and_id.either_into::<(String, String)>().1.parse().unwrap(),
-        teilnehmer_min: if teilnehmer_min == "-" { None } else { Some(teilnehmer_min.parse().unwrap()) },
-        teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
+        language_id: language_and_id
+            .either_into::<(String, String)>()
+            .1
+            .parse()
+            .unwrap(),
+        teilnehmer_min: if teilnehmer_min == "-" {
+            None
+        } else {
+            Some(teilnehmer_min.parse().unwrap())
+        },
+        teilnehmer_max: if teilnehmer_max == "-" {
+            None
+        } else {
+            Some(teilnehmer_max.parse().unwrap())
+        },
         description,
         uebungsgruppen: uebungsgruppen.unwrap_or_default(),
         course_anmeldefristen,

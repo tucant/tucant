@@ -11,7 +11,11 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MlsStart, TucanError> {
+pub async fn after_login(
+    tucan: &TucanConnector,
+    login_response: &LoginResponse,
+    revalidation_strategy: RevalidationStrategy,
+) -> Result<MlsStart, TucanError> {
     // TODO just overwrite old values if id does not match
     let key = format!("unparsed_mlsstart.{}", login_response.id);
 
@@ -19,7 +23,8 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return after_login_internal(login_response, content);
             }
         }
@@ -30,7 +35,8 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,", login_response.id);
-    let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
+    let (content, date) =
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = after_login_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -43,7 +49,10 @@ pub async fn after_login(tucan: &TucanConnector, login_response: &LoginResponse,
 }
 
 #[expect(clippy::too_many_lines)]
-fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result<MlsStart, TucanError> {
+fn after_login_internal(
+    login_response: &LoginResponse,
+    content: &str,
+) -> Result<MlsStart, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -77,7 +86,14 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                 "Stundenplan"
                             </a>
                         </div>
-                        let stundenplan = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        let stundenplan = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .name()
+                            == "table" {
                             <table class="nb rw-table" summary="Studium Generale">
                                 <tbody>
                                     <tr class="tbsubhead">
@@ -115,7 +131,14 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                                 </a>
                                             </td>
                                         </tr>
-                                    } => StundenplanEintrag { course_name, coursedetails_url, courseprep_url, courseprep_url2, from, to };
+                                    } => StundenplanEintrag {
+                                        course_name,
+                                        coursedetails_url,
+                                        courseprep_url,
+                                        courseprep_url2,
+                                        from,
+                                        to
+                                    };
                                 </tbody>
                             </table>
                         } => stundenplan else {
@@ -133,7 +156,14 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                 "Archiv"
                             </a>
                         </div>
-                        let messages = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                        let messages = if html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .name()
+                            == "table" {
                             <table class="nb rw-table rw-all" summary="Eingegangene Nachrichten">
                                 <tbody>
                                     <tr class="tbsubhead rw-hide">
@@ -188,7 +218,8 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                         source,
                                         message: match message.value() {
                                             MyNode::Text(text) => text.to_string(),
-                                            MyNode::Element(_element) => MyElementRef::wrap(message).unwrap().html(),
+                                            MyNode::Element(_element) =>
+                                                MyElementRef::wrap(message).unwrap().html(),
                                             _ => panic!(),
                                         },
                                         delete_url
@@ -207,5 +238,9 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
     };
     let html_handler = footer(html_handler, login_response.id, 19);
     html_handler.end_document();
-    Ok(MlsStart { logged_in_head: head, stundenplan: stundenplan.either_into(), messages: messages.either_into() })
+    Ok(MlsStart {
+        logged_in_head: head,
+        stundenplan: stundenplan.either_into(),
+        messages: messages.either_into(),
+    })
 }

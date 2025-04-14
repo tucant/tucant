@@ -176,8 +176,7 @@ fn grpchoice(input: &mut &str) -> ModalResult<Group> {
 }
 
 fn grpent(input: &mut &str) -> ModalResult<(Option<Occur>, Group)> {
-    let a =
-        (opt(terminated(memberkey, s)), r#type).map(|(key, value)| Group::KeyValue(key, value));
+    let a = (opt(terminated(memberkey, s)), r#type).map(|(key, value)| Group::KeyValue(key, value));
     let b = groupname.map(|v| Group::Name(v.to_owned())); // not complete
     let c = terminated(preceded(("(", s), group), (s, ")"));
     trace("grpent", (opt(terminated(occur, s)), alt((a, b, c)))).parse_next(input)
@@ -295,8 +294,12 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
             quote! {
                 #name
             }
-        },
-        Type::Combined { operator, first, second } => quote! { TODO },
+        }
+        Type::Combined {
+            operator,
+            first,
+            second,
+        } => quote! { TODO },
         Type::Or(items) => quote! { TODO },
         Type::Group(group) => quote! { TODO },
     }
@@ -311,7 +314,7 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
             quote! {
                 #(#items)*
             }
-        },
+        }
         Group::Or(groups) => quote! { pub todo: TODO, },
         Group::KeyValue(key, r#type) => {
             let type_tokens = codegen_type(r#type);
@@ -327,30 +330,33 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                     quote! {
                         pub #key: #type_tokens,
                     }
-                },
-                None => if let Type::Typename(name) = r#type {
-                    let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
-                    quote! {
-                        #[serde(flatten)]
-                        pub #key: #type_tokens,
+                }
+                None => {
+                    if let Type::Typename(name) = r#type {
+                        let key = Ident::new_raw(&name.to_snake_case(), Span::call_site());
+                        quote! {
+                            #[serde(flatten)]
+                            pub #key: #type_tokens,
+                        }
+                    } else {
+                        quote! {
+                            pub NO_KEY: #type_tokens,
+                        }
                     }
-                } else { quote! {
-                    pub NO_KEY: #type_tokens,
-                } },
+                }
             }
-        },
+        }
         Group::Name(name) => {
-            let name_snake = Ident::new_raw( &name.to_snake_case(), Span::call_site());
+            let name_snake = Ident::new_raw(&name.to_snake_case(), Span::call_site());
             let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             quote! {
                 #[serde(flatten)]
                 pub #name_snake: #name,
             }
-        },
+        }
     };
     inner
 }
-
 
 fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
     match rule {
@@ -364,17 +370,16 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                             #inner
                         }
                     }
-                },
+                }
                 Group::Or(groups) => {
-                    let groups = groups.iter().map(|group| {
-                        match group {
-                            Group::And(items) => quote! { Todo, },
-                            Group::Or(groups) => todo!(),
-                            Group::KeyValue(key, _) => todo!(),
-                            Group::Name(name) => {
-                                let name = Ident::new_raw(& name.to_upper_camel_case(), Span::call_site());
-                                quote! { #name(#name), }
-                            },
+                    let groups = groups.iter().map(|group| match group {
+                        Group::And(items) => quote! { Todo, },
+                        Group::Or(groups) => todo!(),
+                        Group::KeyValue(key, _) => todo!(),
+                        Group::Name(name) => {
+                            let name =
+                                Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
+                            quote! { #name(#name), }
                         }
                     });
                     quote! {
@@ -393,9 +398,16 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
             match r#type {
                 Type::Value(value) => quote! { pub type #name_ident = TODO; },
                 Type::Typename(name) => quote! { pub type #name_ident = TODO; },
-                Type::Combined { operator, first, second } => quote! { pub type #name_ident = TODO; },
+                Type::Combined {
+                    operator,
+                    first,
+                    second,
+                } => quote! { pub type #name_ident = TODO; },
                 Type::Or(items) => quote! { pub type #name_ident = TODO; },
-                Type::Group(group) => codegen_rule(&Rule::Group { name: name.to_owned(), group: (None, *group.clone()) }),
+                Type::Group(group) => codegen_rule(&Rule::Group {
+                    name: name.to_owned(),
+                    group: (None, *group.clone()),
+                }),
             }
         }
     }

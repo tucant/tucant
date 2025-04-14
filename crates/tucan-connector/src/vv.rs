@@ -13,14 +13,20 @@ use crate::{
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 
-pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, request: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
+pub async fn vv(
+    tucan: &TucanConnector,
+    login_response: Option<&LoginResponse>,
+    revalidation_strategy: RevalidationStrategy,
+    request: ActionRequest,
+) -> Result<Vorlesungsverzeichnis, TucanError> {
     let key = format!("unparsed_vv.{}", request.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
-            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
+            if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age)
+            {
                 return vv_internal(login_response, content);
             }
         }
@@ -31,7 +37,11 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS={}", request.inner());
-    let (content, date) = if let Some(login_response) = login_response { authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await? } else { retryable_get(tucan, &url).await? };
+    let (content, date) = if let Some(login_response) = login_response {
+        authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?
+    } else {
+        retryable_get(tucan, &url).await?
+    };
     let result = vv_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
@@ -43,7 +53,10 @@ pub async fn vv(tucan: &TucanConnector, login_response: Option<&LoginResponse>, 
 }
 
 #[expect(clippy::too_many_lines)]
-fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<Vorlesungsverzeichnis, TucanError> {
+fn vv_internal(
+    login_response: Option<&LoginResponse>,
+    content: &str,
+) -> Result<Vorlesungsverzeichnis, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -62,14 +75,21 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     } => ();
                 </head>
                 <body class="registration_auditor">
-                    use if let Some(login_response) = login_response { logged_in_head(html_handler, login_response.id).0 } else { logged_out_head(html_handler, 334).0 };
+                    use if let Some(login_response) = login_response {
+                        logged_in_head(html_handler, login_response.id).0
+                    } else {
+                        logged_out_head(html_handler, 334).0
+                    };
                     <script type="text/javascript">
                     </script>
                     <h1>
                         title
                     </h1>
                     <h2>
-                        let path = while html_handler.peek().and_then(ego_tree::NodeRef::next_sibling).is_some() {
+                        let path = while html_handler
+                            .peek()
+                            .and_then(ego_tree::NodeRef::next_sibling)
+                            .is_some() {
                             <a href=url>
                                 title
                             </a>
@@ -77,18 +97,33 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                         <a href=_garbage_url>
                         </a>
                     </h2>
-                    let description = if html_handler.peek().unwrap().value().is_element() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
+                    let description = if html_handler.peek().unwrap().value().is_element()
+                        && html_handler
+                            .peek()
+                            .unwrap()
+                            .value()
+                            .as_element()
+                            .unwrap()
+                            .has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">
                             let description = while html_handler.peek().is_some() {
                                 let any_child = html_handler.next_any_child();
                             } => match any_child.value() {
                                 MyNode::Text(text) => text.to_string(),
-                                MyNode::Element(_element) => MyElementRef::wrap(any_child).unwrap().html(),
+                                MyNode::Element(_element) =>
+                                    MyElementRef::wrap(any_child).unwrap().html(),
                                 _ => panic!(),
                             };
                         </div>
                     } => description;
-                    let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
+                    let entries = if html_handler
+                        .peek()
+                        .unwrap()
+                        .value()
+                        .as_element()
+                        .unwrap()
+                        .name()
+                        == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
                                 <li title=title xss="is-here">
@@ -96,7 +131,10 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                                         title
                                     </a>
                                 </li>
-                            } => (title, ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, "")));
+                            } => (
+                                title,
+                                ActionRequest::parse(&ACTION_REGEX.replace(&reg_href, ""))
+                            );
                         </ul>
                     } => entries;
                     let veranstaltungen_or_module = if html_handler.peek().is_some() {
@@ -104,7 +142,14 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                             <div class="tbhead">
                                 "Veranstaltungen / Module"
                             </div>
-                            let veranstaltungen_or_module = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "table" {
+                            let veranstaltungen_or_module = if html_handler
+                                .peek()
+                                .unwrap()
+                                .value()
+                                .as_element()
+                                .unwrap()
+                                .name()
+                                == "table" {
                                 <table class="nb eventTable">
                                     <tbody>
                                         <tr class="tbsubhead">
@@ -153,11 +198,15 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                                             </tr>
                                         } => Veranstaltung {
                                             title,
-                                            coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
+                                            coursedetails_url: CourseDetailsRequest::parse(
+                                                &COURSEDETAILS_REGEX
+                                                    .replace(&coursedetails_url, "")
+                                            ),
                                             lecturer_name,
                                             date_range,
                                             course_type,
-                                            gefaehrdung_schwangere: gefaehrdung_schwangere.is_some()
+                                            gefaehrdung_schwangere: gefaehrdung_schwangere
+                                                .is_some()
                                         };
                                     </tbody>
                                 </table>
