@@ -8,7 +8,7 @@ version.workspace = true
 workspace = true
 
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "charset", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset", "stream"] }
 tokio = { version = "1", features = ["rt", "macros", "time"] }
 thiserror = "2"
 futures-core = "0.3"

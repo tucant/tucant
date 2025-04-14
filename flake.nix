@@ -108,6 +108,8 @@
           ./crates/tucant-yew/index.html
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
+          ./tucant-extension/helper.js
+          ./tucant-extension/open-in-tucan.js
           ./crates/tucant-yew/fixup.sh
         ];
 
@@ -144,6 +146,7 @@
           ./tucant-extension/fix-session-id-in-url.js
           ./tucant-extension/content-script.js
           ./tucant-extension/content-script-redirect.js
+          ./tucant-extension/open-in-tucan.js
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
           ./tucant-extension/icon.png

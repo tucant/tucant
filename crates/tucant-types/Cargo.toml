@@ -9,7 +9,7 @@ serde = { version = "1", features = ["derive"] }
 utoipa = { git = "https://github.com/juhaku/utoipa.git" }
 axum-core = "0.5.0"
 thiserror = "2"
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "charset", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset", "stream"] }
 regex = { version = "1" }
 
 [lints]
