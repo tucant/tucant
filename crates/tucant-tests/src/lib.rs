@@ -2,10 +2,10 @@
 #[cfg(test)]
 mod tests {
     use std::{
-        path,
-        sync::atomic::{AtomicUsize, Ordering}, time::Duration,
+        collections::HashMap, path, sync::atomic::{AtomicUsize, Ordering}, time::Duration
     };
 
+    use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         events::EventType, local::script::{RealmInfo, WindowRealmInfo}, remote::{
@@ -23,7 +23,8 @@ mod tests {
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
         // TODO FIXME use google-chrome-canary
-        let capabilities = CapabilitiesRequest::default();
+        let mut capabilities = CapabilitiesRequest::default();
+        capabilities.add_first_match(HashMap::from([("browserName".to_owned(), json!("chrome"))]));
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
         Ok(session)
