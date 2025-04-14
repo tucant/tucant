@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         events::EventType, local::script::{RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerSourceAction, PointerSourceActions, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -30,6 +30,9 @@ mod tests {
                 "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
             })
         )]));
+        capabilities.add_first_match(HashMap::from([
+            ("browserName".to_owned(), json!("firefox"))
+        ]));
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
         Ok(session)
@@ -108,12 +111,12 @@ mod tests {
 
             let a: Box<[PointerSourceAction]> = Box::new([
                 PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
-                //PointerSourceAction::PointerDownAction(PointerDownAction::new(1, PointerCommonProperties::new(None, None, None, None, None, None, None)))
+                PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None)))
             ]);
             let a = a.into_vec();
 
             let b: Box<[SourceActions]> = Box::new([
-                SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), None, a))
+                SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a))
             ]);
             let b = b.into_vec();
 
