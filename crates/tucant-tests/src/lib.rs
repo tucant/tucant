@@ -9,7 +9,7 @@ mod tests {
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
         events::EventType, local::script::{NodeRemoteValue, RealmInfo, WindowRealmInfo}, remote::{
-            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
+            browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
 
@@ -57,8 +57,9 @@ mod tests {
 
     async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
         let a: Box<[PointerSourceAction]> = Box::new([
-            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
-            PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None)))
+            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5, 5, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
         ]);
         let a = a.into_vec();
 
@@ -159,12 +160,11 @@ mod tests {
             write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
             write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
             
-            sleep(Duration::from_secs(5)).await;
+            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
+            let node = &node.nodes[0];
+            click_element(&mut session, browsing_context.clone(), node).await?;
 
-/*
-    let login_button = driver.find(By::Css("#login-button")).await?;
-
-*/
+            sleep(Duration::from_secs(3)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{:?}", realms);
