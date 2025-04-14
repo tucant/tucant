@@ -167,10 +167,7 @@ mod tests {
                 panic!();
             };
             
-            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(window.context.clone(), None)), false, None, None, None)).await?;
-
-            let contexts = session.browsing_context_get_tree(GetTreeParameters::new(None, None)).await?;
-            println!("{:?}", contexts);
+            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
