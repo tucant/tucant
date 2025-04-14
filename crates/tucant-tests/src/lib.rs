@@ -53,7 +53,7 @@ mod tests {
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
         // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#beta
-        // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444
+        // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444 --enable-chrome-logs
         // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
         let mut session = get_session().await;
