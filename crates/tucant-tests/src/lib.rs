@@ -111,6 +111,7 @@ mod tests {
 
             let a: Box<[PointerSourceAction]> = Box::new([
                 PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+                PointerSourceAction::PointerMoveAction(PointerMoveAction::new(30, 0, None, Some(Origin::Pointer), PointerCommonProperties::new(None, None, None, None, None, None, None))),
                 PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None)))
             ]);
             let a = a.into_vec();
@@ -121,6 +122,8 @@ mod tests {
             let b = b.into_vec();
 
             session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
+
+            sleep(Duration::from_secs(5)).await;
 
 /*
     let username_input = driver.query(By::Css("#login-username")).first().await?;
