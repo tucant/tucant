@@ -8,7 +8,7 @@ mod tests {
     use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        events::EventType, local::script::{RealmInfo, WindowRealmInfo}, remote::{
+        events::EventType, local::script::{NodeRemoteValue, RealmInfo, WindowRealmInfo}, remote::{
             browser::{ClientWindowNamedOrRectState, ClientWindowRectState, SetClientWindowStateParameters}, browsing_context::{BrowsingContext, CloseParameters, CreateParameters, CreateType, CssLocator, GetTree, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport, XPathLocator}, input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, SourceActions}, script::{AddPreloadScriptParameters, ChannelProperties, ChannelValue, ContextTarget, EvaluateParameters, GetRealmsParameters, RealmTarget, SharedReference, Target}, web_extension::{ExtensionData, ExtensionPath, InstallParameters}, EmptyParams, Extensible
         }, session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest
     };
@@ -47,10 +47,42 @@ mod tests {
     fn generate_keypresses(input: &str) -> Vec<KeySourceAction> {
         input.chars().flat_map(|c| {
             [
-                KeySourceAction::KeyDownAction(KeyDownAction::new("a".to_owned())),
-                KeySourceAction::KeyUpAction(KeyUpAction::new("a".to_owned()))
+                KeySourceAction::KeyDownAction(KeyDownAction::new(c.to_string())),
+                KeySourceAction::KeyUpAction(KeyUpAction::new(c.to_string()))
             ]
         }).collect()
+    }
+
+    async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
+        let a: Box<[PointerSourceAction]> = Box::new([
+            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None)))
+        ]);
+        let a = a.into_vec();
+
+        let b: Box<[SourceActions]> = Box::new([
+            SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
+        ]);
+        let b = b.into_vec();
+
+        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
+        Ok(())
+    }
+
+    async fn write_text(session: &mut WebDriverBiDiSession, browsing_context: String, element: &str, input: &str) -> anyhow::Result<()> {
+        let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new(element.to_owned())), None, None, None)).await?;
+        let node = &node.nodes[0];
+
+        click_element(session, browsing_context.clone(), node).await?;
+
+        let e: Box<[SourceActions]> = Box::new([
+            SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), generate_keypresses(&input)))
+        ]);
+        let e = e.into_vec();
+
+        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e)).await?;
+
+        Ok(())
     }
 
     #[tokio::test]
@@ -120,34 +152,12 @@ mod tests {
 
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
 
-            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-username".to_owned())), None, None, None)).await?;
-            let node = &node.nodes[0];
-
-            let a: Box<[PointerSourceAction]> = Box::new([
-                PointerSourceAction::PointerMoveAction(PointerMoveAction::new(0, 0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
-                PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None)))
-            ]);
-            let a = a.into_vec();
-
-            let b: Box<[SourceActions]> = Box::new([
-                SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
-            ]);
-            let b = b.into_vec();
-
-            session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
-
-            let e: Box<[SourceActions]> = Box::new([
-                SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), generate_keypresses(&username)))
-            ]);
-            let e = e.into_vec();
-
-            session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e)).await?;
-
+            write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
+            write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
+            
             sleep(Duration::from_secs(5)).await;
 
 /*
-    let username_input = driver.query(By::Css("#login-username")).first().await?;
-    let password_input = driver.find(By::Css("#login-password")).await?;
     let login_button = driver.find(By::Css("#login-button")).await?;
 
 */
