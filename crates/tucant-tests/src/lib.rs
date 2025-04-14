@@ -44,8 +44,22 @@ mod tests {
         Ok(())
     }
 
+    fn generate_keypresses(input: &str) -> Vec<KeySourceAction> {
+        input.chars().flat_map(|c| {
+            [
+                KeySourceAction::KeyDownAction(KeyDownAction::new("a".to_owned())),
+                KeySourceAction::KeyUpAction(KeyUpAction::new("a".to_owned()))
+            ]
+        }).collect()
+    }
+
     #[tokio::test]
     async fn it_works() -> anyhow::Result<()> {
+        dotenvy::dotenv().unwrap();
+        let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
+        let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+
+
         env_logger::init();
 
         // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
@@ -62,7 +76,7 @@ mod tests {
             let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
             session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
-            sleep(Duration::from_secs(1)).await;
+            sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
@@ -104,7 +118,7 @@ mod tests {
             // preload script works for google
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
 
             let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-username".to_owned())), None, None, None)).await?;
             let node = &node.nodes[0];
@@ -115,12 +129,6 @@ mod tests {
             ]);
             let a = a.into_vec();
 
-            let c: Box<[KeySourceAction]> = Box::new([
-                KeySourceAction::KeyDownAction(KeyDownAction::new("a".to_owned())),
-                KeySourceAction::KeyUpAction(KeyUpAction::new("a".to_owned()))
-            ]);
-            let c = c.into_vec();
-
             let b: Box<[SourceActions]> = Box::new([
                 SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
             ]);
@@ -129,7 +137,7 @@ mod tests {
             session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
 
             let e: Box<[SourceActions]> = Box::new([
-                SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), c))
+                SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), generate_keypresses(&username)))
             ]);
             let e = e.into_vec();
 
@@ -142,8 +150,6 @@ mod tests {
     let password_input = driver.find(By::Css("#login-password")).await?;
     let login_button = driver.find(By::Css("#login-button")).await?;
 
-    let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
-    let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 */
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
@@ -162,8 +168,7 @@ mod tests {
 
             // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(5)).await;
 
             session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
 

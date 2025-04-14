@@ -3158,6 +3158,7 @@ name = "tucant-tests-webdriver-bidi"
 version = "0.1.2"
 dependencies = [
  "anyhow",
+ "dotenvy",
  "env_logger",
  "serde",
  "serde_json",
