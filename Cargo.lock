@@ -2981,7 +2981,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tucant-tests-webdriver-bidi"
+name = "tucant-tests"
 version = "0.1.2"
 dependencies = [
  "anyhow",

@@ -1,5 +1,5 @@
 [package]
-name = "tucant-tests-webdriver-bidi"
+name = "tucant-tests"
 license.workspace = true
 edition.workspace = true
 version.workspace = true
