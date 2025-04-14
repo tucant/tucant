@@ -26,7 +26,7 @@ mod tests {
         capabilities.add_first_match(HashMap::from([
             ("browserName".to_owned(), json!("chrome")),
             ("goog:chromeOptions".to_owned(), json!({
-                "binary": "/home/moritz/Downloads/chrome-linux64/chrome",
+                "binary": "/home/moritz/Downloads/chrome-linux64/chrome-linux64/chrome",
                 "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
             })
         )]));
@@ -49,7 +49,7 @@ mod tests {
         // Firefox 138 is required
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
-        // Download chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#canary
+        // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#canary
         // /home/moritz/Downloads/chromedriver-linux64/chromedriver --port=4444
         // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
