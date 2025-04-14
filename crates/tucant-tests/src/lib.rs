@@ -96,7 +96,6 @@ mod tests {
         let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
         let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 
-
         env_logger::init();
 
         // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
@@ -118,6 +117,8 @@ mod tests {
            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
            let browsing_context  = contexts.contexts[0].context.clone().clone();
+
+           // seems like chromium uses private tabs for separate user contexts and there the extension is not enabled by default. could probably work around that.
            /*
             let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
             let browsing_context = session
@@ -132,13 +133,6 @@ mod tests {
 
             session.browsing_context_set_viewport(SetViewportParameters { context: browsing_context.clone(), viewport: Some(Viewport { width: 1300, height: 768 }), device_pixel_ratio: None }).await?;
 
-            /*
-            let client_windows = session.browser_get_client_windows(EmptyParams::new()).await?;
-
-            for window in client_windows.client_windows {
-                session.browser_set_client_window_state(SetClientWindowStateParameters::new(window.client_window.clone(), ClientWindowNamedOrRectState::ClientWindowRectState(ClientWindowRectState { state: "normal".to_owned(), width: Some(1300), height: Some(768), x: None, y: None }))).await?;                
-            }
-            */
 
             // https://github.com/SeleniumHQ/selenium/issues/13992
             // https://github.com/w3c/webdriver-bidi/blob/main/proposals/bootstrap-scripts.md
@@ -182,7 +176,7 @@ mod tests {
 
             // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(60)).await;
 
             session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
 
@@ -197,26 +191,4 @@ mod tests {
 
         Ok(())
     }
-    /*
-    #[tokio::test]
-    async fn it_works2() -> anyhow::Result<()> {
-        let mut session = get_session().await;
-        let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
-        let browsing_context = session
-            .browsing_context_create(CreateParameters {
-                create_type: CreateType::Window,
-                user_context: Some(user_context.user_context),
-                reference_context: None,
-                background: None,
-            })
-            .await?;
-        navigate(&mut session, browsing_context.context.clone(), "https://google.de".to_owned()).await?;
-        session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
-
-        if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
-            session.close().await?;
-        }
-
-        Ok(())
-    }*/
 }

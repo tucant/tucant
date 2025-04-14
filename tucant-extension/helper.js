@@ -9,6 +9,7 @@ window.sayHello = async () => {
     })
 
     let tab = await getCurrentTab()
+    console.log(tab)
 
     if (!tab?.id || !tab.url) {
         console.log("no tab id or url")
