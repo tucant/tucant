@@ -3,21 +3,15 @@ use std::ops::Deref;
 use log::error;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
 use wasm_bindgen_futures::spawn_local;
-use yew::{
-    Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state,
-};
+use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
-use crate::{
-    LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn,
-    navbar_logged_out::NavbarLoggedOut,
-};
+use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
 #[function_component(Navbar)]
 pub fn navbar<TucanType: Tucan + 'static>() -> Html {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    let current_session =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
 
@@ -26,11 +20,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
         use_effect_with((*current_session).clone(), move |current_session| {
             if let Some(current_session) = current_session.to_owned() {
                 spawn_local(async move {
-                    match tucan
-                        .0
-                        .after_login(&current_session, RevalidationStrategy::cache())
-                        .await
-                    {
+                    match tucan.0.after_login(&current_session, RevalidationStrategy::cache()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                         }

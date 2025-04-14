@@ -10,10 +10,7 @@ use my_modules::MyModules;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{
-    LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest,
-    moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest,
-};
+use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 use vv::VorlesungsverzeichnisComponent;
 
 use wasm_bindgen_futures::spawn_local;
@@ -64,10 +61,7 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
         .await?
         .value;
 
-    Some(LoginResponse {
-        id: session_id.parse().unwrap(),
-        cookie_cnsc: cnsc,
-    })
+    Some(LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
 }
 
 #[cfg(feature = "api")]
@@ -82,21 +76,13 @@ pub async fn api_login_response() -> Option<LoginResponse> {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();
-                if cookie.name() == "id" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
+                if cookie.name() == "id" { Some(cookie.value().to_string()) } else { None }
             })?
             .parse()
             .unwrap(),
         cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
             let cookie = cookie.unwrap();
-            if cookie.name() == "cnsc" {
-                Some(cookie.value().to_string())
-            } else {
-                None
-            }
+            if cookie.name() == "cnsc" { Some(cookie.value().to_string()) } else { None }
         })?,
     })
 }
@@ -127,8 +113,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
         })
     };
 
-    let current_session =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let on_submit = {
         let username_value_handle = username_value_handle.clone();
@@ -146,11 +131,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
             let tucan = tucan.clone();
 
             spawn_local(async move {
-                let response = tucan
-                    .0
-                    .login(LoginRequest { username, password })
-                    .await
-                    .unwrap();
+                let response = tucan.0.login(LoginRequest { username, password }).await.unwrap();
 
                 #[cfg(feature = "direct")]
                 web_extensions_sys::chrome()
@@ -172,9 +153,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
 
                 current_session.set(Some(response.clone()));
 
-                navigator.push(&Route::Registration {
-                    registration: AnmeldungRequest::default(),
-                });
+                navigator.push(&Route::Registration { registration: AnmeldungRequest::default() });
             })
         })
     };
@@ -192,8 +171,7 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
 fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    let current_session_handle =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let on_submit = {
         Callback::from(move |e: SubmitEvent| {
@@ -363,12 +341,7 @@ impl<TucanType: Tucan + 'static> PartialEq for AppProps<TucanType> {
 }
 
 #[function_component(App)]
-pub fn app<TucanType: Tucan + 'static>(
-    AppProps {
-        initial_session,
-        tucan,
-    }: &AppProps<TucanType>,
-) -> HtmlResult {
+pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session, tucan }: &AppProps<TucanType>) -> HtmlResult {
     let ctx = use_state(|| initial_session.clone());
 
     Ok(html! {

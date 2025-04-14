@@ -10,30 +10,12 @@ use yew::{Callback, MouseEvent, UseStateHandle, hook};
 use yew::{platform::spawn_local, use_effect_with, use_state};
 
 #[hook]
-pub fn use_data_loader<
-    TucanType: Tucan + 'static,
-    I: Clone + PartialEq + 'static,
-    O: Clone + 'static,
->(
-    handler: impl AsyncFn(
-        RcTucanType<TucanType>,
-        LoginResponse,
-        RevalidationStrategy,
-        I,
-    ) -> Result<O, TucanError>
-    + Copy
-    + 'static,
-    request: I,
-    cache_age_seconds: i64,
-    max_stale_age_seconds: i64,
-    render: impl Fn(O, Callback<MouseEvent>) -> Html,
-) -> Html {
+pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
     let loading = use_state(|| false);
-    let current_session_handle =
-        use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
     {
         let data = data.clone();
         let loading = loading.clone();
@@ -46,32 +28,12 @@ pub fn use_data_loader<
                 let data = data.clone();
                 let tucan = tucan.clone();
                 spawn_local(async move {
-                    match handler(
-                        tucan.clone(),
-                        current_session.clone(),
-                        RevalidationStrategy {
-                            max_age: cache_age_seconds,
-                            invalidate_dependents: Some(true),
-                        },
-                        request.clone(),
-                    )
-                    .await
-                    {
+                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);
 
-                            match handler(
-                                tucan.clone(),
-                                current_session.clone(),
-                                RevalidationStrategy {
-                                    max_age: max_stale_age_seconds,
-                                    invalidate_dependents: Some(true),
-                                },
-                                request,
-                            )
-                            .await
-                            {
+                            match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
                                 Ok(response) => data.set(Ok(Some(response))),
                                 Err(error) => {
                                     info!("ignoring error when refetching: {}", error)
@@ -105,17 +67,7 @@ pub fn use_data_loader<
                 let tucan = tucan.clone();
                 let loading = loading.clone();
                 spawn_local(async move {
-                    match handler(
-                        tucan.clone(),
-                        current_session.clone(),
-                        RevalidationStrategy {
-                            max_age: 0,
-                            invalidate_dependents: Some(true),
-                        },
-                        course_details.clone(),
-                    )
-                    .await
-                    {
+                    match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
                         Ok(response) => {
                             data.set(Ok(Some(response)));
                             loading.set(false);

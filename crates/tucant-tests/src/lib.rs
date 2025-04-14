@@ -12,20 +12,9 @@ mod tests {
         local::script::{NodeRemoteValue, RealmInfo},
         remote::{
             Extensible,
-            browsing_context::{
-                BrowsingContext, CloseParameters, CssLocator, GetTreeParameters,
-                LocateNodesParameters, Locator, NavigateParameters, ReadinessState,
-                SetViewportParameters, Viewport,
-            },
-            input::{
-                ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction,
-                Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction,
-                PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions,
-                PointerType, PointerUpAction, SourceActions,
-            },
-            script::{
-                ContextTarget, EvaluateParameters, GetRealmsParameters, SharedReference, Target,
-            },
+            browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport},
+            input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions},
+            script::{ContextTarget, EvaluateParameters, GetRealmsParameters, SharedReference, Target},
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
         },
         session::WebDriverBiDiSession,
@@ -39,10 +28,7 @@ mod tests {
     static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
     async fn get_session() -> WebDriverBiDiSession {
-        SESSION
-            .get_or_init(async || setup_session().await.unwrap())
-            .await
-            .clone()
+        SESSION.get_or_init(async || setup_session().await.unwrap()).await.clone()
     }
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
@@ -57,108 +43,49 @@ mod tests {
                 }),
             ),
         ]));
-        capabilities.add_first_match(HashMap::from([(
-            "browserName".to_owned(),
-            json!("firefox"),
-        )]));
+        capabilities.add_first_match(HashMap::from([("browserName".to_owned(), json!("firefox"))]));
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
         Ok(session)
     }
 
-    async fn navigate(
-        session: &mut WebDriverBiDiSession,
-        ctx: BrowsingContext,
-        url: String,
-    ) -> anyhow::Result<()> {
+    async fn navigate(session: &mut WebDriverBiDiSession, ctx: BrowsingContext, url: String) -> anyhow::Result<()> {
         let navigate_params = NavigateParameters::new(ctx, url, Some(ReadinessState::Complete));
         session.browsing_context_navigate(navigate_params).await?;
         Ok(())
     }
 
     fn generate_keypresses(input: &str) -> Vec<KeySourceAction> {
-        input
-            .chars()
-            .flat_map(|c| {
-                [
-                    KeySourceAction::KeyDownAction(KeyDownAction::new(c.to_string())),
-                    KeySourceAction::KeyUpAction(KeyUpAction::new(c.to_string())),
-                ]
-            })
-            .collect()
+        input.chars().flat_map(|c| [KeySourceAction::KeyDownAction(KeyDownAction::new(c.to_string())), KeySourceAction::KeyUpAction(KeyUpAction::new(c.to_string()))]).collect()
     }
 
-    async fn click_element(
-        session: &mut WebDriverBiDiSession,
-        browsing_context: String,
-        node: &NodeRemoteValue,
-    ) -> anyhow::Result<()> {
+    async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
         let a: Box<[PointerSourceAction]> = Box::new([
-            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
-                5,
-                5,
-                None,
-                Some(Origin::ElementOrigin(ElementOrigin::new(
-                    SharedReference::new(
-                        node.shared_id.clone().unwrap(),
-                        node.handle.clone(),
-                        Extensible::new(),
-                    ),
-                ))),
-                PointerCommonProperties::new(None, None, None, None, None, None, None),
-            )),
-            PointerSourceAction::PointerDownAction(PointerDownAction::new(
-                0,
-                PointerCommonProperties::new(None, None, None, None, None, None, None),
-            )),
+            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5, 5, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None))),
             PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
         ]);
         let a = a.into_vec();
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-        let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(
-            PointerSourceActions::new(
-                id.to_string(),
-                Some(PointerParameters::new(Some(PointerType::Mouse))),
-                a,
-            ),
-        )]);
+        let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(PointerSourceActions::new(id.to_string(), Some(PointerParameters::new(Some(PointerType::Mouse))), a))]);
         let b = b.into_vec();
 
-        session
-            .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b))
-            .await?;
+        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
         Ok(())
     }
 
-    async fn write_text(
-        session: &mut WebDriverBiDiSession,
-        browsing_context: String,
-        element: &str,
-        input: &str,
-    ) -> anyhow::Result<()> {
-        let node = session
-            .browsing_context_locate_nodes(LocateNodesParameters::new(
-                browsing_context.clone(),
-                Locator::CssLocator(CssLocator::new(element.to_owned())),
-                None,
-                None,
-                None,
-            ))
-            .await?;
+    async fn write_text(session: &mut WebDriverBiDiSession, browsing_context: String, element: &str, input: &str) -> anyhow::Result<()> {
+        let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new(element.to_owned())), None, None, None)).await?;
         let node = &node.nodes[0];
 
         click_element(session, browsing_context.clone(), node).await?;
 
         let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-        let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(
-            KeySourceActions::new(id.to_string(), generate_keypresses(input)),
-        )]);
+        let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(KeySourceActions::new(id.to_string(), generate_keypresses(input)))]);
         let e = e.into_vec();
 
-        session
-            .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e))
-            .await?;
+        session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), e)).await?;
 
         Ok(())
     }
@@ -166,10 +93,8 @@ mod tests {
     #[tokio::test]
     async fn it_works() -> anyhow::Result<()> {
         dotenvy::dotenv().unwrap();
-        let username =
-            std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
-        let password =
-            std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+        let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
+        let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 
         env_logger::init();
 
@@ -187,24 +112,12 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
-            let path = std::fs::canonicalize("../../tucant-extension")?
-                .to_str()
-                .unwrap()
-                .to_string();
+            let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
-            session
-                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(
-                    ExtensionPath::new(path),
-                )))
-                .await?;
+            session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
-            let contexts = session
-                .browsing_context_get_tree(GetTreeParameters {
-                    max_depth: None,
-                    root: None,
-                })
-                .await?;
+            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
             let browsing_context = contexts.contexts[0].context.clone().clone();
 
@@ -224,10 +137,7 @@ mod tests {
             session
                 .browsing_context_set_viewport(SetViewportParameters {
                     context: browsing_context.clone(),
-                    viewport: Some(Viewport {
-                        width: 1300,
-                        height: 768,
-                    }),
+                    viewport: Some(Viewport { width: 1300, height: 768 }),
                     device_pixel_ratio: None,
                 })
                 .await?;
@@ -245,77 +155,33 @@ mod tests {
             //}).await;
 
             // preload script works for google
-            navigate(
-                &mut session,
-                browsing_context.clone(),
-                "https://www.tucan.tu-darmstadt.de/".to_owned(),
-            )
-            .await?;
+            navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
 
-            write_text(
-                &mut session,
-                browsing_context.clone(),
-                "#login-username",
-                &username,
-            )
-            .await?;
-            write_text(
-                &mut session,
-                browsing_context.clone(),
-                "#login-password",
-                &password,
-            )
-            .await?;
+            write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
+            write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
 
-            let node = session
-                .browsing_context_locate_nodes(LocateNodesParameters::new(
-                    browsing_context.clone(),
-                    Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
-                    None,
-                    None,
-                    None,
-                ))
-                .await?;
+            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-button".to_owned())), None, None, None)).await?;
             let node = &node.nodes[0];
             click_element(&mut session, browsing_context.clone(), node).await?;
 
             sleep(Duration::from_secs(3)).await;
 
-            let realms = session
-                .script_get_realms(GetRealmsParameters::new(
-                    Some(browsing_context.clone()),
-                    None,
-                ))
-                .await?;
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
 
             let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
                 panic!();
             };
 
-            session
-                .script_evaluate(EvaluateParameters::new(
-                    "window.sayHello()".to_owned(),
-                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
-                    false,
-                    None,
-                    None,
-                    Some(true),
-                ))
-                .await?;
+            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
             // driver.query(By::XPath(r#"//ul/li/a[text()="Anmeldung"]"#)).single().await?.click().await?;
 
-            session
-                .browsing_context_close(CloseParameters {
-                    context: browsing_context,
-                    prompt_unload: None,
-                })
-                .await?;
+            session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
 
             Ok(())
         }

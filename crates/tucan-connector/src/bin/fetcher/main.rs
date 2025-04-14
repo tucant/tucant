@@ -13,11 +13,7 @@ use tucant_types::{LoginResponse, TucanError};
 
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async_main())
+    tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
 }
 
 async fn async_main() -> Result<(), TucanError> {
@@ -38,14 +34,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let fetcher = Arc::new(Fetcher::new());
 
-    fetcher
-        .recursive_anmeldung(
-            &tucan,
-            &login_response,
-            AnmeldungRequest::default(),
-            String::new(),
-        )
-        .await;
+    fetcher.recursive_anmeldung(&tucan, &login_response, AnmeldungRequest::default(), String::new()).await;
 
     //fetcher.anmeldung_file.flush().await?;
     //fetcher.module_file.flush().await?;
@@ -62,38 +51,17 @@ struct Fetcher {
 
 impl Fetcher {
     pub const fn new() -> Self {
-        Self {
-            anmeldung: AtomicU64::new(0),
-            module: AtomicU64::new(0),
-            course: AtomicU64::new(0),
-        }
+        Self { anmeldung: AtomicU64::new(0), module: AtomicU64::new(0), course: AtomicU64::new(0) }
     }
 
     #[expect(clippy::manual_async_fn)]
-    fn recursive_anmeldung<'a, 'b>(
-        self: Arc<Self>,
-        tucan: &'a TucanConnector,
-        login_response: &'b LoginResponse,
-        anmeldung_request: AnmeldungRequest,
-        path: String,
-    ) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+    fn recursive_anmeldung<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, anmeldung_request: AnmeldungRequest, path: String) -> impl Future<Output = ()> + Send + use<'a, 'b> {
         async move {
             //self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
             //self.anmeldung_file.write_all(b"\n").await?;
 
             //println!("anmeldung {}", anmeldung_request.inner());
-            let result = AssertUnwindSafe(async {
-                tucan
-                    .anmeldung(
-                        login_response.clone(),
-                        RevalidationStrategy::cache(),
-                        anmeldung_request.clone(),
-                    )
-                    .await
-                    .unwrap()
-            })
-            .catch_unwind()
-            .await;
+            let result = AssertUnwindSafe(async { tucan.anmeldung(login_response.clone(), RevalidationStrategy::cache(), anmeldung_request.clone()).await.unwrap() }).catch_unwind().await;
             let anmeldung_response = match result {
                 Err(err) => {
                     eprintln!("failed to fetch anmeldung {anmeldung_request} with error {err:?}");
@@ -109,14 +77,7 @@ impl Fetcher {
                 .iter()
                 .map(|entry| {
                     async {
-                        self.clone()
-                            .recursive_anmeldung(
-                                tucan,
-                                login_response,
-                                entry.1.clone(),
-                                path.clone() + " > " + &entry.0,
-                            )
-                            .await;
+                        self.clone().recursive_anmeldung(tucan, login_response, entry.1.clone(), path.clone() + " > " + &entry.0).await;
                     }
                     .boxed()
                 })
@@ -127,31 +88,14 @@ impl Fetcher {
                             //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
                             //self.module_file.write_all(b"\n").await.unwrap();
 
-                            if matches!(
-                                &module.registration_state,
-                                RegistrationState::Registered { unregister_link: _ }
-                            ) {
+                            if matches!(&module.registration_state, RegistrationState::Registered { unregister_link: _ }) {
                                 println!("registered for {} at {}", module.name, path);
                             }
 
-                            let result = AssertUnwindSafe(async {
-                                tucan
-                                    .module_details(
-                                        login_response,
-                                        RevalidationStrategy::cache(),
-                                        module.url.clone(),
-                                    )
-                                    .await
-                                    .unwrap()
-                            })
-                            .catch_unwind()
-                            .await;
+                            let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap() }).catch_unwind().await;
                             match result {
                                 Err(err) => {
-                                    eprintln!(
-                                        "failed to fetch module {} with error {err:?}",
-                                        module.url
-                                    );
+                                    eprintln!("failed to fetch module {} with error {err:?}", module.url);
                                 }
                                 Ok(module) => {
                                     if module.registered {
@@ -170,22 +114,12 @@ impl Fetcher {
                             //self.course_file.write_all(b"\n").await.unwrap();
 
                             let result = AssertUnwindSafe(async {
-                                let _course_details = tucan
-                                    .course_details(
-                                        login_response,
-                                        RevalidationStrategy::cache(),
-                                        CourseDetailsRequest::parse(course.1.url.inner()),
-                                    )
-                                    .await
-                                    .unwrap();
+                                let _course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
                             })
                             .catch_unwind()
                             .await;
                             if let Err(err) = result {
-                                eprintln!(
-                                    "failed to fetch course {} with error {err:?}",
-                                    course.1.url
-                                );
+                                eprintln!("failed to fetch course {} with error {err:?}", course.1.url);
                             }
 
                             //println!("course counter: {}", self.course_counter.load(Ordering::Relaxed));

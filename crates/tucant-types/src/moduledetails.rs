@@ -28,12 +28,9 @@ impl Display for ModuleDetailsRequest {
 impl ModuleDetailsRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        static MODULE_DETAILS_REGEX: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+)(,-A[a-zA-Z0-9_~-]+)?$").unwrap());
+        static MODULE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+)(,-A[a-zA-Z0-9_~-]+)?$").unwrap());
         let c = &MODULE_DETAILS_REGEX.captures(input).expect(input);
-        Self {
-            arguments: format!("-N{}", &c["n1"],),
-        }
+        Self { arguments: format!("-N{}", &c["n1"],) }
     }
 
     #[must_use]

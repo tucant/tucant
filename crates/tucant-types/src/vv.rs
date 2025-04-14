@@ -47,12 +47,9 @@ impl Display for ActionRequest {
 impl ActionRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
-        static ACTION_REQUEST: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"^-A[a-zA-Z0-9_~-]+$").unwrap());
+        static ACTION_REQUEST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-A[a-zA-Z0-9_~-]+$").unwrap());
         assert!(&ACTION_REQUEST.is_match(input), "{}", input);
-        Self {
-            arguments: input.to_owned(),
-        }
+        Self { arguments: input.to_owned() }
     }
 
     #[must_use]

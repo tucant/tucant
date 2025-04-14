@@ -18,14 +18,8 @@ use quote::quote;
 
 #[derive(Debug)]
 pub enum Rule {
-    Group {
-        name: String,
-        group: (Option<Occur>, Group),
-    },
-    Type {
-        name: String,
-        r#type: Type,
-    },
+    Group { name: String, group: (Option<Occur>, Group) },
+    Type { name: String, r#type: Type },
 }
 
 #[derive(Debug, Clone)]
@@ -40,11 +34,7 @@ pub enum Group {
 pub enum Type {
     Value(Value),
     Typename(String),
-    Combined {
-        operator: Operator,
-        first: Box<Type>,
-        second: Box<Type>,
-    },
+    Combined { operator: Operator, first: Box<Type>, second: Box<Type> },
     Or(Vec<Type>),
     Group(Box<Group>),
 }
@@ -104,19 +94,7 @@ fn r#type(input: &mut &str) -> ModalResult<Type> {
 }
 
 fn type1(input: &mut &str) -> ModalResult<Type> {
-    trace("type1", (type2, opt((s, alt((rangeop, ctlop)), s, type2))))
-        .map(|(first, second)| {
-            if let Some(((), operator, (), second)) = second {
-                Type::Combined {
-                    operator,
-                    first: Box::new(first),
-                    second: Box::new(second),
-                }
-            } else {
-                first
-            }
-        })
-        .parse_next(input)
+    trace("type1", (type2, opt((s, alt((rangeop, ctlop)), s, type2)))).map(|(first, second)| if let Some(((), operator, (), second)) = second { Type::Combined { operator, first: Box::new(first), second: Box::new(second) } } else { first }).parse_next(input)
 }
 
 fn type2(input: &mut &str) -> ModalResult<Type> {
@@ -141,38 +119,30 @@ pub enum Operator {
 }
 
 fn rangeop(input: &mut &str) -> ModalResult<Operator> {
-    alt(("...", ".."))
-        .map(|v| Operator::Range)
-        .parse_next(input)
+    alt(("...", "..")).map(|v| Operator::Range).parse_next(input)
 }
 
 fn ctlop(input: &mut &str) -> ModalResult<Operator> {
-    preceded(".", id)
-        .map(|v| Operator::Control(v.to_owned()))
-        .parse_next(input)
+    preceded(".", id).map(|v| Operator::Control(v.to_owned())).parse_next(input)
 }
 
 fn group(input: &mut &str) -> ModalResult<Group> {
     trace(
         "group",
-        (grpchoice, repeat(0.., preceded((s, "//", s), grpchoice))).map(
-            |(first, mut rest): (_, Vec<_>)| {
-                if rest.is_empty() {
-                    first
-                } else {
-                    rest.insert(0, first);
-                    Group::Or(rest)
-                }
-            },
-        ),
+        (grpchoice, repeat(0.., preceded((s, "//", s), grpchoice))).map(|(first, mut rest): (_, Vec<_>)| {
+            if rest.is_empty() {
+                first
+            } else {
+                rest.insert(0, first);
+                Group::Or(rest)
+            }
+        }),
     )
     .parse_next(input)
 }
 
 fn grpchoice(input: &mut &str) -> ModalResult<Group> {
-    trace("grpchoice", repeat(0.., terminated(grpent, optcom)))
-        .map(Group::And)
-        .parse_next(input)
+    trace("grpchoice", repeat(0.., terminated(grpent, optcom))).map(Group::And).parse_next(input)
 }
 
 fn grpent(input: &mut &str) -> ModalResult<(Option<Occur>, Group)> {
@@ -215,14 +185,12 @@ fn occur(input: &mut &str) -> ModalResult<Occur> {
     trace(
         "occur",
         alt((
-            (opt(dec_uint), "*", opt(dec_uint)).map(
-                |(l, _, u): (Option<usize>, _, Option<usize>)| match (l, u) {
-                    (Some(l), Some(u)) => Occur::RangeInclusive(l..=u),
-                    (Some(l), None) => Occur::RangeFrom(l..),
-                    (None, Some(u)) => Occur::RangeInclusive(0..=u),
-                    (None, None) => Occur::RangeFrom(0..),
-                },
-            ),
+            (opt(dec_uint), "*", opt(dec_uint)).map(|(l, _, u): (Option<usize>, _, Option<usize>)| match (l, u) {
+                (Some(l), Some(u)) => Occur::RangeInclusive(l..=u),
+                (Some(l), None) => Occur::RangeFrom(l..),
+                (None, Some(u)) => Occur::RangeInclusive(0..=u),
+                (None, None) => Occur::RangeFrom(0..),
+            }),
             "+".map(|v| Occur::RangeFrom(1..)),
             "?".map(|v| Occur::RangeInclusive(0..=1)),
         )),
@@ -237,32 +205,15 @@ pub enum Value {
 }
 
 fn value(input: &mut &str) -> ModalResult<Value> {
-    trace(
-        "value",
-        alt((
-            take_while(1.., ('0'..='9', 'e', '.', '-', '+'))
-                .map(|v: &str| Value::Number(v.to_owned())),
-            seq!(_: "\"", take_until(0.., "\""), _: "\"")
-                .map(|(v,): (&str,)| Value::String(v.to_owned())),
-        )),
-    )
-    .parse_next(input)
+    trace("value", alt((take_while(1.., ('0'..='9', 'e', '.', '-', '+')).map(|v: &str| Value::Number(v.to_owned())), seq!(_: "\"", take_until(0.., "\""), _: "\"").map(|(v,): (&str,)| Value::String(v.to_owned()))))).parse_next(input)
 }
 
 fn id<'a>(s: &mut &'a str) -> ModalResult<&'a str> {
-    trace(
-        "id",
-        take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-', '.')),
-    )
-    .parse_next(s)
+    trace("id", take_while(1.., ('a'..='z', 'A'..='Z', '0'..='9', '-', '.'))).parse_next(s)
 }
 
 fn s(input: &mut &str) -> ModalResult<()> {
-    repeat(
-        0..,
-        alt((multispace1.map(|v| ()), (";", till_line_ending).map(|v| ()))),
-    )
-    .parse_next(input)
+    repeat(0.., alt((multispace1.map(|v| ()), (";", till_line_ending).map(|v| ())))).parse_next(input)
 }
 
 pub fn codegen(rules: &[Rule]) {
@@ -295,11 +246,7 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
                 #name
             }
         }
-        Type::Combined {
-            operator,
-            first,
-            second,
-        } => quote! { TODO },
+        Type::Combined { operator, first, second } => quote! { TODO },
         Type::Or(items) => quote! { TODO },
         Type::Group(group) => quote! { TODO },
     }
@@ -377,8 +324,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                         Group::Or(groups) => todo!(),
                         Group::KeyValue(key, _) => todo!(),
                         Group::Name(name) => {
-                            let name =
-                                Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
+                            let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
                             quote! { #name(#name), }
                         }
                     });
@@ -398,16 +344,9 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
             match r#type {
                 Type::Value(value) => quote! { pub type #name_ident = TODO; },
                 Type::Typename(name) => quote! { pub type #name_ident = TODO; },
-                Type::Combined {
-                    operator,
-                    first,
-                    second,
-                } => quote! { pub type #name_ident = TODO; },
+                Type::Combined { operator, first, second } => quote! { pub type #name_ident = TODO; },
                 Type::Or(items) => quote! { pub type #name_ident = TODO; },
-                Type::Group(group) => codegen_rule(&Rule::Group {
-                    name: name.to_owned(),
-                    group: (None, *group.clone()),
-                }),
+                Type::Group(group) => codegen_rule(&Rule::Group { name: name.to_owned(), group: (None, *group.clone()) }),
             }
         }
     }

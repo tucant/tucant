@@ -10,9 +10,7 @@ pub struct VorlesungsverzeichnisseProps {
 }
 
 #[function_component(Vorlesungsverzeichnisse)]
-pub fn vorlesungsverzeichnisse(
-    VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps,
-) -> Html {
+pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
     ::yew::html! {
         {data.iter()
             .flat_map(|v| v.logged_in_head.vv.vvs.iter())
@@ -42,12 +40,7 @@ pub struct NavbarLoggedInProps {
 }
 
 #[function_component(NavbarLoggedIn)]
-pub fn navbar_logged_in(
-    NavbarLoggedInProps {
-        current_session,
-        data,
-    }: &NavbarLoggedInProps,
-) -> Html {
+pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLoggedInProps) -> Html {
     ::yew::html! {
         <>
             <li class="nav-item dropdown">

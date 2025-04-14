@@ -18,10 +18,7 @@ struct HtmlCommands {
 
 impl HtmlCommands {
     fn span(&self) -> Option<Span> {
-        self.commands
-            .iter()
-            .map(HtmlCommand::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a))
+        self.commands.iter().map(HtmlCommand::span).reduce(|a, b| a.join(b).unwrap_or(a))
     }
 }
 
@@ -99,10 +96,7 @@ struct HtmlExtern {
 
 impl HtmlExtern {
     pub fn span(&self) -> Span {
-        self.extern_
-            .span()
-            .join(self.block.span())
-            .unwrap_or_else(|| self.extern_.span())
+        self.extern_.span().join(self.block.span()).unwrap_or_else(|| self.extern_.span())
     }
 }
 
@@ -123,11 +117,7 @@ struct HtmlUse {
 
 impl HtmlUse {
     pub fn span(&self) -> Span {
-        self.use_
-            .span()
-            .join(self.expr.span())
-            .and_then(|v| v.join(self.semi.span()))
-            .unwrap_or_else(|| self.use_.span())
+        self.use_.span().join(self.expr.span()).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.use_.span())
     }
 }
 
@@ -151,13 +141,7 @@ struct HtmlLet {
 
 impl HtmlLet {
     pub fn span(&self) -> Span {
-        self.let_
-            .span()
-            .join(self.variable.span())
-            .and_then(|v| v.join(self.eq.span()))
-            .and_then(|v| v.join(self.inner.span()))
-            .and_then(|v| v.join(self.semi.span()))
-            .unwrap_or_else(|| self.let_.span())
+        self.let_.span().join(self.variable.span()).and_then(|v| v.join(self.eq.span())).and_then(|v| v.join(self.inner.span())).and_then(|v| v.join(self.semi.span())).unwrap_or_else(|| self.let_.span())
     }
 }
 
@@ -168,13 +152,7 @@ impl Parse for HtmlLet {
         let eq = input.parse::<Token![=]>()?;
         let inner = input.parse()?;
         let semi = input.parse::<Token![;]>()?;
-        Ok(Self {
-            let_,
-            variable,
-            eq,
-            inner,
-            semi,
-        })
+        Ok(Self { let_, variable, eq, inner, semi })
     }
 }
 
@@ -220,9 +198,7 @@ impl HtmlWhitespace {
 
 impl Parse for HtmlWhitespace {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            underscore: input.parse()?,
-        })
+        Ok(Self { underscore: input.parse()? })
     }
 }
 
@@ -288,15 +264,8 @@ struct HtmlAttribute {
 
 impl HtmlAttribute {
     fn span(&self) -> Span {
-        let span = self
-            .ident
-            .iter()
-            .map(proc_macro2::Ident::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a))
-            .unwrap();
-        span.join(self.eq.span())
-            .and_then(|a| a.join(self.value.span()))
-            .unwrap_or(span)
+        let span = self.ident.iter().map(proc_macro2::Ident::span).reduce(|a, b| a.join(b).unwrap_or(a)).unwrap();
+        span.join(self.eq.span()).and_then(|a| a.join(self.value.span())).unwrap_or(span)
     }
 }
 
@@ -324,17 +293,8 @@ struct HtmlElement {
 
 impl HtmlElement {
     pub fn span(&self) -> Span {
-        let attrspan = self
-            .attributes
-            .iter()
-            .map(HtmlAttribute::span)
-            .reduce(|a, b| a.join(b).unwrap_or(a));
-        self.open_start
-            .span()
-            .join(self.element.span())
-            .map(|s| attrspan.and_then(|attrspan| s.join(attrspan)).unwrap_or(s))
-            .and_then(|s| s.join(self.open_end.span()))
-            .unwrap_or_else(|| self.open_start.span())
+        let attrspan = self.attributes.iter().map(HtmlAttribute::span).reduce(|a, b| a.join(b).unwrap_or(a));
+        self.open_start.span().join(self.element.span()).map(|s| attrspan.and_then(|attrspan| s.join(attrspan)).unwrap_or(s)).and_then(|s| s.join(self.open_end.span())).unwrap_or_else(|| self.open_start.span())
     }
 }
 
@@ -347,12 +307,7 @@ impl Parse for HtmlElement {
             attributes.push(input.parse()?);
         }
         let open_end = input.parse()?;
-        Ok(Self {
-            open_start,
-            element,
-            attributes,
-            open_end,
-        })
+        Ok(Self { open_start, element, attributes, open_end })
     }
 }
 
@@ -366,12 +321,7 @@ struct HtmlElementClose {
 
 impl HtmlElementClose {
     pub fn span(&self) -> Span {
-        self.close_start
-            .span()
-            .join(self.close_slash.span())
-            .and_then(|s| s.join(self.element.span()))
-            .and_then(|s| s.join(self.close_end.span()))
-            .unwrap_or_else(|| self.close_start.span())
+        self.close_start.span().join(self.close_slash.span()).and_then(|s| s.join(self.element.span())).and_then(|s| s.join(self.close_end.span())).unwrap_or_else(|| self.close_start.span())
     }
 }
 
@@ -381,12 +331,7 @@ impl Parse for HtmlElementClose {
         let close_slash = input.parse::<Token![/]>()?;
         let element = input.call(Ident::parse_any)?;
         let close_end = input.parse::<Token![>]>()?;
-        Ok(Self {
-            close_start,
-            close_slash,
-            element,
-            close_end,
-        })
+        Ok(Self { close_start, close_slash, element, close_end })
     }
 }
 
@@ -404,19 +349,7 @@ struct HtmlComment {
 
 impl HtmlComment {
     pub fn span(&self) -> Span {
-        [
-            self.token1.span(),
-            self.token2.span(),
-            self.token3.span(),
-            self.token4.span(),
-            self.comment.span(),
-            self.token5.span(),
-            self.token6.span(),
-            self.token7.span(),
-        ]
-        .into_iter()
-        .reduce(|a, b| a.join(b).unwrap_or(a))
-        .unwrap()
+        [self.token1.span(), self.token2.span(), self.token3.span(), self.token4.span(), self.comment.span(), self.token5.span(), self.token6.span(), self.token7.span()].into_iter().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
@@ -430,16 +363,7 @@ impl Parse for HtmlComment {
         let token5 = input.parse::<Token![-]>()?;
         let token6 = input.parse::<Token![-]>()?;
         let token7 = input.parse::<Token![>]>()?;
-        Ok(Self {
-            token1,
-            token2,
-            token3,
-            token4,
-            comment,
-            token5,
-            token6,
-            token7,
-        })
+        Ok(Self { token1, token2, token3, token4, comment, token5, token6, token7 })
     }
 }
 
@@ -467,38 +391,13 @@ struct HtmlElse {
 
 impl HtmlElse {
     pub fn span(&self) -> Span {
-        [
-            Some(self.else_.span()),
-            Some(self.brace_token.span.span()),
-            self.body.span(),
-            Some(self.eq.span()),
-            Some(self.gt.span()),
-            Some(self.result_expr.span()),
-        ]
-        .into_iter()
-        .flatten()
-        .reduce(|a, b| a.join(b).unwrap_or(a))
-        .unwrap()
+        [Some(self.else_.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span())].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
 impl HtmlIf {
     pub fn span(&self) -> Span {
-        [
-            Some(self.if_.span()),
-            Some(self.conditional.span()),
-            Some(self.brace_token.span.span()),
-            self.body.span(),
-            Some(self.eq.span()),
-            Some(self.eq.span()),
-            Some(self.gt.span()),
-            Some(self.result_expr.span()),
-            self.else_.as_ref().map(HtmlElse::span),
-        ]
-        .into_iter()
-        .flatten()
-        .reduce(|a, b| a.join(b).unwrap_or(a))
-        .unwrap()
+        [Some(self.if_.span()), Some(self.conditional.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span()), self.else_.as_ref().map(HtmlElse::span)].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
@@ -577,27 +476,11 @@ impl Parse for HtmlIf {
                 })?
                 .into_iter()
                 .collect();
-            Some(HtmlElse {
-                else_,
-                brace_token,
-                body,
-                eq,
-                gt,
-                result_expr,
-            })
+            Some(HtmlElse { else_, brace_token, body, eq, gt, result_expr })
         } else {
             None
         };
-        Ok(Self {
-            if_,
-            conditional,
-            brace_token,
-            body,
-            eq,
-            gt,
-            result_expr,
-            else_,
-        })
+        Ok(Self { if_, conditional, brace_token, body, eq, gt, result_expr, else_ })
     }
 }
 
@@ -614,19 +497,7 @@ struct HtmlWhile {
 
 impl HtmlWhile {
     pub fn span(&self) -> Span {
-        [
-            Some(self.while_.span()),
-            Some(self.conditional.span()),
-            Some(self.brace_token.span.span()),
-            self.body.span(),
-            Some(self.eq.span()),
-            Some(self.gt.span()),
-            Some(self.result_expr.span()),
-        ]
-        .into_iter()
-        .flatten()
-        .reduce(|a, b| a.join(b).unwrap_or(a))
-        .unwrap()
+        [Some(self.while_.span()), Some(self.conditional.span()), Some(self.brace_token.span.span()), self.body.span(), Some(self.eq.span()), Some(self.gt.span()), Some(self.result_expr.span())].into_iter().flatten().reduce(|a, b| a.join(b).unwrap_or(a)).unwrap()
     }
 }
 
@@ -676,15 +547,7 @@ impl Parse for HtmlWhile {
             })?
             .into_iter()
             .collect();
-        Ok(Self {
-            while_,
-            conditional,
-            brace_token,
-            body,
-            eq,
-            gt,
-            result_expr,
-        })
+        Ok(Self { while_, conditional, brace_token, body, eq, gt, result_expr })
     }
 }
 
