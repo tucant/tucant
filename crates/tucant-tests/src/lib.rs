@@ -17,6 +17,8 @@ mod tests {
 
     static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
 
+    static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
+
     async fn get_session() -> WebDriverBiDiSession {
         SESSION.get_or_init(async || setup_session().await.unwrap()).await.clone()
     }
@@ -60,8 +62,9 @@ mod tests {
         ]);
         let a = a.into_vec();
 
+        let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
         let b: Box<[SourceActions]> = Box::new([
-            SourceActions::PointerSourceActions(PointerSourceActions::new("1".to_owned(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
+            SourceActions::PointerSourceActions(PointerSourceActions::new(id.to_string(), Some(PointerParameters::new(Some(PointerType::Mouse))), a)),
         ]);
         let b = b.into_vec();
 
@@ -75,8 +78,9 @@ mod tests {
 
         click_element(session, browsing_context.clone(), node).await?;
 
+        let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
         let e: Box<[SourceActions]> = Box::new([
-            SourceActions::KeySourceActions(KeySourceActions::new("2".to_string(), generate_keypresses(&input)))
+            SourceActions::KeySourceActions(KeySourceActions::new(id.to_string(), generate_keypresses(&input)))
         ]);
         let e = e.into_vec();
 
