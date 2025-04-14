@@ -22,9 +22,14 @@ mod tests {
     }
 
     async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
-        // TODO FIXME use google-chrome-canary
         let mut capabilities = CapabilitiesRequest::default();
-        capabilities.add_first_match(HashMap::from([("browserName".to_owned(), json!("chrome"))]));
+        capabilities.add_first_match(HashMap::from([
+            ("browserName".to_owned(), json!("chrome")),
+            ("goog:chromeOptions".to_owned(), json!({
+                "binary": "/home/moritz/Downloads/chrome-linux64/chrome",
+                "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
+            })
+        )]));
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
         session.start().await?;
         Ok(session)
@@ -43,7 +48,9 @@ mod tests {
         // https://github.com/SeleniumHQ/selenium/issues/15585#issuecomment-2782657812
         // Firefox 138 is required
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
-        // chromedriver --port=4444
+
+        // Download chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#canary
+        // /home/moritz/Downloads/chromedriver-linux64/chromedriver --port=4444
         // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
         let mut session = get_session().await;
