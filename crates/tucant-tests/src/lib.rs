@@ -49,8 +49,8 @@ mod tests {
         // Firefox 138 is required
         // geckodriver --binary /home/moritz/Downloads/firefox-138.0b6/firefox/firefox-bin
 
-        // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#canary
-        // /home/moritz/Downloads/chromedriver-linux64/chromedriver --port=4444
+        // Download beta (>= 136.0.7103.25) chrome and chromedriver from https://googlechromelabs.github.io/chrome-for-testing/#beta
+        // /home/moritz/Downloads/chromedriver-linux64/chromedriver-linux64/chromedriver --port=4444
         // https://github.com/GoogleChromeLabs/chromium-bidi/issues/2849
 
         let mut session = get_session().await;
@@ -59,18 +59,24 @@ mod tests {
             let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
             session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
+            sleep(Duration::from_secs(1)).await;
 
+           let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
+
+           let browsing_context  = contexts.contexts[0].context.clone().clone();
+           /*
             let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
             let browsing_context = session
                 .browsing_context_create(CreateParameters {
                     create_type: CreateType::Window,
                     user_context: Some(user_context.user_context.clone()),
-                    reference_context: None,
+                    reference_context: Some(contexts.contexts[0].context.clone()),
                     background: None,
                 })
                 .await?;
+*/
 
-            session.browsing_context_set_viewport(SetViewportParameters { context: browsing_context.context.clone(), viewport: Some(Viewport { width: 1300, height: 768 }), device_pixel_ratio: None }).await?;
+            session.browsing_context_set_viewport(SetViewportParameters { context: browsing_context.clone(), viewport: Some(Viewport { width: 1300, height: 768 }), device_pixel_ratio: None }).await?;
 
             /*
             let client_windows = session.browser_get_client_windows(EmptyParams::new()).await?;
@@ -86,18 +92,18 @@ mod tests {
 
             // TODO type should be fixed in constructor
             let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
-            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), None, Some(vec![user_context.user_context.clone()]), None)).await?;
+            session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.clone()]), None, None)).await?;
 
             session.register_event_handler(EventType::ScriptMessage, async |event| {
                 println!("{event:?}")
             }).await;
 
             // preload script works for google
-            navigate(&mut session, browsing_context.context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
+            navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             sleep(Duration::from_secs(5)).await;
 
-            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.context.clone(), Locator::CssLocator(CssLocator::new("#login-username".to_owned())), None, None, None)).await?;
+            let node = session.browsing_context_locate_nodes(LocateNodesParameters::new(browsing_context.clone(), Locator::CssLocator(CssLocator::new("#login-username".to_owned())), None, None, None)).await?;
             panic!("{:?}", node);
 
 
@@ -113,7 +119,7 @@ mod tests {
             ]);
             let b = b.into_vec();
 
-            session.input_perform_actions(PerformActionsParameters::new(browsing_context.context.clone(), b)).await?;
+            session.input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b)).await?;
 
 /*
     let username_input = driver.query(By::Css("#login-username")).first().await?;
@@ -124,7 +130,7 @@ mod tests {
     let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
 */
 
-            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.context.clone()), None)).await?;
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{:?}", realms);
            
             let RealmInfo::WindowRealmInfo(window) = &realms.realms[0] else {
@@ -143,7 +149,7 @@ mod tests {
 
             sleep(Duration::from_secs(30)).await;
 
-            session.browsing_context_close(CloseParameters { context: browsing_context.context, prompt_unload: None }).await?;
+            session.browsing_context_close(CloseParameters { context: browsing_context, prompt_unload: None }).await?;
 
             Ok(())
         }.await;
