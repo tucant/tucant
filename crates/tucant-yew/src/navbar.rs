@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use log::error;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan};
+use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
 
@@ -11,14 +11,15 @@ use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::Navb
 pub fn navbar<TucanType: Tucan + 'static>() -> Html {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
-    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
+    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
 
     {
         let data = data.clone();
-        use_effect_with((*current_session).clone(), move |current_session| {
-            if let Some(current_session) = current_session.to_owned() {
+        use_effect_with(current_session_handle.clone(), move |current_session_handle| {
+            if let Some(current_session) = (&**current_session_handle).to_owned() {
+                let current_session_handle = current_session_handle.clone();
                 spawn_local(async move {
                     match tucan.0.after_login(&current_session, RevalidationStrategy::cache()).await {
                         Ok(response) => {
@@ -28,6 +29,10 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                             // TODO pass through tucanerror from server
                             // TODO logout clientside
                             error!("{}", error);
+                            if let TucanError::Timeout = error {
+                                // set session
+                                current_session_handle.set(None);
+                            }
                             data.set(Err(error));
                         }
                     }
@@ -48,7 +53,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                         </button>
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                             <ul class="navbar-nav me-auto mb-2 mb-xl-0">
-                                if let Some(current_session) = &*current_session {
+                                if let Some(current_session) = &*current_session_handle {
                                     if let Ok(data) = &*data {
                                         <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />
                                     }
@@ -56,7 +61,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                                     <NavbarLoggedOut />
                                 }
                                 </ul>
-                                if !current_session.is_some() {
+                                if !current_session_handle.is_some() {
                                     <LoginComponent<TucanType> />
                                 }  else {
                                     <LogoutComponent<TucanType> />
