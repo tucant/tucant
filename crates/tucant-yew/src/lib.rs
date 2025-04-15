@@ -152,8 +152,6 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
                     .await;
 
                 current_session.set(Some(response.clone()));
-
-                navigator.push(&Route::Registration { registration: AnmeldungRequest::default() });
             })
         })
     };
