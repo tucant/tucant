@@ -229,6 +229,7 @@
           });
 
           my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } (nativeArgs // {
+            RUSTFMT = "${rustfmt}/bin/rustfmt";
             src = source-with-build-instructions;
           });
         };
