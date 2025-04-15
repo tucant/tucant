@@ -30,7 +30,7 @@ pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
                             <thead>
                                 <tr>
                                     <th scope="col">
-                                        {"NR"}
+                                             {"NR"}
                                     </th>
                                     <th scope="col">
                                         {"Name"}
