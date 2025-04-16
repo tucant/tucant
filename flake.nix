@@ -192,6 +192,7 @@
             ./flake.lock
             ./Dockerfile
             ./README.md
+            ./rustfmt.toml
           ];
         };
 
@@ -211,8 +212,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "tucant";
             repo = "rustfmt";
-            rev = "5c651de342ab906ba5e25ff6f9664858908b3c5b";
-            hash = "sha256-w80g0enRR7lQFiJklXjJbliXn0iyOfRd88RemnTroIQ=";
+            rev = "93e59894da4d24ec39948c8908d1a5f773a618cb";
+            hash = "sha256-2ylnSg+Kn1SdYSMCU5WU1NwLSwweLwBEMpXWqPjVgqo=";
           };
           doCheck = false;
         };
@@ -227,7 +228,10 @@
             cargoClippyExtraArgs = "--all-targets -- --deny warnings";
           });
 
-          my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } nativeArgs;
+          my-app-fmt = craneNightlyLib.cargoFmt.override { rustfmt = rustfmt; } (nativeArgs // {
+            RUSTFMT = "${rustfmt}/bin/rustfmt";
+            src = source-with-build-instructions;
+          });
         };
 
         packages.schema = schema;
