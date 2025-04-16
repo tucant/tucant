@@ -1,15 +1,20 @@
 use std::ops::Deref;
 
-use tucant_types::{Tucan, mymodules::MyModulesResponse};
-use yew::{Html, HtmlResult, function_component, html};
+use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
+use yew::{Html, HtmlResult, Properties, function_component, html};
 
 use crate::{RcTucanType, common::use_data_loader};
 
-#[function_component(MyModules)]
-pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy).await;
+#[derive(Properties, PartialEq)]
+pub struct MyModulesProps {
+    pub semester: SemesterId,
+}
 
-    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
+#[function_component(MyModules)]
+pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyModulesProps) -> Html {
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy, additional).await;
+
+    use_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
         ::yew::html! {
             <div>
                 <h1>
@@ -33,7 +38,7 @@ pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    <option selected={semester.selected} value={semester.value.clone()}>
+                                    <option selected={semester.selected} value={semester.value.0.clone()}>
                                         { &semester.name }
                                     </option>
                                 }

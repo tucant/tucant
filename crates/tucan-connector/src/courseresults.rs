@@ -1,7 +1,7 @@
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
+    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
 };
 
@@ -85,11 +85,11 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>

@@ -10,7 +10,7 @@ use my_modules::MyModules;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
+use tucant_types::{LoginRequest, LoginResponse, SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 use vv::VorlesungsverzeichnisComponent;
 
 use wasm_bindgen_futures::spawn_local;
@@ -214,8 +214,8 @@ enum Route {
     Overview,
     #[at("/vv/:vv")]
     Vorlesungsverzeichnis { vv: ActionRequest },
-    #[at("/my-modules")]
-    MyModules,
+    #[at("/my-modules/:semester")]
+    MyModules { semester: SemesterId },
     #[at("/my-courses")]
     MyCourses,
     #[at("/my-exams")]
@@ -293,9 +293,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
                 <VorlesungsverzeichnisComponent<TucanType> vv={vv} />
             }
         }
-        Route::MyModules => {
+        Route::MyModules { semester } => {
             ::yew::html! {
-                <MyModules<TucanType> />
+                <MyModules<TucanType> semester={semester} />
             }
         }
         Route::MyCourses => {

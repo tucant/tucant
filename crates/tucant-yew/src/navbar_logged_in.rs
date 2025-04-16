@@ -1,4 +1,4 @@
-use tucant_types::{LoginResponse, mlsstart::MlsStart, registration::AnmeldungRequest};
+use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
 use yew::{Html, Properties, classes, function_component, html};
 use yew_router::prelude::Link;
 
@@ -167,7 +167,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules} classes="dropdown-item">
+                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Module" }
                         </Link<Route>>
                     </li>

@@ -101,6 +101,13 @@ This software consists of the tucan-connector component that extracts informatio
 ## API
 
 ```
+cargo run --bin tucant-api --release
+```
+http://localhost:3000/swagger-ui/
+
+http://localhost:3000/api-docs/openapi.json
+
+```
 cargo run --bin schema > schema.json
 ```
 https://editor-next.swagger.io/

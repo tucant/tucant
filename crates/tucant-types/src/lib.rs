@@ -10,6 +10,8 @@ pub mod mymodules;
 pub mod registration;
 pub mod vv;
 
+use std::{convert::Infallible, path::Display, str::FromStr};
+
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
 use courseresults::ModuleResultsResponse;
@@ -116,10 +118,37 @@ impl RevalidationStrategy {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+pub struct SemesterId(pub String);
+
+impl FromStr for SemesterId {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
+    }
+}
+
+impl std::fmt::Display for SemesterId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl SemesterId {
+    pub fn all() -> Self {
+        Self("all".to_owned())
+    }
+
+    pub fn current() -> Self {
+        Self("current".to_owned())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Semesterauswahl {
     pub name: String,
-    pub value: String,
+    pub value: SemesterId,
     pub selected: bool,
 }
 
@@ -132,7 +161,7 @@ pub trait Tucan {
 
     fn logout(&self, request: &LoginResponse) -> impl std::future::Future<Output = Result<(), TucanError>>;
 
-    fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
+    fn my_modules(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<MyModulesResponse, TucanError>>;
 
     fn my_courses(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyCoursesResponse, TucanError>>;
 

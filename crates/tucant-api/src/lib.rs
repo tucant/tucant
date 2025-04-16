@@ -9,7 +9,7 @@ use axum::{
 use axum_extra::extract::{CookieJar, cookie::Cookie};
 use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung};
 use tucant_types::{
-    LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
+    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
     coursedetails::CourseDetailsRequest,
     examresults::ExamResultsResponse,
     moduledetails::ModuleDetailsRequest,
@@ -228,14 +228,14 @@ pub async fn after_login_endpoint(jar: CookieJar, revalidation_strategy: Revalid
 
 #[utoipa::path(
     get,
-    path = "/api/v1/my-modules",
+    path = "/api/v1/my-modules/{semester}",
     tag = TUCANT_TAG,
     responses(
         (status = 200, description = "Successful", body = MyModulesResponse),
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn my_modules_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+pub async fn my_modules_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW, semester: Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -243,7 +243,7 @@ pub async fn my_modules_endpoint(jar: CookieJar, revalidation_strategy: Revalida
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.my_modules(&login_response, revalidation_strategy.0).await?;
+    let response = tucan.my_modules(&login_response, revalidation_strategy.0, SemesterId(semester.0)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }

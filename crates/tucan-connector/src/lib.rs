@@ -21,7 +21,7 @@ use reqwest::header;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
-    RevalidationStrategy, Tucan, TucanError,
+    RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
@@ -134,8 +134,8 @@ impl Tucan for TucanConnector {
         logout(self, request).await
     }
 
-    async fn my_modules(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyModulesResponse, TucanError> {
-        mymodules(self, request, revalidation_strategy).await
+    async fn my_modules(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyModulesResponse, TucanError> {
+        mymodules(self, request, revalidation_strategy, semester).await
     }
 
     async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
@@ -285,7 +285,7 @@ mod authenticated_tests {
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
     use tokio::sync::OnceCell;
-    use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, registration::AnmeldungRequest};
+    use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, registration::AnmeldungRequest};
 
     use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::my_documents, myexams::my_exams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login, tests::get_tucan_connector};
 
@@ -382,7 +382,7 @@ mod authenticated_tests {
         dotenvy::dotenv().unwrap();
         let tucan = get_tucan_connector().await;
         let login_response = get_login_session().await;
-        tucan.my_modules(&login_response, RevalidationStrategy::default()).await.unwrap();
+        tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
     }
 
     #[tokio::test]

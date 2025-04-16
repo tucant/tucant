@@ -1,7 +1,7 @@
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
+    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
     mycourses::{Course, MyCoursesResponse},
 };
@@ -88,11 +88,11 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -177,6 +177,6 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: "999".to_owned(), selected: false });
+    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: SemesterId("all".to_owned()), selected: false });
     Ok(MyCoursesResponse { semester, courses })
 }
