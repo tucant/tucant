@@ -45,26 +45,26 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                     </thead>
                     <tbody>
                         {
-                mlsstart
-                    .stundenplan
-                    .iter()
-                    .map(|stundenplaneintrag| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &stundenplaneintrag.course_name }
-                                </th>
-                                <td>
-                                    { &stundenplaneintrag.from }
-                                </td>
-                                <td>
-                                    { &stundenplaneintrag.to }
-                                </td>
-                            </tr>
+                            mlsstart
+                                .stundenplan
+                                .iter()
+                                .map(|stundenplaneintrag| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &stundenplaneintrag.course_name }
+                                            </th>
+                                            <td>
+                                                { &stundenplaneintrag.from }
+                                            </td>
+                                            <td>
+                                                { &stundenplaneintrag.to }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
                 <h2>
@@ -89,33 +89,33 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                     </thead>
                     <tbody>
                         {
-                mlsstart
-                    .messages
-                    .iter()
-                    .map(|nachricht| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &nachricht.date }
-                                </th>
-                                <td>
-                                    { &nachricht.source }
-                                </td>
-                                <td>
-                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url)}>
-                                        { &nachricht.message }
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.delete_url)}>
-                                        { "Löschen" }
-                                    </a>
-                                </td>
-                            </tr>
+                            mlsstart
+                                .messages
+                                .iter()
+                                .map(|nachricht| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &nachricht.date }
+                                            </th>
+                                            <td>
+                                                { &nachricht.source }
+                                            </td>
+                                            <td>
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url)}>
+                                                    { &nachricht.message }
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.delete_url)}>
+                                                    { "Löschen" }
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
             </div>

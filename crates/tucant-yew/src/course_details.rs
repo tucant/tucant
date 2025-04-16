@@ -44,18 +44,18 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 </h2>
                 <ul>
                     {
-                course
-                    .instructors
-                    .iter()
-                    .map(|instructor| {
-                        ::yew::html! {
-                            <li>
-                                { &instructor.0 }
-                            </li>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        course
+                            .instructors
+                            .iter()
+                            .map(|instructor| {
+                                ::yew::html! {
+                                    <li>
+                                        { &instructor.0 }
+                                    </li>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
                 </ul>
                 <div>
                     { format!("Typ: {}", course.r#type) }
@@ -64,25 +64,25 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     { format!("Fachbereich: {}", course.fachbereich) }
                 </div>
                 {
-                match (course.teilnehmer_min, course.teilnehmer_max) {
-                    (None, None) => yew::html! {},
-                    (None, Some(max)) => ::yew::html! {
-                        <div>
-                            { format!("Maximal {max} Teilnehmende") }
-                        </div>
-                    },
-                    (Some(min), None) => ::yew::html! {
-                        <div>
-                            { format!("Mindestens {min} Teilnehmende",) }
-                        </div>
-                    },
-                    (Some(min), Some(max)) => ::yew::html! {
-                        <div>
-                            { format!("{min} - {max} Teilnehmende",) }
-                        </div>
-                    },
+                    match (course.teilnehmer_min, course.teilnehmer_max) {
+                        (None, None) => yew::html! {},
+                        (None, Some(max)) => ::yew::html! {
+                            <div>
+                                { format!("Maximal {max} Teilnehmende") }
+                            </div>
+                        },
+                        (Some(min), None) => ::yew::html! {
+                            <div>
+                                { format!("Mindestens {min} Teilnehmende",) }
+                            </div>
+                        },
+                        (Some(min), Some(max)) => ::yew::html! {
+                            <div>
+                                { format!("{min} - {max} Teilnehmende",) }
+                            </div>
+                        },
+                    }
                 }
-            }
                 <h2>
                     { "Übungsgruppen" }
                 </h2>
@@ -102,26 +102,26 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     </thead>
                     <tbody>
                         {
-                course
-                    .uebungsgruppen
-                    .iter()
-                    .map(|uebungsgruppe| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &uebungsgruppe.name }
-                                </th>
-                                <td>
-                                    { uebungsgruppe.date_range.clone().unwrap_or_default() }
-                                </td>
-                                <td>
-                                    { &uebungsgruppe.uebungsleiter }
-                                </td>
-                            </tr>
+                            course
+                                .uebungsgruppen
+                                .iter()
+                                .map(|uebungsgruppe| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &uebungsgruppe.name }
+                                            </th>
+                                            <td>
+                                                { uebungsgruppe.date_range.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { &uebungsgruppe.uebungsleiter }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
                 <h2>
@@ -152,35 +152,35 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     </thead>
                     <tbody>
                         {
-                course
-                    .course_anmeldefristen
-                    .iter()
-                    .map(|anmeldefrist| {
-                        ::yew::html! {
-                            <tr>
-                                <td>
-                                    { &anmeldefrist.zulassungstyp }
-                                </td>
-                                <td>
-                                    { &anmeldefrist.block_type }
-                                </td>
-                                <td>
-                                    { anmeldefrist.start.clone().unwrap_or_default() }
-                                </td>
-                                <td>
-                                    { &anmeldefrist.ende_anmeldung.clone().unwrap_or_default() }
-                                </td>
-                                <td>
-                                    { &anmeldefrist.ende_abmeldung.clone().unwrap_or_default() }
-                                </td>
-                                <td>
-                                    { &anmeldefrist.ende_hoerer.clone().unwrap_or_default() }
-                                </td>
-                            </tr>
+                            course
+                                .course_anmeldefristen
+                                .iter()
+                                .map(|anmeldefrist| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <td>
+                                                { &anmeldefrist.zulassungstyp }
+                                            </td>
+                                            <td>
+                                                { &anmeldefrist.block_type }
+                                            </td>
+                                            <td>
+                                                { anmeldefrist.start.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { &anmeldefrist.ende_anmeldung.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { &anmeldefrist.ende_abmeldung.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { &anmeldefrist.ende_hoerer.clone().unwrap_or_default() }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
                 <h2>
@@ -208,46 +208,46 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                     </thead>
                     <tbody>
                         {
-                course
-                    .termine
-                    .iter()
-                    .map(|termin| {
-                        ::yew::html! {
-                            <tr>
-                                <td>
-                                    { &termin.date }
-                                </td>
-                                <td>
-                                    { &termin.time_start }
-                                </td>
-                                <td>
-                                    { &termin.time_end }
-                                </td>
-                                <td>
-                                    { &termin.instructors.clone().unwrap_or_default() }
-                                </td>
-                                <td>
-                                    <ul>
-                                        {
-                                termin
-                                    .rooms
-                                    .iter()
-                                    .map(|room| {
-                                        ::yew::html! {
-                                            <li>
-                                                { &room.name }
-                                            </li>
-                                        }
-                                    })
-                                    .collect::<Html>()
-                            }
-                                    </ul>
-                                </td>
-                            </tr>
+                            course
+                                .termine
+                                .iter()
+                                .map(|termin| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <td>
+                                                { &termin.date }
+                                            </td>
+                                            <td>
+                                                { &termin.time_start }
+                                            </td>
+                                            <td>
+                                                { &termin.time_end }
+                                            </td>
+                                            <td>
+                                                { &termin.instructors.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                <ul>
+                                                    {
+                                                        termin
+                                                            .rooms
+                                                            .iter()
+                                                            .map(|room| {
+                                                                ::yew::html! {
+                                                                    <li>
+                                                                        { &room.name }
+                                                                    </li>
+                                                                }
+                                                            })
+                                                            .collect::<Html>()
+                                                    }
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
                 <h2>
@@ -278,18 +278,18 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                 </h2>
                 <ul>
                     {
-                course
-                    .enhalten_in_modulen
-                    .iter()
-                    .map(|modul| {
-                        ::yew::html! {
-                            <li>
-                                { modul }
-                            </li>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        course
+                            .enhalten_in_modulen
+                            .iter()
+                            .map(|modul| {
+                                ::yew::html! {
+                                    <li>
+                                        { modul }
+                                    </li>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
                 </ul>
             </div>
         }

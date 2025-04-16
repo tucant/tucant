@@ -48,32 +48,32 @@ pub fn course_results<TucanType: Tucan + 'static>() -> Html {
                     </thead>
                     <tbody>
                         {
-                course_results
-                    .results
-                    .iter()
-                    .map(|exam| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &exam.nr }
-                                </th>
-                                <td>
-                                    { &exam.name }
-                                </td>
-                                <td>
-                                    { &exam.credits }
-                                </td>
-                                <td>
-                                    { &exam.grade }
-                                </td>
-                                <td>
-                                    { &exam.status.clone().unwrap_or_default() }
-                                </td>
-                            </tr>
+                            course_results
+                                .results
+                                .iter()
+                                .map(|exam| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &exam.nr }
+                                            </th>
+                                            <td>
+                                                { &exam.name }
+                                            </td>
+                                            <td>
+                                                { &exam.credits }
+                                            </td>
+                                            <td>
+                                                { &exam.grade }
+                                            </td>
+                                            <td>
+                                                { &exam.status.clone().unwrap_or_default() }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
             </div>

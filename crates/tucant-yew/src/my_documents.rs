@@ -42,30 +42,30 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
                     </thead>
                     <tbody>
                         {
-                documents
-                    .documents
-                    .iter()
-                    .map(|document| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &document.name }
-                                </th>
-                                <td>
-                                    { &document.date }
-                                    { " " }
-                                    { &document.time }
-                                </td>
-                                <td>
-                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", document.url)}>
-                                        { "Download" }
-                                    </a>
-                                </td>
-                            </tr>
+                            documents
+                                .documents
+                                .iter()
+                                .map(|document| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &document.name }
+                                            </th>
+                                            <td>
+                                                { &document.date }
+                                                { " " }
+                                                { &document.time }
+                                            </td>
+                                            <td>
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", document.url)}>
+                                                    { "Download" }
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
             </div>

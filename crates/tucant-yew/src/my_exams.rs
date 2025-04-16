@@ -45,29 +45,29 @@ pub fn my_exams<TucanType: Tucan + 'static>() -> Html {
                     </thead>
                     <tbody>
                         {
-                exams
-                    .exams
-                    .iter()
-                    .map(|exam| {
-                        ::yew::html! {
-                            <tr>
-                                <th scope="row">
-                                    { &exam.id }
-                                </th>
-                                <td>
-                                    { &exam.name }
-                                </td>
-                                <td>
-                                    { &exam.pruefungsart }
-                                </td>
-                                <td>
-                                    { &exam.date }
-                                </td>
-                            </tr>
+                            exams
+                                .exams
+                                .iter()
+                                .map(|exam| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <th scope="row">
+                                                { &exam.id }
+                                            </th>
+                                            <td>
+                                                { &exam.name }
+                                            </td>
+                                            <td>
+                                                { &exam.pruefungsart }
+                                            </td>
+                                            <td>
+                                                { &exam.date }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </tbody>
                 </table>
             </div>

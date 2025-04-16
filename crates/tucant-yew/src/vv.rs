@@ -37,19 +37,19 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                 <nav style="min-height: 5.5rem" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         {
-                data.path
-                    .iter()
-                    .map(|entry| {
-                        ::yew::html! {
-                            <li class="breadcrumb-item">
-                                <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }}>
-                                    { entry.0.clone() }
-                                </Link<Route>>
-                            </li>
+                            data.path
+                                .iter()
+                                .map(|entry| {
+                                    ::yew::html! {
+                                        <li class="breadcrumb-item">
+                                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }}>
+                                                { entry.0.clone() }
+                                            </Link<Route>>
+                                        </li>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    })
-                    .collect::<Html>()
-            }
                     </ol>
                 </nav>
                 // TODO FIXME this is dangerous
@@ -60,48 +60,48 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                 </h2>
                 <ul class="list-group">
                     {
-                data.entries
-                    .iter()
-                    .map(|entry| {
-                        ::yew::html! {
-                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }} classes="list-group-item list-group-item-action">
-                                { format!("{}", entry.0) }
-                            </Link<Route>>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        data.entries
+                            .iter()
+                            .map(|entry| {
+                                ::yew::html! {
+                                    <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }} classes="list-group-item list-group-item-action">
+                                        { format!("{}", entry.0) }
+                                    </Link<Route>>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
                 </ul>
                 <h2 class="text-center">
                     { "Modules and courses" }
                 </h2>
                 <ul class="list-group">
                     {
-                data.veranstaltungen_or_module
-                    .iter()
-                    .map(|entry| {
-                        ::yew::html! {
-                            <li class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">
-                                        <Link<Route> to={Route::CourseDetails { course: entry.coursedetails_url.clone() }}>
-                                            { format!("Kurs {}", entry.title) }
-                                        </Link<Route>>
-                                    </h5>
-                                </div>
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">
-                                        { format!("{}", entry.lecturer_name.clone().unwrap_or_default()) }
-                                    </h6>
-                                </div>
-                                <h6 class="mb-1">
-                                    { format!("{}", entry.date_range.clone().unwrap_or_default()) }
-                                </h6>
-                            </li>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        data.veranstaltungen_or_module
+                            .iter()
+                            .map(|entry| {
+                                ::yew::html! {
+                                    <li class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">
+                                                <Link<Route> to={Route::CourseDetails { course: entry.coursedetails_url.clone() }}>
+                                                    { format!("Kurs {}", entry.title) }
+                                                </Link<Route>>
+                                            </h5>
+                                        </div>
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">
+                                                { format!("{}", entry.lecturer_name.clone().unwrap_or_default()) }
+                                            </h6>
+                                        </div>
+                                        <h6 class="mb-1">
+                                            { format!("{}", entry.date_range.clone().unwrap_or_default()) }
+                                        </h6>
+                                    </li>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
                 </ul>
             </div>
         }

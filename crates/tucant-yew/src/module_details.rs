@@ -48,190 +48,190 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                 </h2>
                 <ul>
                     {
-                module
-                    .modulverantwortliche
-                    .iter()
-                    .map(|modulverantwortliche| {
-                        ::yew::html! {
-                            <li>
-                                { &modulverantwortliche.0 }
-                            </li>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        module
+                            .modulverantwortliche
+                            .iter()
+                            .map(|modulverantwortliche| {
+                                ::yew::html! {
+                                    <li>
+                                        { &modulverantwortliche.0 }
+                                    </li>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
                 </ul>
                 <h2>
                     { "Kurse" }
                 </h2>
                 {
-                module
-                    .kurskategorien
-                    .iter()
-                    .map(|kurskategorie| {
-                        ::yew::html! {
-                            <>
-                                <h3>
-                                    { &kurskategorie.course_no }
-                                    { " " }
-                                    { &kurskategorie.name }
-                                    if kurskategorie.credits != 0.0 {
+                    module
+                        .kurskategorien
+                        .iter()
+                        .map(|kurskategorie| {
+                            ::yew::html! {
+                                <>
+                                    <h3>
+                                        { &kurskategorie.course_no }
                                         { " " }
-                                        <span class="badge text-bg-secondary">
-                                            { format!("{} CP", kurskategorie.credits) }
-                                        </span>
-                                    }
-                                    if kurskategorie.mandatory {
-                                        { " " }
-                                        <span class="badge text-bg-secondary">
-                                            { "Pflicht" }
-                                        </span>
-                                    }
-                                    if let Some(semester) = &kurskategorie.semester {
-                                        if *semester != 1 {
+                                        { &kurskategorie.name }
+                                        if kurskategorie.credits != 0.0 {
                                             { " " }
                                             <span class="badge text-bg-secondary">
-                                                { format!("{semester} Semester") }
+                                                { format!("{} CP", kurskategorie.credits) }
                                             </span>
                                         }
-                                    }
-                                </h3>
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">
-                                                { "Nummer" }
-                                            </th>
-                                            <th scope="col">
-                                                { "Name" }
-                                            </th>
-                                            <th scope="col">
-                                                { "Semester" }
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                kurskategorie
-                                    .kurse
-                                    .iter()
-                                    .map(|kurs| {
-                                        ::yew::html! {
-                                            <tr>
-                                                <th scope="row">
-                                                    { &kurs.course_id }
-                                                </th>
-                                                <td>
-                                                    { &kurs.name }
-                                                </td>
-                                                <td>
-                                                    { &kurs.semester }
-                                                </td>
-                                            </tr>
+                                        if kurskategorie.mandatory {
+                                            { " " }
+                                            <span class="badge text-bg-secondary">
+                                                { "Pflicht" }
+                                            </span>
                                         }
-                                    })
-                                    .collect::<Html>()
+                                        if let Some(semester) = &kurskategorie.semester {
+                                            if *semester != 1 {
+                                                { " " }
+                                                <span class="badge text-bg-secondary">
+                                                    { format!("{semester} Semester") }
+                                                </span>
+                                            }
+                                        }
+                                    </h3>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">
+                                                    { "Nummer" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Name" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Semester" }
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                kurskategorie
+                                                    .kurse
+                                                    .iter()
+                                                    .map(|kurs| {
+                                                        ::yew::html! {
+                                                            <tr>
+                                                                <th scope="row">
+                                                                    { &kurs.course_id }
+                                                                </th>
+                                                                <td>
+                                                                    { &kurs.name }
+                                                                </td>
+                                                                <td>
+                                                                    { &kurs.semester }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    })
+                                                    .collect::<Html>()
+                                            }
+                                        </tbody>
+                                    </table></>
                             }
-                                    </tbody>
-                                </table></>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        })
+                        .collect::<Html>()
+                }
                 <h2>
                     { "Leistungen" }
                 </h2>
                 {
-                module
-                    .leistungen
-                    .iter()
-                    .map(|leistung| {
-                        ::yew::html! {
-                            <>
-                                <h3>
-                                    { &leistung.name }
-                                    if leistung.compulsory {
+                    module
+                        .leistungen
+                        .iter()
+                        .map(|leistung| {
+                            ::yew::html! {
+                                <>
+                                    <h3>
+                                        { &leistung.name }
+                                        if leistung.compulsory {
+                                            { " " }
+                                            <span class="badge text-bg-secondary">
+                                                { "Pflicht" }
+                                            </span>
+                                        }
                                         { " " }
                                         <span class="badge text-bg-secondary">
-                                            { "Pflicht" }
+                                            { format!("{} Gewichtung", leistung.weight) }
                                         </span>
-                                    }
-                                    { " " }
-                                    <span class="badge text-bg-secondary">
-                                        { format!("{} Gewichtung", leistung.weight) }
-                                    </span>
-                                    if let Some(weight_more) = &leistung.weight_more {
-                                        { " " }
-                                        <span class="badge text-bg-secondary">
-                                            { format!("Zusatzinfo {weight_more}") }
-                                        </span>
-                                    }
-                                </h3></>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                                        if let Some(weight_more) = &leistung.weight_more {
+                                            { " " }
+                                            <span class="badge text-bg-secondary">
+                                                { format!("Zusatzinfo {weight_more}") }
+                                            </span>
+                                        }
+                                    </h3></>
+                            }
+                        })
+                        .collect::<Html>()
+                }
                 <h2>
                     { "Pruefungen" }
                 </h2>
                 {
-                module
-                    .pruefungen
-                    .iter()
-                    .map(|pruefung| {
-                        ::yew::html! {
-                            <>
-                                <h3>
-                                    { &pruefung.name }
-                                    if pruefung.compulsory {
-                                        { " " }
-                                        <span class="badge text-bg-secondary">
-                                            { "Pflicht" }
-                                        </span>
-                                    }
-                                </h3>
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">
-                                                { "Name" }
-                                            </th>
-                                            <th scope="col">
-                                                { "Datum" }
-                                            </th>
-                                            <th scope="col">
-                                                { "Prüfende" }
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                pruefung
-                                    .termine
-                                    .iter()
-                                    .map(|termin| {
-                                        ::yew::html! {
-                                            <tr>
-                                                <th scope="row">
-                                                    { &termin.subname }
-                                                </th>
-                                                <td>
-                                                    { &termin.date }
-                                                </td>
-                                                <td>
-                                                    { &termin.examiner }
-                                                </td>
-                                            </tr>
+                    module
+                        .pruefungen
+                        .iter()
+                        .map(|pruefung| {
+                            ::yew::html! {
+                                <>
+                                    <h3>
+                                        { &pruefung.name }
+                                        if pruefung.compulsory {
+                                            { " " }
+                                            <span class="badge text-bg-secondary">
+                                                { "Pflicht" }
+                                            </span>
                                         }
-                                    })
-                                    .collect::<Html>()
+                                    </h3>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">
+                                                    { "Name" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Datum" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Prüfende" }
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                pruefung
+                                                    .termine
+                                                    .iter()
+                                                    .map(|termin| {
+                                                        ::yew::html! {
+                                                            <tr>
+                                                                <th scope="row">
+                                                                    { &termin.subname }
+                                                                </th>
+                                                                <td>
+                                                                    { &termin.date }
+                                                                </td>
+                                                                <td>
+                                                                    { &termin.examiner }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    })
+                                                    .collect::<Html>()
+                                            }
+                                        </tbody>
+                                    </table></>
                             }
-                                    </tbody>
-                                </table></>
-                        }
-                    })
-                    .collect::<Html>()
-            }
+                        })
+                        .collect::<Html>()
+                }
                 <h2>
                     { "Beschreibung" }
                 </h2>
