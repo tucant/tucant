@@ -89,71 +89,107 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                     .iter()
                     .map(|entry| {
                         let module = entry.module.as_ref();
-                        yew::html!{
-                                <li class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1"><Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>{ format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default())}</Link<Route>></h5>
-                                        if let Some(module) = module {
-                                            if let Some(date) = &module.date {
-                                        <small class="text-body-secondary">{ format!("Anmeldung bis {}", date) }</small>
-                                            }
+                        ::yew::html! {
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">
+                                        <Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>
+                                            { format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }
+                                        </Link<Route>>
+                                    </h5>
+                                    if let Some(module) = module {
+                                        if let Some(date) = &module.date {
+                                            <small class="text-body-secondary">
+                                                { format!("Anmeldung bis {}", date) }
+                                            </small>
                                         }
-                                    </div>
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{ format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }</h6>
-                                        if let Some(module) = module {
-                                            if let Some(limit_and_size) = &module.limit_and_size {
-                                                <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + limit_and_size) }</small>
-                                            }
+                                    }
+                                </div>
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        { format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }
+                                    </h6>
+                                    if let Some(module) = module {
+                                        if let Some(limit_and_size) = &module.limit_and_size {
+                                            <small class="text-body-secondary">
+                                                { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                            </small>
                                         }
-                                    </div>
-
-                                    {
-                                        module.map(|module| {
-                                            match &module.registration_state {
-                                                RegistrationState::Unknown => yew::html! { },
-                                                RegistrationState::Registered { unregister_link } => yew::html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Modul abmelden"}</a> },
-                                                RegistrationState::NotRegistered { register_link } => yew::html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>{"Zum Modul anmelden"}</a> },
-                                            }
-                                        })
                                     }
-                                    <ul class="list-group">
-                                    {
-                                        for entry.courses.iter().map(|course|
-                                         {
-                                            yew::html! {
-                                                <li class="list-group-item">
-                                                    <div class="d-flex w-100 justify-content-between">
-                                                        <h5 class="mb-1"><Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>{ format!("Kurs {} {}", course.1.id, course.1.name) }</Link<Route>></h5>
-                                                        if let Some(registration_until) = &course.1.registration_until {
-                                                            <small class="text-body-secondary">{ format!("Anmeldung bis {}", registration_until) }</small>
-                                                        }
-                                                    </div>
-
-                                                    <div class="d-flex w-100 justify-content-between">
-                                                        <h6 class="mb-1">{ format!("{}", course.1.lecturers.clone().unwrap_or_default()) }</h6>
-                                                        // needing the parentheses is a yew bug
-                                                        if let Some(limit_and_size) = &course.1.limit_and_size {
-                                                            <small class="text-body-secondary">{ ("Teilnehmerlimit ".to_owned() + limit_and_size) }</small>
-                                                        }
-                                                    </div>
-
-                                                    <h6 class="mb-1">{ format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }</h6>
-
-                                                    {
-                                                        match &course.1.registration_button_link {
-                                                            RegistrationState::Unknown => yew::html! { },
-                                                            RegistrationState::Registered { unregister_link } => yew::html! { <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",unregister_link.clone())}>{"Vom Kurs abmelden"}</a> },
-                                                            RegistrationState::NotRegistered { register_link } => yew::html! { <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}",register_link.clone())}>{"Zum Kurs anmelden"}</a> },
-                                                        }
-                                                    }
-                                                </li>
-                                            }
-                                        })
-                                    }
-                                    </ul>
-                                </li>
+                                </div>
+                                {
+                                module.map(|module| match &module.registration_state {
+                                    RegistrationState::Unknown => yew::html! {},
+                                    RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                        <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone())}>
+                                            { "Vom Modul abmelden" }
+                                        </a>
+                                    },
+                                    RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                        <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>
+                                            { "Zum Modul anmelden" }
+                                        </a>
+                                    },
+                                })
                             }
+                                <ul class="list-group">
+                                    {
+                                entry
+                                    .courses
+                                    .iter()
+                                    .map(|course| {
+                                        ::yew::html! {
+                                            <li class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h5 class="mb-1">
+                                                        <Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>
+                                                            { format!("Kurs {} {}", course.1.id, course.1.name) }
+                                                        </Link<Route>>
+                                                    </h5>
+                                                    if let Some(registration_until) = &course.1.registration_until {
+                                                        <small class="text-body-secondary">
+                                                            { format!("Anmeldung bis {}", registration_until) }
+                                                        </small>
+                                                    }
+                                                </div>
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">
+                                                        { format!("{}", course.1.lecturers.clone().unwrap_or_default()) }
+                                                    </h6>
+                                                    // needing the parentheses is a yew bug
+
+                                                    if let Some(limit_and_size) = &course.1.limit_and_size {
+                                                        <small class="text-body-secondary">
+                                                            { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                        </small>
+                                                    }
+                                                </div>
+                                                <h6 class="mb-1">
+                                                    { format!("{}", course.1.begin_and_end.clone().unwrap_or_default()) }
+                                                </h6>
+                                                {
+                                                match &course.1.registration_button_link {
+                                                    RegistrationState::Unknown => yew::html! {},
+                                                    RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                                        <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone())}>
+                                                            { "Vom Kurs abmelden" }
+                                                        </a>
+                                                    },
+                                                    RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                                        <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>
+                                                            { "Zum Kurs anmelden" }
+                                                        </a>
+                                                    },
+                                                }
+                                            }
+                                            </li>
+                                        }
+                                    })
+                                    .collect::<Html>()
+                            }
+                                </ul>
+                            </li>
+                        }
                     })
                     .collect::<Html>()
             }
