@@ -28,7 +28,7 @@ pub async fn mymodules(tucan: &TucanConnector, login_response: &LoginResponse, r
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,{}", login_response.id, if semester == SemesterId::current() { "".to_owned() } else { format!("-N{}", semester.0) });
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N{:015},-N000275,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = mymodules_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -92,7 +92,7 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true };
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload refresh"></input>
