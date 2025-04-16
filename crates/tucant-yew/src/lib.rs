@@ -242,34 +242,34 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         }
         Route::NotFound => ::yew::html! {
             <div>
-                {"404"}
+                { "404" }
             </div>
         },
         Route::Root => ::yew::html! {
             <div class="container">
                 <h1>
-                    {"Willkommen bei TUCaN't!"}
+                    { "Willkommen bei TUCaN't!" }
                 </h1>
                 <p>
-                    {"Du kannst gerne die "}
+                    { "Du kannst gerne die " }
                     <a href="https://tucant.github.io/tucant/" target="_blank">
-                        {"Browsererweiterung herunterladen"}
+                        { "Browsererweiterung herunterladen" }
                     </a>
-                    {", falls Du diese noch nicht verwendest."}
+                    { ", falls Du diese noch nicht verwendest." }
                 </p>
                 <p>
-                    {"Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf "}
+                    { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
                     <a href="https://github.com/tucant/tucant/" target="_blank">
-                        {"GitHub"}
+                        { "GitHub" }
                     </a>
-                    {" verfügbar."}
+                    { " verfügbar." }
                 </p>
                 <p>
-                    {"Du kannst Dir deine "}
+                    { "Du kannst Dir deine " }
                     <a href="#/registration/">
-                        {"anmeldbaren Module ansehen"}
+                        { "anmeldbaren Module ansehen" }
                     </a>
-                    {"."}
+                    { "." }
                 </p>
             </div>
         },
