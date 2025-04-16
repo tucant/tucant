@@ -90,7 +90,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: true };
+                                                } => Semesterauswahl { name, value, selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>

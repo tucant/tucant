@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use tucant_types::Tucan;
+use tucant_types::{Tucan, mymodules::MyModulesResponse};
 use yew::{Html, HtmlResult, function_component, html};
 
 use crate::{RcTucanType, common::use_data_loader};
@@ -9,7 +9,7 @@ use crate::{RcTucanType, common::use_data_loader};
 pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy).await;
 
-    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |my_modules, reload| {
+    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
         ::yew::html! {
             <div>
                 <h1>
@@ -26,6 +26,21 @@ pub fn my_modules<TucanType: Tucan + 'static>() -> Html {
                         </svg>
                     </button>
                 </h1>
+                <select class="form-select mb-1" aria-label="Default select example">
+                    {
+                        my_modules
+                            .semester
+                            .iter()
+                            .map(|semester| {
+                                ::yew::html! {
+                                    <option selected={semester.selected} value={semester.value.clone()}>
+                                        { &semester.name }
+                                    </option>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
+                </select>
                 <table class="table">
                     <thead>
                         <tr>
