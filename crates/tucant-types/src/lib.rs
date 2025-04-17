@@ -167,7 +167,7 @@ pub trait Tucan {
 
     fn my_exams(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
 
-    fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
+    fn exam_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
 
     fn course_results(&self, request: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> impl std::future::Future<Output = Result<ModuleResultsResponse, TucanError>>;
 

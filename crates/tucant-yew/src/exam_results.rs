@@ -1,15 +1,31 @@
 use std::ops::Deref;
 
-use tucant_types::Tucan;
-use yew::{Html, HtmlResult, function_component, html};
+use tucant_types::{SemesterId, Tucan, examresults::ExamResultsResponse};
+use web_sys::HtmlSelectElement;
+use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
+use yew_router::hooks::use_navigator;
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_data_loader};
+
+#[derive(Properties, PartialEq)]
+pub struct ExamResultsProps {
+    pub semester: SemesterId,
+}
 
 #[function_component(ExamResults)]
-pub fn exam_results<TucanType: Tucan + 'static>() -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.exam_results(&current_session, revalidation_strategy).await;
+pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &ExamResultsProps) -> Html {
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.exam_results(&current_session, revalidation_strategy, additional).await;
 
-    use_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |exam_results, reload| {
+    let navigator = use_navigator().unwrap();
+
+    use_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |exam_results: ExamResultsResponse, reload| {
+        let on_semester_change = {
+            let navigator = navigator.clone();
+            Callback::from(move |e: Event| {
+                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
+                navigator.push(&Route::ExamResults { semester: SemesterId(value) });
+            })
+        };
         ::yew::html! {
             <div>
                 <h1>
@@ -26,6 +42,21 @@ pub fn exam_results<TucanType: Tucan + 'static>() -> Html {
                         </svg>
                     </button>
                 </h1>
+                <select onchange={on_semester_change} class="form-select mb-1" aria-label="Select semester">
+                    {
+                        exam_results
+                            .semester
+                            .iter()
+                            .map(|semester| {
+                                ::yew::html! {
+                                    <option selected={semester.selected} value={semester.value.0.clone()}>
+                                        { &semester.name }
+                                    </option>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
+                </select>
                 <table class="table">
                     <thead>
                         <tr>

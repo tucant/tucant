@@ -294,14 +294,14 @@ pub async fn my_exams_endpoint(jar: CookieJar, revalidation_strategy: Revalidati
 
 #[utoipa::path(
     get,
-    path = "/api/v1/exam-results",
+    path = "/api/v1/exam-results/{semester}",
     tag = TUCANT_TAG,
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
         (status = 500, description = "Some TUCaN error")
     )
 )]
-pub async fn exam_results_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
+pub async fn exam_results_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW, semester: Path<SemesterId>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
     let login_response: LoginResponse = LoginResponse {
@@ -309,7 +309,7 @@ pub async fn exam_results_endpoint(jar: CookieJar, revalidation_strategy: Revali
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.exam_results(&login_response, revalidation_strategy.0).await?;
+    let response = tucan.exam_results(&login_response, revalidation_strategy.0, semester.0).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }
