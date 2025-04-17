@@ -207,7 +207,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyExams} classes="dropdown-item">
+                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Prüfungen" }
                         </Link<Route>>
                     </li>
