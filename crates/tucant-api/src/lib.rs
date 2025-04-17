@@ -116,7 +116,7 @@ where
     get,
     path = "/api/v1/registration/{registration}",
     tag = TUCANT_TAG,
-    params(("registration" = String, Path)),
+    params(("registration" = AnmeldungRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = AnmeldungResponse),
         (status = 500, description = "Some TUCaN error")
@@ -139,7 +139,7 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
     get,
     path = "/api/v1/vv/{vv}",
     tag = TUCANT_TAG,
-    params(("vv" = String, Path)),
+    params(("vv" = ActionRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = Vorlesungsverzeichnis),
         (status = 500, description = "Some TUCaN error")
@@ -162,7 +162,7 @@ pub async fn vv_endpoint(jar: CookieJar, Path(vv): Path<String>, revalidation_st
     get,
     path = "/api/v1/module-details/{module}",
     tag = TUCANT_TAG,
-    params(("module" = String, Path)),
+    params(("module" = ModuleDetailsRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = ModuleDetailsResponse),
         (status = 500, description = "Some TUCaN error")
@@ -185,7 +185,7 @@ pub async fn module_details_endpoint(jar: CookieJar, Path(module): Path<String>,
     get,
     path = "/api/v1/course-details/{course}",
     tag = TUCANT_TAG,
-    params(("course" = String, Path)),
+    params(("course" = CourseDetailsRequest, Path)),
     responses(
         (status = 200, description = "Successful", body = CourseDetailsResponse),
         (status = 500, description = "Some TUCaN error")
@@ -230,6 +230,7 @@ pub async fn after_login_endpoint(jar: CookieJar, revalidation_strategy: Revalid
     get,
     path = "/api/v1/my-modules/{semester}",
     tag = TUCANT_TAG,
+    params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyModulesResponse),
         (status = 500, description = "Some TUCaN error")
@@ -252,6 +253,7 @@ pub async fn my_modules_endpoint(jar: CookieJar, revalidation_strategy: Revalida
     get,
     path = "/api/v1/my-courses/{semester}",
     tag = TUCANT_TAG,
+    params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyCoursesResponse),
         (status = 500, description = "Some TUCaN error")
@@ -274,6 +276,7 @@ pub async fn my_courses_endpoint(jar: CookieJar, revalidation_strategy: Revalida
     get,
     path = "/api/v1/my-exams/{semester}",
     tag = TUCANT_TAG,
+    params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = MyExamsResponse),
         (status = 500, description = "Some TUCaN error")
@@ -296,6 +299,7 @@ pub async fn my_exams_endpoint(jar: CookieJar, revalidation_strategy: Revalidati
     get,
     path = "/api/v1/exam-results/{semester}",
     tag = TUCANT_TAG,
+    params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
         (status = 500, description = "Some TUCaN error")
@@ -318,6 +322,7 @@ pub async fn exam_results_endpoint(jar: CookieJar, revalidation_strategy: Revali
     get,
     path = "/api/v1/course-results/{semester}",
     tag = TUCANT_TAG,
+    params(("semester" = SemesterId, Path)),
     responses(
         (status = 200, description = "Successful", body = ExamResultsResponse),
         (status = 500, description = "Some TUCaN error")
