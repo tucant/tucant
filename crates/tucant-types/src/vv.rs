@@ -26,9 +26,7 @@ pub struct Veranstaltung {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
-pub struct ActionRequest {
-    arguments: String,
-}
+pub struct ActionRequest(String);
 
 impl FromStr for ActionRequest {
     type Err = Infallible;
@@ -40,7 +38,7 @@ impl FromStr for ActionRequest {
 
 impl Display for ActionRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.arguments)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -49,11 +47,11 @@ impl ActionRequest {
     pub fn parse(input: &str) -> Self {
         static ACTION_REQUEST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-A[a-zA-Z0-9_~-]+$").unwrap());
         assert!(&ACTION_REQUEST.is_match(input), "{}", input);
-        Self { arguments: input.to_owned() }
+        Self(input.to_owned())
     }
 
     #[must_use]
     pub fn inner(&self) -> &str {
-        self.arguments.as_str()
+        self.0.as_str()
     }
 }

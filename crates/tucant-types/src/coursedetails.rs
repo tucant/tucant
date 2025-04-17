@@ -7,9 +7,7 @@ use utoipa::ToSchema;
 use crate::InstructorImage;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
-pub struct CourseDetailsRequest {
-    arguments: String,
-}
+pub struct CourseDetailsRequest(String);
 
 impl FromStr for CourseDetailsRequest {
     type Err = Infallible;
@@ -21,7 +19,7 @@ impl FromStr for CourseDetailsRequest {
 
 impl Display for CourseDetailsRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.arguments)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -38,12 +36,12 @@ impl CourseDetailsRequest {
         // TODO for now we ignore the first number, maybe that is a mistake
         static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0)(,-N(0|3)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
         let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
-        Self { arguments: format!("-N0,-N{},-N{},-N0,-N0,-N0", &c["n2"], &c["n3"]) }
+        Self(format!("-N0,-N{},-N{},-N0,-N0,-N0", &c["n2"], &c["n3"]))
     }
 
     #[must_use]
     pub fn inner(&self) -> &str {
-        self.arguments.as_str()
+        self.0.as_str()
     }
 }
 

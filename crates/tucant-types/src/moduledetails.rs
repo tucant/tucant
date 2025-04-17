@@ -7,9 +7,7 @@ use utoipa::ToSchema;
 use crate::InstructorImage;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
-pub struct ModuleDetailsRequest {
-    arguments: String,
-}
+pub struct ModuleDetailsRequest(String);
 
 impl FromStr for ModuleDetailsRequest {
     type Err = Infallible;
@@ -21,7 +19,7 @@ impl FromStr for ModuleDetailsRequest {
 
 impl Display for ModuleDetailsRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.arguments)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -30,12 +28,12 @@ impl ModuleDetailsRequest {
     pub fn parse(input: &str) -> Self {
         static MODULE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+)(,-A[a-zA-Z0-9_~-]+)?$").unwrap());
         let c = &MODULE_DETAILS_REGEX.captures(input).expect(input);
-        Self { arguments: format!("-N{}", &c["n1"],) }
+        Self(format!("-N{}", &c["n1"],))
     }
 
     #[must_use]
     pub fn inner(&self) -> &str {
-        self.arguments.as_str()
+        self.0.as_str()
     }
 }
 
