@@ -23,3 +23,37 @@ if (document.body.classList.contains("access_denied")) {
 } else {
     console.log("unknown part")
 }
+
+/*
+let loginForm = /** @type {HTMLFormElement} (document.querySelector("#cn_loginForm"))
+
+loginForm.addEventListener("submit", async event => {
+    event.preventDefault()
+    const formData = new FormData(loginForm);
+
+    try {
+        const response = await fetch("/scripts/mgrqispi.dll", {
+            method: "POST",
+            // Set the FormData instance as the request body
+            body: formData,
+        });
+        const refreshHeader = response.headers.get("refresh")
+        const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
+        if (match !== null) {
+            const sessionId = match[1]
+
+            //chrome.cookies.set({
+            //    url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            //    name: "id",
+            //    value: sessionId,
+            //    secure: true
+            //})
+        }
+        // TODO check if it's a not logged in url and then change to a logged in one
+        // some urls like the vv urls are different when logged in, this is going to be fun.
+        location.reload()
+    } catch (e) {
+        console.error(e);
+    }
+})
+    */
