@@ -1,7 +1,7 @@
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    LoginResponse, RevalidationStrategy, Semesterauswahl, TucanError,
+    LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     myexams::{Exam, MyExamsResponse},
 };
 
@@ -10,10 +10,10 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
 };
 
-pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
-    let key = "unparsed_myexams";
+pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
+    let key = format!("unparsed_myexams.{}", semester.0);
 
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(key).await;
+    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
@@ -26,7 +26,7 @@ pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, re
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,", login_response.id);
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = my_exams_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -34,7 +34,7 @@ pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, re
         // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
     }
 
-    tucan.database.put(key, (content, date)).await;
+    tucan.database.put(&key, (content, date)).await;
 
     Ok(result)
 }
@@ -86,11 +86,11 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value, selected: true };
+                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -166,6 +166,6 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: "999".to_owned(), selected: false });
+    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: SemesterId("all".to_owned()), selected: false });
     Ok(MyExamsResponse { semester, exams })
 }

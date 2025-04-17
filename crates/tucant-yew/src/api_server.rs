@@ -1,6 +1,6 @@
 use reqwest::Client;
 use tucant_types::{
-    LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
+    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
@@ -72,32 +72,32 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn my_modules(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyModulesResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/my-modules").unwrap();
+    async fn my_modules(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyModulesResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/my-modules/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }
 
-    async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/my-courses").unwrap();
+    async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/my-courses/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }
 
-    async fn my_exams(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/my-exams").unwrap();
+    async fn my_exams(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/my-exams/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }
 
-    async fn exam_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/exam-results").unwrap();
+    async fn exam_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/exam-results/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }
 
-    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/course-results").unwrap();
+    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/course-results/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }

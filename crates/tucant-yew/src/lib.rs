@@ -10,7 +10,7 @@ use my_modules::MyModules;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
-use tucant_types::{LoginRequest, LoginResponse, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
+use tucant_types::{LoginRequest, LoginResponse, SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 use vv::VorlesungsverzeichnisComponent;
 
 use wasm_bindgen_futures::spawn_local;
@@ -214,16 +214,16 @@ enum Route {
     Overview,
     #[at("/vv/:vv")]
     Vorlesungsverzeichnis { vv: ActionRequest },
-    #[at("/my-modules")]
-    MyModules,
-    #[at("/my-courses")]
-    MyCourses,
-    #[at("/my-exams")]
-    MyExams,
-    #[at("/exam-results")]
-    ExamResults,
-    #[at("/course-results")]
-    CourseResults,
+    #[at("/my-modules/:semester")]
+    MyModules { semester: SemesterId },
+    #[at("/my-courses/:semester")]
+    MyCourses { semester: SemesterId },
+    #[at("/my-exams/:semester")]
+    MyExams { semester: SemesterId },
+    #[at("/exam-results/:semester")]
+    ExamResults { semester: SemesterId },
+    #[at("/course-results/:semester")]
+    CourseResults { semester: SemesterId },
     #[at("/my-documents")]
     MyDocuments,
 }
@@ -293,29 +293,29 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
                 <VorlesungsverzeichnisComponent<TucanType> vv={vv} />
             }
         }
-        Route::MyModules => {
+        Route::MyModules { semester } => {
             ::yew::html! {
-                <MyModules<TucanType> />
+                <MyModules<TucanType> semester={semester} />
             }
         }
-        Route::MyCourses => {
+        Route::MyCourses { semester } => {
             ::yew::html! {
-                <MyCourses<TucanType> />
+                <MyCourses<TucanType> semester={semester} />
             }
         }
-        Route::MyExams => {
+        Route::MyExams { semester } => {
             ::yew::html! {
-                <MyExams<TucanType> />
+                <MyExams<TucanType> semester={semester} />
             }
         }
-        Route::ExamResults => {
+        Route::ExamResults { semester } => {
             ::yew::html! {
-                <ExamResults<TucanType> />
+                <ExamResults<TucanType> semester={semester} />
             }
         }
-        Route::CourseResults => {
+        Route::CourseResults { semester } => {
             ::yew::html! {
-                <CourseResults<TucanType> />
+                <CourseResults<TucanType> semester={semester} />
             }
         }
         Route::MyDocuments => {

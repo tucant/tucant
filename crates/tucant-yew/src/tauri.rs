@@ -1,6 +1,6 @@
 use serde_json::json;
 use tucant_types::{
-    LoginRequest, LoginResponse, RevalidationStrategy, Tucan, TucanError,
+    LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
@@ -103,23 +103,23 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn my_modules(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
+    async fn my_modules(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
+    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_exams(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyExamsResponse, TucanError> {
+    async fn my_exams(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
         todo!()
     }
 
-    async fn exam_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<ExamResultsResponse, TucanError> {
+    async fn exam_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
         todo!()
     }
 
-    async fn course_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
+    async fn course_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
         todo!()
     }
 

@@ -7,9 +7,7 @@ use utoipa::ToSchema;
 use crate::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
-pub struct AnmeldungRequest {
-    arguments: String,
-}
+pub struct AnmeldungRequest(String);
 
 impl FromStr for AnmeldungRequest {
     type Err = Infallible;
@@ -21,7 +19,7 @@ impl FromStr for AnmeldungRequest {
 
 impl Display for AnmeldungRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.arguments)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -29,17 +27,17 @@ impl AnmeldungRequest {
     #[must_use]
     pub fn parse(input: &str) -> Self {
         if input.is_empty() || input == "-A" {
-            Self { arguments: "-A".to_owned() }
+            Self("-A".to_owned())
         } else {
             static REGISTRATION_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N(?P<n1>\d+),-N0,-N(?P<n3>\d+),-N(?P<n4>\d+)$").unwrap());
             let c = &REGISTRATION_DETAILS_REGEX.captures(input).expect(input);
-            Self { arguments: format!("-N{},-N0,-N{},-N{}", &c["n1"], &c["n3"], &c["n4"],) }
+            Self(format!("-N{},-N0,-N{},-N{}", &c["n1"], &c["n3"], &c["n4"],))
         }
     }
 
     #[must_use]
     pub fn inner(&self) -> &str {
-        self.arguments.as_str()
+        self.0.as_str()
     }
 }
 

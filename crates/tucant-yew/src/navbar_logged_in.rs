@@ -1,4 +1,4 @@
-use tucant_types::{LoginResponse, mlsstart::MlsStart, registration::AnmeldungRequest};
+use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
 use yew::{Html, Properties, classes, function_component, html};
 use yew_router::prelude::Link;
 
@@ -167,12 +167,12 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules} classes="dropdown-item">
+                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Module" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyCourses} classes="dropdown-item">
+                        <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Veranstaltungen" }
                         </Link<Route>>
                     </li>
@@ -207,7 +207,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyExams} classes="dropdown-item">
+                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Prüfungen" }
                         </Link<Route>>
                     </li>
@@ -227,12 +227,12 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::CourseResults} classes="dropdown-item">
+                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Modulergebnisse" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::ExamResults} classes="dropdown-item">
+                        <Link<Route> to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Prüfungsergebnisse" }
                         </Link<Route>>
                     </li>
