@@ -150,8 +150,8 @@ impl Tucan for TucanConnector {
         examresults(self, request, revalidation_strategy).await
     }
 
-    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<ModuleResultsResponse, TucanError> {
-        courseresults(self, request, revalidation_strategy).await
+    async fn course_results(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
+        courseresults(self, request, revalidation_strategy, semester).await
     }
 
     async fn my_documents(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
@@ -406,7 +406,7 @@ mod authenticated_tests {
         dotenvy::dotenv().unwrap();
         let tucan = get_tucan_connector().await;
         let login_response = get_login_session().await;
-        courseresults(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+        courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
     }
 
     #[tokio::test]

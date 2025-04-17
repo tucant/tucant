@@ -227,7 +227,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::CourseResults} classes="dropdown-item">
+                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Modulergebnisse" }
                         </Link<Route>>
                     </li>

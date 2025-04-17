@@ -222,8 +222,8 @@ enum Route {
     MyExams,
     #[at("/exam-results")]
     ExamResults,
-    #[at("/course-results")]
-    CourseResults,
+    #[at("/course-results/:semester")]
+    CourseResults { semester: SemesterId },
     #[at("/my-documents")]
     MyDocuments,
 }
@@ -313,9 +313,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
                 <ExamResults<TucanType> />
             }
         }
-        Route::CourseResults => {
+        Route::CourseResults { semester } => {
             ::yew::html! {
-                <CourseResults<TucanType> />
+                <CourseResults<TucanType> semester={semester} />
             }
         }
         Route::MyDocuments => {
