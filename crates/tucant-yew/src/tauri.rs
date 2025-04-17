@@ -107,7 +107,7 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
+    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
         todo!()
     }
 

@@ -78,8 +78,8 @@ impl Tucan for ApiServerTucan {
         Ok(response)
     }
 
-    async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
-        let url = Url::parse("http://localhost:1420/api/v1/my-courses").unwrap();
+    async fn my_courses(&self, request: &tucant_types::LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
+        let url = Url::parse(&format!("http://localhost:1420/api/v1/my-courses/{}", semester.0)).unwrap();
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }

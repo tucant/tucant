@@ -216,8 +216,8 @@ enum Route {
     Vorlesungsverzeichnis { vv: ActionRequest },
     #[at("/my-modules/:semester")]
     MyModules { semester: SemesterId },
-    #[at("/my-courses")]
-    MyCourses,
+    #[at("/my-courses/:semester")]
+    MyCourses { semester: SemesterId },
     #[at("/my-exams")]
     MyExams,
     #[at("/exam-results/:semester")]
@@ -298,9 +298,9 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
                 <MyModules<TucanType> semester={semester} />
             }
         }
-        Route::MyCourses => {
+        Route::MyCourses { semester } => {
             ::yew::html! {
-                <MyCourses<TucanType> />
+                <MyCourses<TucanType> semester={semester} />
             }
         }
         Route::MyExams => {

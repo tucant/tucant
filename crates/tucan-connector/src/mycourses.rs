@@ -11,10 +11,10 @@ use crate::{
     common::head::{footer, html_head, logged_in_head},
 };
 
-pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyCoursesResponse, TucanError> {
-    let key = "unparsed_mycourses";
+pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
+    let key = format!("unparsed_mycourses.{}", semester.0);
 
-    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(key).await;
+    let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
         if let Some((content, date)) = &old_content_and_date {
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
@@ -27,7 +27,7 @@ pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, r
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,", login_response.id);
+    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = mycourses_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -35,13 +35,14 @@ pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, r
         // TODO FIXME don't remove from database to be able to do recursive invalidations. maybe set age to oldest possible value? or more complex set invalidated and then queries can allow to return invalidated. I think we should do the more complex thing.
     }
 
-    tucan.database.put(key, (content, date)).await;
+    tucan.database.put(&key, (content, date)).await;
 
     Ok(result)
 }
 
 #[expect(clippy::too_many_lines)]
 fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<MyCoursesResponse, TucanError> {
+    // TODO Übertragungsveranstaltung
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
