@@ -12,9 +12,7 @@ pub struct MyExamsResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Exam {
     pub id: String,
-    pub name: String,
-    pub coursedetails_url: String,
-    pub tuple_of_courses: String,
+    pub name: (String, String, Option<String>),
     pub examdetail_url: String,
     pub pruefungsart: String,
     pub date_and_courseprep: Option<(String, String)>,

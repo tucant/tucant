@@ -136,11 +136,17 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             course_id
                                         </td>
                                         <td class="tbdata">
-                                            <a class="link" name="eventLink" href=coursedetails_url>
-                                                name
-                                            </a>
-                                            <br></br>
-                                            tuple_of_courses
+                                            let res = if html_handler.peek().unwrap().value().as_element().unwrap().attr("name").is_some() {
+                                                <a class="link" name="eventLink" href=coursedetails_url>
+                                                    name
+                                                </a>
+                                                <br></br>
+                                                tuple_of_courses
+                                            } => (name, coursedetails_url, Some(tuple_of_courses)) else {
+                                                <a class="link" href=coursedetails_url>
+                                                    name
+                                                </a>
+                                            } => (name, coursedetails_url, None);
                                         </td>
                                         <td class="tbdata">
                                             <a class="link" href=examdetail_url>
@@ -162,9 +168,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     </tr>
                                 } => Exam {
                                     id: course_id,
-                                    name,
-                                    coursedetails_url,
-                                    tuple_of_courses,
+                                    name: res.either_into(),
                                     examdetail_url,
                                     pruefungsart,
                                     date_and_courseprep: date_and_courseprep.right()
