@@ -13,8 +13,8 @@ pub struct ExamResultsResponse {
 pub struct ExamResult {
     pub name: String,
     pub exam_type: String,
-    pub date: String,
+    pub date: Option<String>,
     pub grade: String,
-    pub grade_text: String,
-    pub average_url: String,
+    pub grade_text: Option<String>,
+    pub average_url: Option<String>,
 }

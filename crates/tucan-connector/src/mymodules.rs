@@ -141,7 +141,9 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                             lecturer
                                         </td>
                                         <td headers="Credits" class="rw rw-mod-credits" style="text-align:left">
-                                            credits
+                                            let credits = if html_handler.peek().is_some() {
+                                                credits
+                                            } => credits;
                                         </td>
                                     </tr>
                                 } => Module {

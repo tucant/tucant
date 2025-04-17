@@ -15,9 +15,9 @@ pub struct ModuleResultsResponse {
 pub struct ModuleResult {
     pub nr: String,
     pub name: String,
-    pub grade: String,
+    pub grade: Option<String>,
     pub credits: String,
     pub status: Option<String>,
-    pub pruefungen_url: String,
+    pub pruefungen_url: Option<String>,
     pub average_url: Option<String>,
 }

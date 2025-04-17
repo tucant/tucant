@@ -134,7 +134,9 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             name
                                         </td>
                                         <td class="tbdata_numeric" style="vertical-align:top;">
-                                            grade
+                                            let grade = if html_handler.peek().is_some() {
+                                                grade
+                                            } => grade;
                                         </td>
                                         <td class="tbdata_numeric">
                                             credits
@@ -145,12 +147,14 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             } => status;
                                         </td>
                                         <td class="tbdata" style="vertical-align:top;">
-                                            <a id=_some_id href=pruefungen_url>
-                                                "Prüfungen"
-                                            </a>
-                                            <script type="text/javascript">
-                                                _script
-                                            </script>
+                                            let pruefungen_url = if html_handler.peek().is_some() {
+                                                <a id=_some_id href=pruefungen_url>
+                                                    "Prüfungen"
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _script
+                                                </script>
+                                            } => pruefungen_url;
                                         </td>
                                         <td class="tbdata">
                                             let average_url = if html_handler.peek().is_some() {

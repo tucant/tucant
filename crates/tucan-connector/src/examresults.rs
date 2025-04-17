@@ -134,23 +134,29 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             <br></br>
                                         </td>
                                         <td style="vertical-align:top;">
-                                            date
+                                            let date = if html_handler.peek().is_some() {
+                                                date
+                                            } => date;
                                         </td>
                                         <td style="vertical-align:top;">
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            grade_text
+                                            let grade_text = if grade != "Noch nicht erbracht" {
+                                                grade_text
+                                            } => grade_text;
                                         </td>
                                         <td style="vertical-align:top;">
-                                            <a id=_popup_id href=average_url class="link" title="Notenspiegel">
-                                                <b>
-                                                    "Ø"
-                                                </b>
-                                            </a>
-                                            <script type="text/javascript">
-                                                _popup_script
-                                            </script>
+                                            let average_url = if html_handler.peek().is_some() {
+                                                <a id=_popup_id href=average_url class="link" title="Notenspiegel">
+                                                    <b>
+                                                        "Ø"
+                                                    </b>
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _popup_script
+                                                </script>
+                                            } => average_url;
                                         </td>
                                     </tr>
                                 } => ExamResult { name, exam_type, date, grade, grade_text, average_url };

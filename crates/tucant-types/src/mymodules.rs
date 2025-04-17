@@ -14,6 +14,6 @@ pub struct Module {
     pub nr: String,
     pub title: String,
     pub lecturer: String,
-    pub credits: String,
+    pub credits: Option<String>,
     pub url: ModuleDetailsRequest,
 }

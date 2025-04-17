@@ -17,6 +17,5 @@ pub struct Exam {
     pub tuple_of_courses: String,
     pub examdetail_url: String,
     pub pruefungsart: String,
-    pub courseprep_url: String,
-    pub date: String,
+    pub date_and_courseprep: Option<(String, String)>,
 }
