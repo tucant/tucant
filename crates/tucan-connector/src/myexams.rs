@@ -146,6 +146,16 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                 <a class="link" href=coursedetails_url>
                                                     name
                                                 </a>
+                                                let thesis = if html_handler.peek().is_some() {
+                                                    <br></br>
+                                                    <b>
+                                                        "Thema:"
+                                                    </b>
+                                                    topic
+                                                    <br></br>
+                                                    submitted_date
+                                                    <br></br>
+                                                } => ();
                                             } => (name, coursedetails_url, None);
                                         </td>
                                         <td class="tbdata">
@@ -155,12 +165,12 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                         </td>
                                         <td class="tbdata">
                                             let date_and_courseprep = if html_handler.peek().unwrap().value().is_text() {
-                                                "k.Terminbuchung"
-                                            } => () else {
+                                                date
+                                            } => (date, None) else {
                                                 <a class="link" href=courseprep_url>
                                                     date
                                                 </a>
-                                            } => (date, courseprep_url);
+                                            } => (date, Some(courseprep_url));
                                         </td>
                                         <td class="tbdata">
                                             "Ausgewählt"
@@ -171,7 +181,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     name: res.either_into(),
                                     examdetail_url,
                                     pruefungsart,
-                                    date_and_courseprep: date_and_courseprep.right()
+                                    date_and_courseprep: date_and_courseprep.either_into()
                                 };
                             </tbody>
                         </table>

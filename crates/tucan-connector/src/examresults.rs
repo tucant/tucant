@@ -132,6 +132,19 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             <br></br>
                                             exam_type
                                             <br></br>
+                                            let thesis = if html_handler.peek().is_some() {
+                                                <br></br>
+                                                <b>
+                                                    "Thema:"
+                                                </b>
+                                                topic
+                                                <br></br>
+                                                <b>
+                                                    topic_eng
+                                                    topic_second
+                                                </b>
+                                                <br></br>
+                                            } => ();
                                         </td>
                                         <td style="vertical-align:top;">
                                             let date = if html_handler.peek().is_some() {

@@ -15,5 +15,5 @@ pub struct Exam {
     pub name: (String, String, Option<String>),
     pub examdetail_url: String,
     pub pruefungsart: String,
-    pub date_and_courseprep: Option<(String, String)>,
+    pub date_and_courseprep: (String, Option<String>),
 }
