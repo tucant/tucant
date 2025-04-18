@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 
 use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
 use web_sys::HtmlSelectElement;
@@ -23,7 +23,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MyCourses { semester: SemesterId(value) });
+                navigator.push(&Route::MyCourses { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
         ::yew::html! {
@@ -49,7 +49,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    <option selected={semester.selected} value={semester.value.0.clone()}>
+                                    <option selected={semester.selected} value={semester.value.inner().clone()}>
                                         { &semester.name }
                                     </option>
                                 }
@@ -57,50 +57,64 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                             .collect::<Html>()
                     }
                 </select>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">
-                                { "NR" }
-                            </th>
-                            <th scope="col">
-                                { "Name" }
-                            </th>
-                            <th scope="col">
-                                { "Zeitraum" }
-                            </th>
-                            <th scope="col">
-                                { "Standort" }
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            my_modules
-                                .courses
-                                .iter()
-                                .map(|courses| {
-                                    ::yew::html! {
-                                        <tr>
-                                            <th scope="row">
-                                                { &courses.nr }
-                                            </th>
-                                            <td>
-                                                { &courses.title }
-                                            </td>
-                                            <td>
-                                                { &courses.date_range }
-                                            </td>
-                                            <td>
-                                                { &courses.location }
-                                            </td>
-                                        </tr>
-                                    }
-                                })
-                                .collect::<Html>()
-                        }
-                    </tbody>
-                </table>
+                {
+                    my_modules
+                        .sections
+                        .iter()
+                        .map(|section| {
+                            ::yew::html! {
+                                <>
+                                    <h2>
+                                        { &section.0 }
+                                    </h2>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">
+                                                    { "NR" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Name" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Zeitraum" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Standort" }
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                section
+                                                    .1
+                                                    .iter()
+                                                    .map(|courses| {
+                                                        ::yew::html! {
+                                                            <tr>
+                                                                <th scope="row">
+                                                                    { &courses.nr }
+                                                                </th>
+                                                                <td>
+                                                                    { &courses.title }
+                                                                </td>
+                                                                <td>
+                                                                    { &courses.date_range }
+                                                                </td>
+                                                                <td>
+                                                                    { &courses.location }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    })
+                                                    .collect::<Html>()
+                                            }
+                                        </tbody>
+                                    </table></>
+                            }
+                        })
+                        .collect::<Html>()
+                }
             </div>
         }
     })

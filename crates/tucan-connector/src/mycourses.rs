@@ -1,4 +1,7 @@
+use std::str::FromStr;
+
 use html_handler::{Root, parse_document};
+use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
@@ -12,7 +15,7 @@ use crate::{
 };
 
 pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
-    let key = format!("unparsed_mycourses.{}", semester.0);
+    let key = format!("unparsed_mycourses.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -27,7 +30,17 @@ pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, r
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            "-N999".to_owned()
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = mycourses_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -81,19 +94,16 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                             "Semester:"
                                         </label>
                                         <select name="semester" id="semester" onchange=_onchange class="tabledata pageElementLeft">
-                                            <option value="999">
-                                                "<Alle>"
-                                            </option>
                                             let semester = while html_handler.peek().is_some() {
                                                 let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -135,41 +145,47 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="tbsubhead">
-                                <th colspan="100%">
-                                    "Lehrveranstaltung"
-                                </th>
-                            </tr>
-                            let courses = while html_handler.peek().is_some() {
-                                <tr class="tbdata ">
-                                    <td class="rw rw-profc-logo">
-                                    </td>
-                                    <td class="rw rw-profc-courseno">
-                                        course_no
-                                    </td>
-                                    <td class="rw rw-profc-coursename">
-                                        <a href=coursedetails_url class="link" name="eventLink">
-                                            name
-                                        </a>
-                                    </td>
-                                    <td class="rw rw-profc-daterange">
-                                        date_range
-                                    </td>
-                                    <td class="rw rw-profc-credits">
-                                    </td>
-                                    <td class="rw rw-profc-location">
-                                        location
-                                    </td>
-                                    <td class="rw rw-profc-audit">
-                                    </td>
+                            let sections = while html_handler.peek().is_some() {
+                                <tr class="tbsubhead">
+                                    <th colspan="100%">
+                                        title
+                                    </th>
                                 </tr>
-                            } => Course {
-                                nr: course_no,
-                                title: name,
-                                url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
-                                date_range,
-                                location
-                            };
+                                let courses = while html_handler.peek().is_some() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    <tr class="tbdata ">
+                                        <td class="rw rw-profc-logo">
+                                        </td>
+                                        <td class="rw rw-profc-courseno">
+                                            course_no
+                                        </td>
+                                        <td class="rw rw-profc-coursename">
+                                            <a href=coursedetails_url class="link" name="eventLink">
+                                                name
+                                            </a>
+                                        </td>
+                                        <td class="rw rw-profc-daterange">
+                                            date_range
+                                        </td>
+                                        <td class="rw rw-profc-credits">
+                                            let credits = if html_handler.peek().is_some() {
+                                                credits
+                                            } => credits;
+                                        </td>
+                                        <td class="rw rw-profc-location">
+                                            location
+                                        </td>
+                                        <td class="rw rw-profc-audit">
+                                        </td>
+                                    </tr>
+                                } => Course {
+                                    nr: course_no,
+                                    title: name,
+                                    url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
+                                    date_range,
+                                    location,
+                                    credits
+                                };
+                            } => (title, courses);
                         </tbody>
                     </table>
                 </div>
@@ -178,6 +194,5 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: SemesterId("all".to_owned()), selected: false });
-    Ok(MyCoursesResponse { semester, courses })
+    Ok(MyCoursesResponse { semester, sections })
 }

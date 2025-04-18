@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
@@ -11,7 +13,7 @@ use crate::{
 };
 
 pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
-    let key = format!("unparsed_examresults.{}", semester.0);
+    let key = format!("unparsed_examresults.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -26,7 +28,17 @@ pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse,
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            "-N999".to_owned()
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = examresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -81,19 +93,16 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             "Semester:"
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
-                                            <option value="999">
-                                                "<Alle>"
-                                            </option>
                                             let semester = while html_handler.peek().is_some() {
                                                 let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -132,25 +141,49 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             <br></br>
                                             exam_type
                                             <br></br>
+                                            let thesis = if html_handler.peek().is_some() {
+                                                <br></br>
+                                                <b>
+                                                    "Thema:"
+                                                </b>
+                                                topic
+                                                <br></br>
+                                                <b>
+                                                    topic_eng
+                                                    topic_second
+                                                </b>
+                                                <br></br>
+                                            } => ();
                                         </td>
                                         <td style="vertical-align:top;">
-                                            date
+                                            let date = if html_handler.peek().is_some() {
+                                                date
+                                            } => date;
                                         </td>
                                         <td style="vertical-align:top;">
                                             grade
                                         </td>
                                         <td style="vertical-align:top;">
-                                            grade_text
+                                            let grade_text = if grade != "Noch nicht erbracht" {
+                                                grade_text
+                                            } => grade_text;
                                         </td>
                                         <td style="vertical-align:top;">
-                                            <a id=_popup_id href=average_url class="link" title="Notenspiegel">
-                                                <b>
-                                                    "Ø"
-                                                </b>
-                                            </a>
-                                            <script type="text/javascript">
-                                                _popup_script
-                                            </script>
+                                            let average_url = if html_handler.peek().is_some() {
+                                                let abgegeben = if html_handler.peek().unwrap().value().is_text() {
+                                                        "Abgegeben"
+                                                    </td>
+                                                    <td style="vertical-align:top;">
+                                                } => ();
+                                                <a id=_popup_id href=average_url class="link" title="Notenspiegel">
+                                                    <b>
+                                                        "Ø"
+                                                    </b>
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _popup_script
+                                                </script>
+                                            } => average_url;
                                         </td>
                                     </tr>
                                 } => ExamResult { name, exam_type, date, grade, grade_text, average_url };

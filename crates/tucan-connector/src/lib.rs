@@ -65,17 +65,20 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(Str
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let response = connector.client.get(url).send().await?.error_for_status()?;
-        let date = &response.headers()["Date"];
-        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-        let result = response.text().await;
+        let result = async {
+            let response = connector.client.get(url).send().await?.error_for_status()?;
+            let date = &response.headers()["Date"];
+            let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+            Ok((response.text().await?, date))
+        }
+        .await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, date));
+            return result;
         }
         match result {
-            Ok(value) => return Ok((value, date)),
-            Err(err) => println!("ignoring error: {err}"),
+            Ok((value, date)) => return Ok((value, date)),
+            Err(err) => eprintln!("ignoring error: {err:?}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -86,17 +89,20 @@ pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, 
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let response = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?;
-        let date = &response.headers()["Date"];
-        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-        let result = response.text().await;
+        let result = async {
+            let response = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?;
+            let date = &response.headers()["Date"];
+            let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+            Ok((response.text().await?, date))
+        }
+        .await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, date));
+            return result;
         }
         match result {
-            Ok(value) => return Ok((value, date)),
-            Err(err) => println!("ignoring error: {err}"),
+            Ok((value, date)) => return Ok((value, date)),
+            Err(err) => eprintln!("ignoring error: {err:?}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -108,7 +114,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(10)) })
+        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(5)) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -177,15 +183,23 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{Arc, OnceLock};
 
     use reqwest::{Client, header};
-    use tokio::sync::{OnceCell, Semaphore};
+    use tokio::{
+        runtime::Runtime,
+        sync::{OnceCell, Semaphore},
+    };
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, TucanError, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
     use crate::{Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root, startpage_dispatch::one::startpage_dispatch_1};
 
     static ONCE_CONNECTOR: OnceCell<(Client, Arc<Semaphore>)> = OnceCell::const_new();
+
+    pub fn runtime() -> &'static Runtime {
+        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+        RUNTIME.get_or_init(|| tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap())
+    }
 
     pub async fn get_tucan_connector() -> TucanConnector {
         let (client, semaphore) = ONCE_CONNECTOR
@@ -194,83 +208,105 @@ mod tests {
                 headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
                 let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(10));
+                let semaphore = Arc::new(Semaphore::new(5));
                 (client, semaphore)
             })
             .await;
         TucanConnector::new_test(client.clone(), semaphore.clone()).await.unwrap()
     }
 
-    #[tokio::test]
-    pub async fn login_incorrect() {
-        let tucan = get_tucan_connector().await;
-        assert!(matches!(login(&tucan.client, &LoginRequest { username: "not_found".to_owned(), password: "not_correct".to_owned() },).await, Err(TucanError::InvalidCredentials)));
+    #[test]
+    pub fn login_incorrect() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            assert!(matches!(login(&tucan.client, &LoginRequest { username: "not_found".to_owned(), password: "not_correct".to_owned() },).await, Err(TucanError::InvalidCredentials)));
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_root_page() {
-        let tucan = get_tucan_connector().await;
-        root(&tucan).await.unwrap();
+    #[test]
+    pub fn test_root_page() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            root(&tucan).await.unwrap();
+        });
     }
 
     /// /
     /// redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
-    #[tokio::test]
-    pub async fn test_startpage_dispatch_1() {
-        let tucan = get_tucan_connector().await;
-        startpage_dispatch_1(&tucan).await.unwrap();
+    #[test]
+    pub fn test_startpage_dispatch_1() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            startpage_dispatch_1(&tucan).await.unwrap();
+        });
     }
 
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N000000000000001
     /// redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome
-    #[tokio::test]
-    pub async fn test_welcome() {
-        let tucan = get_tucan_connector().await;
-        welcome(&tucan).await.unwrap();
+    #[test]
+    pub fn test_welcome() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            welcome(&tucan).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn module_keine_leistungskombination() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N383723477792938")).await.unwrap();
+    #[test]
+    pub fn module_keine_leistungskombination() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N383723477792938")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn module_leistungskombination() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N374884241922478")).await.unwrap();
+    #[test]
+    pub fn module_leistungskombination() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.module_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), ModuleDetailsRequest::parse("-N374884241922478")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn course_1() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3")).await.unwrap();
+    #[test]
+    pub fn course_1() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn course_2() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3")).await.unwrap();
+    #[test]
+    pub fn course_2() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn course_3() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3")).await.unwrap();
+    #[test]
+    pub fn course_3() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn course_4() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
+    #[test]
+    pub fn course_4() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3")).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn course_5() {
-        let tucan = get_tucan_connector().await;
-        let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
+    #[test]
+    pub fn course_5() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
+        });
     }
 }
 
@@ -287,7 +323,20 @@ mod authenticated_tests {
     use tokio::sync::OnceCell;
     use tucant_types::{LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, registration::AnmeldungRequest};
 
-    use crate::{Tucan, TucanConnector, courseresults::courseresults, examresults::examresults, login::login, mlsstart::start_page::after_login, mycourses::mycourses, mydocuments::my_documents, myexams::my_exams, mymodules::mymodules, registration::index::anmeldung, startpage_dispatch::after_login::redirect_after_login, tests::get_tucan_connector};
+    use crate::{
+        Tucan, TucanConnector,
+        courseresults::courseresults,
+        examresults::examresults,
+        login::login,
+        mlsstart::start_page::after_login,
+        mycourses::mycourses,
+        mydocuments::my_documents,
+        myexams::my_exams,
+        mymodules::mymodules,
+        registration::index::anmeldung,
+        startpage_dispatch::after_login::redirect_after_login,
+        tests::{get_tucan_connector, runtime},
+    };
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();
 
@@ -306,122 +355,169 @@ mod authenticated_tests {
         .await
     }
 
-    #[tokio::test]
-    pub async fn test_login() {
-        dotenvy::dotenv().unwrap();
-        get_login_session().await;
+    #[test]
+    pub fn test_login() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            get_login_session().await;
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_redirect_after_login() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        redirect_after_login(&tucan, login_response.clone()).await.unwrap();
+    #[test]
+    pub fn test_redirect_after_login() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            redirect_after_login(&tucan, login_response.clone()).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_mlsstart() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        after_login(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+    #[test]
+    pub fn test_mlsstart() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            after_login(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_registration() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        let _response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::default()).await.unwrap();
+    #[test]
+    pub fn test_registration() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let _response = anmeldung(&tucan, &login_response, RevalidationStrategy::default(), AnmeldungRequest::default()).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn vv_top_level() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
-    }
-
-    #[tokio::test]
-    pub async fn vv_first_level() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone().1;
-        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
-    }
-
-    #[tokio::test]
-    pub async fn vv_first_level_4_courses() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone().1;
-        let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
-    }
-
-    #[tokio::test]
-    pub async fn vv_first_level_all() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
-        for (_title, action) in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
-            println!("{action}");
+    #[test]
+    pub fn vv_top_level() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
             let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
-        }
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_mymodules() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
+    #[test]
+    pub fn vv_first_level() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[0].clone().1;
+            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_mycourses() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        mycourses(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
+    #[test]
+    pub fn vv_first_level_4_courses() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            let result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries[4].clone().1;
+            let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), result).await.unwrap();
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_myexams() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        my_exams(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
+    #[test]
+    pub fn vv_first_level_all() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
+            for (_title, action) in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
+                println!("{action}");
+                let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
+            }
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_courseresults() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
+    #[test]
+    pub fn test_mymodules() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = tucan.my_modules(&login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            for semester in semesters {
+                tucan.my_modules(&login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+            }
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_examresults() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        examresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap();
+    #[test]
+    pub fn test_mycourses() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            mycourses(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = mycourses(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            for semester in semesters {
+                mycourses(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+            }
+        });
     }
 
-    #[tokio::test]
-    pub async fn test_mydocuments() {
-        dotenvy::dotenv().unwrap();
-        let tucan = get_tucan_connector().await;
-        let login_response = get_login_session().await;
-        my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+    #[test]
+    pub fn test_myexams() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            my_exams(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = my_exams(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            for semester in semesters {
+                my_exams(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+            }
+        });
+    }
+
+    #[test]
+    pub fn test_courseresults() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            let semesters = courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            for semester in semesters {
+                courseresults(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+            }
+        });
+    }
+
+    #[test]
+    pub fn test_examresults() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            examresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
+            let semesters = examresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
+            for semester in semesters {
+                examresults(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
+            }
+        });
+    }
+
+    #[test]
+    pub fn test_mydocuments() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+        });
     }
 }

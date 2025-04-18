@@ -14,9 +14,9 @@ pub struct Exam {
     pub id: String,
     pub name: String,
     pub coursedetails_url: String,
-    pub tuple_of_courses: String,
+    pub tuple_of_courses: Option<String>,
     pub examdetail_url: String,
     pub pruefungsart: String,
-    pub courseprep_url: String,
     pub date: String,
+    pub courseprep_url: Option<String>,
 }

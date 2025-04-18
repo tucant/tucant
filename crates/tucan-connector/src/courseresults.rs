@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
@@ -11,7 +13,7 @@ use crate::{
 };
 
 pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
-    let key = format!("unparsed_courseresults.{}", semester.0);
+    let key = format!("unparsed_courseresults.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -26,7 +28,17 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            panic!("not supported")
+        } else {
+            format!("-N{}", semester.inner())
+        }
+    );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = courseresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -85,11 +97,11 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -134,7 +146,9 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             name
                                         </td>
                                         <td class="tbdata_numeric" style="vertical-align:top;">
-                                            grade
+                                            let grade = if html_handler.peek().is_some() {
+                                                grade
+                                            } => grade;
                                         </td>
                                         <td class="tbdata_numeric">
                                             credits
@@ -145,12 +159,14 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                             } => status;
                                         </td>
                                         <td class="tbdata" style="vertical-align:top;">
-                                            <a id=_some_id href=pruefungen_url>
-                                                "Prüfungen"
-                                            </a>
-                                            <script type="text/javascript">
-                                                _script
-                                            </script>
+                                            let pruefungen_url = if html_handler.peek().is_some() {
+                                                <a id=_some_id href=pruefungen_url>
+                                                    "Prüfungen"
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _script
+                                                </script>
+                                            } => pruefungen_url;
                                         </td>
                                         <td class="tbdata">
                                             let average_url = if html_handler.peek().is_some() {

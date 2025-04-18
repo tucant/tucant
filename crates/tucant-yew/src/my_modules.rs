@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 
 use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
 use web_sys::{HtmlInputElement, HtmlSelectElement};
@@ -23,7 +23,7 @@ pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyMo
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MyModules { semester: SemesterId(value) });
+                navigator.push(&Route::MyModules { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
         ::yew::html! {
@@ -49,7 +49,7 @@ pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyMo
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    <option selected={semester.selected} value={semester.value.0.clone()}>
+                                    <option selected={semester.selected} value={semester.value.inner().clone()}>
                                         { &semester.name }
                                     </option>
                                 }
@@ -92,7 +92,7 @@ pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyMo
                                                 { &stundenplaneintrag.lecturer }
                                             </td>
                                             <td>
-                                                { &stundenplaneintrag.credits }
+                                                { stundenplaneintrag.credits.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                         </tr>
                                     }
