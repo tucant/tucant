@@ -48,6 +48,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
+    console.log("oninstalled")
     let { mobileDesign, customUi } = await chrome.storage.sync.get(
         { mobileDesign: false, customUi: true },
     );

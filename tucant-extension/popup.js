@@ -19,6 +19,7 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     // https://stackoverflow.com/questions/68422688/chrome-extension-declarativenetrequest-isnt-matching-rulecondition
 
     await chrome.declarativeNetRequest.updateDynamicRules({
+        // TODO centrally reference this id
         removeRuleIds: [4100], // TODO check that rules have no dupes
     });
 
