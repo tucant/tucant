@@ -21,12 +21,13 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
         let loading = loading.clone();
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
-        use_effect_with(request.to_owned(), move |request| {
-            if let Some(current_session) = (*current_session_handle).to_owned() {
+        use_effect_with((request.to_owned(), current_session_handle.clone()), move |(request, current_session_handle)| {
+            if let Some(current_session) = (**current_session_handle).to_owned() {
                 loading.set(true);
                 let request = request.clone();
                 let data = data.clone();
                 let tucan = tucan.clone();
+                let current_session_handle = current_session_handle.to_owned();
                 spawn_local(async move {
                     match handler(tucan.clone(), current_session.clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                         Ok(response) => {
