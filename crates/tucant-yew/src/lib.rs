@@ -127,7 +127,6 @@ fn login<TucanType: Tucan + 'static>() -> HtmlResult {
             let current_session = current_session.clone();
             password_value_handle.set("".to_owned());
 
-            let navigator = navigator.clone();
             let tucan = tucan.clone();
 
             spawn_local(async move {

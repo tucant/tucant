@@ -44,10 +44,22 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
-    handleOpenInTucan(id?.value, tabId, url)
+    if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
+        handleOpenInTucan(id?.value, tabId, url)
+    }
+
+    if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            title: "Sharing this URL is not supported",
+            message: "Unfortunately sharing this URL is not supported (yet). We welcome any contribution",
+        });
+    }
 })
 
 chrome.runtime.onInstalled.addListener(async () => {
+    console.log("oninstalled")
     let { mobileDesign, customUi } = await chrome.storage.sync.get(
         { mobileDesign: false, customUi: true },
     );
@@ -100,7 +112,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 
     chrome.contextMenus.create({
         id: "open-in-tucan",
-        title: "Open in TUCaN",
+        title: "Open link in TUCaN",
         contexts: ["link"],
         targetUrlPatterns: [`${EXTENSION_PAGE}*`]
     }, () => {
@@ -109,7 +121,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 
     chrome.contextMenus.create({
         id: "open-in-tucant",
-        title: "Open in TUCaN't",
+        title: "Open link in TUCaN't",
         contexts: ["link"],
         targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
     }, () => {
@@ -118,7 +130,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 
     chrome.contextMenus.create({
         id: "open-in-tucan-page",
-        title: "Open in TUCaN",
+        title: "Open page in TUCaN",
         contexts: ["page"],
         documentUrlPatterns: [`${EXTENSION_PAGE}*`]
     }, () => {
@@ -127,9 +139,27 @@ chrome.runtime.onInstalled.addListener(async () => {
 
     chrome.contextMenus.create({
         id: "open-in-tucant-page",
-        title: "Open in TUCaN't",
+        title: "Open page in TUCaN't",
         contexts: ["page"],
         documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "shareable-link-page",
+        title: "Share link to page (without session id)",
+        contexts: ["page"],
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+    }, () => {
+        console.log(chrome.runtime.lastError)
+    })
+
+    chrome.contextMenus.create({
+        id: "shareable-link",
+        title: "Share link (without session id)",
+        contexts: ["link"],
+        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
     }, () => {
         console.log(chrome.runtime.lastError)
     })
