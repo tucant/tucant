@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
@@ -11,7 +13,7 @@ use crate::{
 };
 
 pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
-    let key = format!("unparsed_myexams.{}", semester.0);
+    let key = format!("unparsed_myexams.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -34,7 +36,7 @@ pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, re
         } else if semester == SemesterId::all() {
             "-N999".to_owned()
         } else {
-            format!("-N{}", semester.0)
+            format!("-N{}", semester.inner())
         }
     );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
@@ -88,19 +90,16 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                             "Veranstaltungs-/Modulsemester:"
                                         </label>
                                         <select id="semester" name="semester" onchange=_onchange class="tabledata">
-                                            <option value="999">
-                                                "<Alle>"
-                                            </option>
                                             let semester = while html_handler.peek().is_some() {
                                                 let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>
@@ -205,6 +204,5 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: SemesterId("all".to_owned()), selected: false });
     Ok(MyExamsResponse { semester, exams })
 }

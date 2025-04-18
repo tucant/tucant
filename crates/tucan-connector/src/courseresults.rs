@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
@@ -11,7 +13,7 @@ use crate::{
 };
 
 pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
-    let key = format!("unparsed_courseresults.{}", semester.0);
+    let key = format!("unparsed_courseresults.{}", semester.inner());
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -34,7 +36,7 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
         } else if semester == SemesterId::all() {
             panic!("not supported")
         } else {
-            format!("-N{}", semester.0)
+            format!("-N{}", semester.inner())
         }
     );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
@@ -95,11 +97,11 @@ fn courseresults_internal(login_response: &LoginResponse, content: &str) -> Resu
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: true } else {
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId(value), selected: false };
+                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
                                             } => option.either_into();
                                         </select>
                                         <input name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload"></input>

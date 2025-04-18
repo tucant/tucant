@@ -119,13 +119,13 @@ impl RevalidationStrategy {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
-pub struct SemesterId(pub String);
+pub struct SemesterId(String);
 
 impl FromStr for SemesterId {
     type Err = Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_owned()))
+        if s == "999" { Ok(Self("all".to_owned())) } else { Ok(Self(s.to_owned())) }
     }
 }
 
@@ -136,12 +136,19 @@ impl std::fmt::Display for SemesterId {
 }
 
 impl SemesterId {
+    #[must_use]
     pub fn all() -> Self {
         Self("all".to_owned())
     }
 
+    #[must_use]
     pub fn current() -> Self {
         Self("current".to_owned())
+    }
+
+    #[must_use]
+    pub const fn inner(&self) -> &String {
+        &self.0
     }
 }
 

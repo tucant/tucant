@@ -75,7 +75,7 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(Str
         }
         match result {
             Ok(value) => return Ok((value, date)),
-            Err(err) => println!("ignoring error: {err}"),
+            Err(err) => eprintln!("ignoring error: {err}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -96,7 +96,7 @@ pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, 
         }
         match result {
             Ok(value) => return Ok((value, date)),
-            Err(err) => println!("ignoring error: {err}"),
+            Err(err) => eprintln!("ignoring error: {err:?}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -108,7 +108,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(10)) })
+        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(5)) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -202,7 +202,7 @@ mod tests {
                 headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
                 let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(10));
+                let semaphore = Arc::new(Semaphore::new(5));
                 (client, semaphore)
             })
             .await;
@@ -484,7 +484,6 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::all()).await.unwrap();
             let semesters = courseresults(&tucan, &login_response, RevalidationStrategy::default(), SemesterId::current()).await.unwrap().semester;
             for semester in semesters {
                 courseresults(&tucan, &login_response, RevalidationStrategy::default(), semester.value).await.unwrap();
