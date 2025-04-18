@@ -26,7 +26,17 @@ pub async fn courseresults(tucan: &TucanConnector, login_response: &LoginRespons
         return Err(TucanError::NotCached);
     };
 
-    let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}", login_response.id, if semester == SemesterId::current() { String::new() } else { format!("-N{}", semester.0) });
+    let url = format!(
+        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}",
+        login_response.id,
+        if semester == SemesterId::current() {
+            String::new()
+        } else if semester == SemesterId::all() {
+            panic!("not supported")
+        } else {
+            format!("-N{}", semester.0)
+        }
+    );
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = courseresults_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
