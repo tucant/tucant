@@ -1,4 +1,5 @@
 use html_handler::{Root, parse_document};
+use scraper::CaseSensitivity;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
@@ -135,41 +136,47 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="tbsubhead">
-                                <th colspan="100%">
-                                    "Lehrveranstaltung"
-                                </th>
-                            </tr>
-                            let courses = while html_handler.peek().is_some() {
-                                <tr class="tbdata ">
-                                    <td class="rw rw-profc-logo">
-                                    </td>
-                                    <td class="rw rw-profc-courseno">
-                                        course_no
-                                    </td>
-                                    <td class="rw rw-profc-coursename">
-                                        <a href=coursedetails_url class="link" name="eventLink">
-                                            name
-                                        </a>
-                                    </td>
-                                    <td class="rw rw-profc-daterange">
-                                        date_range
-                                    </td>
-                                    <td class="rw rw-profc-credits">
-                                    </td>
-                                    <td class="rw rw-profc-location">
-                                        location
-                                    </td>
-                                    <td class="rw rw-profc-audit">
-                                    </td>
+                            let sections = while html_handler.peek().is_some() {
+                                <tr class="tbsubhead">
+                                    <th colspan="100%">
+                                        title
+                                    </th>
                                 </tr>
-                            } => Course {
-                                nr: course_no,
-                                title: name,
-                                url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
-                                date_range,
-                                location
-                            };
+                                let courses = while html_handler.peek().is_some() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    <tr class="tbdata ">
+                                        <td class="rw rw-profc-logo">
+                                        </td>
+                                        <td class="rw rw-profc-courseno">
+                                            course_no
+                                        </td>
+                                        <td class="rw rw-profc-coursename">
+                                            <a href=coursedetails_url class="link" name="eventLink">
+                                                name
+                                            </a>
+                                        </td>
+                                        <td class="rw rw-profc-daterange">
+                                            date_range
+                                        </td>
+                                        <td class="rw rw-profc-credits">
+                                            let credits = if html_handler.peek().is_some() {
+                                                credits
+                                            } => credits;
+                                        </td>
+                                        <td class="rw rw-profc-location">
+                                            location
+                                        </td>
+                                        <td class="rw rw-profc-audit">
+                                        </td>
+                                    </tr>
+                                } => Course {
+                                    nr: course_no,
+                                    title: name,
+                                    url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
+                                    date_range,
+                                    location,
+                                    credits
+                                };
+                            } => (title, courses);
                         </tbody>
                     </table>
                 </div>
@@ -179,5 +186,5 @@ fn mycourses_internal(login_response: &LoginResponse, content: &str) -> Result<M
     }
     html_handler.end_document();
     semester.insert(0, Semesterauswahl { name: "<Alle>".to_owned(), value: SemesterId("all".to_owned()), selected: false });
-    Ok(MyCoursesResponse { semester, courses })
+    Ok(MyCoursesResponse { semester, sections })
 }
