@@ -77,24 +77,38 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                     <tbody>
                         {
                             my_modules
-                                .courses
+                                .sections
                                 .iter()
-                                .map(|courses| {
+                                .map(|section| {
                                     ::yew::html! {
-                                        <tr>
-                                            <th scope="row">
-                                                { &courses.nr }
-                                            </th>
-                                            <td>
-                                                { &courses.title }
-                                            </td>
-                                            <td>
-                                                { &courses.date_range }
-                                            </td>
-                                            <td>
-                                                { &courses.location }
-                                            </td>
-                                        </tr>
+                                        <>
+                                            <h2>
+                                                { &section.0 }
+                                            </h2>
+                                            {
+                                                section
+                                                    .1
+                                                    .iter()
+                                                    .map(|courses| {
+                                                        ::yew::html! {
+                                                            <tr>
+                                                                <th scope="row">
+                                                                    { &courses.nr }
+                                                                </th>
+                                                                <td>
+                                                                    { &courses.title }
+                                                                </td>
+                                                                <td>
+                                                                    { &courses.date_range }
+                                                                </td>
+                                                                <td>
+                                                                    { &courses.location }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    })
+                                                    .collect::<Html>()
+                                            }</>
                                     }
                                 })
                                 .collect::<Html>()

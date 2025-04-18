@@ -92,7 +92,7 @@ pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyMo
                                                 { &stundenplaneintrag.lecturer }
                                             </td>
                                             <td>
-                                                { &stundenplaneintrag.credits }
+                                                { stundenplaneintrag.credits.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                         </tr>
                                     }

@@ -89,7 +89,7 @@ pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &
                                                 { &exam.exam_type }
                                             </td>
                                             <td>
-                                                { &exam.date }
+                                                { exam.date.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                             <td>
                                                 { &exam.grade }

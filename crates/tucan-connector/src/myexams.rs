@@ -178,10 +178,13 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     </tr>
                                 } => Exam {
                                     id: course_id,
-                                    name: res.either_into(),
+                                    name: res.clone().either_into::<(String, String, Option<String>)>().0,
+                                    coursedetails_url: res.clone().either_into::<(String, String, Option<String>)>().1,
+                                    tuple_of_courses: res.either_into::<(String, String, Option<String>)>().2,
                                     examdetail_url,
                                     pruefungsart,
-                                    date_and_courseprep: date_and_courseprep.either_into()
+                                    date: date_and_courseprep.clone().either_into::<(String, Option<String>)>().0,
+                                    courseprep_url: date_and_courseprep.either_into::<(String, Option<String>)>().1,
                                 };
                             </tbody>
                         </table>

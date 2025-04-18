@@ -95,7 +95,7 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                                                 { &exam.credits }
                                             </td>
                                             <td>
-                                                { &exam.grade }
+                                                { exam.grade.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                             <td>
                                                 { &exam.status.clone().unwrap_or_default() }
