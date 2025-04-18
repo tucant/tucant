@@ -15,7 +15,6 @@ pub struct StundenplanEintrag {
     pub course_name: String,
     pub coursedetails_url: String,
     pub courseprep_url: String,
-    pub courseprep_url2: String,
     pub from: String,
     pub to: String,
 }
