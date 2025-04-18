@@ -161,6 +161,11 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                         </td>
                                         <td style="vertical-align:top;">
                                             let average_url = if html_handler.peek().is_some() {
+                                                let abgegeben = if html_handler.peek().unwrap().value().is_text() {
+                                                        "Abgegeben"
+                                                    </td>
+                                                    <td style="vertical-align:top;">
+                                                } => ();
                                                 <a id=_popup_id href=average_url class="link" title="Notenspiegel">
                                                     <b>
                                                         "Ø"
