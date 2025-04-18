@@ -57,34 +57,34 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                             .collect::<Html>()
                     }
                 </select>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">
-                                { "NR" }
-                            </th>
-                            <th scope="col">
-                                { "Name" }
-                            </th>
-                            <th scope="col">
-                                { "Zeitraum" }
-                            </th>
-                            <th scope="col">
-                                { "Standort" }
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            my_modules
-                                .sections
-                                .iter()
-                                .map(|section| {
-                                    ::yew::html! {
-                                        <>
-                                            <h2>
-                                                { &section.0 }
-                                            </h2>
+                {
+                    my_modules
+                        .sections
+                        .iter()
+                        .map(|section| {
+                            ::yew::html! {
+                                <>
+                                    <h2>
+                                        { &section.0 }
+                                    </h2>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">
+                                                    { "NR" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Name" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Zeitraum" }
+                                                </th>
+                                                <th scope="col">
+                                                    { "Standort" }
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
                                             {
                                                 section
                                                     .1
@@ -108,13 +108,13 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                                                         }
                                                     })
                                                     .collect::<Html>()
-                                            }</>
-                                    }
-                                })
-                                .collect::<Html>()
-                        }
-                    </tbody>
-                </table>
+                                            }
+                                        </tbody>
+                                    </table></>
+                            }
+                        })
+                        .collect::<Html>()
+                }
             </div>
         }
     })
