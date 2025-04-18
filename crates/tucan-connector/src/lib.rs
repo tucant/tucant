@@ -65,17 +65,20 @@ pub async fn retryable_get(connector: &TucanConnector, url: &str) -> Result<(Str
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let response = connector.client.get(url).send().await?.error_for_status()?;
-        let date = &response.headers()["Date"];
-        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-        let result = response.text().await;
+        let result = async {
+            let response = connector.client.get(url).send().await?.error_for_status()?;
+            let date = &response.headers()["Date"];
+            let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+            Ok((response.text().await?, date))
+        }
+        .await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, date));
+            return result;
         }
         match result {
-            Ok(value) => return Ok((value, date)),
-            Err(err) => eprintln!("ignoring error: {err}"),
+            Ok((value, date)) => return Ok((value, date)),
+            Err(err) => eprintln!("ignoring error: {err:?}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;
         i += 1;
@@ -86,16 +89,19 @@ pub async fn authenticated_retryable_get(connector: &TucanConnector, url: &str, 
     let mut i = 0;
     loop {
         let permit = connector.semaphore.acquire().await.unwrap();
-        let response = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?;
-        let date = &response.headers()["Date"];
-        let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
-        let result = response.text().await;
+        let result = async {
+            let response = connector.client.get(url).header("Cookie", format!("cnsc={cookie_cnsc}")).send().await?.error_for_status()?;
+            let date = &response.headers()["Date"];
+            let date = OffsetDateTime::parse(date.to_str().unwrap(), &Rfc2822).unwrap();
+            Ok((response.text().await?, date))
+        }
+        .await;
         drop(permit);
         if i == 4 {
-            return Ok((result?, date));
+            return result;
         }
         match result {
-            Ok(value) => return Ok((value, date)),
+            Ok((value, date)) => return Ok((value, date)),
             Err(err) => eprintln!("ignoring error: {err:?}"),
         }
         sleep(Duration::from_secs(2u64.pow(i))).await;

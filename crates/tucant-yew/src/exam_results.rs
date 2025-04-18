@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 
 use tucant_types::{SemesterId, Tucan, examresults::ExamResultsResponse};
 use web_sys::HtmlSelectElement;
@@ -23,7 +23,7 @@ pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::ExamResults { semester: SemesterId(value) });
+                navigator.push(&Route::ExamResults { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
         ::yew::html! {
@@ -49,7 +49,7 @@ pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &
                             .iter()
                             .map(|semester| {
                                 ::yew::html! {
-                                    <option selected={semester.selected} value={semester.value.0.clone()}>
+                                    <option selected={semester.selected} value={semester.value.inner().clone()}>
                                         { &semester.name }
                                     </option>
                                 }
