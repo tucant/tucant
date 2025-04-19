@@ -75,6 +75,9 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                             <th scope="col">
                                 { "Status" }
                             </th>
+                            <th scope="col">
+                                { "Prüfungen" }
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -99,6 +102,20 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                                             </td>
                                             <td>
                                                 { &exam.status.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                if let Some(pruefungen_url) = &exam.pruefungen_url {
+                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", pruefungen_url)}>
+                                                        { "Prüfungen" }
+                                                    </a>
+                                                }
+                                            </td>
+                                            <td>
+                                                if let Some(average_url) = &exam.average_url {
+                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", average_url)}>
+                                                        { "Ø" }
+                                                    </a>
+                                                }
                                             </td>
                                         </tr>
                                     }
