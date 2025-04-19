@@ -72,6 +72,9 @@ pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &
                             <th scope="col">
                                 { "Note" }
                             </th>
+                            <th scope="col">
+                                { "Ø" }
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,6 +96,13 @@ pub fn exam_results<TucanType: Tucan + 'static>(ExamResultsProps { semester }: &
                                             </td>
                                             <td>
                                                 { &exam.grade }
+                                            </td>
+                                            <td>
+                                                if let Some(average_url) = &exam.average_url {
+                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", average_url)}>
+                                                        { "Ø" }
+                                                    </a>
+                                                }
                                             </td>
                                         </tr>
                                     }

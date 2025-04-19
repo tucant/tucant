@@ -78,6 +78,9 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                             <th scope="col">
                                 { "Prüfungen" }
                             </th>
+                            <th scope="col">
+                                { "Ø" }
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
