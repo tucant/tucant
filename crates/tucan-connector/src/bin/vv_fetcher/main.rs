@@ -93,7 +93,7 @@ impl Fetcher {
                         }
 
                         self.course.fetch_add(1, Ordering::Relaxed);
-                        //println!("course counter: {}", self.course.load(Ordering::Relaxed));
+                        println!("course counter: {}", self.course.load(Ordering::Relaxed));
                     }
                     .boxed()
                 }))

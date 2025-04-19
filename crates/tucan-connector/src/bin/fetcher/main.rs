@@ -104,7 +104,7 @@ impl Fetcher {
                                 }
                             }
 
-                            //println!("module counter: {}", self.module_counter.load(Ordering::Relaxed));
+                            println!("module counter: {}", self.module.load(Ordering::Relaxed));
                             self.module.fetch_add(1, Ordering::Relaxed);
                         }
 
@@ -122,7 +122,7 @@ impl Fetcher {
                                 eprintln!("failed to fetch course {} with error {err:?}", course.1.url);
                             }
 
-                            //println!("course counter: {}", self.course_counter.load(Ordering::Relaxed));
+                            println!("course counter: {}", self.course.load(Ordering::Relaxed));
                             self.course.fetch_add(1, Ordering::Relaxed);
                         }
                     }

@@ -114,7 +114,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(5)) })
+        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(10)) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -208,7 +208,7 @@ mod tests {
                 headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
                 let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(5));
+                let semaphore = Arc::new(Semaphore::new(10));
                 (client, semaphore)
             })
             .await;
