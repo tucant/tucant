@@ -114,7 +114,7 @@ impl TucanConnector {
         let mut headers = header::HeaderMap::new();
         headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
         let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
-        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(5)) })
+        Ok(Self { client, database: Database::new().await, semaphore: Arc::new(Semaphore::new(10)) })
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -208,7 +208,7 @@ mod tests {
                 headers.insert("Accept-Language", header::HeaderValue::from_static("de-DE,de;q=0.5"));
                 let client = reqwest::Client::builder().default_headers(headers).user_agent("https://github.com/tucant/tucant d8167c8 Moritz.Hedtke@t-online.de").build().unwrap();
 
-                let semaphore = Arc::new(Semaphore::new(5));
+                let semaphore = Arc::new(Semaphore::new(10));
                 (client, semaphore)
             })
             .await;
@@ -436,7 +436,6 @@ mod authenticated_tests {
             let login_response = get_login_session().await;
             let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
             for (_title, action) in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
-                println!("{action}");
                 let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
             }
         });

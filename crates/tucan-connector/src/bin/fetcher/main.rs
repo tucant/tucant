@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use futures_util::stream::FuturesUnordered;
 use futures_util::{FutureExt, StreamExt};
-use tucan_connector::TucanConnector;
+use tucan_connector::{TucanConnector, coursedetails};
 use tucant_types::coursedetails::CourseDetailsRequest;
 use tucant_types::registration::{AnmeldungRequest, RegistrationState};
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
@@ -88,10 +88,6 @@ impl Fetcher {
                             //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
                             //self.module_file.write_all(b"\n").await.unwrap();
 
-                            if matches!(&module.registration_state, RegistrationState::Registered { unregister_link: _ }) {
-                                println!("registered for {} at {}", module.name, path);
-                            }
-
                             let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap() }).catch_unwind().await;
                             match result {
                                 Err(err) => {
@@ -104,7 +100,7 @@ impl Fetcher {
                                 }
                             }
 
-                            //println!("module counter: {}", self.module_counter.load(Ordering::Relaxed));
+                            //println!("module counter: {}", self.module.load(Ordering::Relaxed));
                             self.module.fetch_add(1, Ordering::Relaxed);
                         }
 
@@ -114,7 +110,9 @@ impl Fetcher {
                             //self.course_file.write_all(b"\n").await.unwrap();
 
                             let result = AssertUnwindSafe(async {
-                                let _course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
+                                let course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), CourseDetailsRequest::parse(course.1.url.inner())).await.unwrap();
+
+                                println!("{}: {}", path, course_details.name);
                             })
                             .catch_unwind()
                             .await;
@@ -122,7 +120,7 @@ impl Fetcher {
                                 eprintln!("failed to fetch course {} with error {err:?}", course.1.url);
                             }
 
-                            //println!("course counter: {}", self.course_counter.load(Ordering::Relaxed));
+                            //println!("course counter: {}", self.course.load(Ordering::Relaxed));
                             self.course.fetch_add(1, Ordering::Relaxed);
                         }
                     }
