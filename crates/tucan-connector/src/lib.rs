@@ -48,6 +48,7 @@ pub mod mymodules;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
+pub mod student_result;
 pub mod vv;
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
@@ -335,6 +336,7 @@ mod authenticated_tests {
         mymodules::mymodules,
         registration::index::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
+        student_result::student_result,
         tests::{get_tucan_connector, runtime},
     };
 
@@ -517,6 +519,16 @@ mod authenticated_tests {
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
             my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+        });
+    }
+
+    #[test]
+    pub fn test_student_result() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            student_result(&tucan, &login_response, RevalidationStrategy::default(), "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned()).await.unwrap();
         });
     }
 }
