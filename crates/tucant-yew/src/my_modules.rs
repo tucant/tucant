@@ -3,7 +3,7 @@ use std::{ops::Deref, str::FromStr};
 use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
 use web_sys::{HtmlInputElement, HtmlSelectElement};
 use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
-use yew_router::hooks::use_navigator;
+use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_data_loader};
 
@@ -79,20 +79,22 @@ pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyMo
                             my_modules
                                 .modules
                                 .iter()
-                                .map(|stundenplaneintrag| {
+                                .map(|module| {
                                     ::yew::html! {
                                         <tr>
                                             <th scope="row">
-                                                { &stundenplaneintrag.nr }
+                                                { &module.nr }
                                             </th>
                                             <td>
-                                                { &stundenplaneintrag.title }
+                                                <Link<Route> to={Route::ModuleDetails { module: module.url.clone() }}>
+                                                    { &module.title }
+                                                </Link<Route>>
                                             </td>
                                             <td>
-                                                { &stundenplaneintrag.lecturer }
+                                                { &module.lecturer }
                                             </td>
                                             <td>
-                                                { stundenplaneintrag.credits.clone().unwrap_or_else(|| "-".to_owned()) }
+                                                { module.credits.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                         </tr>
                                     }
