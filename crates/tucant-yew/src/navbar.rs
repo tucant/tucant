@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
 use log::error;
+use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
@@ -28,10 +29,18 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                         Err(error) => {
                             // TODO pass through tucanerror from server
                             error!("{}", error);
-                            if let TucanError::Timeout | TucanError::AccessDenied = error {
-                                current_session_handle.set(None);
+                            match error {
+                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                    current_session_handle.set(None);
+                                    data.set(Err("Unauthorized".to_owned()))
+                                }
+                                TucanError::Timeout | TucanError::AccessDenied => {
+                                    current_session_handle.set(None);
+                                }
+                                _ => {
+                                    data.set(Err(error.to_string()));
+                                }
                             }
-                            data.set(Err(error));
                         }
                     }
                 })

@@ -11,6 +11,8 @@ use yew::{platform::spawn_local, use_effect_with, use_state};
 
 #[hook]
 pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+    use reqwest::StatusCode;
+
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -43,10 +45,18 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
                         }
                         Err(error) => {
                             log::error!("{}", error);
-                            if let TucanError::Timeout | TucanError::AccessDenied = error {
-                                current_session_handle.set(None);
+                            match error {
+                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                    current_session_handle.set(None);
+                                    data.set(Err("Unauthorized".to_owned()))
+                                }
+                                TucanError::Timeout | TucanError::AccessDenied => {
+                                    current_session_handle.set(None);
+                                }
+                                _ => {
+                                    data.set(Err(error.to_string()));
+                                }
                             }
-                            data.set(Err(error.to_string()));
                             loading.set(false);
                         }
                     }
@@ -79,10 +89,18 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
                         }
                         Err(error) => {
                             log::error!("{}", error);
-                            if let TucanError::Timeout | TucanError::AccessDenied = error {
-                                current_session_handle.set(None);
+                            match error {
+                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                    current_session_handle.set(None);
+                                    data.set(Err("Unauthorized".to_owned()))
+                                }
+                                TucanError::Timeout | TucanError::AccessDenied => {
+                                    current_session_handle.set(None);
+                                }
+                                _ => {
+                                    data.set(Err(error.to_string()));
+                                }
                             }
-                            data.set(Err(error.to_string()));
                             loading.set(false);
                         }
                     }
