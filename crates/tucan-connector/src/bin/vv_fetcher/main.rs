@@ -35,7 +35,7 @@ async fn async_main() -> Result<(), TucanError> {
 
     let welcome = tucan.welcome().await.unwrap();
 
-    fetcher.recursive_vv(&tucan, &login_response, welcome.vorlesungsverzeichnis_url).await;
+    fetcher.recursive_vv(&tucan, &login_response, welcome.vorlesungsverzeichnis_url, String::new()).await;
 
     //fetcher.anmeldung_file.flush().await?;
     //fetcher.module_file.flush().await?;
@@ -55,7 +55,7 @@ impl Fetcher {
     }
 
     #[expect(clippy::manual_async_fn)]
-    fn recursive_vv<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, action: ActionRequest) -> impl Future<Output = ()> + Send + use<'a, 'b> {
+    fn recursive_vv<'a, 'b>(self: Arc<Self>, tucan: &'a TucanConnector, login_response: &'b LoginResponse, action: ActionRequest, path: String) -> impl Future<Output = ()> + Send + use<'a, 'b> {
         async move {
             //self.anmeldung_file.write_all(anmeldung_request.inner().as_bytes()).await?;
             //self.anmeldung_file.write_all(b"\n").await?;
@@ -77,14 +77,15 @@ impl Fetcher {
                 .iter()
                 .map(|entry| {
                     async {
-                        self.clone().recursive_vv(tucan, login_response, entry.1.clone()).await;
+                        self.clone().recursive_vv(tucan, login_response, entry.1.clone(), path.clone() + " > " + &entry.0).await;
                     }
                     .boxed()
                 })
                 .chain(anmeldung_response.veranstaltungen_or_module.iter().map(|entry| {
                     async {
                         let result = AssertUnwindSafe(async {
-                            let _course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), entry.coursedetails_url.clone()).await.unwrap();
+                            let course_details = tucan.course_details(login_response, RevalidationStrategy::cache(), entry.coursedetails_url.clone()).await.unwrap();
+                            println!("{}: {}", path, course_details.name);
                         })
                         .catch_unwind()
                         .await;
@@ -93,7 +94,7 @@ impl Fetcher {
                         }
 
                         self.course.fetch_add(1, Ordering::Relaxed);
-                        println!("course counter: {}", self.course.load(Ordering::Relaxed));
+                        //println!("course counter: {}", self.course.load(Ordering::Relaxed));
                     }
                     .boxed()
                 }))
