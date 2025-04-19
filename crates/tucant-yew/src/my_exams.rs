@@ -91,10 +91,18 @@ pub fn my_exams<TucanType: Tucan + 'static>(MyExamsProps { semester }: &MyExamsP
                                                 </Link<Route>>
                                             </td>
                                             <td>
-                                                { &exam.pruefungsart }
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url)}>
+                                                    { &exam.pruefungsart }
+                                                </a>
                                             </td>
                                             <td>
-                                                { &exam.date }
+                                                if let Some(courseprep_url) = &exam.courseprep_url {
+                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url)}>
+                                                        { &exam.date }
+                                                    </a>
+                                                } else {
+                                                    { &exam.date }
+                                                }
                                             </td>
                                         </tr>
                                     }
