@@ -47,6 +47,7 @@ impl CourseDetailsRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct CourseDetailsResponse {
+    pub id: String,
     pub name: String,
     pub material_and_messages_url: Option<(String, String)>,
     pub r#type: String,

@@ -436,7 +436,6 @@ mod authenticated_tests {
             let login_response = get_login_session().await;
             let action = tucan.after_login(&login_response, RevalidationStrategy::default()).await.unwrap().logged_in_head.vorlesungsverzeichnis_url;
             for (_title, action) in tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap().entries {
-                println!("{action}");
                 let _result = tucan.vv(Some(&login_response), RevalidationStrategy::default(), action).await.unwrap();
             }
         });

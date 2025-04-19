@@ -72,15 +72,15 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                         _trash
                     </script>
                     <form name="courseform" action="/scripts/mgrqispi.dll" method="post">
-                        let name = if html_handler.peek().unwrap().value().as_element().unwrap().attrs().next().is_some() {
+                        let id_and_name = if html_handler.peek().unwrap().value().as_element().unwrap().attrs().next().is_some() {
                             <h1 class="eventTitle img img_arrowEventIcon" title="Gefährdungspotential für Schwangere">
-                                name
+                                id_and_name
                             </h1>
-                        } => name else {
+                        } => id_and_name else {
                             <h1>
-                                name
+                                id_and_name
                             </h1>
-                        } => name;
+                        } => id_and_name;
                         <div class="contentlayoutleft" id="contentlayoutleft">
                             <table class="tb rw-table rw-all">
                                 <caption>
@@ -579,8 +579,12 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
 
     let (teilnehmer_range, teilnehmer_min, teilnehmer_max) = teilnehmer.either_into();
     assert_eq!(teilnehmer_range, format!("{teilnehmer_min} | {teilnehmer_max}"));
+
+    let id_and_name: String = id_and_name.either_into();
+    let (id, name) = id_and_name.split_once('\n').unwrap();
     Ok(CourseDetailsResponse {
-        name: name.either_into(),
+        id: id.to_owned(),
+        name: name.to_owned(),
         material_and_messages_url,
         r#type: course_type_and_number.clone().either_into::<(String, String)>().0,
         type_number: course_type_and_number.either_into::<(String, String)>().1.parse().unwrap(),

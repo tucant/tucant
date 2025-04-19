@@ -10,6 +10,12 @@ use tucant_types::vv::ActionRequest;
 use tucant_types::{LoginRequest, RevalidationStrategy, Tucan};
 use tucant_types::{LoginResponse, TucanError};
 
+/*
+cargo run --bin vv_fetcher --release | sort > vv.txt
+cargo run --bin fetcher --release | sort > anmeldung.txt
+
+*/
+
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(async_main())
