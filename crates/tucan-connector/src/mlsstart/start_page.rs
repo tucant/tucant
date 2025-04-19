@@ -110,12 +110,12 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                                 </a>
                                             </td>
                                             <td headers="bis">
-                                                <a class="link" href=courseprep_url2>
+                                                <a class="link" href={|v| assert_eq!(v, courseprep_url)}>
                                                     to
                                                 </a>
                                             </td>
                                         </tr>
-                                    } => StundenplanEintrag { course_name, coursedetails_url, courseprep_url, courseprep_url2, from, to };
+                                    } => StundenplanEintrag { course_name, coursedetails_url, courseprep_url, from, to };
                                 </tbody>
                             </table>
                         } => stundenplan else {

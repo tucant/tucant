@@ -5,6 +5,7 @@ target = "./index.html"
 
 [watch]
 watch = ["../../tucant-extension", "../tucant-yew", "../tucan-connector", "../tucant-types", "../tucant-api/src", "../tucant-api/Cargo.toml", "../key-value-database"]
+ignore = ["../../tucant-extension/dist", "../tucant-yew/dist"]
 
 [serve]
 port = 1420

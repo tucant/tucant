@@ -3,7 +3,7 @@ use std::{ops::Deref, str::FromStr};
 use tucant_types::{SemesterId, Tucan, myexams::MyExamsResponse};
 use web_sys::HtmlSelectElement;
 use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
-use yew_router::hooks::use_navigator;
+use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_data_loader};
 
@@ -86,13 +86,23 @@ pub fn my_exams<TucanType: Tucan + 'static>(MyExamsProps { semester }: &MyExamsP
                                                 { &exam.id }
                                             </th>
                                             <td>
-                                                { &exam.name }
+                                                <Link<Route> to={Route::CourseDetails { course: exam.coursedetails_url.clone() }}>
+                                                    { &exam.name }
+                                                </Link<Route>>
                                             </td>
                                             <td>
-                                                { &exam.pruefungsart }
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url)}>
+                                                    { &exam.pruefungsart }
+                                                </a>
                                             </td>
                                             <td>
-                                                { &exam.date }
+                                                if let Some(courseprep_url) = &exam.courseprep_url {
+                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url)}>
+                                                        { &exam.date }
+                                                    </a>
+                                                } else {
+                                                    { &exam.date }
+                                                }
                                             </td>
                                         </tr>
                                     }

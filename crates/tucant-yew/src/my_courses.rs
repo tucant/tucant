@@ -3,7 +3,7 @@ use std::{ops::Deref, str::FromStr};
 use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
 use web_sys::HtmlSelectElement;
 use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
-use yew_router::hooks::use_navigator;
+use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_data_loader};
 
@@ -89,20 +89,22 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                                                 section
                                                     .1
                                                     .iter()
-                                                    .map(|courses| {
+                                                    .map(|course| {
                                                         ::yew::html! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { &courses.nr }
+                                                                    { &course.nr }
                                                                 </th>
                                                                 <td>
-                                                                    { &courses.title }
+                                                                    <Link<Route> to={Route::CourseDetails { course: course.url.clone() }}>
+                                                                        { &course.title }
+                                                                    </Link<Route>>
                                                                 </td>
                                                                 <td>
-                                                                    { &courses.date_range }
+                                                                    { &course.date_range }
                                                                 </td>
                                                                 <td>
-                                                                    { &courses.location }
+                                                                    { &course.location }
                                                                 </td>
                                                             </tr>
                                                         }

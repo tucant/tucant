@@ -53,7 +53,7 @@ cd crates/tucant-yew/
 trunk serve --features api --release
 
 # in second tab
-cargo run --bin tucant-api --release
+bacon tucant-api
 
 # http://localhost:1420/#/
 ```
@@ -101,7 +101,7 @@ This software consists of the tucan-connector component that extracts informatio
 ## API
 
 ```
-cargo run --bin tucant-api --release
+bacon tucant-api
 ```
 http://localhost:3000/swagger-ui/
 

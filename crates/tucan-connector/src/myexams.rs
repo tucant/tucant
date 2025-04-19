@@ -4,11 +4,12 @@ use html_handler::{Root, parse_document};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    coursedetails::CourseDetailsRequest,
     myexams::{Exam, MyExamsResponse},
 };
 
 use crate::{
-    TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
 
@@ -188,7 +189,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                 } => Exam {
                                     id: course_id,
                                     name: res.clone().either_into::<(String, String, Option<String>)>().0,
-                                    coursedetails_url: res.clone().either_into::<(String, String, Option<String>)>().1,
+                                    coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&res.clone().either_into::<(String, String, Option<String>)>().1, "")),
                                     tuple_of_courses: res.either_into::<(String, String, Option<String>)>().2,
                                     examdetail_url,
                                     pruefungsart,
