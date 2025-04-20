@@ -363,6 +363,29 @@ pub async fn my_documents_endpoint(jar: CookieJar, revalidation_strategy: Revali
     Ok((StatusCode::OK, Json(response)).into_response())
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/student-result/{course-of-study}",
+    tag = TUCANT_TAG,
+    params(("course-of-study" = String, Path)),
+    responses(
+        (status = 200, description = "Successful", body = ExamResultsResponse),
+        (status = 500, description = "Some TUCaN error")
+    )
+)]
+pub async fn student_result_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW, course_of_study: Path<String>) -> Result<impl IntoResponse, TucanError> {
+    let tucan = TucanConnector::new().await?;
+
+    let login_response: LoginResponse = LoginResponse {
+        id: jar.get("id").unwrap().value().parse().unwrap(),
+        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    };
+
+    let response = tucan.student_result(&login_response, revalidation_strategy.0, course_of_study.0).await?;
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
 pub fn router() -> OpenApiRouter {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(login_endpoint))
@@ -378,4 +401,5 @@ pub fn router() -> OpenApiRouter {
         .routes(routes!(exam_results_endpoint))
         .routes(routes!(course_results_endpoint))
         .routes(routes!(my_documents_endpoint))
+        .routes(routes!(student_result_endpoint))
 }

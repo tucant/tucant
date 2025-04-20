@@ -10,6 +10,7 @@ use tucant_types::{
     mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     registration::{AnmeldungRequest, AnmeldungResponse},
+    student_result::StudentResultResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
@@ -124,6 +125,10 @@ impl Tucan for TauriTucan {
     }
 
     async fn my_documents(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {
+        todo!()
+    }
+
+    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> Result<StudentResultResponse, TucanError> {
         todo!()
     }
 }

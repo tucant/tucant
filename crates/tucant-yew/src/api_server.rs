@@ -11,6 +11,7 @@ use tucant_types::{
     myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
     registration::AnmeldungRequest,
+    student_result::StudentResultResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use url::Url;
@@ -111,6 +112,13 @@ impl Tucan for ApiServerTucan {
     async fn vv(&self, _login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
         let mut url = Url::parse("http://localhost:1420/api/v1/vv").unwrap();
         url.path_segments_mut().unwrap().push(action.inner());
+        let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
+        Ok(response)
+    }
+
+    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> Result<StudentResultResponse, TucanError> {
+        let mut url = Url::parse("http://localhost:1420/api/v1/student-result").unwrap();
+        url.path_segments_mut().unwrap().push(&course_of_study);
         let response = self.client.get(url).header("X-Revalidation-Strategy", serde_json::to_string(&revalidation_strategy).unwrap()).send().await?.error_for_status()?.json().await?;
         Ok(response)
     }
