@@ -19,7 +19,14 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
 
     use_data_loader(handler, course_of_study.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         ::yew::html! {
-            <StudentResultLevelComponent<TucanType> level={student_result.level0} depth={1} />
+            <>
+                <StudentResultLevelComponent<TucanType> level={student_result.level0} depth={1} />
+                <div>
+                    { format!("Gesamt-GPA: {}", student_result.total_gpa) }
+                </div>
+                <div>
+                    { format!("Hauptfach-GPA: {}", student_result.main_gpa) }
+                </div></>
         }
     })
 }
@@ -33,8 +40,33 @@ pub struct StudentResultLevelProps {
 #[function_component(StudentResultLevelComponent)]
 pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps { level, depth }: &StudentResultLevelProps) -> Html {
     ::yew::html! {
-        <>
-        <@{format!("h{}", depth)}>{ &level.name }</@>
+        <div class="ms-2">
+        <@{format!("h{}", depth)}>{ format!("{}. {}", depth, level.name) }</@>
+
+        if !level.entries.is_empty() {
+            <table class="table">
+                <thead>
+                    <tr>
+                    <th scope="col">{"#"}</th>
+                    <th scope="col">{"First"}</th>
+                    <th scope="col">{"Last"}</th>
+                    <th scope="col">{"Handle"}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {
+                    level.entries.iter().map(|entry| {
+                        ::yew::html! {
+                            <tr>
+                                <td>{&entry.name}</td>
+                                <td>{&entry.grade.clone().unwrap_or_default()}</td>
+                            </tr>
+                        }
+                    }).collect::<Html>()
+                }
+                </tbody>
+            </table>
+        }
 
         { level.children.iter().map(|child| {
             ::yew::html! {
@@ -42,6 +74,6 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
             }
         }).collect::<Html>() }
 
-        </>
+        </div>
     }
 }
