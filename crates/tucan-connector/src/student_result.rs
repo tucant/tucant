@@ -262,16 +262,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             <td class="tbdata" style="text-align:right;">
                                                             </td>
                                                             <td class="tbdata" style="text-align:right;">
-                                                                cp
+                                                                let cp = if html_handler.peek().is_some() {
+                                                                    cp
+                                                                } => cp;
                                                             </td>
                                                             <td class="tbdata" style="text-align:right;">
-                                                                used_cp
+                                                                let used_cp = if html_handler.peek().is_some() {
+                                                                    used_cp
+                                                                } => used_cp;
                                                             </td>
                                                             <td class="tbdata" style="text-align:right;">
                                                                 grade
                                                             </td>
                                                             <td class="tbdata" style="text-align:center;">
-                                                                <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                                <img src=_src alt=_alt title=_title></img>
                                                             </td>
                                                         </tr>
                                                     } => ();
@@ -319,16 +323,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         <td class="tbdata" style="text-align:right;">
                                                         </td>
                                                         <td class="tbdata" style="text-align:right;">
-                                                            cp
+                                                            let cp = if html_handler.peek().is_some() {
+                                                                cp
+                                                            } => cp;
                                                         </td>
                                                         <td class="tbdata" style="text-align:right;">
-                                                            used_cp
+                                                            let used_cp = if html_handler.peek().is_some() {
+                                                                used_cp
+                                                            } => used_cp;
                                                         </td>
                                                         <td class="tbdata" style="text-align:right;">
                                                             grade
                                                         </td>
                                                         <td class="tbdata" style="text-align:center;">
-                                                            <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                            <img src=_src alt=_alt title=_title></img>
                                                         </td>
                                                     </tr>
                                                 } => ();
@@ -376,16 +384,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     <td class="tbdata" style="text-align:right;">
                                                     </td>
                                                     <td class="tbdata" style="text-align:right;">
-                                                        cp
+                                                        let cp = if html_handler.peek().is_some() {
+                                                            cp
+                                                        } => cp;
                                                     </td>
                                                     <td class="tbdata" style="text-align:right;">
-                                                        used_cp
+                                                        let used_cp = if html_handler.peek().is_some() {
+                                                            used_cp
+                                                        } => used_cp;
                                                     </td>
                                                     <td class="tbdata" style="text-align:right;">
                                                         grade
                                                     </td>
                                                     <td class="tbdata" style="text-align:center;">
-                                                        <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                        <img src=_src alt=_alt title=_title></img>
                                                     </td>
                                                 </tr>
                                             } => ();
@@ -433,16 +445,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 <td class="tbdata" style="text-align:right;">
                                                 </td>
                                                 <td class="tbdata" style="text-align:right;">
-                                                    cp
+                                                    let cp = if html_handler.peek().is_some() {
+                                                        cp
+                                                    } => cp;
                                                 </td>
                                                 <td class="tbdata" style="text-align:right;">
-                                                    used_cp
+                                                    let used_cp = if html_handler.peek().is_some() {
+                                                        used_cp
+                                                    } => used_cp;
                                                 </td>
                                                 <td class="tbdata" style="text-align:right;">
                                                     grade
                                                 </td>
                                                 <td class="tbdata" style="text-align:center;">
-                                                    <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                    <img src=_src alt=_alt title=_title></img>
                                                 </td>
                                             </tr>
                                         } => ();
@@ -490,16 +506,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             <td class="tbdata" style="text-align:right;">
                                             </td>
                                             <td class="tbdata" style="text-align:right;">
-                                                cp
+                                                let cp = if html_handler.peek().is_some() {
+                                                    cp
+                                                } => cp;
                                             </td>
                                             <td class="tbdata" style="text-align:right;">
-                                                used_cp
+                                                let used_cp = if html_handler.peek().is_some() {
+                                                    used_cp
+                                                } => used_cp;
                                             </td>
                                             <td class="tbdata" style="text-align:right;">
                                                 grade
                                             </td>
                                             <td class="tbdata" style="text-align:center;">
-                                                <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                <img src=_src alt=_alt title=_title></img>
                                             </td>
                                         </tr>
                                     } => ();
@@ -547,16 +567,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                         <td class="tbdata" style="text-align:right;">
                                         </td>
                                         <td class="tbdata" style="text-align:right;">
-                                            cp
+                                            let cp = if html_handler.peek().is_some() {
+                                                cp
+                                            } => cp;
                                         </td>
                                         <td class="tbdata" style="text-align:right;">
-                                            used_cp
+                                            let used_cp = if html_handler.peek().is_some() {
+                                                used_cp
+                                            } => used_cp;
                                         </td>
                                         <td class="tbdata" style="text-align:right;">
                                             grade
                                         </td>
                                         <td class="tbdata" style="text-align:center;">
-                                            <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                            <img src=_src alt=_alt title=_title></img>
                                         </td>
                                     </tr>
                                 } => ();
@@ -604,16 +628,20 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                     <td class="tbdata" style="text-align:right;">
                                     </td>
                                     <td class="tbdata" style="text-align:right;">
-                                        cp
+                                        let cp = if html_handler.peek().is_some() {
+                                            cp
+                                        } => cp;
                                     </td>
                                     <td class="tbdata" style="text-align:right;">
-                                        used_cp
+                                        let used_cp = if html_handler.peek().is_some() {
+                                            used_cp
+                                        } => used_cp;
                                     </td>
                                     <td class="tbdata" style="text-align:right;">
                                         grade
                                     </td>
                                     <td class="tbdata" style="text-align:center;">
-                                        <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                        <img src=_src alt=_alt title=_title></img>
                                     </td>
                                 </tr>
                             } => ();
