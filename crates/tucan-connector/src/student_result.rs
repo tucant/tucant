@@ -252,7 +252,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                                 id
                                                             </td>
                                                             <td class="tbdata">
-                                                                <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                                     name
                                                                 </a>
                                                                 <script type="text/javascript">
@@ -309,7 +309,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             id
                                                         </td>
                                                         <td class="tbdata">
-                                                            <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                                 name
                                                             </a>
                                                             <script type="text/javascript">
@@ -366,7 +366,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         id
                                                     </td>
                                                     <td class="tbdata">
-                                                        <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                             name
                                                         </a>
                                                         <script type="text/javascript">
@@ -423,7 +423,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     id
                                                 </td>
                                                 <td class="tbdata">
-                                                    <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                    <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                         name
                                                     </a>
                                                     <script type="text/javascript">
@@ -480,7 +480,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 id
                                             </td>
                                             <td class="tbdata">
-                                                <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                     name
                                                 </a>
                                                 <script type="text/javascript">
@@ -537,7 +537,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             id
                                         </td>
                                         <td class="tbdata">
-                                            <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                                 name
                                             </a>
                                             <script type="text/javascript">
@@ -594,7 +594,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                         id
                                     </td>
                                     <td class="tbdata">
-                                        <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
                                             name
                                         </a>
                                         <script type="text/javascript">
