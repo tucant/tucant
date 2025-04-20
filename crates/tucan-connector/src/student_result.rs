@@ -303,11 +303,347 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         </td>
                                                     </tr>
                                                 } => ();
+                                                let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                                    <tr>
+                                                        <td class="tbdata">
+                                                            id
+                                                        </td>
+                                                        <td class="tbdata">
+                                                            <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                                name
+                                                            </a>
+                                                            <script type="text/javascript">
+                                                                _popup_script
+                                                            </script>
+                                                        </td>
+                                                        <td class="tbdata" style="text-align:right;">
+                                                        </td>
+                                                        <td class="tbdata" style="text-align:right;">
+                                                            cp
+                                                        </td>
+                                                        <td class="tbdata" style="text-align:right;">
+                                                            used_cp
+                                                        </td>
+                                                        <td class="tbdata" style="text-align:right;">
+                                                            grade
+                                                        </td>
+                                                        <td class="tbdata" style="text-align:center;">
+                                                            <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                        </td>
+                                                    </tr>
+                                                } => ();
+                                                <tr>
+                                                    <td colspan="2" class="level05">
+                                                        summe
+                                                    </td>
+                                                    <td class="level05">
+                                                    </td>
+                                                    <td class="level05" style="text-align:right;white-space:nowrap;">
+                                                        let cp = if html_handler.peek().is_some() {
+                                                            cp
+                                                        } => cp;
+                                                    </td>
+                                                    <td class="level05" style="text-align:right;white-space:nowrap;">
+                                                        let used_cp = if html_handler.peek().is_some() {
+                                                            used_cp
+                                                        } => used_cp;
+                                                    </td>
+                                                    <td class="level05" style="text-align:right;">
+                                                    </td>
+                                                    <td class="level05" style="text-align:center;">
+                                                        <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="   7" class="level05">
+                                                        rules
+                                                    </td>
+                                                </tr>
                                             } => ();
+                                            let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                                <tr>
+                                                    <td class="tbdata">
+                                                        id
+                                                    </td>
+                                                    <td class="tbdata">
+                                                        <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                            name
+                                                        </a>
+                                                        <script type="text/javascript">
+                                                            _popup_script
+                                                        </script>
+                                                    </td>
+                                                    <td class="tbdata" style="text-align:right;">
+                                                    </td>
+                                                    <td class="tbdata" style="text-align:right;">
+                                                        cp
+                                                    </td>
+                                                    <td class="tbdata" style="text-align:right;">
+                                                        used_cp
+                                                    </td>
+                                                    <td class="tbdata" style="text-align:right;">
+                                                        grade
+                                                    </td>
+                                                    <td class="tbdata" style="text-align:center;">
+                                                        <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                    </td>
+                                                </tr>
+                                            } => ();
+                                            <tr>
+                                                <td colspan="2" class="level04">
+                                                    summe
+                                                </td>
+                                                <td class="level04">
+                                                </td>
+                                                <td class="level04" style="text-align:right;white-space:nowrap;">
+                                                    let cp = if html_handler.peek().is_some() {
+                                                        cp
+                                                    } => cp;
+                                                </td>
+                                                <td class="level04" style="text-align:right;white-space:nowrap;">
+                                                    let used_cp = if html_handler.peek().is_some() {
+                                                        used_cp
+                                                    } => used_cp;
+                                                </td>
+                                                <td class="level04" style="text-align:right;">
+                                                </td>
+                                                <td class="level04" style="text-align:center;">
+                                                    <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="   7" class="level04">
+                                                    rules
+                                                </td>
+                                            </tr>
                                         } => ();
+                                        let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                            <tr>
+                                                <td class="tbdata">
+                                                    id
+                                                </td>
+                                                <td class="tbdata">
+                                                    <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                        name
+                                                    </a>
+                                                    <script type="text/javascript">
+                                                        _popup_script
+                                                    </script>
+                                                </td>
+                                                <td class="tbdata" style="text-align:right;">
+                                                </td>
+                                                <td class="tbdata" style="text-align:right;">
+                                                    cp
+                                                </td>
+                                                <td class="tbdata" style="text-align:right;">
+                                                    used_cp
+                                                </td>
+                                                <td class="tbdata" style="text-align:right;">
+                                                    grade
+                                                </td>
+                                                <td class="tbdata" style="text-align:center;">
+                                                    <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                </td>
+                                            </tr>
+                                        } => ();
+                                        <tr>
+                                            <td colspan="2" class="level03">
+                                                summe
+                                            </td>
+                                            <td class="level03">
+                                            </td>
+                                            <td class="level03" style="text-align:right;white-space:nowrap;">
+                                                let cp = if html_handler.peek().is_some() {
+                                                    cp
+                                                } => cp;
+                                            </td>
+                                            <td class="level03" style="text-align:right;white-space:nowrap;">
+                                                let used_cp = if html_handler.peek().is_some() {
+                                                    used_cp
+                                                } => used_cp;
+                                            </td>
+                                            <td class="level03" style="text-align:right;">
+                                            </td>
+                                            <td class="level03" style="text-align:center;">
+                                                <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="   7" class="level03">
+                                                rules
+                                            </td>
+                                        </tr>
                                     } => ();
+                                    let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                        <tr>
+                                            <td class="tbdata">
+                                                id
+                                            </td>
+                                            <td class="tbdata">
+                                                <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                    name
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _popup_script
+                                                </script>
+                                            </td>
+                                            <td class="tbdata" style="text-align:right;">
+                                            </td>
+                                            <td class="tbdata" style="text-align:right;">
+                                                cp
+                                            </td>
+                                            <td class="tbdata" style="text-align:right;">
+                                                used_cp
+                                            </td>
+                                            <td class="tbdata" style="text-align:right;">
+                                                grade
+                                            </td>
+                                            <td class="tbdata" style="text-align:center;">
+                                                <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                            </td>
+                                        </tr>
+                                    } => ();
+                                    <tr>
+                                        <td colspan="2" class="level02">
+                                            summe
+                                        </td>
+                                        <td class="level02">
+                                        </td>
+                                        <td class="level02" style="text-align:right;white-space:nowrap;">
+                                            let cp = if html_handler.peek().is_some() {
+                                                cp
+                                            } => cp;
+                                        </td>
+                                        <td class="level02" style="text-align:right;white-space:nowrap;">
+                                            let used_cp = if html_handler.peek().is_some() {
+                                                used_cp
+                                            } => used_cp;
+                                        </td>
+                                        <td class="level02" style="text-align:right;">
+                                        </td>
+                                        <td class="level02" style="text-align:center;">
+                                            <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="   7" class="level02">
+                                            rules
+                                        </td>
+                                    </tr>
                                 } => ();
+                                let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    <tr>
+                                        <td class="tbdata">
+                                            id
+                                        </td>
+                                        <td class="tbdata">
+                                            <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                name
+                                            </a>
+                                            <script type="text/javascript">
+                                                _popup_script
+                                            </script>
+                                        </td>
+                                        <td class="tbdata" style="text-align:right;">
+                                        </td>
+                                        <td class="tbdata" style="text-align:right;">
+                                            cp
+                                        </td>
+                                        <td class="tbdata" style="text-align:right;">
+                                            used_cp
+                                        </td>
+                                        <td class="tbdata" style="text-align:right;">
+                                            grade
+                                        </td>
+                                        <td class="tbdata" style="text-align:center;">
+                                            <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                        </td>
+                                    </tr>
+                                } => ();
+                                <tr>
+                                    <td colspan="2" class="level01">
+                                        summe
+                                    </td>
+                                    <td class="level01">
+                                    </td>
+                                    <td class="level01" style="text-align:right;white-space:nowrap;">
+                                        let cp = if html_handler.peek().is_some() {
+                                            cp
+                                        } => cp;
+                                    </td>
+                                    <td class="level01" style="text-align:right;white-space:nowrap;">
+                                        let used_cp = if html_handler.peek().is_some() {
+                                            used_cp
+                                        } => used_cp;
+                                    </td>
+                                    <td class="level01" style="text-align:right;">
+                                    </td>
+                                    <td class="level01" style="text-align:center;">
+                                        <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="   7" class="level01">
+                                        rules
+                                    </td>
+                                </tr>
                             } => ();
+                            let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                <tr>
+                                    <td class="tbdata">
+                                        id
+                                    </td>
+                                    <td class="tbdata">
+                                        <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                            name
+                                        </a>
+                                        <script type="text/javascript">
+                                            _popup_script
+                                        </script>
+                                    </td>
+                                    <td class="tbdata" style="text-align:right;">
+                                    </td>
+                                    <td class="tbdata" style="text-align:right;">
+                                        cp
+                                    </td>
+                                    <td class="tbdata" style="text-align:right;">
+                                        used_cp
+                                    </td>
+                                    <td class="tbdata" style="text-align:right;">
+                                        grade
+                                    </td>
+                                    <td class="tbdata" style="text-align:center;">
+                                        <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                    </td>
+                                </tr>
+                            } => ();
+                            <tr>
+                                <td colspan="2" class="level00">
+                                    summe
+                                </td>
+                                <td class="level00">
+                                </td>
+                                <td class="level00" style="text-align:right;white-space:nowrap;">
+                                    let cp = if html_handler.peek().is_some() {
+                                        cp
+                                    } => cp;
+                                </td>
+                                <td class="level00" style="text-align:right;white-space:nowrap;">
+                                    let used_cp = if html_handler.peek().is_some() {
+                                        used_cp
+                                    } => used_cp;
+                                </td>
+                                <td class="level00" style="text-align:right;">
+                                </td>
+                                <td class="level00" style="text-align:center;">
+                                    <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="   7" class="level00">
+                                    rules
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
