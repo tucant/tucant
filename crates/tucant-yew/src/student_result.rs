@@ -44,20 +44,40 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
             { format!("{}. {}", depth, level.name) }
             <ul style="list-style-type: none;" class="border-start">
                 if !level.entries.is_empty() {
-                    {
-                        level
-                            .entries
-                            .iter()
-                            .map(|entry| {
-                                ::yew::html! {
-                                    <li>
-                                        { &entry.name }
-                                        { &entry.grade.clone().unwrap_or_default() }
-                                    </li>
+                    <li>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        { "Name" }
+                                    </th>
+                                    <th scope="col">
+                                        { "Note" }
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    level
+                                        .entries
+                                        .iter()
+                                        .map(|entry| {
+                                            ::yew::html! {
+                                                <tr>
+                                                    <td>
+                                                        { &entry.name }
+                                                    </td>
+                                                    <td>
+                                                        { &entry.grade.clone().unwrap_or_default() }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        })
+                                        .collect::<Html>()
                                 }
-                            })
-                            .collect::<Html>()
-                    }
+                            </tbody>
+                        </table>
+                    </li>
                 }
                 {
                     level
