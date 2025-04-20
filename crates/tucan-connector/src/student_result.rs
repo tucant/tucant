@@ -5,7 +5,7 @@ use crate::{
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
+use html_handler::{InElement, MyElementRef, MyNode, Root, parse_document};
 use itertools::Itertools;
 use log::info;
 use scraper::CaseSensitivity;
@@ -47,6 +47,78 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
 
 fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
+}
+
+fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, ()) {
+    html_extractor::html! {
+        let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+            <tr>
+                <td class="tbdata">
+                    id
+                </td>
+                <td class="tbdata">
+                    let name = if html_handler.peek().unwrap().value().is_text() {
+                        name
+                    } => name else {
+                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                            name
+                        </a>
+                        <script type="text/javascript">
+                            _popup_script
+                        </script>
+                    } => name;
+                </td>
+                <td class="tbdata" style="text-align:right;">
+                </td>
+                <td class="tbdata" style="text-align:right;">
+                    let cp = if html_handler.peek().is_some() {
+                        cp
+                    } => cp;
+                </td>
+                <td class="tbdata" style="text-align:right;">
+                    let used_cp = if html_handler.peek().is_some() {
+                        used_cp
+                    } => used_cp;
+                </td>
+                <td class="tbdata" style="text-align:right;">
+                    let grade = if html_handler.peek().is_some() {
+                        grade
+                    } => grade;
+                </td>
+                <td class="tbdata" style="text-align:center;">
+                    <img src=_src alt=_alt title=_title></img>
+                </td>
+            </tr>
+        } => ();
+        <tr>
+            <td colspan="2" class={|v| assert_eq!(v, level)}>
+                summe
+            </td>
+            <td class={|v| assert_eq!(v, level)}>
+            </td>
+            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                let cp = if html_handler.peek().is_some() {
+                    cp
+                } => cp;
+            </td>
+            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                let used_cp = if html_handler.peek().is_some() {
+                    used_cp
+                } => used_cp;
+            </td>
+            <td class={|v| assert_eq!(v, level)} style="text-align:right;">
+            </td>
+            <td class={|v| assert_eq!(v, level)} style="text-align:center;">
+                <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="   7" class={|v| assert_eq!(v, level)}>
+                rules
+            </td>
+        </tr>
+    }
+    (html_handler, ())
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
@@ -246,72 +318,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             <td>
                                                             </td>
                                                         </tr>
-                                                        let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
-                                                            <tr>
-                                                                <td class="tbdata">
-                                                                    id
-                                                                </td>
-                                                                <td class="tbdata">
-                                                                    let name = if html_handler.peek().unwrap().value().is_text() {
-                                                                        name
-                                                                    } => name else {
-                                                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
-                                                                            name
-                                                                        </a>
-                                                                        <script type="text/javascript">
-                                                                            _popup_script
-                                                                        </script>
-                                                                    } => name;
-                                                                </td>
-                                                                <td class="tbdata" style="text-align:right;">
-                                                                </td>
-                                                                <td class="tbdata" style="text-align:right;">
-                                                                    let cp = if html_handler.peek().is_some() {
-                                                                        cp
-                                                                    } => cp;
-                                                                </td>
-                                                                <td class="tbdata" style="text-align:right;">
-                                                                    let used_cp = if html_handler.peek().is_some() {
-                                                                        used_cp
-                                                                    } => used_cp;
-                                                                </td>
-                                                                <td class="tbdata" style="text-align:right;">
-                                                                    let grade = if html_handler.peek().is_some() {
-                                                                        grade
-                                                                    } => grade;
-                                                                </td>
-                                                                <td class="tbdata" style="text-align:center;">
-                                                                    <img src=_src alt=_alt title=_title></img>
-                                                                </td>
-                                                            </tr>
-                                                        } => ();
-                                                        <tr>
-                                                            <td colspan="2" class="level06">
-                                                                summe
-                                                            </td>
-                                                            <td class="level06">
-                                                            </td>
-                                                            <td class="level06" style="text-align:right;white-space:nowrap;">
-                                                                let cp = if html_handler.peek().is_some() {
-                                                                    cp
-                                                                } => cp;
-                                                            </td>
-                                                            <td class="level06" style="text-align:right;white-space:nowrap;">
-                                                                let used_cp = if html_handler.peek().is_some() {
-                                                                    used_cp
-                                                                } => used_cp;
-                                                            </td>
-                                                            <td class="level06" style="text-align:right;">
-                                                            </td>
-                                                            <td class="level06" style="text-align:center;">
-                                                                <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td colspan="   7" class="level06">
-                                                                rules
-                                                            </td>
-                                                        </tr>
+                                                        let level6_contents = part1(html_handler, "level06");
                                                     } => ();
                                                     let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
                                                         <tr>
