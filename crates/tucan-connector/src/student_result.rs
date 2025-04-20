@@ -246,6 +246,35 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         <td>
                                                         </td>
                                                     </tr>
+                                                    let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                                        <tr>
+                                                            <td class="tbdata">
+                                                                id
+                                                            </td>
+                                                            <td class="tbdata">
+                                                                <a name="_392006779172895" id="result_id_392006779172895" href=resultdetails_href onclick=_onclick>
+                                                                    name
+                                                                </a>
+                                                                <script type="text/javascript">
+                                                                    _popup_script
+                                                                </script>
+                                                            </td>
+                                                            <td class="tbdata" style="text-align:right;">
+                                                            </td>
+                                                            <td class="tbdata" style="text-align:right;">
+                                                                cp
+                                                            </td>
+                                                            <td class="tbdata" style="text-align:right;">
+                                                                used_cp
+                                                            </td>
+                                                            <td class="tbdata" style="text-align:right;">
+                                                                grade
+                                                            </td>
+                                                            <td class="tbdata" style="text-align:center;">
+                                                                <img src="/img/individual/pass.gif" alt="Bestanden" title="Bestanden"></img>
+                                                            </td>
+                                                        </tr>
+                                                    } => ();
                                                 } => ();
                                             } => ();
                                         } => ();
