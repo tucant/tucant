@@ -42,10 +42,10 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
     ::yew::html! {
         <>
             { format!("{}. {}", depth, level.name) }
-            <ul style="list-style-type: none;" class="border-start">
+            <ul style="list-style-type: none;" class="border-start ps-3">
                 if !level.entries.is_empty() {
                     <li>
-                        <table class="table">
+                        <table class="table table-sm">
                             <thead>
                                 <tr>
                                     <th scope="col">
