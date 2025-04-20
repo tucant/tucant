@@ -252,12 +252,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                                 id
                                                             </td>
                                                             <td class="tbdata">
-                                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                                let name = if html_handler.peek().unwrap().value().is_text() {
                                                                     name
-                                                                </a>
-                                                                <script type="text/javascript">
-                                                                    _popup_script
-                                                                </script>
+                                                                } => name else {
+                                                                    <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                                        name
+                                                                    </a>
+                                                                    <script type="text/javascript">
+                                                                        _popup_script
+                                                                    </script>
+                                                                } => name;
                                                             </td>
                                                             <td class="tbdata" style="text-align:right;">
                                                             </td>
@@ -313,12 +317,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             id
                                                         </td>
                                                         <td class="tbdata">
-                                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                            let name = if html_handler.peek().unwrap().value().is_text() {
                                                                 name
-                                                            </a>
-                                                            <script type="text/javascript">
-                                                                _popup_script
-                                                            </script>
+                                                            } => name else {
+                                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                                    name
+                                                                </a>
+                                                                <script type="text/javascript">
+                                                                    _popup_script
+                                                                </script>
+                                                            } => name;
                                                         </td>
                                                         <td class="tbdata" style="text-align:right;">
                                                         </td>
@@ -374,12 +382,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                         id
                                                     </td>
                                                     <td class="tbdata">
-                                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                        let name = if html_handler.peek().unwrap().value().is_text() {
                                                             name
-                                                        </a>
-                                                        <script type="text/javascript">
-                                                            _popup_script
-                                                        </script>
+                                                        } => name else {
+                                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                                name
+                                                            </a>
+                                                            <script type="text/javascript">
+                                                                _popup_script
+                                                            </script>
+                                                        } => name;
                                                     </td>
                                                     <td class="tbdata" style="text-align:right;">
                                                     </td>
@@ -435,12 +447,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                     id
                                                 </td>
                                                 <td class="tbdata">
-                                                    <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                    let name = if html_handler.peek().unwrap().value().is_text() {
                                                         name
-                                                    </a>
-                                                    <script type="text/javascript">
-                                                        _popup_script
-                                                    </script>
+                                                    } => name else {
+                                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                            name
+                                                        </a>
+                                                        <script type="text/javascript">
+                                                            _popup_script
+                                                        </script>
+                                                    } => name;
                                                 </td>
                                                 <td class="tbdata" style="text-align:right;">
                                                 </td>
@@ -496,12 +512,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                 id
                                             </td>
                                             <td class="tbdata">
-                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                let name = if html_handler.peek().unwrap().value().is_text() {
                                                     name
-                                                </a>
-                                                <script type="text/javascript">
-                                                    _popup_script
-                                                </script>
+                                                } => name else {
+                                                    <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                        name
+                                                    </a>
+                                                    <script type="text/javascript">
+                                                        _popup_script
+                                                    </script>
+                                                } => name;
                                             </td>
                                             <td class="tbdata" style="text-align:right;">
                                             </td>
@@ -557,12 +577,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             id
                                         </td>
                                         <td class="tbdata">
-                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                            let name = if html_handler.peek().unwrap().value().is_text() {
                                                 name
-                                            </a>
-                                            <script type="text/javascript">
-                                                _popup_script
-                                            </script>
+                                            } => name else {
+                                                <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                    name
+                                                </a>
+                                                <script type="text/javascript">
+                                                    _popup_script
+                                                </script>
+                                            } => name;
                                         </td>
                                         <td class="tbdata" style="text-align:right;">
                                         </td>
@@ -618,12 +642,16 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                         id
                                     </td>
                                     <td class="tbdata">
-                                        <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                        let name = if html_handler.peek().unwrap().value().is_text() {
                                             name
-                                        </a>
-                                        <script type="text/javascript">
-                                            _popup_script
-                                        </script>
+                                        } => name else {
+                                            <a name=_name id=_result_id href=resultdetails_href onclick=_onclick>
+                                                name
+                                            </a>
+                                            <script type="text/javascript">
+                                                _popup_script
+                                            </script>
+                                        } => name;
                                     </td>
                                     <td class="tbdata" style="text-align:right;">
                                     </td>
