@@ -8,6 +8,7 @@ pub mod mydocuments;
 pub mod myexams;
 pub mod mymodules;
 pub mod registration;
+pub mod student_result;
 pub mod vv;
 
 use std::{convert::Infallible, path::Display, str::FromStr};
