@@ -10,6 +10,7 @@ use my_modules::MyModules;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
+use student_result::StudentResult;
 use tucant_types::{LoginRequest, LoginResponse, SemesterId, Tucan, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest};
 use vv::VorlesungsverzeichnisComponent;
 
@@ -34,6 +35,7 @@ pub mod my_documents;
 pub mod my_exams;
 pub mod my_modules;
 pub mod registration;
+pub mod student_result;
 pub mod tauri;
 pub mod vv;
 
@@ -225,6 +227,8 @@ enum Route {
     CourseResults { semester: SemesterId },
     #[at("/my-documents")]
     MyDocuments,
+    #[at("/student-result/:course_of_study")]
+    StudentResult { course_of_study: String },
 }
 
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
@@ -320,6 +324,11 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         Route::MyDocuments => {
             ::yew::html! {
                 <MyDocuments<TucanType> />
+            }
+        }
+        Route::StudentResult { course_of_study } => {
+            ::yew::html! {
+                <StudentResult<TucanType> course_of_study={course_of_study} />
             }
         }
     }

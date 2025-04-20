@@ -17,7 +17,10 @@ use tucant_types::{
     student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
-pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: String) -> Result<StudentResultResponse, TucanError> {
+pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, mut request: String) -> Result<StudentResultResponse, TucanError> {
+    // TODO FIXME
+    request = if request == "default" { "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned() } else { format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request) };
+
     let key = format!("unparsed_student_result.{}", request);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
