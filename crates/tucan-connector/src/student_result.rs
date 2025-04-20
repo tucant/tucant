@@ -275,6 +275,33 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             </td>
                                                         </tr>
                                                     } => ();
+                                                    <tr>
+                                                        <td colspan="2" class="level06">
+                                                            summe
+                                                        </td>
+                                                        <td class="level06">
+                                                        </td>
+                                                        <td class="level06" style="text-align:right;white-space:nowrap;">
+                                                            let cp = if html_handler.peek().is_some() {
+                                                                cp
+                                                            } => cp;
+                                                        </td>
+                                                        <td class="level06" style="text-align:right;white-space:nowrap;">
+                                                            let used_cp = if html_handler.peek().is_some() {
+                                                                used_cp
+                                                            } => used_cp;
+                                                        </td>
+                                                        <td class="level06" style="text-align:right;">
+                                                        </td>
+                                                        <td class="level06" style="text-align:center;">
+                                                            <img src=pass_or_open alt=bestanden_or_offen title=bestanden_or_offen></img>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="   7" class="level06">
+                                                            rules
+                                                        </td>
+                                                    </tr>
                                                 } => ();
                                             } => ();
                                         } => ();
