@@ -40,40 +40,55 @@ pub struct StudentResultLevelProps {
 #[function_component(StudentResultLevelComponent)]
 pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps { level, depth }: &StudentResultLevelProps) -> Html {
     ::yew::html! {
-        <div class="ms-2">
-        <@{format!("h{}", depth)}>{ format!("{}. {}", depth, level.name) }</@>
-
-        if !level.entries.is_empty() {
-            <table class="table">
-                <thead>
-                    <tr>
-                    <th scope="col">{"#"}</th>
-                    <th scope="col">{"First"}</th>
-                    <th scope="col">{"Last"}</th>
-                    <th scope="col">{"Handle"}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {
-                    level.entries.iter().map(|entry| {
-                        ::yew::html! {
-                            <tr>
-                                <td>{&entry.name}</td>
-                                <td>{&entry.grade.clone().unwrap_or_default()}</td>
-                            </tr>
+        <div class="ms-4">
+            <h4>
+                { format!("{}. {}", depth, level.name) }
+            </h4>
+            if !level.entries.is_empty() {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                { "Modul" }
+                            </th>
+                            <th scope="col">
+                                { "Note" }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            level
+                                .entries
+                                .iter()
+                                .map(|entry| {
+                                    ::yew::html! {
+                                        <tr>
+                                            <td>
+                                                { &entry.name }
+                                            </td>
+                                            <td>
+                                                { &entry.grade.clone().unwrap_or_default() }
+                                            </td>
+                                        </tr>
+                                    }
+                                })
+                                .collect::<Html>()
                         }
-                    }).collect::<Html>()
-                }
-                </tbody>
-            </table>
-        }
-
-        { level.children.iter().map(|child| {
-            ::yew::html! {
-                <StudentResultLevelComponent<TucanType> level={child.clone()} depth={depth+1} />
+                    </tbody>
+                </table>
             }
-        }).collect::<Html>() }
-
+            {
+                level
+                    .children
+                    .iter()
+                    .map(|child| {
+                        ::yew::html! {
+                            <StudentResultLevelComponent<TucanType> level={child.clone()} depth={depth + 1} />
+                        }
+                    })
+                    .collect::<Html>()
+            }
         </div>
     }
 }
