@@ -88,6 +88,10 @@ impl Fetcher {
                             //self.module_file.write_all(module.url.inner().as_bytes()).await.unwrap();
                             //self.module_file.write_all(b"\n").await.unwrap();
 
+                            if matches!(&module.registration_state, RegistrationState::Registered { unregister_link: _ }) {
+                                eprintln!("registered for {} at {}", module.name, path);
+                            }
+
                             let result = AssertUnwindSafe(async { tucan.module_details(login_response, RevalidationStrategy::cache(), module.url.clone()).await.unwrap() }).catch_unwind().await;
                             match result {
                                 Err(err) => {

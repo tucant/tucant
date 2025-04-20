@@ -8,6 +8,7 @@ pub mod mydocuments;
 pub mod myexams;
 pub mod mymodules;
 pub mod registration;
+pub mod student_result;
 pub mod vv;
 
 use std::{convert::Infallible, path::Display, str::FromStr};
@@ -25,6 +26,7 @@ use mymodules::MyModulesResponse;
 use registration::{AnmeldungRequest, AnmeldungResponse};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use student_result::StudentResultResponse;
 use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
@@ -187,4 +189,6 @@ pub trait Tucan {
     fn course_details(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: CourseDetailsRequest) -> impl std::future::Future<Output = Result<CourseDetailsResponse, TucanError>>;
 
     fn vv(&self, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
+
+    fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
 }

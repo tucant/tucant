@@ -18,10 +18,11 @@ use mymodules::mymodules;
 use regex::Regex;
 use registration::index::anmeldung;
 use reqwest::header;
+use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
 use tokio::{sync::Semaphore, time::sleep};
 use tucant_types::{
-    RevalidationStrategy, SemesterId, Tucan, TucanError,
+    LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
     examresults::ExamResultsResponse,
     mlsstart::MlsStart,
@@ -29,6 +30,7 @@ use tucant_types::{
     mydocuments::MyDocumentsResponse,
     myexams::MyExamsResponse,
     mymodules::MyModulesResponse,
+    student_result::StudentResultResponse,
     vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use vv::vv;
@@ -48,6 +50,7 @@ pub mod mymodules;
 pub mod registration;
 pub mod root;
 pub mod startpage_dispatch;
+pub mod student_result;
 pub mod vv;
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,").unwrap());
@@ -178,6 +181,10 @@ impl Tucan for TucanConnector {
 
     async fn vv(&self, login_response: Option<&tucant_types::LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> Result<Vorlesungsverzeichnis, TucanError> {
         vv(self, login_response, revalidation_strategy, action).await
+    }
+
+    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> Result<StudentResultResponse, TucanError> {
+        student_result(self, login_response, revalidation_strategy, course_of_study).await
     }
 }
 
@@ -335,6 +342,7 @@ mod authenticated_tests {
         mymodules::mymodules,
         registration::index::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
+        student_result::student_result,
         tests::{get_tucan_connector, runtime},
     };
 
@@ -517,6 +525,18 @@ mod authenticated_tests {
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
             my_documents(&tucan, &login_response, RevalidationStrategy::default()).await.unwrap();
+        });
+    }
+
+    #[test]
+    pub fn test_student_result() {
+        runtime().block_on(async {
+            dotenvy::dotenv().unwrap();
+            let tucan = get_tucan_connector().await;
+            let login_response = get_login_session().await;
+            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N993059940485804,-N000316,-N0,-N000000000000000,-N000000000000000,-N376333755785484,-N0,-N000000000000000
+            let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned()).await.unwrap();
+            panic!("{:#?}", response);
         });
     }
 }

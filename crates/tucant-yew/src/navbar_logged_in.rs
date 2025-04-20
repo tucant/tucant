@@ -237,9 +237,9 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </Link<Route>>
                     </li>
                     <li>
-                        <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000", current_session.id)}>
+                        <Link<Route> to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item">
                             { "Leistungsspiegel" }
-                        </a>
+                        </Link<Route>>
                     </li>
                 </ul>
             </li>
