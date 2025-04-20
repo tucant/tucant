@@ -528,7 +528,9 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            student_result(&tucan, &login_response, RevalidationStrategy::default(), "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned()).await.unwrap();
+            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N993059940485804,-N000316,-N0,-N000000000000000,-N000000000000000,-N376333755785484,-N0,-N000000000000000
+            let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned()).await.unwrap();
+            panic!("{:#?}", response);
         });
     }
 }
