@@ -228,21 +228,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="subhead level00">
-                                    <td colspan="2">
-                                        course_of_study
-                                    </td>
-                                    <td style="text-align:center;">
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                </tr>
+                                let level0_title = part0(html_handler, "level00");
                                 let level1 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level01", CaseSensitivity::CaseSensitive) {
                                     let level1_title = part0(html_handler, "level01");
                                     let level2 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level02", CaseSensitivity::CaseSensitive) {
