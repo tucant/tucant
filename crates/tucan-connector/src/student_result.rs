@@ -135,6 +135,123 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                             </tr>
                         </thead>
                         <tbody>
+                            <tr class="subhead level00">
+                                <td colspan="2">
+                                    course_of_study
+                                </td>
+                                <td style="text-align:center;">
+                                </td>
+                                <td>
+                                </td>
+                                <td>
+                                </td>
+                                <td>
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                            let level1 = while html_handler.peek().is_some() {
+                                <tr class="subhead level01">
+                                    <td colspan="2">
+                                        level_1
+                                    </td>
+                                    <td style="text-align:center;">
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+                                let level2 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level02", CaseSensitivity::CaseSensitive) {
+                                    <tr class="subhead level02">
+                                        <td colspan="2">
+                                            level_2
+                                        </td>
+                                        <td style="text-align:center;">
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                    let level3 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level03", CaseSensitivity::CaseSensitive) {
+                                        <tr class="subhead level03">
+                                            <td colspan="2">
+                                                level_3
+                                            </td>
+                                            <td style="text-align:center;">
+                                            </td>
+                                            <td>
+                                            </td>
+                                            <td>
+                                            </td>
+                                            <td>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                        let level4 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level04", CaseSensitivity::CaseSensitive) {
+                                            <tr class="subhead level04">
+                                                <td colspan="2">
+                                                    level_4
+                                                </td>
+                                                <td style="text-align:center;">
+                                                </td>
+                                                <td>
+                                                </td>
+                                                <td>
+                                                </td>
+                                                <td>
+                                                </td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                            let level5 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level05", CaseSensitivity::CaseSensitive) {
+                                                <tr class="subhead level05">
+                                                    <td colspan="2">
+                                                        level_5
+                                                    </td>
+                                                    <td style="text-align:center;">
+                                                    </td>
+                                                    <td>
+                                                    </td>
+                                                    <td>
+                                                    </td>
+                                                    <td>
+                                                    </td>
+                                                    <td>
+                                                    </td>
+                                                </tr>
+                                                let level6 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level06", CaseSensitivity::CaseSensitive) {
+                                                    <tr class="subhead level06">
+                                                        <td colspan="2">
+                                                            level_6
+                                                        </td>
+                                                        <td style="text-align:center;">
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                    </tr>
+                                                } => ();
+                                            } => ();
+                                        } => ();
+                                    } => ();
+                                } => ();
+                            } => ();
                         </tbody>
                     </table>
                 </div>
