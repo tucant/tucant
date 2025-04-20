@@ -49,6 +49,27 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
+fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, ()) {
+    html_extractor::html! {
+        <tr class={|l| assert_eq!(l, format!("subhead {}", level))}>
+            <td colspan="2">
+                level_i
+            </td>
+            <td style="text-align:center;">
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+        </tr>
+    }
+    (html_handler, ())
+}
+
 fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, ()) {
     html_extractor::html! {
         let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
@@ -223,101 +244,17 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                     </td>
                                 </tr>
                                 let level1 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level01", CaseSensitivity::CaseSensitive) {
-                                    <tr class="subhead level01">
-                                        <td colspan="2">
-                                            level_1
-                                        </td>
-                                        <td style="text-align:center;">
-                                        </td>
-                                        <td>
-                                        </td>
-                                        <td>
-                                        </td>
-                                        <td>
-                                        </td>
-                                        <td>
-                                        </td>
-                                    </tr>
+                                    let level1_title = part0(html_handler, "level01");
                                     let level2 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level02", CaseSensitivity::CaseSensitive) {
-                                        <tr class="subhead level02">
-                                            <td colspan="2">
-                                                level_2
-                                            </td>
-                                            <td style="text-align:center;">
-                                            </td>
-                                            <td>
-                                            </td>
-                                            <td>
-                                            </td>
-                                            <td>
-                                            </td>
-                                            <td>
-                                            </td>
-                                        </tr>
+                                        let level2_title = part0(html_handler, "level02");
                                         let level3 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level03", CaseSensitivity::CaseSensitive) {
-                                            <tr class="subhead level03">
-                                                <td colspan="2">
-                                                    level_3
-                                                </td>
-                                                <td style="text-align:center;">
-                                                </td>
-                                                <td>
-                                                </td>
-                                                <td>
-                                                </td>
-                                                <td>
-                                                </td>
-                                                <td>
-                                                </td>
-                                            </tr>
+                                            let level3_title = part0(html_handler, "level03");
                                             let level4 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level04", CaseSensitivity::CaseSensitive) {
-                                                <tr class="subhead level04">
-                                                    <td colspan="2">
-                                                        level_4
-                                                    </td>
-                                                    <td style="text-align:center;">
-                                                    </td>
-                                                    <td>
-                                                    </td>
-                                                    <td>
-                                                    </td>
-                                                    <td>
-                                                    </td>
-                                                    <td>
-                                                    </td>
-                                                </tr>
+                                                let level4_title = part0(html_handler, "level04");
                                                 let level5 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level05", CaseSensitivity::CaseSensitive) {
-                                                    <tr class="subhead level05">
-                                                        <td colspan="2">
-                                                            level_5
-                                                        </td>
-                                                        <td style="text-align:center;">
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                    </tr>
+                                                    let level5_title = part0(html_handler, "level05");
                                                     let level6 = while html_handler.peek().unwrap().value().as_element().unwrap().has_class("level06", CaseSensitivity::CaseSensitive) {
-                                                        <tr class="subhead level06">
-                                                            <td colspan="2">
-                                                                level_6
-                                                            </td>
-                                                            <td style="text-align:center;">
-                                                            </td>
-                                                            <td>
-                                                            </td>
-                                                            <td>
-                                                            </td>
-                                                            <td>
-                                                            </td>
-                                                            <td>
-                                                            </td>
-                                                        </tr>
+                                                        let level6_title = part0(html_handler, "level06");
                                                         let level6_contents = part1(html_handler, "level06");
                                                     } => ();
                                                     let level5_contents = part1(html_handler, "level05");

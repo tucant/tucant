@@ -671,7 +671,8 @@ fn convert_commands(commands: &HtmlCommands) -> Vec<TokenStream> {
                 match &html_let.inner {
                     HtmlLetInner::Expr(expr) => {
                         quote_spanned! {expr.span()=>
-                            let (html_handler, #variable) = #expr;
+                            #[allow(unused_mut)]
+                            let (mut html_handler, #variable) = #expr;
                         }
                     }
                     HtmlLetInner::If(HtmlIf { if_, conditional, brace_token, body, eq: _, gt: _, result_expr, else_ }) => {
