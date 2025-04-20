@@ -112,6 +112,31 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                             <input name="section" type="hidden" value="000000000000000"></input>
                         </div>
                     </form>
+                    <table class="nb list students_results">
+                        <thead>
+                            <tr class="tbsubhead">
+                                <th colspan="2">
+                                </th>
+                                <th style="text-align:center;">
+                                    "Datum"
+                                </th>
+                                <th style="text-align:right;">
+                                    "Credits"
+                                </th>
+                                <th style="text-align:right;">
+                                    "Angerechnet"
+                                </th>
+                                <th class="tbsubhead" style="text-align:right;">
+                                    "Note"
+                                </th>
+                                <th class="tbsubhead" style="text-align:center;">
+                                    "Status"
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
