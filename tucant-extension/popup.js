@@ -7,6 +7,13 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 });
 
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
+const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
+
+document.querySelector('#open-custom-ui').addEventListener('click', function () {
+    chrome.tabs.create({
+        url: EXT_PAGE_INDEX_HTML
+    })
+})
 
 // TODO maybe chrome.runtime.onUpdateAvailable
 

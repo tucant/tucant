@@ -183,7 +183,7 @@ impl Tucan for TucanConnector {
         vv(self, login_response, revalidation_strategy, action).await
     }
 
-    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> Result<StudentResultResponse, TucanError> {
+    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> Result<StudentResultResponse, TucanError> {
         student_result(self, login_response, revalidation_strategy, course_of_study).await
     }
 }
@@ -534,9 +534,11 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            // https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N993059940485804,-N000316,-N0,-N000000000000000,-N000000000000000,-N376333755785484,-N0,-N000000000000000
-            let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned()).await.unwrap();
-            panic!("{:#?}", response);
+            let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), 0).await.unwrap();
+            for course_of_study in response.course_of_study {
+                let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), course_of_study.value.parse().unwrap()).await.unwrap();
+                println!("{:#?}", response);
+            }
         });
     }
 }

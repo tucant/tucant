@@ -14,14 +14,14 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
-    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
+    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
-pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, mut request: String) -> Result<StudentResultResponse, TucanError> {
-    // TODO FIXME
-    request = if request == "default" { "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned() } else { format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request) };
-
+/// 0 is the default
+pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: u64) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{}", request);
+
+    let request = format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -38,6 +38,7 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}", login_response.id, request);
+    println!("{}", url);
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = student_result_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -53,7 +54,7 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, String) {
+fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
     html_extractor::html! {
         <tr class={|l| assert_eq!(l, format!("subhead {}", level))}>
             <td colspan="2">
@@ -70,12 +71,6 @@ fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'
             <td>
             </td>
         </tr>
-    }
-    (html_handler, level_i)
-}
-
-fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
-    html_extractor::html! {
         let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
             <tr>
                 <td class="tbdata">
@@ -123,35 +118,62 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, c
             grade,
             state
         };
-        <tr>
-            <td colspan="2" class={|v| assert_eq!(v, level)}>
-                summe
-            </td>
-            <td class={|v| assert_eq!(v, level)}>
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                let sum_cp = if html_handler.peek().is_some() {
-                    sum_cp
-                } => sum_cp;
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                let sum_used_cp = if html_handler.peek().is_some() {
-                    sum_used_cp
-                } => sum_used_cp;
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;">
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:center;">
-                <img src=pass_or_open alt=bestanden_or_offen title=state></img>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="   7" class={|v| assert_eq!(v, level)}>
-                rules
-            </td>
-        </tr>
     }
-    (html_handler, StudentResultLevel { name, entries, sum_cp, sum_used_cp, state, rules, children })
+    (html_handler, (level_i, entries))
+}
+
+fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
+    html_extractor::html! {
+        let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
+            <tr>
+                <td colspan="2" class={|v| assert_eq!(v, level)}>
+                    summe
+                </td>
+                <td class={|v| assert_eq!(v, level)}>
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    let sum_cp = if html_handler.peek().is_some() {
+                        sum_cp
+                    } => sum_cp;
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    let sum_used_cp = if html_handler.peek().is_some() {
+                        sum_used_cp
+                    } => sum_used_cp;
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;">
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:center;">
+                    <img src=pass_or_open alt=bestanden_or_offen title=state></img>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="   7" class={|v| assert_eq!(v, level)}>
+                    rules
+                </td>
+            </tr>
+            let rules2 = if html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
+                <tr>
+                    <td colspan="   7" class={|v| assert_eq!(v, level)}>
+                        rules
+                    </td>
+                </tr>
+            } => rules;
+        } => (sum_cp, sum_used_cp, state, rules, rules2);
+    }
+    (
+        html_handler,
+        StudentResultLevel {
+            name: name.0,
+            entries: name.1,
+            sum_cp: optional.clone().and_then(|o| o.0),
+            sum_used_cp: optional.clone().and_then(|o| o.1),
+            state: optional.clone().map(|o| o.2),
+            rules: optional.clone().map(|o| o.3),
+            rules2: optional.and_then(|o| o.4),
+            children,
+        },
+    )
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
@@ -190,17 +212,17 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             "Studium:"
                                         </label>
                                         <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
-                                            let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                            let course_of_study = while html_handler.peek().is_some() {
+                                                let course_of_study = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
+                                                } => CourseOfStudySelection { name, value, selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
-                                            } => option.either_into::<Semesterauswahl>();
+                                                } => CourseOfStudySelection { name, value, selected: false };
+                                            } => course_of_study.either_into::<CourseOfStudySelection>();
                                         </select>
                                         <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
                                     </div>
@@ -296,5 +318,5 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
 
-    Ok(StudentResultResponse { level0: level0_contents, total_gpa, main_gpa })
+    Ok(StudentResultResponse { course_of_study, level0: level0_contents, total_gpa, main_gpa })
 }
