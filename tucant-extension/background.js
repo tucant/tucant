@@ -295,7 +295,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-modules' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-modules/current' },
     },
 },
 {
@@ -311,7 +311,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-courses' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-courses/current' },
     },
 },
 {
@@ -327,7 +327,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/my-exams' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-exams/current' },
     },
 },
 {
@@ -343,7 +343,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/course-results' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/course-results/current' },
     },
 },
 {
@@ -359,7 +359,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/exam-results' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/exam-results/current' },
     },
 },
 {
@@ -375,7 +375,7 @@ const customUiRules = [{
     },
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-        redirect: { regexSubstitution: EXT_PAGE + '#/student-result/current' },
+        redirect: { regexSubstitution: EXT_PAGE + '#/student-result/default' },
     },
 },
 {
