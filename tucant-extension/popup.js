@@ -18,13 +18,14 @@ document.querySelector('#open-custom-ui').addEventListener('click', function () 
 // TODO maybe chrome.runtime.onUpdateAvailable
 
 document.querySelector("#update-extension")?.addEventListener('click', async function () {
-    console.log("test")
+    console.log("update extension")
 
     // Chrome will close all extension tabs including blob urls, see https://issues.chromium.org/issues/41189391
     // The following is a hack and should mostly be used for development
 
     // https://stackoverflow.com/questions/68422688/chrome-extension-declarativenetrequest-isnt-matching-rulecondition
 
+    console.log("remove selfmade4u rule")
     await chrome.declarativeNetRequest.updateDynamicRules({
         // TODO centrally reference this id
         removeRuleIds: [4100], // TODO check that rules have no dupes

@@ -58,110 +58,118 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 })
 
-chrome.runtime.onInstalled.addListener(async () => {
-    console.log("oninstalled")
-    let { mobileDesign, customUi } = await chrome.storage.sync.get(
-        { mobileDesign: false, customUi: true },
-    );
+chrome.runtime.onInstalled.addListener(() => {
+    (async () => {
+        console.log("oninstalled")
+        let { mobileDesign, customUi } = await chrome.storage.sync.get(
+            { mobileDesign: false, customUi: true },
+        );
 
-    if (customUi) {
-        await enableCustomUi()
-    } else {
-        await disableCustomUi()
-    }
-
-    if (mobileDesign) {
-        await enableMobileDesign()
-    } else {
-        await disableMobileDesign()
-    }
-
-    await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: [4100], // TODO check that rules have no dupes
-        addRules: [{
-            id: 4100,
-            priority: 10,
-            condition: {
-                isUrlFilterCaseSensitive: true,
-                resourceTypes: [
-/** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
-                ],
-                regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
-            },
-            action: {
-                type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
-                redirect: {
-                    // I think this needs to statically be an allowed url
-                    regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
-                },
-            },
-        }],
-    });
-
-    let tabs = await chrome.tabs.query({
-        url: `https://tucant.selfmade4u.de/*`
-    })
-
-    await Promise.all(tabs.map(tab => {
-        if (tab.id) {
-            chrome.tabs.reload(tab.id)
+        if (customUi) {
+            await enableCustomUi()
+        } else {
+            await disableCustomUi()
         }
-    }))
 
-    await chrome.contextMenus.removeAll();
+        if (mobileDesign) {
+            await enableMobileDesign()
+        } else {
+            await disableMobileDesign()
+        }
 
-    chrome.contextMenus.create({
-        id: "open-in-tucan",
-        title: "Open link in TUCaN",
-        contexts: ["link"],
-        targetUrlPatterns: [`${EXTENSION_PAGE}*`]
-    }, () => {
+        console.log("enable selfmade4u rule")
+        await chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [4100], // TODO check that rules have no dupes
+            addRules: [{
+                id: 4100,
+                priority: 10,
+                condition: {
+                    isUrlFilterCaseSensitive: true,
+                    resourceTypes: [
+/** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                    ],
+                    regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+                },
+                action: {
+                    type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+                    redirect: {
+                        // I think this needs to statically be an allowed url
+                        regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
+                    },
+                },
+            }],
+        });
         console.log(chrome.runtime.lastError)
-    })
 
-    chrome.contextMenus.create({
-        id: "open-in-tucant",
-        title: "Open link in TUCaN't",
-        contexts: ["link"],
-        targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
-    }, () => {
-        console.log(chrome.runtime.lastError)
-    })
+        let tabs = await chrome.tabs.query({
+            url: `https://tucant.selfmade4u.de/*`
+        })
 
-    chrome.contextMenus.create({
-        id: "open-in-tucan-page",
-        title: "Open page in TUCaN",
-        contexts: ["page"],
-        documentUrlPatterns: [`${EXTENSION_PAGE}*`]
-    }, () => {
-        console.log(chrome.runtime.lastError)
-    })
+        await Promise.all(tabs.map(tab => {
+            if (tab.id) {
+                chrome.tabs.reload(tab.id)
+            }
+        }))
 
-    chrome.contextMenus.create({
-        id: "open-in-tucant-page",
-        title: "Open page in TUCaN't",
-        contexts: ["page"],
-        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
-    }, () => {
-        console.log(chrome.runtime.lastError)
-    })
+        await chrome.contextMenus.removeAll();
 
-    chrome.contextMenus.create({
-        id: "shareable-link-page",
-        title: "Share link to page (without session id)",
-        contexts: ["page"],
-        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
-    }, () => {
-        console.log(chrome.runtime.lastError)
-    })
+        chrome.contextMenus.create({
+            id: "open-in-tucan",
+            title: "Open link in TUCaN",
+            contexts: ["link"],
+            targetUrlPatterns: [`${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
 
-    chrome.contextMenus.create({
-        id: "shareable-link",
-        title: "Share link (without session id)",
-        contexts: ["link"],
-        documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
-    }, () => {
-        console.log(chrome.runtime.lastError)
+        chrome.contextMenus.create({
+            id: "open-in-tucant",
+            title: "Open link in TUCaN't",
+            contexts: ["link"],
+            targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "open-in-tucan-page",
+            title: "Open page in TUCaN",
+            contexts: ["page"],
+            documentUrlPatterns: [`${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "open-in-tucant-page",
+            title: "Open page in TUCaN't",
+            contexts: ["page"],
+            documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "shareable-link-page",
+            title: "Share link to page (without session id)",
+            contexts: ["page"],
+            documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "shareable-link",
+            title: "Share link (without session id)",
+            contexts: ["link"],
+            documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*", `${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+    })().catch(error => {
+        // TODO FIXME add this error handling everywhere. maybe use eslint with typescript support
+        console.error(error)
     })
 });
 
@@ -254,6 +262,136 @@ const customUiRules = [{
     action: {
         type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
         redirect: { regexSubstitution: EXT_PAGE + '#/module-details/\\1' },
+    },
+}, {
+    id: 204,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/overview' },
+    },
+},
+// TODO how do we handle ACTION urls that are not clearly detectable?
+
+// TODO selected semester
+{
+    id: 204,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-modules' },
+    },
+},
+{
+    id: 205,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-courses' },
+    },
+},
+{
+    id: 206,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-exams' },
+    },
+},
+{
+    id: 207,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/course-results' },
+    },
+},
+{
+    id: 208,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/exam-results' },
+    },
+},
+{
+    id: 209,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N\\d+,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/student-result/current' },
+    },
+},
+{
+    id: 210,
+    priority: 3,
+    condition: {
+        isUrlFilterCaseSensitive: true,
+        resourceTypes: [
+            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+        ],
+        regexFilter: "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N\\d+,$",
+        excludedInitiatorDomains: [EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")]
+    },
+    action: {
+        type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+        redirect: { regexSubstitution: EXT_PAGE + '#/my-documents' },
     },
 },];
 
