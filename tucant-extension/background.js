@@ -283,7 +283,7 @@ const customUiRules = [{
 
 // TODO selected semester
 {
-    id: 204,
+    id: 205,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -299,7 +299,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 205,
+    id: 206,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -315,7 +315,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 206,
+    id: 207,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -331,7 +331,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 207,
+    id: 208,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -347,7 +347,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 208,
+    id: 209,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -363,7 +363,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 209,
+    id: 210,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
@@ -379,7 +379,7 @@ const customUiRules = [{
     },
 },
 {
-    id: 210,
+    id: 211,
     priority: 3,
     condition: {
         isUrlFilterCaseSensitive: true,
