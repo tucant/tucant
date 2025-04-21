@@ -54,7 +54,7 @@ fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, String) {
+fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
     html_extractor::html! {
         <tr class={|l| assert_eq!(l, format!("subhead {}", level))}>
             <td colspan="2">
@@ -119,10 +119,10 @@ fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'
             state
         };
     }
-    (html_handler, level_i)
+    (html_handler, (level_i, entries))
 }
 
-fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
+fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
     html_extractor::html! {
         let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
             <tr>
@@ -164,8 +164,8 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, c
     (
         html_handler,
         StudentResultLevel {
-            name,
-            entries: Vec::new(),
+            name: name.0,
+            entries: name.1,
             sum_cp: optional.clone().and_then(|o| o.0),
             sum_used_cp: optional.clone().and_then(|o| o.1),
             state: optional.clone().map(|o| o.2),
