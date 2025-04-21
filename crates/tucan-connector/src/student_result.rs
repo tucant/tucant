@@ -71,12 +71,6 @@ fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'
             <td>
             </td>
         </tr>
-    }
-    (html_handler, level_i)
-}
-
-fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
-    html_extractor::html! {
         let entries = while html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
             <tr>
                 <td class="tbdata">
@@ -124,6 +118,12 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, c
             grade,
             state
         };
+    }
+    (html_handler, level_i)
+}
+
+fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
+    html_extractor::html! {
         let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, level)}>
@@ -158,7 +158,7 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, c
         html_handler,
         StudentResultLevel {
             name,
-            entries,
+            entries: Vec::new(),
             sum_cp: optional.clone().and_then(|o| o.0),
             sum_used_cp: optional.clone().and_then(|o| o.1),
             state: optional.clone().map(|o| o.2),
