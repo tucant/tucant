@@ -17,7 +17,7 @@ pub struct StudentResultProps {
 pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of_study }: &StudentResultProps) -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.student_result(&current_session, revalidation_strategy, additional).await;
 
-    use_data_loader(handler, course_of_study.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
+    use_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         ::yew::html! {
             <>
                 <StudentResultLevelComponent<TucanType> level={student_result.level0} path={Vec::new()} />

@@ -373,6 +373,7 @@ pub async fn my_documents_endpoint(jar: CookieJar, revalidation_strategy: Revali
         (status = 500, description = "Some TUCaN error")
     )
 )]
+/// set course-of-study to default to get the default one
 pub async fn student_result_endpoint(jar: CookieJar, revalidation_strategy: RevalidationStrategyW, course_of_study: Path<String>) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
@@ -381,7 +382,7 @@ pub async fn student_result_endpoint(jar: CookieJar, revalidation_strategy: Reva
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
-    let response = tucan.student_result(&login_response, revalidation_strategy.0, course_of_study.0).await?;
+    let response = tucan.student_result(&login_response, revalidation_strategy.0, if course_of_study.0 == "default" { 0 } else { course_of_study.0.parse().unwrap() }).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }

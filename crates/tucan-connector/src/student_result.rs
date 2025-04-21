@@ -14,14 +14,14 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     InstructorImage, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
-    student_result::{StudentResultEntry, StudentResultLevel, StudentResultResponse},
+    student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
-pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, mut request: String) -> Result<StudentResultResponse, TucanError> {
-    // TODO FIXME
-    request = if request == "default" { "-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000".to_owned() } else { format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request) };
-
+/// 0 is the default
+pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: u64) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{}", request);
+
+    let request = format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -38,6 +38,7 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}", login_response.id, request);
+    println!("{}", url);
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = student_result_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -190,17 +191,17 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                             "Studium:"
                                         </label>
                                         <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
-                                            let semester = while html_handler.peek().is_some() {
-                                                let option = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                            let course_of_study = while html_handler.peek().is_some() {
+                                                let course_of_study = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
                                                     <option value=value selected="selected">
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: true } else {
+                                                } => CourseOfStudySelection { name, value, selected: true } else {
                                                     <option value=value>
                                                         name
                                                     </option>
-                                                } => Semesterauswahl { name, value: SemesterId::from_str(&value).unwrap(), selected: false };
-                                            } => option.either_into::<Semesterauswahl>();
+                                                } => CourseOfStudySelection { name, value, selected: false };
+                                            } => course_of_study.either_into::<CourseOfStudySelection>();
                                         </select>
                                         <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
                                     </div>
@@ -296,5 +297,5 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
 
-    Ok(StudentResultResponse { level0: level0_contents, total_gpa, main_gpa })
+    Ok(StudentResultResponse { course_of_study, level0: level0_contents, total_gpa, main_gpa })
 }

@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct CourseOfStudySelection {
+    pub name: String,
+    pub value: String,
+    pub selected: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct StudentResultEntry {
     pub id: String,
@@ -25,6 +32,7 @@ pub struct StudentResultLevel {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct StudentResultResponse {
+    pub course_of_study: Vec<CourseOfStudySelection>,
     pub level0: StudentResultLevel,
     pub total_gpa: String,
     pub main_gpa: String,

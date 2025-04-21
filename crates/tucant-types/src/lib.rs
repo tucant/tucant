@@ -190,5 +190,5 @@ pub trait Tucan {
 
     fn vv(&self, login_response: Option<&LoginResponse>, revalidation_strategy: RevalidationStrategy, action: ActionRequest) -> impl std::future::Future<Output = Result<Vorlesungsverzeichnis, TucanError>>;
 
-    fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: String) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
+    fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> impl std::future::Future<Output = Result<StudentResultResponse, TucanError>>;
 }
