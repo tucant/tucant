@@ -152,14 +152,14 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
                     rules
                 </td>
             </tr>
-            let second_restriction = if html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
+            let rules2 = if html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
                 <tr>
                     <td colspan="   7" class={|v| assert_eq!(v, level)}>
                         rules
                     </td>
                 </tr>
-            } => ();
-        } => (sum_cp, sum_used_cp, state, rules);
+            } => rules;
+        } => (sum_cp, sum_used_cp, state, rules, rules2);
     }
     (
         html_handler,
@@ -169,7 +169,8 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
             sum_cp: optional.clone().and_then(|o| o.0),
             sum_used_cp: optional.clone().and_then(|o| o.1),
             state: optional.clone().map(|o| o.2),
-            rules: optional.map(|o| o.3),
+            rules: optional.clone().map(|o| o.3),
+            rules2: optional.and_then(|o| o.4),
             children,
         },
     )
