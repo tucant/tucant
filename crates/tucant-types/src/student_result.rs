@@ -25,8 +25,8 @@ pub struct StudentResultLevel {
     pub entries: Vec<StudentResultEntry>,
     pub sum_cp: Option<String>,
     pub sum_used_cp: Option<String>,
-    pub state: String,
-    pub rules: String,
+    pub state: Option<String>,
+    pub rules: Option<String>,
     pub children: Vec<StudentResultLevel>,
 }
 

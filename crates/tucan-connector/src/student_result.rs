@@ -124,35 +124,48 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: String, c
             grade,
             state
         };
-        <tr>
-            <td colspan="2" class={|v| assert_eq!(v, level)}>
-                summe
-            </td>
-            <td class={|v| assert_eq!(v, level)}>
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                let sum_cp = if html_handler.peek().is_some() {
-                    sum_cp
-                } => sum_cp;
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                let sum_used_cp = if html_handler.peek().is_some() {
-                    sum_used_cp
-                } => sum_used_cp;
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:right;">
-            </td>
-            <td class={|v| assert_eq!(v, level)} style="text-align:center;">
-                <img src=pass_or_open alt=bestanden_or_offen title=state></img>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="   7" class={|v| assert_eq!(v, level)}>
-                rules
-            </td>
-        </tr>
+        let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
+            <tr>
+                <td colspan="2" class={|v| assert_eq!(v, level)}>
+                    summe
+                </td>
+                <td class={|v| assert_eq!(v, level)}>
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    let sum_cp = if html_handler.peek().is_some() {
+                        sum_cp
+                    } => sum_cp;
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                    let sum_used_cp = if html_handler.peek().is_some() {
+                        sum_used_cp
+                    } => sum_used_cp;
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:right;">
+                </td>
+                <td class={|v| assert_eq!(v, level)} style="text-align:center;">
+                    <img src=pass_or_open alt=bestanden_or_offen title=state></img>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="   7" class={|v| assert_eq!(v, level)}>
+                    rules
+                </td>
+            </tr>
+        } => (sum_cp, sum_used_cp, state, rules);
     }
-    (html_handler, StudentResultLevel { name, entries, sum_cp, sum_used_cp, state, rules, children })
+    (
+        html_handler,
+        StudentResultLevel {
+            name,
+            entries,
+            sum_cp: optional.clone().and_then(|o| o.0),
+            sum_used_cp: optional.clone().and_then(|o| o.1),
+            state: optional.clone().map(|o| o.2),
+            rules: optional.map(|o| o.3),
+            children,
+        },
+    )
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
