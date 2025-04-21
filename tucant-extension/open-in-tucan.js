@@ -110,6 +110,22 @@ export function handleOpenInTucan(id, tabId, url) {
         return;
     }
 
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000$", "g").exec(url)
+    if (match) {
+        chrome.tabs.update(tabId, {
+            url: `${EXT_PAGE_INDEX_HTML}#/student-result/default`
+        })
+        return;
+    }
+
+    match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,-N(\\d+),-N0,-N000000000000000$", "g").exec(url)
+    if (match) {
+        chrome.tabs.update(tabId, {
+            url: `${EXT_PAGE_INDEX_HTML}#/student-result/${match[1]}`
+        })
+        return;
+    }
+
     // --------------------------------
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
@@ -214,6 +230,22 @@ export function handleOpenInTucan(id, tabId, url) {
     if (id && match) {
         chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${id},-N000557,`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/student-result/default$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.update(tabId, {
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${id},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000`
+        })
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/student-result/(.*)$`, "g").exec(url)
+    if (id && match) {
+        chrome.tabs.update(tabId, {
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${id},-N000316,-N0,-N000000000000000,-N000000000000000,-N${match[1]},-N0,-N000000000000000`
         })
         return;
     }
