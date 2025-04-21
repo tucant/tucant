@@ -535,7 +535,10 @@ mod authenticated_tests {
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
             let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), 0).await.unwrap();
-            panic!("{:#?}", response);
+            for course_of_study in response.course_of_study {
+                let response = student_result(&tucan, &login_response, RevalidationStrategy::default(), course_of_study.value.parse().unwrap()).await.unwrap();
+                println!("{:#?}", response);
+            }
         });
     }
 }
