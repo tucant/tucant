@@ -105,17 +105,14 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th scope="col" class="col-1">
-                                { "ID" }
-                            </th>
                             <th scope="col">
                                 { "Name" }
                             </th>
                             <th scope="col" class="col-1">
-                                { "Credits" }
+                                { "CP" }
                             </th>
                             <th scope="col" class="col-1">
-                                { "Angerechnet" }
+                                { "eCP" }
                             </th>
                             <th scope="col" class="col-1">
                                 { "Note" }
@@ -133,9 +130,6 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                 .map(|entry| {
                                     ::yew::html! {
                                         <tr>
-                                            <td>
-                                                { &entry.id }
-                                            </td>
                                             <td>
                                                 { &entry.name }
                                             </td>
