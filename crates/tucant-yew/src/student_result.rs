@@ -1,12 +1,14 @@
 use std::ops::Deref;
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_data_loader};
 use tucant_types::{
     Tucan,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     student_result::{StudentResultLevel, StudentResultResponse},
 };
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, function_component, html};
+use web_sys::HtmlSelectElement;
+use yew::{Callback, Event, Html, HtmlResult, MouseEvent, Properties, TargetCast, function_component, html};
+use yew_router::hooks::use_navigator;
 
 #[derive(Properties, PartialEq)]
 pub struct StudentResultProps {
@@ -17,9 +19,33 @@ pub struct StudentResultProps {
 pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of_study }: &StudentResultProps) -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.student_result(&current_session, revalidation_strategy, additional).await;
 
+    let navigator = use_navigator().unwrap();
+
     use_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
+        let on_course_of_study_change = {
+            let navigator = navigator.clone();
+            Callback::from(move |e: Event| {
+                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
+                navigator.push(&Route::StudentResult { course_of_study: value });
+            })
+        };
         ::yew::html! {
             <>
+                <select onchange={on_course_of_study_change} class="form-select mb-1" aria-label="Select course of study">
+                    {
+                        student_result
+                            .course_of_study
+                            .iter()
+                            .map(|course_of_study| {
+                                ::yew::html! {
+                                    <option selected={course_of_study.selected} value={course_of_study.value.clone()}>
+                                        { &course_of_study.name }
+                                    </option>
+                                }
+                            })
+                            .collect::<Html>()
+                    }
+                </select>
                 <StudentResultLevelComponent<TucanType> level={student_result.level0} path={Vec::new()} />
                 <div>
                     { format!("Gesamt-GPA: {}", student_result.total_gpa) }
