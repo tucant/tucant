@@ -105,11 +105,23 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                 <table class="table table-sm">
                     <thead>
                         <tr>
+                            <th scope="col" class="col-1">
+                                { "ID" }
+                            </th>
                             <th scope="col">
                                 { "Name" }
                             </th>
                             <th scope="col" class="col-1">
+                                { "Credits" }
+                            </th>
+                            <th scope="col" class="col-1">
+                                { "Angerechnet" }
+                            </th>
+                            <th scope="col" class="col-1">
                                 { "Note" }
+                            </th>
+                            <th scope="col" class="col-1">
+                                { "Status" }
                             </th>
                         </tr>
                     </thead>
@@ -122,10 +134,22 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                     ::yew::html! {
                                         <tr>
                                             <td>
+                                                { &entry.id }
+                                            </td>
+                                            <td>
                                                 { &entry.name }
                                             </td>
                                             <td>
+                                                { entry.cp.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { entry.used_cp.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
                                                 { &entry.grade.clone().unwrap_or_default() }
+                                            </td>
+                                            <td>
+                                                { &entry.state }
                                             </td>
                                         </tr>
                                     }
