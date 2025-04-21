@@ -2998,6 +2998,7 @@ name = "tucant-types"
 version = "0.1.2"
 dependencies = [
  "axum-core",
+ "itertools",
  "regex",
  "reqwest",
  "serde",

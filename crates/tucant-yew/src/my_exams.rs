@@ -86,9 +86,16 @@ pub fn my_exams<TucanType: Tucan + 'static>(MyExamsProps { semester }: &MyExamsP
                                                 { &exam.id }
                                             </th>
                                             <td>
-                                                <Link<Route> to={Route::CourseDetails { course: exam.coursedetails_url.clone() }}>
-                                                    { &exam.name }
-                                                </Link<Route>>
+                                                if let Some(coursedetails_url) = &exam.coursedetails_url {
+                                                    <Link<Route> to={Route::CourseDetails { course: coursedetails_url.clone() }}>
+                                                        { &exam.name }
+                                                    </Link<Route>>
+                                                }
+                                                if let Some(moduledetails_url) = &exam.moduledetails_url {
+                                                    <Link<Route> to={Route::ModuleDetails { module: moduledetails_url.clone() }}>
+                                                        { &exam.name }
+                                                    </Link<Route>>
+                                                }
                                             </td>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url)}>

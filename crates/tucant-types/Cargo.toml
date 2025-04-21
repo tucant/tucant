@@ -11,6 +11,7 @@ axum-core = "0.5.0"
 thiserror = "2"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset", "stream"] }
 regex = { version = "1" }
+itertools = "0.14"
 
 [lints]
 workspace = true

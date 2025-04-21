@@ -5,12 +5,14 @@ use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
+    moduledetails::ModuleDetailsRequest,
     myexams::{Exam, MyExamsResponse},
 };
 
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
+    registration::index::MODULEDETAILS_REGEX,
 };
 
 pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
@@ -152,8 +154,8 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                 </a>
                                                 <br></br>
                                                 tuple_of_courses
-                                            } => (name, coursedetails_url, Some(tuple_of_courses)) else {
-                                                <a class="link" href=coursedetails_url>
+                                            } => (name, Some(CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""))), None, Some(tuple_of_courses)) else {
+                                                <a class="link" href=moduledetails_url>
                                                     name
                                                 </a>
                                                 let thesis = if html_handler.peek().is_some() {
@@ -166,7 +168,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                     submitted_date
                                                     <br></br>
                                                 } => ();
-                                            } => (name, coursedetails_url, None);
+                                            } => (name, None, Some(ModuleDetailsRequest::parse(&MODULEDETAILS_REGEX.replace(&moduledetails_url, ""))), None);
                                         </td>
                                         <td class="tbdata">
                                             <a class="link" href=examdetail_url>
@@ -188,9 +190,10 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                     </tr>
                                 } => Exam {
                                     id: course_id,
-                                    name: res.clone().either_into::<(String, String, Option<String>)>().0,
-                                    coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&res.clone().either_into::<(String, String, Option<String>)>().1, "")),
-                                    tuple_of_courses: res.either_into::<(String, String, Option<String>)>().2,
+                                    name: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().0,
+                                    coursedetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().1,
+                                    moduledetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().2,
+                                    tuple_of_courses: res.either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().3,
                                     examdetail_url,
                                     pruefungsart,
                                     date: date_and_courseprep.clone().either_into::<(String, Option<String>)>().0,
