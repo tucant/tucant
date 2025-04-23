@@ -91,6 +91,15 @@
           inherit cargoArtifacts;
         });
 
+        tucant-extension-typescript = pkgs.buildNpmPackage rec {
+          pname = "tucant-extension-typescript";
+          version = "0.1.0";
+
+          src = ./tucant-extension;
+
+          npmDepsHash = "sha256-EqI/SfntW2DYQaIpjm5noPdht3MSIeC3mhuV6PyW8xo=";
+        };
+
         schema = pkgs.runCommandNoCC "schema.json" {
           } ''
             ${api}/bin/schema > $out
@@ -108,8 +117,8 @@
           ./crates/tucant-yew/index.html
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
-          ./tucant-extension/helper.js
-          ./tucant-extension/open-in-tucan.js
+          ./tucant-extension/dist/helper.js
+          ./tucant-extension/dist/open-in-tucan.js
           ./crates/tucant-yew/fixup.sh
         ];
 
@@ -234,6 +243,7 @@
           });
         };
 
+        packages.tucant-extension-typescript = tucant-extension-typescript;
         packages.schema = schema;
         packages.client = client;
         packages.server = api;
