@@ -7,7 +7,14 @@ export default tseslint.config({
     ignores: ["bootstrap.bundle.min.js"],
     extends: [
         eslint.configs.recommended,
-        tseslint.configs.strict,
-        tseslint.configs.stylistic
+        tseslint.configs.recommendedTypeChecked,
+        {
+            languageOptions: {
+                parserOptions: {
+                    projectService: true,
+                    tsconfigRootDir: import.meta.dirname,
+                },
+            },
+        },
     ]
 });
