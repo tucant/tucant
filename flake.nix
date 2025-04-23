@@ -209,6 +209,7 @@
           installPhase = ''
             mkdir -p $out/dist
             cp -r ${tucant-extension-typescript}/lib/node_modules/tucant-extension/dist/. $out/dist/
+            rm $out/dist/open-in-tucan.js
             cp -r $src/. $out/
             cp -r ${client}/. $out/dist/
           '';
