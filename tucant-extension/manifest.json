@@ -80,7 +80,8 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "dist/index.html"
+                "dist/index.html",
+                "utils.js"
             ],
             "matches": [
                 "<all_urls>"
