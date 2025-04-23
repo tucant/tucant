@@ -1,5 +1,6 @@
 import "./fix-session-id-in-url.js"
 import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
+import { asyncClosure } from "./utils.js";
 
 console.log("background script")
 
@@ -7,59 +8,61 @@ const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-chrome.runtime.onMessage.addListener(async (event) => {
+chrome.runtime.onMessage.addListener((event) => {
     console.log("onMessage")
 })
 
-chrome.commands.onCommand.addListener(async (command) => {
-    console.log("handlecommand")
-    const id = await chrome.cookies.get({
-        url: "https://www.tucan.tu-darmstadt.de/scripts/",
-        name: "id",
+chrome.commands.onCommand.addListener((command) => {
+    asyncClosure(async () => {
+        const id = await chrome.cookies.get({
+            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            name: "id",
+        })
+
+        let tab = await getCurrentTab()
+
+        if (!tab.id || !tab.url) {
+            console.log("no tab id or url")
+            return;
+        }
+
+        if (command === "open-in-tucan-page") {
+            handleOpenInTucan(id?.value, tab.id, tab.url)
+        }
     })
-
-    let tab = await getCurrentTab()
-
-    if (!tab.id || !tab.url) {
-        console.log("no tab id or url")
-        return;
-    }
-
-    if (command === "open-in-tucan-page") {
-        console.log("opefwewf")
-        handleOpenInTucan(id?.value, tab.id, tab.url)
-    }
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-    const id = await chrome.cookies.get({
-        url: "https://www.tucan.tu-darmstadt.de/scripts/",
-        name: "id",
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    asyncClosure(async () => {
+        const id = await chrome.cookies.get({
+            url: "https://www.tucan.tu-darmstadt.de/scripts/",
+            name: "id",
+        })
+
+        let url = info.linkUrl ?? info.pageUrl
+        let tabId = tab?.id
+
+        if (!tabId) {
+            return;
+        }
+
+        if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
+            handleOpenInTucan(id?.value, tabId, url)
+        }
+
+        if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
+            chrome.notifications.create({
+                type: "basic",
+                iconUrl: chrome.runtime.getURL("/icon-512.png"),
+                title: "Sharing this URL is not supported",
+                message: "Unfortunately sharing this URL is not supported (yet). We welcome any contribution",
+            });
+        }
     })
-
-    let url = info.linkUrl || info.pageUrl
-    let tabId = tab?.id
-
-    if (!tabId) {
-        return;
-    }
-
-    if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
-        handleOpenInTucan(id?.value, tabId, url)
-    }
-
-    if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
-        chrome.notifications.create({
-            type: "basic",
-            iconUrl: chrome.runtime.getURL("/icon-512.png"),
-            title: "Sharing this URL is not supported",
-            message: "Unfortunately sharing this URL is not supported (yet). We welcome any contribution",
-        });
-    }
 })
 
 chrome.runtime.onInstalled.addListener(() => {
-    (async () => {
+    asyncClosure(async () => {
         console.log("oninstalled")
         let { mobileDesign, customUi } = await chrome.storage.sync.get(
             { mobileDesign: false, customUi: true },
@@ -105,9 +108,9 @@ chrome.runtime.onInstalled.addListener(() => {
             url: `https://tucant.selfmade4u.de/*`
         })
 
-        await Promise.all(tabs.map(tab => {
+        await Promise.all(tabs.map(async tab => {
             if (tab.id) {
-                chrome.tabs.reload(tab.id)
+                await chrome.tabs.reload(tab.id)
             }
         }))
 
@@ -167,29 +170,28 @@ chrome.runtime.onInstalled.addListener(() => {
             console.log(chrome.runtime.lastError)
         })
 
-    })().catch(error => {
-        // TODO FIXME add this error handling everywhere. maybe use eslint with typescript support
-        console.error(error)
-    })
+    });
 });
 
-chrome.storage.sync.onChanged.addListener(async (changes) => {
-    for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-        if (key === "mobileDesign") {
-            if (newValue) {
-                enableMobileDesign()
-            } else {
-                disableMobileDesign()
+chrome.storage.sync.onChanged.addListener((changes) => {
+    asyncClosure(async () => {
+        for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+            if (key === "mobileDesign") {
+                if (newValue) {
+                    await enableMobileDesign()
+                } else {
+                    await disableMobileDesign()
+                }
+            }
+            if (key === "customUi") {
+                if (newValue) {
+                    await enableCustomUi()
+                } else {
+                    await disableCustomUi()
+                }
             }
         }
-        if (key === "customUi") {
-            if (newValue) {
-                enableCustomUi()
-            } else {
-                disableCustomUi()
-            }
-        }
-    }
+    });
 });
 /*
 chrome.declarativeNetRequest.onRuleMatchedDebug.addListener(
@@ -455,7 +457,9 @@ chrome.omnibox.onInputChanged.addListener(event => {
 })
 
 chrome.omnibox.onInputEntered.addListener((event) => {
-    chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+    asyncClosure(async () => {
+        await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+    })
 })
 
 export { }

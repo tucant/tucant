@@ -1,6 +1,6 @@
 // if you activate the extension while having a tucan page open we want to find out the session id in any way possible
 
-const imprintInFooter = /** @type {HTMLAnchorElement} */ (document.getElementById("pageFootControl_imp"))
+const imprintInFooter = /** @type {HTMLAnchorElement | null} */ (document.getElementById("pageFootControl_imp"))
 
 if (document.body.classList.contains("access_denied")) {
     document.cookie = `id=; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
