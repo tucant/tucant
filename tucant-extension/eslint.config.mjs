@@ -18,6 +18,7 @@ export default tseslint.config({
                 },
                 globals: {
                     ...globals.browser,
+                    ...globals.webextensions,
                 },
             },
         },
