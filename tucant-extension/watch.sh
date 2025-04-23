@@ -1,7 +1,6 @@
 #!/bin/sh
 
-cd ../crates/tucant-yew
-trunk watch --features direct --dist ../../tucant-extension/dist --public-url /dist --release
+trunk watch --config ../crates/tucant-yew/Trunk.toml --features direct --dist ../../tucant-extension/dist --public-url /dist --release
 
 #ls -lh pkg/tucant_extension_bg.wasm
 

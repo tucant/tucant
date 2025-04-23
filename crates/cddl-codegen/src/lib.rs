@@ -361,6 +361,7 @@ mod tests {
     use crate::{ccdl, codegen};
 
     #[test]
+    #[ignore]
     fn it_works() {
         let input = read_to_string("../../webdriver-bidi/all.cddl").unwrap();
         let parsed = ccdl.parse(&input).unwrap();

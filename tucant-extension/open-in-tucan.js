@@ -13,10 +13,10 @@ export async function getCurrentTab() {
  * @param {number} tabId
  * @param {string} url
  */
-export function handleOpenInTucan(id, tabId, url) {
+export async function handleOpenInTucan(id, tabId, url) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/module-details/${match[1]}`
         })
         return;
@@ -24,7 +24,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/course-details/${match[1]}`
         })
         return;
@@ -32,7 +32,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/registration/${match[1]}`
         })
         return;
@@ -40,7 +40,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/overview`
         })
         return;
@@ -48,7 +48,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=ACTION&ARGUMENTS=(.*)$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/vv/${match[1]}`
         })
         return;
@@ -56,7 +56,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-modules`
         })
         return;
@@ -64,7 +64,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-courses`
         })
         return;
@@ -72,7 +72,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-exams`
         })
         return;
@@ -80,7 +80,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/exam-results`
         })
         return;
@@ -88,7 +88,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/course-results`
         })
         return;
@@ -96,7 +96,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N\\d+,-N\\d+,$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/my-documents`
         })
         return;
@@ -104,7 +104,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/`
         })
         return;
@@ -112,7 +112,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/student-result/default`
         })
         return;
@@ -120,21 +120,13 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N\\d+,-N000316,-N0,-N000000000000000,-N000000000000000,-N(\\d+),-N0,-N000000000000000$", "g").exec(url)
     if (match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `${EXT_PAGE_INDEX_HTML}#/student-result/${match[1]}`
         })
         return;
     }
 
     // --------------------------------
-
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
-    if (match) {
-        chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
-        })
-        return;
-    }
 
     if (!id) {
         chrome.notifications.create({
@@ -146,9 +138,17 @@ export function handleOpenInTucan(id, tabId, url) {
         return;
     }
 
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
+    if (id && match) {
+        await chrome.tabs.update(tabId, {
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
+        })
+        return;
+    }
+
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N${id},-N000274,${match[1]}`
         })
         return;
@@ -156,7 +156,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/module-details/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N${id},-N000275,${match[1]}`
         })
         return;
@@ -164,7 +164,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/registration/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N${id},-N000311,${match[1]}`
         })
         return;
@@ -172,7 +172,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
         })
         return;
@@ -180,7 +180,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/overview$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
         })
         return;
@@ -188,7 +188,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-modules$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYMODULES&ARGUMENTS=-N${id},-N000275,`
         })
         return;
@@ -196,7 +196,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-courses$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N${id},-N000274,`
         })
         return;
@@ -204,7 +204,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-exams$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N${id},-N000318,`
         })
         return;
@@ -212,7 +212,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/exam-results$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N${id},-N000325,`
         })
         return;
@@ -220,7 +220,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-results$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N${id},-N000324,`
         })
         return;
@@ -228,7 +228,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/my-documents$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N${id},-N000557,`
         })
         return;
@@ -236,7 +236,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/student-result/default$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${id},-N000316,-N0,-N000000000000000,-N000000000000000,-N000000000000000,-N0,-N000000000000000`
         })
         return;
@@ -244,7 +244,7 @@ export function handleOpenInTucan(id, tabId, url) {
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/student-result/(.*)$`, "g").exec(url)
     if (id && match) {
-        chrome.tabs.update(tabId, {
+        await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${id},-N000316,-N0,-N000000000000000,-N000000000000000,-N${match[1]},-N0,-N000000000000000`
         })
         return;
