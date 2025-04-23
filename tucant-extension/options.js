@@ -1,23 +1,31 @@
+import { asyncClosure } from "./utils";
+
 const mobileDesignCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('mobile-design'))
 mobileDesignCheckbox.addEventListener("change", event => {
-    chrome.storage.sync.set(
-        { mobileDesign: mobileDesignCheckbox.checked },
-    );
+    asyncClosure(async () => {
+        await chrome.storage.sync.set(
+            { mobileDesign: mobileDesignCheckbox.checked },
+        );
+    });
 })
 
 const customUICheckbox = /** @type {HTMLInputElement} */ (document.getElementById('custom-ui'))
 customUICheckbox.addEventListener("change", event => {
-    chrome.storage.sync.set(
-        { customUi: customUICheckbox.checked },
-    );
+    asyncClosure(async () => {
+        await chrome.storage.sync.set(
+            { customUi: customUICheckbox.checked },
+        );
+    })
 })
 
 
 const fixSessionIdInUrlCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('fix-session-id-in-url'))
 fixSessionIdInUrlCheckbox.addEventListener("change", event => {
-    chrome.storage.sync.set(
-        { fixSessionIdInUrl: fixSessionIdInUrlCheckbox.checked },
-    );
+    asyncClosure(async () => {
+        await chrome.storage.sync.set(
+            { fixSessionIdInUrl: fixSessionIdInUrlCheckbox.checked },
+        );
+    })
 })
 
 
