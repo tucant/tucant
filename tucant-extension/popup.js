@@ -1,14 +1,11 @@
 import { asyncClosure } from "./utils";
 
 /** @type {HTMLElement} */ (document.querySelector('#go-to-options')).addEventListener('click', function () {
-    if (chrome.runtime.openOptionsPage) {
-        chrome.runtime.openOptionsPage();
-    } else {
-        window.open(chrome.runtime.getURL('options.html'));
-    }
+    asyncClosure(async () => {
+        await chrome.runtime.openOptionsPage();
+    })
 });
 
-const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
 /** @type {HTMLElement} */ (document.querySelector('#open-custom-ui')).addEventListener('click', function () {
@@ -57,7 +54,7 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
     })
 });
 
-/** @type {HTMLElement} */(document.querySelector('#grant-permission')).addEventListener('click', (event) => {
+/** @type {HTMLElement} */(document.querySelector('#grant-permission')).addEventListener('click', () => {
     asyncClosure(async () => {
         if (await chrome.permissions.request({
             origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']

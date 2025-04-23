@@ -1,7 +1,7 @@
 import { handleOpenInTucan, getCurrentTab } from "./open-in-tucan.js"
 import { asyncClosure } from "./utils.js";
 
-// @ts-ignore
+// @ts-expect-error define new property on window
 window.sayHello = () => {
     asyncClosure(async () => {
         const id = await chrome.cookies.get({
@@ -17,6 +17,6 @@ window.sayHello = () => {
         }
 
         console.log("opefwewf")
-        handleOpenInTucan(id?.value, tab.id, document.location.href)
+        await handleOpenInTucan(id?.value, tab.id, document.location.href)
     });
 }

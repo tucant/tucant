@@ -8,7 +8,7 @@ const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-chrome.runtime.onMessage.addListener((event) => {
+chrome.runtime.onMessage.addListener(() => {
     console.log("onMessage")
 })
 
@@ -27,7 +27,7 @@ chrome.commands.onCommand.addListener((command) => {
         }
 
         if (command === "open-in-tucan-page") {
-            handleOpenInTucan(id?.value, tab.id, tab.url)
+            await handleOpenInTucan(id?.value, tab.id, tab.url)
         }
     })
 });
@@ -47,7 +47,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
 
         if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
-            handleOpenInTucan(id?.value, tabId, url)
+            await handleOpenInTucan(id?.value, tabId, url)
         }
 
         if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
@@ -175,7 +175,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.storage.sync.onChanged.addListener((changes) => {
     asyncClosure(async () => {
-        for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+        for (let [key, { newValue }] of Object.entries(changes)) {
             if (key === "mobileDesign") {
                 if (newValue) {
                     await enableMobileDesign()
@@ -443,7 +443,7 @@ chrome.omnibox.onInputStarted.addListener(function () {
     });
 });
 
-chrome.omnibox.onInputChanged.addListener(event => {
+chrome.omnibox.onInputChanged.addListener(() => {
     chrome.omnibox.setDefaultSuggestion({
         description: "TUCaN't"
     });
@@ -456,7 +456,7 @@ chrome.omnibox.onInputChanged.addListener(event => {
     return results
 })
 
-chrome.omnibox.onInputEntered.addListener((event) => {
+chrome.omnibox.onInputEntered.addListener(() => {
     asyncClosure(async () => {
         await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
     })
