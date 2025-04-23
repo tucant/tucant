@@ -18,6 +18,24 @@ const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
 // TODO maybe chrome.runtime.onUpdateAvailable
 
+/**
+ * 
+ * @param {number} tabId 
+ * @param {string} url 
+ * @returns {Promise<void>}
+ */
+function updateTab(tabId, url) {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.onUpdated.addListener(function listener(updatedTabId, info) {
+            if (info.status === 'complete' && updatedTabId === tabId) {
+                chrome.tabs.onUpdated.removeListener(listener);
+                resolve();
+            }
+        });
+        chrome.tabs.update(tabId, { url }).catch(reject)
+    })
+}
+
 document.querySelector("#update-extension")?.addEventListener('click', function () {
     asyncClosure(async () => {
         console.log("update extension")
@@ -38,17 +56,13 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
             contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */("TAB")],
         });
 
-        await Promise.all(tabs.map(tab => {
+        await Promise.all(tabs.map(async tab => {
             if (!tab.documentUrl) {
                 return;
             }
             let url = new URL(tab.documentUrl);
-            return chrome.tabs.update(tab.tabId, {
-                url: "https://tucant.selfmade4u.de/" + url.hash
-            })
+            await updateTab(tab.tabId, "https://tucant.selfmade4u.de/" + url.hash)
         }));
-
-        await new Promise(r => setTimeout(r, 500));
 
         chrome.runtime.reload();
     })
