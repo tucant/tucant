@@ -1,4 +1,4 @@
-import { asyncClosure } from "./utils";
+import { asyncClosure } from "./utils.js";
 
 /** @type {HTMLElement} */ (document.querySelector('#go-to-options')).addEventListener('click', function () {
     asyncClosure(async () => {

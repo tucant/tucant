@@ -1,4 +1,4 @@
-import { asyncClosure } from "./utils";
+import { asyncClosure } from "./utils.js";
 
 const mobileDesignCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('mobile-design'))
 mobileDesignCheckbox.addEventListener("change", () => {

@@ -1,4 +1,4 @@
-import { asyncClosure } from "./utils";
+import { asyncClosure } from "./utils.js";
 
 chrome.webRequest.onBeforeRequest.addListener((details) => {
     asyncClosure(async () => {
