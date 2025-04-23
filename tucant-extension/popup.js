@@ -1,4 +1,4 @@
-document.querySelector('#go-to-options').addEventListener('click', function () {
+/** @type {HTMLElement} */ (document.querySelector('#go-to-options')).addEventListener('click', function () {
     if (chrome.runtime.openOptionsPage) {
         chrome.runtime.openOptionsPage();
     } else {
@@ -9,7 +9,7 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-document.querySelector('#open-custom-ui').addEventListener('click', function () {
+/** @type {HTMLElement} */ (document.querySelector('#open-custom-ui')).addEventListener('click', function () {
     chrome.tabs.create({
         url: EXT_PAGE_INDEX_HTML
     })
@@ -34,7 +34,7 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
         contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */("TAB")],
-    })
+    });
 
     await Promise.all(tabs.map(tab => {
         if (!tab.documentUrl) {
@@ -44,26 +44,28 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
         return chrome.tabs.update(tab.tabId, {
             url: "https://tucant.selfmade4u.de/" + url.hash
         })
-    }))
+    }));
 
     await new Promise(r => setTimeout(r, 500));
 
     chrome.runtime.reload();
-})
+});
 
-document.querySelector('#grant-permission').addEventListener('click', async (event) => {
+/** @type {HTMLElement} */(document.querySelector('#grant-permission')).addEventListener('click', async (event) => {
     if (await chrome.permissions.request({
         origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
     })) {
-        document.querySelector("#grant-permission-area").style.display = "none";
+        /** @type {HTMLElement} */ (document.querySelector("#grant-permission-area")).style.display = "none";
     }
 });
 
 if (!await chrome.permissions.contains({
     origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
 })) {
-    console.log("no host permissions")
-    document.querySelector("#grant-permission-area").style.display = "block";
+    console.log("no host permissions");
+    /** @type {HTMLElement} */(document.querySelector("#grant-permission-area")).style.display = "block";
 } else {
-    console.log("have host permission")
+    console.log("have host permission");
 }
+
+export { }

@@ -1,13 +1,10 @@
 {
   "name": "tucant-extension",
-  "version": "1.0.0",
-  "description": "``` zip -1 tucant.zip rules.json manifest.json content-script.js icon.png",
-  "main": "background.js",
+  "version": "0.1.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p ./jsconfig.json"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@types/chrome": "^0.0.313",
     "typescript": "^5.8.3"
