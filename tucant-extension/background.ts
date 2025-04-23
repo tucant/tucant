@@ -416,7 +416,7 @@ async function enableMobileDesign() {
                 "mobile.css"
             ],
             "js": [
-                "mobile.js"
+                "dist/mobile.js"
             ],
             "runAt": "document_end"
         }]

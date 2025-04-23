@@ -37,7 +37,7 @@
                 "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N002"
             ],
             "js": [
-                "content-script-redirect.js"
+                "dist/content-script-redirect.js"
             ],
             "run_at": "document_start"
         },
@@ -46,7 +46,7 @@
                 "https://www.tucan.tu-darmstadt.de/*"
             ],
             "js": [
-                "content-script.js"
+                "dist/content-script.js"
             ],
             "run_at": "document_end"
         }
@@ -61,9 +61,9 @@
         "128": "icon.png"
     },
     "background": {
-        "service_worker": "background.js",
+        "service_worker": "dist/background.js",
         "scripts": [
-            "background.js"
+            "dist/background.js"
         ],
         "type": "module"
     },
