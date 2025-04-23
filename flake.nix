@@ -95,7 +95,10 @@
           pname = "tucant-extension-typescript";
           version = "0.1.0";
 
-          src = ./tucant-extension;
+          src = lib.fileset.toSource {
+            root = ./tucant-extension;
+            fileset = fileset-extension;
+          };
 
           npmDepsHash = "sha256-EqI/SfntW2DYQaIpjm5noPdht3MSIeC3mhuV6PyW8xo=";
         };
@@ -117,8 +120,6 @@
           ./crates/tucant-yew/index.html
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
-          ./tucant-extension/dist/helper.js
-          ./tucant-extension/dist/open-in-tucan.js
           ./crates/tucant-yew/fixup.sh
         ];
 
@@ -151,37 +152,37 @@
         });
 
         fileset-extension = lib.fileset.unions [
-          ./tucant-extension/background.js
-          ./tucant-extension/fix-session-id-in-url.js
-          ./tucant-extension/content-script.js
-          ./tucant-extension/content-script-redirect.js
-          ./tucant-extension/open-in-tucan.js
+          ./tucant-extension/background.ts
+          ./tucant-extension/fix-session-id-in-url.ts
+          ./tucant-extension/content-script.ts
+          ./tucant-extension/content-script-redirect.ts
+          ./tucant-extension/open-in-tucan.ts
           ./tucant-extension/bootstrap.bundle.min.js
           ./tucant-extension/bootstrap.min.css
           ./tucant-extension/icon.png
           ./tucant-extension/manifest.json
           ./tucant-extension/mobile.css
-          ./tucant-extension/mobile.js
+          ./tucant-extension/mobile.ts
           ./tucant-extension/options.html
-          ./tucant-extension/options.js
+          ./tucant-extension/options.ts
           ./tucant-extension/popup.html
-          ./tucant-extension/popup.js
+          ./tucant-extension/popup.ts
           ./tucant-extension/rules.json
           ./tucant-extension/screenshot.png
+          ./tucant-extension/tsconfig.json
+          ./tucant-extension/package.json
+          ./tucant-extension/package-lock.json
         ];
 
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucant-extension";
           version = (lib.importJSON ./tucant-extension/manifest.json).version;
 
-          src = lib.fileset.toSource {
-            root = ./tucant-extension;
-            fileset = fileset-extension;
-          };
+          dontUnpack = true;
 
           installPhase = ''
             mkdir $out
-            cp -r $src/. $out/
+            cp -r ${tucant-extension-typescript}/lib/node_modules/tucant-extension/dist/. $out/dist/
             cp -r ${client}/. $out/dist/
           '';
         };
