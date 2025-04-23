@@ -128,14 +128,6 @@ export async function handleOpenInTucan(id, tabId, url) {
 
     // --------------------------------
 
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
-    if (match) {
-        await chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
-        })
-        return;
-    }
-
     if (!id) {
         chrome.notifications.create({
             type: "basic",
@@ -143,6 +135,14 @@ export async function handleOpenInTucan(id, tabId, url) {
             title: "Not logged in",
             message: "Could not detect session, please login again",
         });
+        return;
+    }
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
+    if (id && match) {
+        await chrome.tabs.update(tabId, {
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
+        })
         return;
     }
 

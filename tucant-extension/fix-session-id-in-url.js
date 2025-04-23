@@ -15,7 +15,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
 chrome.webRequest.onHeadersReceived.addListener((details) => {
     asyncClosure(async () => {
         if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
-            const refreshHeader = details.responseHeaders?.filter(v => v.name === "REFRESH").map(v => v.value).find(v => true) ?? "";
+            const refreshHeader = details.responseHeaders?.find(v => v.name === "REFRESH")?.value ?? "";
             const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
             if (match !== null) {
                 const sessionId = match[1]
@@ -140,7 +140,7 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
 
 chrome.storage.sync.onChanged.addListener((changes) => {
     asyncClosure(async () => {
-        for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+        for (let [key, { newValue }] of Object.entries(changes)) {
             if (key === "fixSessionIdInUrl") {
                 if (newValue) {
                     const id = await chrome.cookies.get({
