@@ -20,7 +20,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 
     let tab = await getCurrentTab()
 
-    if (!tab?.id || !tab.url) {
+    if (!tab.id || !tab.url) {
         console.log("no tab id or url")
         return;
     }

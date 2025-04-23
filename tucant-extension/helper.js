@@ -9,7 +9,7 @@ window.sayHello = async () => {
 
     let tab = await getCurrentTab()
 
-    if (!tab?.id) {
+    if (!tab.id) {
         console.log("no tab id")
         return;
     }
