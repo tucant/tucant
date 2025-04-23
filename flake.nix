@@ -159,32 +159,39 @@
           ./tucant-extension/content-script.ts
           ./tucant-extension/content-script-redirect.ts
           ./tucant-extension/open-in-tucan.ts
-          ./tucant-extension/bootstrap.bundle.min.js
-          ./tucant-extension/bootstrap.min.css
-          ./tucant-extension/icon.png
-          ./tucant-extension/manifest.json
-          ./tucant-extension/mobile.css
           ./tucant-extension/mobile.ts
-          ./tucant-extension/options.html
           ./tucant-extension/options.ts
-          ./tucant-extension/popup.html
           ./tucant-extension/popup.ts
           ./tucant-extension/helper.ts
-          ./tucant-extension/rules.json
           ./tucant-extension/screenshot.png
           ./tucant-extension/tsconfig.json
           ./tucant-extension/package.json
           ./tucant-extension/package-lock.json
         ];
 
+        fileset-extension-raw = lib.fileset.unions [
+          ./tucant-extension/bootstrap.bundle.min.js
+          ./tucant-extension/bootstrap.min.css
+          ./tucant-extension/icon.png
+          ./tucant-extension/manifest.json
+          ./tucant-extension/mobile.css
+          ./tucant-extension/options.html
+          ./tucant-extension/popup.html
+          ./tucant-extension/rules.json
+        ];
+
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucant-extension";
           version = (lib.importJSON ./tucant-extension/manifest.json).version;
 
-          dontUnpack = true;
+          src = lib.fileset.toSource {
+            root = ./tucant-extension;
+            fileset = fileset-extension-raw;
+          };
 
           installPhase = ''
             mkdir $out
+            cp -r $src/. $out/
             cp -r ${client}/. $out/dist/
           '';
         };
@@ -200,6 +207,7 @@
           fileset = lib.fileset.unions [
             fileset-wasm
             fileset-extension
+            fileset-extension-raw
             ./flake.nix
             ./flake.lock
             ./Dockerfile
