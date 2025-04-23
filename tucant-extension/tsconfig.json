@@ -3,6 +3,7 @@
     "target": "ESNext", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "module": "ESNext", /* Specify what module code is generated. */
     "strict": true, /* Enable all strict type-checking options. */
+    "isolatedModules": true,
     "outDir": "./dist"
   },
   "include": [

@@ -103,24 +103,6 @@
           npmDepsHash = "sha256-EqI/SfntW2DYQaIpjm5noPdht3MSIeC3mhuV6PyW8xo=";
         };
 
-        tucant-extension-typescript-minimal = pkgs.buildNpmPackage rec {
-          pname = "tucant-extension-typescript-minimal";
-          version = "0.1.0";
-
-          src = lib.fileset.toSource {
-            root = ./tucant-extension;
-            fileset = lib.fileset.unions [
-              ./tucant-extension/helper.ts
-              ./tucant-extension/open-in-tucan.ts
-              ./tucant-extension/tsconfig.json
-              ./tucant-extension/package.json
-              ./tucant-extension/package-lock.json
-            ];
-          };
-
-          npmDepsHash = "sha256-EqI/SfntW2DYQaIpjm5noPdht3MSIeC3mhuV6PyW8xo=";
-        };
-
         schema = pkgs.runCommandNoCC "schema.json" {
           } ''
             ${api}/bin/schema > $out
@@ -160,7 +142,6 @@
           pname = "tucant-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
-            cp -r ${tucant-extension-typescript-minimal}/lib/node_modules/tucant-extension/dist/. ./tucant-extension/dist/
             cd ./crates/tucant-yew
           '';
           postBuild = ''
@@ -179,7 +160,6 @@
           ./tucant-extension/mobile.ts
           ./tucant-extension/options.ts
           ./tucant-extension/popup.ts
-          ./tucant-extension/helper.ts
           ./tucant-extension/screenshot.png
           ./tucant-extension/tsconfig.json
           ./tucant-extension/package.json
@@ -209,7 +189,6 @@
           installPhase = ''
             mkdir -p $out/dist
             cp -r ${tucant-extension-typescript}/lib/node_modules/tucant-extension/dist/. $out/dist/
-            rm $out/dist/open-in-tucan.js
             cp -r $src/. $out/
             cp -r ${client}/. $out/dist/
           '';
