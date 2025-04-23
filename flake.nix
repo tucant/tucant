@@ -142,6 +142,8 @@
           pname = "tucant-workspace-tucant-yew";
           cargoArtifacts = cargoArtifactsWasm;
           preBuild = ''
+            cp -r ${tucant-extension-typescript}/lib/node_modules/tucant-extension/dist/. ./tucant-extension/dist/
+            ls -la ./tucant-extension/dist
             cd ./crates/tucant-yew
           '';
           postBuild = ''
@@ -167,6 +169,7 @@
           ./tucant-extension/options.ts
           ./tucant-extension/popup.html
           ./tucant-extension/popup.ts
+          ./tucant-extension/helper.ts
           ./tucant-extension/rules.json
           ./tucant-extension/screenshot.png
           ./tucant-extension/tsconfig.json
@@ -182,7 +185,6 @@
 
           installPhase = ''
             mkdir $out
-            cp -r ${tucant-extension-typescript}/lib/node_modules/tucant-extension/dist/. $out/dist/
             cp -r ${client}/. $out/dist/
           '';
         };
