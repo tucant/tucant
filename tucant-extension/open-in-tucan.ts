@@ -8,12 +8,7 @@ export async function getCurrentTab() {
     return tab;
 }
 
-/**
- * @param {string | undefined} id
- * @param {number} tabId
- * @param {string} url
- */
-export function handleOpenInTucan(id, tabId, url) {
+export function handleOpenInTucan(id: string | undefined, tabId: number, url: string) {
     let match = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N\\d+,-N\\d+,(.*)$", "g").exec(url)
     if (match) {
         chrome.tabs.update(tabId, {

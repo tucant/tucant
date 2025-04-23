@@ -1,11 +1,11 @@
-const mobileDesignCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('mobile-design'))
+const mobileDesignCheckbox = document.querySelector<HTMLInputElement>('#mobile-design')!
 mobileDesignCheckbox.addEventListener("change", event => {
     chrome.storage.sync.set(
         { mobileDesign: mobileDesignCheckbox.checked },
     );
 })
 
-const customUICheckbox = /** @type {HTMLInputElement} */ (document.getElementById('custom-ui'))
+const customUICheckbox = document.querySelector<HTMLInputElement>('#custom-ui')!
 customUICheckbox.addEventListener("change", event => {
     chrome.storage.sync.set(
         { customUi: customUICheckbox.checked },
@@ -13,7 +13,7 @@ customUICheckbox.addEventListener("change", event => {
 })
 
 
-const fixSessionIdInUrlCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('fix-session-id-in-url'))
+const fixSessionIdInUrlCheckbox = document.querySelector<HTMLInputElement>('#fix-session-id-in-url')!
 fixSessionIdInUrlCheckbox.addEventListener("change", event => {
     chrome.storage.sync.set(
         { fixSessionIdInUrl: fixSessionIdInUrlCheckbox.checked },

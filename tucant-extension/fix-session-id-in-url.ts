@@ -65,7 +65,7 @@ chrome.cookies.onChanged.addListener(async (changeInfo) => {
     }
 });
 
-const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
+const fixupSessionIdInUrl = (sessionId: string): chrome.declarativeNetRequest.Rule[] => {
     console.log("fixup session id in url")
     return [{
         // redirect any session id to the currently valid session id
@@ -73,12 +73,12 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
         condition: {
             isUrlFilterCaseSensitive: true,
             resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                chrome.declarativeNetRequest.ResourceType.MAIN_FRAME
             ],
             regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N\\d+,(.+)$`
         },
         action: {
-            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+            type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
             redirect: {
                 regexSubstitution: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=\\1&ARGUMENTS=-N${sessionId},\\2`,
             },
@@ -90,12 +90,12 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
         condition: {
             isUrlFilterCaseSensitive: true,
             resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                chrome.declarativeNetRequest.ResourceType.MAIN_FRAME
             ],
             regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N${sessionId},(.+)$`
         },
         action: {
-            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
+            type: chrome.declarativeNetRequest.RuleActionType.ALLOW
         },
     }, {
         // and don't redirect explicitly unauthenticated urls
@@ -104,12 +104,12 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
         condition: {
             isUrlFilterCaseSensitive: true,
             resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                chrome.declarativeNetRequest.ResourceType.MAIN_FRAME
             ],
             regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=([A-Z_]+)&ARGUMENTS=-N000000000000001,(.+)$`
         },
         action: {
-            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('allow')
+            type: chrome.declarativeNetRequest.RuleActionType.ALLOW
         },
     }, {
         id: 103,
@@ -117,12 +117,12 @@ const fixupSessionIdInUrl = (/** @type {string} */ sessionId) => {
         condition: {
             isUrlFilterCaseSensitive: true,
             resourceTypes: [
-            /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
+                chrome.declarativeNetRequest.ResourceType.MAIN_FRAME
             ],
             regexFilter: `^https://www\\.tucan\\.tu-darmstadt\\.de/$`
         },
         action: {
-            type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
+            type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
             redirect: {
                 regexSubstitution: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${sessionId},-N000019,`,
             },

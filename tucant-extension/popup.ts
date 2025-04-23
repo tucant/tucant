@@ -1,4 +1,4 @@
-document.querySelector('#go-to-options').addEventListener('click', function () {
+document.querySelector('#go-to-options')!.addEventListener('click', function () {
     if (chrome.runtime.openOptionsPage) {
         chrome.runtime.openOptionsPage();
     } else {
@@ -9,7 +9,7 @@ document.querySelector('#go-to-options').addEventListener('click', function () {
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-document.querySelector('#open-custom-ui').addEventListener('click', function () {
+document.querySelector('#open-custom-ui')!.addEventListener('click', function () {
     chrome.tabs.create({
         url: EXT_PAGE_INDEX_HTML
     })
@@ -33,7 +33,7 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
 
     // https://issues.chromium.org/issues/40670457
     let tabs = await chrome.runtime.getContexts({
-        contextTypes: [/** @type {chrome.runtime.ContextType.TAB} */("TAB")],
+        contextTypes: [chrome.runtime.ContextType.TAB],
     })
 
     await Promise.all(tabs.map(tab => {
@@ -51,11 +51,11 @@ document.querySelector("#update-extension")?.addEventListener('click', async fun
     chrome.runtime.reload();
 })
 
-document.querySelector('#grant-permission').addEventListener('click', async (event) => {
+document.querySelector('#grant-permission')!.addEventListener('click', async (event) => {
     if (await chrome.permissions.request({
         origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
     })) {
-        document.querySelector("#grant-permission-area").style.display = "none";
+        document.querySelector<HTMLElement>("#grant-permission-area")!.style.display = "none";
     }
 });
 
@@ -63,7 +63,8 @@ if (!await chrome.permissions.contains({
     origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucant.selfmade4u.de/']
 })) {
     console.log("no host permissions")
-    document.querySelector("#grant-permission-area").style.display = "block";
+    document.querySelector<HTMLElement>("#grant-permission-area")!.style.display = "block";
 } else {
     console.log("have host permission")
 }
+export { }
