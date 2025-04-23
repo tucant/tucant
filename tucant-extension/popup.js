@@ -61,8 +61,10 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
                 return;
             }
             let url = new URL(tab.documentUrl);
-            await updateTab(tab.tabId, "https://tucant.selfmade4u.de/" + url.hash)
+            await updateTab(tab.tabId, "https://tucant.selfmade4u.de" + url.pathname + url.hash)
         }));
+
+        await new Promise(r => setTimeout(r, 2000));
 
         chrome.runtime.reload();
     })

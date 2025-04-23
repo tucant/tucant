@@ -91,13 +91,16 @@ chrome.runtime.onInstalled.addListener(() => {
                     resourceTypes: [
 /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                     ],
-                    regexFilter: `^https://tucant\\.selfmade4u\\.de/#(.*)$`
+                    urlFilter: `|https://tucant.selfmade4u.de/*`
                 },
                 action: {
                     type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
                     redirect: {
                         // I think this needs to statically be an allowed url
-                        regexSubstitution: `${EXT_PAGE_INDEX_HTML}#\\1`,
+                        transform: {
+                            scheme: EXTENSION_DOMAIN.split("://")[0],
+                            host: EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")
+                        }
                     },
                 },
             }],
