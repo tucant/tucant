@@ -9,11 +9,13 @@ mod tests {
     use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
+        events::EventType,
         model::{
             browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport},
             common::Extensible,
             input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions},
             script::{ContextTarget, EvaluateParameters, GetRealmsParameters, NodeRemoteValue, RealmInfo, SharedReference, Target},
+            session::SubscriptionRequest,
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
         },
         session::WebDriverBiDiSession,
@@ -111,6 +113,14 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
+            session
+                .register_event_handler(EventType::LogEntryAdded, async |event| {
+                    println!("{event}");
+                })
+                .await;
+
+            session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], None, None)).await?;
+
             let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
             session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
@@ -186,7 +196,7 @@ mod tests {
 
             session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(50)).await;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
