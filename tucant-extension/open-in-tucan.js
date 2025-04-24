@@ -126,25 +126,7 @@ export async function handleOpenInTucan(id, tabId, url) {
         return;
     }
 
-    // --------------------------------
-
-    if (!id) {
-        chrome.notifications.create({
-            type: "basic",
-            iconUrl: chrome.runtime.getURL("/icon-512.png"),
-            title: "Not logged in",
-            message: "Could not detect session, please login again",
-        });
-        return;
-    }
-
-    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
-    if (id && match) {
-        await chrome.tabs.update(tabId, {
-            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N${id},-N000019,`
-        })
-        return;
-    }
+    // ------------------------------
 
     match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/course-details/(.*)$`, "g").exec(url)
     if (id && match) {
@@ -247,6 +229,26 @@ export async function handleOpenInTucan(id, tabId, url) {
         await chrome.tabs.update(tabId, {
             url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N${id},-N000316,-N0,-N000000000000000,-N000000000000000,-N${match[1]},-N0,-N000000000000000`
         })
+        return;
+    }
+
+    // --------------------------------
+
+    match = new RegExp(`^${EXT_PAGE_INDEX_HTML}#/$`, "g").exec(url)
+    if (!id && match) {
+        await chrome.tabs.update(tabId, {
+            url: `https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome`
+        })
+        return;
+    }
+
+    if (!id) {
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            title: "Not logged in",
+            message: "Could not detect session, please login again",
+        });
         return;
     }
 
