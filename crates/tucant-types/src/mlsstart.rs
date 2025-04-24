@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::LoggedInHead;
+use crate::{LoggedInHead, coursedetails::CourseDetailsRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct MlsStart {
@@ -13,7 +13,7 @@ pub struct MlsStart {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct StundenplanEintrag {
     pub course_name: String,
-    pub coursedetails_url: String,
+    pub coursedetails_url: CourseDetailsRequest,
     pub courseprep_url: String,
     pub from: String,
     pub to: String,

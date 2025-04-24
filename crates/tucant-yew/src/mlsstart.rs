@@ -2,8 +2,9 @@ use std::ops::Deref;
 
 use tucant_types::{Tucan, mlsstart::MlsStart};
 use yew::{Html, HtmlResult, function_component, html};
+use yew_router::prelude::Link;
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_data_loader};
 
 #[function_component(Mlsstart)]
 pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
@@ -52,13 +53,19 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                     ::yew::html! {
                                         <tr>
                                             <th scope="row">
-                                                { &stundenplaneintrag.course_name }
+                                                <Link<Route> to={Route::CourseDetails { course: stundenplaneintrag.coursedetails_url.clone() }}>
+                                                    { &stundenplaneintrag.course_name }
+                                                </Link<Route>>
                                             </th>
                                             <td>
-                                                { &stundenplaneintrag.from }
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url)}>
+                                                    { &stundenplaneintrag.from }
+                                                </a>
                                             </td>
                                             <td>
-                                                { &stundenplaneintrag.to }
+                                                <a href={format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url)}>
+                                                    { &stundenplaneintrag.to }
+                                                </a>
                                             </td>
                                         </tr>
                                     }
