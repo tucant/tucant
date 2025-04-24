@@ -6,9 +6,8 @@ console.log("background script")
 
 const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
-const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender) => {
     asyncClosure(async () => {
         console.log("onMessage", message, sender)
 
