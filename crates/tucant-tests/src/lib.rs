@@ -9,12 +9,11 @@ mod tests {
     use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        local::script::{NodeRemoteValue, RealmInfo},
-        remote::{
-            Extensible,
+        model::{
             browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport},
+            common::Extensible,
             input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions},
-            script::{ContextTarget, EvaluateParameters, GetRealmsParameters, SharedReference, Target},
+            script::{ContextTarget, EvaluateParameters, GetRealmsParameters, NodeRemoteValue, RealmInfo, SharedReference, Target},
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
         },
         session::WebDriverBiDiSession,
@@ -61,7 +60,7 @@ mod tests {
 
     async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
         let a: Box<[PointerSourceAction]> = Box::new([
-            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5, 5, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5.0, 5.0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference { shared_id: node.shared_id.clone().unwrap(), handle: node.handle.clone(), extensible: Extensible::new() }))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
             PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None))),
             PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
         ]);
@@ -136,7 +135,8 @@ mod tests {
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
-                    context: browsing_context.clone(),
+                    user_contexts: None,
+                    context: Some(browsing_context.clone()),
                     viewport: Some(Viewport { width: 1300, height: 768 }),
                     device_pixel_ratio: None,
                 })
