@@ -113,14 +113,6 @@ mod tests {
         let mut session = get_session().await;
 
         let try_catch: anyhow::Result<()> = async {
-            session
-                .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!("{event}");
-                })
-                .await;
-
-            session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], None, None)).await?;
-
             let path = std::fs::canonicalize("../../tucant-extension")?.to_str().unwrap().to_string();
             println!("{path}");
             session.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(path)))).await?;
@@ -129,6 +121,14 @@ mod tests {
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
             let browsing_context = contexts.contexts[0].context.clone().clone();
+
+            session
+                .register_event_handler(EventType::LogEntryAdded, async |event| {
+                    println!("{event}");
+                })
+                .await;
+
+            session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
@@ -186,7 +186,7 @@ mod tests {
 
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(50)).await;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
