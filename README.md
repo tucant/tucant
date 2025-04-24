@@ -66,6 +66,7 @@ cd tucant-extension/
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucant-extension/manifest.json
+See https://extensionworkshop.com/documentation/develop/debugging/.
 
 ## Building extension (not for development)
 

@@ -8,8 +8,31 @@ const EXTENSION_DOMAIN = chrome.runtime.getURL('');
 const EXTENSION_PAGE = chrome.runtime.getURL('/');
 const EXT_PAGE_INDEX_HTML = chrome.runtime.getURL('/dist/index.html');
 
-chrome.runtime.onMessage.addListener(() => {
-    console.log("onMessage")
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    asyncClosure(async () => {
+        console.log("onMessage", message, sender)
+
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            title: "TUCaN't extension message",
+            message: String(message),
+        });
+
+        if (!sender.tab?.id || !sender.tab.url) {
+            console.log("no tab id or url")
+            return;
+        }
+
+        if (message === "open-in-tucan-page") {
+            const id = await chrome.cookies.get({
+                url: "https://www.tucan.tu-darmstadt.de/scripts/",
+                name: "id",
+            })
+
+            await handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
+        }
+    })
 })
 
 chrome.commands.onCommand.addListener((command) => {
@@ -81,7 +104,7 @@ chrome.runtime.onInstalled.addListener(() => {
         }
 
         console.log("enable selfmade4u rule")
-        await chrome.declarativeNetRequest.updateDynamicRules({
+        const rules = {
             removeRuleIds: [4100], // TODO check that rules have no dupes
             addRules: [{
                 id: 4100,
@@ -104,7 +127,9 @@ chrome.runtime.onInstalled.addListener(() => {
                     },
                 },
             }],
-        });
+        }
+        console.log(rules)
+        await chrome.declarativeNetRequest.updateDynamicRules(rules);
         console.log(chrome.runtime.lastError)
 
         let tabs = await chrome.tabs.query({
