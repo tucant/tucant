@@ -177,7 +177,13 @@ mod tests {
 
             session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
 
-            sleep(Duration::from_secs(30)).await;
+            sleep(Duration::from_secs(5)).await;
+
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
+            println!("{realms:?}");
+
+            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
+            println!("{contexts:?}");
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
