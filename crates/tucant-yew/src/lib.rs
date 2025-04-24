@@ -191,7 +191,7 @@ fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
 
     Ok(html! {
         <form onsubmit={on_submit} class="d-flex">
-            <button class="btn btn-outline-success" type="submit">{ "Logout" }</button>
+            <button id="logout-button" class="btn btn-outline-success" type="submit">{ "Logout" }</button>
         </form>
     })
 }
