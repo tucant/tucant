@@ -81,6 +81,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                 id_and_name
                             </h1>
                         } => id_and_name;
+                        let kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                            <h2>
+                                kleingruppe
+                            </h2>
+                        } => ();
                         <div class="contentlayoutleft" id="contentlayoutleft">
                             <table class="tb rw-table rw-all">
                                 <caption>
@@ -235,6 +240,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                         </div>
                                         <div class="tbdata">
                                             "Die Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:"
+                                            let plenumsveranstaltung_anzeigen = if html_handler.peek().is_some() {
+                                                <a href=coursedetails_url class="img img_arrowLeft pageElementRight">
+                                                    "Plenumsveranstaltung anzeigen"
+                                                </a>
+                                            } => ();
                                         </div>
                                     </div>
                                     <ul class="dl-ul-listview">
@@ -244,29 +254,54 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             </li>
                                         } => Vec::<CourseUebungsGruppe>::new() else {
                                             let uebungsgruppen = while html_handler.peek().is_some() {
-                                                <li class="tbdata listelement">
-                                                    <div class="dl-inner">
-                                                        <p class="dl-ul-li-headline">
-                                                            <strong>
-                                                                uebung_name
-                                                            </strong>
-                                                        </p>
-                                                        <p>
-                                                            uebungsleiter
-                                                        </p>
-                                                        <p>
-                                                            let date_range = if html_handler.peek().is_some() {
-                                                                date_range
-                                                            } => date_range;
-                                                        </p>
-                                                    </div>
-                                                    <div class="dl-link">
-                                                        <a href=_url class="img img_arrowLeft pageElementRight">
-                                                            "Kleingruppe anzeigen"
-                                                        </a>
-                                                    </div>
-                                                </li>
-                                            } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                                let uebungsgruppe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                                    <li class="tbsubhead listelement">
+                                                        <div class="dl-inner">
+                                                            <p class="dl-ul-li-headline">
+                                                                <strong>
+                                                                    uebung_name
+                                                                </strong>
+                                                            </p>
+                                                            <p>
+                                                                uebungsleiter
+                                                            </p>
+                                                            <p>
+                                                                let date_range = if html_handler.peek().is_some() {
+                                                                    date_range
+                                                                } => date_range;
+                                                            </p>
+                                                        </div>
+                                                        <div class="dl-link">
+                                                            <p>
+                                                                "Diese Kleingruppe wird aktuell angezeigt."
+                                                            </p>
+                                                        </div>
+                                                    </li>
+                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter } else {
+                                                    <li class="tbdata listelement">
+                                                        <div class="dl-inner">
+                                                            <p class="dl-ul-li-headline">
+                                                                <strong>
+                                                                    uebung_name
+                                                                </strong>
+                                                            </p>
+                                                            <p>
+                                                                uebungsleiter
+                                                            </p>
+                                                            <p>
+                                                                let date_range = if html_handler.peek().is_some() {
+                                                                    date_range
+                                                                } => date_range;
+                                                            </p>
+                                                        </div>
+                                                        <div class="dl-link">
+                                                            <a href=_url class="img img_arrowLeft pageElementRight">
+                                                                "Kleingruppe anzeigen"
+                                                            </a>
+                                                        </div>
+                                                    </li>
+                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                            } => uebungsgruppe.either_into();
                                         } => uebungsgruppen;
                                     </ul>
                                 </div>
