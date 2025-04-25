@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_data_loader};
 use tucant_types::{
     Tucan,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
 };
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, function_component, html};
+use yew_router::prelude::Link;
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {
@@ -101,6 +102,19 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         </tr>
                     </thead>
                     <tbody>
+                        if let Some(plenumsveranstaltung) = course.plenumsveranstaltung_url {
+                            <tr>
+                                <th scope="row">
+                                    <Link<Route> to={Route::CourseDetails { course: plenumsveranstaltung.clone() }}>
+                                        { "Plenumsveranstaltung" }
+                                    </Link<Route>>
+                                </th>
+                                <td>
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                        }
                         {
                             course
                                 .uebungsgruppen
@@ -109,7 +123,9 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                                     ::yew::html! {
                                         <tr class={if uebungsgruppe.active { "table-primary" } else { "" }}>
                                             <th scope="row">
-                                                { &uebungsgruppe.name }
+                                                <Link<Route> to={Route::CourseDetails { course: uebungsgruppe.url.clone() }}>
+                                                    { &uebungsgruppe.name }
+                                                </Link<Route>>
                                             </th>
                                             <td>
                                                 { uebungsgruppe.date_range.clone().unwrap_or_default() }
