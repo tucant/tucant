@@ -240,11 +240,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                         </div>
                                         <div class="tbdata">
                                             "Die Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:"
-                                            let plenumsveranstaltung_anzeigen = if html_handler.peek().is_some() {
+                                            let plenumsveranstaltung_url = if html_handler.peek().is_some() {
                                                 <a href=coursedetails_url class="img img_arrowLeft pageElementRight">
                                                     "Plenumsveranstaltung anzeigen"
                                                 </a>
-                                            } => ();
+                                            } => CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""));
                                         </div>
                                     </div>
                                     <ul class="dl-ul-listview">
@@ -311,7 +311,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                         } => uebungsgruppen;
                                     </ul>
                                 </div>
-                            } => uebungsgruppen.either_into();
+                            } => (plenumsveranstaltung_url, uebungsgruppen.either_into());
                             <table class="tb rw-table">
                                 <caption>
                                     "Literatur"
@@ -623,6 +623,10 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
 
     let id_and_name: String = id_and_name.either_into();
     let (id, name) = id_and_name.split_once('\n').unwrap();
+    let uebungsgruppen = uebungsgruppen.unwrap_or_default();
+    let termine: Vec<Termin> = termine.either_into();
+    let (mut termine, termine_kleingruppe): (Vec<Termin>, Vec<Termin>) = termine.into_iter().partition(|termin| termin.date.ends_with('*'));
+    termine.iter_mut().for_each(|termin| termin.date = termin.date.trim_end_matches("*").to_owned());
     Ok(CourseDetailsResponse {
         id: id.to_owned(),
         name: name.to_owned(),
@@ -639,11 +643,13 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
         teilnehmer_min: if teilnehmer_min == "-" { None } else { Some(teilnehmer_min.parse().unwrap()) },
         teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
         description,
-        uebungsgruppen: uebungsgruppen.unwrap_or_default(),
+        uebungsgruppen: uebungsgruppen.1,
         course_anmeldefristen,
         enhalten_in_modulen: enthalten_in_modulen.unwrap_or_default(),
-        termine: termine.either_into(),
+        termine,
+        termine_kleingruppe,
         short_termine: short_termine.either_into(),
         instructors,
+        plenumsveranstaltung_url: uebungsgruppen.0,
     })
 }

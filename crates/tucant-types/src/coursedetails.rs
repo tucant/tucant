@@ -66,8 +66,10 @@ pub struct CourseDetailsResponse {
     pub course_anmeldefristen: Vec<CourseAnmeldefrist>,
     pub enhalten_in_modulen: Vec<String>,
     pub termine: Vec<Termin>,
+    pub termine_kleingruppe: Vec<Termin>,
     pub short_termine: Vec<(String, String)>, // TODO verify is equivalent to termine
     pub instructors: Vec<(String, Option<InstructorImageWithLink>)>,
+    pub plenumsveranstaltung_url: Option<CourseDetailsRequest>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
