@@ -40,24 +40,26 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         </svg>
                     </button>
                 </h1>
-                <h2>
-                    { "Lehrende" }
-                </h2>
-                <ul>
-                    {
-                        course
-                            .instructors
-                            .iter()
-                            .map(|instructor| {
-                                ::yew::html! {
-                                    <li>
-                                        { &instructor.0 }
-                                    </li>
-                                }
-                            })
-                            .collect::<Html>()
-                    }
-                </ul>
+                if !course.instructors.is_empty() {
+                    <h2>
+                        { "Lehrende" }
+                    </h2>
+                    <ul>
+                        {
+                            course
+                                .instructors
+                                .iter()
+                                .map(|instructor| {
+                                    ::yew::html! {
+                                        <li>
+                                            { &instructor.0 }
+                                        </li>
+                                    }
+                                })
+                                .collect::<Html>()
+                        }
+                    </ul>
+                }
                 <div>
                     { format!("Typ: {}", course.r#type) }
                 </div>
