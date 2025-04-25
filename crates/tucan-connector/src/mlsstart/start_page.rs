@@ -2,11 +2,12 @@ use log::info;
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy,
+    coursedetails::CourseDetailsRequest,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
 use crate::{
-    TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
@@ -115,7 +116,13 @@ fn after_login_internal(login_response: &LoginResponse, content: &str) -> Result
                                                 </a>
                                             </td>
                                         </tr>
-                                    } => StundenplanEintrag { course_name, coursedetails_url, courseprep_url, from, to };
+                                    } => StundenplanEintrag {
+                                        course_name,
+                                        coursedetails_url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, "")),
+                                        courseprep_url,
+                                        from,
+                                        to
+                                    };
                                 </tbody>
                             </table>
                         } => stundenplan else {

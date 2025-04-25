@@ -1,5 +1,22 @@
 // if you activate the extension while having a tucan page open we want to find out the session id in any way possible
 
+// vendored, because we can't use ES modules here
+/**
+ * 
+ * @param {() => Promise<void>} closure 
+ */
+function asyncClosure(closure) {
+    closure().catch(/** @param {unknown} error */ error => {
+        console.error(error)
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            title: "TUCaN't extension error",
+            message: String(error),
+        });
+    })
+}
+
 const imprintInFooter = /** @type {HTMLAnchorElement | null} */ (document.getElementById("pageFootControl_imp"))
 
 if (document.body.classList.contains("access_denied")) {
@@ -25,7 +42,17 @@ if (document.body.classList.contains("access_denied")) {
     console.log("unknown part")
 }
 
+window.addEventListener("tucant", event => {
+    asyncClosure(async () => {
+        console.log(event)
+        await chrome.runtime.sendMessage(/** @type {CustomEvent} */(event).detail)
+    })
+})
+
+
 /*
+window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));
+
 let loginForm = /** @type {HTMLFormElement} (document.querySelector("#cn_loginForm"))
 
 loginForm.addEventListener("submit", async event => {

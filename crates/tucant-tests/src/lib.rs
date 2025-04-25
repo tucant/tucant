@@ -9,12 +9,13 @@ mod tests {
     use serde_json::json;
     use tokio::{sync::OnceCell, time::sleep};
     use webdriverbidi::{
-        local::script::{NodeRemoteValue, RealmInfo},
-        remote::{
-            Extensible,
+        events::EventType,
+        model::{
             browsing_context::{BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters, Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport},
+            common::Extensible,
             input::{ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin, PerformActionsParameters, PointerCommonProperties, PointerDownAction, PointerMoveAction, PointerParameters, PointerSourceAction, PointerSourceActions, PointerType, PointerUpAction, SourceActions},
-            script::{ContextTarget, EvaluateParameters, GetRealmsParameters, SharedReference, Target},
+            script::{ContextTarget, EvaluateParameters, GetRealmsParameters, NodeRemoteValue, RealmInfo, SharedReference, Target},
+            session::SubscriptionRequest,
             web_extension::{ExtensionData, ExtensionPath, InstallParameters},
         },
         session::WebDriverBiDiSession,
@@ -61,7 +62,7 @@ mod tests {
 
     async fn click_element(session: &mut WebDriverBiDiSession, browsing_context: String, node: &NodeRemoteValue) -> anyhow::Result<()> {
         let a: Box<[PointerSourceAction]> = Box::new([
-            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5, 5, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference::new(node.shared_id.clone().unwrap(), node.handle.clone(), Extensible::new())))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
+            PointerSourceAction::PointerMoveAction(PointerMoveAction::new(5.0, 5.0, None, Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference { shared_id: node.shared_id.clone().unwrap(), handle: node.handle.clone(), extensible: Extensible::new() }))), PointerCommonProperties::new(None, None, None, None, None, None, None))),
             PointerSourceAction::PointerDownAction(PointerDownAction::new(0, PointerCommonProperties::new(None, None, None, None, None, None, None))),
             PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
         ]);
@@ -121,40 +122,23 @@ mod tests {
 
             let browsing_context = contexts.contexts[0].context.clone().clone();
 
-            // seems like chromium uses private tabs for separate user contexts and there the extension is not enabled by default. could probably work around that.
-            /*
-                        let user_context = session.browser_create_user_context(EmptyParams::new()).await?;
-                        let browsing_context = session
-                            .browsing_context_create(CreateParameters {
-                                create_type: CreateType::Window,
-                                user_context: Some(user_context.user_context.clone()),
-                                reference_context: Some(contexts.contexts[0].context.clone()),
-                                background: None,
-                            })
-                            .await?;
-            */
+            session
+                .register_event_handler(EventType::LogEntryAdded, async |event| {
+                    println!("{event}");
+                })
+                .await;
+
+            session.session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None)).await?;
 
             session
                 .browsing_context_set_viewport(SetViewportParameters {
-                    context: browsing_context.clone(),
+                    user_contexts: None,
+                    context: Some(browsing_context.clone()),
                     viewport: Some(Viewport { width: 1300, height: 768 }),
                     device_pixel_ratio: None,
                 })
                 .await?;
 
-            // https://github.com/SeleniumHQ/selenium/issues/13992
-            // https://github.com/w3c/webdriver-bidi/blob/main/proposals/bootstrap-scripts.md
-            // https://github.com/SeleniumHQ/selenium/pull/14238/files#diff-c905a3b55dc121eee1ed81ed41659372f4e9eb47971bbdf7a876a10c44f3ff48R80
-
-            // TODO type should be fixed in constructor
-            //let channel = ChannelValue::new("channel".to_owned(), ChannelProperties::new("test".to_owned(), None, None));
-            //session.script_add_preload_script(AddPreloadScriptParameters::new(r#"function test(channel) { alert("hi"); channel("hi"); }"#.to_owned(), Some(vec![channel]), Some(vec![browsing_context.clone()]), None, None)).await?;
-
-            //session.register_event_handler(EventType::ScriptMessage, async |event| {
-            //    println!("{event:?}")
-            //}).await;
-
-            // preload script works for google
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
@@ -166,7 +150,32 @@ mod tests {
             let node = &node.nodes[0];
             click_element(&mut session, browsing_context.clone(), node).await?;
 
-            sleep(Duration::from_secs(3)).await;
+            session
+                .script_evaluate(EvaluateParameters::new(
+                    r##"
+                    new Promise((resolve) => {
+                        const observer = new MutationObserver((mutations, observer) => {
+                            const element = document.querySelector("#logout-button");
+                            if (element) {
+                                observer.disconnect();
+                                resolve(element);
+                            }
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+                    })
+                    "##
+                    .to_owned(),
+                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+                    true,
+                    None,
+                    None,
+                    Some(true),
+                ))
+                .await?;
 
             let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
             println!("{realms:?}");
@@ -175,7 +184,19 @@ mod tests {
                 panic!();
             };
 
-            session.script_evaluate(EvaluateParameters::new("window.sayHello()".to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+            session.script_evaluate(EvaluateParameters::new(r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+
+            sleep(Duration::from_secs(50)).await;
+
+            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
+            println!("{realms:?}");
+
+            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: Some(browsing_context.clone()) }).await?;
+            println!("{contexts:?}");
+
+            session.script_evaluate(EvaluateParameters::new(r#"window.dispatchEvent(new CustomEvent('tucant', { detail: "open-in-tucan-page" }));"#.to_owned(), Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)), false, None, None, Some(true))).await?;
+
+            sleep(Duration::from_secs(50)).await;
 
             // driver.query(By::XPath(r#"//div/ul/li/a[text()="Veranstaltungen"]"#)).single().await?.click().await?;
 
