@@ -1,5 +1,5 @@
 use crate::{
-    TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
@@ -22,7 +22,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
-                return course_details_internal(login_response, content);
+                return course_details_internal(login_response, content, request);
             }
         }
     }
@@ -33,7 +33,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, request.inner());
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = course_details_internal(login_response, &content)?;
+    let result = course_details_internal(login_response, &content, request)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
     }
@@ -48,7 +48,7 @@ fn h(input: &str) -> String {
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
-fn course_details_internal(login_response: &LoginResponse, content: &str) -> Result<CourseDetailsResponse, TucanError> {
+fn course_details_internal(login_response: &LoginResponse, content: &str, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -277,7 +277,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             </p>
                                                         </div>
                                                     </li>
-                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter } else {
+                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter, url: request.clone(), active: true } else {
                                                     <li class="tbdata listelement">
                                                         <div class="dl-inner">
                                                             <p class="dl-ul-li-headline">
@@ -295,12 +295,18 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                                             </p>
                                                         </div>
                                                         <div class="dl-link">
-                                                            <a href=_url class="img img_arrowLeft pageElementRight">
+                                                            <a href=url class="img img_arrowLeft pageElementRight">
                                                                 "Kleingruppe anzeigen"
                                                             </a>
                                                         </div>
                                                     </li>
-                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                                } => CourseUebungsGruppe {
+                                                    date_range,
+                                                    name: uebung_name,
+                                                    uebungsleiter,
+                                                    url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&url, "")),
+                                                    active: false
+                                                };
                                             } => uebungsgruppe.either_into();
                                         } => uebungsgruppen;
                                     </ul>
