@@ -4,7 +4,7 @@ use crate::{
 };
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
@@ -625,8 +625,20 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
     let (id, name) = id_and_name.split_once('\n').unwrap();
     let uebungsgruppen = uebungsgruppen.unwrap_or_default();
     let termine: Vec<Termin> = termine.either_into();
-    let (mut termine, termine_kleingruppe): (Vec<Termin>, Vec<Termin>) = termine.into_iter().partition(|termin| termin.date.ends_with('*'));
-    termine.iter_mut().for_each(|termin| termin.date = termin.date.trim_end_matches("*").to_owned());
+    let (termine, termine_kleingruppe): (Vec<Termin>, Vec<Termin>) = if uebungsgruppen.0.is_some() {
+        // kleingruppe
+        termine.into_iter().partition_map(|mut termin| {
+            if termin.date.ends_with('*') {
+                termin.date = termin.date.trim_end_matches('*').to_owned();
+                Either::Left(termin)
+            } else {
+                Either::Right(termin)
+            }
+        })
+    } else {
+        // plenumsveranstaltung
+        (termine, Vec::new())
+    };
     Ok(CourseDetailsResponse {
         id: id.to_owned(),
         name: name.to_owned(),
