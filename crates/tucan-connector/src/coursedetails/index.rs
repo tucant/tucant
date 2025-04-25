@@ -1,10 +1,10 @@
 use crate::{
-    TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
@@ -22,7 +22,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
-                return course_details_internal(login_response, content);
+                return course_details_internal(login_response, content, request);
             }
         }
     }
@@ -33,7 +33,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, request.inner());
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = course_details_internal(login_response, &content)?;
+    let result = course_details_internal(login_response, &content, request)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
     }
@@ -48,7 +48,7 @@ fn h(input: &str) -> String {
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
-fn course_details_internal(login_response: &LoginResponse, content: &str) -> Result<CourseDetailsResponse, TucanError> {
+fn course_details_internal(login_response: &LoginResponse, content: &str, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -81,6 +81,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                 id_and_name
                             </h1>
                         } => id_and_name;
+                        let kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                            <h2>
+                                kleingruppe
+                            </h2>
+                        } => ();
                         <div class="contentlayoutleft" id="contentlayoutleft">
                             <table class="tb rw-table rw-all">
                                 <caption>
@@ -235,6 +240,11 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                         </div>
                                         <div class="tbdata">
                                             "Die Veranstaltung ist in die folgenden Kleingruppen aufgeteilt:"
+                                            let plenumsveranstaltung_url = if html_handler.peek().is_some() {
+                                                <a href=coursedetails_url class="img img_arrowLeft pageElementRight">
+                                                    "Plenumsveranstaltung anzeigen"
+                                                </a>
+                                            } => CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""));
                                         </div>
                                     </div>
                                     <ul class="dl-ul-listview">
@@ -244,33 +254,64 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
                                             </li>
                                         } => Vec::<CourseUebungsGruppe>::new() else {
                                             let uebungsgruppen = while html_handler.peek().is_some() {
-                                                <li class="tbdata listelement">
-                                                    <div class="dl-inner">
-                                                        <p class="dl-ul-li-headline">
-                                                            <strong>
-                                                                uebung_name
-                                                            </strong>
-                                                        </p>
-                                                        <p>
-                                                            uebungsleiter
-                                                        </p>
-                                                        <p>
-                                                            let date_range = if html_handler.peek().is_some() {
-                                                                date_range
-                                                            } => date_range;
-                                                        </p>
-                                                    </div>
-                                                    <div class="dl-link">
-                                                        <a href=_url class="img img_arrowLeft pageElementRight">
-                                                            "Kleingruppe anzeigen"
-                                                        </a>
-                                                    </div>
-                                                </li>
-                                            } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter };
+                                                let uebungsgruppe = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                                    <li class="tbsubhead listelement">
+                                                        <div class="dl-inner">
+                                                            <p class="dl-ul-li-headline">
+                                                                <strong>
+                                                                    uebung_name
+                                                                </strong>
+                                                            </p>
+                                                            <p>
+                                                                uebungsleiter
+                                                            </p>
+                                                            <p>
+                                                                let date_range = if html_handler.peek().is_some() {
+                                                                    date_range
+                                                                } => date_range;
+                                                            </p>
+                                                        </div>
+                                                        <div class="dl-link">
+                                                            <p>
+                                                                "Diese Kleingruppe wird aktuell angezeigt."
+                                                            </p>
+                                                        </div>
+                                                    </li>
+                                                } => CourseUebungsGruppe { date_range, name: uebung_name, uebungsleiter, url: request.clone(), active: true } else {
+                                                    <li class="tbdata listelement">
+                                                        <div class="dl-inner">
+                                                            <p class="dl-ul-li-headline">
+                                                                <strong>
+                                                                    uebung_name
+                                                                </strong>
+                                                            </p>
+                                                            <p>
+                                                                uebungsleiter
+                                                            </p>
+                                                            <p>
+                                                                let date_range = if html_handler.peek().is_some() {
+                                                                    date_range
+                                                                } => date_range;
+                                                            </p>
+                                                        </div>
+                                                        <div class="dl-link">
+                                                            <a href=url class="img img_arrowLeft pageElementRight">
+                                                                "Kleingruppe anzeigen"
+                                                            </a>
+                                                        </div>
+                                                    </li>
+                                                } => CourseUebungsGruppe {
+                                                    date_range,
+                                                    name: uebung_name,
+                                                    uebungsleiter,
+                                                    url: CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&url, "")),
+                                                    active: false
+                                                };
+                                            } => uebungsgruppe.either_into();
                                         } => uebungsgruppen;
                                     </ul>
                                 </div>
-                            } => uebungsgruppen.either_into();
+                            } => (plenumsveranstaltung_url, uebungsgruppen.either_into());
                             <table class="tb rw-table">
                                 <caption>
                                     "Literatur"
@@ -582,6 +623,22 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
 
     let id_and_name: String = id_and_name.either_into();
     let (id, name) = id_and_name.split_once('\n').unwrap();
+    let uebungsgruppen = uebungsgruppen.unwrap_or_default();
+    let termine: Vec<Termin> = termine.either_into();
+    let (termine, termine_kleingruppe): (Vec<Termin>, Vec<Termin>) = if uebungsgruppen.0.is_some() {
+        // kleingruppe
+        termine.into_iter().partition_map(|mut termin| {
+            if termin.date.ends_with('*') {
+                termin.date = termin.date.trim_end_matches('*').to_owned();
+                Either::Left(termin)
+            } else {
+                Either::Right(termin)
+            }
+        })
+    } else {
+        // plenumsveranstaltung
+        (termine, Vec::new())
+    };
     Ok(CourseDetailsResponse {
         id: id.to_owned(),
         name: name.to_owned(),
@@ -598,11 +655,13 @@ fn course_details_internal(login_response: &LoginResponse, content: &str) -> Res
         teilnehmer_min: if teilnehmer_min == "-" { None } else { Some(teilnehmer_min.parse().unwrap()) },
         teilnehmer_max: if teilnehmer_max == "-" { None } else { Some(teilnehmer_max.parse().unwrap()) },
         description,
-        uebungsgruppen: uebungsgruppen.unwrap_or_default(),
+        uebungsgruppen: uebungsgruppen.1,
         course_anmeldefristen,
         enhalten_in_modulen: enthalten_in_modulen.unwrap_or_default(),
-        termine: termine.either_into(),
+        termine,
+        termine_kleingruppe,
         short_termine: short_termine.either_into(),
         instructors,
+        plenumsveranstaltung_url: uebungsgruppen.0,
     })
 }

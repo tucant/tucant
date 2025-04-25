@@ -1,11 +1,12 @@
 use std::ops::Deref;
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_data_loader};
 use tucant_types::{
     Tucan,
     coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
 };
 use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, function_component, html};
+use yew_router::prelude::Link;
 
 #[derive(Properties, PartialEq)]
 pub struct CourseDetailsProps {
@@ -39,24 +40,26 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         </svg>
                     </button>
                 </h1>
-                <h2>
-                    { "Lehrende" }
-                </h2>
-                <ul>
-                    {
-                        course
-                            .instructors
-                            .iter()
-                            .map(|instructor| {
-                                ::yew::html! {
-                                    <li>
-                                        { &instructor.0 }
-                                    </li>
-                                }
-                            })
-                            .collect::<Html>()
-                    }
-                </ul>
+                if !course.instructors.is_empty() {
+                    <h2>
+                        { "Lehrende" }
+                    </h2>
+                    <ul>
+                        {
+                            course
+                                .instructors
+                                .iter()
+                                .map(|instructor| {
+                                    ::yew::html! {
+                                        <li>
+                                            { &instructor.0 }
+                                        </li>
+                                    }
+                                })
+                                .collect::<Html>()
+                        }
+                    </ul>
+                }
                 <div>
                     { format!("Typ: {}", course.r#type) }
                 </div>
@@ -101,15 +104,30 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         </tr>
                     </thead>
                     <tbody>
+                        if let Some(plenumsveranstaltung) = course.plenumsveranstaltung_url {
+                            <tr>
+                                <th scope="row">
+                                    <Link<Route> to={Route::CourseDetails { course: plenumsveranstaltung.clone() }}>
+                                        { "Plenumsveranstaltung" }
+                                    </Link<Route>>
+                                </th>
+                                <td>
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                        }
                         {
                             course
                                 .uebungsgruppen
                                 .iter()
                                 .map(|uebungsgruppe| {
                                     ::yew::html! {
-                                        <tr>
+                                        <tr class={if uebungsgruppe.active { "table-primary" } else { "" }}>
                                             <th scope="row">
-                                                { &uebungsgruppe.name }
+                                                <Link<Route> to={Route::CourseDetails { course: uebungsgruppe.url.clone() }}>
+                                                    { &uebungsgruppe.name }
+                                                </Link<Route>>
                                             </th>
                                             <td>
                                                 { uebungsgruppe.date_range.clone().unwrap_or_default() }
@@ -183,8 +201,77 @@ pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_de
                         }
                     </tbody>
                 </table>
+                if !course.termine_kleingruppe.is_empty() {
+                    <h2>
+                        { "Termine Kleingruppe" }
+                    </h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    { "Datum" }
+                                </th>
+                                <th scope="col">
+                                    { "Start" }
+                                </th>
+                                <th scope="col">
+                                    { "Ende" }
+                                </th>
+                                <th scope="col">
+                                    { "Kursleitende" }
+                                </th>
+                                <th scope="col">
+                                    { "Räume" }
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                course
+                                    .termine_kleingruppe
+                                    .iter()
+                                    .map(|termin| {
+                                        ::yew::html! {
+                                            <tr>
+                                                <td>
+                                                    { &termin.date }
+                                                </td>
+                                                <td>
+                                                    { &termin.time_start }
+                                                </td>
+                                                <td>
+                                                    { &termin.time_end }
+                                                </td>
+                                                <td>
+                                                    { &termin.instructors.clone().unwrap_or_default() }
+                                                </td>
+                                                <td>
+                                                    <ul>
+                                                        {
+                                                            termin
+                                                                .rooms
+                                                                .iter()
+                                                                .map(|room| {
+                                                                    ::yew::html! {
+                                                                        <li>
+                                                                            { &room.name }
+                                                                        </li>
+                                                                    }
+                                                                })
+                                                                .collect::<Html>()
+                                                        }
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        }
+                                    })
+                                    .collect::<Html>()
+                            }
+                        </tbody>
+                    </table>
+                }
                 <h2>
-                    { "Termine" }
+                    { "Termine Plenumsveranstaltung" }
                 </h2>
                 <table class="table">
                     <thead>

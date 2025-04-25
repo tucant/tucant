@@ -315,6 +315,14 @@ mod tests {
             let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3")).await.unwrap();
         });
     }
+
+    #[test]
+    pub fn course_6() {
+        runtime().block_on(async {
+            let tucan = get_tucan_connector().await;
+            let _result = tucan.course_details(&LoginResponse { id: 1, cookie_cnsc: String::new() }, RevalidationStrategy::default(), CourseDetailsRequest::parse("-N0,-N391415618587221,-N391415618615224,-N0,-N0,-N0")).await.unwrap();
+        });
+    }
 }
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]

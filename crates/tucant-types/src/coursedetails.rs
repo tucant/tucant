@@ -34,7 +34,7 @@ impl CourseDetailsRequest {
         // the third number seems to be for subcourses like exercises.
         // the dates with stars are from the lecture and the ones without are for exercises
         // TODO for now we ignore the first number, maybe that is a mistake
-        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0)(,-N(0|2|3)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
+        static COURSE_DETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^-N\d+,-N(?P<n2>\d+),-N(?P<n3>\d+),-N(0),-N(0+)(,-N(0|2|3)(,-A[a-zA-Z0-9_~-]+)?)?$").unwrap());
         let c = &COURSE_DETAILS_REGEX.captures(input).expect(input);
         Self(format!("-N0,-N{},-N{},-N0,-N0,-N0", &c["n2"], &c["n3"]))
     }
@@ -66,8 +66,10 @@ pub struct CourseDetailsResponse {
     pub course_anmeldefristen: Vec<CourseAnmeldefrist>,
     pub enhalten_in_modulen: Vec<String>,
     pub termine: Vec<Termin>,
+    pub termine_kleingruppe: Vec<Termin>,
     pub short_termine: Vec<(String, String)>, // TODO verify is equivalent to termine
     pub instructors: Vec<(String, Option<InstructorImageWithLink>)>,
+    pub plenumsveranstaltung_url: Option<CourseDetailsRequest>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
@@ -81,6 +83,8 @@ pub struct CourseUebungsGruppe {
     pub name: String,
     pub uebungsleiter: String,
     pub date_range: Option<String>,
+    pub url: CourseDetailsRequest,
+    pub active: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
