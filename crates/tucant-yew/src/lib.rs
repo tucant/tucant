@@ -7,6 +7,7 @@ use my_courses::MyCourses;
 use my_documents::MyDocuments;
 use my_exams::MyExams;
 use my_modules::MyModules;
+use my_semester_modules::MySemesterModules;
 use navbar::Navbar;
 use registration::Registration;
 use std::rc::Rc;
@@ -34,6 +35,7 @@ pub mod my_courses;
 pub mod my_documents;
 pub mod my_exams;
 pub mod my_modules;
+pub mod my_semester_modules;
 pub mod registration;
 pub mod student_result;
 pub mod tauri;
@@ -217,6 +219,8 @@ enum Route {
     Vorlesungsverzeichnis { vv: ActionRequest },
     #[at("/my-modules/:semester")]
     MyModules { semester: SemesterId },
+    #[at("/my-semester-modules/:semester")]
+    MySemesterModules { semester: SemesterId },
     #[at("/my-courses/:semester")]
     MyCourses { semester: SemesterId },
     #[at("/my-exams/:semester")]
@@ -299,6 +303,11 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
         Route::MyModules { semester } => {
             ::yew::html! {
                 <MyModules<TucanType> semester={semester} />
+            }
+        }
+        Route::MySemesterModules { semester } => {
+            ::yew::html! {
+                <MySemesterModules<TucanType> semester={semester} />
             }
         }
         Route::MyCourses { semester } => {

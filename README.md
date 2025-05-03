@@ -50,6 +50,7 @@ cargo +nightly-2025-04-02 fmt
 
 ```bash
 cd crates/tucant-yew/
+mkdir ../../tucant-extension/dist
 trunk serve --features api --release
 
 # in second tab
