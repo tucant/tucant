@@ -100,7 +100,7 @@ impl IntoResponse for TucanError {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub struct RevalidationStrategy {
     /// Try the cache first if age is not larger than `max_age` seconds, then try network. `max_age` = 0 means never try cache and `max_age` = `i64::MAX` means always try cache first.
     pub max_age: i64,

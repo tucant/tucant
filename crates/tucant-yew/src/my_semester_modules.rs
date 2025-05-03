@@ -1,6 +1,10 @@
-use std::{ops::Deref, str::FromStr};
+use std::{collections::HashSet, ops::Deref, str::FromStr};
 
-use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
+use log::{info, warn};
+use tucant_types::{
+    RevalidationStrategy, SemesterId, Tucan,
+    mymodules::{Module, MyModulesResponse},
+};
 use web_sys::{HtmlInputElement, HtmlSelectElement};
 use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
 use yew_router::{hooks::use_navigator, prelude::Link};
@@ -14,7 +18,20 @@ pub struct MySemesterModulesProps {
 
 #[function_component(MySemesterModules)]
 pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { semester }: &MySemesterModulesProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
+        let first = tucan.0.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
+        let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
+        warn!("after {additional} comes {after:?}");
+        if let Some(after) = after {
+            let second = tucan.0.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
+            let first_modules: HashSet<Module> = first.modules.iter().cloned().collect();
+            let second_modules: HashSet<Module> = second.modules.iter().cloned().collect();
+            let diff = first_modules.difference(&second_modules).cloned().collect();
+            Ok(MyModulesResponse { semester: first.semester, modules: diff })
+        } else {
+            Ok(first)
+        }
+    };
 
     let navigator = use_navigator().unwrap();
 
