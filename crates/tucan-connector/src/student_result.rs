@@ -21,6 +21,7 @@ use tucant_types::{
 pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: u64) -> Result<StudentResultResponse, TucanError> {
     let key = format!("unparsed_student_result.{}", request);
 
+    // TODO FIXME this can break as the normal tucan usage will remember which one you selected
     let request = format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request);
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
@@ -206,37 +207,39 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                 <div class="tbhead">
                                     selected_course_of_study
                                 </div>
-                                <div class="tbcontrol">
-                                    <div class="inputFieldLabel">
-                                        <label for="study">
-                                            "Studium:"
-                                        </label>
-                                        <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
-                                            let course_of_study = while html_handler.peek().is_some() {
-                                                let course_of_study = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
-                                                    <option value=value selected="selected">
-                                                        name
-                                                    </option>
-                                                } => CourseOfStudySelection { name, value, selected: true } else {
-                                                    <option value=value>
-                                                        name
-                                                    </option>
-                                                } => CourseOfStudySelection { name, value, selected: false };
-                                            } => course_of_study.either_into::<CourseOfStudySelection>();
-                                        </select>
-                                        <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
+                                let course_of_study = if html_handler.peek().is_some() {
+                                    <div class="tbcontrol">
+                                        <div class="inputFieldLabel">
+                                            <label for="study">
+                                                "Studium:"
+                                            </label>
+                                            <select name="study" id="study" onchange="reloadpage.submitForm(this.form.id);" class="tabledata pageElementLeft">
+                                                let course_of_study = while html_handler.peek().is_some() {
+                                                    let course_of_study = if html_handler.peek().unwrap().value().as_element().unwrap().attr("selected").is_some() {
+                                                        <option value=value selected="selected">
+                                                            name
+                                                        </option>
+                                                    } => CourseOfStudySelection { name, value, selected: true } else {
+                                                        <option value=value>
+                                                            name
+                                                        </option>
+                                                    } => CourseOfStudySelection { name, value, selected: false };
+                                                } => course_of_study.either_into::<CourseOfStudySelection>();
+                                            </select>
+                                            <input id="Refresh" name="Refresh" type="submit" value="Aktualisieren" class="img img_arrowReload pageElementLeft update"></input>
+                                        </div>
                                     </div>
-                                </div>
-                                <input name="APPNAME" type="hidden" value="CampusNet"></input>
-                                <input name="PRGNAME" type="hidden" value="STUDENT_RESULT"></input>
-                                <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,mode, semester,student,study,changestudy,section"></input>
-                                <input name="sessionno" type="hidden" value=session_id></input>
-                                <input name="menuno" type="hidden" value="000316"></input>
-                                <input name="resulttype" type="hidden" value="0"></input>
-                                <input name="semester" type="hidden" value="0"></input>
-                                <input name="student" type="hidden" value="000000000000000"></input>
-                                <input name="changestudy" type="hidden" value="1"></input>
-                                <input name="section" type="hidden" value="000000000000000"></input>
+                                    <input name="APPNAME" type="hidden" value="CampusNet"></input>
+                                    <input name="PRGNAME" type="hidden" value="STUDENT_RESULT"></input>
+                                    <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,mode, semester,student,study,changestudy,section"></input>
+                                    <input name="sessionno" type="hidden" value=session_id></input>
+                                    <input name="menuno" type="hidden" value="000316"></input>
+                                    <input name="resulttype" type="hidden" value="0"></input>
+                                    <input name="semester" type="hidden" value="0"></input>
+                                    <input name="student" type="hidden" value="000000000000000"></input>
+                                    <input name="changestudy" type="hidden" value="1"></input>
+                                    <input name="section" type="hidden" value="000000000000000"></input>
+                                } => course_of_study;
                             </div>
                         </form>
                         <table class="nb list students_results">
@@ -318,5 +321,10 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
     let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
 
-    Ok(StudentResultResponse { course_of_study, level0: level0_contents, total_gpa, main_gpa })
+    Ok(StudentResultResponse {
+        course_of_study: course_of_study.unwrap_or_else(|| vec![CourseOfStudySelection { name: selected_course_of_study, selected: true, value: "default".to_owned() }]),
+        level0: level0_contents,
+        total_gpa,
+        main_gpa,
+    })
 }
