@@ -40,7 +40,7 @@ pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { 
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {
                 let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MyModules { semester: SemesterId::from_str(&value).unwrap() });
+                navigator.push(&Route::MySemesterModules { semester: SemesterId::from_str(&value).unwrap() });
             })
         };
         ::yew::html! {
