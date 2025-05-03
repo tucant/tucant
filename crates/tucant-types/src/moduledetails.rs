@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 
 use crate::InstructorImage;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, ToSchema)]
 pub struct ModuleDetailsRequest(String);
 
 impl FromStr for ModuleDetailsRequest {

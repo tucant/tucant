@@ -172,6 +172,11 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </Link<Route>>
                     </li>
                     <li>
+                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item">
+                            { "Meine Semestermodule" }
+                        </Link<Route>>
+                    </li>
+                    <li>
                         <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item">
                             { "Meine Veranstaltungen" }
                         </Link<Route>>

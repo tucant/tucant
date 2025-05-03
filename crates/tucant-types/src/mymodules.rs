@@ -9,7 +9,7 @@ pub struct MyModulesResponse {
     pub modules: Vec<Module>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash)]
 pub struct Module {
     pub nr: String,
     pub title: String,
