@@ -34,7 +34,7 @@ pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, r
         "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}",
         login_response.id,
         if semester == SemesterId::current() {
-            String::new()
+            "-N1337".to_owned() // DO NOT ASK
         } else if semester == SemesterId::all() {
             "-N999".to_owned()
         } else {

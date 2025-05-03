@@ -137,7 +137,7 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                 let results = while html_handler.peek().is_some() {
                                     <tr class="tbdata">
                                         <td>
-                                            name
+                                            id_and_name
                                             <br></br>
                                             exam_type
                                             <br></br>
@@ -186,7 +186,10 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             } => average_url;
                                         </td>
                                     </tr>
-                                } => ExamResult { name, exam_type, date, grade, grade_text, average_url };
+                                } => {
+                                    let (id, name) = id_and_name.split_once('\n').unwrap();
+                                    ExamResult { id: id.trim().to_owned(), name: name.trim().to_owned(), exam_type, date, grade, grade_text, average_url }
+                                };
                             </tbody>
                         </table>
                     </div>

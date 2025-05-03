@@ -18,7 +18,7 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
                 .map(|(name, url)| {
                     ::yew::html! {
                         <li>
-                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
+                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
                                 { name }
                                 if data.is_none() {
                                     { " " }
@@ -52,7 +52,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={Route::Overview} classes="dropdown-item">
+                        <Link<Route> to={Route::Overview} classes="dropdown-item bg-success-subtle">
                             { "Aktuelles" }
                         </Link<Route>>
                     </li>
@@ -79,7 +79,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))}>
+                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
                             { "Vorlesungsverzeichnis" }
                             if data.is_none() {
                                 { " " }
@@ -167,17 +167,17 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item">
-                            { "Meine Module" }
-                        </Link<Route>>
-                    </li>
-                    <li>
-                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item">
+                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Semestermodule" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item">
+                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                            { "Meine Module" }
+                        </Link<Route>>
+                    </li>
+                    <li>
+                        <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Veranstaltungen" }
                         </Link<Route>>
                     </li>
@@ -187,7 +187,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item">
+                        <Link<Route> to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item bg-success-subtle">
                             { "Anmeldung" }
                         </Link<Route>>
                     </li>
@@ -212,7 +212,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item">
+                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Prüfungen" }
                         </Link<Route>>
                     </li>
@@ -232,17 +232,17 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item">
+                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Modulergebnisse" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item">
+                        <Link<Route> to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Prüfungsergebnisse" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item">
+                        <Link<Route> to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item bg-success-subtle">
                             { "Leistungsspiegel" }
                         </Link<Route>>
                     </li>
@@ -267,7 +267,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item">
+                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
                         </Link<Route>>
                     </li>
@@ -312,7 +312,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         }
                     </a>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item">
+                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
                         </Link<Route>>
                     </li>

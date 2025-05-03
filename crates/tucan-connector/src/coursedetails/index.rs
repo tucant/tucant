@@ -640,8 +640,8 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
         (termine, Vec::new())
     };
     Ok(CourseDetailsResponse {
-        id: id.to_owned(),
-        name: name.to_owned(),
+        id: id.trim().to_owned(),
+        name: name.trim().to_owned(),
         material_and_messages_url,
         r#type: course_type_and_number.clone().either_into::<(String, String)>().0,
         type_number: course_type_and_number.either_into::<(String, String)>().1.parse().unwrap(),
