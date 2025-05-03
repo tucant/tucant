@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::iter::Peekable;
 use std::marker::PhantomData;
 use std::ops::Deref;
 
@@ -195,6 +196,14 @@ impl Serialize for MyElementRef<'_> {
     }
 }
 
+pub struct MyHtml<'a>(pub &'a Tree<MyNode>);
+
+impl Serialize for MyHtml<'_> {
+    fn serialize<S: Serializer>(&self, serializer: &mut S, traversal_scope: TraversalScope) -> Result<(), std::io::Error> {
+        myserialize(self.0.root(), serializer, &traversal_scope)
+    }
+}
+
 /// Serialize an HTML node using html5ever serializer.
 pub(crate) fn myserialize<S: Serializer>(self_node: NodeRef<MyNode>, serializer: &mut S, traversal_scope: &TraversalScope) -> Result<(), std::io::Error> {
     for edge in self_node.traverse() {
@@ -242,6 +251,18 @@ pub fn parse_document(content: &str) -> Tree<MyNode> {
     tree
 }
 
+#[must_use]
+pub fn html(tree: &Tree<MyNode>) -> String {
+    let opts = SerializeOpts {
+        scripting_enabled: false, // It's not clear what this does.
+        traversal_scope: html5ever::serialize::TraversalScope::IncludeNode,
+        create_missing_parent: false,
+    };
+    let mut buf = Vec::new();
+    serialize(&mut buf, &MyHtml(tree), opts).unwrap();
+    String::from_utf8(buf).unwrap()
+}
+
 fn convert_children_inner(mut new_parent: NodeMut<'_, MyNode>, old_node: NodeRef<'_, Node>) {
     old_node.children().for_each(|old_child| {
         let new_child = match old_child.value() {
@@ -274,7 +295,7 @@ pub struct InRoot<'a, OuterState> {
 
 pub struct Open<'a, OuterState> {
     element: NodeRef<'a, MyNode>,
-    attrs: Attrs<'a>,
+    attrs: Peekable<Attrs<'a>>,
     outer_state: PhantomData<OuterState>,
 }
 
@@ -329,7 +350,7 @@ impl<'a, OuterState> InRoot<'a, OuterState> {
         let child_node = self.current_child.expect("expected child but one left");
         let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
         assert_eq!(child_element.name(), name);
-        Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
+        Open { element: child_node, attrs: child_element.attrs().peekable(), outer_state: PhantomData }
     }
 }
 
@@ -338,7 +359,12 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[must_use]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         if name == "xss" {
-            for _a in self.attrs.by_ref() {}
+            while let Some((attr_key, attr_value)) = self.attrs.peek() {
+                if *attr_key == value {
+                    break;
+                }
+                self.attrs.next().unwrap();
+            }
             return self;
         }
         assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value));
@@ -423,7 +449,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
         let child_node = self.current_child.expect("expected one more child");
         let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
         assert_eq!(child_element.name(), name);
-        Open { element: child_node, attrs: child_element.attrs(), outer_state: PhantomData }
+        Open { element: child_node, attrs: child_element.attrs().peekable(), outer_state: PhantomData }
     }
 }
 

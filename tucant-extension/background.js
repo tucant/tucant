@@ -153,8 +153,26 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
+            id: "open-in-tucan-new-tab",
+            title: "Open link in TUCaN in new tab",
+            contexts: ["link"],
+            targetUrlPatterns: [`${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
             id: "open-in-tucant",
             title: "Open link in TUCaN't",
+            contexts: ["link"],
+            targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "open-in-tucant-new-tab",
+            title: "Open link in TUCaN't in new tab",
             contexts: ["link"],
             targetUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {
@@ -171,8 +189,26 @@ chrome.runtime.onInstalled.addListener(() => {
         })
 
         chrome.contextMenus.create({
+            id: "open-in-tucan-page-new-tab",
+            title: "Open page in TUCaN in new tab",
+            contexts: ["page"],
+            documentUrlPatterns: [`${EXTENSION_PAGE}*`]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
             id: "open-in-tucant-page",
             title: "Open page in TUCaN't",
+            contexts: ["page"],
+            documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
+        }, () => {
+            console.log(chrome.runtime.lastError)
+        })
+
+        chrome.contextMenus.create({
+            id: "open-in-tucant-page-new-tab",
+            title: "Open page in TUCaN't in new tab",
             contexts: ["page"],
             documentUrlPatterns: ["https://www.tucan.tu-darmstadt.de/*"]
         }, () => {

@@ -549,7 +549,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                             }
                                             let short_termine = while i < 5 {
                                                 let short_termin = if html_handler.peek().unwrap().value().as_element().unwrap().attr("class").unwrap() == "courseListCell numout" {
-                                                    <li class="courseListCell numout" title=title xss="is-here">
+                                                    <li class="courseListCell numout" title=title xss="">
                                                         number
                                                     </li>
                                                     let _comment = if i == 4 {

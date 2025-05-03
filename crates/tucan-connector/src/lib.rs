@@ -37,12 +37,14 @@ use vv::vv;
 
 pub mod common;
 pub mod coursedetails;
+pub mod courseprep;
 pub mod courseresults;
 pub mod examresults;
 pub mod externalpages;
 pub mod login;
 pub mod mlsstart;
 pub mod moduledetails;
+pub mod month;
 pub mod mycourses;
 pub mod mydocuments;
 pub mod myexams;
