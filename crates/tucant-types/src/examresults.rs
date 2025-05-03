@@ -11,6 +11,7 @@ pub struct ExamResultsResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ExamResult {
+    pub id: String,
     pub name: String,
     pub exam_type: String,
     pub date: Option<String>,
