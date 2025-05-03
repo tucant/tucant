@@ -167,13 +167,13 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item">
-                            { "Meine Module" }
+                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item">
+                            { "Meine Semestermodule" }
                         </Link<Route>>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item">
-                            { "Meine Semestermodule" }
+                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item">
+                            { "Meine Module" }
                         </Link<Route>>
                     </li>
                     <li>
