@@ -91,7 +91,7 @@ fn vv_internal(login_response: Option<&LoginResponse>, content: &str) -> Result<
                     let entries = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "ul" {
                         <ul class="auditRegistrationList" id="auditRegistration_list">
                             let entries = while html_handler.peek().is_some() {
-                                <li title=title xss="is-here">
+                                <li title=title xss="">
                                     <a class="auditRegNodeLink" href=reg_href>
                                         title
                                     </a>
