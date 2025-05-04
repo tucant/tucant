@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use coursedetails::index::course_details;
+use coursedetails::course_details;
 use courseresults::courseresults;
 use examresults::examresults;
 use externalpages::welcome::welcome;
