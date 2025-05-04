@@ -131,14 +131,10 @@ pub struct MyElementRef<'a> {
 }
 
 impl<'a> MyElementRef<'a> {
-    const fn new(node: NodeRef<'a, MyNode>) -> Self {
-        MyElementRef { node }
-    }
-
     /// Wraps a `NodeRef` only if it references a `Node::Element`.
     #[must_use]
     pub fn wrap(node: NodeRef<'a, MyNode>) -> Option<Self> {
-        if node.value().is_element() { Some(MyElementRef::new(node)) } else { None }
+        if node.value().is_element() { Some(MyElementRef { node }) } else { None }
     }
 
     /// Returns the `Element` referenced by `self`.
@@ -347,9 +343,9 @@ impl<'a, OuterState> InRoot<'a, OuterState> {
 
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
-        let child_node = self.current_child.expect("expected child but one left");
+        let child_node = self.current_child.expect("expected child but none left");
         let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
-        assert_eq!(child_element.name(), name);
+        assert_eq!(child_element.name(), name, "{}", MyElementRef::wrap(child_node).unwrap().html());
         Open { element: child_node, attrs: child_element.attrs().peekable(), outer_state: PhantomData }
     }
 }
@@ -367,7 +363,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
             }
             return self;
         }
-        assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value));
+        assert_eq!(self.attrs.next().expect("expected attribute but none left"), (name, value), "{}", MyElementRef::wrap(self.element).unwrap().html());
         self
     }
 
@@ -375,7 +371,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[must_use]
     pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
         let (name, value) = self.attrs.next().expect("expected attribute but none left");
-        assert_eq!(name, expected_name);
+        assert_eq!(name, expected_name, "{}", MyElementRef::wrap(self.element).unwrap().html());
         (self, value.to_owned())
     }
 
@@ -384,7 +380,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
         let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
         let attr = self.attrs.next();
-        assert_eq!(attr, None, "expected no remaining attributes but got {attr:?}");
+        assert_eq!(attr, None, "expected no remaining attributes but got {attr:?} in {}", MyElementRef::wrap(self.element).unwrap().html());
         InElement { element: self.element, current_child: self.element.children().next(), outer_state: self.outer_state }
     }
 }
@@ -446,9 +442,9 @@ impl<'a, OuterState> InElement<'a, OuterState> {
     #[must_use]
     pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
         let Some(_child_element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
-        let child_node = self.current_child.expect("expected one more child");
+        let Some(child_node) = self.current_child else { panic!("expected one more child in {}", MyElementRef::wrap(self.element).unwrap().html()) };
         let Some(child_element) = child_node.value().as_element() else { panic!("expected element but got {:?}", child_node.value()) };
-        assert_eq!(child_element.name(), name);
+        assert_eq!(child_element.name(), name, "{}", MyElementRef::wrap(child_node).unwrap().html());
         Open { element: child_node, attrs: child_element.attrs().peekable(), outer_state: PhantomData }
     }
 }
@@ -459,7 +455,7 @@ impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
         assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
         let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
-        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
+        assert_eq!(element.name(), name, "Expected tag to be {name} but got {} for {}", element.name(), MyElementRef::wrap(self.element).unwrap().html());
         InElement {
             element: self.element.parent().unwrap(),
             current_child: self.element.next_sibling(),
@@ -474,7 +470,7 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
     pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
         assert_eq!(self.current_child.map(|child| child.value()), None, "expected there to be no more children");
         let Some(element) = self.element.value().as_element() else { panic!("expected element but got {:?}", self.element.value()) };
-        assert_eq!(element.name(), name, "Expected tag to be {name} but got {}", element.name());
+        assert_eq!(element.name(), name, "Expected tag to be {name} but got {} for {}", element.name(), MyElementRef::wrap(self.element).unwrap().html());
         InRoot { node: self.element.parent().unwrap(), current_child: self.element.next_sibling(), outer_state: PhantomData }
     }
 }
