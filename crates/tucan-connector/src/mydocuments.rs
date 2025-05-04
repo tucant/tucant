@@ -39,7 +39,6 @@ pub async fn my_documents(tucan: &TucanConnector, login_response: &LoginResponse
     Ok(result)
 }
 
-#[expect(clippy::too_many_lines)]
 fn my_documents_internal(login_response: &LoginResponse, content: &str) -> Result<MyDocumentsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

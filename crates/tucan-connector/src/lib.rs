@@ -3,20 +3,20 @@ use std::{
     time::Duration,
 };
 
-use coursedetails::index::course_details;
+use coursedetails::course_details;
 use courseresults::courseresults;
 use examresults::examresults;
 use externalpages::welcome::welcome;
 use key_value_database::Database;
 use login::{login, logout};
-use mlsstart::start_page::after_login;
-use moduledetails::index::module_details;
+use mlsstart::after_login;
+use moduledetails::module_details;
 use mycourses::mycourses;
 use mydocuments::my_documents;
 use myexams::my_exams;
 use mymodules::mymodules;
 use regex::Regex;
-use registration::index::anmeldung;
+use registration::anmeldung;
 use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
@@ -345,12 +345,12 @@ mod authenticated_tests {
         courseresults::courseresults,
         examresults::examresults,
         login::login,
-        mlsstart::start_page::after_login,
+        mlsstart::after_login,
         mycourses::mycourses,
         mydocuments::my_documents,
         myexams::my_exams,
         mymodules::mymodules,
-        registration::index::anmeldung,
+        registration::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
         student_result::student_result,
         tests::{get_tucan_connector, runtime},

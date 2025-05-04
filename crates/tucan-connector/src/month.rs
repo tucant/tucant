@@ -6,26 +6,19 @@ use std::sync::LazyLock;
 // seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
+    common::head::{html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
-use html_handler::{MyElementRef, MyNode, Root, html, parse_document};
-use itertools::Itertools;
+use html_handler::{Root, parse_document};
 use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
-    courseprep::CoursePrepRequest,
-};
+use tucant_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
 
 /// 04.2025
 pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: String) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     println!("{request}");
-    let key = format!("unparsed_month.{}", request);
+    let key = format!("unparsed_month.{request}");
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -53,11 +46,7 @@ pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, reval
     Ok(result)
 }
 
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
-
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
+#[expect(clippy::too_many_lines)]
 fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     static COURSEPREP_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,-N000271,").unwrap());
 
@@ -82,20 +71,20 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                 <script type="text/javascript">
                 </script>
                 <h1>
-                    stundenplan_month_year
+                    _stundenplan_month_year
                 </h1>
                 <div class="tb tbMonthContainer" id="tbmonthContainer">
                     <div class="tbhead">
-                        month_year
+                        _month_year
                     </div>
                     <div class="tbcontrol">
                         <div class="arrow_skipBtn">
-                            <a href=_url title=month class="img img_arrowLeft skipLeft" name="skipBack_btn">
+                            <a href=_url title=_month class="img img_arrowLeft skipLeft" name="skipBack_btn">
                             </a>
                             <a href=_url class="link">
                                 "Heute"
                             </a>
-                            <a href=_url title=month class="img img_arrowRight skipRight" name="skipForward_btn">
+                            <a href=_url title=_month class="img img_arrowRight skipRight" name="skipForward_btn">
                             </a>
                         </div>
                         <a href=_url class="arrow">
@@ -143,7 +132,7 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                                 <tr>
                                     <th class="nb KW_month" scope="row">
                                         <a href=_url>
-                                            number
+                                            _number
                                         </a>
                                     </th>
                                     let appointments = while html_handler.peek().is_some() {
@@ -153,18 +142,18 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                                                     <img src="/gfx/_default/clear.gif" alt="empty"></img>
                                                 </div>
                                             } => Vec::<(String, CoursePrepRequest)>::new() else {
-                                                <div class="tbMonthDay" title=day>
+                                                <div class="tbMonthDay" title=_day>
                                                     <div class="tbsubhead">
-                                                        <a title=date href=_url>
-                                                            number
+                                                        <a title=_date href=_url>
+                                                            _number
                                                         </a>
                                                     </div>
                                                     let appointments = while html_handler.peek().is_some() {
                                                         <div class="appMonth">
                                                             <a title=name xss="href" href=url class="apmntLink" style="overflow:hidden;">
-                                                                title
+                                                                _title
                                                             </a>
-                                                            let optional_br = if html_handler.peek().is_some() {
+                                                            let _optional_br = if html_handler.peek().is_some() {
                                                                 <br></br>
                                                             } => ();
                                                         </div>
@@ -179,5 +168,6 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                     </table>
                 </div>
     }
+    let _ = html_handler;
     Ok(appointments.into_iter().flatten().collect::<Vec<_>>())
 }

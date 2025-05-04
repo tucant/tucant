@@ -1,28 +1,22 @@
-use std::str::FromStr;
-
 use crate::{
     TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
-use html_handler::{InElement, MyElementRef, MyNode, Root, parse_document};
-use itertools::Itertools;
+use html_handler::{InElement, Root, parse_document};
 use log::info;
 use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+    LoginResponse, RevalidationStrategy, TucanError,
     student_result::{CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse},
 };
 
 /// 0 is the default
 pub async fn student_result(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: u64) -> Result<StudentResultResponse, TucanError> {
-    let key = format!("unparsed_student_result.{}", request);
+    let key = format!("unparsed_student_result.{request}");
 
     // TODO FIXME this can break as the normal tucan usage will remember which one you selected
-    let request = format!("-N0,-N000000000000000,-N000000000000000,-N{},-N0,-N000000000000000", request);
+    let request = format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {
@@ -39,7 +33,7 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
     };
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}", login_response.id, request);
-    println!("{}", url);
+    println!("{url}");
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
     let result = student_result_internal(login_response, &content)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
@@ -51,13 +45,9 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
     Ok(result)
 }
 
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
-
-fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
+fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
     html_extractor::html! {
-        <tr class={|l| assert_eq!(l, format!("subhead {}", level))}>
+        <tr class={|l| assert_eq!(l, format!("subhead {level}"))}>
             <td colspan="2">
                 level_i
             </td>
@@ -123,16 +113,16 @@ fn part0<'a, T>(mut html_handler: InElement<'a, T>, level: &str) -> (InElement<'
     (html_handler, (level_i, entries))
 }
 
-fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
+fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<StudentResultEntry>), children: Vec<StudentResultLevel>) -> (InElement<'a, T>, StudentResultLevel) {
     html_extractor::html! {
         let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, level)}>
-                    summe
+                    _summe
                 </td>
                 let sum_cp_and_used_cp = if html_handler.peek().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
                     <td colspan="4" class={|v| assert_eq!(v, level)} style="text-align:left;white-space:nowrap;">
-                        summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
+                        _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
                     <td class={|v| assert_eq!(v, level)}>
@@ -151,7 +141,7 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
                     </td>
                 } => (sum_cp, sum_used_cp);
                 <td class={|v| assert_eq!(v, level)} style="text-align:center;">
-                    <img src=pass_or_open alt=bestanden_or_offen title=state></img>
+                    <img src=_pass_or_open alt=_bestanden_or_offen title=state></img>
                 </td>
             </tr>
             let rules = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
@@ -174,13 +164,13 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
             sum_cp: optional.clone().and_then(|o| o.0),
             sum_used_cp: optional.clone().and_then(|o| o.1),
             state: optional.clone().map(|o| o.2),
-            rules: optional.clone().map(|o| o.3).unwrap_or_default(),
+            rules: optional.map(|o| o.3).unwrap_or_default(),
             children,
         },
     )
 }
 
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
+#[expect(clippy::too_many_lines)]
 fn student_result_internal(login_response: &LoginResponse, content: &str) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
@@ -202,7 +192,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        leistungsspiegel_von
+                        _leistungsspiegel_von
                     </h1>
                     <div class="tb">
                         <form id="students_results" action="/scripts/mgrqispi.dll" method="post">
@@ -235,7 +225,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                     <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                     <input name="PRGNAME" type="hidden" value="STUDENT_RESULT"></input>
                                     <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,mode, semester,student,study,changestudy,section"></input>
-                                    <input name="sessionno" type="hidden" value=session_id></input>
+                                    <input name="sessionno" type="hidden" value=_session_id></input>
                                     <input name="menuno" type="hidden" value="000316"></input>
                                     <input name="resulttype" type="hidden" value="0"></input>
                                     <input name="semester" type="hidden" value="0"></input>

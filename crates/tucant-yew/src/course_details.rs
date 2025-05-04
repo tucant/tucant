@@ -1,11 +1,6 @@
-use std::ops::Deref;
-
 use crate::{RcTucanType, Route, common::use_data_loader};
-use tucant_types::{
-    Tucan,
-    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
-};
-use yew::{Callback, Html, HtmlResult, MouseEvent, Properties, function_component, html};
+use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
+use yew::{Html, Properties, function_component};
 use yew_router::prelude::Link;
 
 #[derive(Properties, PartialEq)]

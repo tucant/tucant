@@ -18,7 +18,7 @@ use vv::VorlesungsverzeichnisComponent;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{HashRouter, Routable, Switch, hooks::use_navigator};
+use yew_router::{HashRouter, Routable, Switch};
 
 pub mod navbar;
 pub mod navbar_logged_in;
@@ -94,8 +94,6 @@ pub async fn api_login_response() -> Option<LoginResponse> {
 #[function_component(LoginComponent)]
 fn login<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let navigator = use_navigator().unwrap();
 
     let username_value_handle = use_state(String::default);
 

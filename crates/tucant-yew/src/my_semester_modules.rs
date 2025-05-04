@@ -1,12 +1,12 @@
-use std::{collections::HashSet, ops::Deref, str::FromStr};
+use std::{collections::HashSet, str::FromStr};
 
-use log::{info, warn};
+use log::warn;
 use tucant_types::{
     RevalidationStrategy, SemesterId, Tucan,
     mymodules::{Module, MyModulesResponse},
 };
-use web_sys::{HtmlInputElement, HtmlSelectElement};
-use yew::{Callback, Event, Html, HtmlResult, Properties, TargetCast, function_component, html};
+use web_sys::HtmlSelectElement;
+use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_data_loader};

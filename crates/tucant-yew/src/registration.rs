@@ -1,10 +1,8 @@
-use std::ops::Deref as _;
-
 use tucant_types::{
     Tucan,
-    registration::{AnmeldungRequest, AnmeldungResponse, RegistrationState},
+    registration::{AnmeldungRequest, RegistrationState},
 };
-use yew::{Html, HtmlResult, Properties, function_component, html};
+use yew::{Html, Properties, function_component};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_data_loader};

@@ -1,4 +1,4 @@
-use yew::{Html, function_component, html};
+use yew::{Html, function_component};
 
 #[function_component(NavbarLoggedOut)]
 pub fn navbar_logged_out() -> Html {

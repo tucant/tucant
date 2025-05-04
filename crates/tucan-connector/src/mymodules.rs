@@ -11,7 +11,7 @@ use tucant_types::{
 use crate::{
     TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    registration::index::MODULEDETAILS_REGEX,
+    registration::MODULEDETAILS_REGEX,
 };
 
 pub async fn mymodules(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyModulesResponse, TucanError> {
@@ -110,7 +110,7 @@ fn mymodules_internal(login_response: &LoginResponse, content: &str) -> Result<M
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                 <input name="PRGNAME" type="hidden" value="MYMODULES"></input>
                                 <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,semester"></input>
-                                <input name="sessionno" type="hidden" value=session_id></input>
+                                <input name="sessionno" type="hidden" value=_session_id></input>
                                 <input name="menuno" type="hidden" value="000275"></input>
                             </div>
                         </form>

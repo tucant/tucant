@@ -12,7 +12,7 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use std::{convert::Infallible, path::Display, str::FromStr};
+use std::{convert::Infallible, str::FromStr};
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};

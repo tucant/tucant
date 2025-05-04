@@ -104,23 +104,23 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn my_modules(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
+    async fn my_modules(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _semester: SemesterId) -> Result<tucant_types::mymodules::MyModulesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
+    async fn my_courses(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {
         todo!()
     }
 
-    async fn my_exams(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
+    async fn my_exams(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
         todo!()
     }
 
-    async fn exam_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
+    async fn exam_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
         todo!()
     }
 
-    async fn course_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
+    async fn course_results(&self, _request: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _semester: SemesterId) -> Result<ModuleResultsResponse, TucanError> {
         todo!()
     }
 
@@ -128,7 +128,7 @@ impl Tucan for TauriTucan {
         todo!()
     }
 
-    async fn student_result(&self, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, course_of_study: u64) -> Result<StudentResultResponse, TucanError> {
+    async fn student_result(&self, _login_response: &LoginResponse, _revalidation_strategy: RevalidationStrategy, _course_of_study: u64) -> Result<StudentResultResponse, TucanError> {
         todo!()
     }
 }

@@ -153,5 +153,6 @@ pub async fn veranstaltungen(connector: &TucanConnector, login_response: LoginRe
                             "."
                         </p>
     };
+    let _ = html_handler;
     Ok(())
 }

@@ -4,18 +4,13 @@
 // seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
+    common::head::{html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
-use itertools::Itertools;
+use html_handler::{Root, parse_document};
 use log::info;
-use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+    LoginResponse, RevalidationStrategy, TucanError,
     courseprep::{CoursePrepRequest, CoursePrepType},
 };
 
@@ -49,11 +44,6 @@ pub async fn course_prep(tucan: &TucanConnector, login_response: &LoginResponse,
     Ok(result)
 }
 
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
-
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
 fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result<String, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
@@ -77,35 +67,35 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                 <h1>
                     title
                 </h1>
-                let kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                     <h2>
-                        kleingruppe
+                        _kleingruppe
                     </h2>
                 } => ();
                 <p>
                     <span name="appointmentDate">
-                        date
+                        _date
                     </span>
                     <span name="appointmentTimeFrom">
-                        start
+                        _start
                     </span>
                     "-"
                     <span name="appointmentTimeTo">
-                        end
+                        _end
                     </span>
                 </p>
-                let raeume = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _raeume = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                     <h2>
                         "Räume:"
                     </h2>
-                    let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "span" {
+                    let _room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "span" {
                         <span name="appoinmentRooms">
-                            room
+                            _room
                         </span>
                     } => () else {
-                        let rooms = while html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
-                            <a name="appoinmentRooms" class="arrow" href=room_href>
-                                room
+                        let _rooms = while html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                            <a name="appoinmentRooms" class="arrow" href=_room_href>
+                                _room
                             </a>
                         } => ();
                     } => ();
@@ -125,6 +115,6 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                                     <a id="Popup_link" href=_message_url class="arrow">
                                         "Neue Nachricht"
     }
-
+    let _ = html_handler;
     Ok(title)
 }

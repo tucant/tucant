@@ -141,16 +141,16 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                             <br></br>
                                             exam_type
                                             <br></br>
-                                            let thesis = if html_handler.peek().is_some() {
+                                            let _thesis = if html_handler.peek().is_some() {
                                                 <br></br>
                                                 <b>
                                                     "Thema:"
                                                 </b>
-                                                topic
+                                                _topic
                                                 <br></br>
                                                 <b>
-                                                    topic_eng
-                                                    topic_second
+                                                    _topic_eng
+                                                    _topic_second
                                                 </b>
                                                 <br></br>
                                             } => ();
@@ -170,7 +170,7 @@ fn examresults_internal(login_response: &LoginResponse, content: &str) -> Result
                                         </td>
                                         <td style="vertical-align:top;">
                                             let average_url = if html_handler.peek().is_some() {
-                                                let abgegeben = if html_handler.peek().unwrap().value().is_text() {
+                                                let _abgegeben = if html_handler.peek().unwrap().value().is_text() {
                                                         "Abgegeben"
                                                     </td>
                                                     <td style="vertical-align:top;">
