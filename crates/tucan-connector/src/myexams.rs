@@ -111,7 +111,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                 <input name="PRGNAME" type="hidden" value="MYEXAMS"></input>
                                 <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,semester"></input>
-                                <input name="sessionno" type="hidden" value=session_id></input>
+                                <input name="sessionno" type="hidden" value=_session_id></input>
                                 <input name="menuno" type="hidden" value="000318"></input>
                             </div>
                         </form>
@@ -119,7 +119,7 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                             <thead>
                                 <tr class="tbcontrol">
                                     <td colspan="5">
-                                        <a href=examregistration_url class="arrow">
+                                        <a href=_examregistration_url class="arrow">
                                             "Anmeldung zu Prüfungen"
                                         </a>
                                     </td>
@@ -158,14 +158,14 @@ fn my_exams_internal(login_response: &LoginResponse, content: &str) -> Result<My
                                                 <a class="link" href=moduledetails_url>
                                                     name
                                                 </a>
-                                                let thesis = if html_handler.peek().is_some() {
+                                                let _thesis = if html_handler.peek().is_some() {
                                                     <br></br>
                                                     <b>
                                                         "Thema:"
                                                     </b>
-                                                    topic
+                                                    _topic
                                                     <br></br>
-                                                    submitted_date
+                                                    _submitted_date
                                                     <br></br>
                                                 } => ();
                                             } => (name, None, Some(ModuleDetailsRequest::parse(&MODULEDETAILS_REGEX.replace(&moduledetails_url, ""))), None);

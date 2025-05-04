@@ -47,11 +47,6 @@ pub async fn course_prep(tucan: &TucanConnector, login_response: &LoginResponse,
     Ok(result)
 }
 
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
-
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
 fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result<String, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
@@ -75,35 +70,35 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                 <h1>
                     title
                 </h1>
-                let kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                     <h2>
-                        kleingruppe
+                        _kleingruppe
                     </h2>
                 } => ();
                 <p>
                     <span name="appointmentDate">
-                        date
+                        _date
                     </span>
                     <span name="appointmentTimeFrom">
-                        start
+                        _start
                     </span>
                     "-"
                     <span name="appointmentTimeTo">
-                        end
+                        _end
                     </span>
                 </p>
-                let raeume = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                let _raeume = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                     <h2>
                         "Räume:"
                     </h2>
-                    let room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "span" {
+                    let _room = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "span" {
                         <span name="appoinmentRooms">
-                            room
+                            _room
                         </span>
                     } => () else {
-                        let rooms = while html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
-                            <a name="appoinmentRooms" class="arrow" href=room_href>
-                                room
+                        let _rooms = while html_handler.peek().unwrap().value().as_element().unwrap().name() == "a" {
+                            <a name="appoinmentRooms" class="arrow" href=_room_href>
+                                _room
                             </a>
                         } => ();
                     } => ();

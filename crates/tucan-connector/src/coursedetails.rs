@@ -22,7 +22,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
         if let Some((content, date)) = &old_content_and_date {
             info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date < Duration::seconds(revalidation_strategy.max_age) {
-                return course_details_internal(login_response, content, request);
+                return course_details_internal(login_response, content, &request);
             }
         }
     }
@@ -33,7 +33,7 @@ pub async fn course_details(tucan: &TucanConnector, login_response: &LoginRespon
 
     let url = format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSEDETAILS&ARGUMENTS=-N{:015},-N000311,{}", login_response.id, request.inner());
     let (content, date) = authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = course_details_internal(login_response, &content, request)?;
+    let result = course_details_internal(login_response, &content, &request)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.0) != Some(&content) {
         // TODO invalidate cached ones?
     }
@@ -48,7 +48,7 @@ fn h(input: &str) -> String {
 }
 
 #[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
-fn course_details_internal(login_response: &LoginResponse, content: &str, request: CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
+fn course_details_internal(login_response: &LoginResponse, content: &str, request: &CourseDetailsRequest) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -81,9 +81,9 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                 id_and_name
                             </h1>
                         } => id_and_name;
-                        let kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
+                        let _kleingruppe = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "h2" {
                             <h2>
-                                kleingruppe
+                                _kleingruppe
                             </h2>
                         } => ();
                         <div class="contentlayoutleft" id="contentlayoutleft">
@@ -146,7 +146,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                 <input type="hidden" name="shortdescription" value=shortname></input>
                                             </p>
                                             <input type="hidden" name="courselevel" value=courselevel></input>
-                                            let fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let _fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="coursearea" value=""></input>
                                             } => () else {
                                                 <p>
@@ -156,7 +156,7 @@ fn course_details_internal(login_response: &LoginResponse, content: &str, reques
                                                     <input type="hidden" name="coursearea" value=""></input>
                                                 </p>
                                             } => ();
-                                            let fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
+                                            let _fach = if html_handler.peek().unwrap().value().as_element().unwrap().name() == "input" {
                                                 <input type="hidden" name="creditingfor" value=""></input>
                                             } => () else {
                                                 <p>

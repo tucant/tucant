@@ -16,10 +16,7 @@ use regex::Regex;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
-use tucant_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
-    courseprep::CoursePrepRequest,
-};
+use tucant_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
 
 /// 04.2025
 pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: String) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
@@ -52,11 +49,7 @@ pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, reval
     Ok(result)
 }
 
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
-
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
+#[expect(clippy::too_many_lines)]
 fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     static COURSEPREP_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^/scripts/mgrqispi.dll\\?APPNAME=CampusNet&PRGNAME=COURSEPREP&ARGUMENTS=-N\\d+,-N000271,").unwrap());
 
@@ -81,20 +74,20 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                 <script type="text/javascript">
                 </script>
                 <h1>
-                    stundenplan_month_year
+                    _stundenplan_month_year
                 </h1>
                 <div class="tb tbMonthContainer" id="tbmonthContainer">
                     <div class="tbhead">
-                        month_year
+                        _month_year
                     </div>
                     <div class="tbcontrol">
                         <div class="arrow_skipBtn">
-                            <a href=_url title=month class="img img_arrowLeft skipLeft" name="skipBack_btn">
+                            <a href=_url title=_month class="img img_arrowLeft skipLeft" name="skipBack_btn">
                             </a>
                             <a href=_url class="link">
                                 "Heute"
                             </a>
-                            <a href=_url title=month class="img img_arrowRight skipRight" name="skipForward_btn">
+                            <a href=_url title=_month class="img img_arrowRight skipRight" name="skipForward_btn">
                             </a>
                         </div>
                         <a href=_url class="arrow">
@@ -152,18 +145,18 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                                                     <img src="/gfx/_default/clear.gif" alt="empty"></img>
                                                 </div>
                                             } => Vec::<(String, CoursePrepRequest)>::new() else {
-                                                <div class="tbMonthDay" title=day>
+                                                <div class="tbMonthDay" title=_day>
                                                     <div class="tbsubhead">
-                                                        <a title=date href=_url>
-                                                            number
+                                                        <a title=_date href=_url>
+                                                            _number
                                                         </a>
                                                     </div>
                                                     let appointments = while html_handler.peek().is_some() {
                                                         <div class="appMonth">
                                                             <a title=name xss="href" href=url class="apmntLink" style="overflow:hidden;">
-                                                                title
+                                                                _title
                                                             </a>
-                                                            let optional_br = if html_handler.peek().is_some() {
+                                                            let _optional_br = if html_handler.peek().is_some() {
                                                                 <br></br>
                                                             } => ();
                                                         </div>

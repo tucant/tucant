@@ -1,14 +1,10 @@
-
 use crate::{
     TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
 use html_handler::{InElement, Root, parse_document};
-use itertools::Itertools;
 use log::info;
 use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, TucanError,
@@ -47,10 +43,6 @@ pub async fn student_result(tucan: &TucanConnector, login_response: &LoginRespon
     tucan.database.put(&key, (content, date)).await;
 
     Ok(result)
-}
-
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
 fn part0<'a, T>(html_handler: InElement<'a, T>, level: &str) -> (InElement<'a, T>, (String, Vec<StudentResultEntry>)) {
@@ -126,11 +118,11 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
         let optional = if html_handler.peek().unwrap().value().as_element().unwrap().attrs.is_empty() {
             <tr>
                 <td colspan="2" class={|v| assert_eq!(v, level)}>
-                    summe
+                    _summe
                 </td>
                 let sum_cp_and_used_cp = if html_handler.peek().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
                     <td colspan="4" class={|v| assert_eq!(v, level)} style="text-align:left;white-space:nowrap;">
-                        summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
+                        _summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
                     </td>
                 } => (None, None) else {
                     <td class={|v| assert_eq!(v, level)}>
@@ -149,7 +141,7 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
                     </td>
                 } => (sum_cp, sum_used_cp);
                 <td class={|v| assert_eq!(v, level)} style="text-align:center;">
-                    <img src=pass_or_open alt=bestanden_or_offen title=state></img>
+                    <img src=_pass_or_open alt=_bestanden_or_offen title=state></img>
                 </td>
             </tr>
             let rules = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class(level, CaseSensitivity::CaseSensitive) {
@@ -178,7 +170,7 @@ fn part1<'a, T>(html_handler: InElement<'a, T>, level: &str, name: (String, Vec<
     )
 }
 
-#[expect(clippy::similar_names, clippy::too_many_lines, clippy::cognitive_complexity)]
+#[expect(clippy::too_many_lines)]
 fn student_result_internal(login_response: &LoginResponse, content: &str) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
@@ -200,7 +192,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                     <script type="text/javascript">
                     </script>
                     <h1>
-                        leistungsspiegel_von
+                        _leistungsspiegel_von
                     </h1>
                     <div class="tb">
                         <form id="students_results" action="/scripts/mgrqispi.dll" method="post">
