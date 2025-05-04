@@ -10,7 +10,7 @@ use externalpages::welcome::welcome;
 use key_value_database::Database;
 use login::{login, logout};
 use mlsstart::after_login;
-use moduledetails::index::module_details;
+use moduledetails::module_details;
 use mycourses::mycourses;
 use mydocuments::my_documents;
 use myexams::my_exams;
