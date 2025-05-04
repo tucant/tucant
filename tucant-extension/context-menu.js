@@ -16,9 +16,19 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         }
 
         if (info.menuItemId === "open-in-tucan" || info.menuItemId === "open-in-tucant" || info.menuItemId === "open-in-tucan-page" || info.menuItemId === "open-in-tucant-page") {
-            await handleOpenInTucan(id?.value, tabId, url)
+            await chrome.tabs.update(tabId, {
+                url: handleOpenInTucan(id?.value, tabId, url)
+            })
             return;
         }
+
+        if (info.menuItemId === "open-in-tucan-new-tab" || info.menuItemId === "open-in-tucant-new-tab" || info.menuItemId === "open-in-tucan-page-new-tab" || info.menuItemId === "open-in-tucant-page-new-tab") {
+            await chrome.tabs.create({
+                url: handleOpenInTucan(id?.value, tabId, url)
+            })
+            return;
+        }
+
 
         if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
             chrome.notifications.create({

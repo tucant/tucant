@@ -17,6 +17,8 @@ window.sayHello = () => {
         }
 
         console.log("opefwewf")
-        await handleOpenInTucan(id?.value, tab.id, document.location.href)
+        await chrome.tabs.update(tab.id, {
+            url: handleOpenInTucan(id?.value, tab.id, document.location.href)
+        })
     });
 }
