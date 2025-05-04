@@ -130,20 +130,26 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
                 <td colspan="2" class={|v| assert_eq!(v, level)}>
                     summe
                 </td>
-                <td class={|v| assert_eq!(v, level)}>
-                </td>
-                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                    let sum_cp = if html_handler.peek().is_some() {
-                        sum_cp
-                    } => sum_cp;
-                </td>
-                <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
-                    let sum_used_cp = if html_handler.peek().is_some() {
-                        sum_used_cp
-                    } => sum_used_cp;
-                </td>
-                <td class={|v| assert_eq!(v, level)} style="text-align:right;">
-                </td>
+                let sum_cp_and_used_cp = if html_handler.peek().unwrap().value().as_element().unwrap().attr("colspan").is_some() {
+                    <td colspan="4" class={|v| assert_eq!(v, level)} style="text-align:left;white-space:nowrap;">
+                        summe_wird_erst_berechnet_wenn_der_bereich_abgeschlossen_ist
+                    </td>
+                } => (None, None) else {
+                    <td class={|v| assert_eq!(v, level)}>
+                    </td>
+                    <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                        let sum_cp = if html_handler.peek().is_some() {
+                            sum_cp
+                        } => sum_cp;
+                    </td>
+                    <td class={|v| assert_eq!(v, level)} style="text-align:right;white-space:nowrap;">
+                        let sum_used_cp = if html_handler.peek().is_some() {
+                            sum_used_cp
+                        } => sum_used_cp;
+                    </td>
+                    <td class={|v| assert_eq!(v, level)} style="text-align:right;">
+                    </td>
+                } => (sum_cp, sum_used_cp);
                 <td class={|v| assert_eq!(v, level)} style="text-align:center;">
                     <img src=pass_or_open alt=bestanden_or_offen title=state></img>
                 </td>
@@ -160,7 +166,10 @@ fn part1<'a, T>(mut html_handler: InElement<'a, T>, level: &str, name: (String, 
                     </td>
                 </tr>
             } => rules;
-        } => (sum_cp, sum_used_cp, state, rules, rules2);
+        } => {
+            let (sum_cp, sum_used_cp) = sum_cp_and_used_cp.either_into();
+            (sum_cp, sum_used_cp, state, rules, rules2)
+        };
     }
     (
         html_handler,
