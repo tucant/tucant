@@ -1,6 +1,6 @@
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
+    head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use html_handler::{InElement, Root, parse_document};
 use log::info;

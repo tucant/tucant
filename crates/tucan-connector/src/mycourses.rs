@@ -11,7 +11,7 @@ use tucant_types::{
 
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head},
+    head::{footer, html_head, logged_in_head},
 };
 
 pub async fn mycourses(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyCoursesResponse, TucanError> {

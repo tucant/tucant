@@ -4,7 +4,7 @@
 // seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{html_head, logged_in_head, logged_out_head},
+    head::{html_head, logged_in_head, logged_out_head},
 };
 use html_handler::{Root, parse_document};
 use log::info;

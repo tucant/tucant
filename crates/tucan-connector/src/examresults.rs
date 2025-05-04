@@ -9,7 +9,7 @@ use tucant_types::{
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head},
+    head::{footer, html_head, logged_in_head},
 };
 
 pub async fn examresults(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<ExamResultsResponse, TucanError> {
