@@ -1,5 +1,3 @@
-use std::ops::Deref as _;
-
 use tucant_types::{Tucan, vv::ActionRequest};
 use yew::{Html, Properties, function_component};
 use yew_router::prelude::Link;

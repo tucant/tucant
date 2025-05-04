@@ -18,7 +18,7 @@ use vv::VorlesungsverzeichnisComponent;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_router::{HashRouter, Routable, Switch, hooks::use_navigator};
+use yew_router::{HashRouter, Routable, Switch};
 
 pub mod navbar;
 pub mod navbar_logged_in;

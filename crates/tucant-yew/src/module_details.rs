@@ -1,7 +1,5 @@
-use std::ops::Deref;
-
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
-use yew::{Html, HtmlResult, Properties, function_component, html};
+use yew::{Html, Properties, function_component};
 
 use crate::{RcTucanType, common::use_data_loader};
 

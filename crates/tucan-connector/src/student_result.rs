@@ -225,7 +225,7 @@ fn student_result_internal(login_response: &LoginResponse, content: &str) -> Res
                                     <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                     <input name="PRGNAME" type="hidden" value="STUDENT_RESULT"></input>
                                     <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,mode, semester,student,study,changestudy,section"></input>
-                                    <input name="sessionno" type="hidden" value=session_id></input>
+                                    <input name="sessionno" type="hidden" value=_session_id></input>
                                     <input name="menuno" type="hidden" value="000316"></input>
                                     <input name="resulttype" type="hidden" value="0"></input>
                                     <input name="semester" type="hidden" value="0"></input>

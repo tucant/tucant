@@ -132,7 +132,7 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                                 <tr>
                                     <th class="nb KW_month" scope="row">
                                         <a href=_url>
-                                            number
+                                            _number
                                         </a>
                                     </th>
                                     let appointments = while html_handler.peek().is_some() {
@@ -168,5 +168,6 @@ fn month_internal(login_response: &LoginResponse, content: &str) -> Result<Vec<(
                     </table>
                 </div>
     }
+    let _ = html_handler;
     Ok(appointments.into_iter().flatten().collect::<Vec<_>>())
 }

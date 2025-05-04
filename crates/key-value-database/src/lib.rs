@@ -3,8 +3,6 @@ pub struct Database {
     database: indexed_db::Database<std::io::Error>,
     #[cfg(not(target_arch = "wasm32"))]
     database: sqlx::Pool<sqlx::Sqlite>,
-    #[cfg(not(target_arch = "wasm32"))]
-    temporary_file: Option<tempfile::NamedTempFile>,
 }
 
 impl Database {
@@ -41,17 +39,16 @@ impl Database {
                 sqlx::query("PRAGMA user_version = 2").execute(&database).await.unwrap();
             }
             sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
-            Self { database, temporary_file: None }
+            Self { database }
         }
     }
 
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn new_test() -> Self {
-        let tempfile = tempfile::NamedTempFile::new().unwrap();
         let url = "sqlite://data_test.db?mode=rwc"; //format!("sqlite://{}?mode=rwc", tempfile.path().to_str().unwrap());
         let database = sqlx::SqlitePool::connect(url).await.unwrap();
         sqlx::query("CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)").execute(&database).await.unwrap();
-        Self { database, temporary_file: Some(tempfile) }
+        Self { database }
     }
 
     pub async fn get<V: serde::de::DeserializeOwned>(&self, key: &str) -> Option<V> {

@@ -35,5 +35,6 @@ pub async fn redirect_after_login(connector: &TucanConnector, login_response: Lo
                     _script_contents
                 </script>
     };
+    let _ = html_handler;
     Ok(())
 }

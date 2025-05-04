@@ -115,6 +115,6 @@ fn course_prep_internal(login_response: &LoginResponse, content: &str) -> Result
                                     <a id="Popup_link" href=_message_url class="arrow">
                                         "Neue Nachricht"
     }
-
+    let _ = html_handler;
     Ok(title)
 }

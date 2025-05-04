@@ -355,7 +355,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
     #[must_use]
     pub fn attribute(mut self, name: &str, value: &str) -> Self {
         if name == "xss" {
-            while let Some((attr_key, attr_value)) = self.attrs.peek() {
+            while let Some((attr_key, _attr_value)) = self.attrs.peek() {
                 if *attr_key == value {
                     break;
                 }
