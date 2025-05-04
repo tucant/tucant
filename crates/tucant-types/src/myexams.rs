@@ -1,4 +1,3 @@
-use itertools::Either;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

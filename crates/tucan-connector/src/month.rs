@@ -6,10 +6,10 @@ use std::sync::LazyLock;
 // seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
+    common::head::{html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
-use html_handler::{MyElementRef, MyNode, Root, html, parse_document};
+use html_handler::{Root, parse_document};
 use itertools::Itertools;
 use log::info;
 use regex::Regex;
@@ -17,15 +17,14 @@ use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+    LoginResponse, RevalidationStrategy, TucanError,
     courseprep::CoursePrepRequest,
 };
 
 /// 04.2025
 pub async fn month(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, request: String) -> Result<Vec<(String, CoursePrepRequest)>, TucanError> {
     println!("{request}");
-    let key = format!("unparsed_month.{}", request);
+    let key = format!("unparsed_month.{request}");
 
     let old_content_and_date = tucan.database.get::<(String, OffsetDateTime)>(&key).await;
     if revalidation_strategy.max_age != 0 {

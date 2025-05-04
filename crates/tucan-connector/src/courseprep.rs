@@ -4,18 +4,16 @@
 // seems like there is access control. if you are not in a course it does not work. though you could easily register and unregister again
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head, logged_out_head},
+    common::head::{html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
-use html_handler::{MyElementRef, MyNode, Root, parse_document};
+use html_handler::{Root, parse_document};
 use itertools::Itertools;
 use log::info;
-use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
-    coursedetails::{CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe, InstructorImageWithLink, Room, Termin},
+    LoginResponse, RevalidationStrategy, TucanError,
     courseprep::{CoursePrepRequest, CoursePrepType},
 };
 
