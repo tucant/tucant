@@ -6,11 +6,8 @@ use crate::{
     TucanConnector, authenticated_retryable_get,
     common::head::{html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
 use html_handler::{Root, parse_document};
-use itertools::Itertools;
 use log::info;
-use sha3::{Digest, Sha3_256};
 use time::{Duration, OffsetDateTime};
 use tucant_types::{
     LoginResponse, RevalidationStrategy, TucanError,

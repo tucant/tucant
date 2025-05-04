@@ -4,7 +4,7 @@ use log::error;
 use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
-use yew::{Html, UseStateHandle, function_component, html, use_context, use_effect_with, use_state};
+use yew::{Html, UseStateHandle, function_component, use_context, use_effect_with, use_state};
 
 use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
@@ -78,7 +78,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
             </nav>
             {
                 match data.deref() {
-                    Ok(data) => yew::html! {},
+                    Ok(_data) => yew::html! {},
                     Err(error) => {
                         ::yew::html! {
                             <div class="container">

@@ -71,11 +71,11 @@ fn groupname<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
 }
 
 fn assignt(input: &mut &str) -> ModalResult<usize> {
-    trace("assignt", alt(("=", "/=")).map(|v| 1)).parse_next(input)
+    trace("assignt", alt(("=", "/=")).map(|_| 1)).parse_next(input)
 }
 
 fn assigng(input: &mut &str) -> ModalResult<usize> {
-    trace("assigng", alt(("=", "//=")).map(|v| 1)).parse_next(input)
+    trace("assigng", alt(("=", "//=")).map(|_| 1)).parse_next(input)
 }
 
 fn r#type(input: &mut &str) -> ModalResult<Type> {
@@ -119,7 +119,7 @@ pub enum Operator {
 }
 
 fn rangeop(input: &mut &str) -> ModalResult<Operator> {
-    alt(("...", "..")).map(|v| Operator::Range).parse_next(input)
+    alt(("...", "..")).map(|_| Operator::Range).parse_next(input)
 }
 
 fn ctlop(input: &mut &str) -> ModalResult<Operator> {
@@ -171,7 +171,7 @@ fn bareword<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
 }
 
 fn optcom(input: &mut &str) -> ModalResult<()> {
-    trace("optcom", (s, opt((",", s))).map(|v| ())).parse_next(input)
+    trace("optcom", (s, opt((",", s))).map(|_| ())).parse_next(input)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -191,8 +191,8 @@ fn occur(input: &mut &str) -> ModalResult<Occur> {
                 (None, Some(u)) => Occur::RangeInclusive(0..=u),
                 (None, None) => Occur::RangeFrom(0..),
             }),
-            "+".map(|v| Occur::RangeFrom(1..)),
-            "?".map(|v| Occur::RangeInclusive(0..=1)),
+            "+".map(|_| Occur::RangeFrom(1..)),
+            "?".map(|_| Occur::RangeInclusive(0..=1)),
         )),
     )
     .parse_next(input)
@@ -213,7 +213,7 @@ fn id<'a>(s: &mut &'a str) -> ModalResult<&'a str> {
 }
 
 fn s(input: &mut &str) -> ModalResult<()> {
-    repeat(0.., alt((multispace1.map(|v| ()), (";", till_line_ending).map(|v| ())))).parse_next(input)
+    repeat(0.., alt((multispace1.map(|_| ()), (";", till_line_ending).map(|_| ())))).parse_next(input)
 }
 
 pub fn codegen(rules: &[Rule]) {
@@ -246,9 +246,9 @@ fn codegen_type(r#type: &Type) -> proc_macro2::TokenStream {
                 #name
             }
         }
-        Type::Combined { operator, first, second } => quote! { TODO },
-        Type::Or(items) => quote! { TODO },
-        Type::Group(group) => quote! { TODO },
+        Type::Combined { operator: _, first: _, second: _ } => quote! { TODO },
+        Type::Or(_items) => quote! { TODO },
+        Type::Group(_group) => quote! { TODO },
     }
 }
 
@@ -262,14 +262,14 @@ fn codegen_group(group: &(Option<Occur>, Group)) -> proc_macro2::TokenStream {
                 #(#items)*
             }
         }
-        Group::Or(groups) => quote! { pub todo: TODO, },
+        Group::Or(_groups) => quote! { pub todo: TODO, },
         Group::KeyValue(key, r#type) => {
             let type_tokens = codegen_type(r#type);
             match key {
                 Some(Key::Type(_)) => quote! {
                     pub TODO: #type_tokens,
                 },
-                Some(Key::Value(value)) => quote! {
+                Some(Key::Value(_value)) => quote! {
                     pub TODO: #type_tokens,
                 },
                 Some(Key::Literal(literal)) => {
@@ -310,7 +310,7 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
         Rule::Group { name, group } => {
             let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             match &group.1 {
-                Group::And(items) => {
+                Group::And(_items) => {
                     let inner = codegen_group(group);
                     quote! {
                         pub struct #name {
@@ -320,9 +320,9 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                 }
                 Group::Or(groups) => {
                     let groups = groups.iter().map(|group| match group {
-                        Group::And(items) => quote! { Todo, },
-                        Group::Or(groups) => todo!(),
-                        Group::KeyValue(key, _) => todo!(),
+                        Group::And(_items) => quote! { Todo, },
+                        Group::Or(_groups) => todo!(),
+                        Group::KeyValue(_key, _) => todo!(),
                         Group::Name(name) => {
                             let name = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
                             quote! { #name(#name), }
@@ -335,17 +335,17 @@ fn codegen_rule(rule: &Rule) -> proc_macro2::TokenStream {
                         }
                     }
                 }
-                Group::KeyValue(key, _) => todo!(),
+                Group::KeyValue(_key, _) => todo!(),
                 Group::Name(_) => todo!(),
             }
         }
         Rule::Type { name, r#type } => {
             let name_ident = Ident::new_raw(&name.to_upper_camel_case(), Span::call_site());
             match r#type {
-                Type::Value(value) => quote! { pub type #name_ident = TODO; },
-                Type::Typename(name) => quote! { pub type #name_ident = TODO; },
-                Type::Combined { operator, first, second } => quote! { pub type #name_ident = TODO; },
-                Type::Or(items) => quote! { pub type #name_ident = TODO; },
+                Type::Value(_value) => quote! { pub type #name_ident = TODO; },
+                Type::Typename(_name) => quote! { pub type #name_ident = TODO; },
+                Type::Combined { operator: _, first: _, second: _ } => quote! { pub type #name_ident = TODO; },
+                Type::Or(_items) => quote! { pub type #name_ident = TODO; },
                 Type::Group(group) => codegen_rule(&Rule::Group { name: name.to_owned(), group: (None, *group.clone()) }),
             }
         }

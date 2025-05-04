@@ -1,10 +1,7 @@
 use std::ops::Deref as _;
 
-use tucant_types::{
-    Tucan,
-    vv::{ActionRequest, Vorlesungsverzeichnis},
-};
-use yew::{Html, HtmlResult, Properties, function_component, html};
+use tucant_types::{Tucan, vv::ActionRequest};
+use yew::{Html, Properties, function_component};
 use yew_router::prelude::Link;
 
 use crate::{RcTucanType, Route, common::use_data_loader};

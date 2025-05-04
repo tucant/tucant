@@ -1,13 +1,10 @@
-use std::ops::Deref;
-
 use crate::{RcTucanType, Route, common::use_data_loader};
 use tucant_types::{
     Tucan,
-    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, HtmlResult, MouseEvent, Properties, TargetCast, function_component, html};
+use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
 use yew_router::hooks::use_navigator;
 
 #[derive(Properties, PartialEq)]

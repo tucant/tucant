@@ -4,7 +4,6 @@ use std::ops::Deref;
 use tucant_types::Tucan;
 use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
 use yew::Html;
-use yew::html;
 use yew::use_context;
 use yew::{Callback, MouseEvent, UseStateHandle, hook};
 use yew::{platform::spawn_local, use_effect_with, use_state};

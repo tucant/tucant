@@ -1,5 +1,5 @@
 use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
-use yew::{Html, Properties, classes, function_component, html};
+use yew::{Html, Properties, classes, function_component};
 use yew_router::prelude::Link;
 
 use crate::Route;
