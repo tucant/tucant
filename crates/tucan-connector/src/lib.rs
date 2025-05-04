@@ -16,7 +16,7 @@ use mydocuments::my_documents;
 use myexams::my_exams;
 use mymodules::mymodules;
 use regex::Regex;
-use registration::index::anmeldung;
+use registration::anmeldung;
 use reqwest::header;
 use student_result::student_result;
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
@@ -350,7 +350,7 @@ mod authenticated_tests {
         mydocuments::my_documents,
         myexams::my_exams,
         mymodules::mymodules,
-        registration::index::anmeldung,
+        registration::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
         student_result::student_result,
         tests::{get_tucan_connector, runtime},

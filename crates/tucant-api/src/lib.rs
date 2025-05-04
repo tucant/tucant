@@ -7,7 +7,7 @@ use axum::{
     response::IntoResponse,
 };
 use axum_extra::extract::{CookieJar, cookie::Cookie};
-use tucan_connector::{TucanConnector, login::login, registration::index::anmeldung};
+use tucan_connector::{TucanConnector, login::login, registration::anmeldung};
 use tucant_types::{
     LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
     coursedetails::CourseDetailsRequest,

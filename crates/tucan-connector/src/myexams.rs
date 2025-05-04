@@ -12,7 +12,7 @@ use tucant_types::{
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
     common::head::{footer, html_head, logged_in_head},
-    registration::index::MODULEDETAILS_REGEX,
+    registration::MODULEDETAILS_REGEX,
 };
 
 pub async fn my_exams(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy, semester: SemesterId) -> Result<MyExamsResponse, TucanError> {
