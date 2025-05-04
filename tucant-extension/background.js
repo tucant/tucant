@@ -29,7 +29,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
                 name: "id",
             })
 
-            await handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
+            await chrome.tabs.update(sender.tab.id, {
+                url: handleOpenInTucan(id?.value, sender.tab.id, sender.tab.url)
+            })
+            return;
         }
     })
 })
@@ -49,7 +52,9 @@ chrome.commands.onCommand.addListener((command) => {
         }
 
         if (command === "open-in-tucan-page") {
-            await handleOpenInTucan(id?.value, tab.id, tab.url)
+            await chrome.tabs.update(tab.id, {
+                url: handleOpenInTucan(id?.value, tab.id, tab.url)
+            })
         }
     })
 });

@@ -7,7 +7,7 @@ use tucant_types::{
 
 use crate::{
     TucanConnector, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head},
+    head::{footer, html_head, logged_in_head},
 };
 
 pub async fn my_documents(tucan: &TucanConnector, login_response: &LoginResponse, revalidation_strategy: RevalidationStrategy) -> Result<MyDocumentsResponse, TucanError> {

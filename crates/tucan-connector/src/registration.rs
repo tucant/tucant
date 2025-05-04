@@ -13,7 +13,7 @@ use tucant_types::{
 
 use crate::{
     COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
-    common::head::{footer, html_head, logged_in_head},
+    head::{footer, html_head, logged_in_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 

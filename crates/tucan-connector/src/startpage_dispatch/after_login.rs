@@ -1,6 +1,6 @@
 use tucant_types::LoginResponse;
 
-use crate::{TucanConnector, TucanError, authenticated_retryable_get, common::head::html_head_2};
+use crate::{TucanConnector, TucanError, authenticated_retryable_get, head::html_head_2};
 use html_handler::{Root, parse_document};
 
 pub async fn redirect_after_login(connector: &TucanConnector, login_response: LoginResponse) -> Result<(), TucanError> {

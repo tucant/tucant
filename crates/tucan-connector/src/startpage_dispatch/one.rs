@@ -1,4 +1,4 @@
-use crate::{TucanConnector, TucanError, common::head::html_head_2, retryable_get};
+use crate::{TucanConnector, TucanError, head::html_head_2, retryable_get};
 use html_handler::{Root, parse_document};
 
 pub async fn startpage_dispatch_1(connector: &TucanConnector) -> Result<(), TucanError> {

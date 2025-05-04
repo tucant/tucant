@@ -2,7 +2,7 @@ use tucant_types::LoginResponse;
 
 use crate::{
     TucanConnector, TucanError, authenticated_retryable_get,
-    common::head::{html_head, logged_in_head},
+    head::{html_head, logged_in_head},
 };
 use html_handler::{Root, parse_document};
 

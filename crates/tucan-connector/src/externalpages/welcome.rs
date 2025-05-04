@@ -1,6 +1,6 @@
 use crate::{
     TucanConnector, TucanError,
-    common::head::{footer, html_head, logged_out_head},
+    head::{footer, html_head, logged_out_head},
     retryable_get,
 };
 use html_handler::{Root, parse_document};
