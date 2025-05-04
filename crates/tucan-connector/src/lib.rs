@@ -9,7 +9,7 @@ use examresults::examresults;
 use externalpages::welcome::welcome;
 use key_value_database::Database;
 use login::{login, logout};
-use mlsstart::start_page::after_login;
+use mlsstart::after_login;
 use moduledetails::index::module_details;
 use mycourses::mycourses;
 use mydocuments::my_documents;
@@ -345,7 +345,7 @@ mod authenticated_tests {
         courseresults::courseresults,
         examresults::examresults,
         login::login,
-        mlsstart::start_page::after_login,
+        mlsstart::after_login,
         mycourses::mycourses,
         mydocuments::my_documents,
         myexams::my_exams,
