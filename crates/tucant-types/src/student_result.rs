@@ -26,8 +26,8 @@ pub struct StudentResultLevel {
     pub sum_cp: Option<String>,
     pub sum_used_cp: Option<String>,
     pub state: Option<String>,
-    pub rules: Option<String>,
-    pub rules2: Option<String>,
+    /// can be 0-2 rules, first one is module count, second one is cp
+    pub rules: Vec<String>,
     pub children: Vec<StudentResultLevel>,
 }
 
