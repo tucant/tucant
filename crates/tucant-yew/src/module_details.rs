@@ -1,7 +1,10 @@
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 use yew::{Html, Properties, function_component};
 
-use crate::{RcTucanType, common::use_data_loader};
+use crate::{
+    RcTucanType,
+    common::{use_authenticated_data_loader, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct ModuleDetailsProps {
@@ -12,7 +15,7 @@ pub struct ModuleDetailsProps {
 pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
-    use_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
+    use_authenticated_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
         ::yew::html! {
             <div>
                 <h1>

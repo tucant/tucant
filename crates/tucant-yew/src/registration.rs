@@ -5,7 +5,10 @@ use tucant_types::{
 use yew::{Html, Properties, function_component};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{RcTucanType, Route, common::use_data_loader};
+use crate::{
+    RcTucanType, Route,
+    common::{use_authenticated_data_loader, use_data_loader},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct AnmeldungRequestProps {
@@ -18,7 +21,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
 
     let navigator = use_navigator().unwrap();
 
-    use_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+    use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
             return ::yew::html! {

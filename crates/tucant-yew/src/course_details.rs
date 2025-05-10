@@ -1,4 +1,7 @@
-use crate::{RcTucanType, Route, common::use_data_loader};
+use crate::{
+    RcTucanType, Route,
+    common::{use_authenticated_data_loader, use_data_loader},
+};
 use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
 use yew::{Html, Properties, function_component};
 use yew_router::prelude::Link;
@@ -12,7 +15,7 @@ pub struct CourseDetailsProps {
 pub fn course_details<TucanType: Tucan + 'static>(CourseDetailsProps { course_details }: &CourseDetailsProps) -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_details(&current_session, revalidation_strategy, additional).await;
 
-    use_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
+    use_authenticated_data_loader(handler, course_details.to_owned(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
         ::yew::html! {
             <div>
                 <h1>
