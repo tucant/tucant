@@ -130,6 +130,7 @@ https://developer.chrome.com/blog/wasm-debugging-2020
 
 DevTools Experiments -> WebAssembly Debugging
 
+Does not work for the extension, only the local api server.
 [C/C++ DevTools Support (DWARF)] Failed to load debug symbols for chrome-extension://jdmjpehgmiafdnhmoambipgghlodiagm/dist/tucant-yew-c6bc98f3c4dab7fd_bg.wasm (TypeError: Failed to fetch)
 https://issues.chromium.org/issues/368997509
 
