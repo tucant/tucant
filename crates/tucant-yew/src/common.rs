@@ -33,7 +33,7 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
         let current_session_handle = current_session_handle.clone();
         let tucan = tucan.clone();
         use_effect_with((request.to_owned(), current_session_handle.clone()), move |(request, current_session_handle)| {
-            if (**current_session_handle).is_none() {
+            if authentication_required && (**current_session_handle).is_none() {
                 data.set(Err("Not logged in".to_owned()));
                 return;
             }
@@ -83,7 +83,7 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
         let loading = loading.clone();
         let tucan = tucan.clone();
         Callback::from(move |_e: MouseEvent| {
-            if (*current_session_handle).is_none() {
+            if authentication_required && (*current_session_handle).is_none() {
                 data.set(Err("Not logged in".to_owned()));
                 return;
             }
