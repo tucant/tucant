@@ -51,7 +51,7 @@ cargo +nightly-2025-04-02 fmt
 ```bash
 cd crates/tucant-yew/
 mkdir ../../tucant-extension/dist
-trunk serve --features api --release
+trunk serve --features api
 
 # in second tab
 bacon tucant-api
@@ -122,6 +122,45 @@ TUCAN_USERNAME=
 TUCAN_PASSWORD=
 SESSION_ID=
 SESSION_KEY=
+```
+
+## Debugging
+
+https://developer.chrome.com/blog/wasm-debugging-2020
+
+DevTools Experiments -> WebAssembly Debugging
+
+Does not work for the extension, only the local api server.
+[C/C++ DevTools Support (DWARF)] Failed to load debug symbols for chrome-extension://jdmjpehgmiafdnhmoambipgghlodiagm/dist/tucant-yew-c6bc98f3c4dab7fd_bg.wasm (TypeError: Failed to fetch)
+
+https://github.com/ChromeDevTools/devtools-frontend/blob/main/extensions/cxx_debugging/src/manifest.json.in
+
+https://chromium.googlesource.com/devtools/devtools-frontend/+/main/docs/get_the_code.md
+
+```
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=~/Documents/depot_tools/:$PATH
+mkdir devtools
+cd devtools
+fetch devtools-frontend
+nano .gclient
+solutions = [
+ {
+   "name"        : "devtools-frontend",
+   "url"         : "https://chromium.googlesource.com/devtools/devtools-frontend",
+   "deps_file"   : "DEPS",
+   "managed"     : True,
+   "custom_deps" : {
+   },
+   "custom_vars": {
+     "checkout_cxx_debugging_extension_deps": True
+   },
+ }
+]
+gclient sync
+cd devtools-frontend/extensions/cxx_debugging
+./tools/bootstrap.py -debug ../../out
+ls ../../out/DevTools_CXX_Debugging.stage2/src/
 ```
 
 ## Coverage

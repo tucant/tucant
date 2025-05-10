@@ -148,12 +148,12 @@ pub async fn registration_endpoint(jar: CookieJar, Path(registration): Path<Stri
 pub async fn vv_endpoint(jar: CookieJar, Path(vv): Path<String>, revalidation_strategy: RevalidationStrategyW) -> Result<impl IntoResponse, TucanError> {
     let tucan = TucanConnector::new().await?;
 
-    let login_response: LoginResponse = LoginResponse {
-        id: jar.get("id").unwrap().value().parse().unwrap(),
-        cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
+    let login_response = match (jar.get("id"), jar.get("cnsc")) {
+        (Some(id), Some(cnsc)) => Some(LoginResponse { id: id.value().parse().unwrap(), cookie_cnsc: cnsc.value().to_owned() }),
+        _ => None,
     };
 
-    let response = tucan.vv(Some(&login_response), revalidation_strategy.0, ActionRequest::parse(&vv)).await?;
+    let response = tucan.vv(login_response.as_ref(), revalidation_strategy.0, ActionRequest::parse(&vv)).await?;
 
     Ok((StatusCode::OK, Json(response)).into_response())
 }

@@ -2,7 +2,7 @@ use tucant_types::{Tucan, vv::ActionRequest};
 use yew::{Html, Properties, function_component};
 use yew_router::prelude::Link;
 
-use crate::{RcTucanType, Route, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
 
 #[derive(Properties, PartialEq)]
 pub struct VorlesungsverzeichnisProps {
@@ -11,9 +11,9 @@ pub struct VorlesungsverzeichnisProps {
 
 #[function_component(VorlesungsverzeichnisComponent)]
 pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisProps { vv }: &VorlesungsverzeichnisProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.vv(Some(&current_session), revalidation_strategy, additional).await;
+    let handler = async |tucan: RcTucanType<TucanType>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.0.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
-    use_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+    use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         ::yew::html! {
             <div class="container">
                 <h2 class="text-center">
