@@ -1,10 +1,7 @@
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 use yew::{Html, Properties, function_component};
 
-use crate::{
-    RcTucanType,
-    common::{use_authenticated_data_loader, use_data_loader},
-};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[derive(Properties, PartialEq)]
 pub struct ModuleDetailsProps {

@@ -1,10 +1,7 @@
 use tucant_types::Tucan;
 use yew::{Html, function_component};
 
-use crate::{
-    RcTucanType,
-    common::{use_authenticated_data_loader, use_data_loader},
-};
+use crate::{RcTucanType, common::use_authenticated_data_loader};
 
 #[function_component(MyDocuments)]
 pub fn my_documents<TucanType: Tucan + 'static>() -> Html {

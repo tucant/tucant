@@ -2,10 +2,7 @@ use tucant_types::{Tucan, mlsstart::MlsStart};
 use yew::{Html, function_component};
 use yew_router::prelude::Link;
 
-use crate::{
-    RcTucanType, Route,
-    common::{use_authenticated_data_loader, use_data_loader},
-};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[function_component(Mlsstart)]
 pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {

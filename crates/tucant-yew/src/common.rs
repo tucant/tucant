@@ -10,11 +10,16 @@ use yew::{platform::spawn_local, use_effect_with, use_state};
 
 #[hook]
 pub fn use_authenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
-    use_data_loader(async move |tucan: RcTucanType<TucanType>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
+    use_data_loader(true, async move |tucan: RcTucanType<TucanType>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
 #[hook]
-pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+pub fn use_unauthenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+    use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
+}
+
+#[hook]
+fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
     use reqwest::StatusCode;
 
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
@@ -74,40 +79,36 @@ pub fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'stati
         let loading = loading.clone();
         let tucan = tucan.clone();
         Callback::from(move |_e: MouseEvent| {
-            if let Some(current_session) = (*current_session_handle).to_owned() {
-                loading.set(true);
-                let course_details = course_details.clone();
-                let data = data.clone();
-                let tucan = tucan.clone();
-                let loading = loading.clone();
-                let current_session_handle = current_session_handle.clone();
-                spawn_local(async move {
-                    match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                            loading.set(false);
-                        }
-                        Err(error) => {
-                            log::error!("{}", error);
-                            match error {
-                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                                    current_session_handle.set(None);
-                                    data.set(Err("Unauthorized".to_owned()))
-                                }
-                                TucanError::Timeout | TucanError::AccessDenied => {
-                                    current_session_handle.set(None);
-                                }
-                                _ => {
-                                    data.set(Err(error.to_string()));
-                                }
-                            }
-                            loading.set(false);
-                        }
+            loading.set(true);
+            let course_details = course_details.clone();
+            let data = data.clone();
+            let tucan = tucan.clone();
+            let loading = loading.clone();
+            let current_session_handle = current_session_handle.clone();
+            spawn_local(async move {
+                match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: 0, invalidate_dependents: Some(true) }, course_details.clone()).await {
+                    Ok(response) => {
+                        data.set(Ok(Some(response)));
+                        loading.set(false);
                     }
-                })
-            } else {
-                data.set(Err("Not logged in".to_owned()));
-            }
+                    Err(error) => {
+                        log::error!("{}", error);
+                        match error {
+                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                current_session_handle.set(None);
+                                data.set(Err("Unauthorized".to_owned()))
+                            }
+                            TucanError::Timeout | TucanError::AccessDenied => {
+                                current_session_handle.set(None);
+                            }
+                            _ => {
+                                data.set(Err(error.to_string()));
+                            }
+                        }
+                        loading.set(false);
+                    }
+                }
+            })
         })
     };
 

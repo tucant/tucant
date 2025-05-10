@@ -1,7 +1,4 @@
-use crate::{
-    RcTucanType, Route,
-    common::{use_authenticated_data_loader, use_data_loader},
-};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 use tucant_types::{
     LoginResponse, Tucan,
     student_result::{StudentResultLevel, StudentResultResponse},
