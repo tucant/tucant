@@ -2,6 +2,7 @@ trunk-version = "^0.21.6"
 
 [build]
 target = "./index.html"
+minify = "never"
 
 [watch]
 watch = ["../../tucant-extension", "../tucant-yew", "../tucan-connector", "../tucant-types", "../tucant-api/src", "../tucant-api/Cargo.toml", "../key-value-database"]
