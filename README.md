@@ -51,7 +51,7 @@ cargo +nightly-2025-04-02 fmt
 ```bash
 cd crates/tucant-yew/
 mkdir ../../tucant-extension/dist
-trunk serve --features api --release
+trunk serve --features api
 
 # in second tab
 bacon tucant-api
@@ -123,6 +123,15 @@ TUCAN_PASSWORD=
 SESSION_ID=
 SESSION_KEY=
 ```
+
+## Debugging
+
+https://developer.chrome.com/blog/wasm-debugging-2020
+
+DevTools Experiments -> WebAssembly Debugging
+
+[C/C++ DevTools Support (DWARF)] Failed to load debug symbols for chrome-extension://jdmjpehgmiafdnhmoambipgghlodiagm/dist/tucant-yew-c6bc98f3c4dab7fd_bg.wasm (TypeError: Failed to fetch)
+https://issues.chromium.org/issues/368997509
 
 ## Coverage
 
