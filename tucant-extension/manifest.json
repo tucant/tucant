@@ -85,6 +85,14 @@
             "matches": [
                 "<all_urls>"
             ]
+        },
+        {
+            "resources": [
+                "dist/*.wasm"
+            ],
+            "extension_ids": [
+                "*"
+            ]
         }
     ],
     "content_security_policy": {

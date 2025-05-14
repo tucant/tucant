@@ -5,7 +5,7 @@ use web_sys::HtmlSelectElement;
 use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
 use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{RcTucanType, Route, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
 #[derive(Properties, PartialEq)]
 pub struct MyCoursesProps {
@@ -18,7 +18,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
 
     let navigator = use_navigator().unwrap();
 
-    use_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyCoursesResponse, reload| {
+    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyCoursesResponse, reload| {
         let on_semester_change = {
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {

@@ -1,6 +1,6 @@
-use crate::{RcTucanType, Route, common::use_data_loader};
+use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 use tucant_types::{
-    Tucan,
+    LoginResponse, Tucan,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 use web_sys::HtmlSelectElement;
@@ -18,7 +18,7 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
 
     let navigator = use_navigator().unwrap();
 
-    use_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
+    use_authenticated_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         let on_course_of_study_change = {
             let navigator = navigator.clone();
             Callback::from(move |e: Event| {

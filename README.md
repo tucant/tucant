@@ -51,7 +51,7 @@ cargo +nightly-2025-04-02 fmt
 ```bash
 cd crates/tucant-yew/
 mkdir ../../tucant-extension/dist
-trunk serve --features api --release
+trunk serve --features api
 
 # in second tab
 bacon tucant-api
@@ -123,6 +123,10 @@ TUCAN_PASSWORD=
 SESSION_ID=
 SESSION_KEY=
 ```
+
+## Debugging
+
+https://chromewebstore.google.com/detail/cc++-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb
 
 ## Coverage
 
