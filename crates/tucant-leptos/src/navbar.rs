@@ -1,54 +1,13 @@
-use std::ops::Deref;
-
+use leptos::prelude::*;
 use log::error;
-use reqwest::StatusCode;
+use std::ops::Deref;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
-use wasm_bindgen_futures::spawn_local;
-use yew::{Html, UseStateHandle, function_component, use_context, use_effect_with, use_state};
 
-use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
+use crate::navbar_logged_out::NavbarLoggedOut;
 
-#[function_component(Navbar)]
-pub fn navbar<TucanType: Tucan + 'static>() -> Html {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-
-    let data = use_state(|| Ok(None));
-
-    {
-        let data = data.clone();
-        use_effect_with(current_session_handle.clone(), move |current_session_handle| {
-            if let Some(current_session) = (&**current_session_handle).to_owned() {
-                let current_session_handle = current_session_handle.clone();
-                spawn_local(async move {
-                    match tucan.0.after_login(&current_session, RevalidationStrategy::cache()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
-                        }
-                        Err(error) => {
-                            // TODO pass through tucanerror from server
-                            error!("{}", error);
-                            match error {
-                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                                    current_session_handle.set(None);
-                                    data.set(Err("Unauthorized".to_owned()))
-                                }
-                                TucanError::Timeout | TucanError::AccessDenied => {
-                                    current_session_handle.set(None);
-                                }
-                                _ => {
-                                    data.set(Err(error.to_string()));
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-        });
-    }
-
-    ::yew::html! {
+#[component]
+pub fn Navbar() -> impl IntoView {
+    view! {
         <>
             <nav class="navbar navbar-expand-xl bg-body-tertiary">
                 <div class="container-fluid">
@@ -60,23 +19,23 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-xl-0">
-                            if let Some(current_session) = &*current_session_handle {
+                            /*if let Some(current_session) = &*current_session_handle {
                                 if let Ok(data) = &*data {
                                     <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />
                                 }
-                            } else {
+                            } else {*/
                                 <NavbarLoggedOut />
-                            }
+                            //}
                         </ul>
-                        if !current_session_handle.is_some() {
+                        /*if !current_session_handle.is_some() {
                             <LoginComponent<TucanType> />
                         } else {
                             <LogoutComponent<TucanType> />
-                        }
+                        }*/
                     </div>
                 </div>
             </nav>
-            {
+            /*{
                 match data.deref() {
                     Ok(_data) => yew::html! {},
                     Err(error) => {
@@ -99,6 +58,7 @@ pub fn navbar<TucanType: Tucan + 'static>() -> Html {
                         }
                     }
                 }
-            }</>
+            }*/
+            </>
     }
 }
