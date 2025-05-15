@@ -6,6 +6,7 @@ use leptos_router::{
     path,
 };
 use log::Level;
+use navbar_logged_out::NavbarLoggedOut;
 
 #[component]
 fn App() -> impl IntoView {
@@ -14,9 +15,8 @@ fn App() -> impl IntoView {
     view! {
         <Router>
             <Routes fallback=|| "Not found.">
-                <Route path=path!("/") view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path=path!("/") view=NavbarLoggedOut />
                 <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> }/>
-                <Route path=path!("/users/:id") view=|| view! { <h1>"Not Found"</h1> }/>
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
         </Router>
