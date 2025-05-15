@@ -3760,7 +3760,10 @@ dependencies = [
 name = "tucant-leptos"
 version = "0.1.2"
 dependencies = [
+ "console_error_panic_hook",
+ "console_log",
  "leptos",
+ "log",
 ]
 
 [[package]]
