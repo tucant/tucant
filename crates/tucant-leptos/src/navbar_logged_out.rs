@@ -19,7 +19,7 @@ pub fn NavbarLoggedOut() -> impl IntoView {
                     <li>
                         <a href=format!("/vv{}",
                             ActionRequest::parse("-AN07PBvMn59bWIkwI5kPIrV6ttS-nQO52gY48WnmIDWTv9PQsRceJIEekBMsiG7XrGxJxL6WmWMRCgv6ZdqcqJvgDTJ41d1yHBN12FkxT2-2R1XLasNa7As0AF4mdh2AohuT~wrzHUbQsFAkJJF23tlDnGaVBwg3B7S2UW-GrR0DSb24IOCR8EhR1~A__")
-                        ) class=("test", move || true)>
+                        ) class="dropdown-item bg-success-subtle">
                             { "Vorlesungsverzeichnis" }
                         </a>
                     </li>
