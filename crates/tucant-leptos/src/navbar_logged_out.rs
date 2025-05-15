@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use leptos_router::components::A;
 use tucant_types::vv::ActionRequest;
 
 #[component]
@@ -16,9 +17,9 @@ pub fn NavbarLoggedOut() -> impl IntoView {
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a href={Route::Vorlesungsverzeichnis {
-                            vv: ActionRequest::parse("-AN07PBvMn59bWIkwI5kPIrV6ttS-nQO52gY48WnmIDWTv9PQsRceJIEekBMsiG7XrGxJxL6WmWMRCgv6ZdqcqJvgDTJ41d1yHBN12FkxT2-2R1XLasNa7As0AF4mdh2AohuT~wrzHUbQsFAkJJF23tlDnGaVBwg3B7S2UW-GrR0DSb24IOCR8EhR1~A__")
-                        }} classes={classes!("dropdown-item", "bg-success-subtle")}>
+                        <a href=format!("/vv{}",
+                            ActionRequest::parse("-AN07PBvMn59bWIkwI5kPIrV6ttS-nQO52gY48WnmIDWTv9PQsRceJIEekBMsiG7XrGxJxL6WmWMRCgv6ZdqcqJvgDTJ41d1yHBN12FkxT2-2R1XLasNa7As0AF4mdh2AohuT~wrzHUbQsFAkJJF23tlDnGaVBwg3B7S2UW-GrR0DSb24IOCR8EhR1~A__")
+                        ) class=("test", move || true)>
                             { "Vorlesungsverzeichnis" }
                         </a>
                     </li>
