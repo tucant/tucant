@@ -1,0 +1,12 @@
+[package]
+name = "tucant-leptos"
+license.workspace = true
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+leptos = { version = "0.8.2", features = ["csr"] }
+
+[lints]
+workspace = true
