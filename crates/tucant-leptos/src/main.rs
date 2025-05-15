@@ -1,4 +1,10 @@
+pub mod navbar_logged_out;
+
 use leptos::prelude::*;
+use leptos_router::{
+    components::{Route, Router, Routes},
+    path,
+};
 use log::Level;
 
 #[component]
@@ -6,10 +12,14 @@ fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
 
     view! {
-        <button on:click=move |_| {
-            *set_count.write() += 1;
-        }>"Click me: " {count}</button>
-        <p>"Double count: " {move || count.get() * 2}</p>
+        <Router>
+            <Routes fallback=|| "Not found.">
+                <Route path=path!("/") view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path=path!("/users/:id") view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> }/>
+            </Routes>
+        </Router>
     }
 }
 

@@ -10,6 +10,8 @@ console_error_panic_hook = "0.1.7"
 leptos = { version = "0.8.2", features = ["csr"] }
 console_log = { version = "1", features = ["color"] }
 log = "0.4.27"
+tucant-types = { path = "../tucant-types" }
+leptos_router = "0.8.2"
 
 [lints]
 workspace = true

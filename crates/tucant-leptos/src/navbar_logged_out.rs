@@ -1,12 +1,9 @@
+use leptos::prelude::*;
 use tucant_types::vv::ActionRequest;
-use yew::{Html, classes, function_component};
-use yew_router::prelude::Link;
 
-use crate::Route;
-
-#[function_component(NavbarLoggedOut)]
-pub fn navbar_logged_out() -> Html {
-    ::yew::html! {
+#[component]
+pub fn NavbarLoggedOut() -> impl IntoView {
+    view! {
         <>
             <li class="nav-item">
                 <a class="nav-link" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome">
@@ -19,11 +16,11 @@ pub fn navbar_logged_out() -> Html {
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={Route::Vorlesungsverzeichnis {
+                        <a href={Route::Vorlesungsverzeichnis {
                             vv: ActionRequest::parse("-AN07PBvMn59bWIkwI5kPIrV6ttS-nQO52gY48WnmIDWTv9PQsRceJIEekBMsiG7XrGxJxL6WmWMRCgv6ZdqcqJvgDTJ41d1yHBN12FkxT2-2R1XLasNa7As0AF4mdh2AohuT~wrzHUbQsFAkJJF23tlDnGaVBwg3B7S2UW-GrR0DSb24IOCR8EhR1~A__")
                         }} classes={classes!("dropdown-item", "bg-success-subtle")}>
                             { "Vorlesungsverzeichnis" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
