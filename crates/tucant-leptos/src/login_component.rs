@@ -41,15 +41,38 @@ pub fn LoginComponent() -> impl IntoView {
     });
 
     view! {
-        <form on:submit=move |ev| {
-            ev.prevent_default();
-            let username = username_ref.get().unwrap();
-            let password = password_ref.get().unwrap();
-            add_todo_action.dispatch((username.value(), password.value()));
-        } class="d-flex">
-            <input node_ref=username_ref id="login-username" required=true class="form-control me-2" type="username" placeholder="TU-ID" aria-label="TU-ID" autocomplete="current-username" />
-            <input node_ref=password_ref id="login-password" required=true class="form-control me-2" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" />
-            <button class="btn btn-outline-success" type="submit" id="login-button">{ "Login" }</button>
+        <form
+            on:submit=move |ev| {
+                ev.prevent_default();
+                let username = username_ref.get().unwrap();
+                let password = password_ref.get().unwrap();
+                add_todo_action.dispatch((username.value(), password.value()));
+            }
+            class="d-flex"
+        >
+            <input
+                node_ref=username_ref
+                id="login-username"
+                required=true
+                class="form-control me-2"
+                type="username"
+                placeholder="TU-ID"
+                aria-label="TU-ID"
+                autocomplete="current-username"
+            />
+            <input
+                node_ref=password_ref
+                id="login-password"
+                required=true
+                class="form-control me-2"
+                type="password"
+                placeholder="Password"
+                aria-label="Password"
+                autocomplete="current-password"
+            />
+            <button class="btn btn-outline-success" type="submit" id="login-button">
+                {"Login"}
+            </button>
         </form>
     }
 }

@@ -23,8 +23,8 @@ fn App() -> impl IntoView {
         <Router>
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=Navbar />
-                <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> }/>
-                <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> } />
+                <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
         </Router>
     }
