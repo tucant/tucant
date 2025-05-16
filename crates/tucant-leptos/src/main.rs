@@ -1,8 +1,10 @@
+pub mod api_server;
 pub mod login_component;
 pub mod navbar;
 pub mod navbar_logged_out;
 pub mod rc_tucan_type;
 
+use api_server::ApiServerTucan;
 use leptos::prelude::*;
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -15,6 +17,7 @@ use navbar_logged_out::NavbarLoggedOut;
 #[component]
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
+    provide_context(ApiServerTucan::new());
 
     view! {
         <Router>
