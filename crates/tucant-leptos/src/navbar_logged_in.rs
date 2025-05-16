@@ -11,20 +11,27 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
                 .map(|(name, url)| {
                     view! {
                         <li>
-                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
-                                { name }
-                                if data.is_none() {
-                                    { " " }
-                                    <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                    <span class="visually-hidden" role="status">
-                                        { "Loading..." }
-                                    </span>
+                            <a
+                                href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
+                                name
+                                {
+                                    if data.is_none() {
+                                        view! {
+                                                " "
+                                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
+                                            <span class="visually-hidden" role="status">
+                                                { "Loading..." }
+                                            </span>
+                                        }.into_any()
+                                    } else {
+                                        view! {}.into_any()
+                                    }
                                 }
-                            </Link<Route>>
+                            </a>
                         </li>
                     }
                 })
-                .collect::<Html>()
+                .collect::<Vec<_>>()
         }
     }
 }
