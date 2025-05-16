@@ -88,7 +88,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
+                        <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
                             loading
                         </a>
@@ -155,19 +155,19 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Semestermodule" }
-                        </Link<Route>>
+                        <a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Module" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Veranstaltungen" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session.id)}>
@@ -175,9 +175,9 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item bg-success-subtle">
                             { "Anmeldung" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000", current_session.id)}>
@@ -200,9 +200,9 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Prüfungen" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,", current_session.id)}>
@@ -220,19 +220,19 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Modulergebnisse" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Prüfungsergebnisse" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item bg-success-subtle">
                             { "Leistungsspiegel" }
-                        </Link<Route>>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -255,9 +255,9 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
@@ -288,9 +288,9 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         loading
                     </a>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
-                        </Link<Route>>
+                        </a>
                     </li>
                 </ul>
             </li>
