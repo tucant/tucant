@@ -37,7 +37,7 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
 }
 
 #[component]
-pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
+pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
     let loading = if data.is_none() {
         view! {
                 " "
