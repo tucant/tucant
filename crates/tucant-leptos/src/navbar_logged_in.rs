@@ -38,6 +38,18 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
 
 #[component]
 pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
+    let loading = if data.is_none() {
+        view! {
+                " "
+            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
+            <span class="visually-hidden" role="status">
+                { "Loading..." }
+            </span>
+        }
+        .into_any()
+    } else {
+        view! {}.into_any()
+    };
     view! {
         <>
             <li class="nav-item dropdown">
@@ -46,23 +58,17 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={Route::Overview} classes="dropdown-item bg-success-subtle">
+                        <a href="/overview" class="dropdown-item bg-success-subtle">
                             { "Aktuelles" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
+                        <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
+                            loading
                         </a>
                     </li>
                 </ul>
@@ -73,16 +79,10 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
+                        <a href=data.as_ref().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
                             { "Vorlesungsverzeichnis" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
-                        </Link<Route>>
+                            loading
+                        </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
@@ -90,13 +90,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                     <li>
                         <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
+                            loading
                         </a>
                     </li>
                     <li>
@@ -267,13 +261,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                     </li>
                     <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
-                        if data.is_none() {
-                            { " " }
-                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                            <span class="visually-hidden" role="status">
-                                { "Loading..." }
-                            </span>
-                        }
+                        loading
                     </a>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -297,13 +285,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                     </li>
                     <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
-                        if data.is_none() {
-                            { " " }
-                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                            <span class="visually-hidden" role="status">
-                                { "Loading..." }
-                            </span>
-                        }
+                        loading
                     </a>
                     <li>
                         <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
