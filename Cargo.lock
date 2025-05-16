@@ -3465,7 +3465,10 @@ dependencies = [
  "leptos",
  "leptos_router",
  "log",
+ "reqwest",
+ "serde_json",
  "tucant-types",
+ "url",
 ]
 
 [[package]]
