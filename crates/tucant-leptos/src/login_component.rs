@@ -1,12 +1,12 @@
 use std::{marker::PhantomData, sync::Arc};
 
 use leptos::{html::Input, prelude::*};
-use tucant_types::{LoginRequest, Tucan};
+use tucant_types::{LoginRequest, LoginResponse, Tucan};
 
 use crate::{api_server::ApiServerTucan, rc_tucan_type::RcTucanType};
 
 #[component]
-pub fn LoginComponent() -> impl IntoView {
+pub fn LoginComponent(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView {
     let username_ref = NodeRef::<Input>::new();
     let password_ref = NodeRef::<Input>::new();
     let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
@@ -36,7 +36,7 @@ pub fn LoginComponent() -> impl IntoView {
                 })
                 .await;
 
-            response
+            set_session.set(Some(response));
         }
     });
 

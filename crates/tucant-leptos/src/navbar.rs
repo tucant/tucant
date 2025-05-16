@@ -6,7 +6,7 @@ use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use crate::{login_component::LoginComponent, navbar_logged_out::NavbarLoggedOut};
 
 #[component]
-pub fn Navbar() -> impl IntoView {
+pub fn Navbar(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView {
     view! {
         <>
             <nav class="navbar navbar-expand-xl bg-body-tertiary">

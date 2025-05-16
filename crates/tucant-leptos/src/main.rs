@@ -16,16 +16,19 @@ use leptos_router::{
 use log::Level;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
+use tucant_types::LoginResponse;
 
 #[component]
 fn App() -> impl IntoView {
-    let (count, set_count) = signal(0);
     provide_context(Arc::new(ApiServerTucan::new()));
+
+    let (session, set_session) = signal(None::<LoginResponse>);
+    provide_context(session);
 
     view! {
         <Router>
             <Routes fallback=|| "Not found.">
-                <Route path=path!("/") view=Navbar />
+                <Route path=path!("/") view=move || view! { <Navbar set_session=set_session /> } />
                 <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
