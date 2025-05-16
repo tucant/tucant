@@ -1,22 +1,15 @@
-use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
-use yew::{Html, Properties, classes, function_component};
-use yew_router::prelude::Link;
-
 use crate::Route;
+use leptos::prelude::*;
+use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
 
-#[derive(Properties, PartialEq)]
-pub struct VorlesungsverzeichnisseProps {
-    pub data: Option<MlsStart>,
-}
-
-#[function_component(Vorlesungsverzeichnisse)]
-pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
-    ::yew::html! {
+#[component]
+pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
+    view! {
         {
             data.iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    ::yew::html! {
+                    view! {
                         <li>
                             <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
                                 { name }
@@ -36,15 +29,9 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
     }
 }
 
-#[derive(Properties, PartialEq)]
-pub struct NavbarLoggedInProps {
-    pub current_session: LoginResponse,
-    pub data: Option<MlsStart>,
-}
-
-#[function_component(NavbarLoggedIn)]
-pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLoggedInProps) -> Html {
-    ::yew::html! {
+#[component]
+pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
+    view! {
         <>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
