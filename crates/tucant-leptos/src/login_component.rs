@@ -11,7 +11,7 @@ pub fn LoginComponent() -> impl IntoView {
     let password_ref = NodeRef::<Input>::new();
     let tucan = use_context::<ReadSignal<Arc<ApiServerTucan>>>().unwrap();
 
-    let add_todo_action = Action::new(move |(username, password): &(String, String)| {
+    let add_todo_action = Action::new_local(move |(username, password): &(String, String)| {
         let username = username.to_owned();
         let password = password.to_owned();
         async move {

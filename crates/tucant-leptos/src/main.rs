@@ -4,6 +4,8 @@ pub mod navbar;
 pub mod navbar_logged_out;
 pub mod rc_tucan_type;
 
+use std::sync::Arc;
+
 use api_server::ApiServerTucan;
 use leptos::prelude::*;
 use leptos_router::{
@@ -17,7 +19,7 @@ use navbar_logged_out::NavbarLoggedOut;
 #[component]
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
-    provide_context(ApiServerTucan::new());
+    provide_context(Arc::new(ApiServerTucan::new()));
 
     view! {
         <Router>
