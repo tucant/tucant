@@ -51,7 +51,6 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
         view! {}.into_any()
     };
     view! {
-        <>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     { "Aktuelles" }
@@ -157,7 +156,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                     <li>
                         <a to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
                             { "Meine Semestermodule" }
-                        <a>
+                        </a>
                     </li>
                     <li>
                         <a to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
@@ -298,6 +297,6 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                 <a class="nav-link" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session.id)}>
                     { "Hilfe" }
                 </a>
-            </li></>
+            </li>
     }
 }
