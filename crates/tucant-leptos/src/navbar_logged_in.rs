@@ -37,8 +37,8 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
 }
 
 #[component]
-pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
-    let loading = if data.is_none() {
+fn MaybeLoading(data: Option<MlsStart>) -> impl IntoView {
+    if data.is_none() {
         view! {
                 " "
             <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
@@ -49,7 +49,11 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
         .into_any()
     } else {
         view! {}.into_any()
-    };
+    }
+}
+
+#[component]
+pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
     view! {
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -67,7 +71,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     <li>
                         <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
-                            loading
+                            <MaybeLoading data=data.clone() />
                         </a>
                     </li>
                 </ul>
@@ -80,7 +84,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     <li>
                         <a href=data.as_ref().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
                             { "Vorlesungsverzeichnis" }
-                            loading
+                            <MaybeLoading data=data.clone() />
                         </a>
                     </li>
                     <li>
@@ -89,7 +93,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     <li>
                         <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
-                            loading
+                            <MaybeLoading data=data.clone() />
                         </a>
                     </li>
                     <li>
@@ -260,7 +264,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     </li>
                     <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
-                        loading
+                        <MaybeLoading data=data.clone() />
                     </a>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -284,7 +288,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     </li>
                     <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
-                        loading
+                        <MaybeLoading data=data.clone() />
                     </a>
                     <li>
                         <a href="/my-documents" class="dropdown-item bg-success-subtle">
