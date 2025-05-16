@@ -3,7 +3,7 @@ use log::error;
 use std::ops::Deref;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
-use crate::navbar_logged_out::NavbarLoggedOut;
+use crate::{login_component::LoginComponent, navbar_logged_out::NavbarLoggedOut};
 
 #[component]
 pub fn Navbar() -> impl IntoView {
@@ -27,8 +27,9 @@ pub fn Navbar() -> impl IntoView {
                                 <NavbarLoggedOut />
                             //}
                         </ul>
+                        <LoginComponent />
                         /*if !current_session_handle.is_some() {
-                            <LoginComponent<TucanType> />
+
                         } else {
                             <LogoutComponent<TucanType> />
                         }*/
