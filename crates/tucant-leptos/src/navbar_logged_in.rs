@@ -154,17 +154,17 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-semester-modules/current" class="dropdown-item bg-success-subtle">
                             { "Meine Semestermodule" }
                         </a>
                     </li>
                     <li>
-                        <a to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-modules/current" class="dropdown-item bg-success-subtle">
                             { "Meine Module" }
                         </a>
                     </li>
                     <li>
-                        <a to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-courses/current" class="dropdown-item bg-success-subtle">
                             { "Meine Veranstaltungen" }
                         </a>
                     </li>
@@ -174,7 +174,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <a to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/registration/" class="dropdown-item bg-success-subtle">
                             { "Anmeldung" }
                         </a>
                     </li>
@@ -199,7 +199,7 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-exams/current" class="dropdown-item bg-success-subtle">
                             { "Meine Prüfungen" }
                         </a>
                     </li>
@@ -219,17 +219,17 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <a to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/course-results/current" class="dropdown-item bg-success-subtle">
                             { "Modulergebnisse" }
                         </a>
                     </li>
                     <li>
-                        <a to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/exam-results/current" class="dropdown-item bg-success-subtle">
                             { "Prüfungsergebnisse" }
                         </a>
                     </li>
                     <li>
-                        <a to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/student-result/default" class="dropdown-item bg-success-subtle">
                             { "Leistungsspiegel" }
                         </a>
                     </li>
@@ -254,11 +254,11 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                         </a>
                     </li>
                     <li>
-                        <a to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-documents" class="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
                         </a>
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
+                    <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
                         loading
                     </a>
@@ -282,12 +282,12 @@ pub fn navbar_logged_in(current_session: LoginResponse, data: Option<MlsStart>) 
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
+                    <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
                         loading
                     </a>
                     <li>
-                        <a to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-documents" class="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
                         </a>
                     </li>
