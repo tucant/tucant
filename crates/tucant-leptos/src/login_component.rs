@@ -9,13 +9,13 @@ use crate::{api_server::ApiServerTucan, rc_tucan_type::RcTucanType};
 pub fn LoginComponent() -> impl IntoView {
     let username_ref = NodeRef::<Input>::new();
     let password_ref = NodeRef::<Input>::new();
-    let tucan = use_context::<ReadSignal<Arc<ApiServerTucan>>>().unwrap();
+    let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
 
     let add_todo_action = Action::new_local(move |(username, password): &(String, String)| {
         let username = username.to_owned();
         let password = password.to_owned();
+        let tucan = tucan.clone();
         async move {
-            let tucan = tucan.read().clone();
             let response = tucan.login(LoginRequest { username, password }).await.unwrap();
 
             #[cfg(feature = "direct")]
