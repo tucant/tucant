@@ -14,19 +14,7 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
                             <a
                                 href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
                                 name
-                                {
-                                    if data.is_none() {
-                                        view! {
-                                                " "
-                                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                            <span class="visually-hidden" role="status">
-                                                { "Loading..." }
-                                            </span>
-                                        }.into_any()
-                                    } else {
-                                        view! {}.into_any()
-                                    }
-                                }
+                                <MaybeLoading data=data.clone() />
                             </a>
                         </li>
                     }
