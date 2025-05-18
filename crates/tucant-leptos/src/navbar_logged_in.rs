@@ -6,18 +6,18 @@ use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, mlsstart::MlsStart, registration::AnmeldungRequest};
 
 #[component]
-pub fn Vorlesungsverzeichnisse(data: Option<Result<MlsStart, String>>) -> impl IntoView {
+pub fn Vorlesungsverzeichnisse(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) -> impl IntoView {
     view! {
         {
-            data.clone().transpose().ok().flatten().iter()
+            data.get().transpose().ok().flatten().iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
                     view! {
                         <li>
                             <a
-                                href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
+                                href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.get().is_none()>
                                 name
-                                <MaybeLoading data=data.clone() />
+                                <MaybeLoading data=Signal::derive(move || data.get()) />
                             </a>
                         </li>
                     }
@@ -45,6 +45,7 @@ fn MaybeLoading(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) ->
     }
 }
 
+#[allow(clippy::too_many_lines, clippy::must_use_candidate)]
 #[component]
 pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_session: LoginResponse) -> impl IntoView {
     let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
@@ -108,7 +109,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     <li>
                         <a href=data.get().transpose().ok().flatten().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.get().transpose().ok().flatten().is_none()>
                             { "Vorlesungsverzeichnis" }
-                            <MaybeLoading data=data.get() />
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
                     </li>
                     <li>
@@ -117,7 +118,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     <li>
                         <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
-                            <MaybeLoading data=data.get() />
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
                     </li>
                     <li>
@@ -288,7 +289,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     </li>
                     <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
-                        <MaybeLoading data=data.get() />
+                        <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -312,7 +313,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     </li>
                     <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
-                        <MaybeLoading data=data.get() />
+                        <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
                     <li>
                         <a href="/my-documents" class="dropdown-item bg-success-subtle">
