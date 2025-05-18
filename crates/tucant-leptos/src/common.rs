@@ -27,38 +27,32 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
     } */
 
     let data = {
-        let current_session = current_session.clone();
-        LocalResource::new(move || {
-            let tucan = tucan.clone();
-            let current_session = current_session.clone();
-            async move {
-                match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
-                    Ok(response) => {
-                        data.set(Ok(Some(response)));
-                        loading.set(false);
+        LocalResource::new(move || async move {
+            match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
+                Ok(response) => {
+                    return Ok(Some(response));
 
-                        match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
-                            Ok(response) => data.set(Ok(Some(response))),
-                            Err(error) => {
-                                info!("ignoring error when refetching: {}", error)
-                            }
+                    /*match handler(tucan.clone(), session.clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
+                        Ok(response) => data.set(Ok(Some(response))),
+                        Err(error) => {
+                            info!("ignoring error when refetching: {}", error)
                         }
-                    }
-                    Err(error) => {
-                        log::error!("{}", error);
-                        match error {
-                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                                current_session_handle.set(None);
-                                data.set(Err("Unauthorized".to_owned()))
-                            }
-                            TucanError::Timeout | TucanError::AccessDenied => {
-                                current_session_handle.set(None);
-                            }
-                            _ => {
-                                data.set(Err(error.to_string()));
-                            }
+                    }*/
+                }
+                Err(error) => {
+                    log::error!("{}", error);
+                    match error {
+                        TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                            //current_session_handle.set(None);
+                            return Err("Unauthorized".to_owned());
                         }
-                        loading.set(false);
+                        TucanError::Timeout | TucanError::AccessDenied => {
+                            //current_session_handle.set(None);
+                            return Err("Unauthorized".to_owned());
+                        }
+                        _ => {
+                            return Err(error.to_string());
+                        }
                     }
                 }
             }
