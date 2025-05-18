@@ -6,10 +6,10 @@ use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, mlsstart::MlsStart, registration::AnmeldungRequest};
 
 #[component]
-pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
+pub fn Vorlesungsverzeichnisse(data: Option<Result<MlsStart, String>>) -> impl IntoView {
     view! {
         {
-            data.iter()
+            data.clone().transpose().ok().flatten().iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
                     view! {
@@ -28,7 +28,7 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
 }
 
 #[component]
-fn MaybeLoading(data: Result<MlsStart>) -> impl IntoView {
+fn MaybeLoading(data: Option<Result<MlsStart, String>>) -> impl IntoView {
     if data.is_none() {
         view! {
                 " "
@@ -47,26 +47,33 @@ fn MaybeLoading(data: Result<MlsStart>) -> impl IntoView {
 pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_session: LoginResponse) -> impl IntoView {
     let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
 
-    let data = LocalResource::new(move || async {
-        match tucan.after_login(&current_session, RevalidationStrategy::cache()).await {
-            Ok(response) => Ok(response),
-            Err(error) => {
-                // TODO pass through tucanerror from server
-                log::error!("{}", error);
-                match error {
-                    TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                        set_session.set(None);
-                        Err("Unauthorized".to_owned())
+    let data = {
+        let current_session = current_session.clone();
+        LocalResource::new(move || {
+            let tucan = tucan.clone();
+            let current_session = current_session.clone();
+            async move {
+                match tucan.after_login(&current_session, RevalidationStrategy::cache()).await {
+                    Ok(response) => Ok(response),
+                    Err(error) => {
+                        // TODO pass through tucanerror from server
+                        log::error!("{}", error);
+                        match error {
+                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                set_session.set(None);
+                                Err("Unauthorized".to_owned())
+                            }
+                            TucanError::Timeout | TucanError::AccessDenied => {
+                                set_session.set(None);
+                                Err("Unauthorized".to_owned())
+                            }
+                            _ => Err(error.to_string()),
+                        }
                     }
-                    TucanError::Timeout | TucanError::AccessDenied => {
-                        set_session.set(None);
-                        Err("Unauthorized".to_owned())
-                    }
-                    _ => Err(error.to_string()),
                 }
             }
-        }
-    });
+        })
+    };
 
     // TODO load the data
     view! {
@@ -84,9 +91,9 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class="dropdown-item" class:disabled=data.get().is_none() href={data.get().as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
+                        <a class="dropdown-item" class:disabled=data.get().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
-                            <MaybeLoading data=data.clone() />
+                            <MaybeLoading data=data.get() />
                         </a>
                     </li>
                 </ul>
@@ -97,18 +104,18 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a href=data.as_ref().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.is_none()>
+                        <a href=data.get().transpose().ok().flatten().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.get().transpose().ok().flatten().is_none()>
                             { "Vorlesungsverzeichnis" }
-                            <MaybeLoading data=data.clone() />
+                            <MaybeLoading data=data.get() />
                         </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
+                        <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
                             { "Lehrveranstaltungssuche" }
-                            <MaybeLoading data=data.clone() />
+                            <MaybeLoading data=data.get() />
                         </a>
                     </li>
                     <li>
@@ -116,7 +123,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                             { "Raumsuche" }
                         </a>
                     </li>
-                    <Vorlesungsverzeichnisse data={data.clone()} />
+                    <Vorlesungsverzeichnisse data={data.get()} />
                     <li>
                         <a class="dropdown-item" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml">
                             { "Archiv" }
@@ -277,9 +284,9 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                             { "Meine Dokumente" }
                         </a>
                     </li>
-                    <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
+                    <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
                         { "Anträge" }
-                        <MaybeLoading data=data.clone() />
+                        <MaybeLoading data=data.get() />
                     </a>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -301,9 +308,9 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
+                    <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
                         { "Meine Bewerbung" }
-                        <MaybeLoading data=data.clone() />
+                        <MaybeLoading data=data.get() />
                     </a>
                     <li>
                         <a href="/my-documents" class="dropdown-item bg-success-subtle">
