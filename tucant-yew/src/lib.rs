@@ -41,56 +41,6 @@ pub mod student_result;
 pub mod tauri;
 pub mod vv;
 
-#[cfg(feature = "direct")]
-pub async fn direct_login_response() -> Option<LoginResponse> {
-    let session_id = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
-            name: "id".to_owned(),
-            partition_key: None,
-            store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-        })
-        .await?
-        .value;
-
-    let cnsc = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
-            name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-            partition_key: None,
-            store_id: None,
-        })
-        .await?
-        .value;
-
-    Some(LoginResponse { id: session_id.parse().unwrap(), cookie_cnsc: cnsc })
-}
-
-#[cfg(feature = "api")]
-pub async fn api_login_response() -> Option<LoginResponse> {
-    use wasm_bindgen::JsCast;
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
-    let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
-    let cookie = html_document.cookie().unwrap();
-
-    Some(LoginResponse {
-        id: cookie::Cookie::split_parse(&cookie)
-            .find_map(|cookie| {
-                let cookie = cookie.unwrap();
-                if cookie.name() == "id" { Some(cookie.value().to_string()) } else { None }
-            })?
-            .parse()
-            .unwrap(),
-        cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
-            let cookie = cookie.unwrap();
-            if cookie.name() == "cnsc" { Some(cookie.value().to_string()) } else { None }
-        })?,
-    })
-}
-
 #[derive(Debug, Clone, PartialEq, Routable)]
 enum Route {
     #[at("/")]
@@ -234,34 +184,4 @@ fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
             }
         }
     }
-}
-
-#[derive(Properties)]
-pub struct AppProps<TucanType: Tucan + 'static> {
-    pub initial_session: Option<LoginResponse>,
-    pub tucan: RcTucanType<TucanType>,
-}
-
-impl<TucanType: Tucan + 'static> PartialEq for AppProps<TucanType> {
-    fn eq(&self, other: &Self) -> bool {
-        self.initial_session == other.initial_session && self.tucan == other.tucan
-    }
-}
-
-#[function_component(App)]
-pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session, tucan }: &AppProps<TucanType>) -> HtmlResult {
-    let ctx = use_state(|| initial_session.clone());
-
-    Ok(html! {
-        <>
-            <ContextProvider<RcTucanType<TucanType>> context={tucan.clone()}>
-                <ContextProvider<UseStateHandle<Option<LoginResponse>>> context={ctx.clone()}>
-                    <HashRouter>
-                        <Navbar<TucanType> />
-                        <Switch<Route> render={switch::<TucanType>} />
-                    </HashRouter>
-                </ContextProvider<UseStateHandle<Option<LoginResponse>>>>
-            </ContextProvider<RcTucanType<TucanType>>>
-        </>
-    })
 }
