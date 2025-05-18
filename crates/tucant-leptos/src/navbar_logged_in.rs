@@ -94,7 +94,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class="dropdown-item" class:disabled=data.get().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
+                        <a class="dropdown-item" class:disabled=move || data.get().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))>
                             { "Nachrichten" }
                             <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
@@ -107,7 +107,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a href=data.get().transpose().ok().flatten().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=data.get().transpose().ok().flatten().is_none()>
+                        <a href=move || data.get().transpose().ok().flatten().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=move || data.get().transpose().ok().flatten().is_none()>
                             { "Vorlesungsverzeichnis" }
                             <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
@@ -116,7 +116,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
+                        <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))>
                             { "Lehrveranstaltungssuche" }
                             <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
@@ -287,7 +287,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                             { "Meine Dokumente" }
                         </a>
                     </li>
-                    <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
+                    <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))>
                         { "Anträge" }
                         <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
@@ -311,7 +311,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <a class="dropdown-item" class:disabled=data.get().transpose().ok().flatten().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
+                    <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))>
                         { "Meine Bewerbung" }
                         <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
