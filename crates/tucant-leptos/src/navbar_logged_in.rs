@@ -1,74 +1,102 @@
-use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
-use yew::{Html, Properties, classes, function_component};
-use yew_router::prelude::Link;
+use std::sync::Arc;
 
-use crate::Route;
+use crate::{Route, api_server::ApiServerTucan};
+use leptos::prelude::*;
+use reqwest::StatusCode;
+use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, mlsstart::MlsStart, registration::AnmeldungRequest};
 
-#[derive(Properties, PartialEq)]
-pub struct VorlesungsverzeichnisseProps {
-    pub data: Option<MlsStart>,
-}
-
-#[function_component(Vorlesungsverzeichnisse)]
-pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
-    ::yew::html! {
-        {
-            data.iter()
+#[component]
+pub fn Vorlesungsverzeichnisse(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) -> impl IntoView {
+    view! {
+         {
+            move ||data.get().transpose().ok().flatten().iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    ::yew::html! {
+                    view! {
                         <li>
-                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
-                                { name }
-                                if data.is_none() {
-                                    { " " }
-                                    <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                    <span class="visually-hidden" role="status">
-                                        { "Loading..." }
-                                    </span>
-                                }
-                            </Link<Route>>
+                            <a
+                                href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.get().is_none()>
+                                {name.clone()}
+                                <MaybeLoading data=Signal::derive(move || data.get()) />
+                            </a>
                         </li>
                     }
                 })
-                .collect::<Html>()
+                .collect::<Vec<_>>()
         }
     }
 }
 
-#[derive(Properties, PartialEq)]
-pub struct NavbarLoggedInProps {
-    pub current_session: LoginResponse,
-    pub data: Option<MlsStart>,
+#[component]
+fn MaybeLoading(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) -> impl IntoView {
+    move || {
+        if data.get().is_none() {
+            view! {
+                    " "
+                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
+                <span class="visually-hidden" role="status">
+                    { "Loading..." }
+                </span>
+            }
+            .into_any()
+        } else {
+            view! {}.into_any()
+        }
+    }
 }
 
-#[function_component(NavbarLoggedIn)]
-pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLoggedInProps) -> Html {
-    ::yew::html! {
-        <>
+#[allow(clippy::too_many_lines, clippy::must_use_candidate)]
+#[component]
+pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_session: LoginResponse) -> impl IntoView {
+    let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
+
+    let data = {
+        let current_session = current_session.clone();
+        LocalResource::new(move || {
+            let tucan = tucan.clone();
+            let current_session = current_session.clone();
+            async move {
+                match tucan.after_login(&current_session, RevalidationStrategy::cache()).await {
+                    Ok(response) => Ok(response),
+                    Err(error) => {
+                        // TODO pass through tucanerror from server
+                        log::error!("{}", error);
+                        match error {
+                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                set_session.set(None);
+                                Err("Unauthorized".to_owned())
+                            }
+                            TucanError::Timeout | TucanError::AccessDenied => {
+                                set_session.set(None);
+                                Err("Unauthorized".to_owned())
+                            }
+                            _ => Err(error.to_string()),
+                        }
+                    }
+                }
+            }
+        })
+    };
+
+    // TODO load the data
+    view! {
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     { "Aktuelles" }
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={Route::Overview} classes="dropdown-item bg-success-subtle">
+                        <a href="/overview" class="dropdown-item bg-success-subtle">
                             { "Aktuelles" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
+                        <a class="dropdown-item" class:disabled=move || data.get().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))>
                             { "Nachrichten" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
                     </li>
                 </ul>
@@ -79,30 +107,18 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
+                        <a href=move || data.get().transpose().ok().flatten().map(|d| format!("/vv/{}", d.logged_in_head.vorlesungsverzeichnis_url)) class="dropdown-item bg-success-subtle" class:disabled=move || data.get().transpose().ok().flatten().is_none()>
                             { "Vorlesungsverzeichnis" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
-                        </Link<Route>>
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
+                        </a>
                     </li>
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
+                        <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))>
                             { "Lehrveranstaltungssuche" }
-                            if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
-                            }
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
                     </li>
                     <li>
@@ -110,7 +126,7 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                             { "Raumsuche" }
                         </a>
                     </li>
-                    <Vorlesungsverzeichnisse data={data.clone()} />
+                    <Vorlesungsverzeichnisse data=Signal::derive(move || data.get()) />
                     <li>
                         <a class="dropdown-item" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml">
                             { "Archiv" }
@@ -167,19 +183,19 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MySemesterModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-semester-modules/current" class="dropdown-item bg-success-subtle">
                             { "Meine Semestermodule" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyModules { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-modules/current" class="dropdown-item bg-success-subtle">
                             { "Meine Module" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyCourses { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-courses/current" class="dropdown-item bg-success-subtle">
                             { "Meine Veranstaltungen" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,", current_session.id)}>
@@ -187,9 +203,9 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::Registration { registration: AnmeldungRequest::default() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/registration/" class="dropdown-item bg-success-subtle">
                             { "Anmeldung" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000", current_session.id)}>
@@ -212,9 +228,9 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyExams { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-exams/current" class="dropdown-item bg-success-subtle">
                             { "Meine Prüfungen" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,", current_session.id)}>
@@ -232,19 +248,19 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::CourseResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/course-results/current" class="dropdown-item bg-success-subtle">
                             { "Modulergebnisse" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::ExamResults { semester: SemesterId::current() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/exam-results/current" class="dropdown-item bg-success-subtle">
                             { "Prüfungsergebnisse" }
-                        </Link<Route>>
+                        </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::StudentResult { course_of_study: "default".to_owned() }} classes="dropdown-item bg-success-subtle">
+                        <a href="/student-result/default" class="dropdown-item bg-success-subtle">
                             { "Leistungsspiegel" }
-                        </Link<Route>>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -267,19 +283,13 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                         </a>
                     </li>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-documents" class="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
-                        </Link<Route>>
+                        </a>
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))}>
+                    <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url))>
                         { "Anträge" }
-                        if data.is_none() {
-                            { " " }
-                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                            <span class="visually-hidden" role="status">
-                                { "Loading..." }
-                            </span>
-                        }
+                        <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
                     <li>
                         <a class="dropdown-item" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,", current_session.id)}>
@@ -301,20 +311,14 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))}>
+                    <a class="dropdown-item" class:disabled=move || data.get().transpose().ok().flatten().is_none() href=move || data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.meine_bewerbung_url))>
                         { "Meine Bewerbung" }
-                        if data.is_none() {
-                            { " " }
-                            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                            <span class="visually-hidden" role="status">
-                                { "Loading..." }
-                            </span>
-                        }
+                        <MaybeLoading data=Signal::derive(move || data.get()) />
                     </a>
                     <li>
-                        <Link<Route> to={Route::MyDocuments} classes="dropdown-item bg-success-subtle">
+                        <a href="/my-documents" class="dropdown-item bg-success-subtle">
                             { "Meine Dokumente" }
-                        </Link<Route>>
+                        </a>
                     </li>
                 </ul>
             </li>
@@ -322,6 +326,6 @@ pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLo
                 <a class="nav-link" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session.id)}>
                     { "Hilfe" }
                 </a>
-            </li></>
+            </li>
     }
 }

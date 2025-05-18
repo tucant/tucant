@@ -21,16 +21,11 @@ yew-router = { git = "https://github.com/mohe2015/yew", branch = "improve-html-m
 wasm-bindgen = "0.2"
 key-value-database = { path = "../key-value-database" }
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement"] }
-cookie = "0.18"
-url = "2"
 console_log = { version = "1", features = ["color"] }
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
-wasm-bindgen-futures = "0.4"
-reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
 tucant-types = { path = "../tucant-types" }
-serde_json = "1"
 yew-autoprops = "0.4.1"
 js-sys = "0.3"
 
