@@ -1,4 +1,5 @@
 pub mod api_server;
+pub mod common;
 pub mod login_component;
 pub mod logout_component;
 pub mod my_modules;

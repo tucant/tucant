@@ -1,48 +1,37 @@
-use crate::RcTucanType;
+use leptos::prelude::*;
 use log::info;
 use std::ops::Deref;
+use std::sync::Arc;
 use tucant_types::Tucan;
 use tucant_types::{LoginResponse, RevalidationStrategy, TucanError};
-use yew::Html;
-use yew::use_context;
-use yew::{Callback, MouseEvent, UseStateHandle, hook};
-use yew::{platform::spawn_local, use_effect_with, use_state};
+use web_sys::MouseEvent;
 
-#[hook]
-pub fn use_authenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
-    use_data_loader(true, async move |tucan: RcTucanType<TucanType>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
+use crate::api_server::ApiServerTucan;
+
+pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView) -> AnyView {
+    use_data_loader(true, async move |tucan: Arc<ApiServerTucan>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-#[hook]
-pub fn use_unauthenticated_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView) -> AnyView {
     use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-#[hook]
-fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(RcTucanType<TucanType>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> Html) -> Html {
+fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView) -> AnyView {
     use reqwest::StatusCode;
 
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
+    let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
+    let session = use_context::<ReadSignal<Option<LoginResponse>>>().unwrap();
+    /*if authentication_required && (**current_session_handle).is_none() {
+        data.set(Err("Not logged in".to_owned()));
+        return;
+    } */
 
-    let data = use_state(|| Ok(None));
-    let loading = use_state(|| false);
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-    {
-        let data = data.clone();
-        let loading = loading.clone();
-        let current_session_handle = current_session_handle.clone();
-        let tucan = tucan.clone();
-        use_effect_with((request.to_owned(), current_session_handle.clone()), move |(request, current_session_handle)| {
-            if authentication_required && (**current_session_handle).is_none() {
-                data.set(Err("Not logged in".to_owned()));
-                return;
-            }
-            loading.set(true);
-            let request = request.clone();
-            let data = data.clone();
+    let data = {
+        let current_session = current_session.clone();
+        LocalResource::new(move || {
             let tucan = tucan.clone();
-            let current_session_handle = current_session_handle.to_owned();
-            spawn_local(async move {
+            let current_session = current_session.clone();
+            async move {
                 match handler(tucan.clone(), (*current_session_handle).clone(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
                     Ok(response) => {
                         data.set(Ok(Some(response)));
@@ -72,12 +61,11 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
                         loading.set(false);
                     }
                 }
-            })
-        });
-    }
-
+            }
+        })
+    };
+    /*
     let reload = {
-        let current_session_handle = current_session_handle.clone();
         let course_details = request.clone();
         let data = data.clone();
         let loading = loading.clone();
@@ -118,12 +106,12 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
                 }
             })
         })
-    };
+    };*/
 
     let data = match data.deref() {
         Ok(data) => data,
         Err(error) => {
-            return ::yew::html! {
+            return view! {
                 <div class="container">
                     <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
                         // https://github.com/twbs/icons
@@ -139,11 +127,12 @@ fn use_data_loader<TucanType: Tucan + 'static, I: Clone + PartialEq + 'static, O
                         </div>
                     </div>
                 </div>
-            };
+            }
+            .into_any();
         }
     };
 
-    ::yew::html! {
+    view! {
         <div class="container">
             if *loading {
                 <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">

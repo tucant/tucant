@@ -5,7 +5,7 @@ use leptos_router::NavigateOptions;
 use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
 use web_sys::{Event, HtmlSelectElement};
 
-use crate::api_server::ApiServerTucan;
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
 #[component]
 pub fn MyModules(semester: SemesterId) -> impl IntoView {
