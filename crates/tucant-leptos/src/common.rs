@@ -26,6 +26,7 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
         return;
     } */
 
+    // https://docs.rs/leptos/latest/leptos/prelude/trait.FromStream.html
     let data = {
         LocalResource::new(move || async move {
             match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
