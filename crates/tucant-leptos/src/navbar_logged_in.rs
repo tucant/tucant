@@ -8,15 +8,15 @@ use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, Tucan
 #[component]
 pub fn Vorlesungsverzeichnisse(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) -> impl IntoView {
     view! {
-        {
-            data.get().transpose().ok().flatten().iter()
+         {
+            move ||data.get().transpose().ok().flatten().iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
                     view! {
                         <li>
                             <a
                                 href=format!("/vv/{}", url.clone()) class="dropdown-item bg-success-subtle" class:disabled=data.get().is_none()>
-                                name
+                                {name.clone()}
                                 <MaybeLoading data=Signal::derive(move || data.get()) />
                             </a>
                         </li>
