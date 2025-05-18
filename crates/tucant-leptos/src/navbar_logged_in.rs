@@ -28,18 +28,20 @@ pub fn Vorlesungsverzeichnisse(data: Option<Result<MlsStart, String>>) -> impl I
 }
 
 #[component]
-fn MaybeLoading(data: Option<Result<MlsStart, String>>) -> impl IntoView {
-    if data.is_none() {
-        view! {
-                " "
-            <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-            <span class="visually-hidden" role="status">
-                { "Loading..." }
-            </span>
+fn MaybeLoading(#[prop(into)] data: Signal<Option<Result<MlsStart, String>>>) -> impl IntoView {
+    move || {
+        if data.get().is_none() {
+            view! {
+                    " "
+                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
+                <span class="visually-hidden" role="status">
+                    { "Loading..." }
+                </span>
+            }
+            .into_any()
+        } else {
+            view! {}.into_any()
         }
-        .into_any()
-    } else {
-        view! {}.into_any()
     }
 }
 
@@ -93,7 +95,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                     <li>
                         <a class="dropdown-item" class:disabled=data.get().is_none() href={data.get().transpose().ok().flatten().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
-                            <MaybeLoading data=data.get() />
+                            <MaybeLoading data=Signal::derive(move || data.get()) />
                         </a>
                     </li>
                 </ul>
