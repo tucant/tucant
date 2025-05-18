@@ -1,6 +1,9 @@
-use crate::Route;
+use std::sync::Arc;
+
+use crate::{Route, api_server::ApiServerTucan};
 use leptos::prelude::*;
-use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
+use reqwest::StatusCode;
+use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, mlsstart::MlsStart, registration::AnmeldungRequest};
 
 #[component]
 pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
@@ -25,7 +28,7 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> impl IntoView {
 }
 
 #[component]
-fn MaybeLoading(data: Option<MlsStart>) -> impl IntoView {
+fn MaybeLoading(data: Result<MlsStart>) -> impl IntoView {
     if data.is_none() {
         view! {
                 " "
@@ -41,7 +44,31 @@ fn MaybeLoading(data: Option<MlsStart>) -> impl IntoView {
 }
 
 #[component]
-pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> impl IntoView {
+pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_session: LoginResponse) -> impl IntoView {
+    let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
+
+    let data = LocalResource::new(move || async {
+        match tucan.after_login(&current_session, RevalidationStrategy::cache()).await {
+            Ok(response) => Ok(response),
+            Err(error) => {
+                // TODO pass through tucanerror from server
+                log::error!("{}", error);
+                match error {
+                    TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                        set_session.set(None);
+                        Err("Unauthorized".to_owned())
+                    }
+                    TucanError::Timeout | TucanError::AccessDenied => {
+                        set_session.set(None);
+                        Err("Unauthorized".to_owned())
+                    }
+                    _ => Err(error.to_string()),
+                }
+            }
+        }
+    });
+
+    // TODO load the data
     view! {
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -57,7 +84,7 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         <hr class="dropdown-divider" />
                     </li>
                     <li>
-                        <a class="dropdown-item" class:disabled=data.is_none() href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
+                        <a class="dropdown-item" class:disabled=data.get().is_none() href={data.get().as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
                             { "Nachrichten" }
                             <MaybeLoading data=data.clone() />
                         </a>

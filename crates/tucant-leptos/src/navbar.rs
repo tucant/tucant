@@ -30,7 +30,7 @@ pub fn Navbar(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView 
                         <ul class="navbar-nav me-auto mb-2 mb-xl-0">
                         {
                             move || if let Some(session) = session.get() {
-                                view! { <NavbarLoggedIn current_session=session data=None /> }.into_any()
+                                view! { <NavbarLoggedIn current_session=session /> }.into_any()
                             } else {
                                 view! { <NavbarLoggedOut /> }.into_any()
                             }
