@@ -78,9 +78,9 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
                                                 { module.nr }
                                             </th>
                                             <td>
-                                                <Link<Route> to={Route::ModuleDetails { module: module.url.clone() }}>
+                                                <a href=format!("/module-details/{}", module.url.clone())>
                                                     { module.title }
-                                                </Link<Route>>
+                                                </a>
                                             </td>
                                             <td>
                                                 { module.lecturer }
