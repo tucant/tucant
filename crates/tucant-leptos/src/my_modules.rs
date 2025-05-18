@@ -7,13 +7,8 @@ use yew_router::{hooks::use_navigator, prelude::Link};
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct MyModulesProps {
-    pub semester: SemesterId,
-}
-
-#[function_component(MyModules)]
-pub fn my_modules<TucanType: Tucan + 'static>(MyModulesProps { semester }: &MyModulesProps) -> Html {
+#[component]
+pub fn MyModules(semester: SemesterId) -> Html {
     let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy, additional).await;
 
     let navigator = use_navigator().unwrap();
