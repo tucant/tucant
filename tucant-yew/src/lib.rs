@@ -91,36 +91,6 @@ pub async fn api_login_response() -> Option<LoginResponse> {
     })
 }
 
-#[function_component(LogoutComponent)]
-fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-
-    let on_submit = {
-        Callback::from(move |e: SubmitEvent| {
-            e.prevent_default();
-
-            let current_session_handle = current_session_handle.clone();
-            let tucan = tucan.clone();
-
-            if let Some(current_session) = (*current_session_handle).to_owned() {
-                spawn_local(async move {
-                    tucan.0.logout(&current_session).await.unwrap();
-
-                    current_session_handle.set(None);
-                });
-            }
-        })
-    };
-
-    Ok(html! {
-        <form onsubmit={on_submit} class="d-flex">
-            <button id="logout-button" class="btn btn-outline-success" type="submit">{ "Logout" }</button>
-        </form>
-    })
-}
-
 #[derive(Debug, Clone, PartialEq, Routable)]
 enum Route {
     #[at("/")]

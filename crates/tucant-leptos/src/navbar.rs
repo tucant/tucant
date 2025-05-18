@@ -3,7 +3,7 @@ use log::error;
 use std::ops::Deref;
 use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
-use crate::{login_component::LoginComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
+use crate::{login_component::LoginComponent, logout_component::LogoutComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
 #[component]
 pub fn Navbar(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView {
@@ -30,14 +30,27 @@ pub fn Navbar(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView 
                         <ul class="navbar-nav me-auto mb-2 mb-xl-0">
                         {
                             move || if let Some(session) = session.get() {
-                                view! { <NavbarLoggedIn current_session=session set_session=set_session /> }.into_any()
+                                view! {
+                                    <NavbarLoggedIn current_session=session set_session=set_session />
+                                }.into_any()
                             } else {
-                                view! { <NavbarLoggedOut /> }.into_any()
+                                view! {
+                                    <NavbarLoggedOut />
+                                }.into_any()
                             }
                         }
                         </ul>
-                        <LoginComponent set_session=set_session />
-
+                        {
+                            move || if let Some(session) = session.get() {
+                                view! {
+                                    <LogoutComponent set_session=set_session />
+                                }.into_any()
+                            } else {
+                                view! {
+                                    <LoginComponent set_session=set_session />
+                                }.into_any()
+                            }
+                        }
                     </div>
                 </div>
             </nav>

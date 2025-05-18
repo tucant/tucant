@@ -11,7 +11,7 @@ pub fn LoginComponent(set_session: WriteSignal<Option<LoginResponse>>) -> impl I
     let password_ref = NodeRef::<Input>::new();
     let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
 
-    let add_todo_action = Action::new_local(move |(username, password): &(String, String)| {
+    let login_action = Action::new_local(move |(username, password): &(String, String)| {
         let username = username.to_owned();
         let password = password.to_owned();
         let tucan = tucan.clone();
@@ -46,7 +46,7 @@ pub fn LoginComponent(set_session: WriteSignal<Option<LoginResponse>>) -> impl I
                 ev.prevent_default();
                 let username = username_ref.get().unwrap();
                 let password = password_ref.get().unwrap();
-                add_todo_action.dispatch((username.value(), password.value()));
+                login_action.dispatch((username.value(), password.value()));
             }
             class="d-flex"
         >
