@@ -126,7 +126,7 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
                             { "Raumsuche" }
                         </a>
                     </li>
-                    <Vorlesungsverzeichnisse data={data.get()} />
+                    <Vorlesungsverzeichnisse data=Signal::derive(move || data.get()) />
                     <li>
                         <a class="dropdown-item" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml">
                             { "Archiv" }
