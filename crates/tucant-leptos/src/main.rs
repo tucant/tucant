@@ -73,11 +73,11 @@ pub async fn api_login_response() -> Option<LoginResponse> {
 async fn get_login_response() -> Option<LoginResponse> {
     #[cfg(feature = "direct")]
     if js_sys::Reflect::get(&js_sys::global(), &wasm_bindgen::JsValue::from_str("chrome")).is_ok() {
-        return tucant_yew::direct_login_response().await;
+        return direct_login_response().await;
     }
     #[cfg(feature = "api")]
     {
-        return tucant_yew::api_login_response().await;
+        return api_login_response().await;
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");
