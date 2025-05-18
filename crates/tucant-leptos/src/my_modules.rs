@@ -1,27 +1,24 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
+use leptos::prelude::*;
+use leptos_router::NavigateOptions;
 use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
-use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
+use web_sys::{Event, HtmlSelectElement};
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::api_server::ApiServerTucan;
 
 #[component]
-pub fn MyModules(semester: SemesterId) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_modules(&current_session, revalidation_strategy, additional).await;
+pub fn MyModules(semester: SemesterId) -> impl IntoView {
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.my_modules(&current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigate = leptos_router::hooks::use_navigate();
 
     use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
-        let on_semester_change = {
-            let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MyModules { semester: SemesterId::from_str(&value).unwrap() });
-            })
+        let on_semester_change = move |e| {
+            let value = e.target().value();
+            navigate(&format!("my-modules/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Meine Module" }
@@ -37,19 +34,19 @@ pub fn MyModules(semester: SemesterId) -> Html {
                         </svg>
                     </button>
                 </h1>
-                <select onchange={on_semester_change} class="form-select mb-1" aria-label="Select semester">
+                <select on:change:target=on_semester_change class="form-select mb-1" aria-label="Select semester">
                     {
                         my_modules
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { &semester.name }
+                                        { semester.name }
                                     </option>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </select>
                 <table class="table">
@@ -75,18 +72,18 @@ pub fn MyModules(semester: SemesterId) -> Html {
                                 .modules
                                 .iter()
                                 .map(|module| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                { &module.nr }
+                                                { module.nr }
                                             </th>
                                             <td>
                                                 <Link<Route> to={Route::ModuleDetails { module: module.url.clone() }}>
-                                                    { &module.title }
+                                                    { module.title }
                                                 </Link<Route>>
                                             </td>
                                             <td>
-                                                { &module.lecturer }
+                                                { module.lecturer }
                                             </td>
                                             <td>
                                                 { module.credits.clone().unwrap_or_else(|| "-".to_owned()) }
@@ -94,7 +91,7 @@ pub fn MyModules(semester: SemesterId) -> Html {
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
