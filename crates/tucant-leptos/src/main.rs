@@ -11,6 +11,7 @@ pub mod navbar;
 pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod rc_tucan_type;
+pub mod vv;
 
 use std::sync::Arc;
 
@@ -29,6 +30,7 @@ use my_modules::MyModules;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
 use tucant_types::{LoginResponse, SemesterId};
+use vv::VorlesungsverzeichnisComponent;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "direct")]
@@ -110,6 +112,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/my-courses/:semester") view=|| view! { <MyCourses /> } />
                 <Route path=path!("/module-details/:module-details") view=|| view! { <ModuleDetails /> } />
                 <Route path=path!("/course-details/:course-details") view=|| view! { <CourseDetails /> } />
+                <Route path=path!("/vv/:vv") view=|| view! { <VorlesungsverzeichnisComponent /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>

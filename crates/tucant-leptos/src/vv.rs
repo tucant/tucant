@@ -1,24 +1,24 @@
+use std::sync::Arc;
+
+use leptos::{ev::Targeted, prelude::*};
+use leptos_router::hooks::use_params_map;
 use tucant_types::{Tucan, vv::ActionRequest};
-use yew::{Html, Properties, function_component};
-use yew_router::prelude::Link;
 
-use crate::{RcTucanType, Route, common::use_unauthenticated_data_loader};
+use crate::{Route, api_server::ApiServerTucan, common::use_unauthenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct VorlesungsverzeichnisProps {
-    pub vv: ActionRequest,
-}
+#[component]
+pub fn VorlesungsverzeichnisComponent() -> impl IntoView {
+    let params = use_params_map();
+    let vv = move || ActionRequest::parse(&params.read().get("vv").unwrap_or_default());
 
-#[function_component(VorlesungsverzeichnisComponent)]
-pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisProps { vv }: &VorlesungsverzeichnisProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.0.vv(current_session.as_ref(), revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
 
-    use_unauthenticated_data_loader(handler, vv.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
-        ::yew::html! {
+    use_unauthenticated_data_loader(handler, vv(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+        view! {
             <div class="container">
                 <h2 class="text-center">
-                    { &data.title }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    { data.title }
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -35,21 +35,20 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                             data.path
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    view! {
                                         <li class="breadcrumb-item">
-                                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }}>
+                                            <a href=format!("/vv/{}", entry.1.clone())>
                                                 { entry.0.clone() }
-                                            </Link<Route>>
+                                            </a>
                                         </li>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </ol>
                 </nav>
                 // TODO FIXME this is dangerous
-
-                { Html::from_html_unchecked(data.description.join("\n").into()) }
+                <div inner_html=data.description.join("\n") />
                 <h2 class="text-center">
                     { "Submenus" }
                 </h2>
@@ -58,13 +57,13 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                         data.entries
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
-                                    <Link<Route> to={Route::Vorlesungsverzeichnis { vv: entry.1.clone() }} classes="list-group-item list-group-item-action">
+                                view! {
+                                    <a href=format!("/vv/{}", entry.1.clone()) class="list-group-item list-group-item-action">
                                         { format!("{}", entry.0) }
-                                    </Link<Route>>
+                                    </a>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </ul>
                 <h2 class="text-center">
@@ -75,13 +74,13 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                         data.veranstaltungen_or_module
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
+                                view! {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
                                             <h5 class="mb-1">
-                                                <Link<Route> to={Route::CourseDetails { course: entry.coursedetails_url.clone() }}>
+                                                <a href=format!("/course-details/{}", entry.coursedetails_url)>
                                                     { format!("Kurs {}", entry.title) }
-                                                </Link<Route>>
+                                                </a>
                                             </h5>
                                         </div>
                                         <div class="d-flex w-100 justify-content-between">
@@ -95,10 +94,11 @@ pub fn vorlesungsverzeichnis<TucanType: Tucan + 'static>(VorlesungsverzeichnisPr
                                     </li>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </ul>
             </div>
         }
+        .into_any()
     })
 }
