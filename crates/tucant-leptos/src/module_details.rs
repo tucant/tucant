@@ -6,6 +6,7 @@ use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
 
 use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
+#[allow(clippy::too_many_lines)]
 #[component]
 pub fn ModuleDetails() -> impl IntoView {
     let params = use_params_map();
