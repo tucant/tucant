@@ -18,6 +18,7 @@ use leptos_router::{
     path,
 };
 use log::Level;
+use my_courses::MyCourses;
 use my_modules::MyModules;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
@@ -99,7 +100,8 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
             <Navbar set_session=set_session />
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=move || view! {} />
-                <Route path=path!("/my-modules/current") view=|| view! { <MyModules semester=SemesterId::current()></MyModules> } />
+                <Route path=path!("/my-modules/:semester") view=|| view! { <MyModules /> } />
+                <Route path=path!("/my-courses/:semester") view=|| view! { <MyCourses /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
         </Router>

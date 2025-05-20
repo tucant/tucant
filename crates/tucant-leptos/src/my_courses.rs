@@ -2,17 +2,21 @@ use std::{str::FromStr, sync::Arc};
 
 use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 use leptos::{ev::Targeted, prelude::*};
-use leptos_router::NavigateOptions;
+use leptos_router::{NavigateOptions, hooks::use_params_map};
 use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
 use web_sys::{Event, HtmlSelectElement};
 
+#[allow(clippy::too_many_lines)]
 #[component]
-pub fn MyCourses(semester: SemesterId) -> impl IntoView {
+pub fn MyCourses() -> impl IntoView {
+    let params = use_params_map();
+    let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
+
     let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.my_courses(&current_session, revalidation_strategy, additional).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyCoursesResponse, reload| {
+    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyCoursesResponse, reload| {
         let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();
