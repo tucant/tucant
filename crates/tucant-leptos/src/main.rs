@@ -17,9 +17,10 @@ use leptos_router::{
     path,
 };
 use log::Level;
+use my_modules::MyModules;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
-use tucant_types::LoginResponse;
+use tucant_types::{LoginResponse, SemesterId};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[cfg(feature = "direct")]
@@ -96,7 +97,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
         <Router>
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=move || view! { <Navbar set_session=set_session /> } />
-                <Route path=path!("/users") view=|| view! { <h1>"Not Found"</h1> } />
+                <Route path=path!("/my-modules/current") view=|| view! { <MyModules semester=SemesterId::current()></MyModules> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
         </Router>
