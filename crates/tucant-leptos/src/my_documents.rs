@@ -1,19 +1,21 @@
+use std::sync::Arc;
+
+use leptos::{ev::Targeted, prelude::*};
 use tucant_types::Tucan;
-use yew::{Html, function_component};
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[function_component(MyDocuments)]
-pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, _additional| tucan.0.my_documents(&current_session, revalidation_strategy).await;
+#[component]
+pub fn MyDocuments() -> impl IntoView {
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Meine Dokumente" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -44,15 +46,15 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
                                 .documents
                                 .iter()
                                 .map(|document| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                { &document.name }
+                                                { document.name.clone() }
                                             </th>
                                             <td>
-                                                { &document.date }
+                                                { document.date.clone() }
                                                 { " " }
-                                                { &document.time }
+                                                { document.time.clone() }
                                             </td>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", document.url)}>
@@ -62,11 +64,12 @@ pub fn my_documents<TucanType: Tucan + 'static>() -> Html {
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
             </div>
         }
+        .into_any()
     })
 }
