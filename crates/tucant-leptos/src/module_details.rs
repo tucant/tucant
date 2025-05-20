@@ -11,24 +11,33 @@ pub fn ModuleDetails() -> impl IntoView {
     let params = use_params_map();
     let module_details = move || ModuleDetailsRequest::parse(&params.read().get("module-details").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.module_details(&current_session, revalidation_strategy, additional).await;
 
     use_authenticated_data_loader(handler, module_details(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
         view! {
             <div>
                 <h1>
                     { &module.module_id }
-                    if let Some(credits) = &module.credits {
-                        { " " }
-                        <span class="badge text-bg-secondary">
-                            { format!("{credits} CP",) }
-                        </span>
-                    }
-                    if module.registered {
-                        { " " }
-                        <span class="badge text-bg-secondary">
-                            { "Angemeldet" }
-                        </span>
+                    {move || if let Some(credits) = &module.credits {
+                        view! {
+                            { " " }
+                            <span class="badge text-bg-secondary">
+                                { format!("{credits} CP",) }
+                            </span>
+                        }.into_any()
+                    } else {
+                        view! {}.into_any()
+                    }}
+                    {move || if module.registered {
+                            view! {
+                                { " " }
+                                <span class="badge text-bg-secondary">
+                                    { "Angemeldet" }
+                                </span>
+                            }.into_any()
+                        } else {
+                            view! {}.into_any()
+                        }
                     }
                     { " " }
                     <button /*onclick={reload}*/ type="button" class="btn btn-light">
@@ -240,26 +249,36 @@ pub fn ModuleDetails() -> impl IntoView {
                 <h2>
                     { "Sonstige Informationen" }
                 </h2>
-                if module.abweichende_credits {
+                { move || if module.abweichende_credits {
+                    view! {
                     <div class="alert alert-warning" role="alert">
                         { "Hinweis: In Ihrer Prüfungsordnung können abweichende Credits festgelegt sein." }
                     </div>
-                }
-                if let Some(anmeldefristen) = &module.anmeldefristen {
+                    }.into_any()
+                } else {
+                    view!{}.into_any()
+                }}
+                {move || if let Some(anmeldefristen) = &module.anmeldefristen {
+                    view! {
                     <div>
-                        { format!("Anmeldefrist: {}", anmeldefristen.registration_range) }
-                    </div>
-                    <div>
-                        { format!("Abmeldefrist: {}", anmeldefristen.unregistration_range) }
-                    </div>
+                            { format!("Anmeldefrist: {}", anmeldefristen.registration_range) }
+                        </div>
+                        <div>
+                            { format!("Abmeldefrist: {}", anmeldefristen.unregistration_range) }
+                        </div>
+                        }.into_any()
+                    }
                 }
                 <div>
                     { format!("Startsemester: {}", module.start_semester) }
                 </div>
-                if let Some(display_in_timetable) = &module.display_in_timetable {
-                    <div>
-                        { format!("Display in timetable: {}", display_in_timetable) }
-                    </div>
+                {move || if let Some(display_in_timetable) = &module.display_in_timetable {
+                    view! {
+                            <div>
+                                { format!("Display in timetable: {}", display_in_timetable) }
+                            </div>
+                        }
+                    }
                 }
                 <div>
                     { format!("Dauer: {}", module.duration) }
