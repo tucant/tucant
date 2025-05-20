@@ -29,37 +29,43 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
     // https://docs.rs/leptos/latest/leptos/prelude/trait.FromStream.html
     // https://crates.io/crates/leptos-fetch
     let data = {
-        LocalResource::new(move || async move {
-            match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
-                Ok(response) => {
-                    return Ok(Some(response));
+        LocalResource::new(move || {
+            let tucan = tucan.clone();
+            let request = request.clone();
+            async move {
+                match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
+                    Ok(response) => {
+                        return Ok(response);
 
-                    /*match handler(tucan.clone(), session.clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
-                        Ok(response) => data.set(Ok(Some(response))),
-                        Err(error) => {
-                            info!("ignoring error when refetching: {}", error)
-                        }
-                    }*/
-                }
-                Err(error) => {
-                    log::error!("{}", error);
-                    match error {
-                        TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                            //current_session_handle.set(None);
-                            return Err("Unauthorized".to_owned());
-                        }
-                        TucanError::Timeout | TucanError::AccessDenied => {
-                            //current_session_handle.set(None);
-                            return Err("Unauthorized".to_owned());
-                        }
-                        _ => {
-                            return Err(error.to_string());
+                        /*match handler(tucan.clone(), session.clone(), RevalidationStrategy { max_age: max_stale_age_seconds, invalidate_dependents: Some(true) }, request).await {
+                            Ok(response) => data.set(Ok(Some(response))),
+                            Err(error) => {
+                                info!("ignoring error when refetching: {}", error)
+                            }
+                        }*/
+                    }
+                    Err(error) => {
+                        log::error!("{}", error);
+                        match error {
+                            TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                                //current_session_handle.set(None);
+                                return Err("Unauthorized".to_owned());
+                            }
+                            TucanError::Timeout | TucanError::AccessDenied => {
+                                //current_session_handle.set(None);
+                                return Err("Unauthorized".to_owned());
+                            }
+                            _ => {
+                                return Err(error.to_string());
+                            }
                         }
                     }
                 }
             }
         })
     };
+
+    let reload = Callback::new(move |ev: MouseEvent| {});
     /*
     let reload = {
         let course_details = request.clone();
@@ -104,9 +110,24 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
         })
     };*/
 
-    let data = match data.deref() {
-        Ok(data) => data,
-        Err(error) => {
+    match data.get() {
+        None => view! {
+            <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
+                <div class="spinner-grow" role="status">
+                    <span class="visually-hidden">
+                        { "Loading..." }
+                    </span>
+                </div>
+            </div>
+        }
+        .into_any(),
+        Some(Ok(data)) => view! {
+            <div class="container">
+                { render(data, reload) }
+            </div>
+        }
+        .into_any(),
+        Some(Err(error)) => {
             return view! {
                 <div class="container">
                     <div class="alert alert-danger d-flex align-items-center mt-2" role="alert">
@@ -126,22 +147,5 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
             }
             .into_any();
         }
-    };
-
-    view! {
-        <div class="container">
-            if *loading {
-                <div style="z-index: 10000" class="position-fixed top-50 start-50 translate-middle">
-                    <div class="spinner-grow" role="status">
-                        <span class="visually-hidden">
-                            { "Loading..." }
-                        </span>
-                    </div>
-                </div>
-            }
-            if let Some(course) = data {
-                { render(course.to_owned(), reload) }
-            }
-        </div>
     }
 }

@@ -1,6 +1,6 @@
 use std::{str::FromStr, sync::Arc};
 
-use leptos::prelude::*;
+use leptos::{ev::Targeted, prelude::*};
 use leptos_router::NavigateOptions;
 use tucant_types::{SemesterId, Tucan, mymodules::MyModulesResponse};
 use web_sys::{Event, HtmlSelectElement};
@@ -14,7 +14,8 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
     let navigate = leptos_router::hooks::use_navigate();
 
     use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
-        let on_semester_change = move |e| {
+        let navigate = navigate.clone();
+        let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();
             navigate(&format!("my-modules/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
@@ -23,7 +24,7 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
                 <h1>
                     { "Meine Module" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,7 +43,7 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
                             .map(|semester| {
                                 view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { semester.name }
+                                        { semester.name.clone() }
                                     </option>
                                 }
                             })
@@ -75,15 +76,15 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
                                     view! {
                                         <tr>
                                             <th scope="row">
-                                                { module.nr }
+                                                { module.nr.clone() }
                                             </th>
                                             <td>
                                                 <a href=format!("/module-details/{}", module.url.clone())>
-                                                    { module.title }
+                                                    { module.title.clone() }
                                                 </a>
                                             </td>
                                             <td>
-                                                { module.lecturer }
+                                                { module.lecturer.clone() }
                                             </td>
                                             <td>
                                                 { module.credits.clone().unwrap_or_else(|| "-".to_owned()) }
@@ -97,5 +98,6 @@ pub fn MyModules(semester: SemesterId) -> impl IntoView {
                 </table>
             </div>
         }
+        .into_any()
     })
 }
