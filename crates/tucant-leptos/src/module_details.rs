@@ -1,19 +1,20 @@
+use std::sync::Arc;
+
+use leptos::{ev::Targeted, prelude::*};
+use leptos_router::hooks::use_params_map;
 use tucant_types::{Tucan, moduledetails::ModuleDetailsRequest};
-use yew::{Html, Properties, function_component};
 
-use crate::{RcTucanType, common::use_authenticated_data_loader};
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct ModuleDetailsProps {
-    pub module_details: ModuleDetailsRequest,
-}
+#[component]
+pub fn ModuleDetails() -> impl IntoView {
+    let params = use_params_map();
+    let module_details = move || ModuleDetailsRequest::parse(&params.read().get("module-details").unwrap_or_default());
 
-#[function_component(ModuleDetails)]
-pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_details }: &ModuleDetailsProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.0.module_details(&current_session, revalidation_strategy, additional).await;
 
-    use_authenticated_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
-        ::yew::html! {
+    use_authenticated_data_loader(handler, module_details(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
+        view! {
             <div>
                 <h1>
                     { &module.module_id }
@@ -30,7 +31,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         </span>
                     }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -50,13 +51,13 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                             .modulverantwortliche
                             .iter()
                             .map(|modulverantwortliche| {
-                                ::yew::html! {
+                                view! {
                                     <li>
                                         { &modulverantwortliche.0 }
                                     </li>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </ul>
                 <h2>
@@ -67,7 +68,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .kurskategorien
                         .iter()
                         .map(|kurskategorie| {
-                            ::yew::html! {
+                            view! {
                                 <>
                                     <h3>
                                         { &kurskategorie.course_no }
@@ -114,7 +115,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                     .kurse
                                                     .iter()
                                                     .map(|kurs| {
-                                                        ::yew::html! {
+                                                        view! {
                                                             <tr>
                                                                 <th scope="row">
                                                                     { &kurs.course_id }
@@ -128,13 +129,13 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                             </tr>
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    .collect::<Vec<_>>()
                                             }
                                         </tbody>
                                     </table></>
                             }
                         })
-                        .collect::<Html>()
+                        .collect::<Vec<_>>()
                 }
                 <h2>
                     { "Leistungen" }
@@ -144,7 +145,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .leistungen
                         .iter()
                         .map(|leistung| {
-                            ::yew::html! {
+                            view! {
                                 <>
                                     <h3>
                                         { &leistung.name }
@@ -167,7 +168,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                     </h3></>
                             }
                         })
-                        .collect::<Html>()
+                        .collect::<Vec<_>>()
                 }
                 <h2>
                     { "Pruefungen" }
@@ -177,7 +178,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                         .pruefungen
                         .iter()
                         .map(|pruefung| {
-                            ::yew::html! {
+                            view! {
                                 <>
                                     <h3>
                                         { &pruefung.name }
@@ -208,7 +209,7 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                     .termine
                                                     .iter()
                                                     .map(|termin| {
-                                                        ::yew::html! {
+                                                        view! {
                                                             <tr>
                                                                 <th scope="row">
                                                                     { &termin.subname }
@@ -222,13 +223,13 @@ pub fn module_details<TucanType: Tucan + 'static>(ModuleDetailsProps { module_de
                                                             </tr>
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    .collect::<Vec<_>>()
                                             }
                                         </tbody>
                                     </table></>
                             }
                         })
-                        .collect::<Html>()
+                        .collect::<Vec<_>>()
                 }
                 <h2>
                     { "Beschreibung" }
