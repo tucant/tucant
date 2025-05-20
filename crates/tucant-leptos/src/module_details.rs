@@ -83,24 +83,42 @@ pub fn ModuleDetails() -> impl IntoView {
                                         { &kurskategorie.course_no }
                                         { " " }
                                         { &kurskategorie.name }
-                                        if kurskategorie.credits != 0.0 {
-                                            { " " }
-                                            <span class="badge text-bg-secondary">
-                                                { format!("{} CP", kurskategorie.credits) }
-                                            </span>
+                                        {move ||
+                                            if kurskategorie.credits != 0.0 {
+                                                view! {
+                                                    { " " }
+                                                    <span class="badge text-bg-secondary">
+                                                        { format!("{} CP", kurskategorie.credits) }
+                                                    </span>
+                                                }.into_any()
+                                            } else {
+                                                view!{}.into_any()
+                                            }
                                         }
-                                        if kurskategorie.mandatory {
-                                            { " " }
-                                            <span class="badge text-bg-secondary">
-                                                { "Pflicht" }
-                                            </span>
-                                        }
-                                        if let Some(semester) = &kurskategorie.semester {
-                                            if *semester != 1 {
+                                        {move || if kurskategorie.mandatory {
+                                            view! {
                                                 { " " }
                                                 <span class="badge text-bg-secondary">
-                                                    { format!("{semester} Semester") }
+                                                    { "Pflicht" }
                                                 </span>
+                                            }.into_any()
+                                        } else {
+                                            view!{}.into_any()
+                                        }}
+                                        { move ||
+                                            if let Some(semester) = &kurskategorie.semester {
+                                                if *semester != 1 {
+                                                    view! {
+                                                        { " " }
+                                                        <span class="badge text-bg-secondary">
+                                                            { format!("{semester} Semester") }
+                                                        </span>
+                                                    }.into_any()
+                                                } else {
+                                                    view!{}.into_any()
+                                                }
+                                            } else {
+                                                view!{}.into_any()
                                             }
                                         }
                                     </h3>
@@ -127,13 +145,13 @@ pub fn ModuleDetails() -> impl IntoView {
                                                         view! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { &kurs.course_id }
+                                                                    { kurs.course_id }
                                                                 </th>
                                                                 <td>
-                                                                    { &kurs.name }
+                                                                    { kurs.name }
                                                                 </td>
                                                                 <td>
-                                                                    { &kurs.semester }
+                                                                    { kurs.semester }
                                                                 </td>
                                                             </tr>
                                                         }
@@ -157,22 +175,32 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { &leistung.name }
-                                        if leistung.compulsory {
-                                            { " " }
-                                            <span class="badge text-bg-secondary">
-                                                { "Pflicht" }
-                                            </span>
+                                        { leistung.name }
+                                        {move || if leistung.compulsory {
+                                                view! {
+                                                    { " " }
+                                                    <span class="badge text-bg-secondary">
+                                                        { "Pflicht" }
+                                                    </span>
+                                                }.into_any()
+                                            } else {
+                                                view! {}.into_any()
+                                            }
                                         }
                                         { " " }
                                         <span class="badge text-bg-secondary">
                                             { format!("{} Gewichtung", leistung.weight) }
                                         </span>
-                                        if let Some(weight_more) = &leistung.weight_more {
-                                            { " " }
-                                            <span class="badge text-bg-secondary">
-                                                { format!("Zusatzinfo {weight_more}") }
-                                            </span>
+                                        {move || if let Some(weight_more) = &leistung.weight_more {
+                                            view! {
+                                                { " " }
+                                                <span class="badge text-bg-secondary">
+                                                    { format!("Zusatzinfo {weight_more}") }
+                                                </span>
+                                            }
+                                        } else {
+                                            view!{}.into_any()
+                                        }
                                         }
                                     </h3></>
                             }
@@ -190,12 +218,18 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { &pruefung.name }
-                                        if pruefung.compulsory {
-                                            { " " }
-                                            <span class="badge text-bg-secondary">
-                                                { "Pflicht" }
-                                            </span>
+                                        { pruefung.name }
+                                        {move ||
+                                            if pruefung.compulsory {
+                                                view! {
+                                                    " "
+                                                    <span class="badge text-bg-secondary">
+                                                        { "Pflicht" }
+                                                    </span>
+                                                }.into_any()
+                                            } else {
+                                                view!{}.into_any()
+                                            }
                                         }
                                     </h3>
                                     <table class="table">
@@ -221,13 +255,13 @@ pub fn ModuleDetails() -> impl IntoView {
                                                         view! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { &termin.subname }
+                                                                    { termin.subname }
                                                                 </th>
                                                                 <td>
-                                                                    { &termin.date }
+                                                                    { termin.date }
                                                                 </td>
                                                                 <td>
-                                                                    { &termin.examiner }
+                                                                    { termin.examiner }
                                                                 </td>
                                                             </tr>
                                                         }
@@ -267,6 +301,8 @@ pub fn ModuleDetails() -> impl IntoView {
                             { format!("Abmeldefrist: {}", anmeldefristen.unregistration_range) }
                         </div>
                         }.into_any()
+                    } else {
+                        view! {}.into_any()
                     }
                 }
                 <div>
@@ -277,7 +313,9 @@ pub fn ModuleDetails() -> impl IntoView {
                             <div>
                                 { format!("Display in timetable: {}", display_in_timetable) }
                             </div>
-                        }
+                        }.into_any()
+                    } else {
+                        view! {}.into_any()
                     }
                 }
                 <div>
