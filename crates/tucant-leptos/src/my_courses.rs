@@ -1,37 +1,31 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
+use leptos::{ev::Targeted, prelude::*, tachys::renderer::dom::Event};
+use leptos_router::NavigateOptions;
 use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
 use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+#[component]
+pub fn MyCourses(semester: SemesterId) -> impl IntoView {
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.my_courses(&current_session, revalidation_strategy, additional).await;
 
-#[derive(Properties, PartialEq)]
-pub struct MyCoursesProps {
-    pub semester: SemesterId,
-}
-
-#[function_component(MyCourses)]
-pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCoursesProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.my_courses(&current_session, revalidation_strategy, additional).await;
-
-    let navigator = use_navigator().unwrap();
+    let navigate = leptos_router::hooks::use_navigate();
 
     use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyCoursesResponse, reload| {
         let on_semester_change = {
-            let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MyCourses { semester: SemesterId::from_str(&value).unwrap() });
-            })
+            let navigate = navigate.clone();
+            move |e: Targeted<Event, HtmlSelectElement>| {
+                let value = e.target().value();
+                navigate(&format!("my-courses/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
+            }
         };
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Meine Veranstaltungen" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,19 +36,19 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                         </svg>
                     </button>
                 </h1>
-                <select onchange={on_semester_change} class="form-select mb-1" aria-label="Select semester">
+                <select on:change:target=on_semester_change class="form-select mb-1" aria-label="Select semester">
                     {
                         my_modules
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
                                         { &semester.name }
                                     </option>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </select>
                 {
@@ -62,7 +56,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                         .sections
                         .iter()
                         .map(|section| {
-                            ::yew::html! {
+                            view! {
                                 <>
                                     <h2>
                                         { &section.0 }
@@ -90,7 +84,7 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                                                     .1
                                                     .iter()
                                                     .map(|course| {
-                                                        ::yew::html! {
+                                                        view! {
                                                             <tr>
                                                                 <th scope="row">
                                                                     { &course.nr }
@@ -109,13 +103,13 @@ pub fn my_courses<TucanType: Tucan + 'static>(MyCoursesProps { semester }: &MyCo
                                                             </tr>
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    .collect::<Vec<_>>()
                                             }
                                         </tbody>
                                     </table></>
                             }
                         })
-                        .collect::<Html>()
+                        .collect::<Vec<_>>()
                 }
             </div>
         }
