@@ -1,10 +1,10 @@
 use std::{str::FromStr, sync::Arc};
 
 use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
-use leptos::{ev::Targeted, prelude::*, tachys::renderer::dom::Event};
+use leptos::{ev::Targeted, prelude::*};
 use leptos_router::NavigateOptions;
 use tucant_types::{SemesterId, Tucan, mycourses::MyCoursesResponse};
-use web_sys::HtmlSelectElement;
+use web_sys::{Event, HtmlSelectElement};
 
 #[component]
 pub fn MyCourses(semester: SemesterId) -> impl IntoView {
@@ -12,13 +12,11 @@ pub fn MyCourses(semester: SemesterId) -> impl IntoView {
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyCoursesResponse, reload| {
-        let on_semester_change = {
-            let navigate = navigate.clone();
-            move |e: Targeted<Event, HtmlSelectElement>| {
-                let value = e.target().value();
-                navigate(&format!("my-courses/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
-            }
+    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyCoursesResponse, reload| {
+        let navigate = navigate.clone();
+        let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
+            let value = e.target().value();
+            navigate(&format!("my-courses/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
         view! {
             <div>
@@ -44,7 +42,7 @@ pub fn MyCourses(semester: SemesterId) -> impl IntoView {
                             .map(|semester| {
                                 view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     </option>
                                 }
                             })
@@ -59,7 +57,7 @@ pub fn MyCourses(semester: SemesterId) -> impl IntoView {
                             view! {
                                 <>
                                     <h2>
-                                        { &section.0 }
+                                        { section.0.clone() }
                                     </h2>
                                     <table class="table">
                                         <thead>
@@ -87,18 +85,18 @@ pub fn MyCourses(semester: SemesterId) -> impl IntoView {
                                                         view! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { &course.nr }
+                                                                    { course.nr.clone() }
                                                                 </th>
                                                                 <td>
-                                                                    <Link<Route> to={Route::CourseDetails { course: course.url.clone() }}>
-                                                                        { &course.title }
-                                                                    </Link<Route>>
+                                                                    <a href=format!("/course-details/{}", course.url.clone())>
+                                                                        { course.title.clone() }
+                                                                    </a>
                                                                 </td>
                                                                 <td>
-                                                                    { &course.date_range }
+                                                                    { course.date_range.clone() }
                                                                 </td>
                                                                 <td>
-                                                                    { &course.location }
+                                                                    { course.location.clone() }
                                                                 </td>
                                                             </tr>
                                                         }
@@ -113,5 +111,6 @@ pub fn MyCourses(semester: SemesterId) -> impl IntoView {
                 }
             </div>
         }
+        .into_any()
     })
 }
