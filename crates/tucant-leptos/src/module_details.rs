@@ -278,8 +278,7 @@ pub fn ModuleDetails() -> impl IntoView {
                     { "Beschreibung" }
                 </h2>
                 // TODO FIXME this is dangerous
-
-                { Html::from_html_unchecked(module.description.join("\n").into()) }
+                <div inner_html=module.description.join("\n") />
                 <h2>
                     { "Sonstige Informationen" }
                 </h2>
@@ -327,5 +326,6 @@ pub fn ModuleDetails() -> impl IntoView {
                 <br />
             </div>
         }
+        .into_any()
     })
 }
