@@ -1,35 +1,36 @@
+use std::sync::Arc;
+
+use leptos::{html::Input, prelude::*};
+use leptos_router::{NavigateOptions, hooks::use_params_map};
 use tucant_types::{
     Tucan,
     registration::{AnmeldungRequest, RegistrationState},
 };
-use yew::{Html, Properties, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{Route, api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct AnmeldungRequestProps {
-    pub registration: AnmeldungRequest,
-}
+#[component]
+pub fn Registration() -> impl IntoView {
+    let params = use_params_map();
+    let registration = move || AnmeldungRequest::parse(&params.read().get("registration").unwrap_or_default());
 
-#[function_component(Registration)]
-pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registration }: &AnmeldungRequestProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.anmeldung(current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+    use_authenticated_data_loader(handler, registration(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
-            navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
-            return ::yew::html! {
+            navigate(&format!("/registration/{}", data.submenus[0].1.clone()), NavigateOptions::default());
+            return view! {
                 <></>
-            };
+            }
+            .into_any();
         }
-        ::yew::html! {
+        view! {
             <div class="container">
                 <h2 class="text-center">
                     { "Registration " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -46,7 +47,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                             data.path
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    view! {
                                         <li class="breadcrumb-item">
                                             <Link<Route> to={Route::Registration { registration: entry.1.clone() }}>
                                                 { entry.0.clone() }
@@ -54,13 +55,12 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                         </li>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </ol>
                 </nav>
                 // TODO FIXME this is dangerous
-
-                { Html::from_html_unchecked(data.additional_information.join("\n").into()) }
+                <div inner_html=data.additional_information.join("\n") />
                 <h2 class="text-center">
                     { "Submenus" }
                 </h2>
@@ -69,13 +69,13 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                         data.submenus
                             .iter()
                             .map(|entry| {
-                                ::yew::html! {
+                                view! {
                                     <Link<Route> to={Route::Registration { registration: entry.1.clone() }} classes="list-group-item list-group-item-action">
                                         { format!("{}", entry.0) }
                                     </Link<Route>>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </ul>
                 <h2 class="text-center">
@@ -87,7 +87,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                             .iter()
                             .map(|entry| {
                                 let module = entry.module.as_ref();
-                                ::yew::html! {
+                                view! {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
                                             <h5 class="mb-1">
@@ -117,17 +117,17 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                         </div>
                                         {
                                             module.map(|module| match &module.registration_state {
-                                                RegistrationState::Unknown => yew::html! {},
-                                                RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                                RegistrationState::Unknown => view! {}.into_any(),
+                                                RegistrationState::Registered { unregister_link } => view! {
                                                     <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone())}>
                                                         { "Vom Modul abmelden" }
                                                     </a>
-                                                },
-                                                RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                                }.into_any(),
+                                                RegistrationState::NotRegistered { register_link } => view! {
                                                     <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>
                                                         { "Zum Modul anmelden" }
                                                     </a>
-                                                },
+                                                }.into_any(),
                                             })
                                         }
                                         <ul class="list-group">
@@ -136,7 +136,7 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                                     .courses
                                                     .iter()
                                                     .map(|course| {
-                                                        ::yew::html! {
+                                                        view! {
                                                             <li class="list-group-item">
                                                                 <div class="d-flex w-100 justify-content-between">
                                                                     <h5 class="mb-1">
@@ -167,29 +167,29 @@ pub fn registration<TucanType: Tucan + 'static>(AnmeldungRequestProps { registra
                                                                 </h6>
                                                                 {
                                                                     match &course.1.registration_button_link {
-                                                                        RegistrationState::Unknown => yew::html! {},
-                                                                        RegistrationState::Registered { unregister_link } => ::yew::html! {
+                                                                        RegistrationState::Unknown => view! {}.into_any(),
+                                                                        RegistrationState::Registered { unregister_link } => view! {
                                                                             <a class="btn btn-danger mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone())}>
                                                                                 { "Vom Kurs abmelden" }
                                                                             </a>
-                                                                        },
-                                                                        RegistrationState::NotRegistered { register_link } => ::yew::html! {
+                                                                        }.into_any(),
+                                                                        RegistrationState::NotRegistered { register_link } => view! {
                                                                             <a class="btn btn-outline-success mb-1" role="button" href={format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone())}>
                                                                                 { "Zum Kurs anmelden" }
                                                                             </a>
-                                                                        },
+                                                                        }.into_any(),
                                                                     }
                                                                 }
                                                             </li>
                                                         }
                                                     })
-                                                    .collect::<Html>()
+                                                    .collect::<Vec<_>>()
                                             }
                                         </ul>
                                     </li>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </ul>
             </div>

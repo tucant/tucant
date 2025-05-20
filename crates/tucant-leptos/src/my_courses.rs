@@ -20,7 +20,7 @@ pub fn MyCourses() -> impl IntoView {
         let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();
-            navigate(&format!("my-courses/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
+            navigate(&format!("/my-courses/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
         view! {
             <div>
