@@ -62,7 +62,7 @@ pub fn ModuleDetails() -> impl IntoView {
                             .map(|modulverantwortliche| {
                                 view! {
                                     <li>
-                                        { modulverantwortliche.0 }
+                                        { modulverantwortliche.0.clone() }
                                     </li>
                                 }
                             })
@@ -80,9 +80,9 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { kurskategorie.course_no }
+                                        { kurskategorie.course_no.clone() }
                                         { " " }
-                                        { kurskategorie.name }
+                                        { kurskategorie.name.clone() }
                                         {move ||
                                             if kurskategorie.credits != 0.0 {
                                                 view! {
@@ -145,13 +145,13 @@ pub fn ModuleDetails() -> impl IntoView {
                                                         view! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { kurs.course_id }
+                                                                    { kurs.course_id.clone() }
                                                                 </th>
                                                                 <td>
-                                                                    { kurs.name }
+                                                                    { kurs.name.clone() }
                                                                 </td>
                                                                 <td>
-                                                                    { kurs.semester }
+                                                                    { kurs.semester.clone() }
                                                                 </td>
                                                             </tr>
                                                         }
@@ -175,7 +175,7 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { leistung.name }
+                                        { leistung.name.clone() }
                                         {move || if leistung.compulsory {
                                                 view! {
                                                     { " " }
@@ -218,7 +218,7 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { pruefung.name }
+                                        { pruefung.name.clone() }
                                         {move ||
                                             if pruefung.compulsory {
                                                 view! {
@@ -255,13 +255,13 @@ pub fn ModuleDetails() -> impl IntoView {
                                                         view! {
                                                             <tr>
                                                                 <th scope="row">
-                                                                    { termin.subname }
+                                                                    { termin.subname.clone() }
                                                                 </th>
                                                                 <td>
-                                                                    { termin.date }
+                                                                    { termin.date.clone() }
                                                                 </td>
                                                                 <td>
-                                                                    { termin.examiner }
+                                                                    { termin.examiner.clone() }
                                                                 </td>
                                                             </tr>
                                                         }
