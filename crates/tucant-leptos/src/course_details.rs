@@ -8,7 +8,7 @@ use tucant_types::{Tucan, coursedetails::CourseDetailsRequest};
 #[component]
 pub fn course_details() -> impl IntoView {
     let params = use_params_map();
-    let course_details = move || CourseDetailsRequest::parse(&params.read().get("module-details").unwrap_or_default());
+    let course_details = move || CourseDetailsRequest::parse(&params.read().get("course-details").unwrap_or_default());
 
     let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
 
@@ -55,7 +55,7 @@ pub fn course_details() -> impl IntoView {
                                         .map(|instructor| {
                                             view! {
                                                 <li>
-                                                    { instructor.0 }
+                                                    { instructor.0.clone() }
                                                 </li>
                                             }
                                         })
@@ -139,14 +139,14 @@ pub fn course_details() -> impl IntoView {
                                         <tr class={if uebungsgruppe.active { "table-primary" } else { "" }}>
                                             <th scope="row">
                                                 <a href=format!("/course-details/{}", uebungsgruppe.url.clone())>
-                                                    { uebungsgruppe.name }
+                                                    { uebungsgruppe.name.clone() }
                                                 </a>
                                             </th>
                                             <td>
                                                 { uebungsgruppe.date_range.clone().unwrap_or_default() }
                                             </td>
                                             <td>
-                                                { uebungsgruppe.uebungsleiter }
+                                                { uebungsgruppe.uebungsleiter.clone() }
                                             </td>
                                         </tr>
                                     }.into_any()
@@ -190,10 +190,10 @@ pub fn course_details() -> impl IntoView {
                                     view! {
                                         <tr>
                                             <td>
-                                                { anmeldefrist.zulassungstyp }
+                                                { anmeldefrist.zulassungstyp.clone() }
                                             </td>
                                             <td>
-                                                { anmeldefrist.block_type }
+                                                { anmeldefrist.block_type.clone() }
                                             </td>
                                             <td>
                                                 { anmeldefrist.start.clone().unwrap_or_default() }
@@ -249,13 +249,13 @@ pub fn course_details() -> impl IntoView {
                                             view! {
                                                 <tr>
                                                     <td>
-                                                        { termin.date }
+                                                        { termin.date.clone() }
                                                     </td>
                                                     <td>
-                                                        { termin.time_start }
+                                                        { termin.time_start.clone() }
                                                     </td>
                                                     <td>
-                                                        { termin.time_end }
+                                                        { termin.time_end.clone() }
                                                     </td>
                                                     <td>
                                                         { termin.instructors.clone().unwrap_or_default() }
@@ -269,7 +269,7 @@ pub fn course_details() -> impl IntoView {
                                                                     .map(|room| {
                                                                         view! {
                                                                             <li>
-                                                                                { room.name }
+                                                                                { room.name.clone() }
                                                                             </li>
                                                                         }
                                                                     })
@@ -321,13 +321,13 @@ pub fn course_details() -> impl IntoView {
                                     view! {
                                         <tr>
                                             <td>
-                                                { termin.date }
+                                                { termin.date.clone() }
                                             </td>
                                             <td>
-                                                { termin.time_start }
+                                                { termin.time_start.clone() }
                                             </td>
                                             <td>
-                                                { termin.time_end }
+                                                { termin.time_end.clone() }
                                             </td>
                                             <td>
                                                 { termin.instructors.clone().unwrap_or_default() }
@@ -341,7 +341,7 @@ pub fn course_details() -> impl IntoView {
                                                             .map(|room| {
                                                                 view! {
                                                                     <li>
-                                                                        { room.name }
+                                                                        { room.name.clone() }
                                                                     </li>
                                                                 }
                                                             })

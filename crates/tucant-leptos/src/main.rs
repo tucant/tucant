@@ -14,6 +14,7 @@ pub mod rc_tucan_type;
 use std::sync::Arc;
 
 use api_server::ApiServerTucan;
+use course_details::CourseDetails;
 use leptos::prelude::*;
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -106,6 +107,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/my-modules/:semester") view=|| view! { <MyModules /> } />
                 <Route path=path!("/my-courses/:semester") view=|| view! { <MyCourses /> } />
                 <Route path=path!("/module-details/:module-details") view=|| view! { <ModuleDetails /> } />
+                <Route path=path!("/course-details/:course-details") view=|| view! { <CourseDetails /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
         </Router>
