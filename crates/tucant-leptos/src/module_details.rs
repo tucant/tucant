@@ -75,7 +75,8 @@ pub fn ModuleDetails() -> impl IntoView {
                 {
                     module
                         .kurskategorien
-                        .iter()
+                        .clone()
+                        .into_iter()
                         .map(|kurskategorie| {
                             view! {
                                 <>
@@ -106,8 +107,8 @@ pub fn ModuleDetails() -> impl IntoView {
                                             view!{}.into_any()
                                         }}
                                         { move ||
-                                            if let Some(semester) = &kurskategorie.semester {
-                                                if *semester != 1 {
+                                            if let Some(semester) = kurskategorie.semester {
+                                                if semester != 1 {
                                                     view! {
                                                         { " " }
                                                         <span class="badge text-bg-secondary">
@@ -169,8 +170,8 @@ pub fn ModuleDetails() -> impl IntoView {
                 </h2>
                 {
                     module
-                        .leistungen
-                        .iter()
+                        .leistungen.clone()
+                        .into_iter()
                         .map(|leistung| {
                             view! {
                                 <>
@@ -212,8 +213,8 @@ pub fn ModuleDetails() -> impl IntoView {
                 </h2>
                 {
                     module
-                        .pruefungen
-                        .iter()
+                        .pruefungen.clone()
+                        .into_iter()
                         .map(|pruefung| {
                             view! {
                                 <>
