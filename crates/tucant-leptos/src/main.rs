@@ -1,5 +1,6 @@
 pub mod api_server;
 pub mod common;
+pub mod course_details;
 pub mod login_component;
 pub mod logout_component;
 pub mod module_details;
