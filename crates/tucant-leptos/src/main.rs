@@ -95,8 +95,9 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
 
     view! {
         <Router>
+            <Navbar set_session=set_session />
             <Routes fallback=|| "Not found.">
-                <Route path=path!("/") view=move || view! { <Navbar set_session=set_session /> } />
+                <Route path=path!("/") view=move || view! {} />
                 <Route path=path!("/my-modules/current") view=|| view! { <MyModules semester=SemesterId::current()></MyModules> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
