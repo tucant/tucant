@@ -17,7 +17,7 @@ pub fn ModuleDetails() -> impl IntoView {
         view! {
             <div>
                 <h1>
-                    { &module.module_id }
+                    { module.module_id }
                     {move || if let Some(credits) = &module.credits {
                         view! {
                             { " " }
@@ -62,7 +62,7 @@ pub fn ModuleDetails() -> impl IntoView {
                             .map(|modulverantwortliche| {
                                 view! {
                                     <li>
-                                        { &modulverantwortliche.0 }
+                                        { modulverantwortliche.0 }
                                     </li>
                                 }
                             })
@@ -80,9 +80,9 @@ pub fn ModuleDetails() -> impl IntoView {
                             view! {
                                 <>
                                     <h3>
-                                        { &kurskategorie.course_no }
+                                        { kurskategorie.course_no }
                                         { " " }
-                                        { &kurskategorie.name }
+                                        { kurskategorie.name }
                                         {move ||
                                             if kurskategorie.credits != 0.0 {
                                                 view! {
@@ -197,7 +197,7 @@ pub fn ModuleDetails() -> impl IntoView {
                                                 <span class="badge text-bg-secondary">
                                                     { format!("Zusatzinfo {weight_more}") }
                                                 </span>
-                                            }
+                                            }.into_any()
                                         } else {
                                             view!{}.into_any()
                                         }
