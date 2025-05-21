@@ -87,6 +87,7 @@ pub fn Registration() -> impl IntoView {
                             .into_iter()
                             .map(|entry| {
                                 let module = entry.module.as_ref();
+                                let module_clone = entry.module.clone();
                                 view! {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
@@ -95,8 +96,8 @@ pub fn Registration() -> impl IntoView {
                                                     { format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }
                                                 </a>
                                             </h5>
-                                            /*{||
-                                                if let Some(module) = module {
+                                            {move ||
+                                                if let Some(module) = &module_clone {
                                                     if let Some(date) = &module.date {
                                                         view! {
                                                             <small class="text-body-secondary">
@@ -109,7 +110,7 @@ pub fn Registration() -> impl IntoView {
                                                 } else {
                                                     view!{}.into_any()
                                                 }
-                                            }*/
+                                            }
                                         </div>
                                         <div class="d-flex w-100 justify-content-between">
                                             <h6 class="mb-1">
