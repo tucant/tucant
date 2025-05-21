@@ -83,10 +83,10 @@ pub fn Registration() -> impl IntoView {
                 </h2>
                 <ul class="list-group">
                     {
-                        data.entries
-                            .iter()
+                        data.entries.clone()
+                            .into_iter()
                             .map(|entry| {
-                                let module = entry.module.as_ref();
+                                let module = entry.module.clone();
                                 view! {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
@@ -222,5 +222,6 @@ pub fn Registration() -> impl IntoView {
                 </ul>
             </div>
         }
+        .into_any()
     })
 }
