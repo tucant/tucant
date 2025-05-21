@@ -18,7 +18,7 @@ pub fn Registration() -> impl IntoView {
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, registration(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+    use_authenticated_data_loader(handler, registration(), 28 * 24 * 60 * 60, 24 * 60 * 60, move |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigate(&format!("/registration/{}", data.submenus[0].1.clone()), NavigateOptions::default());
             return view! {
@@ -86,7 +86,7 @@ pub fn Registration() -> impl IntoView {
                         data.entries.clone()
                             .into_iter()
                             .map(|entry| {
-                                let module = entry.module.clone();
+                                let module = entry.module.as_ref();
                                 view! {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
@@ -149,8 +149,8 @@ pub fn Registration() -> impl IntoView {
                                         <ul class="list-group">
                                             {
                                                 entry
-                                                    .courses
-                                                    .iter()
+                                                    .courses.clone()
+                                                    .into_iter()
                                                     .map(|course| {
                                                         view! {
                                                             <li class="list-group-item">
