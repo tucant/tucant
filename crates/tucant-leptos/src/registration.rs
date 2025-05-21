@@ -95,7 +95,7 @@ pub fn Registration() -> impl IntoView {
                                                     { format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }
                                                 </a>
                                             </h5>
-                                            {move ||
+                                            /*{||
                                                 if let Some(module) = module {
                                                     if let Some(date) = &module.date {
                                                         view! {
@@ -109,13 +109,13 @@ pub fn Registration() -> impl IntoView {
                                                 } else {
                                                     view!{}.into_any()
                                                 }
-                                            }
+                                            }*/
                                         </div>
                                         <div class="d-flex w-100 justify-content-between">
                                             <h6 class="mb-1">
                                                 { format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }
                                             </h6>
-                                            {move ||
+                                            /*{move ||
                                                 if let Some(module) = module {
                                                     if let Some(limit_and_size) = &module.limit_and_size {
                                                         view! {
@@ -129,7 +129,7 @@ pub fn Registration() -> impl IntoView {
                                                 } else {
                                                     view!{}.into_any()
                                                 }
-                                            }
+                                            }*/
                                         </div>
                                         {
                                             module.map(|module| match &module.registration_state {
