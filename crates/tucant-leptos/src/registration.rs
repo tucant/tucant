@@ -49,9 +49,9 @@ pub fn Registration() -> impl IntoView {
                                 .map(|entry| {
                                     view! {
                                         <li class="breadcrumb-item">
-                                            <Link<Route> to={Route::Registration { registration: entry.1.clone() }}>
+                                            <a href=format!("/registration/{}", entry.1)>
                                                 { entry.0.clone() }
-                                            </Link<Route>>
+                                            </a>>
                                         </li>
                                     }
                                 })
@@ -70,9 +70,9 @@ pub fn Registration() -> impl IntoView {
                             .iter()
                             .map(|entry| {
                                 view! {
-                                    <Link<Route> to={Route::Registration { registration: entry.1.clone() }} classes="list-group-item list-group-item-action">
+                                    <a href=format!("/registration/{}", entry.1.clone()) class="list-group-item list-group-item-action">
                                         { format!("{}", entry.0) }
-                                    </Link<Route>>
+                                    </a>
                                 }
                             })
                             .collect::<Vec<_>>()
@@ -91,15 +91,23 @@ pub fn Registration() -> impl IntoView {
                                     <li class="list-group-item">
                                         <div class="d-flex w-100 justify-content-between">
                                             <h5 class="mb-1">
-                                                <Link<Route> to={Route::ModuleDetails { module: module.unwrap().url.clone() }}>
+                                                <a href=format!("/module-details/{}", module.unwrap().url.clone())>
                                                     { format!("Modul {} {}", module.map(|module| module.id.clone()).unwrap_or_default(), module.map(|module| module.name.clone()).unwrap_or_default()) }
-                                                </Link<Route>>
+                                                </a>
                                             </h5>
-                                            if let Some(module) = module {
-                                                if let Some(date) = &module.date {
-                                                    <small class="text-body-secondary">
-                                                        { format!("Anmeldung bis {}", date) }
-                                                    </small>
+                                            {move ||
+                                                if let Some(module) = module {
+                                                    if let Some(date) = &module.date {
+                                                        view! {
+                                                            <small class="text-body-secondary">
+                                                                { format!("Anmeldung bis {}", date) }
+                                                            </small>
+                                                        }.into_any()
+                                                    } else {
+                                                        view!{}.into_any()
+                                                    }
+                                                } else {
+                                                    view!{}.into_any()
                                                 }
                                             }
                                         </div>
@@ -107,11 +115,19 @@ pub fn Registration() -> impl IntoView {
                                             <h6 class="mb-1">
                                                 { format!("{}", module.map(|module| module.lecturer.clone().unwrap_or_default()).unwrap_or_default()) }
                                             </h6>
-                                            if let Some(module) = module {
-                                                if let Some(limit_and_size) = &module.limit_and_size {
-                                                    <small class="text-body-secondary">
-                                                        { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
-                                                    </small>
+                                            {move ||
+                                                if let Some(module) = module {
+                                                    if let Some(limit_and_size) = &module.limit_and_size {
+                                                        view! {
+                                                            <small class="text-body-secondary">
+                                                                { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                            </small>
+                                                        }.into_any()
+                                                    } else {
+                                                        view!{}.into_any()
+                                                    }
+                                                } else {
+                                                    view!{}.into_any()
                                                 }
                                             }
                                         </div>
@@ -140,14 +156,20 @@ pub fn Registration() -> impl IntoView {
                                                             <li class="list-group-item">
                                                                 <div class="d-flex w-100 justify-content-between">
                                                                     <h5 class="mb-1">
-                                                                        <Link<Route> to={Route::CourseDetails { course: course.1.url.clone() }}>
+                                                                        <a href=format!("/course-details/{}", course.1.url.clone())>
                                                                             { format!("Kurs {} {}", course.1.id, course.1.name) }
-                                                                        </Link<Route>>
+                                                                        </a>
                                                                     </h5>
-                                                                    if let Some(registration_until) = &course.1.registration_until {
-                                                                        <small class="text-body-secondary">
-                                                                            { format!("Anmeldung bis {}", registration_until) }
-                                                                        </small>
+                                                                    {move ||
+                                                                        if let Some(registration_until) = &course.1.registration_until {
+                                                                            view! {
+                                                                                <small class="text-body-secondary">
+                                                                                    { format!("Anmeldung bis {}", registration_until) }
+                                                                                </small>
+                                                                            }.into_any()
+                                                                        } else {
+                                                                            view!{}.into_any()
+                                                                        }
                                                                     }
                                                                 </div>
                                                                 <div class="d-flex w-100 justify-content-between">
@@ -156,10 +178,16 @@ pub fn Registration() -> impl IntoView {
                                                                     </h6>
                                                                     // needing the parentheses is a yew bug
 
-                                                                    if let Some(limit_and_size) = &course.1.limit_and_size {
-                                                                        <small class="text-body-secondary">
-                                                                            { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
-                                                                        </small>
+                                                                    {move ||
+                                                                        if let Some(limit_and_size) = &course.1.limit_and_size {
+                                                                            view! {
+                                                                                <small class="text-body-secondary">
+                                                                                    { ("Teilnehmerlimit ".to_owned() + limit_and_size) }
+                                                                                </small>
+                                                                            }.into_any()
+                                                                        } else {
+                                                                            view!{}.into_any()
+                                                                        }
                                                                     }
                                                                 </div>
                                                                 <h6 class="mb-1">
