@@ -6,6 +6,7 @@ pub mod logout_component;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
+pub mod my_exams;
 pub mod my_modules;
 pub mod navbar;
 pub mod navbar_logged_in;
@@ -115,6 +116,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/module-details/:module-details") view=|| view! { <ModuleDetails /> } />
                 <Route path=path!("/course-details/:course-details") view=|| view! { <CourseDetails /> } />
                 <Route path=path!("/vv/:vv") view=|| view! { <VorlesungsverzeichnisComponent /> } />
+                <Route path=path!("/registration/") view=|| view! { <Registration /> } />
                 <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
