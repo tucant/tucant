@@ -16,7 +16,7 @@ pub fn MyExams() -> impl IntoView {
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, |exams: MyExamsResponse, reload| {
+    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |exams: MyExamsResponse, reload| {
         let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();
@@ -77,6 +77,7 @@ pub fn MyExams() -> impl IntoView {
                                 .clone()
                                 .into_iter()
                                 .map(|exam| {
+                                    let exam_name = exam.name.clone();
                                     view! {
                                         <tr>
                                             <th scope="row">
@@ -87,7 +88,7 @@ pub fn MyExams() -> impl IntoView {
                                                     if let Some(coursedetails_url) = &exam.coursedetails_url {
                                                         view! {
                                                             <a href=format!("/course-details/{}", coursedetails_url)>
-                                                                { exam.name.clone() }
+                                                                { exam_name.clone() }
                                                             </a>
                                                         }.into_any()
                                                     } else {
