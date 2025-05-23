@@ -17,6 +17,7 @@ pub fn MyExams() -> impl IntoView {
     let navigate = leptos_router::hooks::use_navigate();
 
     use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, |exams: MyExamsResponse, reload| {
+        let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();
             navigate(&format!("/my-exams/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
@@ -45,7 +46,7 @@ pub fn MyExams() -> impl IntoView {
                             .map(|semester| {
                                 view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { semester.name }
+                                        { semester.name.clone() }
                                     </option>
                                 }
                             })
@@ -73,19 +74,20 @@ pub fn MyExams() -> impl IntoView {
                         {
                             exams
                                 .exams
-                                .iter()
+                                .clone()
+                                .into_iter()
                                 .map(|exam| {
                                     view! {
                                         <tr>
                                             <th scope="row">
-                                                { exam.id }
+                                                { exam.id.clone() }
                                             </th>
                                             <td>
                                                 {move ||
                                                     if let Some(coursedetails_url) = &exam.coursedetails_url {
                                                         view! {
                                                             <a href=format!("/course-details/{}", coursedetails_url)>
-                                                                { exam.name }
+                                                                { exam.name.clone() }
                                                             </a>
                                                         }.into_any()
                                                     } else {
@@ -96,7 +98,7 @@ pub fn MyExams() -> impl IntoView {
                                                     if let Some(moduledetails_url) = &exam.moduledetails_url {
                                                         view! {
                                                             <a href=format!("/module-details/{}", moduledetails_url)>
-                                                                { exam.name }
+                                                                { exam.name.clone() }
                                                             </a>
                                                         }.into_any()
                                                     } else {
@@ -106,7 +108,7 @@ pub fn MyExams() -> impl IntoView {
                                             </td>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url)}>
-                                                    { exam.pruefungsart }
+                                                    { exam.pruefungsart.clone() }
                                                 </a>
                                             </td>
                                             <td>
@@ -114,11 +116,11 @@ pub fn MyExams() -> impl IntoView {
                                                 if let Some(courseprep_url) = &exam.courseprep_url {
                                                     view! {
                                                         <a href=format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url)>
-                                                            { exam.date }
+                                                            { exam.date.clone() }
                                                         </a>
                                                     }.into_any()
                                                 } else {
-                                                    view!{ {exam.date} }.into_any()
+                                                    view!{ {exam.date.clone()} }.into_any()
                                                 }
                                             }
                                             </td>
@@ -131,5 +133,6 @@ pub fn MyExams() -> impl IntoView {
                 </table>
             </div>
         }
+        .into_any()
     })
 }
