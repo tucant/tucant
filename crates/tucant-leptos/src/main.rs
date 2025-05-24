@@ -3,6 +3,7 @@ pub mod common;
 pub mod course_details;
 pub mod login_component;
 pub mod logout_component;
+pub mod mlsstart;
 pub mod module_details;
 pub mod my_courses;
 pub mod my_documents;
@@ -25,6 +26,7 @@ use leptos_router::{
     path,
 };
 use log::Level;
+use mlsstart::Mlsstart;
 use module_details::ModuleDetails;
 use my_courses::MyCourses;
 use my_documents::MyDocuments;
@@ -121,6 +123,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
                 <Route path=path!("/my-exams/:semester") view=|| view! { <MyExams /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
+                <Route path=path!("/overview") view=|| view! { <Mlsstart /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>
         </Router>

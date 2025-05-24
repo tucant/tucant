@@ -1,20 +1,22 @@
+use std::sync::Arc;
+
+use leptos::{ev::Targeted, prelude::*};
 use tucant_types::{Tucan, mlsstart::MlsStart};
-use yew::{Html, function_component};
-use yew_router::prelude::Link;
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[function_component(Mlsstart)]
-pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, _additional| tucan.0.after_login(&current_session, revalidation_strategy).await;
+#[allow(clippy::too_many_lines)]
+#[component]
+pub fn Mlsstart() -> impl IntoView {
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, _additional| tucan.after_login(&current_session, revalidation_strategy).await;
 
     use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Übersicht" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -48,27 +50,27 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                 .stundenplan
                                 .iter()
                                 .map(|stundenplaneintrag| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                <Link<Route> to={Route::CourseDetails { course: stundenplaneintrag.coursedetails_url.clone() }}>
-                                                    { &stundenplaneintrag.course_name }
-                                                </Link<Route>>
+                                                <a href=format!("/course-details/{}", stundenplaneintrag.coursedetails_url)>
+                                                    { stundenplaneintrag.course_name.clone() }
+                                                </a>
                                             </th>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url)}>
-                                                    { &stundenplaneintrag.from }
+                                                    { stundenplaneintrag.from.clone() }
                                                 </a>
                                             </td>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", stundenplaneintrag.courseprep_url)}>
-                                                    { &stundenplaneintrag.to }
+                                                    { stundenplaneintrag.to.clone() }
                                                 </a>
                                             </td>
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
@@ -98,17 +100,17 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                 .messages
                                 .iter()
                                 .map(|nachricht| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                { &nachricht.date }
+                                                { nachricht.date.clone() }
                                             </th>
                                             <td>
-                                                { &nachricht.source }
+                                                { nachricht.source.clone() }
                                             </td>
                                             <td>
                                                 <a href={format!("https://www.tucan.tu-darmstadt.de{}", nachricht.url)}>
-                                                    { &nachricht.message }
+                                                    { nachricht.message.clone() }
                                                 </a>
                                             </td>
                                             <td>
@@ -119,11 +121,12 @@ pub fn mlsstart<TucanType: Tucan + 'static>() -> Html {
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
             </div>
         }
+        .into_any()
     })
 }
