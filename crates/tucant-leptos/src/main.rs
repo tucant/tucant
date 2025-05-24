@@ -28,6 +28,7 @@ use log::Level;
 use module_details::ModuleDetails;
 use my_courses::MyCourses;
 use my_documents::MyDocuments;
+use my_exams::MyExams;
 use my_modules::MyModules;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
@@ -118,6 +119,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/vv/:vv") view=|| view! { <VorlesungsverzeichnisComponent /> } />
                 <Route path=path!("/registration/") view=|| view! { <Registration /> } />
                 <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
+                <Route path=path!("/my-exams/:semester") view=|| view! { <MyExams /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
             </Routes>

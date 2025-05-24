@@ -9,6 +9,7 @@ use web_sys::MouseEvent;
 use crate::api_server::ApiServerTucan;
 
 pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
+    // TODO FIXME don't unwrap session but show error instead
     use_data_loader(true, async move |tucan: Arc<ApiServerTucan>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 

@@ -13,7 +13,7 @@ pub fn LogoutComponent(set_session: WriteSignal<Option<LoginResponse>>) -> impl 
     let logout_action = Action::new_local(move |(): &()| {
         let tucan = tucan.clone();
         async move {
-            let response = tucan.logout(&session.get().unwrap()).await.unwrap();
+            let response = tucan.logout(&session.get_untracked().unwrap()).await.unwrap();
 
             set_session.set(None);
         }
