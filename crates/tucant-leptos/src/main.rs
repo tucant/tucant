@@ -2,6 +2,7 @@ pub mod api_server;
 pub mod common;
 pub mod course_details;
 pub mod course_results;
+pub mod exam_results;
 pub mod login_component;
 pub mod logout_component;
 pub mod mlsstart;
@@ -22,6 +23,7 @@ use std::sync::Arc;
 
 use api_server::ApiServerTucan;
 use course_details::CourseDetails;
+use course_results::CourseResults;
 use leptos::prelude::*;
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -124,6 +126,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/registration/") view=|| view! { <Registration /> } />
                 <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
                 <Route path=path!("/my-exams/:semester") view=|| view! { <MyExams /> } />
+                <Route path=path!("/course-results/:semester") view=|| view! { <CourseResults /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/overview") view=|| view! { <Mlsstart /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />
