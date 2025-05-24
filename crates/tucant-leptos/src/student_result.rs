@@ -151,11 +151,11 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                     view! {
                         <StudentResultLevelComponent
                             level=child.clone()
-                            path=path
+                            path=(path
                                 .iter()
                                 .cloned()
                                 .chain(std::iter::once(level.name.clone()))
-                                .collect::<Vec<_>>()
+                                .collect::<Vec<_>>())
                         />
                     }
                 })
