@@ -27,6 +27,7 @@ web-extensions-sys = { optional = true, git = "https://github.com/mohe2015/web-e
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement"] }
 cookie = "0.18"
 js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
 
 [lints]
 workspace = true

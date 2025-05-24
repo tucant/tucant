@@ -1,29 +1,27 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{collections::HashSet, str::FromStr, sync::Arc};
 
+use leptos::{ev::Targeted, prelude::*};
+use leptos_router::{NavigateOptions, hooks::use_params_map};
 use log::warn;
 use tucant_types::{
     RevalidationStrategy, SemesterId, Tucan,
     mymodules::{Module, MyModulesResponse},
 };
-use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::{hooks::use_navigator, prelude::Link};
+use web_sys::{Event, HtmlSelectElement};
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct MySemesterModulesProps {
-    pub semester: SemesterId,
-}
+#[component]
+pub fn MySemesterModules() -> impl IntoView {
+    let params = use_params_map();
+    let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-#[function_component(MySemesterModules)]
-pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { semester }: &MySemesterModulesProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
-        let first = tucan.0.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
+        let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
         warn!("after {additional} comes {after:?}");
         if let Some(after) = after {
-            let second = tucan.0.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
+            let second = tucan.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
             let first_modules: HashSet<Module> = first.modules.iter().cloned().collect();
             let second_modules: HashSet<Module> = second.modules.iter().cloned().collect();
             let diff = first_modules.difference(&second_modules).cloned().collect();
@@ -33,22 +31,20 @@ pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { 
         }
     };
 
-    let navigator = use_navigator().unwrap();
+    let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |my_modules: MyModulesResponse, reload| {
-        let on_semester_change = {
-            let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::MySemesterModules { semester: SemesterId::from_str(&value).unwrap() });
-            })
+    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyModulesResponse, reload| {
+        let navigate = navigate.clone();
+        let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
+            let value = e.target().value();
+            navigate(&format!("my-modules/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Meine Semestermodule" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -59,19 +55,19 @@ pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { 
                         </svg>
                     </button>
                 </h1>
-                <select onchange={on_semester_change} class="form-select mb-1" aria-label="Select semester">
+                <select on:change:target=on_semester_change class="form-select mb-1" aria-label="Select semester">
                     {
                         my_modules
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     </option>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </select>
                 <table class="table">
@@ -97,18 +93,18 @@ pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { 
                                 .modules
                                 .iter()
                                 .map(|module| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                { &module.nr }
+                                                { module.nr.clone() }
                                             </th>
                                             <td>
-                                                <Link<Route> to={Route::ModuleDetails { module: module.url.clone() }}>
-                                                    { &module.title }
-                                                </Link<Route>>
+                                                <a href=format!("/module-details/{}", module.url)>
+                                                    { module.title.clone() }
+                                                </a>
                                             </td>
                                             <td>
-                                                { &module.lecturer }
+                                                { module.lecturer.clone() }
                                             </td>
                                             <td>
                                                 { module.credits.clone().unwrap_or_else(|| "-".to_owned()) }
@@ -116,11 +112,12 @@ pub fn my_semester_modules<TucanType: Tucan + 'static>(MySemesterModulesProps { 
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
             </div>
         }
+        .into_any()
     })
 }

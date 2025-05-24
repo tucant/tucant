@@ -11,12 +11,14 @@ pub mod my_courses;
 pub mod my_documents;
 pub mod my_exams;
 pub mod my_modules;
+pub mod my_semester_modules;
 pub mod navbar;
 pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod rc_tucan_type;
 pub mod registration;
 pub mod student_result;
+pub mod tauri;
 pub mod vv;
 
 use std::sync::Arc;
@@ -24,6 +26,7 @@ use std::sync::Arc;
 use api_server::ApiServerTucan;
 use course_details::CourseDetails;
 use course_results::CourseResults;
+use exam_results::ExamResults;
 use leptos::prelude::*;
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -36,6 +39,7 @@ use my_courses::MyCourses;
 use my_documents::MyDocuments;
 use my_exams::MyExams;
 use my_modules::MyModules;
+use my_semester_modules::MySemesterModules;
 use navbar::Navbar;
 use navbar_logged_out::NavbarLoggedOut;
 use registration::Registration;
@@ -119,6 +123,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=move || view! {} />
                 <Route path=path!("/my-modules/:semester") view=|| view! { <MyModules /> } />
+                <Route path=path!("/my-semester-modules/:semester") view=|| view! { <MySemesterModules /> } />
                 <Route path=path!("/my-courses/:semester") view=|| view! { <MyCourses /> } />
                 <Route path=path!("/module-details/:module-details") view=|| view! { <ModuleDetails /> } />
                 <Route path=path!("/course-details/:course-details") view=|| view! { <CourseDetails /> } />
@@ -127,6 +132,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
                 <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
                 <Route path=path!("/my-exams/:semester") view=|| view! { <MyExams /> } />
                 <Route path=path!("/course-results/:semester") view=|| view! { <CourseResults /> } />
+                <Route path=path!("/exam-results/:semester") view=|| view! { <ExamResults /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/overview") view=|| view! { <Mlsstart /> } />
                 <Route path=path!("/*any") view=|| view! { <h1>"Not Found"</h1> } />

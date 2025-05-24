@@ -3505,6 +3505,7 @@ dependencies = [
  "leptos_router",
  "log",
  "reqwest",
+ "serde-wasm-bindgen",
  "serde_json",
  "tucan-connector",
  "tucant-types",
