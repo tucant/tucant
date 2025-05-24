@@ -72,13 +72,13 @@ pub fn StudentResult() -> impl IntoView {
 pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>) -> impl IntoView {
     view! {
         <>
-            { move || if !level.entries.is_empty() {
+            { let level_name_clone = level.name.clone(); let path_clone = path.clone(); move || if !level.entries.is_empty() {
                 view! {
                 <h5>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             {
-                                path.iter()
+                                path_clone.iter()
                                     .map(|item| {
                                         view! {
                                             <li class="breadcrumb-item">
@@ -89,7 +89,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                     .collect::<Vec<_>>()
                             }
                             <li class="breadcrumb-item">
-                                { level.name.clone() }
+                                { level_name_clone.clone() }
                             </li>
                         </ol>
                     </nav>
