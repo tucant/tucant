@@ -14,6 +14,7 @@ pub mod navbar_logged_in;
 pub mod navbar_logged_out;
 pub mod rc_tucan_type;
 pub mod registration;
+pub mod student_result;
 pub mod vv;
 
 use std::sync::Arc;

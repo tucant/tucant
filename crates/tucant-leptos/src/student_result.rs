@@ -1,37 +1,36 @@
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use std::sync::Arc;
+
+use leptos::{ev::Targeted, html::Input, prelude::*};
+use leptos_router::{NavigateOptions, hooks::use_params_map};
 use tucant_types::{
     LoginResponse, Tucan,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
-use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::hooks::use_navigator;
+use web_sys::{Event, HtmlSelectElement};
 
-#[derive(Properties, PartialEq)]
-pub struct StudentResultProps {
-    pub course_of_study: String,
-}
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[function_component(StudentResult)]
-pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of_study }: &StudentResultProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.student_result(&current_session, revalidation_strategy, additional).await;
+#[component]
+pub fn StudentResult() -> impl IntoView {
+    let params = use_params_map();
+    let course_of_study = move || params.read().get("course_of_study").unwrap_or_default();
 
-    let navigator = use_navigator().unwrap();
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
-    use_authenticated_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
-        let on_course_of_study_change = {
-            let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::StudentResult { course_of_study: value });
-            })
+    let navigate = leptos_router::hooks::use_navigate();
+
+    use_authenticated_data_loader(handler, if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, move |student_result: StudentResultResponse, reload| {
+        let navigate = navigate.clone();
+        let on_course_of_study_change = move |e: Targeted<Event, HtmlSelectElement>| {
+            let value = e.target().value();
+            navigate(&format!("/student-result/{}", value), NavigateOptions::default());
         };
-        ::yew::html! {
+        view! {
             <>
                 <h1>
                     { "Leistungsspiegel" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,22 +41,22 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
                         </svg>
                     </button>
                 </h1>
-                <select onchange={on_course_of_study_change} class="form-select mb-1" aria-label="Select course of study">
+                <select on:change:target=on_course_of_study_change class="form-select mb-1" aria-label="Select course of study">
                     {
                         student_result
                             .course_of_study
                             .iter()
                             .map(|course_of_study| {
-                                ::yew::html! {
+                                view! {
                                     <option selected={course_of_study.selected} value={course_of_study.value.clone()}>
-                                        { &course_of_study.name }
+                                        { course_of_study.name.clone() }
                                     </option>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </select>
-                <StudentResultLevelComponent<TucanType> level={student_result.level0} path={Vec::new()} />
+                <StudentResultLevelComponent level={student_result.level0} path={Vec::new()} />
                 <div>
                     { format!("Gesamt-GPA: {}", student_result.total_gpa) }
                 </div>
@@ -65,36 +64,32 @@ pub fn student_result<TucanType: Tucan + 'static>(StudentResultProps { course_of
                     { format!("Hauptfach-GPA: {}", student_result.main_gpa) }
                 </div></>
         }
+        .into_any()
     })
 }
 
-#[derive(Properties, PartialEq)]
-pub struct StudentResultLevelProps {
-    pub level: StudentResultLevel,
-    pub path: Vec<String>,
-}
-
-#[function_component(StudentResultLevelComponent)]
-pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps { level, path }: &StudentResultLevelProps) -> Html {
-    ::yew::html! {
+#[component]
+pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>) -> impl IntoView {
+    view! {
         <>
-            if !level.entries.is_empty() {
+            { move || if !level.entries.is_empty() {
+                view! {
                 <h5>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             {
                                 path.iter()
                                     .map(|item| {
-                                        ::yew::html! {
+                                        view! {
                                             <li class="breadcrumb-item">
-                                                { item }
+                                                { item.clone() }
                                             </li>
                                         }
                                     })
-                                    .collect::<Html>()
+                                    .collect::<Vec<_>>()
                             }
                             <li class="breadcrumb-item">
-                                { &level.name }
+                                { level.name }
                             </li>
                         </ol>
                     </nav>
@@ -125,10 +120,10 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                 .entries
                                 .iter()
                                 .map(|entry| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <td>
-                                                { &entry.name }
+                                                { entry.name }
                                             </td>
                                             <td>
                                                 { entry.cp.clone().unwrap_or_default() }
@@ -137,29 +132,33 @@ pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps 
                                                 { entry.used_cp.clone().unwrap_or_default() }
                                             </td>
                                             <td>
-                                                { &entry.grade.clone().unwrap_or_default() }
+                                                { entry.grade.clone().unwrap_or_default() }
                                             </td>
                                             <td>
-                                                { &entry.state }
+                                                { entry.state }
                                             </td>
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
-            }
+            }.into_any()
+        } else {
+            view!{}.into_any()
+        }
+        }
             {
                 level
                     .children
                     .iter()
                     .map(|child| {
-                        ::yew::html! {
-                            <StudentResultLevelComponent<TucanType> level={child.clone()} path={path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>()} />
+                        view! {
+                            <StudentResultLevelComponent level={child.clone()} path={path.iter().cloned().chain(std::iter::once(level.name.clone())).collect::<Vec<_>>()} />
                         }
                     })
-                    .collect::<Html>()
+                    .collect::<Vec<_>>()
             }</>
     }
 }
