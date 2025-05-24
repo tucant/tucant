@@ -28,29 +28,27 @@ pub fn Navbar(set_session: WriteSignal<Option<LoginResponse>>) -> impl IntoView 
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-xl-0">
-                        {
-                            move || if let Some(session) = session.get() {
-                                view! {
-                                    <NavbarLoggedIn current_session=session set_session=set_session />
-                                }.into_any()
-                            } else {
-                                view! {
-                                    <NavbarLoggedOut />
-                                }.into_any()
-                            }
-                        }
+                            {move || {
+                                if let Some(session) = session.get() {
+                                    view! {
+                                        <NavbarLoggedIn
+                                            current_session=session
+                                            set_session=set_session
+                                        />
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! { <NavbarLoggedOut /> }.into_any()
+                                }
+                            }}
                         </ul>
-                        {
-                            move || if let Some(session) = session.get() {
-                                view! {
-                                    <LogoutComponent set_session=set_session />
-                                }.into_any()
+                        {move || {
+                            if let Some(session) = session.get() {
+                                view! { <LogoutComponent set_session=set_session /> }.into_any()
                             } else {
-                                view! {
-                                    <LoginComponent set_session=set_session />
-                                }.into_any()
+                                view! { <LoginComponent set_session=set_session /> }.into_any()
                             }
-                        }
+                        }}
                     </div>
                 </div>
             </nav>
