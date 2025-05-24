@@ -20,11 +20,16 @@ pub fn LogoutComponent(set_session: WriteSignal<Option<LoginResponse>>) -> impl 
     });
 
     view! {
-        <form on:submit=move |ev| {
-            ev.prevent_default();
-            logout_action.dispatch(());
-        } class="d-flex">
-            <button id="logout-button" class="btn btn-outline-success" type="submit">{ "Logout" }</button>
+        <form
+            on:submit=move |ev| {
+                ev.prevent_default();
+                logout_action.dispatch(());
+            }
+            class="d-flex"
+        >
+            <button id="logout-button" class="btn btn-outline-success" type="submit">
+                {"Logout"}
+            </button>
         </form>
     }
 }

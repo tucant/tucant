@@ -125,15 +125,30 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=Root />
                 <Route path=path!("/my-modules/:semester") view=|| view! { <MyModules /> } />
-                <Route path=path!("/my-semester-modules/:semester") view=|| view! { <MySemesterModules /> } />
+                <Route
+                    path=path!("/my-semester-modules/:semester")
+                    view=|| view! { <MySemesterModules /> }
+                />
                 <Route path=path!("/my-courses/:semester") view=|| view! { <MyCourses /> } />
-                <Route path=path!("/module-details/:module-details") view=|| view! { <ModuleDetails /> } />
-                <Route path=path!("/course-details/:course-details") view=|| view! { <CourseDetails /> } />
+                <Route
+                    path=path!("/module-details/:module-details")
+                    view=|| view! { <ModuleDetails /> }
+                />
+                <Route
+                    path=path!("/course-details/:course-details")
+                    view=|| view! { <CourseDetails /> }
+                />
                 <Route path=path!("/vv/:vv") view=|| view! { <VorlesungsverzeichnisComponent /> } />
                 <Route path=path!("/registration/") view=|| view! { <Registration /> } />
-                <Route path=path!("/registration/:registration") view=|| view! { <Registration /> } />
+                <Route
+                    path=path!("/registration/:registration")
+                    view=|| view! { <Registration /> }
+                />
                 <Route path=path!("/my-exams/:semester") view=|| view! { <MyExams /> } />
-                <Route path=path!("/course-results/:semester") view=|| view! { <CourseResults /> } />
+                <Route
+                    path=path!("/course-results/:semester")
+                    view=|| view! { <CourseResults /> }
+                />
                 <Route path=path!("/exam-results/:semester") view=|| view! { <ExamResults /> } />
                 <Route path=path!("/my-documents") view=|| view! { <MyDocuments /> } />
                 <Route path=path!("/overview") view=|| view! { <Mlsstart /> } />
