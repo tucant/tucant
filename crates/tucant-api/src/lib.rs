@@ -92,6 +92,7 @@ pub async fn logout_endpoint(jar: CookieJar) -> Result<impl IntoResponse, TucanE
         cookie_cnsc: jar.get("cnsc").unwrap().value().to_owned(),
     };
 
+    // TODO FIXME don't unwrap here
     tucan.logout(&login_response).await.unwrap();
 
     let jar = jar.remove(Cookie::from("id")).remove(Cookie::from("cnsc"));

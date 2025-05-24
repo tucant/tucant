@@ -49,7 +49,7 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
-cd crates/tucant-yew/
+cd crates/tucant-leptos/
 mkdir ../../tucant-extension/dist
 trunk serve --features api
 
