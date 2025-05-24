@@ -89,7 +89,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                     .collect::<Vec<_>>()
                             }
                             <li class="breadcrumb-item">
-                                { level.name }
+                                { level.name.clone() }
                             </li>
                         </ol>
                     </nav>
@@ -123,7 +123,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                     view! {
                                         <tr>
                                             <td>
-                                                { entry.name }
+                                                { entry.name.clone() }
                                             </td>
                                             <td>
                                                 { entry.cp.clone().unwrap_or_default() }
@@ -135,7 +135,7 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                                                 { entry.grade.clone().unwrap_or_default() }
                                             </td>
                                             <td>
-                                                { entry.state }
+                                                { entry.state.clone() }
                                             </td>
                                         </tr>
                                     }
@@ -161,4 +161,5 @@ pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>)
                     .collect::<Vec<_>>()
             }</>
     }
+    .into_any()
 }
