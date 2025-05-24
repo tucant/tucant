@@ -5,6 +5,7 @@ use leptos_router::{NavigateOptions, hooks::use_params_map};
 use tucant_types::{
     Tucan,
     registration::{AnmeldungRequest, RegistrationState},
+    vv::ActionRequest,
 };
 
 use crate::{Route, api_server::ApiServerTucan, common::use_authenticated_data_loader};
@@ -14,11 +15,11 @@ pub fn Registration() -> impl IntoView {
     let params = use_params_map();
     let registration = move || AnmeldungRequest::parse(&params.read().get("registration").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<AnmeldungRequest>| tucan.anmeldung(current_session, revalidation_strategy, additional.get()).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, registration(), 28 * 24 * 60 * 60, 24 * 60 * 60, move |data, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(registration), 28 * 24 * 60 * 60, 24 * 60 * 60, move |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigate(&format!("/registration/{}", data.submenus[0].1.clone()), NavigateOptions::default());
             return view! {

@@ -10,9 +10,9 @@ pub fn course_details() -> impl IntoView {
     let params = use_params_map();
     let course_details = move || CourseDetailsRequest::parse(&params.read().get("course-details").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.course_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<CourseDetailsRequest>| tucan.course_details(&current_session, revalidation_strategy, additional.get()).await;
 
-    use_authenticated_data_loader(handler, course_details(), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(course_details), 14 * 24 * 60 * 60, 60 * 60, |course, reload| {
         view! {
             <div>
                 <h1>

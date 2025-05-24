@@ -8,16 +8,16 @@ use web_sys::MouseEvent;
 
 use crate::api_server::ApiServerTucan;
 
-pub fn use_authenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, LoginResponse, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
+pub fn use_authenticated_data_loader<I: Send + Sync + Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, LoginResponse, RevalidationStrategy, Signal<I>) -> Result<O, TucanError> + Copy + 'static, request: Signal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
     // TODO FIXME don't unwrap session but show error instead
     use_data_loader(true, async move |tucan: Arc<ApiServerTucan>, current_session: Option<LoginResponse>, revalidation_strategy, additional| handler(tucan, current_session.unwrap(), revalidation_strategy, additional).await, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-pub fn use_unauthenticated_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
+pub fn use_unauthenticated_data_loader<I: Send + Sync + Clone + PartialEq + 'static, O: Clone + 'static>(handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, Signal<I>) -> Result<O, TucanError> + Copy + 'static, request: Signal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
     use_data_loader(false, handler, request, cache_age_seconds, max_stale_age_seconds, render)
 }
 
-fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, I) -> Result<O, TucanError> + Copy + 'static, request: I, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
+fn use_data_loader<I: Send + Sync + Clone + PartialEq + 'static, O: Clone + 'static>(authentication_required: bool, handler: impl AsyncFn(Arc<ApiServerTucan>, Option<LoginResponse>, RevalidationStrategy, Signal<I>) -> Result<O, TucanError> + Copy + 'static, request: Signal<I>, cache_age_seconds: i64, max_stale_age_seconds: i64, render: impl Fn(O, Callback<MouseEvent>) -> AnyView + Send + 'static) -> AnyView {
     use reqwest::StatusCode;
 
     let tucan = use_context::<Arc<ApiServerTucan>>().unwrap();
@@ -34,7 +34,7 @@ fn use_data_loader<I: Clone + PartialEq + 'static, O: Clone + 'static>(authentic
             let tucan = tucan.clone();
             let request = request.clone();
             async move {
-                match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request.clone()).await {
+                match handler(tucan.clone(), session.get(), RevalidationStrategy { max_age: cache_age_seconds, invalidate_dependents: Some(true) }, request).await {
                     Ok(response) => {
                         return Ok(response);
 

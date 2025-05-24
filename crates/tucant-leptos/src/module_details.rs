@@ -12,9 +12,9 @@ pub fn ModuleDetails() -> impl IntoView {
     let params = use_params_map();
     let module_details = move || ModuleDetailsRequest::parse(&params.read().get("module-details").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.module_details(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<ModuleDetailsRequest>| tucan.module_details(&current_session, revalidation_strategy, additional.get()).await;
 
-    use_authenticated_data_loader(handler, module_details(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(module_details), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
         view! {
             <div>
                 <h1>

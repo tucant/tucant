@@ -10,7 +10,7 @@ use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 pub fn Mlsstart() -> impl IntoView {
     let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, _additional| tucan.after_login(&current_session, revalidation_strategy).await;
 
-    use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
+    use_authenticated_data_loader(handler, Signal::stored(()), 14 * 24 * 60 * 60, 60 * 60, |mlsstart: MlsStart, reload| {
         view! {
             <div>
                 <h1>

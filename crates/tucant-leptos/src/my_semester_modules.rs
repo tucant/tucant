@@ -16,10 +16,10 @@ pub fn MySemesterModules() -> impl IntoView {
     let params = use_params_map();
     let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
-        let first = tucan.my_modules(&current_session, revalidation_strategy, additional.clone()).await?;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: Signal<SemesterId>| {
+        let first = tucan.my_modules(&current_session, revalidation_strategy, additional.get()).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
-        warn!("after {additional} comes {after:?}");
+        warn!("after {} comes {after:?}", additional.get());
         if let Some(after) = after {
             let second = tucan.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
             let first_modules: HashSet<Module> = first.modules.iter().cloned().collect();
@@ -33,7 +33,7 @@ pub fn MySemesterModules() -> impl IntoView {
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyModulesResponse, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(semester), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyModulesResponse, reload| {
         let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();

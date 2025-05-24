@@ -15,11 +15,11 @@ pub fn StudentResult() -> impl IntoView {
     let params = use_params_map();
     let course_of_study = move || params.read().get("course_of_study").unwrap_or_default();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.student_result(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<u64>| tucan.student_result(&current_session, revalidation_strategy, additional.get()).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, move |student_result: StudentResultResponse, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(move || if course_of_study() == "default" { 0 } else { course_of_study().parse().unwrap() }), 14 * 24 * 60 * 60, 60 * 60, move |student_result: StudentResultResponse, reload| {
         let navigate = navigate.clone();
         let on_course_of_study_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();

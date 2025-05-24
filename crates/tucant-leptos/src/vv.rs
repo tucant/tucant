@@ -11,9 +11,9 @@ pub fn VorlesungsverzeichnisComponent() -> impl IntoView {
     let params = use_params_map();
     let vv = move || ActionRequest::parse(&params.read().get("vv").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional| tucan.vv(current_session.as_ref(), revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session: Option<tucant_types::LoginResponse>, revalidation_strategy, additional: Signal<ActionRequest>| tucan.vv(current_session.as_ref(), revalidation_strategy, additional.get()).await;
 
-    use_unauthenticated_data_loader(handler, vv(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
+    use_unauthenticated_data_loader(handler, Signal::derive(vv).into(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         view! {
             <div class="container">
                 <h2 class="text-center">

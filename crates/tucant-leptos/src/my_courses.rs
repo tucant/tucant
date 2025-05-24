@@ -12,11 +12,11 @@ pub fn MyCourses() -> impl IntoView {
     let params = use_params_map();
     let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.my_courses(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<SemesterId>| tucan.my_courses(&current_session, revalidation_strategy, additional.get()).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyCoursesResponse, reload| {
+    use_authenticated_data_loader(handler, Signal::derive(semester), 14 * 24 * 60 * 60, 60 * 60, move |my_modules: MyCoursesResponse, reload| {
         let navigate = navigate.clone();
         let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
             let value = e.target().value();

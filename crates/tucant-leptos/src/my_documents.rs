@@ -9,7 +9,7 @@ use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 pub fn MyDocuments() -> impl IntoView {
     let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, _additional| tucan.my_documents(&current_session, revalidation_strategy).await;
 
-    use_authenticated_data_loader(handler, (), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
+    use_authenticated_data_loader(handler, Signal::stored(()), 14 * 24 * 60 * 60, 60 * 60, |documents, reload| {
         view! {
             <div>
                 <h1>
