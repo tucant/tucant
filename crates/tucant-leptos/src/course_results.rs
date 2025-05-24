@@ -1,37 +1,33 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
+use leptos::{ev::Targeted, html::Input, prelude::*};
+use leptos_router::{NavigateOptions, hooks::use_params_map};
 use tucant_types::{SemesterId, Tucan, courseresults::ModuleResultsResponse};
-use web_sys::HtmlSelectElement;
-use yew::{Callback, Event, Html, Properties, TargetCast, function_component};
-use yew_router::hooks::use_navigator;
+use web_sys::{Event, HtmlSelectElement};
 
-use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
+use crate::{api_server::ApiServerTucan, common::use_authenticated_data_loader};
 
-#[derive(Properties, PartialEq)]
-pub struct CourseResultsProps {
-    pub semester: SemesterId,
-}
+#[component]
+pub fn CourseResults() -> impl IntoView {
+    let params = use_params_map();
+    let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-#[function_component(CourseResults)]
-pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester }: &CourseResultsProps) -> Html {
-    let handler = async |tucan: RcTucanType<TucanType>, current_session, revalidation_strategy, additional| tucan.0.course_results(&current_session, revalidation_strategy, additional).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional| tucan.course_results(&current_session, revalidation_strategy, additional).await;
 
-    let navigator = use_navigator().unwrap();
+    let navigate = leptos_router::hooks::use_navigate();
 
-    use_authenticated_data_loader(handler, semester.clone(), 14 * 24 * 60 * 60, 60 * 60, |course_results: ModuleResultsResponse, reload| {
-        let on_semester_change = {
-            let navigator = navigator.clone();
-            Callback::from(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::CourseResults { semester: SemesterId::from_str(&value).unwrap() });
-            })
+    use_authenticated_data_loader(handler, semester(), 14 * 24 * 60 * 60, 60 * 60, move |course_results: ModuleResultsResponse, reload| {
+        let navigate = navigate.clone();
+        let on_semester_change = move |e: Targeted<Event, HtmlSelectElement>| {
+            let value = e.target().value();
+            navigate(&format!("/course-results/{}", SemesterId::from_str(&value).unwrap()), NavigateOptions::default());
         };
-        ::yew::html! {
+        view! {
             <div>
                 <h1>
                     { "Modulergebnisse" }
                     { " " }
-                    <button onclick={reload} type="button" class="btn btn-light">
+                    <button /*onclick={reload}*/ type="button" class="btn btn-light">
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
@@ -42,19 +38,19 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                         </svg>
                     </button>
                 </h1>
-                <select onchange={on_semester_change} class="form-select mb-1" aria-label="Select semester">
+                <select on:change:target=on_semester_change class="form-select mb-1" aria-label="Select semester">
                     {
                         course_results
                             .semester
                             .iter()
                             .map(|semester| {
-                                ::yew::html! {
+                                view! {
                                     <option selected={semester.selected} value={semester.value.inner().clone()}>
-                                        { &semester.name }
+                                        { semester.name.clone() }
                                     </option>
                                 }
                             })
-                            .collect::<Html>()
+                            .collect::<Vec<_>>()
                     }
                 </select>
                 <table class="table">
@@ -86,48 +82,57 @@ pub fn course_results<TucanType: Tucan + 'static>(CourseResultsProps { semester 
                     <tbody>
                         {
                             course_results
-                                .results
-                                .iter()
+                                .results.clone()
+                                .into_iter()
                                 .map(|exam| {
-                                    ::yew::html! {
+                                    view! {
                                         <tr>
                                             <th scope="row">
-                                                { &exam.nr }
+                                                { exam.nr.clone() }
                                             </th>
                                             <td>
-                                                { &exam.name }
+                                                { exam.name.clone() }
                                             </td>
                                             <td>
-                                                { &exam.credits }
+                                                { exam.credits.clone() }
                                             </td>
                                             <td>
                                                 { exam.grade.clone().unwrap_or_else(|| "-".to_owned()) }
                                             </td>
                                             <td>
-                                                { &exam.status.clone().unwrap_or_default() }
+                                                { exam.status.clone().unwrap_or_default() }
                                             </td>
                                             <td>
-                                                if let Some(pruefungen_url) = &exam.pruefungen_url {
+                                                {move || if let Some(pruefungen_url) = &exam.pruefungen_url {
+                                                    view! {
                                                     <a href={format!("https://www.tucan.tu-darmstadt.de{}", pruefungen_url)}>
                                                         { "Prüfungen" }
                                                     </a>
-                                                }
+                                                    }.into_any()
+                                                } else {
+                                                    view!{}.into_any()
+                                                }}
                                             </td>
                                             <td>
-                                                if let Some(average_url) = &exam.average_url {
-                                                    <a href={format!("https://www.tucan.tu-darmstadt.de{}", average_url)}>
+                                                {move || if let Some(average_url) = &exam.average_url {
+                                                    view! {
+                                                        <a href={format!("https://www.tucan.tu-darmstadt.de{}", average_url)}>
                                                         { "Ø" }
                                                     </a>
-                                                }
+                                                    }.into_any()
+                                                } else {
+                                                    view!{}.into_any()
+                                                }}
                                             </td>
                                         </tr>
                                     }
                                 })
-                                .collect::<Html>()
+                                .collect::<Vec<_>>()
                         }
                     </tbody>
                 </table>
             </div>
         }
+        .into_any()
     })
 }
