@@ -15,7 +15,7 @@ pub fn Registration() -> impl IntoView {
     let params = use_params_map();
     let registration = move || AnmeldungRequest::parse(&params.read().get("registration").unwrap_or_default());
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<AnmeldungRequest>| tucan.anmeldung(current_session, revalidation_strategy, additional.get()).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: AnmeldungRequest| tucan.anmeldung(current_session, revalidation_strategy, additional).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 

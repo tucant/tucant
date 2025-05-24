@@ -16,10 +16,9 @@ pub fn MySemesterModules() -> impl IntoView {
     let params = use_params_map();
     let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: Signal<SemesterId>| {
-        let first = tucan.my_modules(&current_session, revalidation_strategy, additional.get()).await?;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy: RevalidationStrategy, additional: SemesterId| {
+        let first = tucan.my_modules(&current_session, revalidation_strategy, additional).await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).skip(1).next();
-        warn!("after {} comes {after:?}", additional.get());
         if let Some(after) = after {
             let second = tucan.my_modules(&current_session, revalidation_strategy, after.value.clone()).await?;
             let first_modules: HashSet<Module> = first.modules.iter().cloned().collect();

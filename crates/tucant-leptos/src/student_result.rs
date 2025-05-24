@@ -15,7 +15,7 @@ pub fn StudentResult() -> impl IntoView {
     let params = use_params_map();
     let course_of_study = move || params.read().get("course_of_study").unwrap_or_default();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<u64>| tucan.student_result(&current_session, revalidation_strategy, additional.get()).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: u64| tucan.student_result(&current_session, revalidation_strategy, additional).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 

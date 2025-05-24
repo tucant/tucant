@@ -12,7 +12,7 @@ pub fn CourseResults() -> impl IntoView {
     let params = use_params_map();
     let semester = move || SemesterId::from_str(&params.read().get("semester").unwrap_or_default()).unwrap();
 
-    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: Signal<SemesterId>| tucan.course_results(&current_session, revalidation_strategy, additional.get()).await;
+    let handler = async |tucan: Arc<ApiServerTucan>, current_session, revalidation_strategy, additional: SemesterId| tucan.course_results(&current_session, revalidation_strategy, additional).await;
 
     let navigate = leptos_router::hooks::use_navigate();
 
