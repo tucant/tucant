@@ -22,8 +22,7 @@ pub fn Registration() -> impl IntoView {
     use_authenticated_data_loader(handler, Signal::derive(registration), 28 * 24 * 60 * 60, 24 * 60 * 60, move |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
             navigate(&format!("/registration/{}", data.submenus[0].1.clone()), NavigateOptions::default());
-            return view! { <></> }
-            .into_any();
+            return view! { <></> }.into_any();
         }
         view! {
             <div class="container">
@@ -227,8 +226,6 @@ pub fn Registration() -> impl IntoView {
                                                                     course.1.lecturers.clone().unwrap_or_default(),
                                                                 )}
                                                             </h6>
-                                                            // needing the parentheses is a yew bug
-
                                                             {move || {
                                                                 if let Some(limit_and_size) = &course.1.limit_and_size {
                                                                     view! {

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-trunk build --config ../crates/tucant-yew/Trunk.toml --features direct --dist ../../tucant-extension/dist --public-url /dist --release
+trunk build --config ../crates/tucant-leptos/Trunk.toml --features direct --dist ../../tucant-extension/dist --public-url /dist --release
 
 #ls -lh pkg/tucant_extension_bg.wasm
 

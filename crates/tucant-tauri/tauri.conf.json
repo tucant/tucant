@@ -4,15 +4,15 @@
   "identifier": "de.selfmade4u.tucant",
   "build": {
     "beforeDevCommand": {
-      "cwd": "../tucant-yew",
+      "cwd": "../tucant-leptos",
       "script": "trunk serve --features tauri"
     },
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": {
-      "cwd": "../tucant-yew",
+      "cwd": "../tucant-leptos",
       "script": "trunk build --features tauri"
     },
-    "frontendDist": "../tucant-yew/dist"
+    "frontendDist": "../tucant-leptos/dist"
   },
   "app": {
     "withGlobalTauri": true,

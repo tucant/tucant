@@ -1,7 +1,16 @@
 trunk-version = "^0.21.6"
 
+[build]
+target = "./index.html"
+minify = "never"
+
+[watch]
+watch = ["../../tucant-extension", "../tucant-leptos", "../tucan-connector", "../tucant-types", "../tucant-api/src", "../tucant-api/Cargo.toml", "../key-value-database"]
+ignore = ["../../tucant-extension/dist", "../tucant-leptos/dist"]
+
 [serve]
 port = 1420
+open = false
 
 [[proxy]]
 backend = "http://localhost:3000/api"
