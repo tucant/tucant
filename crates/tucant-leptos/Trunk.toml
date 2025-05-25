@@ -2,6 +2,11 @@ trunk-version = "^0.21.6"
 
 [build]
 target = "./index.html"
+
+# https://github.com/trunk-rs/trunk/issues/288#issuecomment-2888905513
+inject_scripts = false
+filehash = false
+
 minify = "never"
 
 [watch]

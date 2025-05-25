@@ -110,6 +110,7 @@ async fn get_login_response() -> Option<LoginResponse> {
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");
+    panic!("unsupported environment");
 }
 
 #[component]
