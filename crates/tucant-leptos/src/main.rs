@@ -30,8 +30,7 @@ use course_results::CourseResults;
 use exam_results::ExamResults;
 use leptos::prelude::*;
 use leptos_router::{
-    components::{Route, Router, Routes},
-    path,
+    components::{Route, Router, Routes}, location::{HashRouter, Routing, RoutingProvider}, path
 };
 use log::Level;
 use mlsstart::Mlsstart;
@@ -47,7 +46,7 @@ use registration::Registration;
 use root::Root;
 use tucant_types::{LoginResponse, SemesterId};
 use vv::VorlesungsverzeichnisComponent;
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 #[cfg(feature = "direct")]
 pub async fn direct_login_response() -> Option<LoginResponse> {
@@ -121,7 +120,7 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
     provide_context(session);
 
     view! {
-        <Router>
+        <Router base="/dist/index.html" location=HashRouter::new().map(|v| Box::new(v) as Box<dyn Routing<Error = JsValue>>)>
             <Navbar set_session=set_session />
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=Root />

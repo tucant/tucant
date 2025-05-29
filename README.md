@@ -50,7 +50,7 @@ cargo +nightly-2025-04-02 fmt
 
 ```bash
 cd crates/tucant-leptos/
-mkdir ../../tucant-extension/dist
+mkdir -p ../../tucant-extension/dist
 trunk serve --features api
 
 # in second tab

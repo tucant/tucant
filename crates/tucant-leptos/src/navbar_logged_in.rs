@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::{Route, api_server::ApiServerTucan};
 use leptos::prelude::*;
+use leptos_router::components::A;
 use reqwest::StatusCode;
 use tucant_types::{LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, mlsstart::MlsStart, registration::AnmeldungRequest};
 
@@ -100,9 +101,9 @@ pub fn NavbarLoggedIn(set_session: WriteSignal<Option<LoginResponse>>, current_s
             </a>
             <ul class="dropdown-menu">
                 <li>
-                    <a href="/overview" class="dropdown-item bg-success-subtle">
+                    <A href="/overview" attr:class="dropdown-item bg-success-subtle">
                         {"Aktuelles"}
-                    </a>
+                    </A>
                 </li>
                 <li>
                     <hr class="dropdown-divider" />
