@@ -119,8 +119,11 @@ fn App(login_response: Option<LoginResponse>) -> impl IntoView {
     let (session, set_session) = signal(login_response);
     provide_context(session);
 
+    // http://localhost:1420/test#/overview
+    // router should automatically do this
+    // base should apply to the hash part
     view! {
-        <Router base="/dist/index.html" location=HashRouter::new().map(|v| Box::new(v) as Box<dyn Routing<Error = JsValue>>)>
+        <Router location=HashRouter::new().map(|v| Box::new(v) as Box<dyn Routing<Error = JsValue>>)>
             <Navbar set_session=set_session />
             <Routes fallback=|| "Not found.">
                 <Route path=path!("/") view=Root />
