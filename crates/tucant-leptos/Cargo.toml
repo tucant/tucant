@@ -12,8 +12,8 @@ api = []
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
-leptos = { git = "https://github.com/mohe2015/leptos.git", branch = "feature/hash-router", features = ["csr"] }
-leptos_router = { git = "https://github.com/mohe2015/leptos.git", branch = "feature/hash-router" }
+leptos = { git = "https://github.com/mohe2015/leptos.git", branch = "add-hash-router", features = ["csr"] }
+leptos_router = { git = "https://github.com/mohe2015/leptos.git", branch = "add-hash-router" }
 console_log = { version = "1", features = ["color"] }
 log = "0.4.27"
 wasm-bindgen = "0.2"
