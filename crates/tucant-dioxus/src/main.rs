@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use crate::navbar::Navbar;
 
 pub mod navbar;
+pub mod navbar_logged_out;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");

@@ -54,7 +54,7 @@ pub fn Navbar() -> Element {
         nav { class: "navbar navbar-expand-xl bg-body-tertiary",
             div { class: "container-fluid",
                 a { class: "navbar-brand", href: "#/",
-                    "\n                        { \"TUCaN't\" }\n                    "
+                    "TUCaN't"
                 }
                 button {
                     aria_controls: "navbarSupportedContent",
