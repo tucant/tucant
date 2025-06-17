@@ -196,43 +196,6 @@ fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
     })
 }
 
-#[derive(Debug, Clone, PartialEq, Routable)]
-enum Route {
-    #[at("/")]
-    Root,
-    #[not_found]
-    #[at("/404")]
-    NotFound,
-    #[at("/module-details/:module")]
-    ModuleDetails { module: ModuleDetailsRequest },
-    #[at("/course-details/:course")]
-    CourseDetails { course: CourseDetailsRequest },
-    #[at("/registration/:registration")]
-    Registration { registration: AnmeldungRequest },
-    #[at("/registration/")]
-    RootRegistration,
-    #[at("/overview")]
-    Overview,
-    #[at("/vv/:vv")]
-    Vorlesungsverzeichnis { vv: ActionRequest },
-    #[at("/my-modules/:semester")]
-    MyModules { semester: SemesterId },
-    #[at("/my-semester-modules/:semester")]
-    MySemesterModules { semester: SemesterId },
-    #[at("/my-courses/:semester")]
-    MyCourses { semester: SemesterId },
-    #[at("/my-exams/:semester")]
-    MyExams { semester: SemesterId },
-    #[at("/exam-results/:semester")]
-    ExamResults { semester: SemesterId },
-    #[at("/course-results/:semester")]
-    CourseResults { semester: SemesterId },
-    #[at("/my-documents")]
-    MyDocuments,
-    #[at("/student-result/:course_of_study")]
-    StudentResult { course_of_study: String },
-}
-
 fn switch<TucanType: Tucan + 'static>(routes: Route) -> Html {
     match routes {
         Route::Registration { registration } => {

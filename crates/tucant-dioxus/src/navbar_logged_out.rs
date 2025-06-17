@@ -1,21 +1,23 @@
 use tucant_types::vv::ActionRequest;
 use dioxus::prelude::*;
 
+use crate::Route;
+
 
 pub fn NavbarLoggedOut() -> Element {
     rsx! {
-            li { class: "nav-item"
+            li { class: "nav-item",
                 a {
                     class: "nav-link",
                     href:"https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000344,-Awelcome",
                     { "Startseite" }
                 }
             }
-            li { class: "nav-item dropdown"
+            li { class: "nav-item dropdown",
                 a { class: "nav-link dropdown-toggle", href:"#", role:"button", "data-bs-toggle": "dropdown", "aria-expanded": "false",
                     "VV" 
                 }
-                ul { class:"dropdown-menu"
+                ul { class:"dropdown-menu",
                     li {
                         Link {
                             to: Route::Vorlesungsverzeichnis {
