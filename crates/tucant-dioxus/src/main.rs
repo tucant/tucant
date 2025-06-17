@@ -1,7 +1,5 @@
 use dioxus::prelude::*;
-
-use crate::navbar::Navbar;
-
+use tucant_dioxus::{navbar::Navbar, Route};
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
@@ -14,7 +12,7 @@ fn main() {
 fn App() -> Element {
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
-        Navbar {}
+        Router::<Route> {}
         script { src: BOOTSTRAP_JS }
     }
 }

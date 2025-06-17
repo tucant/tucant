@@ -6,6 +6,8 @@ use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use dioxus::prelude::*;
 
+use crate::{navbar_logged_out::NavbarLoggedOut, Route};
+
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
 #[component]
@@ -69,7 +71,8 @@ pub fn Navbar() -> Element {
                 div {
                     class: "collapse navbar-collapse",
                     id: "navbarSupportedContent",
-                    ul { class: "navbar-nav me-auto mb-2 mb-xl-0"
+                    ul { class: "navbar-nav me-auto mb-2 mb-xl-0",
+                        NavbarLoggedOut {}
                 /*if let Some(current_session) = &*current_session_handle {
                                     if let Ok(data) = &*data {
                                         <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />
@@ -109,5 +112,6 @@ pub fn Navbar() -> Element {
                     }
                 }
             }*/
+        Outlet::<Route> {}
     }
 }

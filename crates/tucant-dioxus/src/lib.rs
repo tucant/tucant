@@ -4,10 +4,13 @@ pub mod navbar_logged_out;
 use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId};
 
+use crate::navbar::Navbar;
+
 #[derive(Debug, Clone, Routable, PartialEq)]
-enum Route {
+pub enum Route {
+    #[layout(Navbar)]
     #[route("/")]
-    Root {},
+    Root,
     #[route("/:..route")]
     NotFound { route: Vec<String> },
     #[route("/module-details/:module")]
@@ -46,22 +49,22 @@ fn Root() -> Element {
 }
 
 #[component]
-fn NotFound() -> Element {
+fn NotFound(route: Vec<String>) -> Element {
     rsx! { }
 }
 
 #[component]
-fn ModuleDetails() -> Element {
+fn ModuleDetails(module: ModuleDetailsRequest) -> Element {
     rsx! { }
 }
 
 #[component]
-fn CourseDetails() -> Element {
+fn CourseDetails(course: CourseDetailsRequest) -> Element {
     rsx! { }
 }
 
 #[component]
-fn Registration() -> Element {
+fn Registration(registration: AnmeldungRequest) -> Element {
     rsx! { }
 }
 
@@ -76,36 +79,37 @@ fn Overview() -> Element {
 }
 
 #[component]
-fn Vorlesungsverzeichnis() -> Element {
+fn Vorlesungsverzeichnis(vv: ActionRequest) -> Element {
     rsx! { }
 }
 
 #[component]
-fn MyModules() -> Element {
+fn MyModules(semester: SemesterId) -> Element {
     rsx! { }
 }
 
 #[component]
-fn MySemesterModules() -> Element {
+fn MySemesterModules(semester: SemesterId) -> Element {
     rsx! { }
 }
 
 #[component]
-fn MyCourses() -> Element {
+fn MyCourses(semester: SemesterId) -> Element {
     rsx! { }
 }
 
 #[component]
-fn MyExams() -> Element {
+fn MyExams(semester: SemesterId) -> Element {
     rsx! { }
 }
 
 #[component]
-fn ExamResults() -> Element {
+fn ExamResults(semester: SemesterId) -> Element {
     rsx! { }
 }
+
 #[component]
-fn CourseResults() -> Element {
+fn CourseResults(semester: SemesterId) -> Element {
     rsx! { }
 }
 
@@ -115,6 +119,6 @@ fn MyDocuments() -> Element {
 }
 
 #[component]
-fn StudentResult() -> Element {
+fn StudentResult(course_of_study: String) -> Element {
     rsx! { }
 }
