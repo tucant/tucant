@@ -1,0 +1,16 @@
+[package]
+name = "tucant-dioxus"
+version = "0.1.0"
+authors = ["Moritz Hedtke <Moritz.Hedtke@t-online.de>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "hash-history", features = ["router"] }
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]

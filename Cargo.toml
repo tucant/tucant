@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*"]
+members = ["crates/*", "crates/tucant-dioxus"]
 exclude = ["crates/tucant-tauri"]
 
 [workspace.package]
@@ -21,3 +21,13 @@ missing_errors_doc = "allow"
 
 [profile.release]
 debug = true
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

@@ -49,6 +49,8 @@ cargo +nightly-2025-04-02 fmt
 ### Running as local webserver
 
 ```bash
+cargo install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
+
 cd crates/tucant-yew/
 mkdir ../../tucant-extension/dist
 trunk serve --features api
