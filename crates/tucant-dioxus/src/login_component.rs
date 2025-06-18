@@ -10,18 +10,12 @@ fn LoginComponent<TucanType: Tucan + 'static>() -> Element {
     let mut username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
 
-    let current_session = use_context::<Signal<Option<LoginResponse>>>();
+    let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
     let on_submit = move |e: Event<FormData>| {
         let tucan = tucan.clone();
-        let username = username.clone();
-        let password = password.clone();
-        let current_session = current_session.clone();
         async move  {
-         let tucan = tucan.clone();
-        let username = username.clone();
-        let mut password = password.clone();
-        let mut current_session = current_session.clone();
+        let tucan = tucan.clone();
 
         e.prevent_default();
         password.set("".to_owned());

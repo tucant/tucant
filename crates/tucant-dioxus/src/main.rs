@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use tucant_dioxus::{navbar::Navbar, Route};
+use tucant_types::Tucan;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
 const BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js");
