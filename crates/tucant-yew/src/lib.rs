@@ -91,81 +91,6 @@ pub async fn api_login_response() -> Option<LoginResponse> {
     })
 }
 
-#[function_component(LoginComponent)]
-fn login<TucanType: Tucan + 'static>() -> HtmlResult {
-    let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
-    let username_value_handle = use_state(String::default);
-
-    let on_username_change = {
-        let username_value_handle = username_value_handle.clone();
-
-        Callback::from(move |e: Event| {
-            username_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
-        })
-    };
-
-    let password_value_handle = use_state(String::default);
-
-    let on_password_change = {
-        let password_value_handle = password_value_handle.clone();
-
-        Callback::from(move |e: Event| {
-            password_value_handle.set(e.target_dyn_into::<HtmlInputElement>().unwrap().value());
-        })
-    };
-
-    let current_session = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
-
-    let on_submit = {
-        let username_value_handle = username_value_handle.clone();
-        let password_value_handle = password_value_handle.clone();
-        let current_session = current_session.clone();
-
-        Callback::from(move |e: SubmitEvent| {
-            e.prevent_default();
-            let username = (*username_value_handle).clone();
-            let password = (*password_value_handle).clone();
-            let current_session = current_session.clone();
-            password_value_handle.set("".to_owned());
-
-            let tucan = tucan.clone();
-
-            spawn_local(async move {
-                let response = tucan.0.login(LoginRequest { username, password }).await.unwrap();
-
-                #[cfg(feature = "direct")]
-                web_extensions_sys::chrome()
-                    .cookies()
-                    .set(web_extensions_sys::SetCookieDetails {
-                        name: Some("id".to_owned()),
-                        partition_key: None,
-                        store_id: None,
-                        url: "https://www.tucan.tu-darmstadt.de/scripts/".to_owned(),
-                        domain: None,
-                        path: None,
-                        value: Some(response.id.to_string()),
-                        expiration_date: None,
-                        http_only: None,
-                        secure: Some(true),
-                        same_site: None,
-                    })
-                    .await;
-
-                current_session.set(Some(response.clone()));
-            })
-        })
-    };
-
-    Ok(html! {
-        <form onsubmit={on_submit} class="d-flex">
-            <input id="login-username" onchange={on_username_change} value={(*username_value_handle).clone()} required=true class="form-control me-2" type="username" placeholder="TU-ID" aria-label="TU-ID" autocomplete="current-username" />
-            <input id="login-password" onchange={on_password_change} value={(*password_value_handle).clone()} required=true class="form-control me-2" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" />
-            <button class="btn btn-outline-success" type="submit" id="login-button">{ "Login" }</button>
-        </form>
-    })
-}
-
 #[function_component(LogoutComponent)]
 fn logout<TucanType: Tucan + 'static>() -> HtmlResult {
     let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
@@ -332,18 +257,4 @@ pub fn app<TucanType: Tucan + 'static>(AppProps { initial_session, tucan }: &App
             </ContextProvider<RcTucanType<TucanType>>>
         </>
     })
-}
-
-pub struct RcTucanType<TucanType: Tucan + 'static>(pub Rc<TucanType>);
-
-impl<TucanType: Tucan + 'static> Clone for RcTucanType<TucanType> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl<TucanType: Tucan + 'static> PartialEq for RcTucanType<TucanType> {
-    fn eq(&self, other: &RcTucanType<TucanType>) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
 }

@@ -1,5 +1,7 @@
 pub mod navbar;
 pub mod navbar_logged_out;
+pub mod login_component;
+pub mod rc_tucan_type;
 
 use dioxus::prelude::*;
 use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId};

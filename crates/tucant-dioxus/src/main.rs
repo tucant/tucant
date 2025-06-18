@@ -9,7 +9,9 @@ fn main() {
 }
 
 #[component]
-fn App() -> Element {
+fn App<TucanType: Tucan + 'static>(input: TucanType) -> Element {
+    use_context_provider(|| input);
+
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }
         Router::<Route> {}
