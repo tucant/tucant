@@ -24,6 +24,7 @@ pub fn LoginComponent() -> Element {
         let password_string = password();
         password.set("".to_owned());
 
+        // TODO don't unwrap here but handle error
         let response = tucan.login(LoginRequest { username: username(), password: password_string}).await.unwrap();
 
         #[cfg(feature = "direct")]

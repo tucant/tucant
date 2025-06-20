@@ -14,8 +14,8 @@ use crate::{login_component::LoginComponent, navbar_logged_out::NavbarLoggedOut,
 pub fn Navbar() -> Element {
     let tucan: Rc<DynTucan> = use_context();
 
+    let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
     /*
-    let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
 
@@ -70,21 +70,17 @@ pub fn Navbar() -> Element {
                 div {
                     class: "collapse navbar-collapse",
                     id: "navbarSupportedContent",
-                    ul { class: "navbar-nav me-auto mb-2 mb-xl-0",
-                        NavbarLoggedOut {}
-                        LoginComponent {}
-                /*if let Some(current_session) = &*current_session_handle {
-                                    if let Ok(data) = &*data {
-                                        <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />
-                                    }
-                                } else {
-                                    <NavbarLoggedOut />
-                                }*/ }
-                                /*if !current_session_handle.is_some() {
-                                <LoginComponent<TucanType> />
-                            } else {
-                                <LogoutComponent<TucanType> />
+                    ul {
+                        class: "navbar-nav me-auto mb-2 mb-xl-0",
+                        if let Some(current_session) = current_session() {
+                            /*if let Ok(data) = &*data {
+                                NavbarLoggedIn { current_session: {current_session.clone()} data: {data.clone()} }
                             }*/
+                        } else {
+                            NavbarLoggedOut {}
+                            LoginComponent {}
+                        }
+                    }
                 }
             }
         }
