@@ -34,35 +34,35 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> Element {
 
 #[component]
 pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> Element {
+    let disabled = data.is_none().then_some("disabled").unwrap_or_default();
     rsx! {
-        <>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    { "Aktuelles" }
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <Link<Route> to={Route::Overview} classes="dropdown-item bg-success-subtle">
-                            { "Aktuelles" }
-                        </Link<Route>>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider" />
-                    </li>
-                    <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url))}>
-                            { "Nachrichten" }
+            li { class: "nav-item dropdown",
+                a { class: "nav-link dropdown-toggle", href: "#", role: "button", "data-bs-toggle": "dropdown", "aria-expanded": "false",
+                    "Aktuelles"
+                }
+                ul { class: "dropdown-menu",
+                    li {
+                        Link { to: Route::Overview, class: "dropdown-item bg-success-subtle",
+                            "Aktuelles"
+                        }
+                    }
+                    li {
+                        hr { class: "dropdown-divider" }
+                    }
+                    li {
+                        a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url)),
+                            "Nachrichten"
                             if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
+                                " "
+                                span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
+                                span { class: "visually-hidden", role: "status",
+                                    "Loading..."
+                                }
                             }
-                        </a>
-                    </li>
-                </ul>
-            </li>
+                        }
+                    }
+                }
+            }
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     { "VV" }
@@ -312,6 +312,6 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                 <a class="nav-link" href={format!("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml", current_session.id)}>
                     { "Hilfe" }
                 </a>
-            </li></>
+            </li>
     }
 }
