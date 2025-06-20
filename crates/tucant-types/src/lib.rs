@@ -162,6 +162,7 @@ pub struct Semesterauswahl {
     pub selected: bool,
 }
 
+#[dynosaur::dynosaur(pub DynTucan)]
 pub trait Tucan {
     fn login(&self, request: LoginRequest) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
 

@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use dioxus::prelude::*;
-use tucant_dioxus::{navbar::Navbar, Route};
+use tucant_dioxus::{api_server::ApiServerTucan, navbar::Navbar, rc_tucan_type::RcTucanType, Route};
 use tucant_types::Tucan;
 
 const BOOTSTRAP_CSS: Asset = asset!("/assets/bootstrap.min.css");
@@ -10,8 +12,8 @@ fn main() {
 }
 
 #[component]
-fn App<TucanType: Tucan + 'static>(input: TucanType) -> Element {
-    use_context_provider(|| input);
+fn App() -> Element {
+    use_context_provider(|| RcTucanType(Rc::new(ApiServerTucan::new())));
 
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }

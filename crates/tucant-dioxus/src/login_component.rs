@@ -1,11 +1,13 @@
+use std::rc::Rc;
+
 use dioxus::prelude::*;
-use tucant_types::{LoginRequest, LoginResponse, Tucan};
+use tucant_types::{DynTucan, LoginRequest, LoginResponse, Tucan};
 
 use crate::rc_tucan_type::RcTucanType;
 
 #[component]
-fn LoginComponent<TucanType: Tucan + 'static>() -> Element {
-    let tucan: RcTucanType<TucanType> = use_context();
+pub fn LoginComponent() -> Element {
+    let tucan: Rc<DynTucan> = use_context();
 
     let mut username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
@@ -20,7 +22,7 @@ fn LoginComponent<TucanType: Tucan + 'static>() -> Element {
         e.prevent_default();
         password.set("".to_owned());
 
-        let response = tucan.0.login(LoginRequest { username: username(), password: password() }).await.unwrap();
+        let response = tucan.login(LoginRequest { username: username(), password: password() }).await.unwrap();
 
         #[cfg(feature = "direct")]
         web_extensions_sys::chrome()

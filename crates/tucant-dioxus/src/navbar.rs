@@ -1,21 +1,20 @@
-use std::ops::Deref;
+use std::{ops::Deref, rc::Rc};
 
 use log::error;
 use reqwest::StatusCode;
-use tucant_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
+use tucant_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError};
 use wasm_bindgen_futures::spawn_local;
 use dioxus::prelude::*;
 
-use crate::{navbar_logged_out::NavbarLoggedOut, Route};
+use crate::{login_component::LoginComponent, navbar_logged_out::NavbarLoggedOut, rc_tucan_type::RcTucanType, Route};
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
 
 #[component]
 pub fn Navbar() -> Element {
-    // <TucanType: Tucan + 'static>
+    let tucan: Rc<DynTucan> = use_context();
 
-    /*let tucan: RcTucanType<TucanType> = use_context().expect("no ctx found");
-
+    /*
     let current_session_handle = use_context::<UseStateHandle<Option<LoginResponse>>>().expect("no ctx found");
 
     let data = use_state(|| Ok(None));
@@ -73,6 +72,7 @@ pub fn Navbar() -> Element {
                     id: "navbarSupportedContent",
                     ul { class: "navbar-nav me-auto mb-2 mb-xl-0",
                         NavbarLoggedOut {}
+                        LoginComponent {}
                 /*if let Some(current_session) = &*current_session_handle {
                                     if let Ok(data) = &*data {
                                         <NavbarLoggedIn current_session={current_session.clone()} data={data.clone()} />

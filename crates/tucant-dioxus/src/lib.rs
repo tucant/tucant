@@ -2,17 +2,18 @@ pub mod navbar;
 pub mod navbar_logged_out;
 pub mod login_component;
 pub mod rc_tucan_type;
+pub mod api_server;
 
 use dioxus::prelude::*;
-use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId};
+use tucant_types::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest, registration::AnmeldungRequest, vv::ActionRequest, SemesterId, Tucan};
 
 use crate::navbar::Navbar;
 
-#[derive(Debug, Clone, Routable, PartialEq)]
+#[derive(Clone, Routable, PartialEq)]
 pub enum Route {
     #[layout(Navbar)]
     #[route("/")]
-    Root,
+    Root {},
     #[route("/:..route")]
     NotFound { route: Vec<String> },
     #[route("/module-details/:module")]
@@ -22,9 +23,9 @@ pub enum Route {
     #[route("/registration/:registration")]
     Registration { registration: AnmeldungRequest },
     #[route("/registration/")]
-    RootRegistration,
+    RootRegistration {},
     #[route("/overview")]
-    Overview,
+    Overview {},
     #[route("/vv/:vv")]
     Vorlesungsverzeichnis { vv: ActionRequest },
     #[route("/my-modules/:semester")]
@@ -40,7 +41,7 @@ pub enum Route {
     #[route("/course-results/:semester")]
     CourseResults { semester: SemesterId },
     #[route("/my-documents")]
-    MyDocuments,
+    MyDocuments {},
     #[route("/student-result/:course_of_study")]
     StudentResult { course_of_study: String },
 }
