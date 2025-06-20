@@ -10,26 +10,29 @@ pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> Element {
             data.iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
                 .map(|(name, url)| {
-                    ::yew::html! {
-                        <li>
-                            <Link<Route> to={Route::Vorlesungsverzeichnis { vv: url.clone() }} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
-                                { name }
+                    let disabled = data.is_none().then_some("disabled").unwrap_or_default();
+                    rsx! {
+                        li {
+                            Link {
+                                to: Route::Vorlesungsverzeichnis { vv: url.clone() },
+                                class: "dropdown-item bg-success-subtle {disabled}",
+                                "{name}"
                                 if data.is_none() {
-                                    { " " }
-                                    <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                    <span class="visually-hidden" role="status">
-                                        { "Loading..." }
-                                    </span>
+                                    " "
+                                    span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
+                                    span { class: "visually-hidden", role: "status",
+                                        "Loading..."
+                                    }
                                 }
-                            </Link<Route>>
-                        </li>
+                            }
+                        }
                     }
                 })
-                .collect::<Html>()
         }
     }
 }
 
+#[component]
 pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> Element {
     rsx! {
         <>

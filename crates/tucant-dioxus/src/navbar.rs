@@ -6,9 +6,11 @@ use tucant_types::{DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanEr
 use wasm_bindgen_futures::spawn_local;
 use dioxus::prelude::*;
 
-use crate::{login_component::LoginComponent, navbar_logged_out::NavbarLoggedOut, rc_tucan_type::RcTucanType, Route};
+use crate::{login_component::LoginComponent, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut, rc_tucan_type::RcTucanType, Route};
 
 //use crate::{LoginComponent, LogoutComponent, RcTucanType, navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
+
+// https://github.com/marc2332/dioxus-query
 
 #[component]
 pub fn Navbar() -> Element {
@@ -70,7 +72,7 @@ pub fn Navbar() -> Element {
                         class: "navbar-nav me-auto mb-2 mb-xl-0",
                         if let Some(current_session) = current_session() {
                             if let Some(Ok(data)) = data() {
-                                NavbarLoggedIn { current_session: {current_session.clone()} data: {data.clone()} }
+                                NavbarLoggedIn { current_session: current_session, data: data }
                             }
                         } else {
                             NavbarLoggedOut {}
