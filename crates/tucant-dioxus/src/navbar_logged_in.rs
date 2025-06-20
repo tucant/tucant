@@ -1,17 +1,11 @@
 use tucant_types::{LoginResponse, SemesterId, mlsstart::MlsStart, registration::AnmeldungRequest};
-use yew::{Html, Properties, classes, function_component};
-use yew_router::prelude::Link;
+use dioxus::prelude::*;
 
 use crate::Route;
 
-#[derive(Properties, PartialEq)]
-pub struct VorlesungsverzeichnisseProps {
-    pub data: Option<MlsStart>,
-}
-
-#[function_component(Vorlesungsverzeichnisse)]
-pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &VorlesungsverzeichnisseProps) -> Html {
-    ::yew::html! {
+#[component]
+pub fn Vorlesungsverzeichnisse(data: Option<MlsStart>) -> Element {
+    rsx! {
         {
             data.iter()
                 .flat_map(|v| v.logged_in_head.vv.vvs.iter())
@@ -36,15 +30,8 @@ pub fn vorlesungsverzeichnisse(VorlesungsverzeichnisseProps { data }: &Vorlesung
     }
 }
 
-#[derive(Properties, PartialEq)]
-pub struct NavbarLoggedInProps {
-    pub current_session: LoginResponse,
-    pub data: Option<MlsStart>,
-}
-
-#[function_component(NavbarLoggedIn)]
-pub fn navbar_logged_in(NavbarLoggedInProps { current_session, data }: &NavbarLoggedInProps) -> Html {
-    ::yew::html! {
+pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> Element {
+    rsx! {
         <>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

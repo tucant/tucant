@@ -15,42 +15,38 @@ pub fn Navbar() -> Element {
     let tucan: Rc<DynTucan> = use_context();
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
-    /*
-
-    let data = use_state(|| Ok(None));
-
-    {
-        let data = data.clone();
-        use_effect_with(current_session_handle.clone(), move |current_session_handle| {
-            if let Some(current_session) = (&**current_session_handle).to_owned() {
-                let current_session_handle = current_session_handle.clone();
-                spawn_local(async move {
-                    match tucan.0.after_login(&current_session, RevalidationStrategy::cache()).await {
-                        Ok(response) => {
-                            data.set(Ok(Some(response)));
+    
+    let data = use_resource(move || {
+        let tucan = tucan.clone();
+        async move {
+        if let Some(the_current_session) = current_session() {
+            match tucan.after_login(&the_current_session, RevalidationStrategy::cache()).await {
+                Ok(response) => {
+                    return Ok(Some(response));
+                }
+                Err(error) => {
+                    // TODO pass through tucanerror from server
+                    error!("{}", error);
+                    match error {
+                        TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
+                            current_session.set(None);
+                            return Err("Unauthorized".to_owned())
                         }
-                        Err(error) => {
-                            // TODO pass through tucanerror from server
-                            error!("{}", error);
-                            match error {
-                                TucanError::Http(ref req) if req.status() == Some(StatusCode::UNAUTHORIZED) => {
-                                    current_session_handle.set(None);
-                                    data.set(Err("Unauthorized".to_owned()))
-                                }
-                                TucanError::Timeout | TucanError::AccessDenied => {
-                                    current_session_handle.set(None);
-                                }
-                                _ => {
-                                    data.set(Err(error.to_string()));
-                                }
-                            }
+                        TucanError::Timeout | TucanError::AccessDenied => {
+                            current_session.set(None);
+                            return Ok(None); // TODO FIXME
+                        }
+                        _ => {
+                            return Err(error.to_string());
                         }
                     }
-                })
+                }
             }
-        });
-    }*/
-
+        } else {
+            return Ok(None);
+        }
+    }});
+             
     rsx! {
         nav { class: "navbar navbar-expand-xl bg-body-tertiary",
             div { class: "container-fluid",
@@ -73,9 +69,9 @@ pub fn Navbar() -> Element {
                     ul {
                         class: "navbar-nav me-auto mb-2 mb-xl-0",
                         if let Some(current_session) = current_session() {
-                            /*if let Ok(data) = &*data {
+                            if let Some(Ok(data)) = data() {
                                 NavbarLoggedIn { current_session: {current_session.clone()} data: {data.clone()} }
-                            }*/
+                            }
                         } else {
                             NavbarLoggedOut {}
                             LoginComponent {}
