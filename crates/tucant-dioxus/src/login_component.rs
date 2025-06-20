@@ -20,9 +20,11 @@ pub fn LoginComponent() -> Element {
         let tucan = tucan.clone();
 
         e.prevent_default();
+        
+        let password_string = password();
         password.set("".to_owned());
 
-        let response = tucan.login(LoginRequest { username: username(), password: password() }).await.unwrap();
+        let response = tucan.login(LoginRequest { username: username(), password: password_string}).await.unwrap();
 
         #[cfg(feature = "direct")]
         web_extensions_sys::chrome()

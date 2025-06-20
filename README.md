@@ -51,14 +51,13 @@ cargo +nightly-2025-04-02 fmt
 ```bash
 cargo install --git https://github.com/mohe2015/dioxus --branch hash-history dioxus-cli --locked
 
-cd crates/tucant-yew/
-mkdir ../../tucant-extension/dist
-trunk serve --features api
+cd crates/tucant-dioxus/
+dx serve
 
 # in second tab
 bacon tucant-api
 
-# http://localhost:1420/#/
+# http://localhost:8080/#/
 ```
 
 ### Developing the extension
