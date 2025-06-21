@@ -7,10 +7,10 @@ use crate::{
     common::use_authenticated_data_loader};
 
 #[component]
-pub fn ModuleDetails(module_details: ModuleDetailsRequest) -> Element {
+pub fn ModuleDetails(module: ModuleDetailsRequest) -> Element {
     let handler = async |tucan: Rc<DynTucan>, current_session, revalidation_strategy, additional| tucan.module_details(&current_session, revalidation_strategy, additional).await;
 
-    use_authenticated_data_loader(handler, module_details.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
+    use_authenticated_data_loader(handler, module.clone(), 14 * 24 * 60 * 60, 60 * 60, |module, reload| {
         rsx! {
             div {
                 h1 {

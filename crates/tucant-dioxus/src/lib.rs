@@ -98,8 +98,6 @@ pub enum Route {
     CourseDetails { course: CourseDetailsRequest },
     #[route("/registration/:registration")]
     Registration { registration: AnmeldungRequest },
-    #[route("/registration/")]
-    RootRegistration {},
     #[route("/overview")]
     Overview {},
     #[route("/vv/:vv")]
@@ -120,4 +118,43 @@ pub enum Route {
     MyDocuments {},
     #[route("/student-result/:course_of_study")]
     StudentResult { course_of_study: String },
+}
+
+#[component]
+pub fn NotFound(route: Vec<String>) -> Element {
+    rsx! {
+        h1 { "Page not found" }
+    }
+}
+
+#[component]
+pub fn Root() -> Element {
+    rsx! {
+        div { class: "container",
+            h1 {
+                { "Willkommen bei TUCaN't!" }
+            }
+            p {
+                { "Du kannst gerne die " }
+                a { href: "https://tucant.github.io/tucant/", target: "_blank",
+                    { "Browsererweiterung herunterladen" }
+                }
+                { ", falls Du diese noch nicht verwendest." }
+            }
+            p {
+                { "Der Quellcode dieses Projekts ist unter der AGPL-3.0 Lizenz auf " }
+                a { href: "https://github.com/tucant/tucant/", target: "_blank",
+                    { "GitHub" }
+                }
+                { " verfügbar." }
+            }
+            p {
+                { "Du kannst Dir deine " }
+                a { href: "#/registration/",
+                    { "anmeldbaren Module ansehen" }
+                }
+                { "." }
+            }
+        }
+    }
 }
