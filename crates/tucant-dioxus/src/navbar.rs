@@ -74,11 +74,14 @@ pub fn Navbar() -> Element {
                             if let Some(Ok(data)) = data() {
                                 NavbarLoggedIn { current_session: current_session, data: data }
                             }
-                            LogoutComponent {}
                         } else {
                             NavbarLoggedOut {}
-                            LoginComponent {}
                         }
+                    }
+                    if let Some(current_session) = current_session() {
+                        LogoutComponent {}
+                    } else {
+                        LoginComponent {}
                     }
                 }
             }
