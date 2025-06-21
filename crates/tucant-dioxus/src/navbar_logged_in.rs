@@ -63,43 +63,43 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     }
                 }
             }
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    { "VV" }
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <Link<Route> to={data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound)} classes={classes!("dropdown-item", "bg-success-subtle", Some(data.is_none().then_some("disabled")))}>
-                            { "Vorlesungsverzeichnis" }
+            li { class:"nav-item dropdown",
+                a { class:"nav-link dropdown-toggle", href:"#", role:"button", "data-bs-toggle": "dropdown", "aria-expanded": "false",
+                    "VV"
+                }
+                ul { class: "dropdown-menu",
+                    li {
+                        Link { to: data.as_ref().map(|d| Route::Vorlesungsverzeichnis { vv: d.logged_in_head.vorlesungsverzeichnis_url.clone() }).unwrap_or(Route::NotFound), class="dropdown-item bg-success-subtle {disabled}",
+                            "Vorlesungsverzeichnis"
                             if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
+                                " "
+                                span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
+                                span { class: "visually-hidden", role: "status",
+                                    "Loading..."
+                                }
                             }
-                        </Link<Route>>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider" />
-                    </li>
-                    <li>
-                        <a class={classes!("dropdown-item", Some(data.is_none().then_some("disabled")))} href={data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url))}>
-                            { "Lehrveranstaltungssuche" }
+                        }
+                    }
+                    li {
+                        hr { class: "dropdown-divider" }
+                    }
+                    li {
+                        a { class: "dropdown-item {disabled}", href: data.as_ref().map(|v| format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.vv.lehrveranstaltungssuche_url)),
+                            "Lehrveranstaltungssuche"
                             if data.is_none() {
-                                { " " }
-                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true" />
-                                <span class="visually-hidden" role="status">
-                                    { "Loading..." }
-                                </span>
+                                " "
+                                span { class: "spinner-grow spinner-grow-sm", "aria-hidden": "true" }
+                                span { class: "visually-hidden", role: "status",
+                                    "Loading..."
+                                }
                             }
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N588840428781170,-N000387,">
-                            { "Raumsuche" }
-                        </a>
-                    </li>
+                        }
+                    }
+                    li {
+                        a { class: "dropdown-item", href: "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SEARCHROOM&ARGUMENTS=-N588840428781170,-N000387,",
+                            "Raumsuche"
+                        }
+                    }
                     <Vorlesungsverzeichnisse data={data.clone()} />
                     <li>
                         <a class="dropdown-item" href="https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N588840428781170,-N000464,-Avvarchivstart%2Ehtml">
