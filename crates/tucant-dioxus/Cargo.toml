@@ -18,6 +18,7 @@ console_log = { version = "1", features = ["color"] }
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement"] }
+cookie = "0.18"
 
 [features]
 direct = [] # "dep:tucan-connector", "dep:web-extensions-sys"

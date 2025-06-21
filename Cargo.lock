@@ -5461,6 +5461,7 @@ name = "tucant-dioxus"
 version = "0.1.0"
 dependencies = [
  "console_log",
+ "cookie",
  "dioxus",
  "js-sys",
  "log",

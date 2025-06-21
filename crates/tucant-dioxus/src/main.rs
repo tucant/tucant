@@ -25,8 +25,8 @@ extern "C" {
     fn stack(error: &Error) -> String;
 }
 
-
-fn main() {
+#[wasm_bindgen(main)]
+async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
     panic::set_hook(Box::new(|info| {
         let mut msg = info.to_string();
@@ -54,25 +54,22 @@ fn main() {
     }
     #[cfg(feature = "api")]
     {
-        let login_response = tucant_yew::api_login_response().await;
-        yew::Renderer::<tucant_yew::App<tucant_yew::api_server::ApiServerTucan>>::with_props(tucant_yew::AppProps {
-            initial_session: login_response,
-            tucan: tucant_yew::RcTucanType(std::rc::Rc::new(tucant_yew::api_server::ApiServerTucan::new())),
-        })
-        .render();
+        let login_response = tucant_dioxus::api_login_response().await;
+
+        dioxus::LaunchBuilder::new()
+            .with_context_provider(move || Box::new(login_response.clone()))
+            .with_context_provider(|| Box::new(DynTucan::new_rc(ApiServerTucan::new())))
+            .launch(App);
     }
     #[cfg(not(any(feature = "direct", feature = "api")))]
     panic!("must activate at least feature `direct` or `api`");
-
-    dioxus::launch(App);
 }
 
 #[component]
 fn App() -> Element {
-    let mut session = use_signal(|| None::<LoginResponse>);
-
-    use_context_provider(|| session);
-    use_context_provider(|| DynTucan::new_rc(ApiServerTucan::new()));
+    let session = use_context::<Option<LoginResponse>>();
+    let mut session = use_signal(|| session);
+    provide_context(session);
 
     rsx! {
         document::Link { rel: "stylesheet", href: BOOTSTRAP_CSS }

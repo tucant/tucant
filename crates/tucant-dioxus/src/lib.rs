@@ -41,14 +41,14 @@ pub async fn direct_login_response() -> Option<LoginResponse> {
 }
 
 #[cfg(feature = "api")]
-pub async fn api_login_response() -> Option<LoginResponse> {
+pub async fn api_login_response() -> Option<tucant_types::LoginResponse> {
     use wasm_bindgen::JsCast;
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
     let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
     let cookie = html_document.cookie().unwrap();
 
-    Some(LoginResponse {
+    Some(tucant_types::LoginResponse {
         id: cookie::Cookie::split_parse(&cookie)
             .find_map(|cookie| {
                 let cookie = cookie.unwrap();

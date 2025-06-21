@@ -17,7 +17,6 @@ api = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 key-value-database = { path = "../key-value-database" }
-cookie = "0.18"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 yew-autoprops = "0.4.1"
