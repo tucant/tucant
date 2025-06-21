@@ -16,7 +16,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
 
     use_authenticated_data_loader(handler, registration.to_owned(), 28 * 24 * 60 * 60, 24 * 60 * 60, |data, reload| {
         if data.submenus.len() == 1 && data.additional_information.is_empty() && data.entries.is_empty() {
-            navigator.replace(&Route::Registration { registration: data.submenus[0].1.clone() });
+            navigator.replace(Route::Registration { registration: data.submenus[0].1.clone() });
             return rsx! {
                 
             };
@@ -25,18 +25,18 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
             div { class: "container",
                 h2 { class: "text-center",
                     { "Registration " }
-                    button { onclick: reload, type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button", class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg { xmlns: "http://www.w3.org/2000/svg" width: "16" height: "16" fill: "currentColor" class: "bi bi-arrow-clockwise" viewBox: "0 0 16 16",
-                            path { fill-rule: "evenodd" d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
+                        svg { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", fill: "currentColor", class: "bi bi-arrow-clockwise", view_box: "0 0 16 16",
+                            path { "fill-rule": "evenodd", d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
                             path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                         }
                     }
                 }
-                nav { style: "min-height: 5.5rem" aria-label: "breadcrumb",
+                nav { style: "min-height: 5.5rem", "aria-label": "breadcrumb",
                     ol { class: "breadcrumb",
                         {
                             data.path
@@ -56,7 +56,7 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                 }
                 // TODO FIXME this is dangerous
 
-                { Html::from_html_unchecked(data.additional_information.join("\n").into()) }
+                div { dangerous_inner_html: data.additional_information.join("\n") }
                 h2 { class: "text-center",
                     { "Submenus" }
                 }
@@ -113,14 +113,14 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                         }
                                         {
                                             module.map(|module| match &module.registration_state {
-                                                RegistrationState::Unknown => yew::html! {},
+                                                RegistrationState::Unknown => rsx! {},
                                                 RegistrationState::Registered { unregister_link } => rsx! {
-                                                    a { class: "btn btn-danger mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
+                                                    a { class: "btn btn-danger mb-1", role: "button", href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
                                                         { "Vom Modul abmelden" }
                                                     }
                                                 },
                                                 RegistrationState::NotRegistered { register_link } => rsx! {
-                                                    a { class: "btn btn-outline-success mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
+                                                    a { class: "btn btn-outline-success mb-1", role: "button", href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
                                                         { "Zum Modul anmelden" }
                                                     }
                                                 },
@@ -163,14 +163,14 @@ pub fn Registration(registration: AnmeldungRequest) -> Element {
                                                                 }
                                                                 {
                                                                     match &course.1.registration_button_link {
-                                                                        RegistrationState::Unknown => yew::html! {},
+                                                                        RegistrationState::Unknown => rsx! {},
                                                                         RegistrationState::Registered { unregister_link } => rsx! {
-                                                                            a { class: "btn btn-danger mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
+                                                                            a { class: "btn btn-danger mb-1", role: "button", href: format!("https://www.tucan.tu-darmstadt.de{}", unregister_link.clone()),
                                                                                 { "Vom Kurs abmelden" }
                                                                             }
                                                                         },
                                                                         RegistrationState::NotRegistered { register_link } => rsx! {
-                                                                            a { class: "btn btn-outline-success mb-1" role: "button" href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
+                                                                            a { class: "btn btn-outline-success mb-1", role: "button", href: format!("https://www.tucan.tu-darmstadt.de{}", register_link.clone()),
                                                                                 { "Zum Kurs anmelden" }
                                                                             }
                                                                         },

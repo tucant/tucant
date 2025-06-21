@@ -16,27 +16,27 @@ pub fn StudentResult(course_of_study: String) -> Element {
     use_authenticated_data_loader(handler, if course_of_study == "default" { 0 } else { course_of_study.parse().unwrap() }, 14 * 24 * 60 * 60, 60 * 60, |student_result: StudentResultResponse, reload| {
         let on_course_of_study_change = {
             let navigator = navigator.clone();
-            Callback::new(move |e: Event| {
-                let value = e.target_dyn_into::<HtmlSelectElement>().unwrap().value();
-                navigator.push(&Route::StudentResult { course_of_study: value });
+            Callback::new(move |e: Event<FormData>| {
+                let value = e.value();
+                navigator.push(Route::StudentResult { course_of_study: value });
             })
         };
         rsx! {
                 h1 {
                     { "Leistungsspiegel" }
                     { " " }
-                    button { onclick: reload, type: "button" class: "btn btn-light",
+                    button { onclick: reload, type: "button", class: "btn btn-light",
                         // https://github.com/twbs/icons
                         // The MIT License (MIT)
                         // Copyright (c) 2019-2024 The Bootstrap Authors
 
-                        svg { xmlns: "http://www.w3.org/2000/svg" width: "16" height: "16" fill: "currentColor" class: "bi bi-arrow-clockwise" viewBox: "0 0 16 16",
-                            path { fill-rule: "evenodd" d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
+                        svg { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", fill: "currentColor", class: "bi bi-arrow-clockwise", view_box: "0 0 16 16",
+                            path { "fill-rule": "evenodd", d: "M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" }
                             path { d: "M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" }
                         }
                     }
                 }
-                select { onchange: on_course_of_study_change, class: "form-select mb-1" aria-label: "Select course of study",
+                select { onchange: on_course_of_study_change, class: "form-select mb-1", "aria-label": "Select course of study",
                     {
                         student_result
                             .course_of_study
@@ -62,16 +62,9 @@ pub fn StudentResult(course_of_study: String) -> Element {
     })
 }
 
-#[derive(Properties, PartialEq)]
-pub struct StudentResultLevelProps {
-    pub level: StudentResultLevel,
-    pub path: Vec<String>,
-}
-
-#[function_component(StudentResultLevelComponent)]
-pub fn student_result_level<TucanType: Tucan + 'static>(StudentResultLevelProps { level, path }: &StudentResultLevelProps) -> Html {
+#[component]
+pub fn StudentResultLevelComponent(level: StudentResultLevel, path: Vec<String>) -> Element {
     rsx! {
-        <>
             if !level.entries.is_empty() {
                 h5 {
                     nav { aria-label: "breadcrumb",
